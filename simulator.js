@@ -5,18 +5,30 @@ let height = window.innerHeight;
 canvas.width = width;
 canvas.height = height;
 
-// vessel geometry: union of vertical and branch rectangles
+const centerX = width / 2;
+
+// vessel geometry extruded into 3D (rectangular prisms)
 const vessel = {
-    main: {x1: width/2 - 20, x2: width/2 + 20, y1: 0, y2: height},
-    branch: {x1: width/2 + 20, x2: width/2 + 300, y1: height/3 - 20, y2: height/3 + 20}
+    main: {x1: centerX - 20, x2: centerX + 20, y1: 0, y2: height, z1: -20, z2: 20},
+    branch: {x1: centerX + 20, x2: centerX + 300, y1: height/3 - 20, y2: height/3 + 20, z1: -20, z2: 20}
 };
 
-function insideVessel(x, y) {
+function clamp(v, min, max) {
+    return Math.min(Math.max(v, min), max);
+}
+
+function clampToVessel(n) {
     const m = vessel.main;
     const b = vessel.branch;
-    const inMain = x >= m.x1 && x <= m.x2 && y >= m.y1 && y <= m.y2;
-    const inBranch = x >= b.x1 && x <= b.x2 && y >= b.y1 && y <= b.y2;
-    return inMain || inBranch;
+    if (n.y >= b.y1 && n.y <= b.y2 && n.x >= b.x1) {
+        n.x = clamp(n.x, b.x1 + 1, b.x2 - 1);
+        n.y = clamp(n.y, b.y1 + 1, b.y2 - 1);
+        n.z = clamp(n.z, b.z1 + 1, b.z2 - 1);
+    } else {
+        n.x = clamp(n.x, m.x1 + 1, m.x2 - 1);
+        n.y = clamp(n.y, m.y1 + 1, m.y2 - 1);
+        n.z = clamp(n.z, m.z1 + 1, m.z2 - 1);
+    }
 }
 
 // guidewire representation
@@ -26,41 +38,50 @@ const nodes = [];
 
 for (let i = 0; i < nodeCount; i++) {
     nodes.push({
-        x: width/2,
+        x: centerX,
         y: -i * segmentLength,
-        px: width/2,
-        py: -i * segmentLength
+        z: 0,
+        px: centerX,
+        py: -i * segmentLength,
+        pz: 0
     });
 }
 
 let head = nodes[0];
 
-// control
-const control = {x: 0, y: 0};
+// control including depth (z) with W/S keys
+const control = {x: 0, y: 0, z: 0};
 window.addEventListener('keydown', e => {
     if (e.key === 'ArrowUp') control.y = -1;
     if (e.key === 'ArrowDown') control.y = 1;
     if (e.key === 'ArrowLeft') control.x = -1;
     if (e.key === 'ArrowRight') control.x = 1;
+    if (e.key === 'w' || e.key === 'W') control.z = -1;
+    if (e.key === 's' || e.key === 'S') control.z = 1;
 });
 window.addEventListener('keyup', e => {
     if (['ArrowUp','ArrowDown'].includes(e.key)) control.y = 0;
     if (['ArrowLeft','ArrowRight'].includes(e.key)) control.x = 0;
+    if (['w','W','s','S'].includes(e.key)) control.z = 0;
 });
 
 function step() {
     // move head by control
     head.x += control.x * 2;
     head.y += control.y * 2;
+    head.z += control.z * 2;
 
     // verlet integration
     for (const n of nodes) {
         const vx = (n.x - n.px) * 0.98;
         const vy = (n.y - n.py) * 0.98;
+        const vz = (n.z - n.pz) * 0.98;
         n.px = n.x;
         n.py = n.y;
+        n.pz = n.z;
         n.x += vx;
         n.y += vy;
+        n.z += vz;
     }
 
     // constraint iterations
@@ -70,38 +91,32 @@ function step() {
             const b = nodes[i];
             let dx = b.x - a.x;
             let dy = b.y - a.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
+            let dz = b.z - a.z;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
             const diff = (dist - segmentLength) / dist;
             const offsetX = dx * 0.5 * diff;
             const offsetY = dy * 0.5 * diff;
+            const offsetZ = dz * 0.5 * diff;
             a.x += offsetX;
             a.y += offsetY;
+            a.z += offsetZ;
             b.x -= offsetX;
             b.y -= offsetY;
+            b.z -= offsetZ;
         }
-        // fix head after adjustments
-        head.x = Math.min(Math.max(head.x, vessel.main.x1 + 1), vessel.main.x2 - 1);
-        head.y = Math.max(head.y, 0);
+        clampToVessel(head);
     }
 
     // collisions with vessel boundaries
     for (const n of nodes) {
-        if (!insideVessel(n.x, n.y)) {
-            if (n.y < vessel.branch.y1 || n.y > vessel.branch.y2 || n.x < vessel.branch.x1) {
-                n.x = Math.min(Math.max(n.x, vessel.main.x1+1), vessel.main.x2-1);
-            }
-            if (n.y > vessel.branch.y1 && n.y < vessel.branch.y2 && n.x > vessel.main.x2) {
-                n.y = Math.min(Math.max(n.y, vessel.branch.y1+1), vessel.branch.y2-1);
-                n.x = Math.min(Math.max(n.x, vessel.branch.x1+1), vessel.branch.x2-1);
-            }
-        }
+        clampToVessel(n);
     }
 }
 
 function draw() {
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.fillRect(0, 0, width, height);
-    // vessel
+    // vessel projection (orthographic like fluoroscopy)
     ctx.fillStyle = 'rgba(120,120,120,0.4)';
     const m = vessel.main;
     ctx.fillRect(m.x1, m.y1, m.x2 - m.x1, m.y2 - m.y1);
