@@ -7,10 +7,11 @@ canvas.height = height;
 
 const centerX = width / 2;
 
-// vessel geometry extruded into 3D (rectangular prisms)
+// vessel represented as cylindrical tubes
 const vessel = {
-    main: {x1: centerX - 20, x2: centerX + 20, y1: 0, y2: height, z1: -20, z2: 20},
-    branch: {x1: centerX + 20, x2: centerX + 300, y1: height/3 - 20, y2: height/3 + 20, z1: -20, z2: 20}
+    radius: 20,
+    main: {x: centerX, y1: 0, y2: height},              // vertical tube
+    branch: {y: height / 3, x1: centerX, x2: centerX + 300} // horizontal tube
 };
 
 function clamp(v, min, max) {
@@ -18,16 +19,35 @@ function clamp(v, min, max) {
 }
 
 function clampToVessel(n) {
+    const r = vessel.radius - 1; // keep inside slightly
     const m = vessel.main;
     const b = vessel.branch;
-    if (n.y >= b.y1 && n.y <= b.y2 && n.x >= b.x1) {
+    const inBranch = n.x >= b.x1 && Math.abs(n.y - b.y) <= vessel.radius;
+
+    if (inBranch) {
+        // branch tube runs along +x direction
         n.x = clamp(n.x, b.x1 + 1, b.x2 - 1);
-        n.y = clamp(n.y, b.y1 + 1, b.y2 - 1);
-        n.z = clamp(n.z, b.z1 + 1, b.z2 - 1);
+        let dy = n.y - b.y;
+        let dz = n.z;
+        const dist = Math.hypot(dy, dz);
+        if (dist > r) {
+            const s = r / dist;
+            dy *= s; dz *= s;
+            n.y = b.y + dy;
+            n.z = dz;
+        }
     } else {
-        n.x = clamp(n.x, m.x1 + 1, m.x2 - 1);
+        // main vertical tube centered at m.x
         n.y = clamp(n.y, m.y1 + 1, m.y2 - 1);
-        n.z = clamp(n.z, m.z1 + 1, m.z2 - 1);
+        let dx = n.x - m.x;
+        let dz = n.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist > r) {
+            const s = r / dist;
+            dx *= s; dz *= s;
+            n.x = m.x + dx;
+            n.z = dz;
+        }
     }
 }
 
@@ -118,10 +138,11 @@ function draw() {
     ctx.fillRect(0, 0, width, height);
     // vessel projection (orthographic like fluoroscopy)
     ctx.fillStyle = 'rgba(120,120,120,0.4)';
+    const r = vessel.radius;
     const m = vessel.main;
-    ctx.fillRect(m.x1, m.y1, m.x2 - m.x1, m.y2 - m.y1);
+    ctx.fillRect(m.x - r, m.y1, r * 2, m.y2 - m.y1);
     const b = vessel.branch;
-    ctx.fillRect(b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1);
+    ctx.fillRect(b.x1, b.y - r, b.x2 - b.x1, r * 2);
     // guidewire
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
