@@ -14,10 +14,30 @@
             display: block;
             margin: 0 auto;
         }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: sans-serif;
+            font-size: 14px;
+        }
+        #controls label {
+            display: block;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
 <canvas id="sim"></canvas>
+<div id="controls">
+    <label>Wire stiffness
+        <input id="stiffness" type="range" min="0" max="1" step="0.05" value="0.7">
+    </label>
+    <label>C-arm angle
+        <input id="carm" type="range" min="-90" max="90" step="1" value="0">
+    </label>
+</div>
 <script src="simulator.js"></script>
 </body>
 </html>
