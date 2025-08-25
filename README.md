@@ -1,6 +1,6 @@
 # Open Endovascular Trainer
 
-This prototype demonstrates a basic browser-based simulator for guiding a stiff wire through a branched vessel. The vessel consists of a main tube with smoothly joined side branches modeled with quadratic curves, and the guidewire uses a 3D Verlet rope with midpoint bending constraints that keep the rod smoothly curved instead of visibly segmented. Contact with the vessel wall dissipates velocity to emulate friction, so the wire advances more like a real steel guide without lateral steering. The visual style mimics fluoroscopy by using a monochrome palette and persistent trail.
+This prototype demonstrates a basic browser-based simulator for guiding a stiff wire through a branched vessel. The vessel consists of a main tube with smoothly joined side branches modeled with quadratic curves. The guidewire is now simulated with a position‑based dynamics solver that preserves segment length, adds bending stiffness, and applies tangential friction when it contacts the vessel wall, producing more realistic motion and preventing artificial shortening. The visual style mimics fluoroscopy by using a monochrome palette and persistent trail.
 
 ## Usage
 
