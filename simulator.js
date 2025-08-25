@@ -90,7 +90,7 @@ function clamp(v, min, max) {
     return Math.min(Math.max(v, min), max);
 }
 
-function distToSegment(n, seg) {
+function projectOnSegment(n, seg) {
     const vx = seg.end.x - seg.start.x;
     const vy = seg.end.y - seg.start.y;
     const vz = (seg.end.z || 0) - (seg.start.z || 0);
@@ -106,64 +106,42 @@ function distToSegment(n, seg) {
     const dx = n.x - px;
     const dy = n.y - py;
     const dz = n.z - pz;
-    return Math.hypot(dx, dy, dz);
-}
-
-function clampToSegment(n, seg, radius) {
-    const vx = seg.end.x - seg.start.x;
-    const vy = seg.end.y - seg.start.y;
-    const vz = (seg.end.z || 0) - (seg.start.z || 0);
-    const wx = n.x - seg.start.x;
-    const wy = n.y - seg.start.y;
-    const wz = n.z - (seg.start.z || 0);
-    const len2 = vx * vx + vy * vy + vz * vz;
-    let t = (wx * vx + wy * vy + wz * vz) / len2;
-    t = clamp(t, 0, 1);
-    const px = seg.start.x + vx * t;
-    const py = seg.start.y + vy * t;
-    const pz = (seg.start.z || 0) + vz * t;
-    let dx = n.x - px;
-    let dy = n.y - py;
-    let dz = n.z - pz;
-    const dist = Math.hypot(dx, dy, dz);
-    if (dist > radius) {
-        const s = radius / dist;
-        dx *= s; dy *= s; dz *= s;
-        n.x = px + dx;
-        n.y = py + dy;
-        n.z = pz + dz;
-    }
+    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    return {px, py, pz, dx, dy, dz, dist};
 }
 
 const wallFriction = 0.7; // fraction of velocity lost when scraping the wall
 
 function clampToVessel(n) {
     let nearest = vessel.segments[0];
-    let minDist = distToSegment(n, nearest);
+    let best = projectOnSegment(n, nearest);
     for (let i = 1; i < vessel.segments.length; i++) {
         const seg = vessel.segments[i];
-        const d = distToSegment(n, seg);
-        if (d < minDist) {
-            minDist = d;
+        const p = projectOnSegment(n, seg);
+        if (p.dist < best.dist) {
+            best = p;
             nearest = seg;
         }
     }
-    const collided = minDist > nearest.radius - 1;
-    clampToSegment(n, nearest, nearest.radius - 1);
-    if (collided) {
-        const vx = n.x - n.px;
-        const vy = n.y - n.py;
-        const vz = n.z - n.pz;
-        n.px = n.x - vx * (1 - wallFriction);
-        n.py = n.y - vy * (1 - wallFriction);
-        n.pz = n.z - vz * (1 - wallFriction);
+    const radius = nearest.radius - 1;
+    if (best.dist > radius) {
+        const inv = 1 / best.dist;
+        const nx = best.dx * inv;
+        const ny = best.dy * inv;
+        const nz = best.dz * inv;
+        n.x = best.px + nx * radius;
+        n.y = best.py + ny * radius;
+        n.z = best.pz + nz * radius;
+        const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+        n.vx = (n.vx - vn * nx) * (1 - wallFriction);
+        n.vy = (n.vy - vn * ny) * (1 - wallFriction);
+        n.vz = (n.vz - vn * nz) * (1 - wallFriction);
     }
 }
 
-// guidewire representation
+// guidewire representation using position-based dynamics
 const segmentLength = 12;
 const nodeCount = 40;
-const nodes = [];
 
 // direction pointing from left branch tip toward the bifurcation
 const leftDir = {
@@ -178,13 +156,115 @@ const tailStart = {
     z: 0
 };
 
-for (let i = 0; i < nodeCount; i++) {
-    const x = vessel.left.end.x - leftDir.x * segmentLength * i;
-    const y = vessel.left.end.y - leftDir.y * segmentLength * i;
-    nodes.push({x, y, z: 0, px: x, py: y, pz: 0});
+class Wire {
+    constructor(segLen, count, start, dir) {
+        this.segmentLength = segLen;
+        this.nodes = [];
+        this.tailStart = start;
+        this.dir = dir;
+        for (let i = 0; i < count; i++) {
+            const x = vessel.left.end.x - dir.x * segLen * i;
+            const y = vessel.left.end.y - dir.y * segLen * i;
+            this.nodes.push({x, y, z: 0, vx: 0, vy: 0, vz: 0, oldx: x, oldy: y, oldz: 0});
+        }
+        this.tailProgress = 0;
+        this.maxInsert = segLen * (count - 1) - 40;
+    }
+
+    updateTail(advance, dt) {
+        this.tailProgress = clamp(this.tailProgress + advance * 40 * dt, 0, this.maxInsert);
+        const tail = this.nodes[this.nodes.length - 1];
+        const tx = this.tailStart.x + this.dir.x * this.tailProgress;
+        const ty = this.tailStart.y + this.dir.y * this.tailProgress;
+        tail.x = tx;
+        tail.y = ty;
+        tail.z = 0;
+        tail.vx = tail.vy = tail.vz = 0;
+    }
+
+    integrate(dt) {
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            const n = this.nodes[i];
+            n.vx *= 0.98;
+            n.vy *= 0.98;
+            n.vz *= 0.98;
+            n.x += n.vx * dt;
+            n.y += n.vy * dt;
+            n.z += n.vz * dt;
+        }
+    }
+
+    satisfyConstraints(iterations) {
+        const nodes = this.nodes;
+        const len = this.segmentLength;
+        const tail = nodes[nodes.length - 1];
+        for (let k = 0; k < iterations; k++) {
+            for (let i = 1; i < nodes.length; i++) {
+                const a = nodes[i - 1];
+                const b = nodes[i];
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let dz = b.z - a.z;
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+                const diff = (dist - len) / dist;
+                const offx = dx * 0.5 * diff;
+                const offy = dy * 0.5 * diff;
+                const offz = dz * 0.5 * diff;
+                a.x += offx;
+                a.y += offy;
+                a.z += offz;
+                if (i !== nodes.length - 1) {
+                    b.x -= offx;
+                    b.y -= offy;
+                    b.z -= offz;
+                }
+            }
+
+            for (let i = 1; i < nodes.length - 1; i++) {
+                const prev = nodes[i - 1];
+                const curr = nodes[i];
+                const next = nodes[i + 1];
+                const mx = (prev.x + next.x) * 0.5;
+                const my = (prev.y + next.y) * 0.5;
+                const mz = (prev.z + next.z) * 0.5;
+                curr.x += (mx - curr.x) * wireStiffness;
+                curr.y += (my - curr.y) * wireStiffness;
+                curr.z += (mz - curr.z) * wireStiffness;
+            }
+
+            clampToVessel(nodes[0]);
+            tail.x = this.tailStart.x + this.dir.x * this.tailProgress;
+            tail.y = this.tailStart.y + this.dir.y * this.tailProgress;
+            tail.z = 0;
+        }
+    }
+
+    collide() {
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            clampToVessel(this.nodes[i]);
+        }
+    }
+
+    step(dt, advance) {
+        for (const n of this.nodes) {
+            n.oldx = n.x;
+            n.oldy = n.y;
+            n.oldz = n.z;
+        }
+        this.updateTail(advance, dt);
+        this.integrate(dt);
+        this.satisfyConstraints(12);
+        this.collide();
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            const n = this.nodes[i];
+            n.vx = (n.x - n.oldx) / dt;
+            n.vy = (n.y - n.oldy) / dt;
+            n.vz = (n.z - n.oldz) / dt;
+        }
+    }
 }
 
-let head = nodes[0];
+const wire = new Wire(segmentLength, nodeCount, tailStart, leftDir);
 
 // only allow inserting or withdrawing the wire
 let advance = 0;
@@ -195,83 +275,6 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
     if (['w','W','s','S'].includes(e.key)) advance = 0;
 });
-
-let tailProgress = 0;
-// allow inserting the full wire length while keeping a small portion outside
-const maxInsert = segmentLength * (nodeCount - 1) - 40;
-
-function step() {
-    const tail = nodes[nodes.length - 1];
-    tailProgress = clamp(tailProgress + advance * 2, 0, maxInsert);
-    const tx = tailStart.x + leftDir.x * tailProgress;
-    const ty = tailStart.y + leftDir.y * tailProgress;
-    tail.x = tx;
-    tail.y = ty;
-    tail.z = 0;
-    tail.px = tx;
-    tail.py = ty;
-    tail.pz = 0;
-
-    // verlet integration
-    for (let i = 0; i < nodes.length - 1; i++) {
-        const n = nodes[i];
-        const vx = (n.x - n.px) * 0.98;
-        const vy = (n.y - n.py) * 0.98;
-        const vz = (n.z - n.pz) * 0.98;
-        n.px = n.x;
-        n.py = n.y;
-        n.pz = n.z;
-        n.x += vx;
-        n.y += vy;
-        n.z += vz;
-    }
-
-    // constraint iterations
-    for (let k = 0; k < 12; k++) {
-        // keep segments at fixed length
-        for (let i = 1; i < nodes.length; i++) {
-            const a = nodes[i - 1];
-            const b = nodes[i];
-            let dx = b.x - a.x;
-            let dy = b.y - a.y;
-            let dz = b.z - a.z;
-            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            const diff = (dist - segmentLength) / dist;
-            const offsetX = dx * 0.5 * diff;
-            const offsetY = dy * 0.5 * diff;
-            const offsetZ = dz * 0.5 * diff;
-            a.x += offsetX;
-            a.y += offsetY;
-            a.z += offsetZ;
-            b.x -= offsetX;
-            b.y -= offsetY;
-            b.z -= offsetZ;
-        }
-
-        // bending stiffness -- pull middle node toward neighbours' midpoint
-        for (let i = 1; i < nodes.length - 1; i++) {
-            const prev = nodes[i - 1];
-            const curr = nodes[i];
-            const next = nodes[i + 1];
-            const mx = (prev.x + next.x) * 0.5;
-            const my = (prev.y + next.y) * 0.5;
-            const mz = (prev.z + next.z) * 0.5;
-            curr.x += (mx - curr.x) * wireStiffness;
-            curr.y += (my - curr.y) * wireStiffness;
-            curr.z += (mz - curr.z) * wireStiffness;
-        }
-
-        clampToVessel(head);
-        tail.x = tx;
-        tail.y = ty;
-        tail.z = 0;
-    }
-
-    // collisions with vessel boundaries
-    for (let i = 0; i < nodes.length - 1; i++) {
-        clampToVessel(nodes[i]);
-    }
-}
 
 function project(p) {
     const cos = Math.cos(cameraAngle);
@@ -334,23 +337,25 @@ function draw() {
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    const p0 = project(nodes[0]);
+    const p0 = project(wire.nodes[0]);
     ctx.moveTo(p0.x, p0.y);
-    for (let i = 1; i < nodes.length - 1; i++) {
-        const p1 = project(nodes[i]);
-        const p2 = project(nodes[i + 1]);
+    for (let i = 1; i < wire.nodes.length - 1; i++) {
+        const p1 = project(wire.nodes[i]);
+        const p2 = project(wire.nodes[i + 1]);
         const mid = {x: (p1.x + p2.x) * 0.5, y: (p1.y + p2.y) * 0.5};
         ctx.quadraticCurveTo(p1.x, p1.y, mid.x, mid.y);
     }
-    const last = project(nodes[nodes.length - 1]);
+    const last = project(wire.nodes[wire.nodes.length - 1]);
     ctx.lineTo(last.x, last.y);
     ctx.stroke();
 }
 
-function loop() {
-    step();
+let lastTime = performance.now();
+function loop(time) {
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+    wire.step(dt, advance);
     draw();
     requestAnimationFrame(loop);
 }
-
-loop();
+requestAnimationFrame(loop);
