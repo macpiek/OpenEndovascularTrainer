@@ -20,32 +20,69 @@ carmSlider.addEventListener('input', e => {
     cameraAngle = parseFloat(e.target.value) * Math.PI / 180;
 });
 
-// vessel geometry
+// vessel geometry with curved branching
 const vessel = (() => {
     const radius = 20;
     const branchRadius = 14; // smaller than main vessel
     const angle = Math.PI / 6; // 30 degrees
     const branchLength = 300;
+    const blend = 60; // length of curved transition section
     const branchY = height / 3;
     const branchPoint = {x: centerX, y: branchY, z: 0};
-    const rightEnd = {
-        x: branchPoint.x + Math.sin(angle) * branchLength,
-        y: branchPoint.y + Math.cos(angle) * branchLength,
-        z: 0
-    };
-    const leftEnd = {
-        x: branchPoint.x - Math.sin(angle) * branchLength,
-        y: branchPoint.y + Math.cos(angle) * branchLength,
-        z: 0
-    };
+    const mainEnd = {x: centerX, y: branchY - blend, z: 0};
+
+    function branch(dir) {
+        const a = angle * dir;
+        const curveEnd = {
+            x: branchPoint.x + Math.sin(a) * blend,
+            y: branchPoint.y + Math.cos(a) * blend,
+            z: 0
+        };
+        const end = {
+            x: branchPoint.x + Math.sin(a) * (branchLength + blend),
+            y: branchPoint.y + Math.cos(a) * (branchLength + blend),
+            z: 0
+        };
+        return {curveEnd, end, length: branchLength + blend};
+    }
+
+    const right = branch(1);
+    const left = branch(-1);
+
+    // collect segments for collision constraints
+    const segments = [];
+    segments.push({start: {x: centerX, y: 0, z: 0}, end: mainEnd, radius});
+
+    function addCurve(p0, p1, p2) {
+        const steps = 8;
+        let prev = p0;
+        for (let i = 1; i <= steps; i++) {
+            const t = i / steps;
+            const tt = 1 - t;
+            const p = {
+                x: tt * tt * p0.x + 2 * tt * t * p1.x + t * t * p2.x,
+                y: tt * tt * p0.y + 2 * tt * t * p1.y + t * t * p2.y,
+                z: 0
+            };
+            const r = radius + (branchRadius - radius) * t;
+            segments.push({start: prev, end: p, radius: r});
+            prev = p;
+        }
+    }
+
+    addCurve(mainEnd, branchPoint, right.curveEnd);
+    segments.push({start: right.curveEnd, end: right.end, radius: branchRadius});
+    addCurve(mainEnd, branchPoint, left.curveEnd);
+    segments.push({start: left.curveEnd, end: left.end, radius: branchRadius});
+
     return {
         radius,
         branchRadius,
-        branchLength,
         branchPoint,
-        main: {start: {x: centerX, y: 0, z: 0}, end: {x: centerX, y: branchY, z: 0}},
-        right: {start: branchPoint, end: rightEnd},
-        left: {start: branchPoint, end: leftEnd}
+        main: {start: {x: centerX, y: 0, z: 0}, end: mainEnd},
+        right,
+        left,
+        segments
     };
 })();
 
@@ -98,18 +135,28 @@ function clampToSegment(n, seg, radius) {
     }
 }
 
+const wallFriction = 0.7; // fraction of velocity lost when scraping the wall
+
 function clampToVessel(n) {
-    const bp = vessel.branchPoint;
-    if (n.y <= bp.y) {
-        clampToSegment(n, vessel.main, vessel.radius - 1);
-    } else {
-        const dRight = distToSegment(n, vessel.right);
-        const dLeft = distToSegment(n, vessel.left);
-        if (dRight < dLeft) {
-            clampToSegment(n, vessel.right, vessel.branchRadius - 1);
-        } else {
-            clampToSegment(n, vessel.left, vessel.branchRadius - 1);
+    let nearest = vessel.segments[0];
+    let minDist = distToSegment(n, nearest);
+    for (let i = 1; i < vessel.segments.length; i++) {
+        const seg = vessel.segments[i];
+        const d = distToSegment(n, seg);
+        if (d < minDist) {
+            minDist = d;
+            nearest = seg;
         }
+    }
+    const collided = minDist > nearest.radius - 1;
+    clampToSegment(n, nearest, nearest.radius - 1);
+    if (collided) {
+        const vx = n.x - n.px;
+        const vy = n.y - n.py;
+        const vz = n.z - n.pz;
+        n.px = n.x - vx * (1 - wallFriction);
+        n.py = n.y - vy * (1 - wallFriction);
+        n.pz = n.z - vz * (1 - wallFriction);
     }
 }
 
@@ -118,43 +165,55 @@ const segmentLength = 12;
 const nodeCount = 40;
 const nodes = [];
 
+// direction pointing from left branch tip toward the bifurcation
+const leftDir = {
+    x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
+    y: (vessel.branchPoint.y - vessel.left.end.y) / vessel.left.length
+};
+
+// starting position of the tail outside the vessel
+const tailStart = {
+    x: vessel.left.end.x - leftDir.x * segmentLength * (nodeCount - 1),
+    y: vessel.left.end.y - leftDir.y * segmentLength * (nodeCount - 1),
+    z: 0
+};
+
 for (let i = 0; i < nodeCount; i++) {
-    nodes.push({
-        x: centerX,
-        y: -i * segmentLength,
-        z: 0,
-        px: centerX,
-        py: -i * segmentLength,
-        pz: 0
-    });
+    const x = vessel.left.end.x - leftDir.x * segmentLength * i;
+    const y = vessel.left.end.y - leftDir.y * segmentLength * i;
+    nodes.push({x, y, z: 0, px: x, py: y, pz: 0});
 }
 
 let head = nodes[0];
 
-// control including depth (z) with W/S keys
-const control = {x: 0, y: 0, z: 0};
+// only allow inserting or withdrawing the wire
+let advance = 0;
 window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowUp') control.y = -1;
-    if (e.key === 'ArrowDown') control.y = 1;
-    if (e.key === 'ArrowLeft') control.x = -1;
-    if (e.key === 'ArrowRight') control.x = 1;
-    if (e.key === 'w' || e.key === 'W') control.z = -1;
-    if (e.key === 's' || e.key === 'S') control.z = 1;
+    if (e.key === 'w' || e.key === 'W') advance = 1;
+    if (e.key === 's' || e.key === 'S') advance = -1;
 });
 window.addEventListener('keyup', e => {
-    if (['ArrowUp','ArrowDown'].includes(e.key)) control.y = 0;
-    if (['ArrowLeft','ArrowRight'].includes(e.key)) control.x = 0;
-    if (['w','W','s','S'].includes(e.key)) control.z = 0;
+    if (['w','W','s','S'].includes(e.key)) advance = 0;
 });
 
+let tailProgress = 0;
+const maxInsert = vessel.left.length - 40; // keep some wire outside
+
 function step() {
-    // move head by control
-    head.x += control.x * 2;
-    head.y += control.y * 2;
-    head.z += control.z * 2;
+    const tail = nodes[nodes.length - 1];
+    tailProgress = clamp(tailProgress + advance * 2, 0, maxInsert);
+    const tx = tailStart.x + leftDir.x * tailProgress;
+    const ty = tailStart.y + leftDir.y * tailProgress;
+    tail.x = tx;
+    tail.y = ty;
+    tail.z = 0;
+    tail.px = tx;
+    tail.py = ty;
+    tail.pz = 0;
 
     // verlet integration
-    for (const n of nodes) {
+    for (let i = 0; i < nodes.length - 1; i++) {
+        const n = nodes[i];
         const vx = (n.x - n.px) * 0.98;
         const vy = (n.y - n.py) * 0.98;
         const vz = (n.z - n.pz) * 0.98;
@@ -168,13 +227,14 @@ function step() {
 
     // constraint iterations
     for (let k = 0; k < 12; k++) {
+        // keep segments at fixed length
         for (let i = 1; i < nodes.length; i++) {
-            const a = nodes[i-1];
+            const a = nodes[i - 1];
             const b = nodes[i];
             let dx = b.x - a.x;
             let dy = b.y - a.y;
             let dz = b.z - a.z;
-            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
             const diff = (dist - segmentLength) / dist;
             const offsetX = dx * 0.5 * diff;
             const offsetY = dy * 0.5 * diff;
@@ -187,33 +247,28 @@ function step() {
             b.z -= offsetZ;
         }
 
-        // bending stiffness
-        for (let i = 0; i < nodes.length - 2; i++) {
-            const a = nodes[i];
-            const c = nodes[i+2];
-            let dx = c.x - a.x;
-            let dy = c.y - a.y;
-            let dz = c.z - a.z;
-            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-            const diff = (dist - segmentLength*2) / dist;
-            const strength = wireStiffness;
-            const offsetX = dx * 0.5 * diff * strength;
-            const offsetY = dy * 0.5 * diff * strength;
-            const offsetZ = dz * 0.5 * diff * strength;
-            a.x += offsetX;
-            a.y += offsetY;
-            a.z += offsetZ;
-            c.x -= offsetX;
-            c.y -= offsetY;
-            c.z -= offsetZ;
+        // bending stiffness -- pull middle node toward neighbours' midpoint
+        for (let i = 1; i < nodes.length - 1; i++) {
+            const prev = nodes[i - 1];
+            const curr = nodes[i];
+            const next = nodes[i + 1];
+            const mx = (prev.x + next.x) * 0.5;
+            const my = (prev.y + next.y) * 0.5;
+            const mz = (prev.z + next.z) * 0.5;
+            curr.x += (mx - curr.x) * wireStiffness;
+            curr.y += (my - curr.y) * wireStiffness;
+            curr.z += (mz - curr.z) * wireStiffness;
         }
 
         clampToVessel(head);
+        tail.x = tx;
+        tail.y = ty;
+        tail.z = 0;
     }
 
     // collisions with vessel boundaries
-    for (const n of nodes) {
-        clampToVessel(n);
+    for (let i = 0; i < nodes.length - 1; i++) {
+        clampToVessel(nodes[i]);
     }
 }
 
@@ -230,26 +285,49 @@ function draw() {
     ctx.fillRect(0, 0, width, height);
 
     // vessel projection
-    ctx.fillStyle = 'rgba(120,120,120,0.4)';
-    const m = vessel.main;
-    const mainStart = project(m.start);
-    const mainEnd = project(m.end);
-    ctx.fillRect(mainStart.x - vessel.radius, mainStart.y, vessel.radius * 2, mainEnd.y - mainStart.y);
+    ctx.strokeStyle = 'rgba(120,120,120,0.4)';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-    const bp = project(vessel.branchPoint);
+    const sheathPos = project(vessel.left.end);
+    const sheathAngle = Math.atan2(vessel.left.end.y - vessel.branchPoint.y, vessel.left.end.x - vessel.branchPoint.x);
+    ctx.save();
+    ctx.translate(sheathPos.x, sheathPos.y);
+    ctx.rotate(sheathAngle + Math.PI);
+    ctx.fillStyle = 'rgba(180,180,180,0.4)';
+    ctx.fillRect(-vessel.branchRadius * 0.7, 0, vessel.branchRadius * 1.4, 40);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(120,120,120,0.4)';
+
+    // main tube
+    ctx.lineWidth = vessel.radius * 2;
+    const mainStart = project(vessel.main.start);
+    const mainEnd = project(vessel.main.end);
+    ctx.beginPath();
+    ctx.moveTo(mainStart.x, mainStart.y);
+    ctx.lineTo(mainEnd.x, mainEnd.y);
+    ctx.stroke();
+
+    // right branch
+    ctx.lineWidth = vessel.branchRadius * 2;
+    const pStart = project(vessel.main.end);
+    const pCtrl = project(vessel.branchPoint);
+    const pRight = project(vessel.right.curveEnd);
     const endR = project(vessel.right.end);
+    ctx.beginPath();
+    ctx.moveTo(pStart.x, pStart.y);
+    ctx.quadraticCurveTo(pCtrl.x, pCtrl.y, pRight.x, pRight.y);
+    ctx.lineTo(endR.x, endR.y);
+    ctx.stroke();
+
+    // left branch
+    const pLeft = project(vessel.left.curveEnd);
     const endL = project(vessel.left.end);
-    const br = vessel.branchRadius;
-    ctx.save();
-    ctx.translate(bp.x, bp.y);
-    ctx.rotate(Math.atan2(endR.x - bp.x, endR.y - bp.y));
-    ctx.fillRect(-br, 0, br * 2, vessel.branchLength);
-    ctx.restore();
-    ctx.save();
-    ctx.translate(bp.x, bp.y);
-    ctx.rotate(Math.atan2(endL.x - bp.x, endL.y - bp.y));
-    ctx.fillRect(-br, 0, br * 2, vessel.branchLength);
-    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(pStart.x, pStart.y);
+    ctx.quadraticCurveTo(pCtrl.x, pCtrl.y, pLeft.x, pLeft.y);
+    ctx.lineTo(endL.x, endL.y);
+    ctx.stroke();
 
     // guidewire
     ctx.strokeStyle = '#fff';
@@ -257,10 +335,14 @@ function draw() {
     ctx.beginPath();
     const p0 = project(nodes[0]);
     ctx.moveTo(p0.x, p0.y);
-    for (let i = 1; i < nodes.length; i++) {
-        const p = project(nodes[i]);
-        ctx.lineTo(p.x, p.y);
+    for (let i = 1; i < nodes.length - 1; i++) {
+        const p1 = project(nodes[i]);
+        const p2 = project(nodes[i + 1]);
+        const mid = {x: (p1.x + p2.x) * 0.5, y: (p1.y + p2.y) * 0.5};
+        ctx.quadraticCurveTo(p1.x, p1.y, mid.x, mid.y);
     }
+    const last = project(nodes[nodes.length - 1]);
+    ctx.lineTo(last.x, last.y);
     ctx.stroke();
 }
 
