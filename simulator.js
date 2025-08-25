@@ -197,7 +197,8 @@ window.addEventListener('keyup', e => {
 });
 
 let tailProgress = 0;
-const maxInsert = vessel.left.length - 40; // keep some wire outside
+// allow inserting the full wire length while keeping a small portion outside
+const maxInsert = segmentLength * (nodeCount - 1) - 40;
 
 function step() {
     const tail = nodes[nodes.length - 1];
