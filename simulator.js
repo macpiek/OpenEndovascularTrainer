@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Brush, Evaluator, ADDITION } from 'https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js';
-import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping } from './physics/guidewire.js';
+import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping } from './physics/guidewire.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -229,6 +229,7 @@ const bendSlider = document.getElementById('stiffness');
 const staticFricSlider = document.getElementById('staticFriction');
 const kineticFricSlider = document.getElementById('kineticFriction');
 const dampingSlider = document.getElementById('normalDamping');
+const velDampingSlider = document.getElementById('velocityDamping');
 const carmYawSlider = document.getElementById('carmYaw');
 const carmPitchSlider = document.getElementById('carmPitch');
 const carmRollSlider = document.getElementById('carmRoll');
@@ -247,8 +248,10 @@ bendSlider.addEventListener('input', e => {
 let staticFriction = parseFloat(staticFricSlider.value);
 let kineticFriction = parseFloat(kineticFricSlider.value);
 let normalDamping = parseFloat(dampingSlider.value);
+let velocityDamping = parseFloat(velDampingSlider.value);
 setWallFriction(staticFriction, kineticFriction);
 setNormalDamping(normalDamping);
+setVelocityDamping(velocityDamping);
 staticFricSlider.addEventListener('input', e => {
     staticFriction = parseFloat(e.target.value);
     setWallFriction(staticFriction, kineticFriction);
@@ -260,6 +263,10 @@ kineticFricSlider.addEventListener('input', e => {
 dampingSlider.addEventListener('input', e => {
     normalDamping = parseFloat(e.target.value);
     setNormalDamping(normalDamping);
+});
+velDampingSlider.addEventListener('input', e => {
+    velocityDamping = parseFloat(e.target.value);
+    setVelocityDamping(velocityDamping);
 });
 
 let carmYaw = 0;
