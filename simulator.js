@@ -116,7 +116,7 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
 function generateVessel() {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
-    const branchPointY = -80;
+    const branchPointY = -180;
     const branchLength = 120 + Math.random() * 40;
     const blend = 40;
     const branchAngleOffset = (Math.random() - 0.5) * Math.PI / 12;
