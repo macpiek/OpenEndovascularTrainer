@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 
 export class ContrastAgent {
-    constructor(segments, startIndex, speed = 50) {
+    constructor(segments, startIndex, speed = 50, decayDelay = 2) {
         this.segments = segments;
         this.startIndex = startIndex;
         this.speed = speed;
+        this.decayDelay = decayDelay;
         this.segmentLengths = [];
         this.cumulativeLengths = [];
         let cumulative = 0;
@@ -22,19 +23,35 @@ export class ContrastAgent {
         this.totalLength = cumulative;
         this.filledLength = 0;
         this.active = false;
+        this.injecting = false;
+        this.decayTimer = 0;
     }
 
     start() {
         this.filledLength = 0;
         this.active = true;
+        this.injecting = true;
+        this.decayTimer = 0;
     }
 
     update(dt) {
         if (!this.active) return;
-        this.filledLength += this.speed * dt;
-        if (this.filledLength >= this.totalLength) {
-            this.filledLength = this.totalLength;
-            this.active = false;
+
+        if (this.injecting) {
+            this.filledLength += this.speed * dt;
+            if (this.filledLength >= this.totalLength) {
+                this.filledLength = this.totalLength;
+                this.injecting = false;
+                this.decayTimer = this.decayDelay;
+            }
+        } else if (this.decayTimer > 0) {
+            this.decayTimer -= dt;
+        } else {
+            this.filledLength -= this.speed * dt;
+            if (this.filledLength <= 0) {
+                this.filledLength = 0;
+                this.active = false;
+            }
         }
     }
 

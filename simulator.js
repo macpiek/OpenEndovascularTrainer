@@ -289,20 +289,24 @@ function animate(time) {
 
     updateWireMesh();
     contrast.update(dt);
-    if (contrastMesh) {
-        scene.remove(contrastMesh);
-        contrastMesh = null;
-    }
     if (contrast.isActive()) {
+        if (contrastMesh) {
+            scene.remove(contrastMesh);
+        }
         contrastMesh = getContrastGeometry(contrast);
         if (contrastMesh) {
             scene.add(contrastMesh);
         }
         vesselGroup.visible = false;
+        injectButton.disabled = true;
     } else {
+        if (contrastMesh) {
+            scene.remove(contrastMesh);
+            contrastMesh = null;
+        }
         vesselGroup.visible = !fluoroscopy;
+        injectButton.disabled = false;
     }
-    injectButton.disabled = contrast.isActive();
     if (fluoroscopy) {
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
