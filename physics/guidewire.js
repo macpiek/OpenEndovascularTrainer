@@ -31,6 +31,17 @@ function clamp(v, min, max) {
     return Math.min(Math.max(v, min), max);
 }
 
+function isBeyond(start, end, p) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const dz = (end.z || 0) - (start.z || 0);
+    const vx = p.x - start.x;
+    const vy = p.y - start.y;
+    const vz = p.z - (start.z || 0);
+    const len2 = dx * dx + dy * dy + dz * dz;
+    return (vx * dx + vy * dy + vz * dz) > len2;
+}
+
 function projectOnSegment(n, seg) {
     const vx = seg.end.x - seg.start.x;
     const vy = seg.end.y - seg.start.y;
@@ -60,19 +71,8 @@ function clampToVessel(
     normalDamping = wallNormalDamping,
     openEnds = {}
 ) {
-    function isBeyond(start, end) {
-        const dx = end.x - start.x;
-        const dy = end.y - start.y;
-        const dz = (end.z || 0) - (start.z || 0);
-        const vx = n.x - start.x;
-        const vy = n.y - start.y;
-        const vz = n.z - (start.z || 0);
-        const len2 = dx * dx + dy * dy + dz * dz;
-        return (vx * dx + vy * dy + vz * dz) > len2;
-    }
-
-    if (openEnds.left && isBeyond(vessel.branchPoint, vessel.left.end)) return;
-    if (openEnds.right && isBeyond(vessel.branchPoint, vessel.right.end)) return;
+    if (openEnds.left && isBeyond(vessel.branchPoint, vessel.left.end, n)) return;
+    if (openEnds.right && isBeyond(vessel.branchPoint, vessel.right.end, n)) return;
 
     let nearest = vessel.segments[0];
     let best = projectOnSegment(n, nearest);
@@ -111,6 +111,44 @@ function clampToVessel(
             n.vy = ty + dampedVn * ny;
             n.vz = tz + dampedVn * nz;
         }
+    }
+}
+
+function clampToSheath(n, sheath) {
+    const sx = sheath.start.x;
+    const sy = sheath.start.y;
+    const sz = sheath.start.z;
+    const ex = sheath.end.x;
+    const ey = sheath.end.y;
+    const ez = sheath.end.z;
+    const dx = ex - sx;
+    const dy = ey - sy;
+    const dz = (ez || 0) - (sz || 0);
+    const len2 = dx * dx + dy * dy + dz * dz;
+    const px = n.x - sx;
+    const py = n.y - sy;
+    const pz = n.z - (sz || 0);
+    let t = (px * dx + py * dy + pz * dz) / len2;
+    const cx = sx + dx * t;
+    const cy = sy + dy * t;
+    const cz = (sz || 0) + dz * t;
+    const offx = n.x - cx;
+    const offy = n.y - cy;
+    const offz = n.z - cz;
+    const dist = Math.sqrt(offx * offx + offy * offy + offz * offz);
+    if (dist > sheath.radius) {
+        const inv = sheath.radius / dist;
+        n.x = cx + offx * inv;
+        n.y = cy + offy * inv;
+        n.z = cz + offz * inv;
+        const vn = n.vx * offx + n.vy * offy + n.vz * offz;
+        const rInv = 1 / dist;
+        const rx = offx * rInv;
+        const ry = offy * rInv;
+        const rz = offz * rInv;
+        n.vx -= vn * rx;
+        n.vy -= vn * ry;
+        n.vz -= vn * rz;
     }
 }
 
@@ -307,7 +345,12 @@ export class Guidewire {
 
     collide() {
         for (let i = 0; i < this.nodes.length - 1; i++) {
-            clampToVessel(this.nodes[i], this.vessel, true, undefined, undefined, undefined, this.openEnds);
+            const n = this.nodes[i];
+            if (this.openEnds.left && isBeyond(this.vessel.branchPoint, this.vessel.left.end, n)) {
+                clampToSheath(n, this.vessel.sheath);
+            } else {
+                clampToVessel(n, this.vessel, true, undefined, undefined, undefined, this.openEnds);
+            }
         }
     }
 

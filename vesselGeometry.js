@@ -99,9 +99,11 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  * Defaults produce repeatable geometry; modify arguments to change it explicitly.
  * @param {number} branchLength length of each branch in units (default 140)
  * @param {number} branchAngleOffset angle offset in radians for branches (default 0)
+ * @param {number} sheathLength length of the left-branch sheath (default 20)
+ * @param {number} sheathRadius radius of the left-branch sheath (default 5)
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
  */
-export function generateVessel(branchLength = 140, branchAngleOffset = 0) {
+export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = 20, sheathRadius = 5) {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
     const branchPointY = -180;
@@ -161,6 +163,43 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0) {
     vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
 
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
-    return { vessel, geometry };
+
+    // Sheath geometry at the entrance of the left branch
+    const outDir = {
+        x: (vessel.left.end.x - vessel.branchPoint.x) / vessel.left.length,
+        y: (vessel.left.end.y - vessel.branchPoint.y) / vessel.left.length,
+        z: (vessel.left.end.z - vessel.branchPoint.z) / vessel.left.length
+    };
+    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y, z: vessel.left.end.z };
+    const sheathEnd = {
+        x: sheathStart.x + outDir.x * sheathLength,
+        y: sheathStart.y + outDir.y * sheathLength,
+        z: sheathStart.z + outDir.z * sheathLength
+    };
+    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: sheathLength };
+
+    const sheathGeom = new THREE.CylinderGeometry(sheathRadius, sheathRadius, sheathLength, 16, 1, true);
+    const axis = new THREE.Vector3(outDir.x, outDir.y, outDir.z).normalize();
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+    sheathGeom.applyQuaternion(quat);
+    const mid = new THREE.Vector3(
+        sheathStart.x + outDir.x * sheathLength / 2,
+        sheathStart.y + outDir.y * sheathLength / 2,
+        sheathStart.z + outDir.z * sheathLength / 2
+    );
+    sheathGeom.translate(mid.x, mid.y, mid.z);
+
+    const evaluator = new Evaluator();
+    const vesselBrush = new Brush(geometry);
+    vesselBrush.updateMatrixWorld();
+    const sheathBrush = new Brush(sheathGeom);
+    sheathBrush.updateMatrixWorld();
+    const merged = evaluator.evaluate(vesselBrush, sheathBrush, ADDITION);
+    merged.updateMatrixWorld();
+    const finalGeometry = merged.geometry;
+    finalGeometry.computeVertexNormals();
+    verifyManifold(finalGeometry);
+
+    return { vessel, geometry: finalGeometry };
 }
 
