@@ -5,8 +5,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 80, 200);
+
 scene.add(camera);
 
 const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
@@ -29,6 +28,7 @@ function createTaperedTube(path, tubularSegments, radialSegments, startRadius, e
             pos.setX(idx, pos.getX(idx) + normals.getX(idx) * (r - 1));
             pos.setY(idx, pos.getY(idx) + normals.getY(idx) * (r - 1));
             pos.setZ(idx, pos.getZ(idx) + normals.getZ(idx) * (r - 1));
+
         }
     }
     pos.needsUpdate = true;
@@ -36,9 +36,7 @@ function createTaperedTube(path, tubularSegments, radialSegments, startRadius, e
     return geometry;
 }
 
-function createVessel() {
-    if (vesselGroup) {
-        scene.remove(vesselGroup);
+
     }
     vesselGroup = new THREE.Group();
 
@@ -73,19 +71,6 @@ function createVessel() {
     scene.add(vesselGroup);
 }
 
-createVessel();
-
-function animate() {
-    requestAnimationFrame(animate);
-    vesselGroup.rotation.y += 0.005;
-    renderer.render(scene, camera);
-}
-animate();
-
-const wireframeToggle = document.getElementById('wireframe');
-wireframeToggle.addEventListener('change', e => {
-    vesselMaterial.wireframe = e.target.checked;
-});
 
 window.addEventListener('resize', () => {
     const w = window.innerWidth;
