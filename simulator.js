@@ -49,7 +49,7 @@ blendScene.add(blendQuad);
 
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
-        texture: { value: previousTarget.texture },
+        uTexture: { value: previousTarget.texture },
         gray: { value: new THREE.Color(0x808080) },
         fluoroscopy: { value: false }
     },
@@ -61,12 +61,12 @@ const displayMaterial = new THREE.ShaderMaterial({
         }
     `,
     fragmentShader: `
-        uniform sampler2D texture;
+        uniform sampler2D uTexture;
         uniform vec3 gray;
         uniform bool fluoroscopy;
         varying vec2 vUv;
         void main() {
-            vec4 tex = texture2D(texture, vUv);
+            vec4 tex = texture2D(uTexture, vUv);
             if (fluoroscopy) {
                 float intensity = tex.r;
                 vec3 color = gray * (1.0 - intensity);
@@ -249,7 +249,7 @@ function animate(time) {
     renderer.render(blendScene, postCamera);
     renderer.setRenderTarget(null);
 
-    displayMaterial.uniforms.texture.value = currentTarget.texture;
+    displayMaterial.uniforms.uTexture.value = currentTarget.texture;
     renderer.render(displayScene, postCamera);
 
     const temp = previousTarget;
