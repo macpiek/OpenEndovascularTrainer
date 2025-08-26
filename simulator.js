@@ -48,7 +48,7 @@ const tailStart = {
 const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength, undefined, undefined, initialInsert);
 
 let advance = 0;
-window.addEventListener('keydown', e => {
+document.addEventListener('keydown', e => {
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         advance = 1;
         e.preventDefault();
@@ -57,13 +57,13 @@ window.addEventListener('keydown', e => {
         advance = -1;
         e.preventDefault();
     }
-});
-window.addEventListener('keyup', e => {
+}, true);
+document.addEventListener('keyup', e => {
     if (['KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
         advance = 0;
         e.preventDefault();
     }
-});
+}, true);
 
 const bendSlider = document.getElementById('stiffness');
 const staticFricSlider = document.getElementById('staticFriction');
@@ -77,6 +77,21 @@ const carmXSlider = document.getElementById('carmX');
 const carmYSlider = document.getElementById('carmY');
 const carmZSlider = document.getElementById('carmZ');
 const wireframeToggle = document.getElementById('wireframe');
+
+const sliders = [
+    bendSlider,
+    staticFricSlider,
+    kineticFricSlider,
+    dampingSlider,
+    velDampingSlider,
+    carmYawSlider,
+    carmPitchSlider,
+    carmRollSlider,
+    carmXSlider,
+    carmYSlider,
+    carmZSlider
+];
+sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
 let bendingStiffness = parseFloat(bendSlider.value);
 setBendingStiffness(bendingStiffness);
