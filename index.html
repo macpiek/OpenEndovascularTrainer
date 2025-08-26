@@ -33,23 +33,30 @@
             right: 10px;
             color: white;
             font-family: sans-serif;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
         }
 
         #monitor canvas {
             background: black;
             border: 1px solid white;
             display: block;
+            margin-right: 8px;
+        }
+
+        .vitalRow {
+            display: flex;
+            align-items: center;
             margin-bottom: 5px;
         }
 
         .vitalBox {
-            width: 300px;
             border: 1px solid;
-            padding: 2px;
-            margin: -3px auto 5px auto;
+            padding: 2px 6px;
+            margin-left: 0;
             text-align: center;
             font-family: sans-serif;
+            font-size: 28px;
         }
 
         #hrBox {
@@ -123,10 +130,14 @@
 </div>
 
 <div id="monitor">
-    <canvas id="ecgCanvas" width="300" height="100"></canvas>
-    <div id="hrBox" class="vitalBox">HR: <span id="hrValue">0</span></div>
-    <canvas id="bpCanvas" width="300" height="100"></canvas>
-    <div id="bpBox" class="vitalBox">BP: <span id="bpValue">0/0</span></div>
+    <div class="vitalRow">
+        <canvas id="ecgCanvas" width="300" height="100"></canvas>
+        <div id="hrBox" class="vitalBox">HR: <span id="hrValue">0</span></div>
+    </div>
+    <div class="vitalRow">
+        <canvas id="bpCanvas" width="300" height="100"></canvas>
+        <div id="bpBox" class="vitalBox">BP: <span id="bpValue">0/0</span></div>
+    </div>
 </div>
 
 <script type="importmap">
