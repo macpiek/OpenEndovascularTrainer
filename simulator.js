@@ -120,7 +120,7 @@ vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
-const contrast = new ContrastAgent(vessel.segments, 0);
+const contrast = new ContrastAgent(vessel);
 let contrastMesh = getContrastGeometry(contrast);
 if (contrastMesh) {
     contrastMesh.visible = false;
@@ -158,9 +158,8 @@ document.addEventListener('keydown', e => {
         e.preventDefault();
     }
     if (e.code === 'KeyC' && fluoroscopy) {
-        if (!contrast.isActive()) {
-            contrast.start();
-        }
+        injecting = true;
+        injectTime = 0;
         e.preventDefault();
     }
 }, true);
@@ -178,6 +177,11 @@ const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
 const modeToggle = document.getElementById('modeToggle');
 const injectButton = document.getElementById('injectContrast');
+
+let injecting = false;
+let injectTime = 0;
+const injectDuration = 1; // seconds
+const injectRate = 1; // arbitrary units per second
 const insertedLength = document.getElementById('insertedLength');
 const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
@@ -253,8 +257,9 @@ modeToggle.addEventListener('click', () => {
 });
 
 injectButton.addEventListener('click', () => {
-    if (!contrast.isActive()) {
-        contrast.start();
+    if (!injecting) {
+        injecting = true;
+        injectTime = 0;
         injectButton.disabled = true;
     }
 });
@@ -296,9 +301,16 @@ function animate(time) {
     }
 
     updateWireMesh();
+    if (injecting) {
+        contrast.inject(injectRate * dt);
+        injectTime += dt;
+        if (injectTime >= injectDuration) {
+            injecting = false;
+        }
+    }
     contrast.update(dt);
     monitor.update(dt);
-    if (contrast.isActive()) {
+    if (contrast.isActive() || injecting) {
         if (contrastMesh) {
             scene.remove(contrastMesh);
         }
