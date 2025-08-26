@@ -191,6 +191,7 @@ const vessel = generateVessel();
 
 const segmentLength = 12;
 const nodeCount = 80;
+const initialWireLength = segmentLength;
 
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
@@ -205,7 +206,7 @@ const tailStart = {
 };
 
 
-const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel);
+const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength);
 
 let advance = 0;
 window.addEventListener('keydown', e => {
