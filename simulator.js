@@ -59,6 +59,7 @@ blendScene.add(blendQuad);
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
+        contrastTexture: { value: previousTarget.texture },
         gray: { value: new THREE.Color(0xC3C3C3) },
         fluoroscopy: { value: false },
         time: { value: 0 },
@@ -74,6 +75,7 @@ const displayMaterial = new THREE.ShaderMaterial({
     `,
     fragmentShader: `
         uniform sampler2D uTexture;
+        uniform sampler2D contrastTexture;
         uniform vec3 gray;
         uniform bool fluoroscopy;
         uniform float time;
@@ -90,8 +92,9 @@ const displayMaterial = new THREE.ShaderMaterial({
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
-                vec3 color = gray * (1.0 - intensity);
-                gl_FragColor = vec4(color, 1.0);
+                float contrast = texture2D(contrastTexture, vUv).r;
+                vec3 color = gray * (1.0 - intensity) + vec3(contrast);
+                gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
             } else {
                 gl_FragColor = tex;
             }
@@ -121,11 +124,7 @@ vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
 const contrast = new ContrastAgent(vessel);
-let contrastMesh = getContrastGeometry(contrast);
-if (contrastMesh) {
-    contrastMesh.visible = false;
-    scene.add(contrastMesh);
-}
+let contrastMesh = null;
 
 const segmentLength = 12;
 const nodeCount = 80;
@@ -309,25 +308,27 @@ function animate(time) {
         }
     }
     contrast.update(dt);
-    monitor.update(dt);
-    if (contrast.isActive() || injecting) {
-        if (contrastMesh) {
-            scene.remove(contrastMesh);
-        }
-        contrastMesh = getContrastGeometry(contrast);
-        if (contrastMesh) {
-            scene.add(contrastMesh);
-        }
-        vesselGroup.visible = false;
-        injectButton.disabled = true;
-    } else {
-        if (contrastMesh) {
-            scene.remove(contrastMesh);
-            contrastMesh = null;
-        }
-        vesselGroup.visible = !fluoroscopy;
-        injectButton.disabled = false;
+    if (contrastMesh) {
+        scene.remove(contrastMesh);
+        contrastMesh = null;
     }
+    const contrastGeoms = getContrastGeometry(contrast);
+    if (contrastGeoms.length) {
+        contrastMesh = new THREE.Group();
+        for (const { geometry, concentration } of contrastGeoms) {
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: Math.min(concentration, 1)
+            });
+            contrastMesh.add(new THREE.Mesh(geometry, material));
+        }
+        scene.add(contrastMesh);
+    }
+    const contrastActive = contrast.isActive() || injecting;
+    vesselGroup.visible = contrastActive ? false : !fluoroscopy;
+    injectButton.disabled = contrastActive;
+    monitor.update(dt);
     if (fluoroscopy) {
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
@@ -341,6 +342,7 @@ function animate(time) {
         renderer.setRenderTarget(null);
 
         displayMaterial.uniforms.uTexture.value = currentTarget.texture;
+        displayMaterial.uniforms.contrastTexture.value = currentTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
 
