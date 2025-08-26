@@ -165,6 +165,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
 
     // Build adjacency list linking each segment to its downstream neighbor(s)
     const segmentGraph = vessel.segments.map(() => []);
+    const parents = vessel.segments.map(() => null);
     const epsilon = 1e-6;
     const pointsEqual = (a, b) =>
         Math.abs(a.x - b.x) < epsilon &&
@@ -175,10 +176,50 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
             if (i === j) continue;
             if (pointsEqual(vessel.segments[i].end, vessel.segments[j].start)) {
                 segmentGraph[i].push(j);
+                parents[j] = i;
             }
         }
     }
     vessel.segmentGraph = segmentGraph;
+    // Assign parent indices to segments
+    for (let i = 0; i < vessel.segments.length; i++) {
+        vessel.segments[i].parent = parents[i];
+    }
+
+    // Compute flow direction and speed throughout the graph
+    const BASE_SPEED = 30; // cm/s default inflow speed
+    const flow = {};
+    const computeDir = seg => {
+        const dx = seg.end.x - seg.start.x;
+        const dy = seg.end.y - seg.start.y;
+        const dz = seg.end.z - seg.start.z;
+        const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+        return { x: dx / len, y: dy / len, z: dz / len };
+    };
+
+    function assignFlow(idx, speed) {
+        const seg = vessel.segments[idx];
+        const dir = computeDir(seg);
+        seg.flowDir = dir;
+        seg.flowSpeed = speed;
+        const children = segmentGraph[idx];
+        flow[idx] = { dir, speed, children };
+        if (children.length) {
+            let totalRadius = 0;
+            for (const c of children) totalRadius += vessel.segments[c].radius;
+            for (const c of children) {
+                const childSpeed = speed * (vessel.segments[c].radius / totalRadius);
+                assignFlow(c, childSpeed);
+            }
+        }
+    }
+
+    for (let i = 0; i < vessel.segments.length; i++) {
+        if (parents[i] === null) {
+            assignFlow(i, BASE_SPEED);
+        }
+    }
+    vessel.flow = flow;
 
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
 
