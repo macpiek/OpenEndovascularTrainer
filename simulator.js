@@ -191,7 +191,7 @@ const vessel = generateVessel();
 
 const segmentLength = 12;
 const nodeCount = 80;
-const initialWireLength = segmentLength;
+const initialWireLength = segmentLength * (nodeCount - 1);
 
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
@@ -200,9 +200,9 @@ const leftDir = {
 };
 
 const tailStart = {
-    x: vessel.left.end.x - leftDir.x * segmentLength * (nodeCount - 1),
-    y: vessel.left.end.y - leftDir.y * segmentLength * (nodeCount - 1),
-    z: vessel.left.end.z - leftDir.z * segmentLength * (nodeCount - 1)
+    x: vessel.left.end.x - leftDir.x * initialWireLength,
+    y: vessel.left.end.y - leftDir.y * initialWireLength,
+    z: vessel.left.end.z - leftDir.z * initialWireLength
 };
 
 
