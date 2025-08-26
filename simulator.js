@@ -1,63 +1,82 @@
 const canvas = document.getElementById('sim');
-const ctx = canvas.getContext('2d');
-let width = window.innerWidth;
-let height = window.innerHeight;
-canvas.width = width;
-canvas.height = height;
+const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-const centerX = width / 2;
-const centerY = height / 2;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-// UI controls
-const stiffnessSlider = document.getElementById('stiffness');
-const carmSlider = document.getElementById('carm');
-let wireStiffness = parseFloat(stiffnessSlider.value);
-let cameraAngle = 0;
-stiffnessSlider.addEventListener('input', e => {
-    wireStiffness = parseFloat(e.target.value);
-});
-carmSlider.addEventListener('input', e => {
-    cameraAngle = parseFloat(e.target.value) * Math.PI / 180;
-});
+const cameraRadius = 200;
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 80, cameraRadius);
+scene.add(camera);
 
-// vessel geometry with curved branching
-const vessel = (() => {
-    const radius = 20;
-    const branchRadius = 14; // smaller than main vessel
-    const angle = Math.PI / 6; // 30 degrees
-    const branchLength = 300;
-    const blend = 60; // length of curved transition section
-    const branchY = height / 3;
-    const branchPoint = {x: centerX, y: branchY, z: 0};
-    const mainEnd = {x: centerX, y: branchY - blend, z: 0};
+const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+scene.add(light);
+
+let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
+let vesselGroup;
+
+function createTaperedTube(path, tubularSegments, radialSegments, startRadius, endRadius) {
+    const geometry = new THREE.TubeGeometry(path, tubularSegments, 1, radialSegments, false);
+    const pos = geometry.attributes.position;
+    const normals = geometry.attributes.normal;
+    const segments = tubularSegments + 1;
+    const radials = radialSegments + 1;
+    for (let i = 0; i < segments; i++) {
+        const t = i / tubularSegments;
+        const r = startRadius + (endRadius - startRadius) * t;
+        for (let j = 0; j < radials; j++) {
+            const idx = i * radials + j;
+            pos.setX(idx, pos.getX(idx) + normals.getX(idx) * (r - 1));
+            pos.setY(idx, pos.getY(idx) + normals.getY(idx) * (r - 1));
+            pos.setZ(idx, pos.getZ(idx) + normals.getZ(idx) * (r - 1));
+        }
+    }
+    pos.needsUpdate = true;
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
+function generateVessel() {
+    const mainRadius = 20;
+    const branchRadius = 14;
+    const branchPointY = 80;
+    const branchLength = 120 + Math.random() * 40;
+    const blend = 40;
+    const branchAngleOffset = (Math.random() - 0.5) * Math.PI / 12;
+
+    const vessel = {
+        radius: mainRadius,
+        branchRadius,
+        branchPoint: {x: 0, y: branchPointY, z: 0},
+        segments: []
+    };
+
+    const mainStart = {x: 0, y: 0, z: 0};
+    const mainEnd = {x: 0, y: branchPointY - blend, z: 0};
+    vessel.main = {start: mainStart, end: mainEnd};
+    vessel.segments.push({start: mainStart, end: mainEnd, radius: mainRadius});
 
     function branch(dir) {
-        const a = angle * dir;
+        const angle = Math.PI / 6 * dir + branchAngleOffset * dir;
         const curveEnd = {
-            x: branchPoint.x + Math.sin(a) * blend,
-            y: branchPoint.y + Math.cos(a) * blend,
-            z: 0
+            x: Math.sin(angle) * blend,
+            y: branchPointY + blend,
+            z: Math.cos(angle) * blend
         };
         const end = {
-            x: branchPoint.x + Math.sin(a) * (branchLength + blend),
-            y: branchPoint.y + Math.cos(a) * (branchLength + blend),
-            z: 0
+            x: Math.sin(angle) * (blend + branchLength),
+            y: branchPointY + branchLength,
+            z: Math.cos(angle) * (blend + branchLength)
         };
-        return {curveEnd, end, length: branchLength + blend};
+        const length = branchLength + blend;
+        return {angle, curveEnd, end, length};
     }
 
-    const right = branch(1);
-    const left = branch(-1);
-
-    // collect segments for collision constraints
-    const segments = [];
-    segments.push({start: {x: centerX, y: 0, z: 0}, end: mainEnd, radius});
+    vessel.right = branch(1);
+    vessel.left = branch(-1);
 
     function addCurve(p0, p1, p2) {
-        // use more subdivision steps so that the collision geometry
-        // more closely follows a smooth Bézier curve. With too few
-        // segments the guidewire hits sharp corners and appears to
-        // "stick" when traversing the bifurcation.
         const steps = 24;
         let prev = p0;
         for (let i = 1; i <= steps; i++) {
@@ -66,29 +85,51 @@ const vessel = (() => {
             const p = {
                 x: tt * tt * p0.x + 2 * tt * t * p1.x + t * t * p2.x,
                 y: tt * tt * p0.y + 2 * tt * t * p1.y + t * t * p2.y,
-                z: 0
+                z: tt * tt * p0.z + 2 * tt * t * p1.z + t * t * p2.z
             };
-            const r = radius + (branchRadius - radius) * t;
-            segments.push({start: prev, end: p, radius: r});
+            const r = mainRadius + (branchRadius - mainRadius) * t;
+            vessel.segments.push({start: prev, end: p, radius: r});
             prev = p;
         }
     }
 
-    addCurve(mainEnd, branchPoint, right.curveEnd);
-    segments.push({start: right.curveEnd, end: right.end, radius: branchRadius});
-    addCurve(mainEnd, branchPoint, left.curveEnd);
-    segments.push({start: left.curveEnd, end: left.end, radius: branchRadius});
+    addCurve(mainEnd, vessel.branchPoint, vessel.right.curveEnd);
+    vessel.segments.push({start: vessel.right.curveEnd, end: vessel.right.end, radius: branchRadius});
+    addCurve(mainEnd, vessel.branchPoint, vessel.left.curveEnd);
+    vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
 
-    return {
-        radius,
-        branchRadius,
-        branchPoint,
-        main: {start: {x: centerX, y: 0, z: 0}, end: mainEnd},
-        right,
-        left,
-        segments
-    };
-})();
+    if (vesselGroup) {
+        scene.remove(vesselGroup);
+    }
+    vesselGroup = new THREE.Group();
+
+    const trunkGeom = new THREE.CylinderGeometry(mainRadius, mainRadius, branchPointY, 16, 1, true);
+    trunkGeom.translate(0, branchPointY / 2, 0);
+
+    const rightCurve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(0, branchPointY, 0),
+        new THREE.Vector3(vessel.right.curveEnd.x, vessel.right.curveEnd.y, vessel.right.curveEnd.z),
+        new THREE.Vector3(vessel.right.end.x, vessel.right.end.y, vessel.right.end.z)
+    );
+    const rightGeom = createTaperedTube(rightCurve, 64, 16, mainRadius, branchRadius);
+
+    const leftCurve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(0, branchPointY, 0),
+        new THREE.Vector3(vessel.left.curveEnd.x, vessel.left.curveEnd.y, vessel.left.curveEnd.z),
+        new THREE.Vector3(vessel.left.end.x, vessel.left.end.y, vessel.left.end.z)
+    );
+    const leftGeom = createTaperedTube(leftCurve, 64, 16, mainRadius, branchRadius);
+
+    let merged = THREE.BufferGeometryUtils.mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
+    merged = THREE.BufferGeometryUtils.mergeVertices(merged);
+    const vesselMesh = new THREE.Mesh(merged, vesselMaterial);
+    vesselGroup.add(vesselMesh);
+
+    scene.add(vesselGroup);
+    return vessel;
+}
+
+const vessel = generateVessel();
 
 function clamp(v, min, max) {
     return Math.min(Math.max(v, min), max);
@@ -114,10 +155,7 @@ function projectOnSegment(n, seg) {
     return {px, py, pz, dx, dy, dz, dist};
 }
 
-// Less aggressive damping when the wire rubs against the wall to allow
-// smoother gliding along the vessel surface.
-// reduce friction so the guidewire slides more easily along the vessel wall
-const wallFriction = 0.02; // fraction of velocity lost when scraping the wall
+const wallFriction = 0.02;
 
 function clampToVessel(n, affectVelocity = true) {
     let nearest = vessel.segments[0];
@@ -148,21 +186,19 @@ function clampToVessel(n, affectVelocity = true) {
     }
 }
 
-// guidewire representation using a new mass–spring physics engine
 const segmentLength = 12;
 const nodeCount = 80;
 
-// direction pointing from left branch tip toward the bifurcation
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
-    y: (vessel.branchPoint.y - vessel.left.end.y) / vessel.left.length
+    y: (vessel.branchPoint.y - vessel.left.end.y) / vessel.left.length,
+    z: (vessel.branchPoint.z - vessel.left.end.z) / vessel.left.length
 };
 
-// starting position of the tail outside the vessel
 const tailStart = {
     x: vessel.left.end.x - leftDir.x * segmentLength * (nodeCount - 1),
     y: vessel.left.end.y - leftDir.y * segmentLength * (nodeCount - 1),
-    z: 0
+    z: vessel.left.end.z - leftDir.z * segmentLength * (nodeCount - 1)
 };
 
 class Guidewire {
@@ -174,7 +210,8 @@ class Guidewire {
         for (let i = 0; i < count; i++) {
             const x = vessel.left.end.x - dir.x * segLen * i;
             const y = vessel.left.end.y - dir.y * segLen * i;
-            this.nodes.push({x, y, z: 0, vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0, oldx: x, oldy: y, oldz: 0});
+            const z = vessel.left.end.z - dir.z * segLen * i;
+            this.nodes.push({x, y, z, vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0, oldx: x, oldy: y, oldz: z});
         }
         this.tailProgress = 0;
         this.maxInsert = segLen * (count - 1);
@@ -185,12 +222,13 @@ class Guidewire {
         const tail = this.nodes[this.nodes.length - 1];
         tail.x = this.tailStart.x + this.dir.x * this.tailProgress;
         tail.y = this.tailStart.y + this.dir.y * this.tailProgress;
-        tail.z = 0;
+        tail.z = this.tailStart.z + this.dir.z * this.tailProgress;
         tail.vx = tail.vy = tail.vz = 0;
         if (advance > 0) {
             const tip = this.nodes[0];
             tip.fx += this.dir.x * 500;
             tip.fy += this.dir.y * 500;
+            tip.fz += this.dir.z * 500;
         }
     }
 
@@ -305,11 +343,8 @@ class Guidewire {
 
 const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir);
 
-// only allow inserting or withdrawing the wire
 let advance = 0;
 window.addEventListener('keydown', e => {
-    // use keyboard codes so the control works regardless of keyboard layout
-    // and also support arrow keys as an alternative
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         advance = 1;
         e.preventDefault();
@@ -326,86 +361,65 @@ window.addEventListener('keyup', e => {
     }
 });
 
-function project(p) {
-    const cos = Math.cos(cameraAngle);
-    const sin = Math.sin(cameraAngle);
-    const dx = p.x - centerX;
-    const x = dx * cos - p.z * sin + centerX;
-    return {x, y: p.y};
+const stiffnessSlider = document.getElementById('stiffness');
+const carmSlider = document.getElementById('carm');
+const wireframeToggle = document.getElementById('wireframe');
+
+let wireStiffness = parseFloat(stiffnessSlider.value);
+stiffnessSlider.addEventListener('input', e => {
+    wireStiffness = parseFloat(e.target.value);
+});
+
+let cameraAngle = 0;
+function updateCamera() {
+    camera.position.x = Math.sin(cameraAngle) * cameraRadius;
+    camera.position.z = Math.cos(cameraAngle) * cameraRadius;
+    camera.lookAt(0, vessel.branchPoint.y, 0);
 }
+updateCamera();
 
-function draw() {
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(0, 0, width, height);
+carmSlider.addEventListener('input', e => {
+    cameraAngle = parseFloat(e.target.value) * Math.PI / 180;
+    updateCamera();
+});
 
-    // vessel projection
-    ctx.strokeStyle = 'rgba(120,120,120,0.4)';
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+wireframeToggle.addEventListener('change', e => {
+    vesselMaterial.wireframe = e.target.checked;
+});
 
-    const sheathPos = project(vessel.left.end);
-    const sheathAngle = Math.atan2(vessel.left.end.y - vessel.branchPoint.y, vessel.left.end.x - vessel.branchPoint.x);
-    ctx.save();
-    ctx.translate(sheathPos.x, sheathPos.y);
-    ctx.rotate(sheathAngle + Math.PI);
-    ctx.fillStyle = 'rgba(180,180,180,0.4)';
-    ctx.fillRect(-vessel.branchRadius * 0.7, 0, vessel.branchRadius * 1.4, 40);
-    ctx.restore();
-    ctx.fillStyle = 'rgba(120,120,120,0.4)';
+const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+const wireGeometry = new THREE.BufferGeometry();
+const wirePositions = new Float32Array(nodeCount * 3);
+wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
+const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
+scene.add(wireMesh);
 
-    // main tube
-    ctx.lineWidth = vessel.radius * 2;
-    const mainStart = project(vessel.main.start);
-    const mainEnd = project(vessel.main.end);
-    ctx.beginPath();
-    ctx.moveTo(mainStart.x, mainStart.y);
-    ctx.lineTo(mainEnd.x, mainEnd.y);
-    ctx.stroke();
-
-    // right branch
-    ctx.lineWidth = vessel.branchRadius * 2;
-    const pStart = project(vessel.main.end);
-    const pCtrl = project(vessel.branchPoint);
-    const pRight = project(vessel.right.curveEnd);
-    const endR = project(vessel.right.end);
-    ctx.beginPath();
-    ctx.moveTo(pStart.x, pStart.y);
-    ctx.quadraticCurveTo(pCtrl.x, pCtrl.y, pRight.x, pRight.y);
-    ctx.lineTo(endR.x, endR.y);
-    ctx.stroke();
-
-    // left branch
-    const pLeft = project(vessel.left.curveEnd);
-    const endL = project(vessel.left.end);
-    ctx.beginPath();
-    ctx.moveTo(pStart.x, pStart.y);
-    ctx.quadraticCurveTo(pCtrl.x, pCtrl.y, pLeft.x, pLeft.y);
-    ctx.lineTo(endL.x, endL.y);
-    ctx.stroke();
-
-    // guidewire
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    const p0 = project(wire.nodes[0]);
-    ctx.moveTo(p0.x, p0.y);
-    for (let i = 1; i < wire.nodes.length - 1; i++) {
-        const p1 = project(wire.nodes[i]);
-        const p2 = project(wire.nodes[i + 1]);
-        const mid = {x: (p1.x + p2.x) * 0.5, y: (p1.y + p2.y) * 0.5};
-        ctx.quadraticCurveTo(p1.x, p1.y, mid.x, mid.y);
+function updateWireMesh() {
+    for (let i = 0; i < wire.nodes.length; i++) {
+        const n = wire.nodes[i];
+        wirePositions[i * 3] = n.x;
+        wirePositions[i * 3 + 1] = n.y;
+        wirePositions[i * 3 + 2] = n.z;
     }
-    const last = project(wire.nodes[wire.nodes.length - 1]);
-    ctx.lineTo(last.x, last.y);
-    ctx.stroke();
+    wireGeometry.attributes.position.needsUpdate = true;
 }
 
 let lastTime = performance.now();
-function loop(time) {
+function animate(time) {
     const dt = (time - lastTime) / 1000;
     lastTime = time;
     wire.step(dt, advance);
-    draw();
-    requestAnimationFrame(loop);
+    updateWireMesh();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
 }
-requestAnimationFrame(loop);
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+});
+
