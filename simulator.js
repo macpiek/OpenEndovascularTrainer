@@ -199,6 +199,14 @@ class Wire {
         tail.vx = (tail.x - oldx) / dt;
         tail.vy = (tail.y - oldy) / dt;
         tail.vz = (tail.z - oldz) / dt;
+
+        // when advancing, nudge the tip forward so it immediately begins
+        // sliding into the vessel instead of hesitating at the sheath entry
+        if (advance > 0) {
+            const tip = this.nodes[0];
+            tip.vx += this.dir.x * 50 * dt;
+            tip.vy += this.dir.y * 50 * dt;
+        }
     }
 
     integrate(dt) {
