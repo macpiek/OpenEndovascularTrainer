@@ -39,8 +39,9 @@ export function setupCArmControls(camera, vessel, cameraRadius) {
             new THREE.Spherical(cameraRadius, Math.PI / 2 - carmPitch, carmYaw)
         );
         camera.position.copy(pivot).add(offset);
+        camera.up.set(0, 1, 0);
         camera.lookAt(pivot);
-        camera.rotation.z = carmRoll;
+        camera.rotateZ(carmRoll);
     }
 
     updateCamera();
