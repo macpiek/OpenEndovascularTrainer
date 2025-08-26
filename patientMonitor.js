@@ -121,8 +121,10 @@ export class PatientMonitor {
         for (let i = 1; i < w; i++) {
             ctx.lineTo(i, mapY(this.bpData[i]));
         }
-        ctx.strokeStyle = 'yellow';
+        ctx.save();
+        ctx.strokeStyle = '#ff0000';
         ctx.stroke();
+        ctx.restore();
     }
 }
 
