@@ -85,8 +85,8 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
     const angleBase = Math.PI / 6;
     const makeCurve = angle => new THREE.QuadraticBezierCurve3(
         new THREE.Vector3(0, branchPointY, 0),
-        new THREE.Vector3(Math.sin(angle) * blend, branchPointY - blend, Math.cos(angle) * blend),
-        new THREE.Vector3(Math.sin(angle) * (blend + branchLength), branchPointY - (blend + branchLength), Math.cos(angle) * (blend + branchLength))
+        new THREE.Vector3(Math.sin(angle) * blend, branchPointY - blend, 0),
+        new THREE.Vector3(Math.sin(angle) * (blend + branchLength), branchPointY - (blend + branchLength), 0)
     );
 
     const rightCurve = makeCurve(angleBase + branchAngleOffset);
@@ -114,7 +114,7 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
 
 function generateVessel() {
     const mainRadius = 20;
-    const branchRadius = 14;
+    const branchRadius = mainRadius / 2;
     const branchPointY = -80;
     const branchLength = 120 + Math.random() * 40;
     const blend = 40;
@@ -137,12 +137,12 @@ function generateVessel() {
         const curveEnd = {
             x: Math.sin(angle) * blend,
             y: branchPointY - blend,
-            z: Math.cos(angle) * blend
+            z: 0
         };
         const end = {
             x: Math.sin(angle) * (blend + branchLength),
             y: branchPointY - (blend + branchLength),
-            z: Math.cos(angle) * (blend + branchLength)
+            z: 0
         };
         const length = branchLength + blend;
         return {angle, curveEnd, end, length};
