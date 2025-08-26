@@ -30,6 +30,16 @@ export class PatientMonitor {
         this.diastolic = 80;
         this.bpMax = 0;
         this.bpMin = Infinity;
+
+        // Precomputed waveforms for one cardiac cycle
+        this.ecgTemplate = this.#createEcgTemplate();
+        this.bpTemplate = this.#createBpTemplate();
+    }
+
+    setHeartRate(hr) {
+        this.heartRate = hr;
+        this.beatInterval = 60 / this.heartRate;
+        this.currentHR = hr;
     }
 
     update(dt) {
@@ -41,8 +51,9 @@ export class PatientMonitor {
         const ecgStep = 1 / this.ecgSampleRate;
         while (this.ecgAccumulator >= ecgStep) {
             this.ecgAccumulator -= ecgStep;
-            const phase = this.cycleTime / this.beatInterval;
-            const ecg = this.#generateEcgSample(phase);
+            const phase = (this.cycleTime / this.beatInterval) % 1;
+            const index = Math.floor(phase * this.ecgTemplate.length);
+            const ecg = this.ecgTemplate[index];
             this.ecgData.push(ecg);
             while (this.ecgData.length > this.ecgBufferLength) this.ecgData.shift();
         }
@@ -50,8 +61,9 @@ export class PatientMonitor {
         const bpStep = 1 / this.bpSampleRate;
         while (this.bpAccumulator >= bpStep) {
             this.bpAccumulator -= bpStep;
-            const phase = this.cycleTime / this.beatInterval;
-            const pressure = this.#generateBpSample(phase);
+            const phase = (this.cycleTime / this.beatInterval) % 1;
+            const index = Math.floor(phase * this.bpTemplate.length);
+            const pressure = this.bpTemplate[index];
             this.bpData.push(pressure);
             while (this.bpData.length > this.bpBufferLength) this.bpData.shift();
             if (pressure > this.bpMax) this.bpMax = pressure;
@@ -63,8 +75,6 @@ export class PatientMonitor {
             this.systolic = this.bpMax;
             this.diastolic = this.bpMin;
             this.cycleTime -= this.beatInterval;
-            this.heartRate = 70 + Math.random() * 10;
-            this.beatInterval = 60 / this.heartRate;
             this.bpMax = 0;
             this.bpMin = Infinity;
         }
@@ -76,28 +86,62 @@ export class PatientMonitor {
         this.#drawBp();
     }
 
-    #generateEcgSample(phase) {
+    #ecgWaveform(phase) {
         let y = 0;
         if (phase < 0.1) {
-            y = 0.1 * Math.sin(Math.PI * phase / 0.1);
+            y = 0.1 * Math.sin(Math.PI * phase / 0.1); // P wave
         } else if (phase < 0.2) {
-            y = 0;
+            y = 0; // PR segment
         } else if (phase < 0.22) {
-            y = -0.15 * (phase - 0.2) / 0.02;
+            y = -0.15 * (phase - 0.2) / 0.02; // Q wave
         } else if (phase < 0.23) {
-            y = 1 - 25 * Math.abs(phase - 0.225);
+            y = 1 - 25 * Math.abs(phase - 0.225); // R wave
         } else if (phase < 0.25) {
-            y = -0.15 * (0.25 - phase) / 0.02;
+            y = -0.15 * (0.25 - phase) / 0.02; // S wave
         } else if (phase < 0.45) {
-            y = 0;
+            y = 0; // ST segment
         } else if (phase < 0.6) {
-            y = 0.2 * Math.sin(Math.PI * (phase - 0.45) / 0.15);
+            y = 0.2 * Math.sin(Math.PI * (phase - 0.45) / 0.15); // T wave
         }
-        return y + (Math.random() - 0.5) * 0.05;
+        return y;
     }
 
-    #generateBpSample(phase) {
-        return 100 + 20 * Math.sin(2 * Math.PI * phase) + (Math.random() - 0.5) * 2;
+    #bpWaveform(phase) {
+        const sys = 120;
+        const dia = 80;
+        let p = dia;
+        if (phase < 0.15) {
+            // rapid systolic upstroke
+            p = dia + (sys - dia) * Math.sin((phase / 0.15) * Math.PI / 2);
+        } else if (phase < 0.3) {
+            // decline from systole
+            p = sys - 20 * ((phase - 0.15) / 0.15);
+        } else if (phase < 0.35) {
+            // dicrotic notch
+            p = 100 - 10 * Math.sin(Math.PI * (phase - 0.3) / 0.05);
+        } else {
+            // diastolic runoff
+            p = 100 - 20 * ((phase - 0.35) / 0.65);
+        }
+        return p;
+    }
+
+    #createEcgTemplate() {
+        const arr = [];
+        for (let i = 0; i < this.ecgSampleRate; i++) {
+            const phase = i / this.ecgSampleRate;
+            arr.push(this.#ecgWaveform(phase));
+        }
+        return arr;
+    }
+
+    #createBpTemplate() {
+        const arr = [];
+        for (let i = 0; i < this.bpSampleRate; i++) {
+            const phase = i / this.bpSampleRate;
+            arr.push(this.#bpWaveform(phase));
+        }
+        return arr;
     }
 
     #drawEcg() {

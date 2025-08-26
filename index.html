@@ -43,8 +43,23 @@
             margin-bottom: 5px;
         }
 
-        #vitalValues span {
-            margin: 0 5px;
+        .vitalBox {
+            width: 300px;
+            border: 1px solid;
+            padding: 2px;
+            margin: -3px auto 5px auto;
+            text-align: center;
+            font-family: sans-serif;
+        }
+
+        #hrBox {
+            border-color: lime;
+            color: lime;
+        }
+
+        #bpBox {
+            border-color: red;
+            color: red;
         }
     </style>
 </head>
@@ -109,8 +124,9 @@
 
 <div id="monitor">
     <canvas id="ecgCanvas" width="300" height="100"></canvas>
+    <div id="hrBox" class="vitalBox">HR: <span id="hrValue">0</span></div>
     <canvas id="bpCanvas" width="300" height="100"></canvas>
-    <div id="vitalValues"><span id="hrValue">HR: 0</span> <span id="bpValue">BP: 0/0</span></div>
+    <div id="bpBox" class="vitalBox">BP: <span id="bpValue">0/0</span></div>
 </div>
 
 <script type="importmap">
