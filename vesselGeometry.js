@@ -101,8 +101,9 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  * @param {number} branchAngleOffset angle offset in radians for branches (default 0)
  * @param {number} sheathLength length of the left-branch sheath (default 20)
  * @param {number} sheathRadius radius of the left-branch sheath (default 5)
+ * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation.
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
- */
+*/
 export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = 20, sheathRadius = 2) {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
@@ -164,12 +165,21 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
 
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
 
-    // Sheath geometry at the entrance of the left branch
+    // Sheath geometry at the entrance of the left branch, angled 30° anteriorly
     const outDir = {
         x: (vessel.left.end.x - vessel.branchPoint.x) / vessel.left.length,
         y: (vessel.left.end.y - vessel.branchPoint.y) / vessel.left.length,
         z: (vessel.left.end.z - vessel.branchPoint.z) / vessel.left.length
     };
+    // Tilt the sheath 30° toward the +Z (anterior) direction
+    const outVec = new THREE.Vector3(outDir.x, outDir.y, outDir.z).normalize();
+    const tiltAxis = new THREE.Vector3().crossVectors(outVec, new THREE.Vector3(0, 0, 1)).normalize();
+    const tiltQuat = new THREE.Quaternion().setFromAxisAngle(tiltAxis, THREE.MathUtils.degToRad(30));
+    outVec.applyQuaternion(tiltQuat);
+    outDir.x = outVec.x;
+    outDir.y = outVec.y;
+    outDir.z = outVec.z;
+
     const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y, z: vessel.left.end.z };
     const sheathEnd = {
         x: sheathStart.x + outDir.x * sheathLength,
@@ -179,8 +189,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: sheathLength };
 
     const sheathGeom = new THREE.CylinderGeometry(sheathRadius, sheathRadius, sheathLength, 16, 1, true);
-    const axis = new THREE.Vector3(outDir.x, outDir.y, outDir.z).normalize();
-    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), outVec);
     sheathGeom.applyQuaternion(quat);
     const mid = new THREE.Vector3(
         sheathStart.x + outDir.x * sheathLength / 2,
