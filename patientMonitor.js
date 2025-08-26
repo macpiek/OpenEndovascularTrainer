@@ -8,16 +8,20 @@ export class PatientMonitor {
         this.ecgCtx = ecgCanvas.getContext('2d');
         this.bpCtx = bpCanvas.getContext('2d');
 
-        this.ecgData = new Array(ecgCanvas.width).fill(0);
-        this.bpData = new Array(bpCanvas.width).fill(100);
+        this.ecgSampleRate = 250;
+        this.bpSampleRate = 50;
+
+        this.ecgBufferLength = this.ecgSampleRate * 10;
+        this.bpBufferLength = this.bpSampleRate * 10;
+
+        this.ecgData = new Array(this.ecgBufferLength).fill(0);
+        this.bpData = new Array(this.bpBufferLength).fill(100);
 
         this.time = 0;
         this.cycleTime = 0;
         this.heartRate = 75; // bpm
         this.beatInterval = 60 / this.heartRate;
 
-        this.ecgSampleRate = 250;
-        this.bpSampleRate = 50;
         this.ecgAccumulator = 0;
         this.bpAccumulator = 0;
 
@@ -39,8 +43,8 @@ export class PatientMonitor {
             this.ecgAccumulator -= ecgStep;
             const phase = this.cycleTime / this.beatInterval;
             const ecg = this.#generateEcgSample(phase);
-            this.ecgData.shift();
             this.ecgData.push(ecg);
+            while (this.ecgData.length > this.ecgBufferLength) this.ecgData.shift();
         }
 
         const bpStep = 1 / this.bpSampleRate;
@@ -48,8 +52,8 @@ export class PatientMonitor {
             this.bpAccumulator -= bpStep;
             const phase = this.cycleTime / this.beatInterval;
             const pressure = this.#generateBpSample(phase);
-            this.bpData.shift();
             this.bpData.push(pressure);
+            while (this.bpData.length > this.bpBufferLength) this.bpData.shift();
             if (pressure > this.bpMax) this.bpMax = pressure;
             if (pressure < this.bpMin) this.bpMin = pressure;
         }
@@ -100,11 +104,13 @@ export class PatientMonitor {
         const ctx = this.ecgCtx;
         const w = this.ecgCanvas.width;
         const h = this.ecgCanvas.height;
+        const len = this.ecgData.length;
         ctx.clearRect(0, 0, w, h);
         ctx.beginPath();
         ctx.moveTo(0, h / 2 - this.ecgData[0] * h / 2);
-        for (let i = 1; i < w; i++) {
-            ctx.lineTo(i, h / 2 - this.ecgData[i] * h / 2);
+        for (let i = 1; i < len; i++) {
+            const x = (i / (len - 1)) * w;
+            ctx.lineTo(x, h / 2 - this.ecgData[i] * h / 2);
         }
         ctx.strokeStyle = 'lime';
         ctx.stroke();
@@ -114,12 +120,14 @@ export class PatientMonitor {
         const ctx = this.bpCtx;
         const w = this.bpCanvas.width;
         const h = this.bpCanvas.height;
+        const len = this.bpData.length;
         const mapY = p => h - (p - 60) / 80 * h;
         ctx.clearRect(0, 0, w, h);
         ctx.beginPath();
         ctx.moveTo(0, mapY(this.bpData[0]));
-        for (let i = 1; i < w; i++) {
-            ctx.lineTo(i, mapY(this.bpData[i]));
+        for (let i = 1; i < len; i++) {
+            const x = (i / (len - 1)) * w;
+            ctx.lineTo(x, mapY(this.bpData[i]));
         }
         ctx.strokeStyle = 'yellow';
         ctx.stroke();
