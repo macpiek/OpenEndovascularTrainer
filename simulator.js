@@ -148,9 +148,8 @@ function clampToVessel(n, affectVelocity = true) {
     }
 }
 
-// guidewire representation using position-based dynamics
+// guidewire representation using a new mass–spring physics engine
 const segmentLength = 12;
-// extend the guidewire so it can reach deeper into the vessel
 const nodeCount = 80;
 
 // direction pointing from left branch tip toward the bifurcation
@@ -166,70 +165,98 @@ const tailStart = {
     z: 0
 };
 
-class Wire {
+class Guidewire {
     constructor(segLen, count, start, dir) {
         this.segmentLength = segLen;
-        this.nodes = [];
         this.tailStart = start;
         this.dir = dir;
+        this.nodes = [];
         for (let i = 0; i < count; i++) {
             const x = vessel.left.end.x - dir.x * segLen * i;
             const y = vessel.left.end.y - dir.y * segLen * i;
-            this.nodes.push({x, y, z: 0, vx: 0, vy: 0, vz: 0, oldx: x, oldy: y, oldz: 0});
+            this.nodes.push({x, y, z: 0, vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0, oldx: x, oldy: y, oldz: 0});
         }
         this.tailProgress = 0;
-        // allow full length insertion instead of leaving a fixed segment outside
         this.maxInsert = segLen * (count - 1);
     }
 
-    updateTail(advance, dt) {
+    advanceTail(advance, dt) {
         this.tailProgress = clamp(this.tailProgress + advance * 40 * dt, 0, this.maxInsert);
         const tail = this.nodes[this.nodes.length - 1];
-        const tx = this.tailStart.x + this.dir.x * this.tailProgress;
-        const ty = this.tailStart.y + this.dir.y * this.tailProgress;
-        // move the fixed tail segment smoothly and keep a velocity estimate
-        // instead of abruptly zeroing it each frame, which caused the
-        // remainder of the wire to lose momentum when inserting.
-        const oldx = tail.x;
-        const oldy = tail.y;
-        const oldz = tail.z;
-        tail.x = tx;
-        tail.y = ty;
+        tail.x = this.tailStart.x + this.dir.x * this.tailProgress;
+        tail.y = this.tailStart.y + this.dir.y * this.tailProgress;
         tail.z = 0;
-        tail.vx = (tail.x - oldx) / dt;
-        tail.vy = (tail.y - oldy) / dt;
-        tail.vz = (tail.z - oldz) / dt;
-
-        // when advancing, nudge the tip forward so it immediately begins
-        // sliding into the vessel instead of hesitating at the sheath entry
+        tail.vx = tail.vy = tail.vz = 0;
         if (advance > 0) {
             const tip = this.nodes[0];
-            tip.vx += this.dir.x * 50 * dt;
-            tip.vy += this.dir.y * 50 * dt;
+            tip.fx += this.dir.x * 500;
+            tip.fy += this.dir.y * 500;
+        }
+    }
+
+    accumulateForces() {
+        for (const n of this.nodes) {
+            n.fx = n.fy = n.fz = 0;
+            n.fx -= n.vx * 2;
+            n.fy -= n.vy * 2;
+            n.fz -= n.vz * 2;
+        }
+        const len = this.segmentLength;
+        for (let i = 1; i < this.nodes.length; i++) {
+            const a = this.nodes[i - 1];
+            const b = this.nodes[i];
+            let dx = b.x - a.x;
+            let dy = b.y - a.y;
+            let dz = b.z - a.z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+            const diff = dist - len;
+            const k = 200;
+            const force = k * diff;
+            const inv = 1 / dist;
+            const fx = force * dx * inv;
+            const fy = force * dy * inv;
+            const fz = force * dz * inv;
+            a.fx += fx;
+            a.fy += fy;
+            a.fz += fz;
+            b.fx -= fx;
+            b.fy -= fy;
+            b.fz -= fz;
+        }
+        for (let i = 1; i < this.nodes.length - 1; i++) {
+            const prev = this.nodes[i - 1];
+            const curr = this.nodes[i];
+            const next = this.nodes[i + 1];
+            const mx = (prev.x + next.x) * 0.5;
+            const my = (prev.y + next.y) * 0.5;
+            const mz = (prev.z + next.z) * 0.5;
+            const bx = (mx - curr.x) * wireStiffness * 50;
+            const by = (my - curr.y) * wireStiffness * 50;
+            const bz = (mz - curr.z) * wireStiffness * 50;
+            curr.fx += bx;
+            curr.fy += by;
+            curr.fz += bz;
         }
     }
 
     integrate(dt) {
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
-            // lighter overall damping for smoother advancement
-            n.vx *= 0.99;
-            n.vy *= 0.99;
-            n.vz *= 0.99;
+            n.vx += n.fx * dt;
+            n.vy += n.fy * dt;
+            n.vz += n.fz * dt;
             n.x += n.vx * dt;
             n.y += n.vy * dt;
             n.z += n.vz * dt;
         }
     }
 
-    satisfyConstraints(iterations) {
-        const nodes = this.nodes;
+    solveDistances(iterations = 2) {
         const len = this.segmentLength;
-        const tail = nodes[nodes.length - 1];
         for (let k = 0; k < iterations; k++) {
-            for (let i = 1; i < nodes.length; i++) {
-                const a = nodes[i - 1];
-                const b = nodes[i];
+            for (let i = 1; i < this.nodes.length; i++) {
+                const a = this.nodes[i - 1];
+                const b = this.nodes[i];
                 let dx = b.x - a.x;
                 let dy = b.y - a.y;
                 let dz = b.z - a.z;
@@ -241,41 +268,12 @@ class Wire {
                 a.x += offx;
                 a.y += offy;
                 a.z += offz;
-                if (i !== nodes.length - 1) {
+                if (i !== this.nodes.length - 1) {
                     b.x -= offx;
                     b.y -= offy;
                     b.z -= offz;
                 }
             }
-
-            for (let i = 1; i < nodes.length - 1; i++) {
-                const prev = nodes[i - 1];
-                const curr = nodes[i];
-                const next = nodes[i + 1];
-                const mx = (prev.x + next.x) * 0.5;
-                const my = (prev.y + next.y) * 0.5;
-                const mz = (prev.z + next.z) * 0.5;
-                curr.x += (mx - curr.x) * wireStiffness;
-                curr.y += (my - curr.y) * wireStiffness;
-                curr.z += (mz - curr.z) * wireStiffness;
-            }
-
-            // pull each node slightly toward a straight line along the tail
-            // direction so the wire naturally returns to a straight shape when
-            // not constrained by the vessel
-            for (let i = 0; i < nodes.length; i++) {
-                const targetX = tail.x - this.dir.x * len * (nodes.length - 1 - i);
-                const targetY = tail.y - this.dir.y * len * (nodes.length - 1 - i);
-                const targetZ = 0;
-                nodes[i].x += (targetX - nodes[i].x) * wireStiffness * 0.02;
-                nodes[i].y += (targetY - nodes[i].y) * wireStiffness * 0.02;
-                nodes[i].z += (targetZ - nodes[i].z) * wireStiffness * 0.02;
-            }
-
-            clampToVessel(nodes[0], false);
-            tail.x = this.tailStart.x + this.dir.x * this.tailProgress;
-            tail.y = this.tailStart.y + this.dir.y * this.tailProgress;
-            tail.z = 0;
         }
     }
 
@@ -291,11 +289,10 @@ class Wire {
             n.oldy = n.y;
             n.oldz = n.z;
         }
-        this.updateTail(advance, dt);
+        this.advanceTail(advance, dt);
+        this.accumulateForces();
         this.integrate(dt);
-        // perform more iterations for better convergence and smoother
-        // bending of the wire, especially in curved sections
-        this.satisfyConstraints(24);
+        this.solveDistances(4);
         this.collide();
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
@@ -306,7 +303,7 @@ class Wire {
     }
 }
 
-const wire = new Wire(segmentLength, nodeCount, tailStart, leftDir);
+const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir);
 
 // only allow inserting or withdrawing the wire
 let advance = 0;
