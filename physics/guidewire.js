@@ -102,7 +102,7 @@ export function setLengthTolerance(value) {
 }
 
 export class Guidewire {
-    constructor(segLen, count, start, dir, vessel, iterations = pbdIterations, tolerance = lengthTolerance) {
+    constructor(segLen, count, start, dir, vessel, iterations = pbdIterations, tolerance = lengthTolerance, initialInsert = segLen * 5) {
         this.segmentLength = segLen;
         this.tailStart = start;
         this.dir = dir;
@@ -110,14 +110,16 @@ export class Guidewire {
         this.iterations = iterations;
         this.lengthTolerance = tolerance;
         this.nodes = [];
+        this.tailProgress = initialInsert;
         for (let i = 0; i < count; i++) {
-            const x = vessel.left.end.x - dir.x * segLen * i;
-            const y = vessel.left.end.y - dir.y * segLen * i;
-            const z = vessel.left.end.z - dir.z * segLen * i;
+            const t = this.tailProgress + segLen * (count - 1 - i);
+            const x = start.x + dir.x * t;
+            const y = start.y + dir.y * t;
+            const z = start.z + dir.z * t;
             this.nodes.push({x, y, z, vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0, oldx: x, oldy: y, oldz: z});
         }
-        this.tailProgress = 0;
-        this.maxInsert = segLen * (count - 1);
+        this.maxInsert = this.tailProgress + segLen * (count - 1);
+        this.solvePbd();
     }
 
     advanceTail(advance, dt) {
