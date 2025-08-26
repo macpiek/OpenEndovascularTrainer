@@ -1,4 +1,17 @@
-const wallFriction = 0.02;
+// Wall interaction parameters with defaults
+let wallStaticFriction = 0.05;
+let wallKineticFriction = 0.02;
+let wallNormalDamping = 0.5;
+
+// Allow configuration from the outside
+export function setWallFriction(staticCoeff, kineticCoeff) {
+    wallStaticFriction = staticCoeff;
+    wallKineticFriction = kineticCoeff;
+}
+
+export function setNormalDamping(value) {
+    wallNormalDamping = value;
+}
 
 function clamp(v, min, max) {
     return Math.min(Math.max(v, min), max);
@@ -24,7 +37,14 @@ function projectOnSegment(n, seg) {
     return {px, py, pz, dx, dy, dz, dist};
 }
 
-function clampToVessel(n, vessel, affectVelocity = true) {
+function clampToVessel(
+    n,
+    vessel,
+    affectVelocity = true,
+    staticFriction = wallStaticFriction,
+    kineticFriction = wallKineticFriction,
+    normalDamping = wallNormalDamping
+) {
     let nearest = vessel.segments[0];
     let best = projectOnSegment(n, nearest);
     for (let i = 1; i < vessel.segments.length; i++) {
@@ -46,9 +66,21 @@ function clampToVessel(n, vessel, affectVelocity = true) {
         n.z = best.pz + nz * radius;
         if (affectVelocity) {
             const vn = n.vx * nx + n.vy * ny + n.vz * nz;
-            n.vx = (n.vx - vn * nx) * (1 - wallFriction);
-            n.vy = (n.vy - vn * ny) * (1 - wallFriction);
-            n.vz = (n.vz - vn * nz) * (1 - wallFriction);
+            let tx = n.vx - vn * nx;
+            let ty = n.vy - vn * ny;
+            let tz = n.vz - vn * nz;
+            const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
+            if (tMag < staticFriction) {
+                tx = ty = tz = 0;
+            } else {
+                tx *= (1 - kineticFriction);
+                ty *= (1 - kineticFriction);
+                tz *= (1 - kineticFriction);
+            }
+            const dampedVn = vn * (1 - normalDamping);
+            n.vx = tx + dampedVn * nx;
+            n.vy = ty + dampedVn * ny;
+            n.vz = tz + dampedVn * nz;
         }
     }
 }
