@@ -40,6 +40,30 @@ function createTaperedTube(path, tubularSegments, radialSegments, startRadius, e
     return geometry;
 }
 
+function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset) {
+    const trunkHeight = Math.abs(branchPointY);
+    const trunkGeom = new THREE.CylinderGeometry(mainRadius, mainRadius, trunkHeight, 16, 1, true);
+    trunkGeom.translate(0, branchPointY / 2, 0);
+
+    const angleBase = Math.PI / 6;
+    const makeCurve = angle => new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(0, branchPointY, 0),
+        new THREE.Vector3(Math.sin(angle) * blend, branchPointY - blend, Math.cos(angle) * blend),
+        new THREE.Vector3(Math.sin(angle) * (blend + branchLength), branchPointY - (blend + branchLength), Math.cos(angle) * (blend + branchLength))
+    );
+
+    const rightCurve = makeCurve(angleBase + branchAngleOffset);
+    const leftCurve = makeCurve(-angleBase - branchAngleOffset);
+
+    const rightGeom = createTaperedTube(rightCurve, 64, 16, mainRadius, branchRadius);
+    const leftGeom = createTaperedTube(leftCurve, 64, 16, mainRadius, branchRadius);
+
+    let geometry = mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
+    geometry = mergeVertices(geometry);
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
 function generateVessel() {
     const mainRadius = 20;
     const branchRadius = 14;
@@ -105,29 +129,8 @@ function generateVessel() {
         scene.remove(vesselGroup);
     }
     vesselGroup = new THREE.Group();
-
-    const trunkHeight = Math.abs(branchPointY);
-    const trunkGeom = new THREE.CylinderGeometry(mainRadius, mainRadius, trunkHeight, 16, 1, true);
-    trunkGeom.translate(0, branchPointY / 2, 0);
-
-    const rightCurve = new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(0, branchPointY, 0),
-        new THREE.Vector3(vessel.right.curveEnd.x, vessel.right.curveEnd.y, vessel.right.curveEnd.z),
-        new THREE.Vector3(vessel.right.end.x, vessel.right.end.y, vessel.right.end.z)
-    );
-    const rightGeom = createTaperedTube(rightCurve, 64, 16, mainRadius, branchRadius);
-
-    const leftCurve = new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(0, branchPointY, 0),
-        new THREE.Vector3(vessel.left.curveEnd.x, vessel.left.curveEnd.y, vessel.left.curveEnd.z),
-        new THREE.Vector3(vessel.left.end.x, vessel.left.end.y, vessel.left.end.z)
-    );
-    const leftGeom = createTaperedTube(leftCurve, 64, 16, mainRadius, branchRadius);
-
-    let merged = mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
-    merged = mergeVertices(merged);
-    merged.computeVertexNormals();
-    const vesselMesh = new THREE.Mesh(merged, vesselMaterial);
+    const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
+    const vesselMesh = new THREE.Mesh(geometry, vesselMaterial);
     vesselGroup.add(vesselMesh);
 
     scene.add(vesselGroup);
