@@ -1,7 +1,13 @@
 // Wall interaction parameters with defaults
-let wallStaticFriction = 0.05;
-let wallKineticFriction = 0.02;
+let wallStaticFriction = 0.2;
+let wallKineticFriction = 0.1;
 let wallNormalDamping = 0.5;
+
+// Force applied to the tip when advancing the tail
+let advanceForce = 100;
+
+// Global velocity damping applied each integrate step
+let velocityDamping = 0.98;
 
 // Allow configuration from the outside
 export function setWallFriction(staticCoeff, kineticCoeff) {
@@ -11,6 +17,14 @@ export function setWallFriction(staticCoeff, kineticCoeff) {
 
 export function setNormalDamping(value) {
     wallNormalDamping = value;
+}
+
+export function setAdvanceForce(value) {
+    advanceForce = value;
+}
+
+export function setVelocityDamping(value) {
+    velocityDamping = value;
 }
 
 function clamp(v, min, max) {
@@ -141,9 +155,9 @@ export class Guidewire {
         tail.vx = tail.vy = tail.vz = 0;
         if (advance > 0) {
             const tip = this.nodes[0];
-            tip.fx += this.dir.x * 500;
-            tip.fy += this.dir.y * 500;
-            tip.fz += this.dir.z * 500;
+            tip.fx += this.dir.x * advanceForce;
+            tip.fy += this.dir.y * advanceForce;
+            tip.fz += this.dir.z * advanceForce;
         }
     }
 
@@ -188,6 +202,9 @@ export class Guidewire {
             n.x += n.vx * dt;
             n.y += n.vy * dt;
             n.z += n.vz * dt;
+            n.vx *= velocityDamping;
+            n.vy *= velocityDamping;
+            n.vz *= velocityDamping;
         }
     }
 
