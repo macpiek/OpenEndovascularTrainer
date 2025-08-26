@@ -113,7 +113,6 @@ vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
 const contrast = new ContrastAgent(vessel.segments, 0);
-contrast.start();
 let contrastMesh = getContrastGeometry(contrast);
 if (contrastMesh) {
     contrastMesh.visible = false;
@@ -150,6 +149,12 @@ document.addEventListener('keydown', e => {
         advance = -1;
         e.preventDefault();
     }
+    if (e.code === 'KeyC' && fluoroscopy) {
+        if (!contrast.isActive()) {
+            contrast.start();
+        }
+        e.preventDefault();
+    }
 }, true);
 document.addEventListener('keyup', e => {
     if (['KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
@@ -164,6 +169,7 @@ const kineticFricSlider = document.getElementById('kineticFriction');
 const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
 const modeToggle = document.getElementById('modeToggle');
+const injectButton = document.getElementById('injectContrast');
 const insertedLength = document.getElementById('insertedLength');
 const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
@@ -238,6 +244,13 @@ modeToggle.addEventListener('click', () => {
     modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
 });
 
+injectButton.addEventListener('click', () => {
+    if (!contrast.isActive()) {
+        contrast.start();
+        injectButton.disabled = true;
+    }
+});
+
 const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
 const wireGeometry = new THREE.BufferGeometry();
 const wirePositions = new Float32Array(nodeCount * 3);
@@ -289,6 +302,7 @@ function animate(time) {
     } else {
         vesselGroup.visible = !fluoroscopy;
     }
+    injectButton.disabled = contrast.isActive();
     if (fluoroscopy) {
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
