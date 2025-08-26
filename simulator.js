@@ -50,7 +50,7 @@ blendScene.add(blendQuad);
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
-        gray: { value: new THREE.Color(0x808080) },
+        gray: { value: new THREE.Color(0xC3C3C3) },
         fluoroscopy: { value: false }
     },
     vertexShader: `
