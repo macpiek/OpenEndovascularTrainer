@@ -98,7 +98,7 @@ const displayMaterial = new THREE.ShaderMaterial({
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
                 float contrast = texture2D(contrastTexture, vUv).r;
-                vec3 color = gray * (1.0 - intensity) + vec3(contrast);
+                vec3 color = gray * (1.0 - intensity) * (1.0 - contrast);
                 gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
             } else {
                 gl_FragColor = tex;
@@ -234,6 +234,16 @@ document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
     update();
     slider.addEventListener('input', update);
 });
+
+// Toggle visibility of control sections
+document.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+        const content = header.nextElementSibling;
+        if (content) {
+            content.classList.toggle('hidden');
+        }
+    });
+});
 setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup);
 
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
@@ -283,6 +293,7 @@ modeToggle.addEventListener('click', () => {
     vesselGroup.visible = !fluoroscopy;
     displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
+    wireMaterial.color.set(fluoroscopy ? 0x000000 : 0xffffff);
 });
 
 injectButton.addEventListener('click', () => {
@@ -303,12 +314,13 @@ stopInjectButton.addEventListener('click', () => {
     }
 });
 
-const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+const wireMaterial = new THREE.LineBasicMaterial({color: 0x000000});
 const wireGeometry = new THREE.BufferGeometry();
 const wirePositions = new Float32Array(nodeCount * 3);
 wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
 const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
 scene.add(wireMesh);
+wireMaterial.color.set(fluoroscopy ? 0x000000 : 0xffffff);
 
 function updateWireMesh() {
     for (let i = 0; i < wire.nodes.length; i++) {
@@ -360,7 +372,7 @@ function animate(time) {
         contrastMesh = new THREE.Group();
         for (const { geometry, concentration } of contrastGeoms) {
             const material = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
+                color: 0x000000,
                 transparent: true,
                 opacity: Math.min(concentration, 1)
             });
