@@ -6,6 +6,7 @@ import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
+import { initCArmPreview, renderCArmPreview } from './carmPreview.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -20,6 +21,8 @@ const monitor = new PatientMonitor(
     document.getElementById('hrValue'),
     document.getElementById('bpValue')
 );
+
+initCArmPreview();
 
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -394,6 +397,8 @@ function animate(time) {
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
     }
+
+    renderCArmPreview();
 
     requestAnimationFrame(animate);
 }
