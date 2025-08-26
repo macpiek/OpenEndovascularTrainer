@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Brush, Evaluator, ADDITION } from 'https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js';
-import { Guidewire, setWireStiffness } from './physics/guidewire.js';
+import { Guidewire, setBendingStiffness } from './physics/guidewire.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -225,7 +225,7 @@ window.addEventListener('keyup', e => {
     }
 });
 
-const stiffnessSlider = document.getElementById('stiffness');
+const bendSlider = document.getElementById('stiffness');
 const carmYawSlider = document.getElementById('carmYaw');
 const carmPitchSlider = document.getElementById('carmPitch');
 const carmRollSlider = document.getElementById('carmRoll');
@@ -234,11 +234,11 @@ const carmYSlider = document.getElementById('carmY');
 const carmZSlider = document.getElementById('carmZ');
 const wireframeToggle = document.getElementById('wireframe');
 
-let wireStiffness = parseFloat(stiffnessSlider.value);
-setWireStiffness(wireStiffness);
-stiffnessSlider.addEventListener('input', e => {
-    wireStiffness = parseFloat(e.target.value);
-    setWireStiffness(wireStiffness);
+let bendingStiffness = parseFloat(bendSlider.value);
+setBendingStiffness(bendingStiffness);
+bendSlider.addEventListener('input', e => {
+    bendingStiffness = parseFloat(e.target.value);
+    setBendingStiffness(bendingStiffness);
 });
 
 let carmYaw = 0;

@@ -53,9 +53,10 @@ function clampToVessel(n, vessel, affectVelocity = true) {
     }
 }
 
-let wireStiffness = 1;
-export function setWireStiffness(value) {
-    wireStiffness = value;
+// Bending stiffness for angular PBD constraint
+let bendingStiffness = 0.5;
+export function setBendingStiffness(value) {
+    bendingStiffness = value;
 }
 
 // Parameters controlling the PBD length solver
@@ -131,20 +132,7 @@ export class Guidewire {
             b.fy -= fy;
             b.fz -= fz;
         }
-        for (let i = 1; i < this.nodes.length - 1; i++) {
-            const prev = this.nodes[i - 1];
-            const curr = this.nodes[i];
-            const next = this.nodes[i + 1];
-            const mx = (prev.x + next.x) * 0.5;
-            const my = (prev.y + next.y) * 0.5;
-            const mz = (prev.z + next.z) * 0.5;
-            const bx = (mx - curr.x) * wireStiffness * 50;
-            const by = (my - curr.y) * wireStiffness * 50;
-            const bz = (mz - curr.z) * wireStiffness * 50;
-            curr.fx += bx;
-            curr.fy += by;
-            curr.fz += bz;
-        }
+        // no internal bending forces; bending handled via PBD constraint
     }
 
     integrate(dt) {
@@ -159,11 +147,12 @@ export class Guidewire {
         }
     }
 
-    // Position Based Dynamics solver enforcing segment length constraints
+    // Position Based Dynamics solver enforcing length and bending constraints
     solvePbd() {
         const len = this.segmentLength;
         for (let k = 0; k < this.iterations; k++) {
             let maxError = 0;
+            // enforce distance constraints
             for (let i = 1; i < this.nodes.length; i++) {
                 const a = this.nodes[i - 1];
                 const b = this.nodes[i];
@@ -185,7 +174,51 @@ export class Guidewire {
                     b.z -= offz;
                 }
             }
+            // bending constraints using three consecutive nodes
+            if (bendingStiffness > 0) {
+                for (let i = 1; i < this.nodes.length - 1; i++) {
+                    const p0 = this.nodes[i - 1];
+                    const p1 = this.nodes[i];
+                    const p2 = this.nodes[i + 1];
+                    const mx = (p0.x + p2.x) * 0.5;
+                    const my = (p0.y + p2.y) * 0.5;
+                    const mz = (p0.z + p2.z) * 0.5;
+                    let dx = p1.x - mx;
+                    let dy = p1.y - my;
+                    let dz = p1.z - mz;
+                    dx *= bendingStiffness;
+                    dy *= bendingStiffness;
+                    dz *= bendingStiffness;
+                    p1.x -= dx;
+                    p1.y -= dy;
+                    p1.z -= dz;
+                    const half = 0.5;
+                    p0.x += dx * half;
+                    p0.y += dy * half;
+                    p0.z += dz * half;
+                    if (i + 1 < this.nodes.length - 1) {
+                        p2.x += dx * half;
+                        p2.y += dy * half;
+                        p2.z += dz * half;
+                    }
+                }
+            }
             if (maxError <= this.lengthTolerance) break;
+        }
+    }
+
+    // Laplacian smoothing to limit sharp kinks
+    smooth() {
+        for (let i = 1; i < this.nodes.length - 1; i++) {
+            const prev = this.nodes[i - 1];
+            const curr = this.nodes[i];
+            const next = this.nodes[i + 1];
+            const avgx = (prev.x + next.x) * 0.5;
+            const avgy = (prev.y + next.y) * 0.5;
+            const avgz = (prev.z + next.z) * 0.5;
+            curr.x += (avgx - curr.x) * 0.5;
+            curr.y += (avgy - curr.y) * 0.5;
+            curr.z += (avgz - curr.z) * 0.5;
         }
     }
 
@@ -205,6 +238,7 @@ export class Guidewire {
         this.accumulateForces();
         this.integrate(dt);
         this.solvePbd();
+        this.smooth();
         this.collide();
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
