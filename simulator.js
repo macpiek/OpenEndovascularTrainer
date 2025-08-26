@@ -43,7 +43,7 @@ function createTaperedTube(path, tubularSegments, radialSegments, startRadius, e
 function generateVessel() {
     const mainRadius = 20;
     const branchRadius = 14;
-    const branchPointY = 80;
+    const branchPointY = -80;
     const branchLength = 120 + Math.random() * 40;
     const blend = 40;
     const branchAngleOffset = (Math.random() - 0.5) * Math.PI / 12;
@@ -56,7 +56,7 @@ function generateVessel() {
     };
 
     const mainStart = {x: 0, y: 0, z: 0};
-    const mainEnd = {x: 0, y: branchPointY - blend, z: 0};
+    const mainEnd = {x: 0, y: branchPointY + blend, z: 0};
     vessel.main = {start: mainStart, end: mainEnd};
     vessel.segments.push({start: mainStart, end: mainEnd, radius: mainRadius});
 
@@ -64,12 +64,12 @@ function generateVessel() {
         const angle = Math.PI / 6 * dir + branchAngleOffset * dir;
         const curveEnd = {
             x: Math.sin(angle) * blend,
-            y: branchPointY + blend,
+            y: branchPointY - blend,
             z: Math.cos(angle) * blend
         };
         const end = {
             x: Math.sin(angle) * (blend + branchLength),
-            y: branchPointY + branchLength,
+            y: branchPointY - (blend + branchLength),
             z: Math.cos(angle) * (blend + branchLength)
         };
         const length = branchLength + blend;
@@ -106,7 +106,8 @@ function generateVessel() {
     }
     vesselGroup = new THREE.Group();
 
-    const trunkGeom = new THREE.CylinderGeometry(mainRadius, mainRadius, branchPointY, 16, 1, true);
+    const trunkHeight = Math.abs(branchPointY);
+    const trunkGeom = new THREE.CylinderGeometry(mainRadius, mainRadius, trunkHeight, 16, 1, true);
     trunkGeom.translate(0, branchPointY / 2, 0);
 
     const rightCurve = new THREE.QuadraticBezierCurve3(
@@ -125,6 +126,7 @@ function generateVessel() {
 
     let merged = mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
     merged = mergeVertices(merged);
+    merged.computeVertexNormals();
     const vesselMesh = new THREE.Mesh(merged, vesselMaterial);
     vesselGroup.add(vesselMesh);
 
@@ -377,6 +379,7 @@ let cameraAngle = 0;
 function updateCamera() {
     camera.position.x = Math.sin(cameraAngle) * cameraRadius;
     camera.position.z = Math.cos(cameraAngle) * cameraRadius;
+    camera.position.y = -vessel.branchPoint.y;
     camera.lookAt(0, vessel.branchPoint.y, 0);
 }
 updateCamera();
