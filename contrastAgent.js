@@ -66,10 +66,12 @@ export class ContrastAgent {
     }
 }
 
-// Generate TubeGeometry representing current contrast distribution.
+// Generate TubeGeometry for segments with contrast.  The caller is
+// responsible for assigning materials based on the returned
+// concentration value.
 export function getContrastGeometry(agent) {
-    if (!agent || !agent.isActive()) return null;
-    const group = new THREE.Group();
+    if (!agent || !agent.isActive()) return [];
+    const geoms = [];
     for (let i = 0; i < agent.segments.length; i++) {
         const c = agent.concentration[i];
         if (c <= 1e-3) continue;
@@ -78,13 +80,7 @@ export function getContrastGeometry(agent) {
         const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
         const path = new THREE.LineCurve3(start, end);
         const geom = new THREE.TubeGeometry(path, 4, seg.radius * 0.9, 8, false);
-        const opacity = Math.min(c, 1);
-        const material = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(opacity, opacity, opacity),
-            transparent: true,
-            opacity
-        });
-        group.add(new THREE.Mesh(geom, material));
+        geoms.push({ geometry: geom, concentration: c });
     }
-    return group.children.length ? group : null;
+    return geoms;
 }
