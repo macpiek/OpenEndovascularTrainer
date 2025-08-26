@@ -103,7 +103,7 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  * @param {number} sheathRadius radius of the left-branch sheath (default 5)
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
  */
-export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = 20, sheathRadius = 5) {
+export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = 20, sheathRadius = 2) {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
     const branchPointY = -300;
