@@ -54,7 +54,11 @@ const vessel = (() => {
     segments.push({start: {x: centerX, y: 0, z: 0}, end: mainEnd, radius});
 
     function addCurve(p0, p1, p2) {
-        const steps = 8;
+        // use more subdivision steps so that the collision geometry
+        // more closely follows a smooth Bézier curve. With too few
+        // segments the guidewire hits sharp corners and appears to
+        // "stick" when traversing the bifurcation.
+        const steps = 24;
         let prev = p0;
         for (let i = 1; i <= steps; i++) {
             const t = i / steps;
@@ -110,7 +114,9 @@ function projectOnSegment(n, seg) {
     return {px, py, pz, dx, dy, dz, dist};
 }
 
-const wallFriction = 0.7; // fraction of velocity lost when scraping the wall
+// Less aggressive damping when the wire rubs against the wall to allow
+// smoother gliding along the vessel surface.
+const wallFriction = 0.2; // fraction of velocity lost when scraping the wall
 
 function clampToVessel(n) {
     let nearest = vessel.segments[0];
@@ -176,10 +182,18 @@ class Wire {
         const tail = this.nodes[this.nodes.length - 1];
         const tx = this.tailStart.x + this.dir.x * this.tailProgress;
         const ty = this.tailStart.y + this.dir.y * this.tailProgress;
+        // move the fixed tail segment smoothly and keep a velocity estimate
+        // instead of abruptly zeroing it each frame, which caused the
+        // remainder of the wire to lose momentum when inserting.
+        const oldx = tail.x;
+        const oldy = tail.y;
+        const oldz = tail.z;
         tail.x = tx;
         tail.y = ty;
         tail.z = 0;
-        tail.vx = tail.vy = tail.vz = 0;
+        tail.vx = (tail.x - oldx) / dt;
+        tail.vy = (tail.y - oldy) / dt;
+        tail.vz = (tail.z - oldz) / dt;
     }
 
     integrate(dt) {
@@ -253,7 +267,9 @@ class Wire {
         }
         this.updateTail(advance, dt);
         this.integrate(dt);
-        this.satisfyConstraints(12);
+        // perform more iterations for better convergence and smoother
+        // bending of the wire, especially in curved sections
+        this.satisfyConstraints(24);
         this.collide();
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
