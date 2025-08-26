@@ -58,12 +58,24 @@ export function setWireStiffness(value) {
     wireStiffness = value;
 }
 
+// Parameters controlling the PBD length solver
+let pbdIterations = 4;
+let lengthTolerance = 0.01;
+export function setPbdIterations(value) {
+    pbdIterations = value;
+}
+export function setLengthTolerance(value) {
+    lengthTolerance = value;
+}
+
 export class Guidewire {
-    constructor(segLen, count, start, dir, vessel) {
+    constructor(segLen, count, start, dir, vessel, iterations = pbdIterations, tolerance = lengthTolerance) {
         this.segmentLength = segLen;
         this.tailStart = start;
         this.dir = dir;
         this.vessel = vessel;
+        this.iterations = iterations;
+        this.lengthTolerance = tolerance;
         this.nodes = [];
         for (let i = 0; i < count; i++) {
             const x = vessel.left.end.x - dir.x * segLen * i;
@@ -147,9 +159,11 @@ export class Guidewire {
         }
     }
 
-    solveDistances(iterations = 2) {
+    // Position Based Dynamics solver enforcing segment length constraints
+    solvePbd() {
         const len = this.segmentLength;
-        for (let k = 0; k < iterations; k++) {
+        for (let k = 0; k < this.iterations; k++) {
+            let maxError = 0;
             for (let i = 1; i < this.nodes.length; i++) {
                 const a = this.nodes[i - 1];
                 const b = this.nodes[i];
@@ -158,6 +172,7 @@ export class Guidewire {
                 let dz = b.z - a.z;
                 const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
                 const diff = (dist - len) / dist;
+                maxError = Math.max(maxError, Math.abs(dist - len));
                 const offx = dx * 0.5 * diff;
                 const offy = dy * 0.5 * diff;
                 const offz = dz * 0.5 * diff;
@@ -170,6 +185,7 @@ export class Guidewire {
                     b.z -= offz;
                 }
             }
+            if (maxError <= this.lengthTolerance) break;
         }
     }
 
@@ -188,7 +204,7 @@ export class Guidewire {
         this.advanceTail(advance, dt);
         this.accumulateForces();
         this.integrate(dt);
-        this.solveDistances(4);
+        this.solvePbd();
         this.collide();
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
