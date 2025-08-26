@@ -41,8 +41,12 @@
         <input id="wireframe" type="checkbox">
     </label>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/utils/BufferGeometryUtils.js"></script>
-<script src="simulator.js"></script>
+<script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import {BufferGeometryUtils} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
+    window.THREE = THREE;
+    THREE.BufferGeometryUtils = BufferGeometryUtils;
+    import './simulator.js';
+</script>
 </body>
 </html>
