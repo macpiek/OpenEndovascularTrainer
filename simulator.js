@@ -10,6 +10,77 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
+const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const accumulateTarget2 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+let previousTarget = accumulateTarget1;
+let currentTarget = accumulateTarget2;
+
+const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+const quadGeometry = new THREE.PlaneGeometry(2, 2);
+const blendMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        currentFrame: { value: null },
+        previousFrame: { value: null },
+        decay: { value: 0.95 }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D currentFrame;
+        uniform sampler2D previousFrame;
+        uniform float decay;
+        varying vec2 vUv;
+        void main() {
+            vec4 prev = texture2D(previousFrame, vUv);
+            vec4 curr = texture2D(currentFrame, vUv);
+            gl_FragColor = curr + prev * decay;
+        }
+    `
+});
+const blendQuad = new THREE.Mesh(quadGeometry, blendMaterial);
+const blendScene = new THREE.Scene();
+blendScene.add(blendQuad);
+
+const displayMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        texture: { value: previousTarget.texture },
+        gray: { value: new THREE.Color(0x808080) },
+        fluoroscopy: { value: false }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D texture;
+        uniform vec3 gray;
+        uniform bool fluoroscopy;
+        varying vec2 vUv;
+        void main() {
+            vec4 tex = texture2D(texture, vUv);
+            if (fluoroscopy) {
+                float intensity = tex.r;
+                vec3 color = gray * (1.0 - intensity);
+                gl_FragColor = vec4(color, 1.0);
+            } else {
+                gl_FragColor = tex;
+            }
+        }
+    `
+});
+const displayQuad = new THREE.Mesh(quadGeometry, displayMaterial);
+const displayScene = new THREE.Scene();
+displayScene.add(displayQuad);
+
 const cameraRadius = 350;
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 80, cameraRadius);
@@ -73,13 +144,15 @@ const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
 const modeToggle = document.getElementById('modeToggle');
 const insertedLength = document.getElementById('insertedLength');
+const persistenceSlider = document.getElementById('persistence');
 
 const sliders = [
     bendSlider,
     staticFricSlider,
     kineticFricSlider,
     dampingSlider,
-    velDampingSlider
+    velDampingSlider,
+    persistenceSlider
 ];
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 setupCArmControls(camera, vessel, cameraRadius);
@@ -95,9 +168,11 @@ let staticFriction = parseFloat(staticFricSlider.value);
 let kineticFriction = parseFloat(kineticFricSlider.value);
 let normalDamping = parseFloat(dampingSlider.value);
 let velocityDamping = parseFloat(velDampingSlider.value);
+let decay = parseFloat(persistenceSlider.value);
 setWallFriction(staticFriction, kineticFriction);
 setNormalDamping(normalDamping);
 setVelocityDamping(velocityDamping);
+blendMaterial.uniforms.decay.value = decay;
 staticFricSlider.addEventListener('input', e => {
     staticFriction = parseFloat(e.target.value);
     setWallFriction(staticFriction, kineticFriction);
@@ -114,11 +189,15 @@ velDampingSlider.addEventListener('input', e => {
     velocityDamping = parseFloat(e.target.value);
     setVelocityDamping(velocityDamping);
 });
+persistenceSlider.addEventListener('input', e => {
+    blendMaterial.uniforms.decay.value = parseFloat(e.target.value);
+});
 
 let fluoroscopy = false;
 modeToggle.addEventListener('click', () => {
     fluoroscopy = !fluoroscopy;
     vesselGroup.visible = !fluoroscopy;
+    displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
 });
 
@@ -159,7 +238,24 @@ function animate(time) {
     }
 
     updateWireMesh();
+    renderer.setRenderTarget(offscreenTarget);
+    renderer.clear();
     renderer.render(scene, camera);
+
+    blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
+    blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
+
+    renderer.setRenderTarget(currentTarget);
+    renderer.render(blendScene, postCamera);
+    renderer.setRenderTarget(null);
+
+    displayMaterial.uniforms.texture.value = currentTarget.texture;
+    renderer.render(displayScene, postCamera);
+
+    const temp = previousTarget;
+    previousTarget = currentTarget;
+    currentTarget = temp;
+
     requestAnimationFrame(animate);
 }
 requestAnimationFrame(animate);
@@ -170,5 +266,8 @@ window.addEventListener('resize', () => {
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    offscreenTarget.setSize(w, h);
+    accumulateTarget1.setSize(w, h);
+    accumulateTarget2.setSize(w, h);
 });
 
