@@ -106,7 +106,7 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
 export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = 20, sheathRadius = 5) {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
-    const branchPointY = -180;
+    const branchPointY = -300;
     const blend = 40;
 
     const vessel = {
