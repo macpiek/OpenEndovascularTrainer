@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mergeBufferGeometries, mergeVertices } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
+import { Brush, Evaluator, ADDITION } from 'https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -18,6 +18,43 @@ scene.add(light);
 
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
+
+function verifyManifold(geometry) {
+    const index = geometry.index;
+    if (!index) return 1;
+    const count = geometry.attributes.position.count;
+    const visited = new Array(count).fill(false);
+    const adj = Array.from({length: count}, () => []);
+    const arr = index.array;
+    for (let i = 0; i < arr.length; i += 3) {
+        const a = arr[i], b = arr[i + 1], c = arr[i + 2];
+        adj[a].push(b, c);
+        adj[b].push(a, c);
+        adj[c].push(a, b);
+    }
+    let components = 0;
+    const stack = [];
+    for (let i = 0; i < count; i++) {
+        if (!visited[i]) {
+            components++;
+            stack.push(i);
+            visited[i] = true;
+            while (stack.length) {
+                const v = stack.pop();
+                for (const n of adj[v]) {
+                    if (!visited[n]) {
+                        visited[n] = true;
+                        stack.push(n);
+                    }
+                }
+            }
+        }
+    }
+    if (components > 1) {
+        console.warn(`Geometry has ${components} disconnected components`);
+    }
+    return components;
+}
 
 function createTaperedTube(path, tubularSegments, radialSegments, startRadius, endRadius) {
     const geometry = new THREE.TubeGeometry(path, tubularSegments, 1, radialSegments, false);
@@ -58,9 +95,20 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
     const rightGeom = createTaperedTube(rightCurve, 64, 16, mainRadius, branchRadius);
     const leftGeom = createTaperedTube(leftCurve, 64, 16, mainRadius, branchRadius);
 
-    let geometry = mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
-    geometry = mergeVertices(geometry);
+    const trunkBrush = new Brush(trunkGeom);
+    const rightBrush = new Brush(rightGeom);
+    const leftBrush = new Brush(leftGeom);
+    trunkBrush.updateMatrixWorld();
+    rightBrush.updateMatrixWorld();
+    leftBrush.updateMatrixWorld();
+
+    const evaluator = new Evaluator();
+    const result1 = evaluator.evaluate(trunkBrush, rightBrush, ADDITION);
+    result1.updateMatrixWorld();
+    const result = evaluator.evaluate(result1, leftBrush, ADDITION);
+    const geometry = result.geometry;
     geometry.computeVertexNormals();
+    verifyManifold(geometry);
     return geometry;
 }
 
@@ -131,6 +179,7 @@ function generateVessel() {
     vesselGroup = new THREE.Group();
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
     const vesselMesh = new THREE.Mesh(geometry, vesselMaterial);
+    vesselMesh.material.wireframe = true;
     vesselGroup.add(vesselMesh);
 
     scene.add(vesselGroup);
