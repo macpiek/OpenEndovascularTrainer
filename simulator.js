@@ -77,6 +77,7 @@ const carmXSlider = document.getElementById('carmX');
 const carmYSlider = document.getElementById('carmY');
 const carmZSlider = document.getElementById('carmZ');
 const wireframeToggle = document.getElementById('wireframe');
+const insertedLength = document.getElementById('insertedLength');
 
 const sliders = [
     bendSlider,
@@ -212,6 +213,8 @@ function animate(time) {
     while (accumulator >= fixedDt) {
         wire.step(fixedDt, advance);
         accumulator -= fixedDt;
+        const inserted = Math.max(0, wire.tailProgress);
+        insertedLength.textContent = (inserted / 10).toFixed(1) + ' cm';
     }
 
     updateWireMesh();
