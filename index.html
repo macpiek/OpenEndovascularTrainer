@@ -26,6 +26,26 @@
             display: block;
             margin-bottom: 4px;
         }
+
+        #monitor {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        #monitor canvas {
+            background: black;
+            border: 1px solid white;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #vitalValues span {
+            margin: 0 5px;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +105,13 @@
     </label>
     <button id="modeToggle">Fluoroscopy</button>
 </div>
+
+<div id="monitor">
+    <canvas id="ecgCanvas" width="300" height="100"></canvas>
+    <canvas id="bpCanvas" width="300" height="100"></canvas>
+    <div id="vitalValues"><span id="hrValue">HR: 0</span> <span id="bpValue">BP: 0/0</span></div>
+</div>
+
 <script type="importmap">
 {
     "imports": {
