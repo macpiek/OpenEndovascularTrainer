@@ -163,6 +163,23 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     addCurve(mainEnd, vessel.branchPoint, vessel.left.curveEnd);
     vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
 
+    // Build adjacency list linking each segment to its downstream neighbor(s)
+    const segmentGraph = vessel.segments.map(() => []);
+    const epsilon = 1e-6;
+    const pointsEqual = (a, b) =>
+        Math.abs(a.x - b.x) < epsilon &&
+        Math.abs(a.y - b.y) < epsilon &&
+        Math.abs(a.z - b.z) < epsilon;
+    for (let i = 0; i < vessel.segments.length; i++) {
+        for (let j = 0; j < vessel.segments.length; j++) {
+            if (i === j) continue;
+            if (pointsEqual(vessel.segments[i].end, vessel.segments[j].start)) {
+                segmentGraph[i].push(j);
+            }
+        }
+    }
+    vessel.segmentGraph = segmentGraph;
+
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
 
     // Sheath geometry at the entrance of the left branch, angled 30° anteriorly
