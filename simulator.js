@@ -116,7 +116,8 @@ function projectOnSegment(n, seg) {
 
 // Less aggressive damping when the wire rubs against the wall to allow
 // smoother gliding along the vessel surface.
-const wallFriction = 0.05; // fraction of velocity lost when scraping the wall
+// reduce friction so the guidewire slides more easily along the vessel wall
+const wallFriction = 0.02; // fraction of velocity lost when scraping the wall
 
 function clampToVessel(n, affectVelocity = true) {
     let nearest = vessel.segments[0];
@@ -176,7 +177,8 @@ class Wire {
             this.nodes.push({x, y, z: 0, vx: 0, vy: 0, vz: 0, oldx: x, oldy: y, oldz: 0});
         }
         this.tailProgress = 0;
-        this.maxInsert = segLen * (count - 1) - 40;
+        // allow full length insertion instead of leaving a fixed segment outside
+        this.maxInsert = segLen * (count - 1);
     }
 
     updateTail(advance, dt) {
@@ -201,9 +203,10 @@ class Wire {
     integrate(dt) {
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
-            n.vx *= 0.98;
-            n.vy *= 0.98;
-            n.vz *= 0.98;
+            // lighter overall damping for smoother advancement
+            n.vx *= 0.99;
+            n.vy *= 0.99;
+            n.vz *= 0.99;
             n.x += n.vx * dt;
             n.y += n.vy * dt;
             n.z += n.vz * dt;

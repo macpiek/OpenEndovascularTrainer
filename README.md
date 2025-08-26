@@ -4,4 +4,4 @@ This prototype demonstrates a basic browser-based simulator for guiding a stiff 
 
 ## Usage
 
-Open `index.html` in a modern browser. Use `W` and `S` to advance or retract the guidewire through the introducer sheath positioned in the left branch. The push distance is limited so a short segment of wire always remains outside.
+Open `index.html` in a modern browser. Use `W` and `S` to advance or retract the guidewire through the introducer sheath positioned in the left branch. The push distance now allows the wire to be fully inserted if desired.
