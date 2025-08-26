@@ -234,6 +234,16 @@ document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
     update();
     slider.addEventListener('input', update);
 });
+
+// Toggle visibility of control sections
+document.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+        const content = header.nextElementSibling;
+        if (content) {
+            content.classList.toggle('hidden');
+        }
+    });
+});
 setupCArmControls(camera, vessel, cameraRadius);
 
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
