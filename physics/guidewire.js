@@ -1,8 +1,7 @@
 // Wall interaction parameters with defaults
 let wallStaticFriction = 0.2;
 let wallKineticFriction = 0.1;
-// Amount of normal component removed on wall contact (1 = full removal)
-let wallNormalDamping = 1.0;
+let wallNormalDamping = 0.5;
 
 // Force applied to the tip when advancing the tail
 let advanceForce = 100;
@@ -95,8 +94,7 @@ function clampToVessel(
         n.y = best.py + ny * radius;
         n.z = best.pz + nz * radius;
         if (affectVelocity) {
-            let vn = n.vx * nx + n.vy * ny + n.vz * nz;
-            if (vn > 0) vn = 0;
+            const vn = n.vx * nx + n.vy * ny + n.vz * nz;
             let tx = n.vx - vn * nx;
             let ty = n.vy - vn * ny;
             let tz = n.vz - vn * nz;
