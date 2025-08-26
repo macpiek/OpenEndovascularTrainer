@@ -150,7 +150,8 @@ function clampToVessel(n, affectVelocity = true) {
 
 // guidewire representation using position-based dynamics
 const segmentLength = 12;
-const nodeCount = 40;
+// extend the guidewire so it can reach deeper into the vessel
+const nodeCount = 80;
 
 // direction pointing from left branch tip toward the bifurcation
 const leftDir = {
@@ -249,6 +250,18 @@ class Wire {
                 curr.x += (mx - curr.x) * wireStiffness;
                 curr.y += (my - curr.y) * wireStiffness;
                 curr.z += (mz - curr.z) * wireStiffness;
+            }
+
+            // pull each node slightly toward a straight line along the tail
+            // direction so the wire naturally returns to a straight shape when
+            // not constrained by the vessel
+            for (let i = 0; i < nodes.length; i++) {
+                const targetX = tail.x - this.dir.x * len * (nodes.length - 1 - i);
+                const targetY = tail.y - this.dir.y * len * (nodes.length - 1 - i);
+                const targetZ = 0;
+                nodes[i].x += (targetX - nodes[i].x) * wireStiffness * 0.02;
+                nodes[i].y += (targetY - nodes[i].y) * wireStiffness * 0.02;
+                nodes[i].z += (targetZ - nodes[i].z) * wireStiffness * 0.02;
             }
 
             clampToVessel(nodes[0], false);
