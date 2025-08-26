@@ -248,12 +248,22 @@ let carmX = 0;
 let carmY = 0;
 let carmZ = 0;
 
+function getPivotPoint() {
+    // Orbit around the vessel's branch point so the vasculature stays centered
+    return new THREE.Vector3(
+        vessel.branchPoint.x + carmX,
+        vessel.branchPoint.y + carmY,
+        vessel.branchPoint.z + carmZ
+    );
+}
+
 function updateCamera() {
-    const x = Math.sin(carmYaw) * Math.cos(carmPitch) * cameraRadius;
-    const y = -vessel.branchPoint.y + Math.sin(carmPitch) * cameraRadius;
-    const z = Math.cos(carmYaw) * Math.cos(carmPitch) * cameraRadius;
-    camera.position.set(x + carmX, y + carmY, z + carmZ);
-    camera.lookAt(carmX, vessel.branchPoint.y + carmY, carmZ);
+    const pivot = getPivotPoint();
+    const offset = new THREE.Vector3().setFromSpherical(
+        new THREE.Spherical(cameraRadius, Math.PI / 2 - carmPitch, carmYaw)
+    );
+    camera.position.copy(pivot).add(offset);
+    camera.lookAt(pivot);
     camera.rotation.z = carmRoll;
 }
 updateCamera();
