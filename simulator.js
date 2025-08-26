@@ -336,10 +336,22 @@ function updateWireMesh() {
 }
 
 let lastTime = performance.now();
+const fixedDt = 1 / 60;
+let accumulator = 0;
+// Maximum physics steps per frame; adjust for browser performance.
+let maxSubSteps = 5;
+
 function animate(time) {
     const dt = (time - lastTime) / 1000;
     lastTime = time;
-    wire.step(dt, advance);
+
+    // Accumulate time and step the physics at a fixed rate.
+    accumulator += Math.min(dt, fixedDt * maxSubSteps);
+    while (accumulator >= fixedDt) {
+        wire.step(fixedDt, advance);
+        accumulator -= fixedDt;
+    }
+
     updateWireMesh();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
