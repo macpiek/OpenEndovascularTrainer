@@ -165,24 +165,22 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
 
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
 
-    // Sheath geometry piercing the left branch's anterior wall
-    const baseVec = new THREE.Vector3(
-        vessel.left.end.x - vessel.branchPoint.x,
-        vessel.left.end.y - vessel.branchPoint.y,
-        vessel.left.end.z - vessel.branchPoint.z
-    ).normalize();
-    const outVec = baseVec.clone();
+    // Sheath geometry at the entrance of the left branch, angled 30° anteriorly
+    const outDir = {
+        x: (vessel.left.end.x - vessel.branchPoint.x) / vessel.left.length,
+        y: (vessel.left.end.y - vessel.branchPoint.y) / vessel.left.length,
+        z: (vessel.left.end.z - vessel.branchPoint.z) / vessel.left.length
+    };
     // Tilt the sheath 30° toward the +Z (anterior) direction
+    const outVec = new THREE.Vector3(outDir.x, outDir.y, outDir.z).normalize();
     const tiltAxis = new THREE.Vector3().crossVectors(outVec, new THREE.Vector3(0, 0, 1)).normalize();
     const tiltQuat = new THREE.Quaternion().setFromAxisAngle(tiltAxis, THREE.MathUtils.degToRad(30));
     outVec.applyQuaternion(tiltQuat);
-    const outDir = { x: outVec.x, y: outVec.y, z: outVec.z };
+    outDir.x = outVec.x;
+    outDir.y = outVec.y;
+    outDir.z = outVec.z;
 
-    const sheathStart = {
-        x: vessel.branchPoint.x + baseVec.x * branchRadius * 0.5,
-        y: vessel.branchPoint.y + baseVec.y * branchRadius * 0.5,
-        z: vessel.branchPoint.z + branchRadius * 0.9
-    };
+    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y, z: vessel.left.end.z };
     const sheathEnd = {
         x: sheathStart.x + outDir.x * sheathLength,
         y: sheathStart.y + outDir.y * sheathLength,
