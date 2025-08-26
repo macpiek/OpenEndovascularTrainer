@@ -238,23 +238,29 @@ function animate(time) {
     }
 
     updateWireMesh();
-    renderer.setRenderTarget(offscreenTarget);
-    renderer.clear();
-    renderer.render(scene, camera);
 
-    blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
-    blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
+    if (fluoroscopy) {
+        renderer.setRenderTarget(offscreenTarget);
+        renderer.clear();
+        renderer.render(scene, camera);
 
-    renderer.setRenderTarget(currentTarget);
-    renderer.render(blendScene, postCamera);
-    renderer.setRenderTarget(null);
+        blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
+        blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
 
-    displayMaterial.uniforms.uTexture.value = currentTarget.texture;
-    renderer.render(displayScene, postCamera);
+        renderer.setRenderTarget(currentTarget);
+        renderer.render(blendScene, postCamera);
+        renderer.setRenderTarget(null);
 
-    const temp = previousTarget;
-    previousTarget = currentTarget;
-    currentTarget = temp;
+        displayMaterial.uniforms.uTexture.value = currentTarget.texture;
+        renderer.render(displayScene, postCamera);
+
+        const temp = previousTarget;
+        previousTarget = currentTarget;
+        currentTarget = temp;
+    } else {
+        renderer.setRenderTarget(null);
+        renderer.render(scene, camera);
+    }
 
     requestAnimationFrame(animate);
 }
