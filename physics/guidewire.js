@@ -143,11 +143,16 @@ export class Guidewire {
             this.nodes.push({x, y, z, vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0, oldx: x, oldy: y, oldz: z});
         }
         this.maxInsert = this.tailProgress + initialLength;
+        this.minInsert = Math.min(this.tailProgress - initialLength, 0);
         this.solvePbd();
     }
 
     advanceTail(advance, dt) {
-        this.tailProgress = clamp(this.tailProgress + advance * 40 * dt, 0, this.maxInsert);
+        this.tailProgress = clamp(
+            this.tailProgress + advance * 40 * dt,
+            this.minInsert,
+            this.maxInsert
+        );
         const tail = this.nodes[this.nodes.length - 1];
         tail.x = this.tailStart.x + this.dir.x * this.tailProgress;
         tail.y = this.tailStart.y + this.dir.y * this.tailProgress;
