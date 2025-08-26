@@ -71,7 +71,7 @@ const staticFricSlider = document.getElementById('staticFriction');
 const kineticFricSlider = document.getElementById('kineticFriction');
 const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
-const wireframeToggle = document.getElementById('wireframe');
+const modeToggle = document.getElementById('modeToggle');
 const insertedLength = document.getElementById('insertedLength');
 
 const sliders = [
@@ -115,9 +115,11 @@ velDampingSlider.addEventListener('input', e => {
     setVelocityDamping(velocityDamping);
 });
 
-
-wireframeToggle.addEventListener('change', e => {
-    vesselMaterial.wireframe = e.target.checked;
+let fluoroscopy = false;
+modeToggle.addEventListener('click', () => {
+    fluoroscopy = !fluoroscopy;
+    vesselGroup.visible = !fluoroscopy;
+    modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
 });
 
 const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
