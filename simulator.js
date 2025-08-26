@@ -419,7 +419,12 @@ window.addEventListener('keyup', e => {
 });
 
 const stiffnessSlider = document.getElementById('stiffness');
-const carmSlider = document.getElementById('carm');
+const carmYawSlider = document.getElementById('carmYaw');
+const carmPitchSlider = document.getElementById('carmPitch');
+const carmRollSlider = document.getElementById('carmRoll');
+const carmXSlider = document.getElementById('carmX');
+const carmYSlider = document.getElementById('carmY');
+const carmZSlider = document.getElementById('carmZ');
 const wireframeToggle = document.getElementById('wireframe');
 
 let wireStiffness = parseFloat(stiffnessSlider.value);
@@ -427,17 +432,45 @@ stiffnessSlider.addEventListener('input', e => {
     wireStiffness = parseFloat(e.target.value);
 });
 
-let cameraAngle = 0;
+let carmYaw = 0;
+let carmPitch = 0;
+let carmRoll = 0;
+let carmX = 0;
+let carmY = 0;
+let carmZ = 0;
+
 function updateCamera() {
-    camera.position.x = Math.sin(cameraAngle) * cameraRadius;
-    camera.position.z = Math.cos(cameraAngle) * cameraRadius;
-    camera.position.y = -vessel.branchPoint.y;
-    camera.lookAt(0, vessel.branchPoint.y, 0);
+    const x = Math.sin(carmYaw) * Math.cos(carmPitch) * cameraRadius;
+    const y = -vessel.branchPoint.y + Math.sin(carmPitch) * cameraRadius;
+    const z = Math.cos(carmYaw) * Math.cos(carmPitch) * cameraRadius;
+    camera.position.set(x + carmX, y + carmY, z + carmZ);
+    camera.lookAt(carmX, vessel.branchPoint.y + carmY, carmZ);
+    camera.rotation.z = carmRoll;
 }
 updateCamera();
 
-carmSlider.addEventListener('input', e => {
-    cameraAngle = parseFloat(e.target.value) * Math.PI / 180;
+carmYawSlider.addEventListener('input', e => {
+    carmYaw = parseFloat(e.target.value) * Math.PI / 180;
+    updateCamera();
+});
+carmPitchSlider.addEventListener('input', e => {
+    carmPitch = parseFloat(e.target.value) * Math.PI / 180;
+    updateCamera();
+});
+carmRollSlider.addEventListener('input', e => {
+    carmRoll = parseFloat(e.target.value) * Math.PI / 180;
+    updateCamera();
+});
+carmXSlider.addEventListener('input', e => {
+    carmX = parseFloat(e.target.value);
+    updateCamera();
+});
+carmYSlider.addEventListener('input', e => {
+    carmY = parseFloat(e.target.value);
+    updateCamera();
+});
+carmZSlider.addEventListener('input', e => {
+    carmZ = parseFloat(e.target.value);
     updateCamera();
 });
 
