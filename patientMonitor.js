@@ -9,7 +9,7 @@ export class PatientMonitor {
         this.bpCtx = bpCanvas.getContext('2d');
 
         this.ecgData = new Array(ecgCanvas.width).fill(0);
-        this.bpData = new Array(bpCanvas.width).fill(100);
+        this.bpData = new Array(bpCanvas.width).fill(80);
 
         this.time = 0;
         this.cycleTime = 0;
@@ -20,6 +20,14 @@ export class PatientMonitor {
         this.bpSampleRate = 50;
         this.ecgAccumulator = 0;
         this.bpAccumulator = 0;
+
+        // Precomputed ECG template for one second P-QRS-T cycle
+        this.ecgTemplate = this.#createEcgTemplate();
+        this.ecgIndex = 0;
+
+        // Precomputed arterial pressure template with dicrotic notch
+        this.bpTemplate = this.#createBpTemplate();
+        this.bpIndex = 0;
 
         this.currentHR = this.heartRate;
         this.systolic = 120;
@@ -35,21 +43,29 @@ export class PatientMonitor {
         this.cycleTime += dt;
 
         const ecgStep = 1 / this.ecgSampleRate;
+        const indexStep = this.ecgTemplate.length * ecgStep / this.beatInterval;
         while (this.ecgAccumulator >= ecgStep) {
             this.ecgAccumulator -= ecgStep;
-            const phase = this.cycleTime / this.beatInterval;
-            const ecg = this.#generateEcgSample(phase);
+            const ecg = this.ecgTemplate[Math.floor(this.ecgIndex)];
             this.ecgData.shift();
             this.ecgData.push(ecg);
+            this.ecgIndex += indexStep;
+            if (this.ecgIndex >= this.ecgTemplate.length) {
+                this.ecgIndex -= this.ecgTemplate.length;
+            }
         }
 
         const bpStep = 1 / this.bpSampleRate;
+        const bpIndexStep = this.bpTemplate.length * bpStep / this.beatInterval;
         while (this.bpAccumulator >= bpStep) {
             this.bpAccumulator -= bpStep;
-            const phase = this.cycleTime / this.beatInterval;
-            const pressure = this.#generateBpSample(phase);
+            const pressure = this.bpTemplate[Math.floor(this.bpIndex)];
             this.bpData.shift();
             this.bpData.push(pressure);
+            this.bpIndex += bpIndexStep;
+            if (this.bpIndex >= this.bpTemplate.length) {
+                this.bpIndex -= this.bpTemplate.length;
+            }
             if (pressure > this.bpMax) this.bpMax = pressure;
             if (pressure < this.bpMin) this.bpMin = pressure;
         }
@@ -59,8 +75,6 @@ export class PatientMonitor {
             this.systolic = this.bpMax;
             this.diastolic = this.bpMin;
             this.cycleTime -= this.beatInterval;
-            this.heartRate = 70 + Math.random() * 10;
-            this.beatInterval = 60 / this.heartRate;
             this.bpMax = 0;
             this.bpMin = Infinity;
         }
@@ -72,7 +86,17 @@ export class PatientMonitor {
         this.#drawBp();
     }
 
-    #generateEcgSample(phase) {
+    #createEcgTemplate() {
+        const length = this.ecgSampleRate;
+        const template = [];
+        for (let i = 0; i < length; i++) {
+            const phase = i / length;
+            template.push(this.#pqrst(phase));
+        }
+        return template;
+    }
+
+    #pqrst(phase) {
         let y = 0;
         if (phase < 0.1) {
             y = 0.1 * Math.sin(Math.PI * phase / 0.1);
@@ -89,11 +113,43 @@ export class PatientMonitor {
         } else if (phase < 0.6) {
             y = 0.2 * Math.sin(Math.PI * (phase - 0.45) / 0.15);
         }
-        return y + (Math.random() - 0.5) * 0.05;
+        return y;
     }
 
-    #generateBpSample(phase) {
-        return 100 + 20 * Math.sin(2 * Math.PI * phase) + (Math.random() - 0.5) * 2;
+    setHeartRate(bpm) {
+        this.heartRate = bpm;
+        this.beatInterval = 60 / bpm;
+    }
+
+    #createBpTemplate() {
+        const length = this.bpSampleRate;
+        const template = [];
+        for (let i = 0; i < length; i++) {
+            const phase = i / length;
+            template.push(this.#bpWave(phase));
+        }
+        return template;
+    }
+
+    #bpWave(phase) {
+        let p = 80;
+        if (phase < 0.15) {
+            // rapid systolic upstroke
+            p = 80 + 40 * Math.sin(Math.PI * phase / 0.3);
+        } else if (phase < 0.3) {
+            // systolic decline
+            p = 120 - 15 * (phase - 0.15) / 0.15;
+        } else if (phase < 0.32) {
+            // drop before dicrotic notch
+            p = 105 - 15 * (phase - 0.3) / 0.02;
+        } else if (phase < 0.34) {
+            // dicrotic notch rise
+            p = 90 + 5 * (phase - 0.32) / 0.02;
+        } else {
+            // diastolic runoff
+            p = 95 - 15 * (phase - 0.34) / 0.66;
+        }
+        return p;
     }
 
     #drawEcg() {
