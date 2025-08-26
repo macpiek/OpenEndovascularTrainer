@@ -4,6 +4,8 @@ import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
+import { createCArmModel } from './carmModel.js';
+import { createOperatingTable } from './operatingTable.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -115,6 +117,8 @@ scene.add(light);
 
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
+let cArmGroup;
+let tableGroup;
 
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
 vesselGroup = new THREE.Group();
@@ -122,6 +126,22 @@ const vesselMesh = new THREE.Mesh(geometry, vesselMaterial);
 vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
+
+tableGroup = createOperatingTable();
+tableGroup.position.set(vessel.branchPoint.x, -60, vessel.branchPoint.z);
+scene.add(tableGroup);
+
+const pivot = new THREE.Vector3(
+    vessel.branchPoint.x,
+    vessel.branchPoint.y - 60,
+    vessel.branchPoint.z
+);
+cArmGroup = new THREE.Group();
+const cArmModel = createCArmModel();
+cArmModel.position.y = -70;
+cArmGroup.add(cArmModel);
+cArmGroup.position.copy(pivot);
+scene.add(cArmGroup);
 
 const contrast = new ContrastAgent(vessel);
 let contrastMesh = null;
