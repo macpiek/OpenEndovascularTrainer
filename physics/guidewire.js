@@ -102,7 +102,17 @@ export function setLengthTolerance(value) {
 }
 
 export class Guidewire {
-    constructor(segLen, count, start, dir, vessel, iterations = pbdIterations, tolerance = lengthTolerance, initialInsert = segLen * 5) {
+    constructor(
+        segLen,
+        count,
+        start,
+        dir,
+        vessel,
+        initialLength = segLen * (count - 1),
+        iterations = pbdIterations,
+        tolerance = lengthTolerance,
+        initialInsert = 0
+    ) {
         this.segmentLength = segLen;
         this.tailStart = start;
         this.dir = dir;
@@ -112,13 +122,13 @@ export class Guidewire {
         this.nodes = [];
         this.tailProgress = initialInsert;
         for (let i = 0; i < count; i++) {
-            const t = this.tailProgress + segLen * (count - 1 - i);
+            const t = this.tailProgress + initialLength - segLen * i;
             const x = start.x + dir.x * t;
             const y = start.y + dir.y * t;
             const z = start.z + dir.z * t;
             this.nodes.push({x, y, z, vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0, oldx: x, oldy: y, oldz: z});
         }
-        this.maxInsert = this.tailProgress + segLen * (count - 1);
+        this.maxInsert = this.tailProgress + initialLength;
         this.solvePbd();
     }
 
