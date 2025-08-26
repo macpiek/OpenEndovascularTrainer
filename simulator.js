@@ -45,7 +45,7 @@ const tailStart = {
 }; // start outside so the tip begins `initialInsert` inside the vessel
 
 
-const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength, undefined, undefined, initialInsert);
+const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength, undefined, undefined, initialInsert, { left: true });
 
 let advance = 0;
 document.addEventListener('keydown', e => {

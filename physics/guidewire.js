@@ -57,8 +57,23 @@ function clampToVessel(
     affectVelocity = true,
     staticFriction = wallStaticFriction,
     kineticFriction = wallKineticFriction,
-    normalDamping = wallNormalDamping
+    normalDamping = wallNormalDamping,
+    openEnds = {}
 ) {
+    function isBeyond(start, end) {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const dz = (end.z || 0) - (start.z || 0);
+        const vx = n.x - start.x;
+        const vy = n.y - start.y;
+        const vz = n.z - (start.z || 0);
+        const len2 = dx * dx + dy * dy + dz * dz;
+        return (vx * dx + vy * dy + vz * dz) > len2;
+    }
+
+    if (openEnds.left && isBeyond(vessel.branchPoint, vessel.left.end)) return;
+    if (openEnds.right && isBeyond(vessel.branchPoint, vessel.right.end)) return;
+
     let nearest = vessel.segments[0];
     let best = projectOnSegment(n, nearest);
     for (let i = 1; i < vessel.segments.length; i++) {
@@ -125,7 +140,8 @@ export class Guidewire {
         initialLength = segLen * (count - 1),
         iterations = pbdIterations,
         tolerance = lengthTolerance,
-        initialInsert = 0
+        initialInsert = 0,
+        openEnds = {}
     ) {
         this.segmentLength = segLen;
         this.tailStart = start;
@@ -135,6 +151,7 @@ export class Guidewire {
         this.lengthTolerance = tolerance;
         this.nodes = [];
         this.tailProgress = initialInsert;
+        this.openEnds = openEnds;
         for (let i = 0; i < count; i++) {
             const t = this.tailProgress + initialLength - segLen * i;
             const x = start.x + dir.x * t;
@@ -290,7 +307,7 @@ export class Guidewire {
 
     collide() {
         for (let i = 0; i < this.nodes.length - 1; i++) {
-            clampToVessel(this.nodes[i], this.vessel);
+            clampToVessel(this.nodes[i], this.vessel, true, undefined, undefined, undefined, this.openEnds);
         }
     }
 
