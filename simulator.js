@@ -3,6 +3,7 @@ import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setV
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
+import { PatientMonitor } from './patientMonitor.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -10,6 +11,13 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
+
+const monitor = new PatientMonitor(
+    document.getElementById('ecgCanvas'),
+    document.getElementById('bpCanvas'),
+    document.getElementById('hrValue'),
+    document.getElementById('bpValue')
+);
 
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -289,6 +297,7 @@ function animate(time) {
 
     updateWireMesh();
     contrast.update(dt);
+    monitor.update(dt);
     if (contrast.isActive()) {
         if (contrastMesh) {
             scene.remove(contrastMesh);
