@@ -196,12 +196,17 @@ const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
 const modeToggle = document.getElementById('modeToggle');
 const injectButton = document.getElementById('injectContrast');
+const stopInjectButton = document.getElementById('stopInjection');
+const injRateSlider = document.getElementById('injRate');
+const injDurationSlider = document.getElementById('injDuration');
 
 let injecting = false;
 let injectTime = 0;
-const injectDuration = 1; // seconds
-const injectRate = 1; // arbitrary units per second
+let injectDuration = 1; // seconds
+let injectRate = 1; // ml per second
+let totalDose = 0;
 const insertedLength = document.getElementById('insertedLength');
+const doseDisplay = document.getElementById('currentDose');
 const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
 
@@ -212,7 +217,9 @@ const sliders = [
     dampingSlider,
     velDampingSlider,
     persistenceSlider,
-    noiseSlider
+    noiseSlider,
+    injRateSlider,
+    injDurationSlider
 ];
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
@@ -279,7 +286,17 @@ injectButton.addEventListener('click', () => {
     if (!injecting) {
         injecting = true;
         injectTime = 0;
+        injectRate = parseFloat(injRateSlider.value);
+        injectDuration = parseFloat(injDurationSlider.value) / 1000;
         injectButton.disabled = true;
+        stopInjectButton.disabled = false;
+    }
+});
+
+stopInjectButton.addEventListener('click', () => {
+    if (injecting) {
+        injecting = false;
+        stopInjectButton.disabled = true;
     }
 });
 
@@ -322,9 +339,12 @@ function animate(time) {
     updateWireMesh();
     if (injecting) {
         contrast.inject(injectRate * dt);
+        totalDose += injectRate * dt;
+        doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
         injectTime += dt;
         if (injectTime >= injectDuration) {
             injecting = false;
+            stopInjectButton.disabled = true;
         }
     }
     contrast.update(dt);
@@ -348,6 +368,7 @@ function animate(time) {
     const contrastActive = contrast.isActive() || injecting;
     vesselGroup.visible = contrastActive ? false : !fluoroscopy;
     injectButton.disabled = contrastActive;
+    stopInjectButton.disabled = !injecting;
     monitor.update(dt);
     if (fluoroscopy) {
         renderer.setRenderTarget(offscreenTarget);
