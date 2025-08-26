@@ -51,7 +51,9 @@ const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
         gray: { value: new THREE.Color(0x808080) },
-        fluoroscopy: { value: false }
+        fluoroscopy: { value: false },
+        time: { value: 0 },
+        noiseLevel: { value: 0.05 }
     },
     vertexShader: `
         varying vec2 vUv;
@@ -64,11 +66,20 @@ const displayMaterial = new THREE.ShaderMaterial({
         uniform sampler2D uTexture;
         uniform vec3 gray;
         uniform bool fluoroscopy;
+        uniform float time;
+        uniform float noiseLevel;
         varying vec2 vUv;
+
+        float random(vec2 st) {
+            return fract(sin(dot(st.xy, vec2(12.9898, 78.233)) + time) * 43758.5453123);
+        }
         void main() {
             vec4 tex = texture2D(uTexture, vUv);
             if (fluoroscopy) {
                 float intensity = tex.r;
+                float noise = random(vUv * 100.0) - 0.5;
+                intensity += noise * noiseLevel;
+                intensity = clamp(intensity, 0.0, 1.0);
                 vec3 color = gray * (1.0 - intensity);
                 gl_FragColor = vec4(color, 1.0);
             } else {
@@ -145,6 +156,7 @@ const velDampingSlider = document.getElementById('velocityDamping');
 const modeToggle = document.getElementById('modeToggle');
 const insertedLength = document.getElementById('insertedLength');
 const persistenceSlider = document.getElementById('persistence');
+const noiseSlider = document.getElementById('noiseLevel');
 
 const sliders = [
     bendSlider,
@@ -152,10 +164,16 @@ const sliders = [
     kineticFricSlider,
     dampingSlider,
     velDampingSlider,
-    persistenceSlider
+    persistenceSlider,
+    noiseSlider
 ];
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 setupCArmControls(camera, vessel, cameraRadius);
+
+displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
+noiseSlider.addEventListener('input', e => {
+    displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
+});
 
 let bendingStiffness = parseFloat(bendSlider.value);
 setBendingStiffness(bendingStiffness);
@@ -250,6 +268,7 @@ function animate(time) {
     renderer.setRenderTarget(null);
 
     displayMaterial.uniforms.uTexture.value = currentTarget.texture;
+    displayMaterial.uniforms.time.value = time * 0.001;
     renderer.render(displayScene, postCamera);
 
     const temp = previousTarget;
