@@ -303,11 +303,22 @@ const wire = new Wire(segmentLength, nodeCount, tailStart, leftDir);
 // only allow inserting or withdrawing the wire
 let advance = 0;
 window.addEventListener('keydown', e => {
-    if (e.key === 'w' || e.key === 'W') advance = 1;
-    if (e.key === 's' || e.key === 'S') advance = -1;
+    // use keyboard codes so the control works regardless of keyboard layout
+    // and also support arrow keys as an alternative
+    if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+        advance = 1;
+        e.preventDefault();
+    }
+    if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+        advance = -1;
+        e.preventDefault();
+    }
 });
 window.addEventListener('keyup', e => {
-    if (['w','W','s','S'].includes(e.key)) advance = 0;
+    if (['KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
+        advance = 0;
+        e.preventDefault();
+    }
 });
 
 function project(p) {
