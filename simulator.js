@@ -30,7 +30,7 @@ scene.add(vesselGroup);
 const segmentLength = 12;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
-const initialInsert = segmentLength * 3;
+const initialInsert = segmentLength * 10;
 
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
@@ -129,8 +129,8 @@ let carmYaw = 0;
 let carmPitch = 0;
 let carmRoll = 0;
 let carmX = 0;
-let carmY = -60;
-let carmZ = 0;
+let carmY = -20;
+let carmZ = 200;
 
 function getPivotPoint() {
     // Orbit around the vessel's branch point so the vasculature stays centered
