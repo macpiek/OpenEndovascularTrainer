@@ -169,6 +169,15 @@ const sliders = [
     noiseSlider
 ];
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
+
+// Display current values next to each slider
+document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
+    const valueLabel = slider.nextElementSibling;
+    if (!valueLabel) return;
+    const update = () => { valueLabel.textContent = slider.value; };
+    update();
+    slider.addEventListener('input', update);
+});
 setupCArmControls(camera, vessel, cameraRadius);
 
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
@@ -257,24 +266,29 @@ function animate(time) {
     }
 
     updateWireMesh();
-    renderer.setRenderTarget(offscreenTarget);
-    renderer.clear();
-    renderer.render(scene, camera);
+    if (fluoroscopy) {
+        renderer.setRenderTarget(offscreenTarget);
+        renderer.clear();
+        renderer.render(scene, camera);
 
-    blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
-    blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
+        blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
+        blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
 
-    renderer.setRenderTarget(currentTarget);
-    renderer.render(blendScene, postCamera);
-    renderer.setRenderTarget(null);
+        renderer.setRenderTarget(currentTarget);
+        renderer.render(blendScene, postCamera);
+        renderer.setRenderTarget(null);
 
-    displayMaterial.uniforms.uTexture.value = currentTarget.texture;
-    displayMaterial.uniforms.time.value = time * 0.001;
-    renderer.render(displayScene, postCamera);
+        displayMaterial.uniforms.uTexture.value = currentTarget.texture;
+        displayMaterial.uniforms.time.value = time * 0.001;
+        renderer.render(displayScene, postCamera);
 
-    const temp = previousTarget;
-    previousTarget = currentTarget;
-    currentTarget = temp;
+        const temp = previousTarget;
+        previousTarget = currentTarget;
+        currentTarget = temp;
+    } else {
+        renderer.setRenderTarget(null);
+        renderer.render(scene, camera);
+    }
 
     requestAnimationFrame(animate);
 }
