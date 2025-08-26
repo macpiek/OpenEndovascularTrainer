@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { renderCArmPreview } from './carmPreview.js';
 
-export function setupCArmControls(camera, vessel, cameraRadius) {
+export function setupCArmControls(camera, vessel, cameraRadius, previewGroup) {
     const carmYawSlider = document.getElementById('carmYaw');
     const carmPitchSlider = document.getElementById('carmPitch');
     const carmRollSlider = document.getElementById('carmRoll');
@@ -42,6 +43,12 @@ export function setupCArmControls(camera, vessel, cameraRadius) {
         camera.up.set(0, 1, 0);
         camera.lookAt(pivot);
         camera.rotateZ(carmRoll);
+
+        if (previewGroup) {
+            previewGroup.position.copy(pivot);
+            previewGroup.rotation.set(carmPitch, carmYaw, carmRoll, 'YXZ');
+            renderCArmPreview();
+        }
     }
 
     updateCamera();

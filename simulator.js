@@ -6,7 +6,7 @@ import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
-import { initCArmPreview, renderCArmPreview } from './carmPreview.js';
+import { initCArmPreview, cArmPreviewGroup } from './carmPreview.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -234,7 +234,7 @@ document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
     update();
     slider.addEventListener('input', update);
 });
-setupCArmControls(camera, vessel, cameraRadius);
+setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup);
 
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
 noiseSlider.addEventListener('input', e => {
@@ -397,8 +397,6 @@ function animate(time) {
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
     }
-
-    renderCArmPreview();
 
     requestAnimationFrame(animate);
 }
