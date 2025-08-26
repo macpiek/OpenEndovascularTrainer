@@ -41,8 +41,15 @@
         <input id="wireframe" type="checkbox">
     </label>
 </div>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    }
+}
+</script>
 <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import * as THREE from 'three';
     import {BufferGeometryUtils} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
     window.THREE = THREE;
     THREE.BufferGeometryUtils = BufferGeometryUtils;
