@@ -116,9 +116,9 @@ function projectOnSegment(n, seg) {
 
 // Less aggressive damping when the wire rubs against the wall to allow
 // smoother gliding along the vessel surface.
-const wallFriction = 0.2; // fraction of velocity lost when scraping the wall
+const wallFriction = 0.05; // fraction of velocity lost when scraping the wall
 
-function clampToVessel(n) {
+function clampToVessel(n, affectVelocity = true) {
     let nearest = vessel.segments[0];
     let best = projectOnSegment(n, nearest);
     for (let i = 1; i < vessel.segments.length; i++) {
@@ -138,10 +138,12 @@ function clampToVessel(n) {
         n.x = best.px + nx * radius;
         n.y = best.py + ny * radius;
         n.z = best.pz + nz * radius;
-        const vn = n.vx * nx + n.vy * ny + n.vz * nz;
-        n.vx = (n.vx - vn * nx) * (1 - wallFriction);
-        n.vy = (n.vy - vn * ny) * (1 - wallFriction);
-        n.vz = (n.vz - vn * nz) * (1 - wallFriction);
+        if (affectVelocity) {
+            const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+            n.vx = (n.vx - vn * nx) * (1 - wallFriction);
+            n.vy = (n.vy - vn * ny) * (1 - wallFriction);
+            n.vz = (n.vz - vn * nz) * (1 - wallFriction);
+        }
     }
 }
 
@@ -246,7 +248,7 @@ class Wire {
                 curr.z += (mz - curr.z) * wireStiffness;
             }
 
-            clampToVessel(nodes[0]);
+            clampToVessel(nodes[0], false);
             tail.x = this.tailStart.x + this.dir.x * this.tailProgress;
             tail.y = this.tailStart.y + this.dir.y * this.tailProgress;
             tail.z = 0;
