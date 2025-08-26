@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { mergeBufferGeometries, mergeVertices } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
+
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -120,8 +123,8 @@ function generateVessel() {
     );
     const leftGeom = createTaperedTube(leftCurve, 64, 16, mainRadius, branchRadius);
 
-    let merged = THREE.BufferGeometryUtils.mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
-    merged = THREE.BufferGeometryUtils.mergeVertices(merged);
+    let merged = mergeBufferGeometries([trunkGeom, rightGeom, leftGeom], true);
+    merged = mergeVertices(merged);
     const vesselMesh = new THREE.Mesh(merged, vesselMaterial);
     vesselGroup.add(vesselMesh);
 
