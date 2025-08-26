@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping } from './physics/guidewire.js';
 import { generateVessel } from './vesselGeometry.js';
+import { setupCArmControls } from './carm.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -70,12 +71,6 @@ const staticFricSlider = document.getElementById('staticFriction');
 const kineticFricSlider = document.getElementById('kineticFriction');
 const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
-const carmYawSlider = document.getElementById('carmYaw');
-const carmPitchSlider = document.getElementById('carmPitch');
-const carmRollSlider = document.getElementById('carmRoll');
-const carmXSlider = document.getElementById('carmX');
-const carmYSlider = document.getElementById('carmY');
-const carmZSlider = document.getElementById('carmZ');
 const wireframeToggle = document.getElementById('wireframe');
 const insertedLength = document.getElementById('insertedLength');
 
@@ -84,15 +79,10 @@ const sliders = [
     staticFricSlider,
     kineticFricSlider,
     dampingSlider,
-    velDampingSlider,
-    carmYawSlider,
-    carmPitchSlider,
-    carmRollSlider,
-    carmXSlider,
-    carmYSlider,
-    carmZSlider
+    velDampingSlider
 ];
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
+setupCArmControls(camera, vessel, cameraRadius);
 
 let bendingStiffness = parseFloat(bendSlider.value);
 setBendingStiffness(bendingStiffness);
@@ -125,57 +115,6 @@ velDampingSlider.addEventListener('input', e => {
     setVelocityDamping(velocityDamping);
 });
 
-let carmYaw = 0;
-let carmPitch = 0;
-let carmRoll = 0;
-let carmX = 0;
-let carmY = -20;
-let carmZ = 200;
-
-function getPivotPoint() {
-    // Orbit around the vessel's branch point so the vasculature stays centered
-    return new THREE.Vector3(
-        vessel.branchPoint.x + carmX,
-        vessel.branchPoint.y + carmY,
-        vessel.branchPoint.z + carmZ
-    );
-}
-
-function updateCamera() {
-    const pivot = getPivotPoint();
-    const offset = new THREE.Vector3().setFromSpherical(
-        new THREE.Spherical(cameraRadius, Math.PI / 2 - carmPitch, carmYaw)
-    );
-    camera.position.copy(pivot).add(offset);
-    camera.lookAt(pivot);
-    camera.rotation.z = carmRoll;
-}
-updateCamera();
-
-carmYawSlider.addEventListener('input', e => {
-    carmYaw = parseFloat(e.target.value) * Math.PI / 180;
-    updateCamera();
-});
-carmPitchSlider.addEventListener('input', e => {
-    carmPitch = parseFloat(e.target.value) * Math.PI / 180;
-    updateCamera();
-});
-carmRollSlider.addEventListener('input', e => {
-    carmRoll = parseFloat(e.target.value) * Math.PI / 180;
-    updateCamera();
-});
-carmXSlider.addEventListener('input', e => {
-    carmX = parseFloat(e.target.value);
-    updateCamera();
-});
-carmYSlider.addEventListener('input', e => {
-    carmY = parseFloat(e.target.value);
-    updateCamera();
-});
-carmZSlider.addEventListener('input', e => {
-    carmZ = parseFloat(e.target.value);
-    updateCamera();
-});
 
 wireframeToggle.addEventListener('change', e => {
     vesselMaterial.wireframe = e.target.checked;
