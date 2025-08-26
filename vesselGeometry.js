@@ -180,7 +180,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     outDir.y = outVec.y;
     outDir.z = outVec.z;
 
-    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y, z: vessel.left.end.z };
+    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y-5, z: vessel.left.end.z +12};
     const sheathEnd = {
         x: sheathStart.x + outDir.x * sheathLength,
         y: sheathStart.y + outDir.y * sheathLength,
