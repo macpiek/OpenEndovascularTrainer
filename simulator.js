@@ -192,6 +192,7 @@ const vessel = generateVessel();
 const segmentLength = 12;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
+const initialInsert = segmentLength * 3;
 
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
@@ -203,10 +204,10 @@ const tailStart = {
     x: vessel.left.end.x - leftDir.x * initialWireLength,
     y: vessel.left.end.y - leftDir.y * initialWireLength,
     z: vessel.left.end.z - leftDir.z * initialWireLength
-};
+}; // start outside so the tip begins `initialInsert` inside the vessel
 
 
-const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength);
+const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength, undefined, undefined, initialInsert);
 
 let advance = 0;
 window.addEventListener('keydown', e => {
