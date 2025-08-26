@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping } from './physics/guidewire.js';
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
+import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -110,6 +111,14 @@ const vesselMesh = new THREE.Mesh(geometry, vesselMaterial);
 vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
+
+const contrast = new ContrastAgent(vessel.segments, 0);
+contrast.start();
+let contrastMesh = getContrastGeometry(contrast);
+if (contrastMesh) {
+    contrastMesh.visible = false;
+    scene.add(contrastMesh);
+}
 
 const segmentLength = 12;
 const nodeCount = 80;
@@ -266,6 +275,20 @@ function animate(time) {
     }
 
     updateWireMesh();
+    contrast.update(dt);
+    if (contrastMesh) {
+        scene.remove(contrastMesh);
+        contrastMesh = null;
+    }
+    if (contrast.isActive()) {
+        contrastMesh = getContrastGeometry(contrast);
+        if (contrastMesh) {
+            scene.add(contrastMesh);
+        }
+        vesselGroup.visible = false;
+    } else {
+        vesselGroup.visible = !fluoroscopy;
+    }
     if (fluoroscopy) {
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
