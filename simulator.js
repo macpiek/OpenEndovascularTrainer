@@ -9,7 +9,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-const cameraRadius = 200;
+const cameraRadius = 350;
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
@@ -266,7 +266,7 @@ let carmYaw = 0;
 let carmPitch = 0;
 let carmRoll = 0;
 let carmX = 0;
-let carmY = 0;
+let carmY = -60;
 let carmZ = 0;
 
 function getPivotPoint() {
