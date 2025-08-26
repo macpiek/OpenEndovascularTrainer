@@ -39,33 +39,35 @@
 
         #monitor canvas {
             background: black;
-            border: 1px solid white;
             display: block;
-            margin-right: 8px;
-        }
-
-        .vitalRow {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
         }
 
         .vitalBox {
-            border: 1px solid;
-            padding: 2px 6px;
-            margin-left: 0;
-            text-align: center;
-            font-family: sans-serif;
+            position: relative;
+            width: 300px;
+            height: 100px;
+            margin-bottom: 5px;
+        }
+
+        .vitalBox canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .vitalLabel {
+            position: absolute;
+            top: 4px;
+            left: 4px;
             font-size: 28px;
         }
 
         #hrBox {
-            border-color: lime;
+            border: 1px solid lime;
             color: lime;
         }
 
         #bpBox {
-            border-color: red;
+            border: 1px solid red;
             color: red;
         }
     </style>
@@ -130,13 +132,13 @@
 </div>
 
 <div id="monitor">
-    <div class="vitalRow">
+    <div class="vitalBox" id="hrBox">
         <canvas id="ecgCanvas" width="300" height="100"></canvas>
-        <div id="hrBox" class="vitalBox">HR: <span id="hrValue">0</span></div>
+        <div class="vitalLabel">HR: <span id="hrValue">0</span></div>
     </div>
-    <div class="vitalRow">
+    <div class="vitalBox" id="bpBox">
         <canvas id="bpCanvas" width="300" height="100"></canvas>
-        <div id="bpBox" class="vitalBox">BP: <span id="bpValue">0/0</span></div>
+        <div class="vitalLabel">BP: <span id="bpValue">0/0</span></div>
     </div>
 </div>
 
