@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Brush, Evaluator, ADDITION } from 'https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js';
 import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping } from './physics/guidewire.js';
 
@@ -13,6 +14,11 @@ const cameraRadius = 200;
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enablePan = false;
+controls.minDistance = cameraRadius;
+controls.maxDistance = cameraRadius;
 
 const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
 scene.add(light);
@@ -280,11 +286,10 @@ function getPivotPoint() {
 
 function updateCamera() {
     const pivot = getPivotPoint();
-    const offset = new THREE.Vector3().setFromSpherical(
-        new THREE.Spherical(cameraRadius, Math.PI / 2 - carmPitch, carmYaw)
-    );
-    camera.position.copy(pivot).add(offset);
-    camera.lookAt(pivot);
+    controls.target.copy(pivot);
+    controls.setAzimuthalAngle(carmYaw);
+    controls.setPolarAngle(Math.PI / 2 - carmPitch);
+    controls.update();
     camera.rotation.z = carmRoll;
 }
 updateCamera();
@@ -314,6 +319,16 @@ carmZSlider.addEventListener('input', e => {
     updateCamera();
 });
 
+controls.addEventListener('change', () => {
+    const offset = camera.position.clone().sub(controls.target);
+    const spherical = new THREE.Spherical().setFromVector3(offset);
+    carmYaw = spherical.theta;
+    carmPitch = Math.PI / 2 - spherical.phi;
+    carmYawSlider.value = (carmYaw * 180 / Math.PI).toString();
+    carmPitchSlider.value = (carmPitch * 180 / Math.PI).toString();
+    camera.rotation.z = carmRoll;
+});
+
 wireframeToggle.addEventListener('change', e => {
     vesselMaterial.wireframe = e.target.checked;
 });
@@ -341,6 +356,7 @@ function animate(time) {
     lastTime = time;
     wire.step(dt, advance);
     updateWireMesh();
+    controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
