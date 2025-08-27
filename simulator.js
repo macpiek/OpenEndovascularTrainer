@@ -67,7 +67,8 @@ const displayMaterial = new THREE.ShaderMaterial({
         gray: { value: new THREE.Color(0xC3C3C3) },
         fluoroscopy: { value: false },
         time: { value: 0 },
-        noiseLevel: { value: 0.05 }
+        noiseLevel: { value: 0.05 },
+        boneOpacity: { value: 1.0 }
 
     },
     vertexShader: `
@@ -84,6 +85,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         uniform bool fluoroscopy;
         uniform float time;
         uniform float noiseLevel;
+        uniform float boneOpacity;
         varying vec2 vUv;
 
         float random(vec2 st) {
@@ -92,7 +94,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         void main() {
             vec4 tex = texture2D(uTexture, vUv);
             if (fluoroscopy) {
-                float intensity = tex.r;
+                float intensity = tex.r * boneOpacity;
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
@@ -314,11 +316,13 @@ persistenceSlider.addEventListener('input', e => {
 
 let fluoroscopy = true;
 vesselGroup.visible = false;
+boneGroup.visible = fluoroscopy;
 displayMaterial.uniforms.fluoroscopy.value = true;
 modeToggle.textContent = 'Wireframe';
 modeToggle.addEventListener('click', () => {
     fluoroscopy = !fluoroscopy;
     vesselGroup.visible = !fluoroscopy;
+    boneGroup.visible = fluoroscopy;
     displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
     // Render the guidewire in white so it appears black after the fluoroscopy
@@ -417,6 +421,7 @@ function animate(time) {
     }
     const contrastActive = contrast.isActive() || injecting;
     vesselGroup.visible = contrastActive ? false : !fluoroscopy;
+    boneGroup.visible = fluoroscopy;
     injectButton.disabled = contrastActive;
     stopInjectButton.disabled = !injecting;
     monitor.update(dt);
