@@ -177,11 +177,11 @@ debugCheckbox.addEventListener('change', e => {
     contrast.debug = e.target.checked;
 });
 
-// Default to sheath injection and hide the segment selector
-const sheathIndex = contrast.sheathIndex;
-const parentIndex = sheathIndex > 0 ? sheathIndex - 1 : -1;
+// Default to injecting into the main vessel and hide the segment selector
+const injectSegmentIndex = contrast.sheathIndex;
+const parentIndex = injectSegmentIndex > 0 ? injectSegmentIndex - 1 : -1;
 if (injSegmentSelect) {
-    injSegmentSelect.value = sheathIndex;
+    injSegmentSelect.value = injectSegmentIndex;
     injSegmentSelect.parentElement.style.display = 'none';
 }
 
@@ -244,9 +244,9 @@ const injVolumeSlider = document.getElementById('injVolume');
 
 let injecting = false;
 let injectTime = 0;
-let injectDuration = 1; // seconds
-let injectRate = 1; // ml per second
-let injectVolume = 0; // total ml
+let injectDuration = 2; // seconds
+let injectRate = 2; // ml per second
+let injectVolume = 10; // total ml
 let remainingVolume = 0;
 let totalDose = 0;
 const insertedLength = document.getElementById('insertedLength');
@@ -487,7 +487,7 @@ function animate(time) {
     updateWireMesh();
     if (injecting) {
         const amt = Math.min(injectRate * dt, remainingVolume);
-        contrast.inject(amt, sheathIndex, false);
+        contrast.inject(amt, injectSegmentIndex, false);
         totalDose += amt;
         doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
         injectTime += dt;
@@ -499,9 +499,9 @@ function animate(time) {
     }
     contrast.update(dt);
     if (contrast.debug) {
-        const sheathConc = contrast.concentration[sheathIndex] / (contrast.volumes[sheathIndex] || 1);
+        const mainConc = contrast.concentration[injectSegmentIndex] / (contrast.volumes[injectSegmentIndex] || 1);
         const parentConc = parentIndex >= 0 ? contrast.concentration[parentIndex] / (contrast.volumes[parentIndex] || 1) : 0;
-        console.log(`Sheath conc: ${sheathConc.toFixed(4)}, Parent conc: ${parentConc.toFixed(4)}`);
+        console.log(`Main conc: ${mainConc.toFixed(4)}, Parent conc: ${parentConc.toFixed(4)}`);
     }
     if (contrastMesh) {
         scene.remove(contrastMesh);
