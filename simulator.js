@@ -448,6 +448,12 @@ let accumulator = 0;
 // Maximum physics steps per frame; adjust for browser performance.
 let maxSubSteps = 5;
 
+function withTransparentClear(renderer, fn) {
+    renderer.setClearColor(0x000000, 0);
+    fn();
+    renderer.setClearColor(0x000000, 1);
+}
+
 function animate(time) {
     const dt = (time - lastTime) / 1000;
     lastTime = time;
@@ -504,10 +510,12 @@ function animate(time) {
     monitor.update(dt);
     if (fluoroscopy) {
         renderer.setRenderTarget(contrastTarget);
-        renderer.clear();
-        if (contrastMesh) {
-            renderer.render(contrastMesh, camera);
-        }
+        withTransparentClear(renderer, () => {
+            renderer.clear();
+            if (contrastMesh) {
+                renderer.render(contrastMesh, camera);
+            }
+        });
 
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
