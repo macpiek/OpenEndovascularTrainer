@@ -30,9 +30,11 @@ export class ContrastAgent {
         if (this.sheathIndex === -1) this.sheathIndex = 0;
     }
 
-    // Adds contrast volume into a segment (default: main vessel segment).
-    // By default, the contrast is injected at the segment's start node. Pass
-    // `atEnd = true` to inject at the end node instead.
+    // Adds contrast volume (in milliliters) into a segment (default: main vessel
+    // segment). Internally converts the volume to cubic millimeters so that
+    // concentrations are stored in mm^3. By default, the contrast is injected at
+    // the segment's start node. Pass `atEnd = true` to inject at the end node
+    // instead.
     inject(volume, segmentIndex = this.sheathIndex, atEnd = false, spread = 1, injectionSpeed = null) {
         if (segmentIndex >= 0 && segmentIndex < this.segments.length) {
             const seg = this.segments[segmentIndex];
@@ -50,7 +52,10 @@ export class ContrastAgent {
                 seg.flowSpeed = injectionSpeed;
                 seg._restoreFlowSpeed = true;
             }
-            const perSample = volume / Math.max(1, spread);
+
+            // Convert from milliliters to cubic millimeters for internal storage
+            const volumeMm3 = volume * 1000;
+            const perSample = volumeMm3 / Math.max(1, spread);
             let idx = atEnd ? len - 1 : 0; // injection node
             const step = -flowDir; // distribute opposite to flow
 
@@ -62,7 +67,7 @@ export class ContrastAgent {
 
             if (this.debug) {
                 console.log(
-                    `Injected ${volume.toFixed(4)} into segment ${segmentIndex} over ${Math.min(spread, len)} samples,`
+                    `Injected ${volumeMm3.toFixed(4)} mm^3 into segment ${segmentIndex} over ${Math.min(spread, len)} samples,`
                     + ` flow ${flowDir >= 0 ? 'start->end' : 'end->start'}`
                 );
             }
