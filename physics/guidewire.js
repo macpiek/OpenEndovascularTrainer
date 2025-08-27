@@ -295,32 +295,59 @@ export class Guidewire {
                     b.z -= offz;
                 }
             }
-            // bending constraints using three consecutive nodes
+            // bending constraints using angular difference between segments
             if (bendingStiffness > 0) {
                 for (let i = 1; i < this.nodes.length - 1; i++) {
                     const p0 = this.nodes[i - 1];
                     const p1 = this.nodes[i];
                     const p2 = this.nodes[i + 1];
-                    const mx = (p0.x + p2.x) * 0.5;
-                    const my = (p0.y + p2.y) * 0.5;
-                    const mz = (p0.z + p2.z) * 0.5;
-                    let dx = p1.x - mx;
-                    let dy = p1.y - my;
-                    let dz = p1.z - mz;
-                    dx *= bendingStiffness;
-                    dy *= bendingStiffness;
-                    dz *= bendingStiffness;
-                    p1.x -= dx;
-                    p1.y -= dy;
-                    p1.z -= dz;
-                    const half = 0.5;
-                    p0.x += dx * half;
-                    p0.y += dy * half;
-                    p0.z += dz * half;
+
+                    // compute normalized directions of adjacent segments
+                    let d0x = p1.x - p0.x;
+                    let d0y = p1.y - p0.y;
+                    let d0z = p1.z - p0.z;
+                    let d1x = p2.x - p1.x;
+                    let d1y = p2.y - p1.y;
+                    let d1z = p2.z - p1.z;
+                    const l0 = Math.sqrt(d0x * d0x + d0y * d0y + d0z * d0z) || 1;
+                    const l1 = Math.sqrt(d1x * d1x + d1y * d1y + d1z * d1z) || 1;
+                    d0x /= l0; d0y /= l0; d0z /= l0;
+                    d1x /= l1; d1y /= l1; d1z /= l1;
+
+                    // angle between segments
+                    const dot = clamp(d0x * d1x + d0y * d1y + d0z * d1z, -1, 1);
+                    const angle = Math.acos(dot);
+                    if (angle === 0) continue;
+
+                    // axis of rotation and its magnitude
+                    let ax = d0y * d1z - d0z * d1y;
+                    let ay = d0z * d1x - d0x * d1z;
+                    let az = d0x * d1y - d0y * d1x;
+                    const amag = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
+                    ax /= amag; ay /= amag; az /= amag;
+
+                    // gradients for the angle constraint
+                    let g0x = (d0y * az - d0z * ay) / l0;
+                    let g0y = (d0z * ax - d0x * az) / l0;
+                    let g0z = (d0x * ay - d0y * ax) / l0;
+                    let g2x = (d1y * az - d1z * ay) / l1;
+                    let g2y = (d1z * ax - d1x * az) / l1;
+                    let g2z = (d1x * ay - d1y * ax) / l1;
+                    let g1x = -g0x - g2x;
+                    let g1y = -g0y - g2y;
+                    let g1z = -g0z - g2z;
+
+                    const scale = bendingStiffness * angle;
+                    p0.x += g0x * scale;
+                    p0.y += g0y * scale;
+                    p0.z += g0z * scale;
+                    p1.x += g1x * scale;
+                    p1.y += g1y * scale;
+                    p1.z += g1z * scale;
                     if (i + 1 < this.nodes.length - 1) {
-                        p2.x += dx * half;
-                        p2.y += dy * half;
-                        p2.z += dz * half;
+                        p2.x += g2x * scale;
+                        p2.y += g2y * scale;
+                        p2.z += g2z * scale;
                     }
                 }
             }
