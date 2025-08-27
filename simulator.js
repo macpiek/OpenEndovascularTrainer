@@ -478,7 +478,7 @@ function animate(time) {
     updateWireMesh();
     if (injecting) {
         const amt = Math.min(injectRate * dt, remainingVolume);
-        contrast.inject(amt);
+        contrast.inject(amt, sheathIndex, false);
         totalDose += amt;
         doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
         injectTime += dt;

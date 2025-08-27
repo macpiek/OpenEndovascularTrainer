@@ -22,16 +22,17 @@ export class ContrastAgent {
             Math.abs(a.x - b.x) < eps &&
             Math.abs(a.y - b.y) < eps &&
             Math.abs(a.z - b.z) < eps;
+        const sheathNode = vessel.sheath ? vessel.sheath.end : vessel.left.end;
         this.sheathIndex = this.segments.findIndex(
-            s => equal(s.end, vessel.left.end)
+            s => sheathNode && equal(s.start, sheathNode)
         );
         if (this.sheathIndex === -1) this.sheathIndex = 0;
     }
 
     // Adds contrast volume into a segment (default: sheath-connected segment).
-    // By default, the contrast is injected at the segment's end node. Pass
-    // `atEnd = false` to inject at the start node instead.
-    inject(volume, segmentIndex = this.sheathIndex, atEnd = true) {
+    // By default, the contrast is injected at the segment's start node. Pass
+    // `atEnd = true` to inject at the end node instead.
+    inject(volume, segmentIndex = this.sheathIndex, atEnd = false) {
         if (segmentIndex >= 0 && segmentIndex < this.segments.length) {
             const seg = this.segments[segmentIndex];
             const node = atEnd ? seg.endNode : seg.startNode;
