@@ -293,7 +293,9 @@ modeToggle.addEventListener('click', () => {
     vesselGroup.visible = !fluoroscopy;
     displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
-    wireMaterial.color.set(fluoroscopy ? 0x000000 : 0xffffff);
+    // Render the guidewire in white so it appears black after the fluoroscopy
+    // shader inversion.
+    wireMaterial.color.set(0xffffff);
 });
 
 injectButton.addEventListener('click', () => {
@@ -314,13 +316,13 @@ stopInjectButton.addEventListener('click', () => {
     }
 });
 
-const wireMaterial = new THREE.LineBasicMaterial({color: 0x000000});
+// Use a white guidewire so the fluoroscopy shader can invert it to black.
+const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
 const wireGeometry = new THREE.BufferGeometry();
 const wirePositions = new Float32Array(nodeCount * 3);
 wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
 const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
 scene.add(wireMesh);
-wireMaterial.color.set(fluoroscopy ? 0x000000 : 0xffffff);
 
 function updateWireMesh() {
     for (let i = 0; i < wire.nodes.length; i++) {
@@ -372,7 +374,7 @@ function animate(time) {
         contrastMesh = new THREE.Group();
         for (const { geometry, concentration } of contrastGeoms) {
             const material = new THREE.MeshBasicMaterial({
-                color: 0x000000,
+                color: 0xffffff,
                 transparent: true,
                 opacity: Math.min(concentration, 1)
             });
