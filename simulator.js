@@ -1,13 +1,5 @@
 import * as THREE from 'three';
-import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import {
-    Guidewire,
-    setBendingStiffness,
-    setWallFriction,
-    setNormalDamping,
-    setVelocityDamping,
-    setSmoothingParameters
-} from './physics/guidewire.js';
+import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping, setSmoothingParameters } from './physics/guidewire.js';
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
@@ -16,22 +8,8 @@ import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPrev
 import { createBoneModel } from './boneModel.js';
 
 const canvas = document.getElementById('sim');
-let renderer;
-if (WebGL.isWebGLAvailable()) {
-    try {
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    } catch (e) {
-        const warning = WebGL.getWebGLErrorMessage();
-        document.body.appendChild(warning);
-        console.warn('WebGL initialization failed:', e);
-        throw e;
-    }
-} else {
-    const warning = WebGL.getWebGLErrorMessage();
-    document.body.appendChild(warning);
-    throw new Error('WebGL not supported');
-}
+const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
