@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export function createBoneModel() {
+    // Use a white material so bones appear bright in fluoroscopy rendering
     const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
     const group = new THREE.Group();
 
