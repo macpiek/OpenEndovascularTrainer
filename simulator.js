@@ -297,7 +297,10 @@ persistenceSlider.addEventListener('input', e => {
     blendMaterial.uniforms.decay.value = parseFloat(e.target.value);
 });
 
-let fluoroscopy = false;
+let fluoroscopy = true;
+vesselGroup.visible = false;
+displayMaterial.uniforms.fluoroscopy.value = true;
+modeToggle.textContent = 'Wireframe';
 modeToggle.addEventListener('click', () => {
     fluoroscopy = !fluoroscopy;
     vesselGroup.visible = !fluoroscopy;

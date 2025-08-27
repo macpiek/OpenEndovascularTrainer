@@ -124,8 +124,8 @@
     <div id="currentDose">0 ml</div>
 
     <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
-        <div class="section-content">
+        <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Guidewire</div>
+        <div class="section-content hidden">
             <label class="parameter-label">Bending stiffness
                 <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
                 <span></span>
@@ -142,8 +142,8 @@
     </div>
 
     <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> Friction</div>
-        <div class="section-content">
+        <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Friction</div>
+        <div class="section-content hidden">
             <label class="parameter-label">Static friction
                 <input id="staticFriction" type="range" min="0" max="1" step="0.01" value="0.2">
                 <span></span>
@@ -156,8 +156,8 @@
     </div>
 
     <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
-        <div class="section-content">
+        <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Imaging</div>
+        <div class="section-content hidden">
             <label class="parameter-label">Persistence
                 <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.35">
                 <span></span>
@@ -222,7 +222,7 @@
 
     <button id="injectContrast">Inject</button>
     <button id="stopInjection" disabled>Stop Injection</button>
-    <button id="modeToggle">Fluoroscopy</button>
+    <button id="modeToggle">Wireframe</button>
 </div>
 
 <div id="monitor">
