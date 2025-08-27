@@ -13,7 +13,7 @@ export function initCArmPreview() {
     const container = document.getElementById('carm-preview');
     if (!container) return;
 
-    if (!WebGL.isWebGLAvailable()) {
+    if (!(WebGL.isWebGLAvailable() || WebGL.isWebGL2Available())) {
         container.textContent = 'WebGL not supported';
         return;
     }
