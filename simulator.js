@@ -5,6 +5,7 @@ import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPreview.js';
+import { createBoneModel } from './boneModel.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -118,6 +119,7 @@ scene.add(light);
 
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
+const boneGroup = createBoneModel();
 
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
 vesselGroup = new THREE.Group();
@@ -125,6 +127,13 @@ const vesselMesh = new THREE.Mesh(geometry, vesselMaterial);
 vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
+
+boneGroup.position.set(
+    vessel.branchPoint.x,
+    vessel.branchPoint.y - 60,
+    vessel.branchPoint.z
+);
+scene.add(boneGroup);
 
 const injSegmentSelect = document.getElementById('injSegment');
 // Populate injection segment choices
