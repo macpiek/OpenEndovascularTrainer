@@ -51,31 +51,50 @@ export class ContrastAgent {
             const arr = this.concentration[i];
             const nextArr = next[i];
             const stepLen = this.lengths[i] / this.samplesPerSegment;
-            const frac = Math.min(1, (speed * dt) / stepLen);
+            const dist = speed * dt;
+            const frac = Math.min(1, Math.abs(dist) / stepLen);
+            const dir = Math.sign(dist) || 1;
             for (let j = 0; j < arr.length; j++) {
                 const moved = arr[j] * frac;
                 nextArr[j] += arr[j] - moved;
-                if (j < arr.length - 1) {
-                    nextArr[j + 1] += moved;
+                if (dir >= 0) {
+                    if (j < arr.length - 1) {
+                        nextArr[j + 1] += moved;
+                    } else {
+                        const back = moved * this.backflow;
+                        const fwd = moved - back;
+                        if (seg.startNode != null) nodeMass[seg.startNode] += back;
+                        if (seg.endNode != null) nodeMass[seg.endNode] += fwd;
+                    }
                 } else {
-                    const back = moved * this.backflow;
-                    const fwd = moved - back;
-                    if (seg.startNode != null) nodeMass[seg.startNode] += back;
-                    if (seg.endNode != null) nodeMass[seg.endNode] += fwd;
+                    if (j > 0) {
+                        nextArr[j - 1] += moved;
+                    } else {
+                        const back = moved * this.backflow;
+                        const fwd = moved - back;
+                        if (seg.endNode != null) nodeMass[seg.endNode] += back;
+                        if (seg.startNode != null) nodeMass[seg.startNode] += fwd;
+                    }
                 }
             }
         }
-        // Redistribute mixed contrast from nodes to connected segments
+        // Redistribute mixed contrast from nodes to connected segments.
+        // Contrast should enter based on flow direction rather than always
+        // appearing at the proximal start of a segment.
         for (let n = 0; n < this.nodes.length; n++) {
             const pool = nodeMass[n];
             if (pool <= 0) continue;
             const segs = this.nodes[n].segments || [];
             if (!segs.length) continue;
             let total = 0;
-            for (const s of segs) total += this.segments[s].flowSpeed || 0;
+            for (const s of segs) total += Math.abs(this.segments[s].flowSpeed || 0);
             for (const s of segs) {
-                const w = total > 0 ? (this.segments[s].flowSpeed || 0) / total : 1 / segs.length;
-                next[s][0] += pool * w;
+                const segObj = this.segments[s];
+                const flow = segObj.flowSpeed || 0;
+                const w = total > 0 ? Math.abs(flow) / total : 1 / segs.length;
+                const arr = next[s];
+                const idx = segObj.startNode === n ? 0 : arr.length - 1;
+                arr[idx] += pool * w;
             }
         }
         const decay = Math.exp(-this.washout * dt);
