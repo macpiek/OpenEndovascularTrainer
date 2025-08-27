@@ -41,6 +41,9 @@ export function initCArmPreview() {
     cArm.position.y = -70; // align gantry center with the group's origin
     cArmGroup.add(cArm);
     previewScene.add(cArmGroup);
+
+    // Render once so the preview displays immediately.
+    renderCArmPreview();
 }
 
 export function renderCArmPreview() {

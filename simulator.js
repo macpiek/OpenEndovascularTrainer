@@ -120,7 +120,6 @@ scene.add(light);
 
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
-let cArmGroup;
 let tableGroup;
 
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
@@ -149,12 +148,6 @@ const pivot = new THREE.Vector3(
     vessel.branchPoint.y - 60,
     vessel.branchPoint.z
 );
-cArmGroup = new THREE.Group();
-const cArmModel = createCArmModel();
-cArmModel.position.y = -70;
-cArmGroup.add(cArmModel);
-cArmGroup.position.copy(pivot);
-scene.add(cArmGroup);
 
 const contrast = new ContrastAgent(vessel);
 let contrastMesh = null;
@@ -255,6 +248,7 @@ document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
 document.querySelectorAll('.section-header').forEach(header => {
     header.addEventListener('click', () => {
         const content = header.nextElementSibling;
+        header.classList.toggle('collapsed');
         if (content) {
             content.classList.toggle('hidden');
         }
