@@ -527,14 +527,6 @@ function animate(time) {
         console.log(`Main conc: ${mainConc.toFixed(4)}, Parent conc: ${parentConc.toFixed(4)}`);
     }
     if (contrastMesh) {
-        contrastMesh.traverse(child => {
-            if (child.isMesh) {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material && child.material !== contrastMaterial) {
-                    child.material.dispose();
-                }
-            }
-        });
         scene.remove(contrastMesh);
         contrastScene.remove(contrastMesh);
         contrastMesh = null;
