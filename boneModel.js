@@ -27,6 +27,10 @@ export function createBoneModel() {
         const center = box.getCenter(new THREE.Vector3());
         obj.position.sub(center);
 
+        // Rotate 45 degrees clockwise and scale up 10x
+        obj.rotation.y = -Math.PI / 4;
+        obj.scale.multiplyScalar(10);
+
         group.add(obj);
     });
 
