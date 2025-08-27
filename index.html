@@ -115,6 +115,17 @@
             border: 1px solid gray;
             background: black;
         }
+
+        #perfStats {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-family: sans-serif;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 4px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -226,11 +237,11 @@
                 <span></span>
             </label>
             <label class="parameter-label">C-arm Y
-                <input id="carmY" type="range" min="-200" max="200" step="1" value="0">
+                <input id="carmY" type="range" min="-1000" max="600" step="1" value="-90">
                 <span></span>
             </label>
             <label class="parameter-label">C-arm Z
-                <input id="carmZ" type="range" min="-200" max="400" step="1" value="0">
+                <input id="carmZ" type="range" min="-200" max="400" step="1" value="60">
                 <span></span>
             </label>
         </div>
@@ -253,13 +264,15 @@
 </div>
 
 <div id="carm-preview"></div>
+<div id="perfStats">FPS: 0 | Mem: N/A</div>
 
 <script type="importmap">
 {
     "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
         "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.5/build/index.module.js",
-        "three/examples/jsm/utils/BufferGeometryUtils.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js"
+        "three/examples/jsm/utils/BufferGeometryUtils.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
+        "three/examples/jsm/loaders/OBJLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js"
     }
 }
 </script>

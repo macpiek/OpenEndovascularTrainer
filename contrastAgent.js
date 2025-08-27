@@ -8,7 +8,8 @@ const geometryPool = new Map();
 
 // Simulates advection and dilution of a contrast agent through a vessel graph.
 export class ContrastAgent {
-    constructor(vessel, washout = 0.5, backflow = 0.2, debug = false, samplesPerSegment = 10) {
+    // Reduced default washout so contrast dilutes more slowly
+    constructor(vessel, washout = 0.25, backflow = 0.2, debug = false, samplesPerSegment = 10) {
         this.vessel = vessel;
         this.segments = vessel.segments;
         this.nodes = vessel.nodes || [];
