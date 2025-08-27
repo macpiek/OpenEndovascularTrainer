@@ -63,12 +63,12 @@ blendScene.add(blendQuad);
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
-        contrastTexture: { value: previousTarget.texture },
         gray: { value: new THREE.Color(0xC3C3C3) },
         fluoroscopy: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
-        boneOpacity: { value: 1.0 }
+        boneOpacity: { value: 1.0 },
+        wireOpacity: { value: 1.0 }
 
     },
     vertexShader: `
@@ -80,12 +80,12 @@ const displayMaterial = new THREE.ShaderMaterial({
     `,
     fragmentShader: `
         uniform sampler2D uTexture;
-        uniform sampler2D contrastTexture;
         uniform vec3 gray;
         uniform bool fluoroscopy;
         uniform float time;
         uniform float noiseLevel;
         uniform float boneOpacity;
+        uniform float wireOpacity;
         varying vec2 vUv;
 
         float random(vec2 st) {
@@ -94,12 +94,17 @@ const displayMaterial = new THREE.ShaderMaterial({
         void main() {
             vec4 tex = texture2D(uTexture, vUv);
             if (fluoroscopy) {
-                float intensity = tex.r * boneOpacity;
+                float boneAlpha = tex.r * boneOpacity;
+                float vesselAlpha = tex.g;
+                float wireAlpha = tex.b * wireOpacity;
+                float I = 1.0;
+                I *= (1.0 - boneAlpha);
+                I *= (1.0 - vesselAlpha);
+                I *= (1.0 - wireAlpha);
                 float noise = random(vUv * 100.0) - 0.5;
-                intensity += noise * noiseLevel;
-                intensity = clamp(intensity, 0.0, 1.0);
-                float contrast = texture2D(contrastTexture, vUv).r;
-                vec3 color = gray * (1.0 - intensity) * (1.0 - contrast);
+                I += noise * noiseLevel;
+                I = clamp(I, 0.0, 1.0);
+                vec3 color = gray * (1.0 - I);
                 gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
             } else {
                 gl_FragColor = tex;
@@ -325,9 +330,8 @@ modeToggle.addEventListener('click', () => {
     boneGroup.visible = fluoroscopy;
     displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
-    // Render the guidewire in white so it appears black after the fluoroscopy
-    // shader inversion.
-    wireMaterial.color.set(0xffffff);
+    // Encode the guidewire in blue during fluoroscopy and white otherwise
+    wireMaterial.color.set(fluoroscopy ? 0x0000ff : 0xffffff);
 });
 
 injectButton.addEventListener('click', () => {
@@ -351,8 +355,8 @@ stopInjectButton.addEventListener('click', () => {
     }
 });
 
-// Use a white guidewire so the fluoroscopy shader can invert it to black.
-const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+// Render the guidewire into the blue channel for attenuation
+const wireMaterial = new THREE.LineBasicMaterial({color: 0x0000ff});
 const wireGeometry = new THREE.BufferGeometry();
 const wirePositions = new Float32Array(nodeCount * 3);
 wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
@@ -411,7 +415,8 @@ function animate(time) {
         contrastMesh = new THREE.Group();
         for (const { geometry, concentration } of contrastGeoms) {
             const material = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
+                // Encode contrast agent into the green channel
+                color: 0x00ff00,
                 transparent: true,
                 opacity: Math.min(concentration * opacityScale, 1)
             });
@@ -438,7 +443,6 @@ function animate(time) {
         renderer.setRenderTarget(null);
 
         displayMaterial.uniforms.uTexture.value = currentTarget.texture;
-        displayMaterial.uniforms.contrastTexture.value = currentTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
 

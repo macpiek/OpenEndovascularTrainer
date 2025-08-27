@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 export function createBoneModel() {
-    // Use a white material so bones appear bright in fluoroscopy rendering
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    // Render bones into the red channel for fluoroscopy attenuation
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const group = new THREE.Group();
 
     // Approximate pelvis using two hip boxes and a central sacrum
