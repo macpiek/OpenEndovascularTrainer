@@ -32,12 +32,38 @@ export class ContrastAgent {
     // Adds contrast volume into a segment (default: sheath-connected segment).
     // By default, the contrast is injected at the segment's start node. Pass
     // `atEnd = true` to inject at the end node instead.
-    inject(volume, segmentIndex = this.sheathIndex, atEnd = false) {
+    inject(volume, segmentIndex = this.sheathIndex, atEnd = false, spread = 1, injectionSpeed = null) {
         if (segmentIndex >= 0 && segmentIndex < this.segments.length) {
             const seg = this.segments[segmentIndex];
-            const node = atEnd ? seg.endNode : seg.startNode;
-            if (node != null) {
-                this.pendingNodeMass[node] += volume;
+
+            const origSpeed = seg._origFlowSpeed !== undefined ? seg._origFlowSpeed : seg.flowSpeed;
+            const arr = this.concentration[segmentIndex];
+            const len = arr.length;
+            const flowDir = Math.sign(origSpeed || 0) || 1; // start->end if >=0
+
+            // Temporarily override flow speed to simulate a contrast jet
+            if (injectionSpeed !== null) {
+                if (seg._origFlowSpeed === undefined) {
+                    seg._origFlowSpeed = seg.flowSpeed;
+                }
+                seg.flowSpeed = injectionSpeed;
+                seg._restoreFlowSpeed = true;
+            }
+            const perSample = volume / Math.max(1, spread);
+            let idx = atEnd ? len - 1 : 0; // injection node
+            const step = -flowDir; // distribute opposite to flow
+
+            for (let k = 0; k < spread; k++) {
+                if (idx < 0 || idx >= len) break;
+                arr[idx] += perSample;
+                idx += step;
+            }
+
+            if (this.debug) {
+                console.log(
+                    `Injected ${volume.toFixed(4)} into segment ${segmentIndex} over ${Math.min(spread, len)} samples,`
+                    + ` flow ${flowDir >= 0 ? 'start->end' : 'end->start'}`
+                );
             }
         }
     }
@@ -115,6 +141,19 @@ export class ContrastAgent {
             }
         }
         this.concentration = next;
+
+        // Restore any temporary flow speed overrides after injection
+        for (let i = 0; i < this.segments.length; i++) {
+            const seg = this.segments[i];
+            if (seg._restoreFlowSpeed) {
+                seg.flowSpeed = seg._origFlowSpeed;
+                delete seg._origFlowSpeed;
+                delete seg._restoreFlowSpeed;
+                if (this.debug) {
+                    console.log(`Restored flowSpeed of segment ${i} to ${seg.flowSpeed}`);
+                }
+            }
+        }
         if (this.debug) {
             const masses = this.concentration
                 .map((arr, i) => `Seg ${i}: ${arr.reduce((a, b) => a + b, 0).toFixed(4)}`)
