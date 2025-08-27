@@ -13,8 +13,8 @@ const vessel = {
       volume: Math.PI * 2 * 2 * 10,
       startNode: 0,
       endNode: 1,
-      // Faster flow in proximal segment to reflect quicker contrast movement
-      flowSpeed: 10,
+        // Faster flow in proximal segment to reflect quicker contrast movement
+        flowSpeed: 20,
       parent: null,
     },
     // Distal segment
@@ -26,8 +26,8 @@ const vessel = {
       volume: Math.PI * 2 * 2 * 10,
       startNode: 1,
       endNode: 2,
-      // Faster flow in distal segment as well
-      flowSpeed: 10,
+        // Faster flow in distal segment as well
+        flowSpeed: 20,
       parent: 0,
     },
   ],

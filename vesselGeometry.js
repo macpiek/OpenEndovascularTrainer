@@ -217,7 +217,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
 
     // Compute flow direction and speed throughout the graph
     // Increased base speed so contrast advects faster through vessels
-    const BASE_SPEED = 60; // cm/s default inflow speed
+    const BASE_SPEED = 90; // cm/s default inflow speed
     const flow = {};
     const computeDir = seg => {
         const dx = seg.end.x - seg.start.x;
