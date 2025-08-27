@@ -57,7 +57,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         }
 
         if (previewGantry) {
-            previewGantry.rotation.set(carmPitch, carmYaw, carmRoll, 'YXZ');
+            previewGantry.rotation.set(0, 0, 0);
+            previewGantry.rotateY(carmYaw);
+            previewGantry.rotateX(carmPitch);
+            previewGantry.rotateZ(carmRoll);
         }
 
         if (previewGroup || previewGantry) {
