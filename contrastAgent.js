@@ -2,12 +2,13 @@ import * as THREE from 'three';
 
 // Simulates advection and dilution of a contrast agent through a vessel graph.
 export class ContrastAgent {
-    constructor(vessel, washout = 0.5, backflow = 0.2) {
+    constructor(vessel, washout = 0.5, backflow = 0.2, debug = false) {
         this.vessel = vessel;
         this.segments = vessel.segments;
         this.nodes = vessel.nodes || [];
         this.washout = washout;
         this.backflow = backflow;
+        this.debug = debug;
 
         this.lengths = this.segments.map(s => s.length || 1);
         this.volumes = this.segments.map(s => s.volume || 1);
@@ -71,6 +72,12 @@ export class ContrastAgent {
             next[i] *= decay;
         }
         this.concentration = next;
+        if (this.debug) {
+            const masses = this.concentration
+                .map((m, i) => `Seg ${i}: ${m.toFixed(4)}`)
+                .join(', ');
+            console.log(`Contrast masses: ${masses}`);
+        }
     }
 
     isActive() {
