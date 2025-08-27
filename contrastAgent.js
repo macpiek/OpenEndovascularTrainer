@@ -20,8 +20,6 @@ export class ContrastAgent {
         this.lengths = this.segments.map(s => s.length || 1);
         this.volumes = this.segments.map(s => s.volume || 1);
         this.concentration = this.segments.map(() => new Array(this.samplesPerSegment).fill(0));
-        // Preallocate next concentration buffers so we can reuse them each frame
-        this.next = this.segments.map(() => new Array(this.samplesPerSegment).fill(0));
         this.pendingNodeMass = new Array(this.nodes.length).fill(0);
 
         const eps = 1e-6;
@@ -82,10 +80,7 @@ export class ContrastAgent {
     }
 
     update(dt) {
-        const next = this.next;
-        for (let i = 0; i < next.length; i++) {
-            next[i].fill(0);
-        }
+        const next = this.segments.map(() => new Array(this.samplesPerSegment).fill(0));
         const nodeMass = this.pendingNodeMass.slice();
         this.pendingNodeMass.fill(0);
         for (let i = 0; i < this.segments.length; i++) {
@@ -156,11 +151,7 @@ export class ContrastAgent {
                 next[i][j] *= decay;
             }
         }
-
-        // Swap concentration buffers to avoid reallocating arrays
-        const current = this.concentration;
         this.concentration = next;
-        this.next = current;
 
         // Restore any temporary flow speed overrides after injection
         for (let i = 0; i < this.segments.length; i++) {
