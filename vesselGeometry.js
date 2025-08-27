@@ -163,6 +163,35 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     addCurve(mainEnd, vessel.branchPoint, vessel.left.curveEnd);
     vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
 
+    // Compute segment lengths and volumes
+    for (const seg of vessel.segments) {
+        const dx = seg.end.x - seg.start.x;
+        const dy = seg.end.y - seg.start.y;
+        const dz = seg.end.z - seg.start.z;
+        const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+        seg.length = len;
+        seg.volume = Math.PI * seg.radius * seg.radius * len;
+    }
+
+    // Build nodes mapping unique points to indices
+    const nodeMap = new Map();
+    const nodes = [];
+    function getNode(p) {
+        const key = `${p.x.toFixed(5)},${p.y.toFixed(5)},${p.z.toFixed(5)}`;
+        if (nodeMap.has(key)) return nodeMap.get(key);
+        const idx = nodes.length;
+        nodeMap.set(key, idx);
+        nodes.push({ position: p, segments: [] });
+        return idx;
+    }
+    vessel.segments.forEach((seg, idx) => {
+        seg.startNode = getNode(seg.start);
+        seg.endNode = getNode(seg.end);
+        nodes[seg.startNode].segments.push(idx);
+        nodes[seg.endNode].segments.push(idx);
+    });
+    vessel.nodes = nodes;
+
     // Build adjacency list linking each segment to its downstream neighbor(s)
     const segmentGraph = vessel.segments.map(() => []);
     const parents = vessel.segments.map(() => null);
