@@ -74,7 +74,9 @@ export class ContrastAgent {
     }
 
     isActive() {
-        return this.concentration.some(c => c > 1e-3);
+        return this.concentration.some(
+            (amt, i) => amt / (this.volumes[i] || 1) > 1e-4
+        );
     }
 }
 
@@ -86,13 +88,13 @@ export function getContrastGeometry(agent) {
     const geoms = [];
     for (let i = 0; i < agent.segments.length; i++) {
         const amt = agent.concentration[i];
-        if (amt <= 1e-3) continue;
+        const conc = amt / (agent.volumes[i] || 1);
+        if (conc <= 1e-4) continue;
         const seg = agent.segments[i];
         const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
         const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
         const path = new THREE.LineCurve3(start, end);
         const geom = new THREE.TubeGeometry(path, 4, seg.radius * 0.9, 8, false);
-        const conc = amt / (agent.volumes[i] || 1);
         geoms.push({ geometry: geom, concentration: conc });
     }
     return geoms;
