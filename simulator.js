@@ -104,9 +104,9 @@ const displayMaterial = new THREE.ShaderMaterial({
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
                 float contrast = texture2D(contrastTexture, vUv).a;
+                contrast = clamp(contrast * 1.5, 0.0, 1.0);
                 vec3 color = gray * (1.0 - intensity);
-                color *= (1.0 - contrast);
-                gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+                gl_FragColor = vec4(mix(color, vec3(0.0), contrast), 1.0);
             } else {
                 gl_FragColor = tex;
             }
@@ -254,6 +254,7 @@ const doseDisplay = document.getElementById('currentDose');
 const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
 const opacityScaleSlider = document.getElementById('opacityScale');
+const gainSlider = document.getElementById('gain');
 
 const sliders = [
     bendSlider,
@@ -266,6 +267,7 @@ const sliders = [
     persistenceSlider,
     noiseSlider,
     opacityScaleSlider,
+    gainSlider,
     injVolumeSlider,
     injRateSlider,
     injDurationSlider
@@ -303,11 +305,17 @@ opacityScaleSlider.addEventListener('input', e => {
     opacityScale = parseFloat(e.target.value);
 });
 
+let gain = parseFloat(gainSlider.value);
+gainSlider.addEventListener('input', e => {
+    gain = parseFloat(e.target.value);
+});
+
 // Shader material to render contrast agent with additive brightness and
 // concentration-based coloring.
 const contrastMaterial = new THREE.ShaderMaterial({
     uniforms: {
         opacityScale: { value: Math.min(opacityScale / 100, 1) },
+        gain: { value: gain },
         time: { value: 0 }
     },
     vertexColors: true,
@@ -325,6 +333,7 @@ const contrastMaterial = new THREE.ShaderMaterial({
     `,
     fragmentShader: `
         uniform float opacityScale;
+        uniform float gain;
         uniform float time;
         varying float vConc;
         varying vec2 vUv;
@@ -332,7 +341,7 @@ const contrastMaterial = new THREE.ShaderMaterial({
         void main() {
             // Simple scrolling wave to suggest flow movement
             float flow = 0.5 + 0.5 * sin((vUv.y - time) * 10.0);
-            float intensity = vConc * opacityScale * flow;
+            float intensity = (1.0 - exp(-gain * vConc * opacityScale)) * flow;
             vec3 color = vec3(vConc, 0.0, 1.0 - vConc);
             gl_FragColor = vec4(color * intensity, intensity);
         }
@@ -503,6 +512,7 @@ function animate(time) {
     if (contrastGeoms.length) {
         contrastMesh = new THREE.Group();
         contrastMaterial.uniforms.opacityScale.value = Math.min(opacityScale / 100, 1);
+        contrastMaterial.uniforms.gain.value = gain;
         contrastMaterial.uniforms.time.value = time * 0.001;
         for (const geom of contrastGeoms) {
             contrastMesh.add(new THREE.Mesh(geom, contrastMaterial));
