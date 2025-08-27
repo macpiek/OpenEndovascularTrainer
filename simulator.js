@@ -458,8 +458,13 @@ function withTransparentClear(renderer, fn) {
 }
 
 function animate(time) {
-    const dt = (time - lastTime) / 1000;
+    let dt = (time - lastTime) / 1000;
     lastTime = time;
+    // When the tab is inactive, requestAnimationFrame pauses. The next
+    // frame reports a very large time delta which caused the patient monitor
+    // graphs to jump or flatline when returning. Clamp the timestep so we
+    // only advance the simulation by a reasonable amount each frame.
+    dt = Math.min(dt, 0.1);
 
     // Accumulate time and step the physics at a fixed rate.
     accumulator += Math.min(dt, fixedDt * maxSubSteps);
