@@ -255,6 +255,7 @@ const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
 const opacityScaleSlider = document.getElementById('opacityScale');
 const gainSlider = document.getElementById('gain');
+const perfStats = document.getElementById('perfStats');
 
 const sliders = [
     bendSlider,
@@ -567,6 +568,15 @@ function animate(time) {
     } else {
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
+    }
+
+    if (perfStats) {
+        const fps = (1 / dt).toFixed(1);
+        let mem = 'N/A';
+        if (performance.memory) {
+            mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
+        }
+        perfStats.textContent = `FPS: ${fps} | Mem: ${mem}`;
     }
 
     requestAnimationFrame(animate);
