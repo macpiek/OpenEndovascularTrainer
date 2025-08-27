@@ -5,16 +5,23 @@ export function createCArmModel() {
 
     const group = new THREE.Group();
 
+    // Position the base and supporting column to the side so the gantry
+    // (which is centred on the group's origin) sits over the patient/table.
     const base = new THREE.Mesh(new THREE.BoxGeometry(40, 10, 40), material);
-    base.position.y = 5;
+    base.position.set(-80, 5, 0);
     group.add(base);
 
     const column = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 60, 32), material);
-    column.position.y = 40;
+    column.position.set(-80, 40, 0);
     group.add(column);
 
+    // Simple horizontal arm connecting the column to the gantry ring
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(80, 5, 5), material);
+    arm.position.set(-40, 70, 0);
+    group.add(arm);
+
     const gantryGroup = new THREE.Group();
-    gantryGroup.position.y = 70;
+    gantryGroup.position.set(0, 70, 0);
     group.add(gantryGroup);
 
     const gantryGeometry = new THREE.TorusGeometry(40, 3, 16, 100, Math.PI * 1.5);
