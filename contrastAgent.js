@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
+// Pool of geometries indexed by "segmentIndex:sampleIndex" keys so that
+// TubeGeometry instances and their associated color buffers can be reused
+// across frames instead of being recreated every time.
+const geometryPool = new Map();
+
 // Simulates advection and dilution of a contrast agent through a vessel graph.
 export class ContrastAgent {
     constructor(vessel, washout = 0.5, backflow = 0.2, debug = false, samplesPerSegment = 10) {
@@ -187,8 +192,16 @@ export class ContrastAgent {
 // can optionally merge all geometries into a single BufferGeometry.
 
 export function getContrastGeometry(agent, merge = false) {
-    if (!agent || !agent.isActive()) return merge ? null : [];
+    // If the agent is inactive, dispose any pooled geometries and return.
+    if (!agent || !agent.isActive()) {
+        for (const geom of geometryPool.values()) geom.dispose();
+        geometryPool.clear();
+        return merge ? null : [];
+    }
+
     const geoms = [];
+    const used = new Set();
+
     for (let i = 0; i < agent.segments.length; i++) {
         const arr = agent.concentration[i];
         const vol = (agent.volumes[i] || 1) / arr.length;
@@ -199,26 +212,45 @@ export function getContrastGeometry(agent, merge = false) {
         for (let j = 0; j < arr.length; j++) {
             const conc = arr[j] / vol;
             if (conc <= 1e-4) continue;
-            const t0 = j / arr.length;
-            const t1 = (j + 1) / arr.length;
-            const p0 = start.clone().addScaledVector(dir, t0);
-            const p1 = start.clone().addScaledVector(dir, t1);
-            const path = new THREE.LineCurve3(p0, p1);
-            const geom = new THREE.TubeGeometry(path, 1, seg.radius * 0.9, 8, false);
+            const key = `${i}:${j}`;
 
-            // Assign vertex colors based on concentration for shader gradients
-            const color = new THREE.Color(conc, 0, 1 - conc);
-            const colors = new Float32Array(geom.attributes.position.count * 3);
-            for (let k = 0; k < geom.attributes.position.count; k++) {
-                colors[k * 3] = color.r;
-                colors[k * 3 + 1] = color.g;
-                colors[k * 3 + 2] = color.b;
+            let geom = geometryPool.get(key);
+            if (!geom) {
+                const t0 = j / arr.length;
+                const t1 = (j + 1) / arr.length;
+                const p0 = start.clone().addScaledVector(dir, t0);
+                const p1 = start.clone().addScaledVector(dir, t1);
+                const path = new THREE.LineCurve3(p0, p1);
+                geom = new THREE.TubeGeometry(path, 1, seg.radius * 0.9, 8, false);
+
+                const colors = new Float32Array(geom.attributes.position.count * 3);
+                geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                geometryPool.set(key, geom);
             }
-            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            // Update vertex colors based on concentration
+            const color = new THREE.Color(conc, 0, 1 - conc);
+            const colors = geom.attributes.color.array;
+            for (let k = 0; k < colors.length; k += 3) {
+                colors[k] = color.r;
+                colors[k + 1] = color.g;
+                colors[k + 2] = color.b;
+            }
+            geom.attributes.color.needsUpdate = true;
             geom.userData.concentration = conc;
             geoms.push(geom);
+            used.add(key);
         }
     }
+
+    // Dispose of any geometries that were not used this frame.
+    for (const [key, geom] of geometryPool.entries()) {
+        if (!used.has(key)) {
+            geom.dispose();
+            geometryPool.delete(key);
+        }
+    }
+
     if (merge) {
         return geoms.length ? mergeBufferGeometries(geoms, false) : null;
     }
