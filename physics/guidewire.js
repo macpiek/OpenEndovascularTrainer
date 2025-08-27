@@ -227,6 +227,11 @@ export class Guidewire {
             tip.fx += this.dir.x * advanceForce;
             tip.fy += this.dir.y * advanceForce;
             tip.fz += this.dir.z * advanceForce;
+        } else if (advance < 0) {
+            const tip = this.nodes[0];
+            tip.fx -= this.dir.x * advanceForce;
+            tip.fy -= this.dir.y * advanceForce;
+            tip.fz -= this.dir.z * advanceForce;
         }
     }
 
