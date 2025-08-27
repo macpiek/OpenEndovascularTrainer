@@ -239,6 +239,7 @@ document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
 document.querySelectorAll('.section-header').forEach(header => {
     header.addEventListener('click', () => {
         const content = header.nextElementSibling;
+        header.classList.toggle('collapsed');
         if (content) {
             content.classList.toggle('hidden');
         }
