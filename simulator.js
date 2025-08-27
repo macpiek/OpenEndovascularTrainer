@@ -103,8 +103,8 @@ const displayMaterial = new THREE.ShaderMaterial({
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
-                vec4 cSample = texture2D(contrastTexture, vUv);
-                float contrast = clamp((cSample.r + cSample.b) * 2.0, 0.0, 1.0);
+                float contrast = texture2D(contrastTexture, vUv).a;
+                contrast = clamp(contrast * 1.5, 0.0, 1.0);
                 vec3 color = gray * (1.0 - intensity);
                 gl_FragColor = vec4(mix(color, vec3(0.0), contrast), 1.0);
             } else {
@@ -341,9 +341,8 @@ const contrastMaterial = new THREE.ShaderMaterial({
         void main() {
             // Simple scrolling wave to suggest flow movement
             float flow = 0.5 + 0.5 * sin((vUv.y - time) * 10.0);
-            // Increase alpha by removing flow influence and applying a gain
-            float intensity = clamp((1.0 - exp(-gain * vConc * opacityScale)) * 2.0, 0.0, 1.0);
-            vec3 color = vec3(vConc, 0.0, 1.0 - vConc) * flow;
+            float intensity = (1.0 - exp(-gain * vConc * opacityScale)) * flow;
+            vec3 color = vec3(vConc, 0.0, 1.0 - vConc);
             gl_FragColor = vec4(color * intensity, intensity);
         }
     `
