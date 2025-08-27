@@ -69,7 +69,8 @@ const displayMaterial = new THREE.ShaderMaterial({
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
         // Lower default bone opacity so bones appear less prominent
-        boneOpacity: { value: 0.5 }
+        boneOpacity: { value: 0.5 },
+        contrastOpacity: { value: 0.8 }
 
     },
     vertexShader: `
@@ -87,6 +88,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         uniform float time;
         uniform float noiseLevel;
         uniform float boneOpacity;
+        uniform float contrastOpacity;
         varying vec2 vUv;
 
         float random(vec2 st) {
@@ -99,7 +101,7 @@ const displayMaterial = new THREE.ShaderMaterial({
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
-                float contrast = texture2D(contrastTexture, vUv).r;
+                float contrast = clamp(texture2D(contrastTexture, vUv).r * contrastOpacity, 0.0, 1.0);
                 vec3 color = gray * (1.0 - intensity) * (1.0 - contrast);
                 gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
             } else {
@@ -264,7 +266,7 @@ const sliders = [
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
 // Display current values next to each slider
-document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
+document.querySelectorAll('#controls input[type="range"]:not(#opacityScale)').forEach(slider => {
     const valueLabel = slider.nextElementSibling;
     if (!valueLabel) return;
     const update = () => { valueLabel.textContent = slider.value; };
@@ -289,9 +291,14 @@ noiseSlider.addEventListener('input', e => {
     displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
 });
 
+const opacityScaleValue = document.getElementById('opacityScaleValue');
 let opacityScale = parseFloat(opacityScaleSlider.value);
+opacityScaleValue.textContent = opacityScaleSlider.value;
+displayMaterial.uniforms.contrastOpacity.value = opacityScale / 100;
 opacityScaleSlider.addEventListener('input', e => {
     opacityScale = parseFloat(e.target.value);
+    opacityScaleValue.textContent = e.target.value;
+    displayMaterial.uniforms.contrastOpacity.value = opacityScale / 100;
 });
 
 let bendingStiffness = parseFloat(bendSlider.value);
@@ -437,7 +444,7 @@ function animate(time) {
         const material = new THREE.MeshBasicMaterial({
             vertexColors: true,
             transparent: true,
-            opacity: Math.min(opacityScale / 100, 1)
+            opacity: 1
         });
         for (const geom of contrastGeoms) {
             contrastMesh.add(new THREE.Mesh(geom, material));
