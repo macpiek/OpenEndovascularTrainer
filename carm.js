@@ -59,11 +59,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         if (previewGantry) {
             previewGantry.rotation.set(0, 0, 0);
             // Yaw: lean toward patient's sides (rotate around Z)
-            previewGantry.rotateZ(carmYaw);
+            previewGantry.rotateZ(carmPitch);
             // Pitch: tilt toward head or feet (rotate around X)
-            previewGantry.rotateX(carmPitch);
+            previewGantry.rotateX(carmRoll);
             // Roll: spin around vertical axis
-            previewGantry.rotateY(carmRoll);
+            previewGantry.rotateY(carmYaw);
         }
 
         if (previewGroup || previewGantry) {
