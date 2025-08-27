@@ -14,6 +14,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
+// Separate scene for rendering contrast in fluoroscopy mode
+const contrastScene = new THREE.Scene();
+
 const monitor = new PatientMonitor(
     document.getElementById('ecgCanvas'),
     document.getElementById('bpCanvas'),
@@ -488,6 +491,7 @@ function animate(time) {
     }
     if (contrastMesh) {
         scene.remove(contrastMesh);
+        contrastScene.remove(contrastMesh);
         contrastMesh = null;
     }
     const contrastGeoms = getContrastGeometry(contrast);
@@ -500,6 +504,8 @@ function animate(time) {
         }
         if (!fluoroscopy) {
             scene.add(contrastMesh);
+        } else {
+            contrastScene.add(contrastMesh);
         }
     }
     const contrastActive = contrast.isActive() || injecting;
@@ -512,9 +518,7 @@ function animate(time) {
         renderer.setRenderTarget(contrastTarget);
         withTransparentClear(renderer, () => {
             renderer.clear();
-            if (contrastMesh) {
-                renderer.render(contrastMesh, camera);
-            }
+            renderer.render(contrastScene, camera);
         });
 
         renderer.setRenderTarget(offscreenTarget);
