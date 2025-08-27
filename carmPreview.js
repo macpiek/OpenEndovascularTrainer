@@ -33,7 +33,9 @@ export function initCArmPreview() {
     container.appendChild(previewRenderer.domElement);
 
     const table = createOperatingTable();
-    table.position.y = -75; // place table so the top aligns with the origin
+    // Lower the table so the patient lies below the C-arm's isocenter
+    // making the gantry clearly visible in the preview.
+    table.position.y = -120;
     previewScene.add(table);
 
     cArmGroup = new THREE.Group();
