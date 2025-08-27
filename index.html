@@ -48,6 +48,16 @@
             padding: 4px;
         }
 
+        .collapse-triangle {
+            display: inline-block;
+            margin-right: 4px;
+            transition: transform 0.2s;
+        }
+
+        .section-header.collapsed .collapse-triangle {
+            transform: rotate(-90deg);
+        }
+
         .section-content.hidden {
             display: none;
         }
@@ -114,7 +124,7 @@
     <div id="currentDose">0 ml</div>
 
     <div class="control-section">
-        <div class="section-header">Guidewire</div>
+        <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
         <div class="section-content">
             <label class="parameter-label">Bending stiffness
                 <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
@@ -132,7 +142,7 @@
     </div>
 
     <div class="control-section">
-        <div class="section-header">Friction</div>
+        <div class="section-header"><span class="collapse-triangle">▼</span> Friction</div>
         <div class="section-content">
             <label class="parameter-label">Static friction
                 <input id="staticFriction" type="range" min="0" max="1" step="0.01" value="0.2">
@@ -146,7 +156,7 @@
     </div>
 
     <div class="control-section">
-        <div class="section-header">Imaging</div>
+        <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
         <div class="section-content">
             <label class="parameter-label">Persistence
                 <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.35">
@@ -159,7 +169,7 @@
     </div>
 
     <div class="control-section">
-        <div class="section-header">Injection</div>
+        <div class="section-header"><span class="collapse-triangle">▼</span> Injection</div>
         <div class="section-content">
             <label class="parameter-label">Injection rate (ml/s)
                 <input id="injRate" type="range" min="0" max="10" step="0.1" value="1">
@@ -173,7 +183,7 @@
     </div>
 
     <div class="control-section">
-        <div class="section-header">C-arm</div>
+        <div class="section-header"><span class="collapse-triangle">▼</span> C-arm</div>
         <div class="section-content">
             <label class="parameter-label">C-arm yaw
                 <input id="carmYaw" type="range" min="-180" max="180" step="1" value="0">
