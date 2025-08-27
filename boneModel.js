@@ -5,8 +5,9 @@ export function createBoneModel() {
     const material = new THREE.MeshStandardMaterial({
         color: 0xffffff,
         transparent: true,
+        opacity: 0.5, // reduce brightness so bones are less dominant
         depthWrite: false,
-        depthTest: false,
+        depthTest: false, // rely on render order so vessels draw on top
         blending: THREE.AdditiveBlending
     });
     const group = new THREE.Group();
