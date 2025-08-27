@@ -402,8 +402,9 @@ export class Guidewire {
         this.accumulateForces();
         this.integrate(dt);
         this.solvePbd();
-        this.smooth();
         this.collide();
+        this.solvePbd();
+        this.smooth();
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
             n.vx = (n.x - n.oldx) / dt;
