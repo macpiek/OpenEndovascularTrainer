@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
 
@@ -11,6 +12,11 @@ let cArmGantry;
 export function initCArmPreview() {
     const container = document.getElementById('carm-preview');
     if (!container) return;
+
+    if (!WebGL.isWebGLAvailable()) {
+        container.textContent = 'WebGL not supported';
+        return;
+    }
 
     previewScene = new THREE.Scene();
 
@@ -29,9 +35,15 @@ export function initCArmPreview() {
     previewCamera.lookAt(0, 0, 0);
     previewScene.add(previewCamera);
 
-    previewRenderer = new THREE.WebGLRenderer({ antialias: true });
-    previewRenderer.setSize(width, height);
-    container.appendChild(previewRenderer.domElement);
+    try {
+        previewRenderer = new THREE.WebGLRenderer({ antialias: true });
+        previewRenderer.setSize(width, height);
+        container.appendChild(previewRenderer.domElement);
+    } catch (e) {
+        container.textContent = 'WebGL not supported';
+        console.warn('WebGL initialization failed:', e);
+        return;
+    }
 
     const table = createOperatingTable();
     // Lower the table so the patient lies below the C-arm's isocenter
