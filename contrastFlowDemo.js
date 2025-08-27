@@ -1,6 +1,6 @@
 import { ContrastAgent } from './contrastAgent.js';
 
-// Minimal vessel with a parent segment and a distal sheath-connected segment
+// Minimal vessel with a parent segment and a distal branch segment
 const vessel = {
   left: { end: { x: 0, y: 20, z: 0 } },
   segments: [
@@ -16,7 +16,7 @@ const vessel = {
       flowSpeed: 5,
       parent: null,
     },
-    // Distal segment connected to sheath
+    // Distal segment
     {
       start: { x: 0, y: 10, z: 0 },
       end: { x: 0, y: 20, z: 0 },
@@ -38,16 +38,16 @@ const vessel = {
 
 const agent = new ContrastAgent(vessel);
 
-// Inject 1 ml contrast into sheath segment (index resolved internally)
+// Inject 1 ml contrast into the main segment (index resolved internally)
 agent.inject(1);
 
-// Log concentrations for sheath and its parent over several updates
-const sheathIndex = agent.sheathIndex;
-const parentIndex = vessel.segments[sheathIndex].parent;
+// Log concentrations for the main segment and its child over several updates
+const mainIndex = agent.sheathIndex;
+const childIndex = 1; // only child segment in this demo
 
 for (let frame = 0; frame < 5; frame++) {
   agent.update(0.1);
-  const sheathConc = agent.concentration[sheathIndex];
-  const parentConc = agent.concentration[parentIndex];
-  console.log(`Frame ${frame + 1}: sheath=${sheathConc.toFixed(3)}, parent=${parentConc.toFixed(3)}`);
+  const mainConc = agent.concentration[mainIndex];
+  const childConc = agent.concentration[childIndex];
+  console.log(`Frame ${frame + 1}: main=${mainConc.toFixed(3)}, child=${childConc.toFixed(3)}`);
 }
