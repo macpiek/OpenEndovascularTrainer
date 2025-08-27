@@ -311,7 +311,7 @@ gainSlider.addEventListener('input', e => {
     gain = parseFloat(e.target.value);
 });
 
-let flowOffset = 0;
+const flowSpeed = 0.001;
 
 // Shader material to render contrast agent with additive brightness and
 // concentration-based coloring.
@@ -328,11 +328,9 @@ const contrastMaterial = new THREE.ShaderMaterial({
     vertexShader: `
         varying float vConc;
         varying vec2 vUv;
-        varying float vFlowUv;
         void main() {
             vConc = color.r; // concentration encoded in vertex color
             vUv = uv;
-            vFlowUv = uv.y;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
     `,
@@ -342,12 +340,10 @@ const contrastMaterial = new THREE.ShaderMaterial({
         uniform float flowOffset;
         varying float vConc;
         varying vec2 vUv;
-        varying float vFlowUv;
 
         void main() {
-            float flow = fract(vFlowUv - flowOffset);
+            float flow = fract(vUv.y - flowOffset);
             float intensity = clamp((1.0 - exp(-gain * vConc * opacityScale)) * 2.0, 0.0, 1.0);
-            intensity *= flow;
             vec3 color = vec3(vConc, 0.0, 1.0 - vConc);
             gl_FragColor = vec4(color * intensity, intensity);
         }
@@ -504,8 +500,6 @@ function animate(time) {
         }
     }
     contrast.update(dt);
-    const segFlow = contrast.segments[injectSegmentIndex]?.flowSpeed || 0;
-    flowOffset = (flowOffset + segFlow * dt * 0.001) % 1.0;
     if (contrast.debug) {
         const mainConc = contrast.concentration[injectSegmentIndex] / (contrast.volumes[injectSegmentIndex] || 1);
         const parentConc = parentIndex >= 0 ? contrast.concentration[parentIndex] / (contrast.volumes[parentIndex] || 1) : 0;
@@ -529,7 +523,7 @@ function animate(time) {
         contrastMesh = new THREE.Group();
         contrastMaterial.uniforms.opacityScale.value = Math.min(opacityScale / 100, 1);
         contrastMaterial.uniforms.gain.value = gain;
-        contrastMaterial.uniforms.flowOffset.value = flowOffset;
+        contrastMaterial.uniforms.flowOffset.value = time * flowSpeed;
         for (const geom of contrastGeoms) {
             contrastMesh.add(new THREE.Mesh(geom, contrastMaterial));
         }
