@@ -432,13 +432,13 @@ function animate(time) {
     const contrastGeoms = getContrastGeometry(contrast);
     if (contrastGeoms.length) {
         contrastMesh = new THREE.Group();
-        for (const { geometry, concentration } of contrastGeoms) {
-            const material = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                transparent: true,
-                opacity: Math.min(concentration * opacityScale, 1)
-            });
-            contrastMesh.add(new THREE.Mesh(geometry, material));
+        const material = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+            transparent: true,
+            opacity: Math.min(opacityScale / 100, 1)
+        });
+        for (const geom of contrastGeoms) {
+            contrastMesh.add(new THREE.Mesh(geom, material));
         }
         scene.add(contrastMesh);
     }

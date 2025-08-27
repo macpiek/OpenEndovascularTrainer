@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // Simulates advection and dilution of a contrast agent through a vessel graph.
 export class ContrastAgent {
@@ -106,22 +107,45 @@ export class ContrastAgent {
     }
 }
 
-// Generate TubeGeometry for segments with contrast. The caller is
-// responsible for assigning materials based on the returned
-// concentration value.
-export function getContrastGeometry(agent) {
-    if (!agent || !agent.isActive()) return [];
+// Generate geometry for each sub-section of every segment containing contrast.
+// Each geometry includes vertex colors representing concentration. The function
+// can optionally merge all geometries into a single BufferGeometry.
+
+export function getContrastGeometry(agent, merge = false) {
+    if (!agent || !agent.isActive()) return merge ? null : [];
     const geoms = [];
     for (let i = 0; i < agent.segments.length; i++) {
-        const amt = agent.concentration[i].reduce((a, b) => a + b, 0);
-        const conc = amt / (agent.volumes[i] || 1);
-        if (conc <= 1e-4) continue;
+        const arr = agent.concentration[i];
+        const vol = (agent.volumes[i] || 1) / arr.length;
         const seg = agent.segments[i];
         const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
         const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
-        const path = new THREE.LineCurve3(start, end);
-        const geom = new THREE.TubeGeometry(path, 4, seg.radius * 0.9, 8, false);
-        geoms.push({ geometry: geom, concentration: conc });
+        const dir = new THREE.Vector3().subVectors(end, start);
+        for (let j = 0; j < arr.length; j++) {
+            const conc = arr[j] / vol;
+            if (conc <= 1e-4) continue;
+            const t0 = j / arr.length;
+            const t1 = (j + 1) / arr.length;
+            const p0 = start.clone().addScaledVector(dir, t0);
+            const p1 = start.clone().addScaledVector(dir, t1);
+            const path = new THREE.LineCurve3(p0, p1);
+            const geom = new THREE.TubeGeometry(path, 1, seg.radius * 0.9, 8, false);
+
+            // Assign vertex colors based on concentration for shader gradients
+            const color = new THREE.Color(conc, 0, 1 - conc);
+            const colors = new Float32Array(geom.attributes.position.count * 3);
+            for (let k = 0; k < geom.attributes.position.count; k++) {
+                colors[k * 3] = color.r;
+                colors[k * 3 + 1] = color.g;
+                colors[k * 3 + 2] = color.b;
+            }
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geom.userData.concentration = conc;
+            geoms.push(geom);
+        }
+    }
+    if (merge) {
+        return geoms.length ? mergeBufferGeometries(geoms, false) : null;
     }
     return geoms;
 }
