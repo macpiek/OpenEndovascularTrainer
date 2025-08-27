@@ -311,13 +311,15 @@ gainSlider.addEventListener('input', e => {
     gain = parseFloat(e.target.value);
 });
 
+const flowSpeed = 0.001;
+
 // Shader material to render contrast agent with additive brightness and
 // concentration-based coloring.
 const contrastMaterial = new THREE.ShaderMaterial({
     uniforms: {
         opacityScale: { value: Math.min(opacityScale / 100, 1) },
         gain: { value: gain },
-        time: { value: 0 }
+        flowOffset: { value: 0 }
     },
     vertexColors: true,
     transparent: true,
@@ -335,16 +337,14 @@ const contrastMaterial = new THREE.ShaderMaterial({
     fragmentShader: `
         uniform float opacityScale;
         uniform float gain;
-        uniform float time;
+        uniform float flowOffset;
         varying float vConc;
         varying vec2 vUv;
 
         void main() {
-            // Simple scrolling wave to suggest flow movement
-            float flow = 0.5 + 0.5 * sin((vUv.y - time) * 10.0);
-            // Increase alpha by removing flow influence and applying a gain
+            float flow = fract(vUv.y - flowOffset);
             float intensity = clamp((1.0 - exp(-gain * vConc * opacityScale)) * 2.0, 0.0, 1.0);
-            vec3 color = vec3(vConc, 0.0, 1.0 - vConc) * flow;
+            vec3 color = vec3(vConc, 0.0, 1.0 - vConc);
             gl_FragColor = vec4(color * intensity, intensity);
         }
     `
@@ -523,7 +523,7 @@ function animate(time) {
         contrastMesh = new THREE.Group();
         contrastMaterial.uniforms.opacityScale.value = Math.min(opacityScale / 100, 1);
         contrastMaterial.uniforms.gain.value = gain;
-        contrastMaterial.uniforms.time.value = time * 0.001;
+        contrastMaterial.uniforms.flowOffset.value = time * flowSpeed;
         for (const geom of contrastGeoms) {
             contrastMesh.add(new THREE.Mesh(geom, contrastMaterial));
         }
