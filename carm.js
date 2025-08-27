@@ -19,12 +19,16 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup) {
     ];
     sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
-    let carmYaw = 0;
-    let carmPitch = 0;
-    let carmRoll = 0;
-    let carmX = 0;
-    let carmY = -60;
-    let carmZ = 0;
+    let carmYaw = parseFloat(carmYawSlider.value) * Math.PI / 180;
+    let carmPitch = parseFloat(carmPitchSlider.value) * Math.PI / 180;
+    let carmRoll = parseFloat(carmRollSlider.value) * Math.PI / 180;
+    let carmX = parseFloat(carmXSlider.value);
+    let carmY = parseFloat(carmYSlider.value);
+    let carmZ = parseFloat(carmZSlider.value);
+
+    const initialX = carmX;
+    const initialY = carmY;
+    const initialZ = carmZ;
 
     function getPivotPoint() {
         return new THREE.Vector3(
@@ -45,7 +49,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup) {
         camera.rotateZ(carmRoll);
 
         if (previewGroup) {
-            previewGroup.position.copy(pivot);
+            previewGroup.position.set(
+                carmX - initialX,
+                carmY - initialY,
+                carmZ - initialZ
+            );
             previewGroup.rotation.set(carmPitch, carmYaw, carmRoll, 'YXZ');
             renderCArmPreview();
         }
