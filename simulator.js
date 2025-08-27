@@ -129,6 +129,7 @@ vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
+const injSegmentSelect = document.getElementById('injSegment');
 // Populate injection segment choices
 if (injSegmentSelect) {
     vessel.segments.forEach((_, idx) => {
@@ -206,7 +207,6 @@ const stopInjectButton = document.getElementById('stopInjection');
 const injRateSlider = document.getElementById('injRate');
 const injDurationSlider = document.getElementById('injDuration');
 const injVolumeSlider = document.getElementById('injVolume');
-const injSegmentSelect = document.getElementById('injSegment');
 
 let injecting = false;
 let injectTime = 0;
