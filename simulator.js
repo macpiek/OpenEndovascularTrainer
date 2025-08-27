@@ -220,6 +220,7 @@ const insertedLength = document.getElementById('insertedLength');
 const doseDisplay = document.getElementById('currentDose');
 const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
+const opacityScaleSlider = document.getElementById('opacityScale');
 
 const sliders = [
     bendSlider,
@@ -229,6 +230,7 @@ const sliders = [
     velDampingSlider,
     persistenceSlider,
     noiseSlider,
+    opacityScaleSlider,
     injVolumeSlider,
     injRateSlider,
     injDurationSlider
@@ -259,6 +261,11 @@ setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup);
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
 noiseSlider.addEventListener('input', e => {
     displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
+});
+
+let opacityScale = parseFloat(opacityScaleSlider.value);
+opacityScaleSlider.addEventListener('input', e => {
+    opacityScale = parseFloat(e.target.value);
 });
 
 let bendingStiffness = parseFloat(bendSlider.value);
@@ -394,7 +401,7 @@ function animate(time) {
             const material = new THREE.MeshBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: Math.min(concentration, 1)
+                opacity: Math.min(concentration * opacityScale, 1)
             });
             contrastMesh.add(new THREE.Mesh(geometry, material));
         }
