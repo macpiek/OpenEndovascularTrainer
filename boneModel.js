@@ -28,8 +28,11 @@ export function createBoneModel() {
         obj.position.sub(center);
 
         // Rotate 45 degrees clockwise and scale up 10x
-        obj.rotation.y = -Math.PI / 4;
-        obj.scale.multiplyScalar(10);
+        obj.rotation.z = -Math.PI / 3;
+        obj.scale.multiplyScalar(9);
+        obj.position.x -= 1760;
+        obj.position.y -= 300;
+        obj.position.z -= 70;
 
         group.add(obj);
     });
