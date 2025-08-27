@@ -155,8 +155,22 @@ const pivot = new THREE.Vector3(
 const contrast = new ContrastAgent(vessel);
 let contrastMesh = null;
 
+// Debug toggle to log contrast information
+const debugLabel = document.createElement('label');
+debugLabel.style.display = 'block';
+const debugCheckbox = document.createElement('input');
+debugCheckbox.type = 'checkbox';
+debugCheckbox.id = 'debugToggle';
+debugLabel.appendChild(debugCheckbox);
+debugLabel.appendChild(document.createTextNode(' Debug contrast'));
+document.getElementById('controls').appendChild(debugLabel);
+debugCheckbox.addEventListener('change', e => {
+    contrast.debug = e.target.checked;
+});
+
 // Default to sheath injection and hide the segment selector
 const sheathIndex = contrast.sheathIndex;
+const parentIndex = sheathIndex > 0 ? sheathIndex - 1 : -1;
 if (injSegmentSelect) {
     injSegmentSelect.value = sheathIndex;
     injSegmentSelect.parentElement.style.display = 'none';
@@ -398,6 +412,11 @@ function animate(time) {
         }
     }
     contrast.update(dt);
+    if (contrast.debug) {
+        const sheathConc = contrast.concentration[sheathIndex] / (contrast.volumes[sheathIndex] || 1);
+        const parentConc = parentIndex >= 0 ? contrast.concentration[parentIndex] / (contrast.volumes[parentIndex] || 1) : 0;
+        console.log(`Sheath conc: ${sheathConc.toFixed(4)}, Parent conc: ${parentConc.toFixed(4)}`);
+    }
     if (contrastMesh) {
         scene.remove(contrastMesh);
         contrastMesh = null;
