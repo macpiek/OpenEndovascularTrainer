@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-// Pool of geometries indexed by "segmentIndex:sampleIndex" keys so that
-// TubeGeometry instances and their associated color buffers can be reused
-// across frames instead of being recreated every time.
+// Pool of geometries indexed by segment index so that TubeGeometry instances
+// and their associated color buffers can be reused across frames instead of
+// being recreated every time.
 const geometryPool = new Map();
 
 // Simulates advection and dilution of a contrast agent through a vessel graph.
@@ -197,9 +197,9 @@ export class ContrastAgent {
     }
 }
 
-// Generate geometry for each sub-section of every segment containing contrast.
-// Each geometry includes vertex colors representing concentration. The function
-// can optionally merge all geometries into a single BufferGeometry.
+// Generate geometry for each vessel segment containing contrast. Each geometry
+// includes vertex colors representing concentration. The function can
+// optionally merge all geometries into a single BufferGeometry.
 
 export function getContrastGeometry(agent, merge = false) {
     // If the agent is inactive, dispose any pooled geometries and return.
@@ -216,41 +216,39 @@ export function getContrastGeometry(agent, merge = false) {
         const arr = agent.concentration[i];
         const vol = (agent.volumes[i] || 1) / arr.length;
         const seg = agent.segments[i];
-        const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
-        const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
-        const dir = new THREE.Vector3().subVectors(end, start);
-        for (let j = 0; j < arr.length; j++) {
-            const conc = arr[j] / vol;
-            if (conc <= 1e-4) continue;
-            const key = `${i}:${j}`;
 
-            let geom = geometryPool.get(key);
-            if (!geom) {
-                const t0 = j / arr.length;
-                const t1 = (j + 1) / arr.length;
-                const p0 = start.clone().addScaledVector(dir, t0);
-                const p1 = start.clone().addScaledVector(dir, t1);
-                const path = new THREE.LineCurve3(p0, p1);
-                geom = new THREE.TubeGeometry(path, 1, seg.radius * 0.9, 8, false);
+        const maxConc = arr.reduce((m, amt) => Math.max(m, amt / vol), 0);
+        if (maxConc <= 1e-4) continue;
 
-                const colors = new Float32Array(geom.attributes.position.count * 3);
-                geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                geometryPool.set(key, geom);
-            }
+        const key = `${i}`;
+        let geom = geometryPool.get(key);
+        if (!geom) {
+            const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
+            const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
+            const path = new THREE.LineCurve3(start, end);
+            geom = new THREE.TubeGeometry(path, arr.length, seg.radius * 0.9, 8, false);
 
-            // Update vertex colors based on concentration
-            const color = new THREE.Color(conc, 0, 1 - conc);
-            const colors = geom.attributes.color.array;
-            for (let k = 0; k < colors.length; k += 3) {
-                colors[k] = color.r;
-                colors[k + 1] = color.g;
-                colors[k + 2] = color.b;
-            }
-            geom.attributes.color.needsUpdate = true;
-            geom.userData.concentration = conc;
-            geoms.push(geom);
-            used.add(key);
+            const colors = new Float32Array(geom.attributes.position.count * 3);
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometryPool.set(key, geom);
         }
+
+        const colors = geom.attributes.color.array;
+        const vertsPerRing = (geom.parameters.radialSegments + 1);
+        const rings = arr.length + 1;
+        for (let r = 0; r < rings; r++) {
+            const conc = arr[Math.min(r, arr.length - 1)] / vol;
+            const color = new THREE.Color(conc, 0, 1 - conc);
+            for (let v = 0; v < vertsPerRing; v++) {
+                const idx = (r * vertsPerRing + v) * 3;
+                colors[idx] = color.r;
+                colors[idx + 1] = color.g;
+                colors[idx + 2] = color.b;
+            }
+        }
+        geom.attributes.color.needsUpdate = true;
+        geoms.push(geom);
+        used.add(key);
     }
 
     // Dispose of any geometries that were not used this frame.
