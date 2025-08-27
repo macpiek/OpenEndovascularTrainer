@@ -2,17 +2,18 @@ import * as THREE from 'three';
 
 // Simulates advection and dilution of a contrast agent through a vessel graph.
 export class ContrastAgent {
-    constructor(vessel, washout = 0.5, backflow = 0.2, debug = false) {
+    constructor(vessel, washout = 0.5, backflow = 0.2, debug = false, samplesPerSegment = 10) {
         this.vessel = vessel;
         this.segments = vessel.segments;
         this.nodes = vessel.nodes || [];
         this.washout = washout;
         this.backflow = backflow;
         this.debug = debug;
+        this.samplesPerSegment = samplesPerSegment;
 
         this.lengths = this.segments.map(s => s.length || 1);
         this.volumes = this.segments.map(s => s.volume || 1);
-        this.concentration = new Array(this.segments.length).fill(0);
+        this.concentration = this.segments.map(() => new Array(this.samplesPerSegment).fill(0));
         this.pendingNodeMass = new Array(this.nodes.length).fill(0);
 
         const eps = 1e-6;
@@ -40,19 +41,28 @@ export class ContrastAgent {
     }
 
     update(dt) {
-        const next = new Array(this.segments.length).fill(0);
+        const next = this.segments.map(() => new Array(this.samplesPerSegment).fill(0));
         const nodeMass = this.pendingNodeMass.slice();
         this.pendingNodeMass.fill(0);
         for (let i = 0; i < this.segments.length; i++) {
             const seg = this.segments[i];
             const speed = seg.flowSpeed || 0;
-            const frac = Math.min(1, (speed * dt) / this.lengths[i]);
-            const moved = this.concentration[i] * frac;
-            const back = moved * this.backflow;
-            const fwd = moved - back;
-            if (seg.startNode != null) nodeMass[seg.startNode] += back;
-            if (seg.endNode != null) nodeMass[seg.endNode] += fwd;
-            next[i] += this.concentration[i] - moved;
+            const arr = this.concentration[i];
+            const nextArr = next[i];
+            const stepLen = this.lengths[i] / this.samplesPerSegment;
+            const frac = Math.min(1, (speed * dt) / stepLen);
+            for (let j = 0; j < arr.length; j++) {
+                const moved = arr[j] * frac;
+                nextArr[j] += arr[j] - moved;
+                if (j < arr.length - 1) {
+                    nextArr[j + 1] += moved;
+                } else {
+                    const back = moved * this.backflow;
+                    const fwd = moved - back;
+                    if (seg.startNode != null) nodeMass[seg.startNode] += back;
+                    if (seg.endNode != null) nodeMass[seg.endNode] += fwd;
+                }
+            }
         }
         // Redistribute mixed contrast from nodes to connected segments
         for (let n = 0; n < this.nodes.length; n++) {
@@ -64,26 +74,35 @@ export class ContrastAgent {
             for (const s of segs) total += this.segments[s].flowSpeed || 0;
             for (const s of segs) {
                 const w = total > 0 ? (this.segments[s].flowSpeed || 0) / total : 1 / segs.length;
-                next[s] += pool * w;
+                next[s][0] += pool * w;
             }
         }
         const decay = Math.exp(-this.washout * dt);
         for (let i = 0; i < next.length; i++) {
-            next[i] *= decay;
+            for (let j = 0; j < next[i].length; j++) {
+                next[i][j] *= decay;
+            }
         }
         this.concentration = next;
         if (this.debug) {
             const masses = this.concentration
-                .map((m, i) => `Seg ${i}: ${m.toFixed(4)}`)
+                .map((arr, i) => `Seg ${i}: ${arr.reduce((a, b) => a + b, 0).toFixed(4)}`)
                 .join(', ');
             console.log(`Contrast masses: ${masses}`);
         }
     }
 
     isActive() {
-        return this.concentration.some(
-            (amt, i) => amt / (this.volumes[i] || 1) > 1e-4
-        );
+        return this.concentration.some((arr, i) => {
+            const vol = (this.volumes[i] || 1) / this.samplesPerSegment;
+            return arr.some(amt => amt / vol > 1e-4);
+        });
+    }
+
+    getSegmentSamples(segmentIndex) {
+        if (segmentIndex < 0 || segmentIndex >= this.segments.length) return [];
+        const vol = (this.volumes[segmentIndex] || 1) / this.samplesPerSegment;
+        return this.concentration[segmentIndex].map(amt => amt / vol);
     }
 }
 
@@ -94,7 +113,7 @@ export function getContrastGeometry(agent) {
     if (!agent || !agent.isActive()) return [];
     const geoms = [];
     for (let i = 0; i < agent.segments.length; i++) {
-        const amt = agent.concentration[i];
+        const amt = agent.concentration[i].reduce((a, b) => a + b, 0);
         const conc = amt / (agent.volumes[i] || 1);
         if (conc <= 1e-4) continue;
         const seg = agent.segments[i];
