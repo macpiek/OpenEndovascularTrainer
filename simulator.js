@@ -17,7 +17,7 @@ import { createBoneModel } from './boneModel.js';
 
 const canvas = document.getElementById('sim');
 let renderer;
-if (WebGL.isWebGLAvailable()) {
+if (WebGL.isWebGLAvailable() || WebGL.isWebGL2Available()) {
     try {
         renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
