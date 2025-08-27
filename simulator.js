@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping } from './physics/guidewire.js';
+import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping, setSmoothingParameters } from './physics/guidewire.js';
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
@@ -228,6 +228,8 @@ const staticFricSlider = document.getElementById('staticFriction');
 const kineticFricSlider = document.getElementById('kineticFriction');
 const dampingSlider = document.getElementById('normalDamping');
 const velDampingSlider = document.getElementById('velocityDamping');
+const smoothIterSlider = document.getElementById('smoothIterations');
+const smoothAlphaSlider = document.getElementById('smoothAlpha');
 const modeToggle = document.getElementById('modeToggle');
 const injectButton = document.getElementById('injectContrast');
 const stopInjectButton = document.getElementById('stopInjection');
@@ -254,6 +256,8 @@ const sliders = [
     kineticFricSlider,
     dampingSlider,
     velDampingSlider,
+    smoothIterSlider,
+    smoothAlphaSlider,
     persistenceSlider,
     noiseSlider,
     opacityScaleSlider,
@@ -342,9 +346,12 @@ let kineticFriction = parseFloat(kineticFricSlider.value);
 let normalDamping = parseFloat(dampingSlider.value);
 let velocityDamping = parseFloat(velDampingSlider.value);
 let decay = parseFloat(persistenceSlider.value);
+let smoothingIterations = parseInt(smoothIterSlider.value);
+let smoothingAlpha = parseFloat(smoothAlphaSlider.value);
 setWallFriction(staticFriction, kineticFriction);
 setNormalDamping(normalDamping);
 setVelocityDamping(velocityDamping);
+setSmoothingParameters(smoothingIterations, smoothingAlpha);
 blendMaterial.uniforms.decay.value = decay;
 staticFricSlider.addEventListener('input', e => {
     staticFriction = parseFloat(e.target.value);
@@ -361,6 +368,14 @@ dampingSlider.addEventListener('input', e => {
 velDampingSlider.addEventListener('input', e => {
     velocityDamping = parseFloat(e.target.value);
     setVelocityDamping(velocityDamping);
+});
+smoothIterSlider.addEventListener('input', e => {
+    smoothingIterations = parseInt(e.target.value);
+    setSmoothingParameters(smoothingIterations, smoothingAlpha);
+});
+smoothAlphaSlider.addEventListener('input', e => {
+    smoothingAlpha = parseFloat(e.target.value);
+    setSmoothingParameters(smoothingIterations, smoothingAlpha);
 });
 persistenceSlider.addEventListener('input', e => {
     blendMaterial.uniforms.decay.value = parseFloat(e.target.value);

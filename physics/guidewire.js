@@ -9,6 +9,10 @@ let advanceForce = 100;
 // Global velocity damping applied each integrate step
 let velocityDamping = 0.98;
 
+// Parameters controlling Laplacian smoothing
+let smoothingIterations = 1;
+let smoothingAlpha = 0.5;
+
 // Allow configuration from the outside
 export function setWallFriction(staticCoeff, kineticCoeff) {
     wallStaticFriction = staticCoeff;
@@ -25,6 +29,11 @@ export function setAdvanceForce(value) {
 
 export function setVelocityDamping(value) {
     velocityDamping = value;
+}
+
+export function setSmoothingParameters(iterations, alpha) {
+    smoothingIterations = iterations;
+    smoothingAlpha = alpha;
 }
 
 function clamp(v, min, max) {
@@ -356,17 +365,19 @@ export class Guidewire {
     }
 
     // Laplacian smoothing to limit sharp kinks
-    smooth() {
-        for (let i = 1; i < this.nodes.length - 1; i++) {
-            const prev = this.nodes[i - 1];
-            const curr = this.nodes[i];
-            const next = this.nodes[i + 1];
-            const avgx = (prev.x + next.x) * 0.5;
-            const avgy = (prev.y + next.y) * 0.5;
-            const avgz = (prev.z + next.z) * 0.5;
-            curr.x += (avgx - curr.x) * 0.5;
-            curr.y += (avgy - curr.y) * 0.5;
-            curr.z += (avgz - curr.z) * 0.5;
+    smooth(iterations = smoothingIterations, alpha = smoothingAlpha) {
+        for (let k = 0; k < iterations; k++) {
+            for (let i = 1; i < this.nodes.length - 1; i++) {
+                const prev = this.nodes[i - 1];
+                const curr = this.nodes[i];
+                const next = this.nodes[i + 1];
+                const avgx = (prev.x + next.x) * 0.5;
+                const avgy = (prev.y + next.y) * 0.5;
+                const avgz = (prev.z + next.z) * 0.5;
+                curr.x += (avgx - curr.x) * alpha;
+                curr.y += (avgy - curr.y) * alpha;
+                curr.z += (avgz - curr.z) * alpha;
+            }
         }
     }
 
