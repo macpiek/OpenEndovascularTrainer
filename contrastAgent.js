@@ -12,6 +12,7 @@ export class ContrastAgent {
         this.lengths = this.segments.map(s => s.length || 1);
         this.volumes = this.segments.map(s => s.volume || 1);
         this.concentration = new Array(this.segments.length).fill(0);
+        this.pendingNodeMass = new Array(this.nodes.length).fill(0);
 
         const eps = 1e-6;
         const equal = (a, b) =>
@@ -26,14 +27,18 @@ export class ContrastAgent {
 
     // Adds contrast volume into a segment (default: sheath-connected segment)
     inject(volume, segmentIndex = this.sheathIndex) {
-        if (segmentIndex >= 0 && segmentIndex < this.concentration.length) {
-            this.concentration[segmentIndex] += volume;
+        if (segmentIndex >= 0 && segmentIndex < this.segments.length) {
+            const seg = this.segments[segmentIndex];
+            if (seg.startNode != null) {
+                this.pendingNodeMass[seg.startNode] += volume;
+            }
         }
     }
 
     update(dt) {
         const next = new Array(this.segments.length).fill(0);
-        const nodeMass = new Array(this.nodes.length).fill(0);
+        const nodeMass = this.pendingNodeMass.slice();
+        this.pendingNodeMass.fill(0);
         for (let i = 0; i < this.segments.length; i++) {
             const seg = this.segments[i];
             const speed = seg.flowSpeed || 0;
