@@ -19,7 +19,8 @@ export function createCArmModel() {
 
     const gantryGeometry = new THREE.TorusGeometry(40, 3, 16, 100, Math.PI * 1.5);
     const gantry = new THREE.Mesh(gantryGeometry, material);
-    gantry.rotation.z = Math.PI / 2;
+    // Rotate the gantry so it stands vertically beside the operating table
+    gantry.rotation.set(Math.PI / 2, 0, Math.PI / 2);
     gantryGroup.add(gantry);
 
     const source = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 4), material);
