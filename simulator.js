@@ -24,6 +24,7 @@ const monitor = new PatientMonitor(
 initCArmPreview();
 
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget2 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 let previousTarget = accumulateTarget1;
@@ -63,7 +64,7 @@ blendScene.add(blendQuad);
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
-        contrastTexture: { value: previousTarget.texture },
+        contrastTexture: { value: contrastTarget.texture },
         gray: { value: new THREE.Color(0xC3C3C3) },
         fluoroscopy: { value: false },
         time: { value: 0 },
@@ -99,8 +100,9 @@ const displayMaterial = new THREE.ShaderMaterial({
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
-                float contrast = texture2D(contrastTexture, vUv).r;
-                vec3 color = gray * (1.0 - intensity) * (1.0 - contrast);
+                float contrast = texture2D(contrastTexture, vUv).a;
+                vec3 color = gray * (1.0 - intensity);
+                color *= (1.0 - contrast);
                 gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
             } else {
                 gl_FragColor = tex;
@@ -490,7 +492,9 @@ function animate(time) {
         for (const geom of contrastGeoms) {
             contrastMesh.add(new THREE.Mesh(geom, contrastMaterial));
         }
-        scene.add(contrastMesh);
+        if (!fluoroscopy) {
+            scene.add(contrastMesh);
+        }
     }
     const contrastActive = contrast.isActive() || injecting;
     vesselGroup.visible = contrastActive ? false : !fluoroscopy;
@@ -499,6 +503,12 @@ function animate(time) {
     stopInjectButton.disabled = !injecting;
     monitor.update(dt);
     if (fluoroscopy) {
+        renderer.setRenderTarget(contrastTarget);
+        renderer.clear();
+        if (contrastMesh) {
+            renderer.render(contrastMesh, camera);
+        }
+
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
         renderer.render(scene, camera);
@@ -511,7 +521,7 @@ function animate(time) {
         renderer.setRenderTarget(null);
 
         displayMaterial.uniforms.uTexture.value = currentTarget.texture;
-        displayMaterial.uniforms.contrastTexture.value = currentTarget.texture;
+        displayMaterial.uniforms.contrastTexture.value = contrastTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
 
@@ -534,6 +544,7 @@ window.addEventListener('resize', () => {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     offscreenTarget.setSize(w, h);
+    contrastTarget.setSize(w, h);
     accumulateTarget1.setSize(w, h);
     accumulateTarget2.setSize(w, h);
 });
