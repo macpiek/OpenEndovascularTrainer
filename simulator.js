@@ -294,6 +294,42 @@ opacityScaleSlider.addEventListener('input', e => {
     opacityScale = parseFloat(e.target.value);
 });
 
+// Shader material to render contrast agent with additive brightness and
+// concentration-based coloring.
+const contrastMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        opacityScale: { value: Math.min(opacityScale / 100, 1) },
+        time: { value: 0 }
+    },
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: `
+        varying float vConc;
+        varying vec2 vUv;
+        void main() {
+            vConc = color.r; // concentration encoded in vertex color
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform float opacityScale;
+        uniform float time;
+        varying float vConc;
+        varying vec2 vUv;
+
+        void main() {
+            // Simple scrolling wave to suggest flow movement
+            float flow = 0.5 + 0.5 * sin((vUv.y - time) * 10.0);
+            float intensity = vConc * opacityScale * flow;
+            vec3 color = vec3(vConc, 0.0, 1.0 - vConc);
+            gl_FragColor = vec4(color * intensity, intensity);
+        }
+    `
+});
+
 let bendingStiffness = parseFloat(bendSlider.value);
 setBendingStiffness(bendingStiffness);
 bendSlider.addEventListener('input', e => {
@@ -434,13 +470,10 @@ function animate(time) {
     const contrastGeoms = getContrastGeometry(contrast);
     if (contrastGeoms.length) {
         contrastMesh = new THREE.Group();
-        const material = new THREE.MeshBasicMaterial({
-            vertexColors: true,
-            transparent: true,
-            opacity: Math.min(opacityScale / 100, 1)
-        });
+        contrastMaterial.uniforms.opacityScale.value = Math.min(opacityScale / 100, 1);
+        contrastMaterial.uniforms.time.value = time * 0.001;
         for (const geom of contrastGeoms) {
-            contrastMesh.add(new THREE.Mesh(geom, material));
+            contrastMesh.add(new THREE.Mesh(geom, contrastMaterial));
         }
         scene.add(contrastMesh);
     }
