@@ -4,6 +4,7 @@ import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
+import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
 import { initCArmPreview, cArmPreviewGroup } from './carmPreview.js';
 
