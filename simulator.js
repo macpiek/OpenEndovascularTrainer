@@ -153,6 +153,13 @@ const pivot = new THREE.Vector3(
 const contrast = new ContrastAgent(vessel);
 let contrastMesh = null;
 
+// Default to sheath injection and hide the segment selector
+const sheathIndex = contrast.sheathIndex;
+if (injSegmentSelect) {
+    injSegmentSelect.value = sheathIndex;
+    injSegmentSelect.parentElement.style.display = 'none';
+}
+
 const segmentLength = 12;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
@@ -214,7 +221,6 @@ let injectDuration = 1; // seconds
 let injectRate = 1; // ml per second
 let injectVolume = 0; // total ml
 let remainingVolume = 0;
-let injectSegment = 0;
 let totalDose = 0;
 const insertedLength = document.getElementById('insertedLength');
 const doseDisplay = document.getElementById('currentDose');
@@ -319,7 +325,6 @@ injectButton.addEventListener('click', () => {
         injectDuration = parseFloat(injDurationSlider.value) / 1000;
         injectVolume = parseFloat(injVolumeSlider.value);
         remainingVolume = injectVolume;
-        injectSegment = parseInt(injSegmentSelect.value) || 0;
         injectButton.disabled = true;
         stopInjectButton.disabled = false;
     }
@@ -373,7 +378,7 @@ function animate(time) {
     updateWireMesh();
     if (injecting) {
         const amt = Math.min(injectRate * dt, remainingVolume);
-        contrast.inject(amt, injectSegment);
+        contrast.inject(amt);
         totalDose += amt;
         doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
         injectTime += dt;
