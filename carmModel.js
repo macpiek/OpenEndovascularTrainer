@@ -38,6 +38,6 @@ export function createCArmModel() {
     detector.position.set(0, 0, 40);
     gantryGroup.add(detector);
 
-    return group;
+    return { group, gantryGroup };
 }
 

@@ -6,6 +6,7 @@ let previewScene;
 let previewCamera;
 let previewRenderer;
 let cArmGroup;
+let cArmGantry;
 
 export function initCArmPreview() {
     const container = document.getElementById('carm-preview');
@@ -39,7 +40,8 @@ export function initCArmPreview() {
     previewScene.add(table);
 
     cArmGroup = new THREE.Group();
-    const cArm = createCArmModel();
+    const { group: cArm, gantryGroup } = createCArmModel();
+    cArmGantry = gantryGroup;
     cArm.position.y = -70; // align gantry center with the group's origin
     cArmGroup.add(cArm);
     previewScene.add(cArmGroup);
@@ -53,4 +55,9 @@ export function renderCArmPreview() {
     previewRenderer.render(previewScene, previewCamera);
 }
 
-export { previewScene as cArmPreviewScene, previewCamera as cArmPreviewCamera, cArmGroup as cArmPreviewGroup };
+export {
+    previewScene as cArmPreviewScene,
+    previewCamera as cArmPreviewCamera,
+    cArmGroup as cArmPreviewGroup,
+    cArmGantry as cArmPreviewGantry
+};

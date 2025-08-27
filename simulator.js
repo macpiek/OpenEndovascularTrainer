@@ -4,8 +4,7 @@ import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
-import { createCArmModel } from './carmModel.js';
-import { initCArmPreview, cArmPreviewGroup } from './carmPreview.js';
+import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPreview.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -256,7 +255,7 @@ document.querySelectorAll('.section-header').forEach(header => {
         }
     });
 });
-setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup);
+setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup, cArmPreviewGantry);
 
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
 noiseSlider.addEventListener('input', e => {
