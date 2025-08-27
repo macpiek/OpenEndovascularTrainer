@@ -130,6 +130,16 @@ vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
+// Populate injection segment choices
+if (injSegmentSelect) {
+    vessel.segments.forEach((_, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `Segment ${idx}`;
+        injSegmentSelect.appendChild(opt);
+    });
+}
+
 tableGroup = createOperatingTable();
 tableGroup.position.set(vessel.branchPoint.x, -60, vessel.branchPoint.z);
 scene.add(tableGroup);
@@ -202,11 +212,16 @@ const injectButton = document.getElementById('injectContrast');
 const stopInjectButton = document.getElementById('stopInjection');
 const injRateSlider = document.getElementById('injRate');
 const injDurationSlider = document.getElementById('injDuration');
+const injVolumeSlider = document.getElementById('injVolume');
+const injSegmentSelect = document.getElementById('injSegment');
 
 let injecting = false;
 let injectTime = 0;
 let injectDuration = 1; // seconds
 let injectRate = 1; // ml per second
+let injectVolume = 0; // total ml
+let remainingVolume = 0;
+let injectSegment = 0;
 let totalDose = 0;
 const insertedLength = document.getElementById('insertedLength');
 const doseDisplay = document.getElementById('currentDose');
@@ -221,6 +236,7 @@ const sliders = [
     velDampingSlider,
     persistenceSlider,
     noiseSlider,
+    injVolumeSlider,
     injRateSlider,
     injDurationSlider
 ];
@@ -304,6 +320,9 @@ injectButton.addEventListener('click', () => {
         injectTime = 0;
         injectRate = parseFloat(injRateSlider.value);
         injectDuration = parseFloat(injDurationSlider.value) / 1000;
+        injectVolume = parseFloat(injVolumeSlider.value);
+        remainingVolume = injectVolume;
+        injectSegment = parseInt(injSegmentSelect.value) || 0;
         injectButton.disabled = true;
         stopInjectButton.disabled = false;
     }
@@ -312,6 +331,7 @@ injectButton.addEventListener('click', () => {
 stopInjectButton.addEventListener('click', () => {
     if (injecting) {
         injecting = false;
+        remainingVolume = 0;
         stopInjectButton.disabled = true;
     }
 });
@@ -355,11 +375,13 @@ function animate(time) {
 
     updateWireMesh();
     if (injecting) {
-        contrast.inject(injectRate * dt);
-        totalDose += injectRate * dt;
+        const amt = Math.min(injectRate * dt, remainingVolume);
+        contrast.inject(amt, injectSegment);
+        totalDose += amt;
         doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
         injectTime += dt;
-        if (injectTime >= injectDuration) {
+        remainingVolume -= amt;
+        if (injectTime >= injectDuration || remainingVolume <= 0) {
             injecting = false;
             stopInjectButton.disabled = true;
         }
