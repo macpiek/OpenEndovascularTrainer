@@ -366,11 +366,15 @@ stopInjectButton.addEventListener('click', () => {
 });
 
 // Use a white guidewire so the fluoroscopy shader can invert it to black.
-const wireMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+const wireMaterial = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+    depthTest: false
+});
 const wireGeometry = new THREE.BufferGeometry();
 const wirePositions = new Float32Array(nodeCount * 3);
 wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
 const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
+wireMesh.renderOrder = 1; // draw on top of additive bone rendering
 scene.add(wireMesh);
 
 function updateWireMesh() {

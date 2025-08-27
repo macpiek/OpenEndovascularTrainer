@@ -1,8 +1,14 @@
 import * as THREE from 'three';
 
 export function createBoneModel() {
-    // Use a white material so bones appear bright in fluoroscopy rendering
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    // Use additive blending so bones brighten underlying geometry without occluding it
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        blending: THREE.AdditiveBlending
+    });
     const group = new THREE.Group();
 
     // Approximate pelvis using two hip boxes and a central sacrum
