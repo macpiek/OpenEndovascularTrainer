@@ -123,30 +123,26 @@ export class ContrastAgent {
             }
         }
         // Redistribute mixed contrast from nodes to connected segments.
-        // Contrast should enter based on flow direction rather than always
-        // appearing at the proximal start of a segment.
+        // To support smooth interpolation at junctions, distribute node mass
+        // symmetrically to all connected segments regardless of flow
+        // direction so that both upstream and downstream segments receive the
+        // same concentration value at the shared node.
         for (let n = 0; n < this.nodes.length; n++) {
             const pool = nodeMass[n];
             if (pool <= 0) continue;
             const segs = this.nodes[n].segments || [];
             if (!segs.length) continue;
-            let total = 0;
-            for (const s of segs) total += Math.abs(this.segments[s].flowSpeed || 0);
+            const share = pool / segs.length;
             for (const s of segs) {
                 const segObj = this.segments[s];
-                const flow = segObj.flowSpeed || 0;
-                const flowSign = Math.sign(flow);
-                const w = total > 0 ? Math.abs(flow) / total : 1 / segs.length;
                 const arr = next[s];
-                const idxStart = flowSign < 0 ? arr.length - 1 : 0;
-                const idxEnd = flowSign < 0 ? 0 : arr.length - 1;
-                const idx = segObj.startNode === n ? idxStart : idxEnd;
-                arr[idx] += pool * w;
+                const idx = segObj.startNode === n ? 0 : arr.length - 1;
+                arr[idx] += share;
                 if (this.debug) {
                     console.log(
-                        `Node ${n} -> segment ${s} index ${idx} (flow ${
-                            flowSign >= 0 ? 'start->end' : 'end->start'
-                        }) mass ${(pool * w).toFixed(4)}`
+                        `Node ${n} -> segment ${s} index ${idx} mass ${share.toFixed(
+                            4
+                        )}`
                     );
                 }
             }
@@ -212,6 +208,27 @@ export function getContrastGeometry(agent, merge = false) {
     const geoms = [];
     const used = new Set();
 
+    // Compute average concentration at each node so that shared nodes can be
+    // rendered with matching colors across connected segments.
+    const nodeConc = new Array(agent.nodes.length).fill(0);
+    const nodeCount = new Array(agent.nodes.length).fill(0);
+    for (let i = 0; i < agent.segments.length; i++) {
+        const arr = agent.concentration[i];
+        const vol = (agent.volumes[i] || 1) / arr.length;
+        const seg = agent.segments[i];
+        if (seg.startNode != null) {
+            nodeConc[seg.startNode] += arr[0] / vol;
+            nodeCount[seg.startNode]++;
+        }
+        if (seg.endNode != null) {
+            nodeConc[seg.endNode] += arr[arr.length - 1] / vol;
+            nodeCount[seg.endNode]++;
+        }
+    }
+    for (let n = 0; n < nodeConc.length; n++) {
+        if (nodeCount[n] > 0) nodeConc[n] /= nodeCount[n];
+    }
+
     for (let i = 0; i < agent.segments.length; i++) {
         const arr = agent.concentration[i];
         const vol = (agent.volumes[i] || 1) / arr.length;
@@ -234,10 +251,19 @@ export function getContrastGeometry(agent, merge = false) {
         }
 
         const colors = geom.attributes.color.array;
-        const vertsPerRing = (geom.parameters.radialSegments + 1);
+        const vertsPerRing = geom.parameters.radialSegments + 1;
         const rings = arr.length + 1;
+        const startConc =
+            seg.startNode != null ? nodeConc[seg.startNode] : arr[0] / vol;
+        const endConc =
+            seg.endNode != null
+                ? nodeConc[seg.endNode]
+                : arr[arr.length - 1] / vol;
         for (let r = 0; r < rings; r++) {
-            const conc = arr[Math.min(r, arr.length - 1)] / vol;
+            let conc;
+            if (r === 0) conc = startConc;
+            else if (r === rings - 1) conc = endConc;
+            else conc = arr[r] / vol;
             const color = new THREE.Color(conc, 0, 1 - conc);
             for (let v = 0; v < vertsPerRing; v++) {
                 const idx = (r * vertsPerRing + v) * 3;
