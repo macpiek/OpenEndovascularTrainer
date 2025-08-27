@@ -92,10 +92,20 @@ export class ContrastAgent {
             for (const s of segs) {
                 const segObj = this.segments[s];
                 const flow = segObj.flowSpeed || 0;
+                const flowSign = Math.sign(flow);
                 const w = total > 0 ? Math.abs(flow) / total : 1 / segs.length;
                 const arr = next[s];
-                const idx = segObj.startNode === n ? 0 : arr.length - 1;
+                const idxStart = flowSign < 0 ? arr.length - 1 : 0;
+                const idxEnd = flowSign < 0 ? 0 : arr.length - 1;
+                const idx = segObj.startNode === n ? idxStart : idxEnd;
                 arr[idx] += pool * w;
+                if (this.debug) {
+                    console.log(
+                        `Node ${n} -> segment ${s} index ${idx} (flow ${
+                            flowSign >= 0 ? 'start->end' : 'end->start'
+                        }) mass ${(pool * w).toFixed(4)}`
+                    );
+                }
             }
         }
         const decay = Math.exp(-this.washout * dt);
