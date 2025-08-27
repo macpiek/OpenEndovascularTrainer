@@ -68,7 +68,8 @@ const displayMaterial = new THREE.ShaderMaterial({
         fluoroscopy: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
-        boneOpacity: { value: 1.0 }
+        // Lower default bone opacity so bones appear less prominent
+        boneOpacity: { value: 0.5 }
 
     },
     vertexShader: `
@@ -133,8 +134,9 @@ scene.add(vesselGroup);
 boneGroup.position.set(
     vessel.branchPoint.x,
     vessel.branchPoint.y - 60,
-    vessel.branchPoint.z
+    vessel.branchPoint.z - 50 // push bones back so they render behind vessels
 );
+boneGroup.renderOrder = -1; // ensure bones draw before vessel geometry
 scene.add(boneGroup);
 
 const injSegmentSelect = document.getElementById('injSegment');
