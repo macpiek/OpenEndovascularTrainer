@@ -1,9 +1,11 @@
 // Wall interaction parameters with defaults
 // Friction values are coefficients relative to the normal component of
 // velocity. Normal damping acts like a restitution coefficient.
-let wallStaticFriction = 0.2;
-let wallKineticFriction = 0.1;
-let wallNormalDamping = 0.5;
+// Lower defaults reduce the tendency for the wire to "stick" to the vessel wall
+// and allow it to straighten more readily when there is space.
+let wallStaticFriction = 0.1;
+let wallKineticFriction = 0.05;
+let wallNormalDamping = 0.3;
 
 // Force applied to the tip when advancing the tail
 let advanceForce = 100;
