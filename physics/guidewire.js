@@ -459,6 +459,7 @@ export class Guidewire {
                     n.x += (best.px - n.x) * strength;
                     n.y += (best.py - n.y) * strength;
                     n.z += (best.pz - n.z) * strength;
+
                     clampToVessel(n, this.vessel, false, undefined, undefined, undefined, this.openEnds);
                 }
             }
