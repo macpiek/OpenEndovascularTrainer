@@ -1,4 +1,6 @@
 // Wall interaction parameters with defaults
+// Friction values are coefficients relative to the normal component of
+// velocity. Normal damping acts like a restitution coefficient.
 let wallStaticFriction = 0.2;
 let wallKineticFriction = 0.1;
 let wallNormalDamping = 0.5;
@@ -10,8 +12,10 @@ let advanceForce = 100;
 let velocityDamping = 0.98;
 
 // Parameters controlling Laplacian smoothing
-let smoothingIterations = 1;
-let smoothingAlpha = 0.5;
+// Increase iteration count and use a lower alpha so curvature is
+// distributed across a wider arc instead of forming a sharp kink.
+let smoothingIterations = 3;
+let smoothingAlpha = 0.3;
 
 // Allow configuration from the outside
 export function setWallFriction(staticCoeff, kineticCoeff) {
@@ -71,6 +75,36 @@ function projectOnSegment(n, seg) {
     return {px, py, pz, dx, dy, dz, dist};
 }
 
+function applyCollisionResponse(
+    n,
+    nx,
+    ny,
+    nz,
+    staticFriction,
+    kineticFriction,
+    normalDamping
+) {
+    const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+    let tx = n.vx - vn * nx;
+    let ty = n.vy - vn * ny;
+    let tz = n.vz - vn * nz;
+    const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
+    const normalMag = Math.abs(vn);
+    if (tMag < staticFriction * normalMag) {
+        tx = ty = tz = 0;
+    } else {
+        const frictionMag = kineticFriction * normalMag;
+        const scale = Math.max(0, tMag - frictionMag) / (tMag || 1);
+        tx *= scale;
+        ty *= scale;
+        tz *= scale;
+    }
+    const dampedVn = vn * (1 - normalDamping);
+    n.vx = tx + dampedVn * nx;
+    n.vy = ty + dampedVn * ny;
+    n.vz = tz + dampedVn * nz;
+}
+
 function clampToVessel(
     n,
     vessel,
@@ -103,27 +137,27 @@ function clampToVessel(
         n.y = best.py + ny * radius;
         n.z = best.pz + nz * radius;
         if (affectVelocity) {
-            const vn = n.vx * nx + n.vy * ny + n.vz * nz;
-            let tx = n.vx - vn * nx;
-            let ty = n.vy - vn * ny;
-            let tz = n.vz - vn * nz;
-            const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
-            if (tMag < staticFriction) {
-                tx = ty = tz = 0;
-            } else {
-                tx *= (1 - kineticFriction);
-                ty *= (1 - kineticFriction);
-                tz *= (1 - kineticFriction);
-            }
-            const dampedVn = vn * (1 - normalDamping);
-            n.vx = tx + dampedVn * nx;
-            n.vy = ty + dampedVn * ny;
-            n.vz = tz + dampedVn * nz;
+            applyCollisionResponse(
+                n,
+                nx,
+                ny,
+                nz,
+                staticFriction,
+                kineticFriction,
+                normalDamping,
+            );
         }
     }
 }
 
-function clampToSheath(n, sheath) {
+function clampToSheath(
+    n,
+    sheath,
+    affectVelocity = true,
+    staticFriction = wallStaticFriction,
+    kineticFriction = wallKineticFriction,
+    normalDamping = wallNormalDamping,
+) {
     const sx = sheath.start.x;
     const sy = sheath.start.y;
     const sz = sheath.start.z;
@@ -150,25 +184,34 @@ function clampToSheath(n, sheath) {
         n.x = cx + offx * inv;
         n.y = cy + offy * inv;
         n.z = cz + offz * inv;
-        const vn = n.vx * offx + n.vy * offy + n.vz * offz;
-        const rInv = 1 / dist;
-        const rx = offx * rInv;
-        const ry = offy * rInv;
-        const rz = offz * rInv;
-        n.vx -= vn * rx;
-        n.vy -= vn * ry;
-        n.vz -= vn * rz;
+        if (affectVelocity) {
+            const rInv = 1 / dist;
+            const nx = offx * rInv;
+            const ny = offy * rInv;
+            const nz = offz * rInv;
+            applyCollisionResponse(
+                n,
+                nx,
+                ny,
+                nz,
+                staticFriction,
+                kineticFriction,
+                normalDamping,
+            );
+        }
     }
 }
 
-// Bending stiffness for angular PBD constraint
-let bendingStiffness = 0.5;
+// Bending stiffness for angular PBD constraint. A higher value makes the
+// wire resist concentrated bends and behave more like a steel rod.
+let bendingStiffness = 0.8;
 export function setBendingStiffness(value) {
     bendingStiffness = value;
 }
 
 // Parameters controlling the PBD length solver
-let pbdIterations = 4;
+// More iterations help propagate bending forces along the wire.
+let pbdIterations = 8;
 let lengthTolerance = 0.01;
 export function setPbdIterations(value) {
     pbdIterations = value;
