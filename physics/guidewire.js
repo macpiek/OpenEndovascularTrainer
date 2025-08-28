@@ -438,8 +438,6 @@ export class Guidewire {
     }
 
     relaxCurvature(iterations = curvatureRelaxIterations, strength = curvatureRelaxStrength) {
-        const tip = this.nodes[0];
-        const tail = this.nodes[this.nodes.length - 1];
         for (let k = 0; k < iterations; k++) {
             for (let i = 1; i < this.nodes.length - 1; i++) {
                 const n = this.nodes[i];
@@ -456,15 +454,12 @@ export class Guidewire {
                     }
                 }
                 const radius = nearest.radius - 1;
-                if (best.dist < radius) {
-                    const prev = this.nodes[i - 1];
-                    const next = this.nodes[i + 1];
-                    const projNeighbor = projectOnSegment(n, {start: prev, end: next});
-                    const projAxis = projectOnSegment(n, {start: tip, end: tail});
-                    const target = projNeighbor.dist < projAxis.dist ? projNeighbor : projAxis;
-                    n.x += (target.px - n.x) * strength;
-                    n.y += (target.py - n.y) * strength;
-                    n.z += (target.pz - n.z) * strength;
+                const epsilon = 0.01;
+                if (best.dist <= radius + epsilon) {
+                    n.x += (best.px - n.x) * strength;
+                    n.y += (best.py - n.y) * strength;
+                    n.z += (best.pz - n.z) * strength;
+                    clampToVessel(n, this.vessel, false, undefined, undefined, undefined, this.openEnds);
                 }
             }
         }
