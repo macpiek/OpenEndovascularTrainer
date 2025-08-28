@@ -25,3 +25,12 @@ setNormalDamping(0.2);
 ```
 
 Providing smaller coefficients allows the wire to shed kinks more readily when pulled back through a branch.
+
+## Elastic Rod Constraints
+
+The `ElasticRod` physics used for the guidewire keeps each segment at a fixed
+rest length and approximates bending moments by pulling interior nodes toward
+the midpoint of their neighbours. Positions are integrated with a semi-implicit
+Euler step followed by constraint projection and a small velocity damping
+factor. This simple model ignores shear and torsion and is stable for time
+steps of roughly `0.01` seconds or smaller.
