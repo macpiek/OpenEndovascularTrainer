@@ -10,8 +10,10 @@ let advanceForce = 100;
 let velocityDamping = 0.98;
 
 // Parameters controlling Laplacian smoothing
-let smoothingIterations = 1;
-let smoothingAlpha = 0.5;
+// Increase iteration count and use a lower alpha so curvature is
+// distributed across a wider arc instead of forming a sharp kink.
+let smoothingIterations = 3;
+let smoothingAlpha = 0.3;
 
 // Allow configuration from the outside
 export function setWallFriction(staticCoeff, kineticCoeff) {
@@ -161,14 +163,16 @@ function clampToSheath(n, sheath) {
     }
 }
 
-// Bending stiffness for angular PBD constraint
-let bendingStiffness = 0.5;
+// Bending stiffness for angular PBD constraint. A higher value makes the
+// wire resist concentrated bends and behave more like a steel rod.
+let bendingStiffness = 0.8;
 export function setBendingStiffness(value) {
     bendingStiffness = value;
 }
 
 // Parameters controlling the PBD length solver
-let pbdIterations = 4;
+// More iterations help propagate bending forces along the wire.
+let pbdIterations = 8;
 let lengthTolerance = 0.01;
 export function setPbdIterations(value) {
     pbdIterations = value;
