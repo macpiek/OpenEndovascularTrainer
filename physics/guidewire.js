@@ -90,15 +90,12 @@ function applyCollisionResponse(
     let tz = n.vz - vn * nz;
     const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
     const normalMag = Math.abs(vn);
-    if (tMag < staticFriction * normalMag) {
-        tx = ty = tz = 0;
-    } else {
-        const frictionMag = kineticFriction * normalMag;
-        const scale = Math.max(0, tMag - frictionMag) / (tMag || 1);
-        tx *= scale;
-        ty *= scale;
-        tz *= scale;
-    }
+    const friction = tMag < staticFriction * normalMag ? staticFriction : kineticFriction;
+    const frictionMag = friction * normalMag;
+    const scale = Math.max(0, tMag - frictionMag) / (tMag || 1);
+    tx *= scale;
+    ty *= scale;
+    tz *= scale;
     const dampedVn = vn * (1 - normalDamping);
     n.vx = tx + dampedVn * nx;
     n.vy = ty + dampedVn * ny;
