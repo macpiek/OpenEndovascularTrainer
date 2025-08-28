@@ -21,3 +21,14 @@ for (let i = 0; i < rod.nodes.length - 1; i++) {
 }
 
 console.log('max length deviation', maxErr.toFixed(4));
+
+// check that curvature is computed and tends toward zero after simulation
+rod.updateCurvature();
+const k = Math.hypot(rod.nodes[2].kx, rod.nodes[2].ky, rod.nodes[2].kz);
+console.log('center curvature magnitude', k.toFixed(4));
+
+// verify optional Laplacian smoothing moves nodes toward neighbor average
+const smoothRod = new ElasticRod(5, 1, { mass: 1, bendingStiffness: 0, smoothingIterations: 5 });
+smoothRod.nodes[2].y = 1;
+smoothRod.step(dt);
+console.log('smoothed center y', smoothRod.nodes[2].y.toFixed(4));

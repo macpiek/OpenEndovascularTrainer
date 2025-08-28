@@ -18,13 +18,28 @@
  * Shear and torsion effects are ignored.
  */
 
+// Default configuration values. These can be overridden from outside the module
+// using the exported setter functions below.
+let defaultBendingStiffness = 1;
+let defaultSmoothingIterations = 0;
+
+export function setBendingStiffness(value) {
+    defaultBendingStiffness = value;
+}
+
+export function setSmoothingIterations(value) {
+    defaultSmoothingIterations = value;
+}
+
 export class ElasticRod {
     constructor(count, segmentLength, {
         mass = 1,
-        bendingStiffness = 1,
+        bendingStiffness = defaultBendingStiffness,
+        smoothingIterations = defaultSmoothingIterations,
     } = {}) {
         this.segmentLength = segmentLength;
         this.nodes = [];
+        this.smoothingIterations = smoothingIterations;
         for (let i = 0; i < count; i++) {
             const x = i * segmentLength;
             const y = 0, z = 0;
@@ -34,6 +49,7 @@ export class ElasticRod {
                 fx: 0, fy: 0, fz: 0,
                 mass,
                 bendingStiffness,
+                kx: 0, ky: 0, kz: 0,
             });
         }
     }
@@ -44,41 +60,32 @@ export class ElasticRod {
         }
     }
 
-    // Accumulate bending forces based on discrete curvature
-    accumulateBendingForces() {
-        const L = this.segmentLength;
+    // Compute discrete curvature vector for each interior node using
+    // a second derivative approximation along the rod.
+    updateCurvature() {
+        const L2 = this.segmentLength * this.segmentLength;
+        // reset curvature
+        for (const n of this.nodes) {
+            n.kx = n.ky = n.kz = 0;
+        }
         for (let i = 1; i < this.nodes.length - 1; i++) {
             const p0 = this.nodes[i - 1];
             const p1 = this.nodes[i];
             const p2 = this.nodes[i + 1];
+            p1.kx = (p0.x - 2 * p1.x + p2.x) / L2;
+            p1.ky = (p0.y - 2 * p1.y + p2.y) / L2;
+            p1.kz = (p0.z - 2 * p1.z + p2.z) / L2;
+        }
+    }
 
-            // unit tangent vectors for adjacent segments
-            let t0x = p1.x - p0.x;
-            let t0y = p1.y - p0.y;
-            let t0z = p1.z - p0.z;
-            let len0 = Math.hypot(t0x, t0y, t0z) || 1;
-            t0x /= len0; t0y /= len0; t0z /= len0;
-
-            let t1x = p2.x - p1.x;
-            let t1y = p2.y - p1.y;
-            let t1z = p2.z - p1.z;
-            let len1 = Math.hypot(t1x, t1y, t1z) || 1;
-            t1x /= len1; t1y /= len1; t1z /= len1;
-
-            // curvature vector kappa ≈ (t1 - t0) / L
-            const kx = (t1x - t0x) / L;
-            const ky = (t1y - t0y) / L;
-            const kz = (t1z - t0z) / L;
-
-            const EI = p1.bendingStiffness;
-            const fx = EI * kx;
-            const fy = EI * ky;
-            const fz = EI * kz;
-
-            // distribute forces to maintain equilibrium
-            p0.fx += fx; p0.fy += fy; p0.fz += fz;
-            p1.fx -= 2 * fx; p1.fy -= 2 * fy; p1.fz -= 2 * fz;
-            p2.fx += fx; p2.fy += fy; p2.fz += fz;
+    // Accumulate bending forces that attempt to straighten the rod
+    // proportional to the curvature vector.
+    accumulateBendingForces() {
+        for (const n of this.nodes) {
+            const EI = n.bendingStiffness;
+            n.fx -= EI * n.kx;
+            n.fy -= EI * n.ky;
+            n.fz -= EI * n.kz;
         }
     }
 
@@ -146,10 +153,43 @@ export class ElasticRod {
             n.vy *= 0.98;
             n.vz *= 0.98;
         }
+
+        // optional Laplacian smoothing after constraints
+        if (this.smoothingIterations > 0) {
+            this.laplacianSmooth(dt);
+        }
+    }
+
+    // Simple Laplacian smoothing applied to interior nodes.
+    laplacianSmooth(dt) {
+        const count = this.nodes.length;
+        if (count < 3) return;
+        for (let iter = 0; iter < this.smoothingIterations; iter++) {
+            const newPos = new Array(count);
+            for (let i = 1; i < count - 1; i++) {
+                const p0 = this.nodes[i - 1];
+                const p2 = this.nodes[i + 1];
+                newPos[i] = {
+                    x: (p0.x + p2.x) * 0.5,
+                    y: (p0.y + p2.y) * 0.5,
+                    z: (p0.z + p2.z) * 0.5,
+                };
+            }
+            for (let i = 1; i < count - 1; i++) {
+                const n = this.nodes[i];
+                const np = newPos[i];
+                const dx = np.x - n.x;
+                const dy = np.y - n.y;
+                const dz = np.z - n.z;
+                n.x = np.x; n.y = np.y; n.z = np.z;
+                n.vx += dx / dt; n.vy += dy / dt; n.vz += dz / dt;
+            }
+        }
     }
 
     step(dt) {
         this.resetForces();
+        this.updateCurvature();
         this.accumulateBendingForces();
         this.integrate(dt);
         this.solveConstraints(dt);
