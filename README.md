@@ -34,3 +34,10 @@ the midpoint of their neighbours. Positions are integrated with a semi-implicit
 Euler step followed by constraint projection and a small velocity damping
 factor. This simple model ignores shear and torsion and is stable for time
 steps of roughly `0.01` seconds or smaller.
+
+Curvature for each node is computed from neighbouring positions and a
+straightening force proportional to the node's `bendingStiffness` is applied.
+After constraints are solved an optional Laplacian smoothing pass can further
+relax sharp bends. Default values for bending stiffness and the number of
+smoothing iterations may be configured via the `setBendingStiffness` and
+`setSmoothingIterations` functions exported from `physics/elasticRod.js`.
