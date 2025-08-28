@@ -82,7 +82,7 @@ export class ElasticRod {
         }
     }
 
-    // Integrate positions and velocities using explicit Euler
+    // Integrate positions and velocities using semi-implicit Euler
     integrate(dt) {
         for (const n of this.nodes) {
             const ax = n.fx / n.mass;
@@ -97,9 +97,11 @@ export class ElasticRod {
         }
     }
 
-    // Enforce constant segment length constraint
-    enforceConstraints() {
+    // Solve positional constraints and apply velocity damping
+    solveConstraints(dt) {
         const L = this.segmentLength;
+
+        // enforce segment lengths
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n0 = this.nodes[i];
             const n1 = this.nodes[i + 1];
@@ -112,6 +114,37 @@ export class ElasticRod {
             dx *= diff; dy *= diff; dz *= diff;
             n0.x += dx; n0.y += dy; n0.z += dz;
             n1.x -= dx; n1.y -= dy; n1.z -= dz;
+
+            // update velocities from positional corrections
+            const invDt = 1 / dt;
+            n0.vx += dx * invDt; n0.vy += dy * invDt; n0.vz += dz * invDt;
+            n1.vx -= dx * invDt; n1.vy -= dy * invDt; n1.vz -= dz * invDt;
+        }
+
+        // simple bending constraint: pull interior nodes toward midpoint of neighbours
+        for (let i = 1; i < this.nodes.length - 1; i++) {
+            const p0 = this.nodes[i - 1];
+            const p1 = this.nodes[i];
+            const p2 = this.nodes[i + 1];
+            const cx = (p0.x + p2.x) * 0.5;
+            const cy = (p0.y + p2.y) * 0.5;
+            const cz = (p0.z + p2.z) * 0.5;
+            const dx = p1.x - cx;
+            const dy = p1.y - cy;
+            const dz = p1.z - cz;
+            const k = Math.min(1, p1.bendingStiffness * dt);
+            const corrX = dx * k;
+            const corrY = dy * k;
+            const corrZ = dz * k;
+            p1.x -= corrX; p1.y -= corrY; p1.z -= corrZ;
+            p1.vx -= corrX / dt; p1.vy -= corrY / dt; p1.vz -= corrZ / dt;
+        }
+
+        // velocity damping
+        for (const n of this.nodes) {
+            n.vx *= 0.98;
+            n.vy *= 0.98;
+            n.vz *= 0.98;
         }
     }
 
@@ -119,6 +152,6 @@ export class ElasticRod {
         this.resetForces();
         this.accumulateBendingForces();
         this.integrate(dt);
-        this.enforceConstraints();
+        this.solveConstraints(dt);
     }
 }
