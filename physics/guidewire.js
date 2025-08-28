@@ -456,7 +456,8 @@ export class Guidewire {
                     }
                 }
                 const radius = nearest.radius - 1;
-                if (best.dist < radius) {
+                const epsilon = 0.01;
+                if (best.dist <= radius + epsilon) {
                     const prev = this.nodes[i - 1];
                     const next = this.nodes[i + 1];
                     const projNeighbor = projectOnSegment(n, {start: prev, end: next});
@@ -465,6 +466,7 @@ export class Guidewire {
                     n.x += (target.px - n.x) * strength;
                     n.y += (target.py - n.y) * strength;
                     n.z += (target.pz - n.z) * strength;
+                    clampToVessel(n, this.vessel, false, undefined, undefined, undefined, this.openEnds);
                 }
             }
         }
