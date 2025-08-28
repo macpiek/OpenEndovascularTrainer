@@ -19,6 +19,10 @@ let velocityDamping = 0.98;
 let smoothingIterations = 3;
 let smoothingAlpha = 0.3;
 
+// Parameters controlling curvature relaxation
+let curvatureRelaxIterations = 1;
+let curvatureRelaxStrength = 0.1;
+
 // Allow configuration from the outside
 export function setWallFriction(staticCoeff, kineticCoeff) {
     wallStaticFriction = staticCoeff;
@@ -40,6 +44,11 @@ export function setVelocityDamping(value) {
 export function setSmoothingParameters(iterations, alpha) {
     smoothingIterations = iterations;
     smoothingAlpha = alpha;
+}
+
+export function setCurvatureRelaxationParameters(iterations, strength) {
+    curvatureRelaxIterations = iterations;
+    curvatureRelaxStrength = strength;
 }
 
 function clamp(v, min, max) {
@@ -428,6 +437,39 @@ export class Guidewire {
         }
     }
 
+    relaxCurvature(iterations = curvatureRelaxIterations, strength = curvatureRelaxStrength) {
+        const tip = this.nodes[0];
+        const tail = this.nodes[this.nodes.length - 1];
+        for (let k = 0; k < iterations; k++) {
+            for (let i = 1; i < this.nodes.length - 1; i++) {
+                const n = this.nodes[i];
+
+                // Determine distance to nearest vessel segment
+                let nearest = this.vessel.segments[0];
+                let best = projectOnSegment(n, nearest);
+                for (let j = 1; j < this.vessel.segments.length; j++) {
+                    const seg = this.vessel.segments[j];
+                    const p = projectOnSegment(n, seg);
+                    if (p.dist < best.dist) {
+                        best = p;
+                        nearest = seg;
+                    }
+                }
+                const radius = nearest.radius - 1;
+                if (best.dist < radius) {
+                    const prev = this.nodes[i - 1];
+                    const next = this.nodes[i + 1];
+                    const projNeighbor = projectOnSegment(n, {start: prev, end: next});
+                    const projAxis = projectOnSegment(n, {start: tip, end: tail});
+                    const target = projNeighbor.dist < projAxis.dist ? projNeighbor : projAxis;
+                    n.x += (target.px - n.x) * strength;
+                    n.y += (target.py - n.y) * strength;
+                    n.z += (target.pz - n.z) * strength;
+                }
+            }
+        }
+    }
+
     collide() {
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
@@ -452,6 +494,7 @@ export class Guidewire {
         this.collide();
         this.solvePbd();
         this.smooth();
+        this.relaxCurvature();
         for (let i = 0; i < this.nodes.length - 1; i++) {
             const n = this.nodes[i];
             n.vx = (n.x - n.oldx) / dt;
