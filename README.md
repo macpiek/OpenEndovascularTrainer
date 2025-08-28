@@ -14,14 +14,14 @@ The vessel is generated deterministically. Branch length and angle offset use fi
 
 ## Tuning wall friction
 
-The guidewire uses a simple Coulomb model when it collides with the vessel wall. Static and kinetic friction coefficients and the amount of normal damping can be adjusted at runtime to control how easily the wire slides and straightens after withdrawal.
+The guidewire uses a simple Coulomb model when it collides with the vessel wall. Static and kinetic friction coefficients and the amount of normal damping can be adjusted at runtime to control how easily the wire slides and straightens after withdrawal. Lower defaults are already applied to minimise sticking, but you can tweak them further:
 
 ```js
 import { setWallFriction, setNormalDamping } from './physics/guidewire.js';
 
 // lower values reduce sticking on the vessel wall
-setWallFriction(0.1, 0.05);
-setNormalDamping(0.3);
+setWallFriction(0.05, 0.02);
+setNormalDamping(0.2);
 ```
 
 Providing smaller coefficients allows the wire to shed kinks more readily when pulled back through a branch.
