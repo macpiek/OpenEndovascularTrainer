@@ -70,10 +70,13 @@ export class ElasticRod {
         mass = 1,
         bendingStiffness = defaultBendingStiffness,
         smoothingIterations = defaultSmoothingIterations,
+        logger = null,
     } = {}) {
         this.segmentLength = segmentLength;
         this.nodes = [];
         this.smoothingIterations = smoothingIterations;
+        this.logger = logger;
+        this.iteration = 0;
         for (let i = 0; i < count; i++) {
             const x = i * segmentLength;
             const y = 0, z = 0;
@@ -86,6 +89,24 @@ export class ElasticRod {
                 kx: 0, ky: 0, kz: 0,
             });
         }
+    }
+
+    computeLength() {
+        let total = 0;
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            const n0 = this.nodes[i];
+            const n1 = this.nodes[i + 1];
+            total += Math.hypot(n1.x - n0.x, n1.y - n0.y, n1.z - n0.z);
+        }
+        return total;
+    }
+
+    averageCurvature() {
+        let sum = 0;
+        for (const n of this.nodes) {
+            sum += Math.hypot(n.kx, n.ky, n.kz);
+        }
+        return sum / this.nodes.length;
     }
 
     resetForces() {
@@ -125,11 +146,13 @@ export class ElasticRod {
             const kx = p1.kx;
             const ky = p1.ky;
             const kz = p1.kz;
+
             const EI = p1.bendingStiffness;
             // apply strong straightening force proportional to local curvature
             const fx = EI * kx;
             const fy = EI * ky;
             const fz = EI * kz;
+
             // distribute evenly: neighbours get half, center gets opposite sum
             p0.fx += 0.5 * fx; p0.fy += 0.5 * fy; p0.fz += 0.5 * fz;
             p2.fx += 0.5 * fx; p2.fy += 0.5 * fy; p2.fz += 0.5 * fz;
@@ -289,5 +312,13 @@ export class ElasticRod {
         this.accumulateBendingForces();
         this.integrate(dt);
         this.solveConstraints(dt);
+        this.iteration++;
+        if (this.logger) {
+            this.logger({
+                iteration: this.iteration,
+                curvature: this.averageCurvature(),
+                length: this.computeLength(),
+            });
+        }
     }
 }
