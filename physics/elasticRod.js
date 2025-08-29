@@ -31,6 +31,29 @@ export function setSmoothingIterations(value) {
     defaultSmoothingIterations = value;
 }
 
+// Project point n onto vessel segment seg.
+// Returns closest point (px,py,pz), offset vector (dx,dy,dz) from projection
+// to the node and the distance between them.
+function projectOnSegment(n, seg) {
+    const vx = seg.end.x - seg.start.x;
+    const vy = seg.end.y - seg.start.y;
+    const vz = (seg.end.z || 0) - (seg.start.z || 0);
+    const wx = n.x - seg.start.x;
+    const wy = n.y - seg.start.y;
+    const wz = n.z - (seg.start.z || 0);
+    const len2 = vx * vx + vy * vy + vz * vz;
+    let t = (wx * vx + wy * vy + wz * vz) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const px = seg.start.x + vx * t;
+    const py = seg.start.y + vy * t;
+    const pz = (seg.start.z || 0) + vz * t;
+    const dx = n.x - px;
+    const dy = n.y - py;
+    const dz = n.z - pz;
+    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    return { px, py, pz, dx, dy, dz, dist };
+}
+
 export class ElasticRod {
     constructor(count, segmentLength, {
         mass = 1,
@@ -184,6 +207,40 @@ export class ElasticRod {
                 n.x = np.x; n.y = np.y; n.z = np.z;
                 n.vx += dx / dt; n.vy += dy / dt; n.vz += dz / dt;
             }
+        }
+    }
+
+    // Constrain nodes to stay inside the vessel geometry.
+    collide(vessel, dt = 1) {
+        if (!vessel || !vessel.segments || !vessel.segments.length) return;
+        for (const n of this.nodes) {
+            let nearest = vessel.segments[0];
+            let best = projectOnSegment(n, nearest);
+            for (let i = 1; i < vessel.segments.length; i++) {
+                const seg = vessel.segments[i];
+                const p = projectOnSegment(n, seg);
+                if (p.dist < best.dist) {
+                    best = p;
+                    nearest = seg;
+                }
+            }
+            const radius = nearest.radius;
+            if (best.dist > radius) {
+                const inv = 1 / (best.dist || 1);
+                const nx = best.dx * inv;
+                const ny = best.dy * inv;
+                const nz = best.dz * inv;
+                n.x = best.px + nx * radius;
+                n.y = best.py + ny * radius;
+                n.z = best.pz + nz * radius;
+                const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+                n.vx -= vn * nx;
+                n.vy -= vn * ny;
+                n.vz -= vn * nz;
+            }
+        }
+        if (this.smoothingIterations > 0) {
+            this.laplacianSmooth(dt);
         }
     }
 
