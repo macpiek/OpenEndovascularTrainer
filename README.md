@@ -41,3 +41,32 @@ After constraints are solved an optional Laplacian smoothing pass can further
 relax sharp bends. Default values for bending stiffness and the number of
 smoothing iterations may be configured via the `setBendingStiffness` and
 `setSmoothingIterations` functions exported from `physics/elasticRod.js`.
+
+## Simulation logging and tests
+
+`ElasticRod` accepts an optional `logger` callback. When provided, the callback
+is invoked after each `step` with the current iteration count, average
+curvature and total rod length:
+
+```js
+const rod = new ElasticRod(10, 1, {
+  logger: data => console.log(data)
+});
+```
+
+Example scripts exercising the rod model live in `tests/elasticRod`:
+
+* `straightening.js` – rod straightening after release
+* `wallBend.js` – bending while sliding along a vessel wall
+* `branchCollision.js` – collision at a vessel bifurcation
+
+Run them with Node to produce JSON logs describing the simulation state:
+
+```sh
+node tests/elasticRod/straightening.js
+node tests/elasticRod/wallBend.js
+node tests/elasticRod/branchCollision.js
+```
+
+For a quick visual check, open `tests/elasticRod/visualize.html` in a modern
+browser. It uses Three.js to display the rod evolving in isolation.
