@@ -111,14 +111,28 @@ export class ElasticRod {
         }
     }
 
-    // Accumulate bending forces that attempt to straighten the rod
-    // proportional to the curvature vector.
+    // Accumulate bending forces that attempt to straighten the rod.
+    // Forces are distributed across triplets of nodes so that highly
+    // bent regions are corrected smoothly rather than at a single node.
     accumulateBendingForces() {
-        for (const n of this.nodes) {
-            const EI = n.bendingStiffness;
-            n.fx -= EI * n.kx;
-            n.fy -= EI * n.ky;
-            n.fz -= EI * n.kz;
+        const count = this.nodes.length;
+        if (count < 3) return;
+        for (let i = 1; i < count - 1; i++) {
+            const p0 = this.nodes[i - 1];
+            const p1 = this.nodes[i];
+            const p2 = this.nodes[i + 1];
+            const kx = p1.kx;
+            const ky = p1.ky;
+            const kz = p1.kz;
+            const kmag = Math.sqrt(kx * kx + ky * ky + kz * kz);
+            const EI = p1.bendingStiffness;
+            const fx = EI * kx * kmag;
+            const fy = EI * ky * kmag;
+            const fz = EI * kz * kmag;
+            // distribute evenly: neighbours get half, center gets opposite sum
+            p0.fx += 0.5 * fx; p0.fy += 0.5 * fy; p0.fz += 0.5 * fz;
+            p2.fx += 0.5 * fx; p2.fy += 0.5 * fy; p2.fz += 0.5 * fz;
+            p1.fx -= fx; p1.fy -= fy; p1.fz -= fz;
         }
     }
 
