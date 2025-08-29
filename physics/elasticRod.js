@@ -20,7 +20,8 @@
 
 // Default configuration values. These can be overridden from outside the module
 // using the exported setter functions below.
-let defaultBendingStiffness = 1;
+// higher default stiffness gives stronger self-straightening
+let defaultBendingStiffness = 5;
 let defaultSmoothingIterations = 0;
 
 // Coefficients for static and kinetic friction against vessel walls.
@@ -145,11 +146,13 @@ export class ElasticRod {
             const kx = p1.kx;
             const ky = p1.ky;
             const kz = p1.kz;
-            const kmag = Math.sqrt(kx * kx + ky * ky + kz * kz);
+
             const EI = p1.bendingStiffness;
-            const fx = EI * kx * kmag;
-            const fy = EI * ky * kmag;
-            const fz = EI * kz * kmag;
+            // apply strong straightening force proportional to local curvature
+            const fx = EI * kx;
+            const fy = EI * ky;
+            const fz = EI * kz;
+
             // distribute evenly: neighbours get half, center gets opposite sum
             p0.fx += 0.5 * fx; p0.fy += 0.5 * fy; p0.fz += 0.5 * fz;
             p2.fx += 0.5 * fx; p2.fy += 0.5 * fy; p2.fz += 0.5 * fz;

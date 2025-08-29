@@ -60,6 +60,24 @@ console.log('force small bend', smallForce.toFixed(4));
 console.log('force large bend', largeForce.toFixed(4));
 console.assert(largeForce > smallForce, 'larger curvature should yield greater straightening force');
 
+// higher stiffness should produce proportionally larger straightening force
+const soft = new ElasticRod(3, 1, { bendingStiffness: 1 });
+soft.nodes[1].y = 1;
+soft.resetForces();
+soft.updateCurvature();
+soft.accumulateBendingForces();
+const softForce = Math.abs(soft.nodes[1].fy);
+
+const stiff = new ElasticRod(3, 1, { bendingStiffness: 5 });
+stiff.nodes[1].y = 1;
+stiff.resetForces();
+stiff.updateCurvature();
+stiff.accumulateBendingForces();
+const stiffForce = Math.abs(stiff.nodes[1].fy);
+console.log('force low stiffness', softForce.toFixed(4));
+console.log('force high stiffness', stiffForce.toFixed(4));
+console.assert(stiffForce > softForce * 4, 'higher stiffness should greatly increase straightening force');
+
 // collision test: node outside vessel should be clamped to surface
 const collisionRod = new ElasticRod(2, 1);
 // place second node outside a unit-radius vessel centered along x-axis
