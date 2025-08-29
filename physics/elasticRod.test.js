@@ -1,4 +1,4 @@
-import { ElasticRod } from './elasticRod.js';
+import { ElasticRod, setWallFriction } from './elasticRod.js';
 
 // simple test: simulate slightly bent rod and ensure length deviation <=1%
 const rod = new ElasticRod(5, 1, { mass: 1, bendingStiffness: 0.5 });
@@ -43,3 +43,30 @@ const vessel = { segments: [{ start: { x: 0, y: 0, z: 0 }, end: { x: 2, y: 0, z:
 collisionRod.collide(vessel);
 console.log('collision y', collisionRod.nodes[1].y.toFixed(4));
 console.log('collision vy', collisionRod.nodes[1].vy.toFixed(4));
+
+// friction tests
+setWallFriction(0.5, 0.25);
+
+// tangential velocity below static threshold should be zeroed
+const stickRod = new ElasticRod(2, 1);
+stickRod.nodes[1].x = 1;
+stickRod.nodes[1].y = 2;
+stickRod.nodes[1].vx = 0.1;
+stickRod.nodes[1].vy = -1;
+stickRod.collide(vessel);
+console.log('static friction vx', stickRod.nodes[1].vx.toFixed(4));
+console.log('static friction vy', stickRod.nodes[1].vy.toFixed(4));
+console.assert(Math.abs(stickRod.nodes[1].vx) < 1e-6, 'static friction should zero tangential velocity');
+console.assert(Math.abs(stickRod.nodes[1].vy) < 1e-6, 'normal velocity should be zero after collision');
+
+// tangential velocity above static threshold should be reduced by kinetic friction
+const slideRod = new ElasticRod(2, 1);
+slideRod.nodes[1].x = 1;
+slideRod.nodes[1].y = 2;
+slideRod.nodes[1].vx = 2;
+slideRod.nodes[1].vy = -1;
+slideRod.collide(vessel);
+console.log('kinetic friction vx', slideRod.nodes[1].vx.toFixed(4));
+console.log('kinetic friction vy', slideRod.nodes[1].vy.toFixed(4));
+console.assert(Math.abs(slideRod.nodes[1].vx - 1.75) < 1e-6, 'kinetic friction should reduce tangential velocity');
+console.assert(Math.abs(slideRod.nodes[1].vy) < 1e-6, 'normal velocity should be zero after collision');
