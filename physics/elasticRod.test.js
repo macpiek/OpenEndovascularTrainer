@@ -32,3 +32,14 @@ const smoothRod = new ElasticRod(5, 1, { mass: 1, bendingStiffness: 0, smoothing
 smoothRod.nodes[2].y = 1;
 smoothRod.step(dt);
 console.log('smoothed center y', smoothRod.nodes[2].y.toFixed(4));
+
+// collision test: node outside vessel should be clamped to surface
+const collisionRod = new ElasticRod(2, 1);
+// place second node outside a unit-radius vessel centered along x-axis
+collisionRod.nodes[1].x = 1;
+collisionRod.nodes[1].y = 2;
+collisionRod.nodes[1].vy = 1;
+const vessel = { segments: [{ start: { x: 0, y: 0, z: 0 }, end: { x: 2, y: 0, z: 0 }, radius: 1 }] };
+collisionRod.collide(vessel);
+console.log('collision y', collisionRod.nodes[1].y.toFixed(4));
+console.log('collision vy', collisionRod.nodes[1].vy.toFixed(4));
