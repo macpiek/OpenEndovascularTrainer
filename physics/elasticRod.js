@@ -23,12 +23,22 @@
 let defaultBendingStiffness = 1;
 let defaultSmoothingIterations = 0;
 
+// Coefficients for static and kinetic friction against vessel walls.
+// Values are relative to the normal component of velocity.
+let wallStaticFriction = 0.1;
+let wallKineticFriction = 0.05;
+
 export function setBendingStiffness(value) {
     defaultBendingStiffness = value;
 }
 
 export function setSmoothingIterations(value) {
     defaultSmoothingIterations = value;
+}
+
+export function setWallFriction(staticCoeff, kineticCoeff) {
+    wallStaticFriction = staticCoeff;
+    wallKineticFriction = kineticCoeff;
 }
 
 // Project point n onto vessel segment seg.
@@ -234,9 +244,23 @@ export class ElasticRod {
                 n.y = best.py + ny * radius;
                 n.z = best.pz + nz * radius;
                 const vn = n.vx * nx + n.vy * ny + n.vz * nz;
-                n.vx -= vn * nx;
-                n.vy -= vn * ny;
-                n.vz -= vn * nz;
+                let tx = n.vx - vn * nx;
+                let ty = n.vy - vn * ny;
+                let tz = n.vz - vn * nz;
+                const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
+                const normalMag = Math.abs(vn);
+                if (tMag < wallStaticFriction * normalMag) {
+                    tx = 0; ty = 0; tz = 0;
+                } else {
+                    const frictionMag = wallKineticFriction * normalMag;
+                    const scale = Math.max(0, tMag - frictionMag) / (tMag || 1);
+                    tx *= scale;
+                    ty *= scale;
+                    tz *= scale;
+                }
+                n.vx = tx;
+                n.vy = ty;
+                n.vz = tz;
             }
         }
         if (this.smoothingIterations > 0) {
