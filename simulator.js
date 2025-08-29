@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Guidewire, setBendingStiffness, setWallFriction, setNormalDamping, setVelocityDamping, setSmoothingParameters } from './physics/guidewire.js';
+import { ElasticRod, setBendingStiffness, setWallFriction, setSmoothingIterations } from './physics/elasticRod.js';
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
 import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
@@ -203,7 +203,16 @@ const tailStart = {
 }; // start outside so the tip begins `initialInsert` inside the vessel
 
 
-const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength, undefined, undefined, initialInsert, { left: true });
+const wire = new ElasticRod(nodeCount, segmentLength);
+let tailProgress = initialInsert;
+const maxInsert = tailProgress + initialWireLength;
+const minInsert = Math.min(tailProgress - initialWireLength, 0);
+for (let i = 0; i < wire.nodes.length; i++) {
+    const t = tailProgress + initialWireLength - segmentLength * i;
+    wire.nodes[i].x = tailStart.x + leftDir.x * t;
+    wire.nodes[i].y = tailStart.y + leftDir.y * t;
+    wire.nodes[i].z = tailStart.z + leftDir.z * t;
+}
 
 let advance = 0;
 document.addEventListener('keydown', e => {
@@ -231,10 +240,7 @@ document.addEventListener('keyup', e => {
 const bendSlider = document.getElementById('stiffness');
 const staticFricSlider = document.getElementById('staticFriction');
 const kineticFricSlider = document.getElementById('kineticFriction');
-const dampingSlider = document.getElementById('normalDamping');
-const velDampingSlider = document.getElementById('velocityDamping');
 const smoothIterSlider = document.getElementById('smoothIterations');
-const smoothAlphaSlider = document.getElementById('smoothAlpha');
 const modeToggle = document.getElementById('modeToggle');
 const injectButton = document.getElementById('injectContrast');
 const stopInjectButton = document.getElementById('stopInjection');
@@ -261,10 +267,7 @@ const sliders = [
     bendSlider,
     staticFricSlider,
     kineticFricSlider,
-    dampingSlider,
-    velDampingSlider,
     smoothIterSlider,
-    smoothAlphaSlider,
     persistenceSlider,
     noiseSlider,
     opacityScaleSlider,
@@ -351,15 +354,10 @@ bendSlider.addEventListener('input', e => {
 
 let staticFriction = parseFloat(staticFricSlider.value);
 let kineticFriction = parseFloat(kineticFricSlider.value);
-let normalDamping = parseFloat(dampingSlider.value);
-let velocityDamping = parseFloat(velDampingSlider.value);
 let decay = parseFloat(persistenceSlider.value);
 let smoothingIterations = parseInt(smoothIterSlider.value);
-let smoothingAlpha = parseFloat(smoothAlphaSlider.value);
 setWallFriction(staticFriction, kineticFriction);
-setNormalDamping(normalDamping);
-setVelocityDamping(velocityDamping);
-setSmoothingParameters(smoothingIterations, smoothingAlpha);
+setSmoothingIterations(smoothingIterations);
 blendMaterial.uniforms.decay.value = decay;
 staticFricSlider.addEventListener('input', e => {
     staticFriction = parseFloat(e.target.value);
@@ -369,21 +367,9 @@ kineticFricSlider.addEventListener('input', e => {
     kineticFriction = parseFloat(e.target.value);
     setWallFriction(staticFriction, kineticFriction);
 });
-dampingSlider.addEventListener('input', e => {
-    normalDamping = parseFloat(e.target.value);
-    setNormalDamping(normalDamping);
-});
-velDampingSlider.addEventListener('input', e => {
-    velocityDamping = parseFloat(e.target.value);
-    setVelocityDamping(velocityDamping);
-});
 smoothIterSlider.addEventListener('input', e => {
     smoothingIterations = parseInt(e.target.value);
-    setSmoothingParameters(smoothingIterations, smoothingAlpha);
-});
-smoothAlphaSlider.addEventListener('input', e => {
-    smoothingAlpha = parseFloat(e.target.value);
-    setSmoothingParameters(smoothingIterations, smoothingAlpha);
+    setSmoothingIterations(smoothingIterations);
 });
 persistenceSlider.addEventListener('input', e => {
     blendMaterial.uniforms.decay.value = parseFloat(e.target.value);
@@ -438,6 +424,15 @@ const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
 wireMesh.renderOrder = 1; // draw on top of additive bone rendering
 scene.add(wireMesh);
 
+function advanceTailInput(advance, dt) {
+    tailProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * 40 * dt));
+    const tail = wire.nodes[wire.nodes.length - 1];
+    tail.x = tailStart.x + leftDir.x * tailProgress;
+    tail.y = tailStart.y + leftDir.y * tailProgress;
+    tail.z = tailStart.z + leftDir.z * tailProgress;
+    tail.vx = tail.vy = tail.vz = 0;
+}
+
 function updateWireMesh() {
     for (let i = 0; i < wire.nodes.length; i++) {
         const n = wire.nodes[i];
@@ -472,9 +467,11 @@ function animate(time) {
     // Accumulate time and step the physics at a fixed rate.
     accumulator += Math.min(dt, fixedDt * maxSubSteps);
     while (accumulator >= fixedDt) {
-        wire.step(fixedDt, advance);
+        advanceTailInput(advance, fixedDt);
+        wire.step(fixedDt);
+        wire.collide(vessel, fixedDt);
         accumulator -= fixedDt;
-        const inserted = Math.max(0, wire.tailProgress);
+        const inserted = Math.max(0, tailProgress);
         insertedLength.textContent = (inserted / 10).toFixed(1) + ' cm';
     }
 
