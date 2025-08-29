@@ -33,6 +33,51 @@ smoothRod.nodes[2].y = 1;
 smoothRod.step(dt);
 console.log('smoothed center y', smoothRod.nodes[2].y.toFixed(4));
 
+// verify bending forces increase with curvature and spread to neighbours
+const forceRod = new ElasticRod(5, 1, { bendingStiffness: 1 });
+forceRod.nodes[2].y = 1;
+forceRod.resetForces();
+forceRod.updateCurvature();
+forceRod.accumulateBendingForces();
+console.log('center bending fy', forceRod.nodes[2].fy.toFixed(4));
+console.log('neighbor bending fy', forceRod.nodes[1].fy.toFixed(4));
+console.assert(Math.abs(forceRod.nodes[1].fy) > 0, 'neighbour should receive bending force');
+
+const smallBend = new ElasticRod(3, 1, { bendingStiffness: 1 });
+smallBend.nodes[1].y = 0.2;
+smallBend.resetForces();
+smallBend.updateCurvature();
+smallBend.accumulateBendingForces();
+const smallForce = Math.abs(smallBend.nodes[1].fy);
+
+const largeBend = new ElasticRod(3, 1, { bendingStiffness: 1 });
+largeBend.nodes[1].y = 1;
+largeBend.resetForces();
+largeBend.updateCurvature();
+largeBend.accumulateBendingForces();
+const largeForce = Math.abs(largeBend.nodes[1].fy);
+console.log('force small bend', smallForce.toFixed(4));
+console.log('force large bend', largeForce.toFixed(4));
+console.assert(largeForce > smallForce, 'larger curvature should yield greater straightening force');
+
+// higher stiffness should produce proportionally larger straightening force
+const soft = new ElasticRod(3, 1, { bendingStiffness: 1 });
+soft.nodes[1].y = 1;
+soft.resetForces();
+soft.updateCurvature();
+soft.accumulateBendingForces();
+const softForce = Math.abs(soft.nodes[1].fy);
+
+const stiff = new ElasticRod(3, 1, { bendingStiffness: 5 });
+stiff.nodes[1].y = 1;
+stiff.resetForces();
+stiff.updateCurvature();
+stiff.accumulateBendingForces();
+const stiffForce = Math.abs(stiff.nodes[1].fy);
+console.log('force low stiffness', softForce.toFixed(4));
+console.log('force high stiffness', stiffForce.toFixed(4));
+console.assert(stiffForce > softForce * 4, 'higher stiffness should greatly increase straightening force');
+
 // collision test: node outside vessel should be clamped to surface
 const collisionRod = new ElasticRod(2, 1);
 // place second node outside a unit-radius vessel centered along x-axis
