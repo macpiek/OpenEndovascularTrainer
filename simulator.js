@@ -99,13 +99,13 @@ const displayMaterial = new THREE.ShaderMaterial({
         void main() {
             vec4 tex = texture2D(uTexture, vUv);
             if (fluoroscopy) {
-                float intensity = tex.r * boneOpacity;
+                float intensity = max(tex.r, max(tex.g, tex.b)) * boneOpacity;
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
                 vec4 cSample = texture2D(contrastTexture, vUv);
                 float contrast = clamp((cSample.r + cSample.b) * 2.0, 0.0, 1.0);
-                vec3 color = gray * (1.0 - intensity);
+                vec3 color = mix(gray, vec3(1.0), intensity);
                 gl_FragColor = vec4(mix(color, vec3(0.0), contrast), 1.0);
             } else {
                 gl_FragColor = tex;
