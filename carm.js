@@ -105,6 +105,31 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         let dragging = false;
         const handleTransition = 'transform 0.2s ease-out';
 
+        let speedX = 0;
+        let speedY = 0;
+        const minX = parseFloat(carmXSlider.min);
+        const maxX = parseFloat(carmXSlider.max);
+        const minY = parseFloat(carmYSlider.min);
+        const maxY = parseFloat(carmYSlider.max);
+        const maxSpeedX = (maxX - minX) / 2;
+        const maxSpeedY = (maxY - minY) / 2;
+        let lastTime = performance.now();
+
+        function step(now) {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            if (speedX !== 0 || speedY !== 0) {
+                carmX = Math.min(Math.max(carmX + speedX * maxSpeedX * dt, minX), maxX);
+                carmY = Math.min(Math.max(carmY + speedY * maxSpeedY * dt, minY), maxY);
+                carmXSlider.value = carmX;
+                carmYSlider.value = carmY;
+                updateCamera();
+            }
+            requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+
+
         function updateFromJoystick(clientX, clientY) {
             const rect = joystick.getBoundingClientRect();
             let x = clientX - rect.left - rect.width / 2;
@@ -118,15 +143,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             joystickHandle.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
             const normX = x / maxDistance;
             const normY = y / maxDistance;
-            const minX = parseFloat(carmXSlider.min);
-            const maxX = parseFloat(carmXSlider.max);
-            const minY = parseFloat(carmYSlider.min);
-            const maxY = parseFloat(carmYSlider.max);
-            carmX = minX + (normX + 1) / 2 * (maxX - minX);
-            carmY = minY + (1 - (normY + 1) / 2) * (maxY - minY);
-            carmXSlider.value = carmX;
-            carmYSlider.value = carmY;
-            updateCamera();
+            speedX = normX;
+            speedY = -normY;
         }
 
         joystick.addEventListener('mousedown', e => {
@@ -140,9 +158,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         });
         window.addEventListener('mouseup', () => {
             dragging = false;
-
             joystickHandle.style.transition = handleTransition;
             joystickHandle.style.transform = 'translate(-50%, -50%)';
+            speedX = 0;
+            speedY = 0;
+
         });
     }
 }
