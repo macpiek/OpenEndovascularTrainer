@@ -126,6 +126,27 @@
             padding: 4px;
             border-radius: 4px;
         }
+        #joystick-container {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            border: 2px solid #666;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            touch-action: none;
+        }
+        #joystick {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            left: 40px;
+            top: 40px;
+            background: rgba(200, 200, 200, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -265,6 +286,7 @@
 
 <div id="carm-preview"></div>
 <div id="perfStats">FPS: 0 | Mem: N/A</div>
+<div id="joystick-container"><div id="joystick"></div></div>
 
 <script type="importmap">
 {
