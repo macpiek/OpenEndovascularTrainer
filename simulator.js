@@ -228,7 +228,7 @@ if (injSegmentSelect) {
 const segmentLength = 12;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
-const initialInsert = segmentLength * 10;
+const initialInsert = 100000;
 
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
