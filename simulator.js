@@ -188,23 +188,23 @@ if (injSegmentSelect) {
 const segmentLength = 12;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
-// Only insert a small portion of the wire so most remains outside the vessel
-const initialInsert = segmentLength * 2;
 
-const leftDir = {
-    x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
-    y: (vessel.branchPoint.y - vessel.left.end.y) / vessel.left.length,
-    z: (vessel.branchPoint.z - vessel.left.end.z) / vessel.left.length
+// Start with the guidewire tip at the sheath's outer end so it must traverse the introducer before entering the vessel
+const initialInsert = 0;
+
+const sheathDir = {
+    x: (vessel.sheath.start.x - vessel.sheath.end.x) / vessel.sheath.length,
+    y: (vessel.sheath.start.y - vessel.sheath.end.y) / vessel.sheath.length,
+    z: (vessel.sheath.start.z - vessel.sheath.end.z) / vessel.sheath.length
 };
 
 const tailStart = {
-    x: vessel.left.end.x - leftDir.x * initialWireLength,
-    y: vessel.left.end.y - leftDir.y * initialWireLength,
-    z: vessel.left.end.z - leftDir.z * initialWireLength
-}; // start outside so the tip begins `initialInsert` inside the vessel
+    x: vessel.sheath.end.x - sheathDir.x * initialWireLength,
+    y: vessel.sheath.end.y - sheathDir.y * initialWireLength,
+    z: vessel.sheath.end.z - sheathDir.z * initialWireLength
+}; // begin outside so the wire travels through the sheath into the vessel
 
-
-const wire = new Guidewire(segmentLength, nodeCount, tailStart, leftDir, vessel, initialWireLength, undefined, undefined, initialInsert, { left: true });
+const wire = new Guidewire(segmentLength, nodeCount, tailStart, sheathDir, vessel, initialWireLength, undefined, undefined, initialInsert, { left: true });
 
 let advance = 0;
 document.addEventListener('keydown', e => {
