@@ -227,19 +227,27 @@ if (injSegmentSelect) {
 const segmentLength = 5;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
-const initialInsert = 0;
-
-const leftDir = {
-    x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
-    y: (vessel.branchPoint.y - vessel.left.end.y) / vessel.left.length,
-    z: (vessel.branchPoint.z - vessel.left.end.z) / vessel.left.length
+// Direction from the sheath exit back into the vessel
+const sheathDirVec = {
+    x: vessel.branchPoint.x - vessel.sheath.end.x,
+    y: vessel.branchPoint.y - vessel.sheath.end.y,
+    z: vessel.branchPoint.z - vessel.sheath.end.z
+};
+const sheathPath = Math.hypot(sheathDirVec.x, sheathDirVec.y, sheathDirVec.z) || 1;
+const wireDir = {
+    x: sheathDirVec.x / sheathPath,
+    y: sheathDirVec.y / sheathPath,
+    z: sheathDirVec.z / sheathPath
 };
 
+// Place the tip slightly within the left branch
+const initialInsert = Math.max(sheathPath - 5, 0);
+
 const tailStart = {
-    x: vessel.left.end.x - leftDir.x * initialWireLength,
-    y: vessel.left.end.y - leftDir.y * initialWireLength,
-    z: vessel.left.end.z - leftDir.z * initialWireLength
-}; // start outside so the tip begins `initialInsert` inside the vessel
+    x: vessel.sheath.end.x - wireDir.x * initialWireLength,
+    y: vessel.sheath.end.y - wireDir.y * initialWireLength,
+    z: vessel.sheath.end.z - wireDir.z * initialWireLength
+}; // start outside so the tip begins inside the vessel
 
 
 const wire = new ElasticRod(nodeCount, segmentLength);
@@ -248,9 +256,9 @@ const maxInsert = tailProgress + initialWireLength;
 const minInsert = Math.min(tailProgress - initialWireLength, 0);
 for (let i = 0; i < wire.nodes.length; i++) {
     const t = tailProgress + initialWireLength - segmentLength * i;
-    wire.nodes[i].x = tailStart.x + leftDir.x * t;
-    wire.nodes[i].y = tailStart.y + leftDir.y * t;
-    wire.nodes[i].z = tailStart.z + leftDir.z * t;
+    wire.nodes[i].x = tailStart.x + wireDir.x * t;
+    wire.nodes[i].y = tailStart.y + wireDir.y * t;
+    wire.nodes[i].z = tailStart.z + wireDir.z * t;
 }
 
 let advance = 0;
@@ -466,9 +474,9 @@ scene.add(wireMesh);
 function advanceTailInput(advance, dt) {
     tailProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * 40 * dt));
     const tail = wire.nodes[wire.nodes.length - 1];
-    tail.x = tailStart.x + leftDir.x * tailProgress;
-    tail.y = tailStart.y + leftDir.y * tailProgress;
-    tail.z = tailStart.z + leftDir.z * tailProgress;
+    tail.x = tailStart.x + wireDir.x * tailProgress;
+    tail.y = tailStart.y + wireDir.y * tailProgress;
+    tail.z = tailStart.z + wireDir.z * tailProgress;
     tail.vx = tail.vy = tail.vz = 0;
 }
 
