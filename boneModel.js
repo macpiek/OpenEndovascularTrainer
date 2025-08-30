@@ -3,29 +3,17 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 
 export function createBoneModel() {
     const material = new THREE.ShaderMaterial({
-        uniforms: {
-            thicknessMap: { value: null },
-            muBone: { value: 4.0 },
-            resolution: { value: new THREE.Vector2(1, 1) }
-        },
         transparent: true,
         depthWrite: false,
-        depthTest: false,
-        blending: THREE.AdditiveBlending,
         vertexShader: `
             void main() {
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
         fragmentShader: `
-            uniform sampler2D thicknessMap;
-            uniform float muBone;
-            uniform vec2 resolution;
             void main() {
-                vec2 uv = gl_FragCoord.xy / resolution;
-                float d = texture2D(thicknessMap, uv).r;
-                float absorb = 1.0 - exp(-muBone * d);
-                gl_FragColor = vec4(vec3(absorb), absorb);
+                // Render bones as semi-transparent white geometry
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 0.5);
             }
         `
     });
