@@ -11,7 +11,7 @@ export function createBoneModel() {
         transparent: true,
         depthWrite: false,
         depthTest: false,
-        blending: THREE.NoBlending,
+        blending: THREE.AdditiveBlending,
         vertexShader: `
             void main() {
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -25,7 +25,7 @@ export function createBoneModel() {
                 vec2 uv = gl_FragCoord.xy / resolution;
                 float d = texture2D(thicknessMap, uv).r;
                 float absorb = 1.0 - exp(-muBone * d);
-                gl_FragColor = vec4(vec3(absorb), 1.0);
+                gl_FragColor = vec4(vec3(absorb), absorb);
             }
         `
     });
