@@ -18,19 +18,48 @@
             position: absolute;
             top: 10px;
             left: 10px;
+            width: 200px;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
+        }
+        #carm-controls {
+            position: absolute;
+            top: 430px;
+            right: 10px;
+            width: 300px;
+        }
+        #controls, #carm-controls {
             color: white;
             font-family: sans-serif;
             font-size: 14px;
             background-color: rgba(0, 0, 0, 0.6);
             padding: 8px;
             border-radius: 4px;
-            width: 200px;
-            max-height: calc(100vh - 20px);
-            overflow-y: auto;
         }
-        #controls label {
+        #controls label, #carm-controls label {
             display: block;
             margin-bottom: 4px;
+        }
+
+        #joystick {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid #666;
+            border-radius: 50%;
+            touch-action: none;
+        }
+        #joystick-handle {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .parameter-label {
@@ -217,9 +246,30 @@
         </div>
     </div>
 
+    <button id="injectContrast">Inject</button>
+    <button id="stopInjection" disabled>Stop Injection</button>
+    <button id="modeToggle">Wireframe</button>
+</div>
+
+<div id="monitor">
+    <div class="vitalBox" id="hrBox">
+        <canvas id="ecgCanvas" width="300" height="100"></canvas>
+        <div class="vitalLabel">HR: <span id="hrValue">0</span></div>
+    </div>
+    <div class="vitalBox" id="bpBox">
+        <canvas id="bpCanvas" width="300" height="100"></canvas>
+        <div class="vitalLabel">BP: <span id="bpValue">0/0</span></div>
+    </div>
+</div>
+
+<div id="carm-preview"></div>
+<div id="carm-controls">
     <div class="control-section">
         <div class="section-header"><span class="collapse-triangle">▼</span> C-arm</div>
         <div class="section-content">
+            <div id="joystick">
+                <div id="joystick-handle"></div>
+            </div>
             <label class="parameter-label">C-arm yaw
                 <input id="carmYaw" type="range" min="-180" max="180" step="1" value="0">
                 <span></span>
@@ -246,24 +296,7 @@
             </label>
         </div>
     </div>
-
-    <button id="injectContrast">Inject</button>
-    <button id="stopInjection" disabled>Stop Injection</button>
-    <button id="modeToggle">Wireframe</button>
 </div>
-
-<div id="monitor">
-    <div class="vitalBox" id="hrBox">
-        <canvas id="ecgCanvas" width="300" height="100"></canvas>
-        <div class="vitalLabel">HR: <span id="hrValue">0</span></div>
-    </div>
-    <div class="vitalBox" id="bpBox">
-        <canvas id="bpCanvas" width="300" height="100"></canvas>
-        <div class="vitalLabel">BP: <span id="bpValue">0/0</span></div>
-    </div>
-</div>
-
-<div id="carm-preview"></div>
 <div id="perfStats">FPS: 0 | Mem: N/A</div>
 
 <script type="importmap">
