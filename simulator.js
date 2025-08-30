@@ -279,7 +279,7 @@ const sliders = [
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
 // Display current values next to each slider
-document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
+document.querySelectorAll('#controls input[type="range"], #carm-controls input[type="range"]').forEach(slider => {
     const valueLabel = slider.nextElementSibling;
     if (!valueLabel) return;
     const update = () => { valueLabel.textContent = slider.value; };
