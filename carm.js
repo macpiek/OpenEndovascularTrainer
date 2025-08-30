@@ -8,6 +8,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const carmXSlider = document.getElementById('carmX');
     const carmYSlider = document.getElementById('carmY');
     const carmZSlider = document.getElementById('carmZ');
+    const carmZUpButton = document.getElementById('carmZUp');
+    const carmZDownButton = document.getElementById('carmZDown');
 
     const sliders = [
         carmYawSlider,
@@ -107,27 +109,56 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
         let speedX = 0;
         let speedY = 0;
+        let speedZ = 0;
         const minX = parseFloat(carmXSlider.min);
         const maxX = parseFloat(carmXSlider.max);
         const minY = parseFloat(carmYSlider.min);
         const maxY = parseFloat(carmYSlider.max);
+        const minZ = parseFloat(carmZSlider.min);
+        const maxZ = parseFloat(carmZSlider.max);
         const maxSpeedX = (maxX - minX) / 2;
         const maxSpeedY = (maxY - minY) / 2;
+        const maxSpeedZ = (maxZ - minZ) / 2;
         let lastTime = performance.now();
 
         function step(now) {
             const dt = (now - lastTime) / 1000;
             lastTime = now;
+            let updated = false;
             if (speedX !== 0 || speedY !== 0) {
                 carmX = Math.min(Math.max(carmX + speedX * maxSpeedX * dt, minX), maxX);
                 carmY = Math.min(Math.max(carmY + speedY * maxSpeedY * dt, minY), maxY);
                 carmXSlider.value = carmX;
                 carmYSlider.value = carmY;
+                updated = true;
+            }
+            if (speedZ !== 0) {
+                carmZ = Math.min(Math.max(carmZ + speedZ * maxSpeedZ * dt, minZ), maxZ);
+                carmZSlider.value = carmZ;
+                updated = true;
+            }
+            if (updated) {
                 updateCamera();
             }
             requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
+
+        function startZ(dir) {
+            speedZ = dir;
+        }
+        function stopZ() {
+            speedZ = 0;
+        }
+        if (carmZUpButton && carmZDownButton) {
+            carmZUpButton.addEventListener('mousedown', () => startZ(1));
+            carmZDownButton.addEventListener('mousedown', () => startZ(-1));
+            window.addEventListener('mouseup', stopZ);
+            carmZUpButton.addEventListener('touchstart', e => { e.preventDefault(); startZ(1); });
+            carmZDownButton.addEventListener('touchstart', e => { e.preventDefault(); startZ(-1); });
+            window.addEventListener('touchend', stopZ);
+            window.addEventListener('touchcancel', stopZ);
+        }
 
 
         function updateFromJoystick(clientX, clientY) {

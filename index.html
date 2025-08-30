@@ -41,11 +41,24 @@
             margin-bottom: 4px;
         }
 
+        #joystick-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #carmZButtons {
+            display: flex;
+            flex-direction: column;
+            margin-right: 10px;
+        }
+        #carmZButtons button {
+            margin: 2px 0;
+        }
         #joystick {
             position: relative;
             width: 120px;
             height: 120px;
-            margin: 10px auto;
+            margin: 10px;
             background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid #666;
             border-radius: 50%;
@@ -267,8 +280,14 @@
     <div class="control-section">
         <div class="section-header"><span class="collapse-triangle">▼</span> C-arm</div>
         <div class="section-content">
-            <div id="joystick">
-                <div id="joystick-handle"></div>
+            <div id="joystick-container">
+                <div id="carmZButtons">
+                    <button id="carmZUp">Up</button>
+                    <button id="carmZDown">Down</button>
+                </div>
+                <div id="joystick">
+                    <div id="joystick-handle"></div>
+                </div>
             </div>
             <label class="parameter-label">C-arm yaw
                 <input id="carmYaw" type="range" min="-180" max="180" step="1" value="0">
