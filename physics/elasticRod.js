@@ -21,7 +21,7 @@
 // Default configuration values. These can be overridden from outside the module
 // using the exported setter functions below.
 // higher default stiffness gives stronger self-straightening
-let defaultBendingStiffness = 5;
+let defaultBendingStiffness = 50;
 let defaultSmoothingIterations = 0;
 
 // Coefficients for static and kinetic friction against vessel walls.
