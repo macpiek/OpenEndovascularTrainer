@@ -3,13 +3,14 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 
 export function createBoneModel() {
     // Use additive blending so bones brighten underlying geometry without occluding it
-    const material = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: 0.5, // reduce brightness so bones are less dominant
         depthWrite: false,
         depthTest: false, // rely on render order so vessels draw on top
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide
     });
 
     const group = new THREE.Group();
