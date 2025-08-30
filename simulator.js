@@ -70,7 +70,8 @@ blendScene.add(blendQuad);
 const depthMaterialFront = new THREE.MeshDepthMaterial({ side: THREE.FrontSide });
 const depthMaterialBack = new THREE.MeshDepthMaterial({
     side: THREE.BackSide,
-    depthFunc: THREE.GreaterEqualDepth // capture far surfaces
+
+    depthFunc: THREE.GreaterEqualDepth
 });
 const thicknessMaterial = new THREE.ShaderMaterial({
     uniforms: {
