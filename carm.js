@@ -97,5 +97,48 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmZ = parseFloat(e.target.value);
         updateCamera();
     });
+    const joystick = document.getElementById('joystick');
+    const joystickHandle = document.getElementById('joystick-handle');
+    if (joystick && joystickHandle) {
+        const handleRadius = joystickHandle.offsetWidth / 2;
+        const maxDistance = joystick.offsetWidth / 2 - handleRadius;
+        let dragging = false;
+
+        function updateFromJoystick(clientX, clientY) {
+            const rect = joystick.getBoundingClientRect();
+            let x = clientX - rect.left - rect.width / 2;
+            let y = clientY - rect.top - rect.height / 2;
+            const dist = Math.hypot(x, y);
+            if (dist > maxDistance) {
+                const ratio = maxDistance / dist;
+                x *= ratio;
+                y *= ratio;
+            }
+            joystickHandle.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+            const normX = x / maxDistance;
+            const normY = y / maxDistance;
+            const minX = parseFloat(carmXSlider.min);
+            const maxX = parseFloat(carmXSlider.max);
+            const minY = parseFloat(carmYSlider.min);
+            const maxY = parseFloat(carmYSlider.max);
+            carmX = minX + (normX + 1) / 2 * (maxX - minX);
+            carmY = minY + (1 - (normY + 1) / 2) * (maxY - minY);
+            carmXSlider.value = carmX;
+            carmYSlider.value = carmY;
+            updateCamera();
+        }
+
+        joystick.addEventListener('mousedown', e => {
+            dragging = true;
+            updateFromJoystick(e.clientX, e.clientY);
+        });
+        window.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            updateFromJoystick(e.clientX, e.clientY);
+        });
+        window.addEventListener('mouseup', () => {
+            dragging = false;
+        });
+    }
 }
 

@@ -70,7 +70,9 @@ blendScene.add(blendQuad);
 const depthMaterialFront = new THREE.MeshDepthMaterial({ side: THREE.FrontSide });
 const depthMaterialBack = new THREE.MeshDepthMaterial({
     side: THREE.BackSide,
+
     depthTest: false
+
 });
 const thicknessMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -92,6 +94,7 @@ const thicknessMaterial = new THREE.ShaderMaterial({
             float front = texture2D(frontDepth, vUv).r;
             float back = texture2D(backDepth, vUv).r;
             float thick = max(back - front, 0.0);
+
             gl_FragColor = vec4(vec3(thick), 1.0);
         }
     `
@@ -316,7 +319,7 @@ const sliders = [
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
 // Display current values next to each slider
-document.querySelectorAll('#controls input[type="range"]').forEach(slider => {
+document.querySelectorAll('#controls input[type="range"], #carm-controls input[type="range"]').forEach(slider => {
     const valueLabel = slider.nextElementSibling;
     if (!valueLabel) return;
     const update = () => { valueLabel.textContent = slider.value; };

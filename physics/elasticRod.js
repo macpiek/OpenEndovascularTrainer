@@ -13,15 +13,17 @@
  *     kappa ≈ |t_{i+1} - t_i| / L
  * with t_i the unit tangent of segment i. The bending moment is then
  *     M = EI * kappa
- * and we apply forces proportional to this curvature difference. This
+ * and we apply forces proportional to this curvature difference. A nonlinear
+ * factor (1 + kappa^2) further amplifies the response in highly bent regions,
+ * producing stronger self-straightening when curvature grows large. This
  * discretization assumes small deflections and uniform material properties.
  * Shear and torsion effects are ignored.
- */
+*/
 
 // Default configuration values. These can be overridden from outside the module
 // using the exported setter functions below.
 // higher default stiffness gives stronger self-straightening
-let defaultBendingStiffness = 5;
+let defaultBendingStiffness = 20;
 let defaultSmoothingIterations = 0;
 
 // Coefficients for static and kinetic friction against vessel walls.
@@ -134,29 +136,45 @@ export class ElasticRod {
     }
 
     // Accumulate bending forces that attempt to straighten the rod.
-    // Forces are distributed across triplets of nodes so that highly
-    // bent regions are corrected smoothly rather than at a single node.
+    // Forces are spread across a five-node stencil so curvature changes
+    // propagate smoothly rather than concentrating at a single joint.
     accumulateBendingForces() {
         const count = this.nodes.length;
         if (count < 3) return;
         for (let i = 1; i < count - 1; i++) {
-            const p0 = this.nodes[i - 1];
-            const p1 = this.nodes[i];
-            const p2 = this.nodes[i + 1];
-            const kx = p1.kx;
-            const ky = p1.ky;
-            const kz = p1.kz;
+            const prev = this.nodes[i - 1];
+            const curr = this.nodes[i];
+            const next = this.nodes[i + 1];
+            const prev2 = this.nodes[i - 2];
+            const next2 = this.nodes[i + 2];
+            const kx = curr.kx;
+            const ky = curr.ky;
+            const kz = curr.kz;
 
-            const EI = p1.bendingStiffness;
-            // apply strong straightening force proportional to local curvature
-            const fx = EI * kx;
-            const fy = EI * ky;
-            const fz = EI * kz;
+            const EI = curr.bendingStiffness;
+            // amplify straightening force when curvature is large
+            const k2 = kx * kx + ky * ky + kz * kz;
+            const scale = 1 + k2; // nonlinear scaling for strong bends
+            const fx = EI * kx * scale;
+            const fy = EI * ky * scale;
+            const fz = EI * kz * scale;
 
-            // distribute evenly: neighbours get half, center gets opposite sum
-            p0.fx += 0.5 * fx; p0.fy += 0.5 * fy; p0.fz += 0.5 * fz;
-            p2.fx += 0.5 * fx; p2.fy += 0.5 * fy; p2.fz += 0.5 * fz;
-            p1.fx -= fx; p1.fy -= fy; p1.fz -= fz;
+            // weights for immediate and next-nearest neighbours
+            const w1 = 0.4;
+            const w2 = 0.1;
+            if (prev2) {
+                prev2.fx += w2 * fx; prev2.fy += w2 * fy; prev2.fz += w2 * fz;
+            }
+            if (next2) {
+                next2.fx += w2 * fx; next2.fy += w2 * fy; next2.fz += w2 * fz;
+            }
+            prev.fx += w1 * fx; prev.fy += w1 * fy; prev.fz += w1 * fz;
+            next.fx += w1 * fx; next.fy += w1 * fy; next.fz += w1 * fz;
+
+            const sumWeights = w1 * 2 + (prev2 ? w2 : 0) + (next2 ? w2 : 0);
+            curr.fx -= sumWeights * fx;
+            curr.fy -= sumWeights * fy;
+            curr.fz -= sumWeights * fz;
         }
     }
 
@@ -273,7 +291,8 @@ export class ElasticRod {
                 }
             }
             const radius = nearest.radius;
-            if (best.dist > radius) {
+            const penetration = best.dist - radius;
+            if (penetration > 0) {
                 const inv = 1 / (best.dist || 1);
                 const nx = best.dx * inv;
                 const ny = best.dy * inv;
@@ -286,12 +305,13 @@ export class ElasticRod {
                 let ty = n.vy - vn * ny;
                 let tz = n.vz - vn * nz;
                 const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
-                const normalMag = Math.abs(vn);
-                if (tMag < wallStaticFriction * normalMag) {
+                const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz) + Math.abs(vn) * n.mass / dt;
+                const staticLimit = wallStaticFriction * normalForce * dt / n.mass;
+                const kineticLoss = wallKineticFriction * normalForce * dt / n.mass;
+                if (tMag <= staticLimit) {
                     tx = 0; ty = 0; tz = 0;
                 } else {
-                    const frictionMag = wallKineticFriction * normalMag;
-                    const scale = Math.max(0, tMag - frictionMag) / (tMag || 1);
+                    const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
                     tx *= scale;
                     ty *= scale;
                     tz *= scale;
@@ -299,6 +319,33 @@ export class ElasticRod {
                 n.vx = tx;
                 n.vy = ty;
                 n.vz = tz;
+            } else {
+                // node is within vessel; friction still applies if pressing against wall
+                const inv = 1 / (best.dist || 1);
+                const nx = best.dx * inv;
+                const ny = best.dy * inv;
+                const nz = best.dz * inv;
+                const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+                let tx = n.vx - vn * nx;
+                let ty = n.vy - vn * ny;
+                let tz = n.vz - vn * nz;
+                const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
+                const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz);
+                if (normalForce > 0 && tMag > 0) {
+                    const staticLimit = wallStaticFriction * normalForce * dt / n.mass;
+                    const kineticLoss = wallKineticFriction * normalForce * dt / n.mass;
+                    if (tMag <= staticLimit) {
+                        tx = 0; ty = 0; tz = 0;
+                    } else {
+                        const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
+                        tx *= scale;
+                        ty *= scale;
+                        tz *= scale;
+                    }
+                    n.vx = tx;
+                    n.vy = ty;
+                    n.vz = tz;
+                }
             }
         }
         if (this.smoothingIterations > 0) {
