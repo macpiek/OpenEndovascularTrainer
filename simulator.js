@@ -167,7 +167,6 @@ scene.add(light);
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
 const { group: boneGroup, material: boneMaterial } = createBoneModel();
-boneMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
 
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
 vesselGroup = new THREE.Group();
@@ -591,7 +590,6 @@ function animate(time) {
         renderer.setRenderTarget(thicknessTarget);
         renderer.render(thicknessScene, postCamera);
         renderer.setRenderTarget(null);
-        boneMaterial.uniforms.thicknessMap.value = thicknessTarget.texture;
 
         renderer.setRenderTarget(contrastTarget);
         withTransparentClear(renderer, () => {
@@ -649,6 +647,5 @@ window.addEventListener('resize', () => {
     frontDepthTarget.setSize(w, h);
     backDepthTarget.setSize(w, h);
     thicknessTarget.setSize(w, h);
-    boneMaterial.uniforms.resolution.value.set(w, h);
 });
 
