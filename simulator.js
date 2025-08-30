@@ -188,7 +188,8 @@ if (injSegmentSelect) {
 const segmentLength = 12;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
-const initialInsert = segmentLength * 10;
+// Only insert a small portion of the wire so most remains outside the vessel
+const initialInsert = segmentLength * 2;
 
 const leftDir = {
     x: (vessel.branchPoint.x - vessel.left.end.x) / vessel.left.length,
