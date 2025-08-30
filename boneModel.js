@@ -3,6 +3,9 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 
 export function createBoneModel() {
     const material = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+
         vertexShader: `
             void main() {
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -10,8 +13,8 @@ export function createBoneModel() {
         `,
         fragmentShader: `
             void main() {
-                // Render bones as solid white geometry
-                gl_FragColor = vec4(1.0);
+                // Render bones as semi-transparent white geometry
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 0.5);
             }
         `
     });
