@@ -115,45 +115,35 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         joystick.style.transform = `translate(${joyX * max}px, ${joyY * max}px)`;
     }
 
-
-    function resetJoystick() {
-        joystickActive = false;
-        joyX = 0;
-        joyY = 0;
-        joystick.style.transform = '';
-    }
-
-
     if (joystick && joystickContainer) {
         joystickContainer.addEventListener('pointerdown', e => {
             joystickActive = true;
             handleJoystickMove(e);
-
-            requestAnimationFrame(applyJoystick);
-
         });
         window.addEventListener('pointermove', e => {
             if (joystickActive) handleJoystickMove(e);
         });
-
-        window.addEventListener('pointerup', resetJoystick);
-        window.addEventListener('pointerleave', resetJoystick);
-
+        window.addEventListener('pointerup', () => {
+            joystickActive = false;
+            joyX = 0;
+            joyY = 0;
+            joystick.style.transform = '';
+        });
     }
 
     const speedScale = 0.5;
     function applyJoystick() {
-
-        if (!joystickActive) return;
-        carmX += joyX * speedScale;
-        carmY -= joyY * speedScale;
-        carmX = Math.max(parseFloat(carmXSlider.min), Math.min(parseFloat(carmXSlider.max), carmX));
-        carmY = Math.max(parseFloat(carmYSlider.min), Math.min(parseFloat(carmYSlider.max), carmY));
-        carmXSlider.value = carmX;
-        carmYSlider.value = carmY;
-        updateCamera();
+        if (joyX !== 0 || joyY !== 0) {
+            carmX += joyX * speedScale;
+            carmY -= joyY * speedScale;
+            carmX = Math.max(parseFloat(carmXSlider.min), Math.min(parseFloat(carmXSlider.max), carmX));
+            carmY = Math.max(parseFloat(carmYSlider.min), Math.min(parseFloat(carmYSlider.max), carmY));
+            carmXSlider.value = carmX;
+            carmYSlider.value = carmY;
+            updateCamera();
+        }
         requestAnimationFrame(applyJoystick);
     }
-
+    applyJoystick();
 }
 
