@@ -5,6 +5,7 @@ export function createBoneModel() {
     const material = new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
+
         vertexShader: `
             void main() {
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);

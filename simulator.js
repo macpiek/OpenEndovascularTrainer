@@ -224,7 +224,7 @@ if (injSegmentSelect) {
     injSegmentSelect.parentElement.style.display = 'none';
 }
 
-const segmentLength = 12;
+const segmentLength = 5;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
 const initialInsert = 0;
