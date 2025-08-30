@@ -138,6 +138,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         });
         window.addEventListener('mouseup', () => {
             dragging = false;
+            joystickHandle.style.transform = 'translate(-50%, -50%)';
         });
     }
 }
