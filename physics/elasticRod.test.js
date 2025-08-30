@@ -41,7 +41,9 @@ forceRod.updateCurvature();
 forceRod.accumulateBendingForces();
 console.log('center bending fy', forceRod.nodes[2].fy.toFixed(4));
 console.log('neighbor bending fy', forceRod.nodes[1].fy.toFixed(4));
+console.log('second neighbour bending fy', forceRod.nodes[0].fy.toFixed(4));
 console.assert(Math.abs(forceRod.nodes[1].fy) > 0, 'neighbour should receive bending force');
+console.assert(Math.abs(forceRod.nodes[0].fy) > 0, 'second neighbour should receive bending force');
 
 const smallBend = new ElasticRod(3, 1, { bendingStiffness: 1 });
 smallBend.nodes[1].y = 0.2;
@@ -58,7 +60,7 @@ largeBend.accumulateBendingForces();
 const largeForce = Math.abs(largeBend.nodes[1].fy);
 console.log('force small bend', smallForce.toFixed(4));
 console.log('force large bend', largeForce.toFixed(4));
-console.assert(largeForce > smallForce, 'larger curvature should yield greater straightening force');
+console.assert(largeForce > smallForce * 10, 'larger curvature should yield much greater straightening force');
 
 // higher stiffness should produce proportionally larger straightening force
 const soft = new ElasticRod(3, 1, { bendingStiffness: 1 });
@@ -115,3 +117,13 @@ console.log('kinetic friction vx', slideRod.nodes[1].vx.toFixed(4));
 console.log('kinetic friction vy', slideRod.nodes[1].vy.toFixed(4));
 console.assert(Math.abs(slideRod.nodes[1].vx - 1.75) < 1e-6, 'kinetic friction should reduce tangential velocity');
 console.assert(Math.abs(slideRod.nodes[1].vy) < 1e-6, 'normal velocity should be zero after collision');
+
+// pressing against wall without normal velocity should still induce friction
+const pressRod = new ElasticRod(2, 1);
+pressRod.nodes[1].x = 1;
+pressRod.nodes[1].y = 2;
+pressRod.nodes[1].vx = 1;
+pressRod.nodes[1].fy = 10; // force pushing into wall
+pressRod.collide(vessel);
+console.log('force friction vx', pressRod.nodes[1].vx.toFixed(4));
+console.assert(Math.abs(pressRod.nodes[1].vx) < 1e-6, 'pressing force should lock tangential motion');
