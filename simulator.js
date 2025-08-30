@@ -30,6 +30,9 @@ const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.in
 const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget2 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const frontDepthTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const backDepthTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const thicknessTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
 
@@ -63,6 +66,39 @@ const blendMaterial = new THREE.ShaderMaterial({
 const blendQuad = new THREE.Mesh(quadGeometry, blendMaterial);
 const blendScene = new THREE.Scene();
 blendScene.add(blendQuad);
+
+const depthMaterialFront = new THREE.MeshDepthMaterial({ side: THREE.FrontSide });
+const depthMaterialBack = new THREE.MeshDepthMaterial({
+    side: THREE.BackSide,
+    depthFunc: THREE.GreaterEqualDepth
+});
+const thicknessMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        frontDepth: { value: frontDepthTarget.texture },
+        backDepth: { value: backDepthTarget.texture }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D frontDepth;
+        uniform sampler2D backDepth;
+        varying vec2 vUv;
+        void main() {
+            float front = texture2D(frontDepth, vUv).r;
+            float back = texture2D(backDepth, vUv).r;
+            float thick = max(back - front, 0.0);
+            gl_FragColor = vec4(vec3(thick), 1.0);
+        }
+    `
+});
+const thicknessQuad = new THREE.Mesh(quadGeometry, thicknessMaterial);
+const thicknessScene = new THREE.Scene();
+thicknessScene.add(thicknessQuad);
 
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -127,7 +163,8 @@ scene.add(light);
 
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
-const boneGroup = createBoneModel();
+const { group: boneGroup, material: boneMaterial } = createBoneModel();
+boneMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
 
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
 vesselGroup = new THREE.Group();
@@ -528,6 +565,31 @@ function animate(time) {
     stopInjectButton.disabled = !injecting;
     monitor.update(dt);
     if (fluoroscopy) {
+        const hidden = [];
+        for (const child of scene.children) {
+            if (child !== boneGroup && !child.isCamera) {
+                hidden.push({ obj: child, visible: child.visible });
+                child.visible = false;
+            }
+        }
+        scene.overrideMaterial = depthMaterialFront;
+        renderer.setRenderTarget(frontDepthTarget);
+        renderer.clear();
+        renderer.render(scene, camera);
+        scene.overrideMaterial = depthMaterialBack;
+        renderer.setRenderTarget(backDepthTarget);
+        renderer.clear();
+        renderer.render(scene, camera);
+        scene.overrideMaterial = null;
+        renderer.setRenderTarget(null);
+        for (const h of hidden) h.obj.visible = h.visible;
+        thicknessMaterial.uniforms.frontDepth.value = frontDepthTarget.texture;
+        thicknessMaterial.uniforms.backDepth.value = backDepthTarget.texture;
+        renderer.setRenderTarget(thicknessTarget);
+        renderer.render(thicknessScene, postCamera);
+        renderer.setRenderTarget(null);
+        boneMaterial.uniforms.thicknessMap.value = thicknessTarget.texture;
+
         renderer.setRenderTarget(contrastTarget);
         withTransparentClear(renderer, () => {
             renderer.clear();
@@ -581,5 +643,9 @@ window.addEventListener('resize', () => {
     contrastTarget.setSize(w, h);
     accumulateTarget1.setSize(w, h);
     accumulateTarget2.setSize(w, h);
+    frontDepthTarget.setSize(w, h);
+    backDepthTarget.setSize(w, h);
+    thicknessTarget.setSize(w, h);
+    boneMaterial.uniforms.resolution.value.set(w, h);
 });
 
