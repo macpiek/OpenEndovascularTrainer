@@ -115,6 +115,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         joystick.style.transform = `translate(${joyX * max}px, ${joyY * max}px)`;
     }
 
+
     function resetJoystick() {
         joystickActive = false;
         joyX = 0;
@@ -122,21 +123,27 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         joystick.style.transform = '';
     }
 
+
     if (joystick && joystickContainer) {
         joystickContainer.addEventListener('pointerdown', e => {
             joystickActive = true;
             handleJoystickMove(e);
+
             requestAnimationFrame(applyJoystick);
+
         });
         window.addEventListener('pointermove', e => {
             if (joystickActive) handleJoystickMove(e);
         });
+
         window.addEventListener('pointerup', resetJoystick);
         window.addEventListener('pointerleave', resetJoystick);
+
     }
 
     const speedScale = 0.5;
     function applyJoystick() {
+
         if (!joystickActive) return;
         carmX += joyX * speedScale;
         carmY -= joyY * speedScale;
@@ -147,5 +154,6 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         updateCamera();
         requestAnimationFrame(applyJoystick);
     }
+
 }
 
