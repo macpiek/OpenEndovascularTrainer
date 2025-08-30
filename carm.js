@@ -97,5 +97,55 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmZ = parseFloat(e.target.value);
         updateCamera();
     });
+
+    // Joystick control for C-arm translation speed
+    const joystick = document.getElementById('joystick');
+    const joystickContainer = document.getElementById('joystick-container');
+    let joyX = 0;
+    let joyY = 0;
+    let joystickActive = false;
+
+    function handleJoystickMove(e) {
+        const rect = joystickContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const max = rect.width / 2;
+        joyX = Math.max(-1, Math.min(1, x / max));
+        joyY = Math.max(-1, Math.min(1, y / max));
+        joystick.style.transform = `translate(${joyX * max}px, ${joyY * max}px)`;
+    }
+
+    function resetJoystick() {
+        joystickActive = false;
+        joyX = 0;
+        joyY = 0;
+        joystick.style.transform = '';
+    }
+
+    if (joystick && joystickContainer) {
+        joystickContainer.addEventListener('pointerdown', e => {
+            joystickActive = true;
+            handleJoystickMove(e);
+            requestAnimationFrame(applyJoystick);
+        });
+        window.addEventListener('pointermove', e => {
+            if (joystickActive) handleJoystickMove(e);
+        });
+        window.addEventListener('pointerup', resetJoystick);
+        window.addEventListener('pointerleave', resetJoystick);
+    }
+
+    const speedScale = 0.5;
+    function applyJoystick() {
+        if (!joystickActive) return;
+        carmX += joyX * speedScale;
+        carmY -= joyY * speedScale;
+        carmX = Math.max(parseFloat(carmXSlider.min), Math.min(parseFloat(carmXSlider.max), carmX));
+        carmY = Math.max(parseFloat(carmYSlider.min), Math.min(parseFloat(carmYSlider.max), carmY));
+        carmXSlider.value = carmX;
+        carmYSlider.value = carmY;
+        updateCamera();
+        requestAnimationFrame(applyJoystick);
+    }
 }
 
