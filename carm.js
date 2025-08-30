@@ -104,6 +104,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         const maxDistance = joystick.offsetWidth / 2 - handleRadius;
         let dragging = false;
         const handleTransition = 'transform 0.2s ease-out';
+
         let speedX = 0;
         let speedY = 0;
         const minX = parseFloat(carmXSlider.min);
@@ -127,6 +128,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
+
 
         function updateFromJoystick(clientX, clientY) {
             const rect = joystick.getBoundingClientRect();
@@ -160,6 +162,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             joystickHandle.style.transform = 'translate(-50%, -50%)';
             speedX = 0;
             speedY = 0;
+
         });
     }
 }
