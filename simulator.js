@@ -70,7 +70,9 @@ blendScene.add(blendQuad);
 const depthMaterialFront = new THREE.MeshDepthMaterial({ side: THREE.FrontSide });
 const depthMaterialBack = new THREE.MeshDepthMaterial({
     side: THREE.BackSide,
-    depthFunc: THREE.GreaterEqualDepth
+
+    depthTest: false
+
 });
 const thicknessMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -91,8 +93,7 @@ const thicknessMaterial = new THREE.ShaderMaterial({
         void main() {
             float front = texture2D(frontDepth, vUv).r;
             float back = texture2D(backDepth, vUv).r;
-
-            float thick = max(front - back, 0.0);
+            float thick = max(back - front, 0.0);
 
             gl_FragColor = vec4(vec3(thick), 1.0);
         }
