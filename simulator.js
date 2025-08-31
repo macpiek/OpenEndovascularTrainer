@@ -507,6 +507,7 @@ function updateWireMesh() {
         wirePositions[i * 3 + 2] = n.z;
     }
     wireGeometry.attributes.position.needsUpdate = true;
+    wireGeometry.computeBoundingSphere();
 }
 
 let lastTime = performance.now();
