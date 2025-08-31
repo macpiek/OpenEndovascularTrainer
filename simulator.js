@@ -262,7 +262,9 @@ let tailProgress = 0;
 const maxInsert = initialWireLength;
 const minInsert = -initialWireLength;
 for (let i = 0; i < wire.nodes.length; i++) {
-    const t = initialWireLength - segmentLength * i;
+
+    const t = segmentLength * i;
+
     wire.nodes[i].x = tailStart.x + wireDir.x * t;
     wire.nodes[i].y = tailStart.y + wireDir.y * t;
     wire.nodes[i].z = tailStart.z + wireDir.z * t;
@@ -487,7 +489,7 @@ scene.add(wireMesh);
 
 function advanceTailInput(advance, dt) {
     tailProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * 40 * dt));
-    const tail = wire.nodes[wire.nodes.length - 1];
+    const tail = wire.nodes[0];
     tail.x = tailStart.x + wireDir.x * tailProgress;
     tail.y = tailStart.y + wireDir.y * tailProgress;
     tail.z = tailStart.z + wireDir.z * tailProgress;
