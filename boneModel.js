@@ -7,14 +7,18 @@ export function createBoneModel() {
         depthWrite: false,
 
         vertexShader: `
+            varying vec3 vNormal;
             void main() {
+                vNormal = normalize(normalMatrix * normal);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
         fragmentShader: `
+            varying vec3 vNormal;
             void main() {
-                // Render bones as semi-transparent white geometry
-                gl_FragColor = vec4(1.0, 1.0, 1.0, 0.1);
+                // Fade bone edges by reducing opacity near the silhouette
+                float edgeFactor = abs(vNormal.z);
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 0.15 * edgeFactor);
             }
         `
     });

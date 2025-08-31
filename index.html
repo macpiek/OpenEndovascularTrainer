@@ -53,6 +53,9 @@
         }
         #carmZButtons button {
             margin: 2px 0;
+            width: 60px;
+            height: 40px;
+            font-size: 18px;
         }
         #joystick {
             position: relative;
@@ -262,6 +265,7 @@
     <button id="injectContrast">Inject</button>
     <button id="stopInjection" disabled>Stop Injection</button>
     <button id="modeToggle">Wireframe</button>
+    <label><input id="renderVoxels" type="checkbox"> Render voxels</label>
 </div>
 
 <div id="monitor">
@@ -311,6 +315,10 @@
             </label>
             <label class="parameter-label">C-arm Z
                 <input id="carmZ" type="range" min="-200" max="400" step="1" value="60">
+                <span></span>
+            </label>
+            <label class="parameter-label">Detector distance
+                <input id="carmDetDist" type="range" min="200" max="600" step="1" value="350">
                 <span></span>
             </label>
         </div>
