@@ -243,19 +243,21 @@ const wireDir = {
 // Place the tip slightly within the left branch
 const initialInsert = Math.max(sheathPath - 5, 0);
 
+// Offset the tail so the tip begins inside the vessel while the tail
+// remains outside the sheath
 const tailStart = {
-    x: vessel.sheath.end.x - wireDir.x * initialWireLength,
-    y: vessel.sheath.end.y - wireDir.y * initialWireLength,
-    z: vessel.sheath.end.z - wireDir.z * initialWireLength
-}; // start outside so the tip begins inside the vessel
+    x: vessel.sheath.end.x - wireDir.x * (initialWireLength - initialInsert),
+    y: vessel.sheath.end.y - wireDir.y * (initialWireLength - initialInsert),
+    z: vessel.sheath.end.z - wireDir.z * (initialWireLength - initialInsert)
+};
 
 
 const wire = new ElasticRod(nodeCount, segmentLength);
-let tailProgress = initialInsert;
-const maxInsert = tailProgress + initialWireLength;
-const minInsert = Math.min(tailProgress - initialWireLength, 0);
+let tailProgress = 0;
+const maxInsert = initialWireLength;
+const minInsert = -initialWireLength;
 for (let i = 0; i < wire.nodes.length; i++) {
-    const t = tailProgress + initialWireLength - segmentLength * i;
+    const t = initialWireLength - segmentLength * i;
     wire.nodes[i].x = tailStart.x + wireDir.x * t;
     wire.nodes[i].y = tailStart.y + wireDir.y * t;
     wire.nodes[i].z = tailStart.z + wireDir.z * t;
