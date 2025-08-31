@@ -182,11 +182,11 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
         y: sheathStart.y + sheathDir.y * finalLength,
         z: sheathStart.z + sheathDir.z * finalLength
     };
-    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength };
+    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
 
 
     // Add a segment for the sheath so the guidewire can traverse it
-    vessel.segments.push({ start: sheathStart, end: sheathEnd, radius: sheathRadius });
+    vessel.segments.push(vessel.sheath);
 
     // Compute segment lengths and volumes
     for (const seg of vessel.segments) {

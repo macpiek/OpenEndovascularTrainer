@@ -46,7 +46,9 @@ export function setWallFriction(staticCoeff, kineticCoeff) {
 
 // Project point n onto vessel segment seg.
 // Returns closest point (px,py,pz), offset vector (dx,dy,dz) from projection
-// to the node and the distance between them.
+// to the node and the distance between them. Also returns the unclamped
+// segment parameter t before restricting it to [0,1] so callers can detect
+// if the node lies beyond an endpoint.
 function projectOnSegment(n, seg) {
     const vx = seg.end.x - seg.start.x;
     const vy = seg.end.y - seg.start.y;
@@ -55,8 +57,8 @@ function projectOnSegment(n, seg) {
     const wy = n.y - seg.start.y;
     const wz = n.z - (seg.start.z || 0);
     const len2 = vx * vx + vy * vy + vz * vz;
-    let t = (wx * vx + wy * vy + wz * vz) / len2;
-    t = Math.max(0, Math.min(1, t));
+    const tRaw = (wx * vx + wy * vy + wz * vz) / len2;
+    const t = Math.max(0, Math.min(1, tRaw));
     const px = seg.start.x + vx * t;
     const py = seg.start.y + vy * t;
     const pz = (seg.start.z || 0) + vz * t;
@@ -64,7 +66,7 @@ function projectOnSegment(n, seg) {
     const dy = n.y - py;
     const dz = n.z - pz;
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    return { px, py, pz, dx, dy, dz, dist };
+    return { px, py, pz, dx, dy, dz, dist, t: tRaw };
 }
 
 export class ElasticRod {
@@ -289,6 +291,11 @@ export class ElasticRod {
                     best = p;
                     nearest = seg;
                 }
+            }
+            // If this node lies beyond the external end of the sheath, allow it
+            // to exit without applying collision or friction constraints.
+            if (nearest.isSheath && best.t < 0) {
+                continue;
             }
             const radius = nearest.radius;
             const penetration = best.dist - radius;

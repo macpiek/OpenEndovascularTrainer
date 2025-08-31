@@ -127,3 +127,12 @@ pressRod.nodes[1].fy = 10; // force pushing into wall
 pressRod.collide(vessel);
 console.log('force friction vx', pressRod.nodes[1].vx.toFixed(4));
 console.assert(Math.abs(pressRod.nodes[1].vx) < 1e-6, 'pressing force should lock tangential motion');
+
+// node outside the introducer sheath should remain unconstrained
+const sheath = { segments: [{ start: { x: 0, y: 0, z: 0 }, end: { x: 1, y: 0, z: 0 }, radius: 1, isSheath: true }] };
+const exitRod = new ElasticRod(2, 1);
+exitRod.nodes[1].x = -0.5; // outside beyond sheath start
+exitRod.nodes[1].vx = -1;
+exitRod.collide(sheath);
+console.log('sheath exit x', exitRod.nodes[1].x.toFixed(4));
+console.assert(Math.abs(exitRod.nodes[1].x + 0.5) < 1e-6, 'node beyond sheath should not be clamped');
