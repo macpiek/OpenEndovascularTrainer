@@ -99,12 +99,14 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  * Defaults produce repeatable geometry; modify arguments to change it explicitly.
  * @param {number} branchLength length of each branch in units (default 140)
  * @param {number} branchAngleOffset angle offset in radians for branches (default 0)
- * @param {number} sheathLength length of the left-branch sheath (default 20)
- * @param {number} sheathRadius radius of the left-branch sheath (default 5)
+ * @param {number|null} sheathLength minimum length of the left-branch sheath; if
+ *   omitted or shorter than the required distance it automatically extends to
+ *   the branch point
+ * @param {number} sheathRadius radius of the left-branch sheath (default 2)
  * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation.
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
 */
-export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = 20, sheathRadius = 2) {
+export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = null, sheathRadius = 2) {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
     const branchPointY = -300;
@@ -162,6 +164,28 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     vessel.segments.push({start: vessel.right.curveEnd, end: vessel.right.end, radius: branchRadius});
     addCurve(mainEnd, vessel.branchPoint, vessel.left.curveEnd);
     vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
+
+    // Introducer sheath extending from an external entry toward the vessel.
+    // Ensure it reaches at least to the branch point so the guidewire can
+    // transition from outside into the lumen.
+    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y - 5, z: vessel.left.end.z + 12 };
+    const sheathVec = new THREE.Vector3(
+        vessel.branchPoint.x - sheathStart.x,
+        vessel.branchPoint.y - sheathStart.y,
+        vessel.branchPoint.z - sheathStart.z
+    );
+    const autoLength = sheathVec.length();
+    const finalLength = sheathLength == null ? autoLength : Math.max(sheathLength, autoLength);
+    const sheathDir = sheathVec.clone().normalize();
+    const sheathEnd = {
+        x: sheathStart.x + sheathDir.x * finalLength,
+        y: sheathStart.y + sheathDir.y * finalLength,
+        z: sheathStart.z + sheathDir.z * finalLength
+    };
+    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength };
+
+    // Add a segment for the sheath so the guidewire can traverse it
+    vessel.segments.push({ start: sheathStart, end: sheathEnd, radius: sheathRadius });
 
     // Compute segment lengths and volumes
     for (const seg of vessel.segments) {
@@ -253,36 +277,14 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
 
     const geometry = createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLength, blend, branchAngleOffset);
 
-    // Sheath geometry at the entrance of the left branch, angled 30° anteriorly
-    const outDir = {
-        x: (vessel.left.end.x - vessel.branchPoint.x) / vessel.left.length,
-        y: (vessel.left.end.y - vessel.branchPoint.y) / vessel.left.length,
-        z: (vessel.left.end.z - vessel.branchPoint.z) / vessel.left.length
-    };
-    // Tilt the sheath 30° toward the +Z (anterior) direction
-    const outVec = new THREE.Vector3(outDir.x, outDir.y, outDir.z).normalize();
-    const tiltAxis = new THREE.Vector3().crossVectors(outVec, new THREE.Vector3(0, 0, 1)).normalize();
-    const tiltQuat = new THREE.Quaternion().setFromAxisAngle(tiltAxis, THREE.MathUtils.degToRad(30));
-    outVec.applyQuaternion(tiltQuat);
-    outDir.x = outVec.x;
-    outDir.y = outVec.y;
-    outDir.z = outVec.z;
-
-    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y-5, z: vessel.left.end.z +12};
-    const sheathEnd = {
-        x: sheathStart.x + outDir.x * sheathLength,
-        y: sheathStart.y + outDir.y * sheathLength,
-        z: sheathStart.z + outDir.z * sheathLength
-    };
-    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: sheathLength };
-
-    const sheathGeom = new THREE.CylinderGeometry(sheathRadius, sheathRadius, sheathLength, 16, 1, true);
-    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), outVec);
+    // Build geometry for the introducer sheath
+    const sheathGeom = new THREE.CylinderGeometry(sheathRadius, sheathRadius, vessel.sheath.length, 16, 1, true);
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sheathDir);
     sheathGeom.applyQuaternion(quat);
     const mid = new THREE.Vector3(
-        sheathStart.x + outDir.x * sheathLength / 2,
-        sheathStart.y + outDir.y * sheathLength / 2,
-        sheathStart.z + outDir.z * sheathLength / 2
+        sheathStart.x + sheathDir.x * vessel.sheath.length / 2,
+        sheathStart.y + sheathDir.y * vessel.sheath.length / 2,
+        sheathStart.z + sheathDir.z * vessel.sheath.length / 2
     );
     sheathGeom.translate(mid.x, mid.y, mid.z);
 
