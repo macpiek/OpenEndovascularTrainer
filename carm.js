@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import { renderCArmPreview } from './carmPreview.js';
 
+// The perspective camera is placed at the X-ray source so that the rendered
+// image matches what a detector would capture. A virtual detector sits opposite
+// the source and its distance from the isocentre can be adjusted to vary
+// magnification. Rays diverge from the source toward this plane, so objects
+// nearer the source appear larger on the on-screen "detector" view just as in a
+// real C-arm.
 export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry) {
     const carmYawSlider = document.getElementById('carmYaw');
     const carmPitchSlider = document.getElementById('carmPitch');
@@ -8,6 +14,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const carmXSlider = document.getElementById('carmX');
     const carmYSlider = document.getElementById('carmY');
     const carmZSlider = document.getElementById('carmZ');
+    const carmDetDistSlider = document.getElementById('carmDetDist');
     const carmZUpButton = document.getElementById('carmZUp');
     const carmZDownButton = document.getElementById('carmZDown');
 
@@ -17,7 +24,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmRollSlider,
         carmXSlider,
         carmYSlider,
-        carmZSlider
+        carmZSlider,
+        carmDetDistSlider
     ];
     sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
@@ -27,6 +35,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let carmX = parseFloat(carmXSlider.value);
     let carmY = parseFloat(carmYSlider.value);
     let carmZ = parseFloat(carmZSlider.value);
+    let detectorRadius = parseFloat(carmDetDistSlider.value);
 
     const initialX = carmX;
     const initialY = carmY;
@@ -40,14 +49,25 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         );
     }
 
+    // Distance from isocentre to detector is set by the slider. The source
+    // remains `cameraRadius` away on the opposite side.
+
     function updateCamera() {
         const pivot = getPivotPoint();
-        const offset = new THREE.Vector3().setFromSpherical(
-            new THREE.Spherical(cameraRadius, Math.PI / 2 - carmPitch, carmYaw)
-        );
-        camera.position.copy(pivot).add(offset);
+        // Direction from isocentre toward the source/detector axis.
+        const dir = new THREE.Vector3().setFromSpherical(
+            new THREE.Spherical(1, Math.PI / 2 - carmPitch, carmYaw)
+        ).normalize();
+
+        // Position the source (camera) opposite the detector.
+        const sourcePos = pivot.clone().addScaledVector(dir, cameraRadius);
+        const detectorPos = pivot.clone().addScaledVector(dir, -detectorRadius);
+
+        // Render from the source position while looking toward the detector so
+        // the perspective matches the detector's recorded image.
+        camera.position.copy(sourcePos);
         camera.up.set(0, 1, 0);
-        camera.lookAt(pivot);
+        camera.lookAt(detectorPos);
         camera.rotateZ(carmRoll);
 
         if (previewGroup) {
@@ -97,6 +117,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     });
     carmZSlider.addEventListener('input', e => {
         carmZ = parseFloat(e.target.value);
+        updateCamera();
+    });
+    carmDetDistSlider.addEventListener('input', e => {
+        detectorRadius = parseFloat(e.target.value);
         updateCamera();
     });
     const joystick = document.getElementById('joystick');
