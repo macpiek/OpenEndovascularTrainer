@@ -232,11 +232,11 @@ if (injSegmentSelect) {
 const segmentLength = 5;
 const nodeCount = 80;
 const initialWireLength = segmentLength * (nodeCount - 1);
-// Direction from the sheath exit back into the vessel
+// Direction from the sheath entrance toward the vessel
 const sheathDirVec = {
-    x: vessel.branchPoint.x - vessel.sheath.end.x,
-    y: vessel.branchPoint.y - vessel.sheath.end.y,
-    z: vessel.branchPoint.z - vessel.sheath.end.z
+    x: vessel.branchPoint.x - vessel.sheath.start.x,
+    y: vessel.branchPoint.y - vessel.sheath.start.y,
+    z: vessel.branchPoint.z - vessel.sheath.start.z
 };
 const sheathPath = Math.hypot(sheathDirVec.x, sheathDirVec.y, sheathDirVec.z) || 1;
 const wireDir = {
@@ -245,15 +245,18 @@ const wireDir = {
     z: sheathDirVec.z / sheathPath
 };
 
-// Place the tip slightly within the left branch
-const initialInsert = Math.max(sheathPath - 5, 0);
+// Start the tip just inside the sheath entrance
+const tipStart = {
+    x: vessel.sheath.start.x,
+    y: vessel.sheath.start.y,
+    z: vessel.sheath.start.z
+};
 
-// Offset the tail so the tip begins inside the vessel while the tail
-// remains outside the sheath
+// Position the tail so the wire extends far outside the sheath
 const tailStart = {
-    x: vessel.sheath.end.x - wireDir.x * (initialWireLength - initialInsert),
-    y: vessel.sheath.end.y - wireDir.y * (initialWireLength - initialInsert),
-    z: vessel.sheath.end.z - wireDir.z * (initialWireLength - initialInsert)
+    x: tipStart.x - wireDir.x * initialWireLength,
+    y: tipStart.y - wireDir.y * initialWireLength,
+    z: tipStart.z - wireDir.z * initialWireLength
 };
 
 
