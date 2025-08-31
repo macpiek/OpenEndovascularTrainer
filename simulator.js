@@ -6,6 +6,7 @@ import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPreview.js';
 import { createBoneModel } from './boneModel.js';
+import { VoxelContrastAgent, getVoxelMeshes } from './voxelContrastAgent.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -202,6 +203,10 @@ const pivot = new THREE.Vector3(
 
 const contrast = new ContrastAgent(vessel);
 let contrastMesh = null;
+const voxelAgent = new VoxelContrastAgent(vessel, 2, 0.05);
+const voxelGroup = new THREE.Group();
+voxelGroup.visible = false;
+scene.add(voxelGroup);
 
 // Debug toggle to log contrast information
 const debugLabel = document.createElement('label');
@@ -291,6 +296,7 @@ const staticFricSlider = document.getElementById('staticFriction');
 const kineticFricSlider = document.getElementById('kineticFriction');
 const smoothIterSlider = document.getElementById('smoothIterations');
 const modeToggle = document.getElementById('modeToggle');
+const voxelRenderToggle = document.getElementById('renderVoxels');
 const injectButton = document.getElementById('injectContrast');
 const stopInjectButton = document.getElementById('stopInjection');
 const injRateSlider = document.getElementById('injRate');
@@ -326,6 +332,12 @@ const sliders = [
     injDurationSlider
 ];
 sliders.forEach(s => s.addEventListener('change', () => s.blur()));
+
+if (voxelRenderToggle) {
+    voxelRenderToggle.addEventListener('change', e => {
+        voxelGroup.visible = e.target.checked;
+    });
+}
 
 // Display current values next to each slider
 document.querySelectorAll('#controls input[type="range"], #carm-controls input[type="range"]').forEach(slider => {
@@ -528,6 +540,7 @@ function animate(time) {
     if (injecting) {
         const amt = Math.min(injectRate * dt, remainingVolume);
         contrast.inject(amt, injectSegmentIndex, false);
+        voxelAgent.inject(amt, injectSegmentIndex, false);
         totalDose += amt;
         doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
         injectTime += dt;
@@ -538,6 +551,12 @@ function animate(time) {
         }
     }
     contrast.update(dt);
+    voxelAgent.update(dt);
+    if (voxelGroup.visible) {
+        voxelGroup.clear();
+        const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, true);
+        for (const m of voxMeshes) voxelGroup.add(m);
+    }
     if (contrast.debug) {
         const mainConc = contrast.concentration[injectSegmentIndex] / (contrast.volumes[injectSegmentIndex] || 1);
         const parentConc = parentIndex >= 0 ? contrast.concentration[parentIndex] / (contrast.volumes[parentIndex] || 1) : 0;
