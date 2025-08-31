@@ -533,6 +533,8 @@ function animate(time) {
     // Accumulate time and step the physics at a fixed rate.
     accumulator += Math.min(dt, fixedDt * maxSubSteps);
     while (accumulator >= fixedDt) {
+        console.log(wire.nodes[0].x, wire.nodes[0].y, wire.nodes[0].z)
+
         advanceTailInput(advance, fixedDt);
         wire.step(fixedDt);
         wire.collide(vessel, fixedDt);

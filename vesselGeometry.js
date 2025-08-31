@@ -184,6 +184,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     };
     vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength };
 
+
     // Add a segment for the sheath so the guidewire can traverse it
     vessel.segments.push({ start: sheathStart, end: sheathEnd, radius: sheathRadius });
 
@@ -285,6 +286,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
         sheathStart.x + sheathDir.x * vessel.sheath.length / 2,
         sheathStart.y + sheathDir.y * vessel.sheath.length / 2,
         sheathStart.z + sheathDir.z * vessel.sheath.length / 2
+
     );
     sheathGeom.translate(mid.x, mid.y, mid.z);
 
