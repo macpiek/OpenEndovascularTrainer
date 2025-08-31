@@ -18,7 +18,7 @@ export function createBoneModel() {
             void main() {
                 // Fade bone edges by reducing opacity near the silhouette
                 float edgeFactor = abs(vNormal.z);
-                gl_FragColor = vec4(1.0, 1.0, 1.0, 0.1 * edgeFactor);
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 0.15 * edgeFactor);
             }
         `
     });
