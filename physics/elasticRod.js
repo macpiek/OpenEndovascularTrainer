@@ -285,112 +285,35 @@ export class ElasticRod {
         if (!vessel) return;
         const geom = vessel.geometry;
         const sheath = vessel.segments && vessel.segments.find(s => s.isSheath);
-        if (geom && geom.boundsTree) {
-            const p = new THREE.Vector3();
-            const target = new THREE.Vector3();
-            const normal = new THREE.Vector3();
-            for (const n of this.nodes) {
-                if (sheath) {
-                    const shProj = projectOnSegment(n, sheath);
-                    const radial = Math.sqrt(shProj.dx * shProj.dx + shProj.dy * shProj.dy + shProj.dz * shProj.dz);
-                    if (shProj.t < 0 && radial <= sheath.radius) continue;
-                }
-                p.set(n.x, n.y, n.z);
-                geom.boundsTree.closestPointToPoint(p, { point: target, normal });
-                const dx = p.x - target.x;
-                const dy = p.y - target.y;
-                const dz = p.z - target.z;
-                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                if (normal.lengthSq() === 0) {
-                    const inv = 1 / (dist || 1);
-                    normal.set(dx * inv, dy * inv, dz * inv);
-                }
-                const dot = dx * normal.x + dy * normal.y + dz * normal.z;
-                const penetration = dot > 0 ? dist : -dist;
-                const nx = normal.x;
-                const ny = normal.y;
-                const nz = normal.z;
-                if (penetration > 0) {
-                    n.x = target.x;
-                    n.y = target.y;
-                    n.z = target.z;
-                    const vn = n.vx * nx + n.vy * ny + n.vz * nz;
-                    let tx = n.vx - vn * nx;
-                    let ty = n.vy - vn * ny;
-                    let tz = n.vz - vn * nz;
-                    const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
-                    const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz) + Math.abs(vn) * n.mass / dt;
-                    const staticLimit = wallStaticFriction * normalForce * dt / n.mass;
-                    const kineticLoss = wallKineticFriction * normalForce * dt / n.mass;
-                    if (tMag <= staticLimit) {
-                        tx = 0; ty = 0; tz = 0;
-                    } else {
-                        const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
-                        tx *= scale; ty *= scale; tz *= scale;
-                    }
-                    n.vx = tx; n.vy = ty; n.vz = tz;
-                } else {
-                    const vn = n.vx * nx + n.vy * ny + n.vz * nz;
-                    let tx = n.vx - vn * nx;
-                    let ty = n.vy - vn * ny;
-                    let tz = n.vz - vn * nz;
-                    const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
-                    const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz);
-                    if (normalForce > 0 && tMag > 0) {
-                        const staticLimit = wallStaticFriction * normalForce * dt / n.mass;
-                        const kineticLoss = wallKineticFriction * normalForce * dt / n.mass;
-                        if (tMag <= staticLimit) {
-                            tx = 0; ty = 0; tz = 0;
-                        } else {
-                            const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
-                            tx *= scale; ty *= scale; tz *= scale;
-                        }
-                        n.vx = tx; n.vy = ty; n.vz = tz;
-                    }
-                }
-            }
-            if (this.smoothingIterations > 0) {
-                this.laplacianSmooth(dt);
-            }
-            return;
-        }
-        if (!vessel.segments || !vessel.segments.length) return;
+        if (!geom || !geom.boundsTree) return;
+        const p = new THREE.Vector3();
+        const target = new THREE.Vector3();
+        const normal = new THREE.Vector3();
         for (const n of this.nodes) {
-
-            let bestInside = null;
-            let bestOutside = null;
-            for (const seg of vessel.segments) {
-                const p = projectOnSegment(n, seg);
-                const pen = p.dist - seg.radius;
-                if (pen <= 0) {
-                    const depth = -pen;
-                    if (!bestInside || depth < bestInside.depth) {
-                        bestInside = { seg, p, depth, penetration: pen };
-                    }
-                } else if (!bestOutside || pen < bestOutside.penetration) {
-                    bestOutside = { seg, p, penetration: pen };
-
-                }
+            if (sheath) {
+                const shProj = projectOnSegment(n, sheath);
+                const radial = Math.sqrt(shProj.dx * shProj.dx + shProj.dy * shProj.dy + shProj.dz * shProj.dz);
+                if (shProj.t < 0 && radial <= sheath.radius) continue;
             }
-            const choice = bestInside || bestOutside;
-            if (!choice) continue;
-            const nearest = choice.seg;
-            const best = choice.p;
-            const penetration = choice.penetration;
-            // If this node lies beyond the external end of the sheath, allow it
-            // to exit without applying collision or friction constraints.
-            if (nearest.isSheath && best.t < 0) {
-                continue;
+            p.set(n.x, n.y, n.z);
+            geom.boundsTree.closestPointToPoint(p, { point: target, normal });
+            const dx = p.x - target.x;
+            const dy = p.y - target.y;
+            const dz = p.z - target.z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (normal.lengthSq() === 0) {
+                const inv = 1 / (dist || 1);
+                normal.set(dx * inv, dy * inv, dz * inv);
             }
-            const radius = nearest.radius;
+            const dot = dx * normal.x + dy * normal.y + dz * normal.z;
+            const penetration = dot > 0 ? dist : -dist;
+            const nx = normal.x;
+            const ny = normal.y;
+            const nz = normal.z;
             if (penetration > 0) {
-                const inv = 1 / (best.dist || 1);
-                const nx = best.dx * inv;
-                const ny = best.dy * inv;
-                const nz = best.dz * inv;
-                n.x = best.px + nx * radius;
-                n.y = best.py + ny * radius;
-                n.z = best.pz + nz * radius;
+                n.x = target.x;
+                n.y = target.y;
+                n.z = target.z;
                 const vn = n.vx * nx + n.vy * ny + n.vz * nz;
                 let tx = n.vx - vn * nx;
                 let ty = n.vy - vn * ny;
@@ -403,19 +326,10 @@ export class ElasticRod {
                     tx = 0; ty = 0; tz = 0;
                 } else {
                     const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
-                    tx *= scale;
-                    ty *= scale;
-                    tz *= scale;
+                    tx *= scale; ty *= scale; tz *= scale;
                 }
-                n.vx = tx;
-                n.vy = ty;
-                n.vz = tz;
+                n.vx = tx; n.vy = ty; n.vz = tz;
             } else {
-                // node is within vessel; friction still applies if pressing against wall
-                const inv = 1 / (best.dist || 1);
-                const nx = best.dx * inv;
-                const ny = best.dy * inv;
-                const nz = best.dz * inv;
                 const vn = n.vx * nx + n.vy * ny + n.vz * nz;
                 let tx = n.vx - vn * nx;
                 let ty = n.vy - vn * ny;
@@ -429,13 +343,9 @@ export class ElasticRod {
                         tx = 0; ty = 0; tz = 0;
                     } else {
                         const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
-                        tx *= scale;
-                        ty *= scale;
-                        tz *= scale;
+                        tx *= scale; ty *= scale; tz *= scale;
                     }
-                    n.vx = tx;
-                    n.vy = ty;
-                    n.vz = tz;
+                    n.vx = tx; n.vy = ty; n.vz = tz;
                 }
             }
         }
