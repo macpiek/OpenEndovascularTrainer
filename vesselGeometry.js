@@ -57,7 +57,10 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     };
 
     const mainStart = {x: 0, y: 0, z: 0};
-    const mainEnd = {x: 0, y: branchPointY + blend, z: 0};
+    // Extend the primary vessel all the way to the bifurcation point so the
+    // branches can attach seamlessly. Previously the main vessel terminated
+    // above the bifurcation which left a gap in the generated mesh.
+    const mainEnd = {x: 0, y: branchPointY, z: 0};
     vessel.main = {start: mainStart, end: mainEnd};
     vessel.segments.push({start: mainStart, end: mainEnd, radius: mainRadius});
 
@@ -81,11 +84,10 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     vessel.left = branch(-1);
 
     // Smoothly join each branch to the main vessel without overlapping geometry.
-    const mainDir = {
-        x: vessel.branchPoint.x - mainEnd.x,
-        y: vessel.branchPoint.y - mainEnd.y,
-        z: vessel.branchPoint.z - mainEnd.z
-    };
+    // Direction pointing downstream from the bifurcation used to define the
+    // initial tangent of each branch's joining curve. It's simply a downward
+    // vector of length equal to the blend distance.
+    const mainDir = { x: 0, y: -blend, z: 0 };
 
     function addBranchCurve(endPoint) {
         const p0 = vessel.branchPoint;
