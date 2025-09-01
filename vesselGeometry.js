@@ -12,7 +12,7 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
     // faces and share no volume.
     const nodeMap = new Map();
     const addNode = (p, radius) => {
-        const key = `${p.x},${p.y},${p.z}`;
+        const key = `${p.x.toFixed(5)},${p.y.toFixed(5)},${p.z.toFixed(5)}`;
         const r = nodeMap.get(key);
         nodeMap.set(key, r ? Math.max(r, radius) : radius);
     };
@@ -135,7 +135,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
             // original implementation used the current step's t which resulted
             // in a slightly smaller first segment and left a visible gap where
             // the branches meet the bifurcation.
-            const rStep = (i - 1) / steps;
+            const rStep = (i - 1) / (steps - 1);
             const r = mainRadius + (branchRadius - mainRadius) * rStep;
             vessel.segments.push({ start: prev, end: p, radius: r });
             prev = p;
