@@ -230,7 +230,7 @@ if (injSegmentSelect) {
 }
 
 const segmentLength = 5;
-const nodeCount = 80;
+const nodeCount = 100;
 const initialWireLength = segmentLength * (nodeCount - 1);
 // Direction from the sheath entrance toward the vessel
 const sheathDirVec = {
