@@ -99,11 +99,11 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  * Defaults produce repeatable geometry; modify arguments to change it explicitly.
  * @param {number} branchLength length of each branch in units (default 140)
  * @param {number} branchAngleOffset angle offset in radians for branches (default 0)
- * @param {number|null} sheathLength minimum length of the left-branch sheath; if
- *   omitted or shorter than the required distance it automatically extends to
- *   the branch point
+ * @param {number|null} sheathLength length of the left-branch sheath (default
+ *   half the branch length)
  * @param {number} sheathRadius radius of the left-branch sheath (default 2)
- * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation.
+ * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation
+ * and enters at the distal branch end.
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
 */
 export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = null, sheathRadius = 2) {
@@ -168,7 +168,9 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     // Introducer sheath entering the vessel at a fixed 30° angle toward the
     // anterior (+Z) direction. The angle is measured relative to the left
     // branch's axis so the sheath presses against the vessel wall before
-    // reaching the lumen at the branch point.
+
+    // reaching the lumen at the distal branch end.
+
     const branchDir = new THREE.Vector3(
         vessel.left.end.x - vessel.branchPoint.x,
         vessel.left.end.y - vessel.branchPoint.y,
@@ -181,15 +183,18 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
         new THREE.Quaternion().setFromAxisAngle(axis, THREE.MathUtils.degToRad(30))
     ).normalize();
 
-    const autoLength = vessel.left.length;
-    const finalLength = sheathLength == null ? autoLength : Math.max(sheathLength, autoLength);
+    // Default sheath length is shorter than the branch itself and may be
+    // overridden by the caller.
+    const autoLength = vessel.left.length * 0.5;
+    const finalLength = sheathLength == null ? autoLength : sheathLength;
     const sheathStart = {
-        x: vessel.branchPoint.x + outward.x * finalLength,
-        y: vessel.branchPoint.y + outward.y * finalLength,
-        z: vessel.branchPoint.z + outward.z * finalLength
+        x: vessel.left.end.x + outward.x * finalLength,
+        y: vessel.left.end.y + outward.y * finalLength,
+        z: vessel.left.end.z + outward.z * finalLength
     };
     const sheathDir = outward.clone().negate();
-    const sheathEnd = { ...vessel.branchPoint };
+    const sheathEnd = { ...vessel.left.end };
+
     vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
 
     // Add a segment for the sheath so the guidewire can traverse it
