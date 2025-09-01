@@ -263,7 +263,9 @@ const tailStart = {
 const wire = new ElasticRod(nodeCount, segmentLength);
 let tailProgress = 0;
 const maxInsert = initialWireLength;
-const minInsert = -initialWireLength;
+// Prevent withdrawing the wire past the sheath entrance so the tip
+// always remains within the sheath.
+const minInsert = 0;
 for (let i = 0; i < wire.nodes.length; i++) {
 
     const t = segmentLength * i;
