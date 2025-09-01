@@ -282,23 +282,31 @@ export class ElasticRod {
     collide(vessel, dt = 1) {
         if (!vessel || !vessel.segments || !vessel.segments.length) return;
         for (const n of this.nodes) {
-            let nearest = vessel.segments[0];
-            let best = projectOnSegment(n, nearest);
-            for (let i = 1; i < vessel.segments.length; i++) {
-                const seg = vessel.segments[i];
+            let bestInside = null;
+            let bestOutside = null;
+            for (const seg of vessel.segments) {
                 const p = projectOnSegment(n, seg);
-                if (p.dist < best.dist) {
-                    best = p;
-                    nearest = seg;
+                const pen = p.dist - seg.radius;
+                if (pen <= 0) {
+                    const depth = -pen;
+                    if (!bestInside || depth < bestInside.depth) {
+                        bestInside = { seg, p, depth, penetration: pen };
+                    }
+                } else if (!bestOutside || pen < bestOutside.penetration) {
+                    bestOutside = { seg, p, penetration: pen };
                 }
             }
+            const choice = bestInside || bestOutside;
+            if (!choice) continue;
+            const nearest = choice.seg;
+            const best = choice.p;
+            const penetration = choice.penetration;
             // If this node lies beyond the external end of the sheath, allow it
             // to exit without applying collision or friction constraints.
             if (nearest.isSheath && best.t < 0) {
                 continue;
             }
             const radius = nearest.radius;
-            const penetration = best.dist - radius;
             if (penetration > 0) {
                 const inv = 1 / (best.dist || 1);
                 const nx = best.dx * inv;

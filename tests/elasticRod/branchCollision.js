@@ -2,7 +2,10 @@ import { ElasticRod } from '../../physics/elasticRod.js';
 import fs from 'fs';
 
 const log = [];
-const rod = new ElasticRod(20, 0.3, {
+// Start the rod before the branch so the tip must choose a path at the
+// bifurcation. A shorter initial length ensures the tip reaches the branch
+// after simulation begins rather than starting past it.
+const rod = new ElasticRod(10, 0.3, {
     logger: entry => log.push(entry)
 });
 
@@ -26,6 +29,12 @@ for (let i = 0; i < 400; i++) {
     rod.step(dt);
     rod.collide(vessel, dt);
 }
+
+// After navigating the branch the tip should have moved significantly upward.
+console.assert(
+    rod.nodes[rod.nodes.length - 1].y > 1.5,
+    'tip should enter the branch and move upward'
+);
 
 const logPath = new URL('./branch-collision.log', import.meta.url);
 fs.writeFileSync(logPath, JSON.stringify(log, null, 2));
