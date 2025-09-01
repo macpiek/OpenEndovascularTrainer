@@ -168,7 +168,6 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     // Introducer sheath entering the vessel at a fixed 30° angle toward the
     // anterior (+Z) direction. The angle is measured relative to the left
     // branch's axis so the sheath presses against the vessel wall before
-
     // reaching the lumen at the distal branch end.
 
     const branchDir = new THREE.Vector3(
@@ -187,13 +186,18 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     // overridden by the caller.
     const autoLength = vessel.left.length * 0.5;
     const finalLength = sheathLength == null ? autoLength : sheathLength;
+    // Translate the entire sheath upward along +Y by 20 units
     const sheathStart = {
         x: vessel.left.end.x + outward.x * finalLength,
-        y: vessel.left.end.y + outward.y * finalLength,
+        y: vessel.left.end.y + outward.y * finalLength + 20,
         z: vessel.left.end.z + outward.z * finalLength
     };
     const sheathDir = outward.clone().negate();
-    const sheathEnd = { ...vessel.left.end };
+    const sheathEnd = {
+        x: vessel.left.end.x,
+        y: vessel.left.end.y + 20,
+        z: vessel.left.end.z
+    };
 
     vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
 
