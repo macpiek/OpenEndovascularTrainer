@@ -99,11 +99,11 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  * Defaults produce repeatable geometry; modify arguments to change it explicitly.
  * @param {number} branchLength length of each branch in units (default 140)
  * @param {number} branchAngleOffset angle offset in radians for branches (default 0)
- * @param {number|null} sheathLength minimum length of the left-branch sheath; if
- *   omitted or shorter than the required distance it automatically extends to
- *   the branch point
+ * @param {number|null} sheathLength length of the left-branch sheath (default
+ *   half the branch length)
  * @param {number} sheathRadius radius of the left-branch sheath (default 2)
- * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation.
+ * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation
+ * and enters at the distal branch end.
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
 */
 export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = null, sheathRadius = 2) {
@@ -165,25 +165,34 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     addCurve(mainEnd, vessel.branchPoint, vessel.left.curveEnd);
     vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
 
-    // Introducer sheath extending from an external entry toward the vessel.
-    // Ensure it reaches at least to the branch point so the guidewire can
-    // transition from outside into the lumen.
-    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y - 5, z: vessel.left.end.z + 12 };
-    const sheathVec = new THREE.Vector3(
-        vessel.branchPoint.x - sheathStart.x,
-        vessel.branchPoint.y - sheathStart.y,
-        vessel.branchPoint.z - sheathStart.z
-    );
-    const autoLength = sheathVec.length();
-    const finalLength = sheathLength == null ? autoLength : Math.max(sheathLength, autoLength);
-    const sheathDir = sheathVec.clone().normalize();
-    const sheathEnd = {
-        x: sheathStart.x + sheathDir.x * finalLength,
-        y: sheathStart.y + sheathDir.y * finalLength,
-        z: sheathStart.z + sheathDir.z * finalLength
-    };
-    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
+    // Introducer sheath entering the vessel at a fixed 30° angle toward the
+    // anterior (+Z) direction. The angle is measured relative to the left
+    // branch's axis so the sheath presses against the vessel wall before
+    // reaching the lumen at the distal branch end.
+    const branchDir = new THREE.Vector3(
+        vessel.left.end.x - vessel.branchPoint.x,
+        vessel.left.end.y - vessel.branchPoint.y,
+        vessel.left.end.z - vessel.branchPoint.z
+    ).normalize();
+    const axis = new THREE.Vector3().crossVectors(branchDir, new THREE.Vector3(0, 0, 1));
+    if (axis.lengthSq() === 0) axis.set(1, 0, 0);
+    axis.normalize();
+    const outward = branchDir.clone().applyQuaternion(
+        new THREE.Quaternion().setFromAxisAngle(axis, THREE.MathUtils.degToRad(30))
+    ).normalize();
 
+    // Default sheath length is shorter than the branch itself and may be
+    // overridden by the caller.
+    const autoLength = vessel.left.length * 0.5;
+    const finalLength = sheathLength == null ? autoLength : sheathLength;
+    const sheathStart = {
+        x: vessel.left.end.x + outward.x * finalLength,
+        y: vessel.left.end.y + outward.y * finalLength,
+        z: vessel.left.end.z + outward.z * finalLength
+    };
+    const sheathDir = outward.clone().negate();
+    const sheathEnd = { ...vessel.left.end };
+    vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
 
     // Add a segment for the sheath so the guidewire can traverse it
     vessel.segments.push(vessel.sheath);
