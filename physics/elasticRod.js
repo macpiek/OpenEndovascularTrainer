@@ -282,14 +282,29 @@ export class ElasticRod {
     collide(vessel, dt = 1) {
         if (!vessel || !vessel.segments || !vessel.segments.length) return;
         for (const n of this.nodes) {
+            // Determine if the node lies inside any vessel segment.
+            // If so, use the nearest containing segment. Otherwise fall back
+            // to the closest segment overall to compute penetration.
             let nearest = vessel.segments[0];
             let best = projectOnSegment(n, nearest);
+            let inside = best.dist <= nearest.radius;
+
             for (let i = 1; i < vessel.segments.length; i++) {
                 const seg = vessel.segments[i];
                 const p = projectOnSegment(n, seg);
-                if (p.dist < best.dist) {
+                const within = p.dist <= seg.radius;
+
+                if (inside) {
+                    // Prefer the closest segment among those containing the node.
+                    if (within && p.dist < best.dist) {
+                        best = p;
+                        nearest = seg;
+                    }
+                } else if (within || p.dist < best.dist) {
+                    // First containing segment or closer outside segment.
                     best = p;
                     nearest = seg;
+                    inside = within;
                 }
             }
             // If this node lies beyond the external end of the sheath, allow it
