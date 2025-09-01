@@ -6,6 +6,16 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
     const yAxis = new THREE.Vector3(0, 1, 0);
     const evaluator = new Evaluator();
     let result = null;
+    // Track unique endpoints so we can add a small spherical blend at each
+    // junction.  Without this the CSG union leaves the bifurcation disconnected
+    // from its branches because the open-ended cylinders only meet at their
+    // faces and share no volume.
+    const nodeMap = new Map();
+    const addNode = (p, radius) => {
+        const key = `${p.x},${p.y},${p.z}`;
+        const r = nodeMap.get(key);
+        nodeMap.set(key, r ? Math.max(r, radius) : radius);
+    };
     for (const seg of vessel.segments || []) {
         const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
         const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
@@ -17,6 +27,20 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
         geom.applyQuaternion(quat);
         const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
         geom.translate(mid.x, mid.y, mid.z);
+        const brush = new Brush(geom);
+        brush.updateMatrixWorld();
+        result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
+        addNode(seg.start, seg.radius);
+        addNode(seg.end, seg.radius);
+    }
+    // Fuse all touching segments by adding a sphere at each node with radius
+    // equal to the largest adjoining segment radius. This guarantees the
+    // bifurcation and branches share overlapping volume and results in a single
+    // connected mesh.
+    for (const [key, radius] of nodeMap) {
+        const [x, y, z] = key.split(',').map(Number);
+        const geom = new THREE.SphereGeometry(radius, radialSegments, radialSegments);
+        geom.translate(x, y, z);
         const brush = new Brush(geom);
         brush.updateMatrixWorld();
         result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
