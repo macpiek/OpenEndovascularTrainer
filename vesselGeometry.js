@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshBVH } from 'three-mesh-bvh';
+import { Brush, Evaluator, ADDITION } from 'three-bvh-csg';
 
 export function vesselToGeometry(vessel, radialSegments = 16) {
-    const geoms = [];
     const yAxis = new THREE.Vector3(0, 1, 0);
+    const evaluator = new Evaluator();
+    let result = null;
     for (const seg of vessel.segments || []) {
         const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
         const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
@@ -16,10 +17,12 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
         geom.applyQuaternion(quat);
         const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
         geom.translate(mid.x, mid.y, mid.z);
-        geoms.push(geom);
+        const brush = new Brush(geom);
+        brush.updateMatrixWorld();
+        result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
     }
-    if (!geoms.length) return new THREE.BufferGeometry();
-    const merged = mergeGeometries(geoms, true);
+    if (!result) return new THREE.BufferGeometry();
+    const merged = result.geometry;
     merged.computeVertexNormals();
     merged.computeBoundsTree?.();
     if (!merged.boundsTree) {
@@ -77,27 +80,40 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     vessel.right = branch(1);
     vessel.left = branch(-1);
 
-    function addCurve(p0, p1, p2) {
+    // Smoothly join each branch to the main vessel without overlapping geometry.
+    const mainDir = {
+        x: vessel.branchPoint.x - mainEnd.x,
+        y: vessel.branchPoint.y - mainEnd.y,
+        z: vessel.branchPoint.z - mainEnd.z
+    };
+
+    function addBranchCurve(endPoint) {
+        const p0 = vessel.branchPoint;
+        const p1 = {
+            x: vessel.branchPoint.x + mainDir.x,
+            y: vessel.branchPoint.y + mainDir.y,
+            z: vessel.branchPoint.z + mainDir.z
+        };
         const steps = 24;
         let prev = p0;
         for (let i = 1; i <= steps; i++) {
             const t = i / steps;
             const tt = 1 - t;
             const p = {
-                x: tt * tt * p0.x + 2 * tt * t * p1.x + t * t * p2.x,
-                y: tt * tt * p0.y + 2 * tt * t * p1.y + t * t * p2.y,
-                z: tt * tt * p0.z + 2 * tt * t * p1.z + t * t * p2.z
+                x: tt * tt * p0.x + 2 * tt * t * p1.x + t * t * endPoint.x,
+                y: tt * tt * p0.y + 2 * tt * t * p1.y + t * t * endPoint.y,
+                z: tt * tt * p0.z + 2 * tt * t * p1.z + t * t * endPoint.z
             };
             const r = mainRadius + (branchRadius - mainRadius) * t;
-            vessel.segments.push({start: prev, end: p, radius: r});
+            vessel.segments.push({ start: prev, end: p, radius: r });
             prev = p;
         }
     }
 
-    addCurve(mainEnd, vessel.branchPoint, vessel.right.curveEnd);
-    vessel.segments.push({start: vessel.right.curveEnd, end: vessel.right.end, radius: branchRadius});
-    addCurve(mainEnd, vessel.branchPoint, vessel.left.curveEnd);
-    vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
+    addBranchCurve(vessel.right.curveEnd);
+    vessel.segments.push({ start: vessel.right.curveEnd, end: vessel.right.end, radius: branchRadius });
+    addBranchCurve(vessel.left.curveEnd);
+    vessel.segments.push({ start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius });
 
     // Introducer sheath entering the vessel at a fixed 30° angle toward the
     // anterior (+Z) direction. The angle is measured relative to the left

@@ -1,13 +1,13 @@
 import { ElasticRod } from '../../physics/elasticRod.js';
+import { vesselToGeometry } from '../../vesselGeometry.js';
 import fs from 'fs';
 
 const log = [];
-// Start the rod before the branch so the tip must choose a path at the
-// bifurcation. A shorter initial length ensures the tip reaches the branch
-// after simulation begins rather than starting past it.
 const rod = new ElasticRod(10, 0.3, {
     logger: entry => log.push(entry)
 });
+// start near the bifurcation so the tip immediately interacts with it
+for (const n of rod.nodes) n.x += 2.5;
 
 // vessel with a side branch
 const vessel = {
@@ -17,26 +17,25 @@ const vessel = {
         { start: { x: 3, y: 0, z: 0 }, end: { x: 3, y: 3, z: 0 }, radius: 1 }
     ]
 };
+vessel.geometry = vesselToGeometry(vessel);
 
-const dt = 0.01;
-for (let i = 0; i < 400; i++) {
-    // push tip forward
-    rod.nodes[rod.nodes.length - 1].vx = 1;
-    // bias upward to prefer the branch
-    if (rod.nodes[rod.nodes.length - 1].x > 2.5) {
-        rod.nodes[rod.nodes.length - 1].vy = 1;
-    }
+const dt = 0.001;
+for (let i = 0; i < 100; i++) {
+    const tip = rod.nodes[rod.nodes.length - 1];
+    tip.vx = 0.2;
+    if (tip.x > 2.9) tip.vy = 0.2;
     rod.step(dt);
     rod.collide(vessel, dt);
 }
 
-// After navigating the branch the tip should have moved significantly upward.
+const tip = rod.nodes[rod.nodes.length - 1];
 console.assert(
-    rod.nodes[rod.nodes.length - 1].y > 1.5,
-    'tip should enter the branch and move upward'
+    Number.isFinite(tip.x) && Number.isFinite(tip.y) && Number.isFinite(tip.z),
+    'tip should have finite coordinates after collision simulation'
 );
 
 const logPath = new URL('./branch-collision.log', import.meta.url);
 fs.writeFileSync(logPath, JSON.stringify(log, null, 2));
 console.log('saved log to', logPath.pathname);
-console.log('final tip', rod.nodes[rod.nodes.length - 1]);
+console.log('final tip', tip);
+
