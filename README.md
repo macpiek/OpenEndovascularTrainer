@@ -14,6 +14,8 @@ Click the **Fluoroscopy** button to hide the vessel and display only the guidewi
 
 The vessel is generated deterministically. Branch length and angle offset use fixed defaults (140 units and 0 radians) and only change when explicitly provided to `generateVessel`. A short introducer sheath extends from the distal left branch with a 30° tilt against the vessel wall toward +Z.
 
+`vesselToGeometry(vessel)` converts the segment-based description into a `THREE.BufferGeometry` mesh with an acceleration structure used for both rendering and guidewire collisions.
+
 
 ## Tuning wall friction
 
