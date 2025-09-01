@@ -4,7 +4,7 @@ This prototype demonstrates a basic browser-based simulator for guiding a stiff 
 
 ## Usage
 
-Open `index.html` in a modern browser. Use `W`/`S` or the up/down arrow keys to advance or retract the guidewire through the introducer sheath positioned in the left branch. The sheath exits this branch with a fixed 30° anterior (+Z) angulation and now reaches the branch point so the wire can pass from outside the body into the vessel lumen.
+Open `index.html` in a modern browser. Use `W`/`S` or the up/down arrow keys to advance or retract the guidewire through the introducer sheath positioned in the left branch. Retraction stops when the wire's tip reaches the sheath entrance to keep it within the sheath. The sheath exits this branch with a fixed 30° anterior (+Z) angulation and now reaches the branch point so the wire can pass from outside the body into the vessel lumen.
 
 Click the **Fluoroscopy** button to hide the vessel and display only the guidewire. Click again to return to the wireframe view.
 
