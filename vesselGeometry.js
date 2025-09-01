@@ -103,7 +103,8 @@ function createBranchingSegment(mainRadius, branchRadius, branchPointY, branchLe
  *   omitted or shorter than the required distance it automatically extends to
  *   the branch point
  * @param {number} sheathRadius radius of the left-branch sheath (default 2)
- * The sheath leaves the left branch with a fixed 30° anterior (+Z) angulation.
+ * The sheath leaves the left branch at a fixed 30° tilt toward +Z relative to
+ * the vessel wall so the introducer approaches the lumen obliquely.
  * @returns {{vessel: object, geometry: THREE.BufferGeometry}}
 */
 export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = null, sheathRadius = 2) {
@@ -166,9 +167,24 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     vessel.segments.push({start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius});
 
     // Introducer sheath extending from an external entry toward the vessel.
-    // Ensure it reaches at least to the branch point so the guidewire can
-    // transition from outside into the lumen.
-    const sheathStart = { x: vessel.left.end.x, y: vessel.left.end.y - 5, z: vessel.left.end.z + 12 };
+    // Tilt it 30° relative to the vessel wall so it approaches the lumen at an
+    // angle rather than straight on. The sheath starts outside the body and is
+    // long enough to reach the branch point.
+    const branchAxis = new THREE.Vector3(
+        vessel.left.end.x - vessel.branchPoint.x,
+        vessel.left.end.y - vessel.branchPoint.y,
+        vessel.left.end.z - vessel.branchPoint.z
+    ).normalize();
+    // Rotate the branch direction toward +Z by 30° to point the sheath
+    // against the vessel wall.
+    const axis = new THREE.Vector3().crossVectors(branchAxis, new THREE.Vector3(0, 0, 1)).normalize();
+    const rotated = branchAxis.clone().applyAxisAngle(axis, THREE.MathUtils.degToRad(30));
+    const startOffset = vessel.left.length + 20; // extend a little beyond the branch
+    const sheathStart = {
+        x: vessel.branchPoint.x + rotated.x * startOffset,
+        y: vessel.branchPoint.y + rotated.y * startOffset,
+        z: vessel.branchPoint.z + rotated.z * startOffset
+    };
     const sheathVec = new THREE.Vector3(
         vessel.branchPoint.x - sheathStart.x,
         vessel.branchPoint.y - sheathStart.y,
