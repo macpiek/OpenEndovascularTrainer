@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /**
  * ElasticRod models a slender elastic rod using a simple discrete formulation.
  *
@@ -280,7 +282,79 @@ export class ElasticRod {
 
     // Constrain nodes to stay inside the vessel geometry.
     collide(vessel, dt = 1) {
-        if (!vessel || !vessel.segments || !vessel.segments.length) return;
+        if (!vessel) return;
+        const geom = vessel.geometry;
+        const sheath = vessel.segments && vessel.segments.find(s => s.isSheath);
+        if (geom && geom.boundsTree) {
+            const p = new THREE.Vector3();
+            const target = new THREE.Vector3();
+            const normal = new THREE.Vector3();
+            for (const n of this.nodes) {
+                if (sheath) {
+                    const shProj = projectOnSegment(n, sheath);
+                    const radial = Math.sqrt(shProj.dx * shProj.dx + shProj.dy * shProj.dy + shProj.dz * shProj.dz);
+                    if (shProj.t < 0 && radial <= sheath.radius) continue;
+                }
+                p.set(n.x, n.y, n.z);
+                geom.boundsTree.closestPointToPoint(p, { point: target, normal });
+                const dx = p.x - target.x;
+                const dy = p.y - target.y;
+                const dz = p.z - target.z;
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (normal.lengthSq() === 0) {
+                    const inv = 1 / (dist || 1);
+                    normal.set(dx * inv, dy * inv, dz * inv);
+                }
+                const dot = dx * normal.x + dy * normal.y + dz * normal.z;
+                const penetration = dot > 0 ? dist : -dist;
+                const nx = normal.x;
+                const ny = normal.y;
+                const nz = normal.z;
+                if (penetration > 0) {
+                    n.x = target.x;
+                    n.y = target.y;
+                    n.z = target.z;
+                    const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+                    let tx = n.vx - vn * nx;
+                    let ty = n.vy - vn * ny;
+                    let tz = n.vz - vn * nz;
+                    const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
+                    const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz) + Math.abs(vn) * n.mass / dt;
+                    const staticLimit = wallStaticFriction * normalForce * dt / n.mass;
+                    const kineticLoss = wallKineticFriction * normalForce * dt / n.mass;
+                    if (tMag <= staticLimit) {
+                        tx = 0; ty = 0; tz = 0;
+                    } else {
+                        const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
+                        tx *= scale; ty *= scale; tz *= scale;
+                    }
+                    n.vx = tx; n.vy = ty; n.vz = tz;
+                } else {
+                    const vn = n.vx * nx + n.vy * ny + n.vz * nz;
+                    let tx = n.vx - vn * nx;
+                    let ty = n.vy - vn * ny;
+                    let tz = n.vz - vn * nz;
+                    const tMag = Math.sqrt(tx * tx + ty * ty + tz * tz);
+                    const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz);
+                    if (normalForce > 0 && tMag > 0) {
+                        const staticLimit = wallStaticFriction * normalForce * dt / n.mass;
+                        const kineticLoss = wallKineticFriction * normalForce * dt / n.mass;
+                        if (tMag <= staticLimit) {
+                            tx = 0; ty = 0; tz = 0;
+                        } else {
+                            const scale = Math.max(0, tMag - kineticLoss) / (tMag || 1);
+                            tx *= scale; ty *= scale; tz *= scale;
+                        }
+                        n.vx = tx; n.vy = ty; n.vz = tz;
+                    }
+                }
+            }
+            if (this.smoothingIterations > 0) {
+                this.laplacianSmooth(dt);
+            }
+            return;
+        }
+        if (!vessel.segments || !vessel.segments.length) return;
         for (const n of this.nodes) {
 
             let bestInside = null;
