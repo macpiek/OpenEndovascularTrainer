@@ -282,6 +282,7 @@ export class ElasticRod {
     collide(vessel, dt = 1) {
         if (!vessel || !vessel.segments || !vessel.segments.length) return;
         for (const n of this.nodes) {
+
             let bestInside = null;
             let bestOutside = null;
             for (const seg of vessel.segments) {
@@ -294,6 +295,7 @@ export class ElasticRod {
                     }
                 } else if (!bestOutside || pen < bestOutside.penetration) {
                     bestOutside = { seg, p, penetration: pen };
+
                 }
             }
             const choice = bestInside || bestOutside;

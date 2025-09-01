@@ -230,13 +230,13 @@ if (injSegmentSelect) {
 }
 
 const segmentLength = 5;
-const nodeCount = 80;
+const nodeCount = 100;
 const initialWireLength = segmentLength * (nodeCount - 1);
-// Direction from the sheath entrance toward the vessel
+// Direction along the sheath from its outer start toward the vessel
 const sheathDirVec = {
-    x: vessel.branchPoint.x - vessel.sheath.start.x,
-    y: vessel.branchPoint.y - vessel.sheath.start.y,
-    z: vessel.branchPoint.z - vessel.sheath.start.z
+    x: vessel.sheath.end.x - vessel.sheath.start.x,
+    y: vessel.sheath.end.y - vessel.sheath.start.y,
+    z: vessel.sheath.end.z - vessel.sheath.start.z
 };
 const sheathPath = Math.hypot(sheathDirVec.x, sheathDirVec.y, sheathDirVec.z) || 1;
 const wireDir = {
