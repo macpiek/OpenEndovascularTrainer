@@ -106,7 +106,13 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
                 y: tt * tt * p0.y + 2 * tt * t * p1.y + t * t * endPoint.y,
                 z: tt * tt * p0.z + 2 * tt * t * p1.z + t * t * endPoint.z
             };
-            const r = mainRadius + (branchRadius - mainRadius) * t;
+            // Use the previous step's t value when interpolating the radius so
+            // the branch starts with the same radius as the main vessel. The
+            // original implementation used the current step's t which resulted
+            // in a slightly smaller first segment and left a visible gap where
+            // the branches meet the bifurcation.
+            const rStep = (i - 1) / steps;
+            const r = mainRadius + (branchRadius - mainRadius) * rStep;
             vessel.segments.push({ start: prev, end: p, radius: r });
             prev = p;
         }
