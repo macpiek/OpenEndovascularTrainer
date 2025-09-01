@@ -188,13 +188,13 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     const finalLength = sheathLength == null ? autoLength : sheathLength;
     // Translate the entire sheath upward along +Y by 20 units
     const sheathStart = {
-        x: vessel.left.end.x + outward.x * finalLength,
+        x: vessel.left.end.x + outward.x * finalLength +10,
         y: vessel.left.end.y + outward.y * finalLength + 20,
         z: vessel.left.end.z + outward.z * finalLength
     };
     const sheathDir = outward.clone().negate();
     const sheathEnd = {
-        x: vessel.left.end.x,
+        x: vessel.left.end.x +10,
         y: vessel.left.end.y + 20,
         z: vessel.left.end.z
     };
