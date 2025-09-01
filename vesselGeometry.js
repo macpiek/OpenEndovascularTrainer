@@ -168,7 +168,9 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     // Introducer sheath entering the vessel at a fixed 30° angle toward the
     // anterior (+Z) direction. The angle is measured relative to the left
     // branch's axis so the sheath presses against the vessel wall before
+
     // reaching the lumen at the distal branch end.
+
     const branchDir = new THREE.Vector3(
         vessel.left.end.x - vessel.branchPoint.x,
         vessel.left.end.y - vessel.branchPoint.y,
@@ -192,6 +194,7 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     };
     const sheathDir = outward.clone().negate();
     const sheathEnd = { ...vessel.left.end };
+
     vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
 
     // Add a segment for the sheath so the guidewire can traverse it

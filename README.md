@@ -6,11 +6,14 @@ This prototype demonstrates a basic browser-based simulator for guiding a stiff 
 
 Open `index.html` in a modern browser. Use `W`/`S` or the up/down arrow keys to advance or retract the guidewire through the introducer sheath positioned at the distal end of the left branch. Retraction stops when the wire's tip reaches the sheath entrance to keep it within the sheath. The sheath enters this branch at a 30° angle against the vessel wall, tilting toward the anterior (+Z) direction so the wire can pass from outside the body into the vessel lumen.
 
+
 Click the **Fluoroscopy** button to hide the vessel and display only the guidewire. Click again to return to the wireframe view.
 
 ## Vessel Geometry
 
+
 The vessel is generated deterministically. Branch length and angle offset use fixed defaults (140 units and 0 radians) and only change when explicitly provided to `generateVessel`. A short introducer sheath extends from the distal left branch with a 30° tilt against the vessel wall toward +Z.
+
 
 ## Tuning wall friction
 
