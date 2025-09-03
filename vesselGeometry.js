@@ -30,8 +30,15 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
         const brush = new Brush(geom);
         brush.updateMatrixWorld();
         result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
-        addNode(seg.start, seg.radius);
-        addNode(seg.end, seg.radius);
+        if (seg.isSheath) {
+            // Leave the outer sheath entrance open by omitting a blending sphere.
+            // Only add a node at the vessel-facing end so it fuses seamlessly with
+            // the branch while keeping the external end uncapped.
+            addNode(seg.end, seg.radius);
+        } else {
+            addNode(seg.start, seg.radius);
+            addNode(seg.end, seg.radius);
+        }
     }
     // Fuse all touching segments by adding a sphere at each node with radius
     // equal to the largest adjoining segment radius. This guarantees the
