@@ -108,7 +108,7 @@ const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
         contrastTexture: { value: contrastTarget.texture },
-        gray: { value: new THREE.Color(0xC3C3C3) },
+        gray: { value: new THREE.Color(0xEBEBEB) },
         fluoroscopy: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
