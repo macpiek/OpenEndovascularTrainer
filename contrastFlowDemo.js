@@ -1,4 +1,4 @@
-import { ContrastAgent } from './contrastAgent.js';
+import { VoxelContrastAgent } from './voxelContrastAgent.js';
 
 // Minimal vessel with a parent segment and a distal branch segment
 const vessel = {
@@ -38,18 +38,18 @@ const vessel = {
   ],
 };
 
-const agent = new ContrastAgent(vessel);
+const agent = new VoxelContrastAgent(vessel, 2, 0.05);
 
-// Inject 1 ml contrast into the main segment (index resolved internally)
+// Inject 1 ml contrast into the main segment
 agent.inject(1);
 
-// Log concentrations for the main segment and its child over several updates
-const mainIndex = agent.sheathIndex;
+// Log average concentrations for the main segment and its child over several updates
+const mainIndex = 0;
 const childIndex = 1; // only child segment in this demo
 
 for (let frame = 0; frame < 5; frame++) {
   agent.update(0.1);
-  const mainConc = agent.concentration[mainIndex];
-  const childConc = agent.concentration[childIndex];
+  const mainConc = agent.getSegmentConcentrations(mainIndex)[0] || 0;
+  const childConc = agent.getSegmentConcentrations(childIndex)[0] || 0;
   console.log(`Frame ${frame + 1}: main=${mainConc.toFixed(3)}, child=${childConc.toFixed(3)}`);
 }
