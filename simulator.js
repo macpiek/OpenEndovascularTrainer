@@ -224,7 +224,6 @@ const pivot = new THREE.Vector3(
 
 const voxelAgent = new VoxelContrastAgent(vessel, 2, 0.05);
 const voxelGroup = new THREE.Group();
-voxelGroup.visible = false;
 scene.add(voxelGroup);
 
 // Default to injecting into the main vessel and hide the segment selector
@@ -309,6 +308,7 @@ const kineticFricSlider = document.getElementById('kineticFriction');
 const smoothIterSlider = document.getElementById('smoothIterations');
 const modeToggle = document.getElementById('modeToggle');
 const voxelRenderToggle = document.getElementById('renderVoxels');
+voxelGroup.visible = voxelRenderToggle ? voxelRenderToggle.checked : true;
 const injectButton = document.getElementById('injectContrast');
 const stopInjectButton = document.getElementById('stopInjection');
 const injRateSlider = document.getElementById('injRate');
