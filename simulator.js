@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { ElasticRod, setBendingStiffness, setWallFriction, setSmoothingIterations } from './physics/elasticRod.js';
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
-import { ContrastAgent, getContrastGeometry } from './contrastAgent.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPreview.js';
 import { createBoneModel } from './boneModel.js';
@@ -223,29 +222,13 @@ const pivot = new THREE.Vector3(
     vessel.branchPoint.z
 );
 
-const contrast = new ContrastAgent(vessel);
-let contrastMesh = null;
 const voxelAgent = new VoxelContrastAgent(vessel, 2, 0.05);
 const voxelGroup = new THREE.Group();
 voxelGroup.visible = false;
 scene.add(voxelGroup);
 
-// Debug toggle to log contrast information
-const debugLabel = document.createElement('label');
-debugLabel.style.display = 'block';
-const debugCheckbox = document.createElement('input');
-debugCheckbox.type = 'checkbox';
-debugCheckbox.id = 'debugToggle';
-debugLabel.appendChild(debugCheckbox);
-debugLabel.appendChild(document.createTextNode(' Debug contrast'));
-document.getElementById('controls').appendChild(debugLabel);
-debugCheckbox.addEventListener('change', e => {
-    contrast.debug = e.target.checked;
-});
-
 // Default to injecting into the main vessel and hide the segment selector
-const injectSegmentIndex = contrast.sheathIndex;
-const parentIndex = injectSegmentIndex > 0 ? injectSegmentIndex - 1 : -1;
+const injectSegmentIndex = 0;
 if (injSegmentSelect) {
     injSegmentSelect.value = injectSegmentIndex;
     injSegmentSelect.parentElement.style.display = 'none';
@@ -343,8 +326,6 @@ const insertedLength = document.getElementById('insertedLength');
 const doseDisplay = document.getElementById('currentDose');
 const persistenceSlider = document.getElementById('persistence');
 const noiseSlider = document.getElementById('noiseLevel');
-const opacityScaleSlider = document.getElementById('opacityScale');
-const gainSlider = document.getElementById('gain');
 const perfStats = document.getElementById('perfStats');
 
 const sliders = [
@@ -354,8 +335,6 @@ const sliders = [
     smoothIterSlider,
     persistenceSlider,
     noiseSlider,
-    opacityScaleSlider,
-    gainSlider,
     injVolumeSlider,
     injRateSlider,
     injDurationSlider
@@ -392,47 +371,6 @@ setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup, cArmPreviewGan
 displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
 noiseSlider.addEventListener('input', e => {
     displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
-});
-
-let opacityScale = parseFloat(opacityScaleSlider.value);
-opacityScaleSlider.addEventListener('input', e => {
-    opacityScale = parseFloat(e.target.value);
-});
-
-let gain = parseFloat(gainSlider.value);
-gainSlider.addEventListener('input', e => {
-    gain = parseFloat(e.target.value);
-});
-
-// Shader material to render contrast agent with additive brightness and
-// concentration-based coloring.
-const contrastMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-        opacityScale: { value: Math.min(opacityScale / 100, 1) },
-        gain: { value: gain }
-    },
-    vertexColors: true,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    vertexShader: `
-        varying float vConc;
-        void main() {
-            vConc = color.r; // concentration encoded in vertex color
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform float opacityScale;
-        uniform float gain;
-        varying float vConc;
-
-        void main() {
-            float intensity = clamp((1.0 - exp(-gain * vConc * opacityScale)) * 2.0, 0.0, 1.0);
-            vec3 color = vec3(vConc, 0.0, 1.0 - vConc);
-            gl_FragColor = vec4(color * intensity, intensity);
-        }
-    `
 });
 
 let bendingStiffness = parseFloat(bendSlider.value);
@@ -571,7 +509,6 @@ function animate(time) {
     updateWireMesh();
     if (injecting) {
         const amt = Math.min(injectRate * dt, remainingVolume);
-        contrast.inject(amt, injectSegmentIndex, false);
         voxelAgent.inject(amt, injectSegmentIndex, false);
         totalDose += amt;
         doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
@@ -582,46 +519,20 @@ function animate(time) {
             stopInjectButton.disabled = true;
         }
     }
-    contrast.update(dt);
     voxelAgent.update(dt);
+    const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, true);
     if (voxelGroup.visible) {
         voxelGroup.clear();
-        const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, true);
         for (const m of voxMeshes) voxelGroup.add(m);
     }
-    if (contrast.debug) {
-        const mainConc = contrast.concentration[injectSegmentIndex] / (contrast.volumes[injectSegmentIndex] || 1);
-        const parentConc = parentIndex >= 0 ? contrast.concentration[parentIndex] / (contrast.volumes[parentIndex] || 1) : 0;
-        console.log(`Main conc: ${mainConc.toFixed(4)}, Parent conc: ${parentConc.toFixed(4)}`);
+    if (fluoroscopy && voxelGroup.parent !== contrastScene) {
+        scene.remove(voxelGroup);
+        contrastScene.add(voxelGroup);
+    } else if (!fluoroscopy && voxelGroup.parent !== scene) {
+        contrastScene.remove(voxelGroup);
+        scene.add(voxelGroup);
     }
-    if (contrastMesh) {
-        contrastMesh.traverse(child => {
-            if (child.isMesh) {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material && child.material !== contrastMaterial) {
-                    child.material.dispose();
-                }
-            }
-        });
-        scene.remove(contrastMesh);
-        contrastScene.remove(contrastMesh);
-        contrastMesh = null;
-    }
-    const contrastGeoms = getContrastGeometry(contrast);
-    if (contrastGeoms.length) {
-        contrastMesh = new THREE.Group();
-        contrastMaterial.uniforms.opacityScale.value = Math.min(opacityScale / 100, 1);
-        contrastMaterial.uniforms.gain.value = gain;
-        for (const geom of contrastGeoms) {
-            contrastMesh.add(new THREE.Mesh(geom, contrastMaterial));
-        }
-        if (!fluoroscopy) {
-            scene.add(contrastMesh);
-        } else {
-            contrastScene.add(contrastMesh);
-        }
-    }
-    const contrastActive = contrast.isActive() || injecting;
+    const contrastActive = voxMeshes.length > 0 || injecting;
     vesselGroup.visible = contrastActive ? false : !fluoroscopy;
     boneGroup.visible = fluoroscopy;
     injectButton.disabled = contrastActive;
