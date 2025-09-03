@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { ElasticRod, setBendingStiffness, setWallFriction, setSmoothingIterations } from './physics/elasticRod.js';
 import { generateVessel } from './vesselGeometry.js';
 import { setupCArmControls } from './carm.js';
-import { PatientMonitor } from './patientMonitor.js';
-import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPreview.js';
+import { PatientMonitor } from './ui/patientMonitor.js';
+import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './ui/carmPreview.js';
 import { createBoneModel } from './boneModel.js';
 import { VoxelContrastAgent, getVoxelMeshes } from './voxelContrastAgent.js';
 

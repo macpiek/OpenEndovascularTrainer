@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { renderCArmPreview } from './carmPreview.js';
+import { renderCArmPreview } from './ui/carmPreview.js';
 
 // The perspective camera is placed at the X-ray source so that the rendered
 // image matches what a detector would capture. A virtual detector sits opposite
