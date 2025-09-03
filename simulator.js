@@ -496,7 +496,6 @@ function animate(time) {
     // Accumulate time and step the physics at a fixed rate.
     accumulator += Math.min(dt, fixedDt * maxSubSteps);
     while (accumulator >= fixedDt) {
-        console.log(wire.nodes[0].x, wire.nodes[0].y, wire.nodes[0].z)
 
         advanceTailInput(advance, fixedDt);
         wire.step(fixedDt);
@@ -520,7 +519,9 @@ function animate(time) {
         }
     }
     voxelAgent.update(dt);
-    const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, true);
+
+    const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, !fluoroscopy);
+
     if (voxelGroup.visible) {
         voxelGroup.clear();
         for (const m of voxMeshes) voxelGroup.add(m);
@@ -533,7 +534,8 @@ function animate(time) {
         scene.add(voxelGroup);
     }
     const contrastActive = voxMeshes.length > 0 || injecting;
-    vesselGroup.visible = contrastActive ? false : !fluoroscopy;
+
+    vesselGroup.visible = !fluoroscopy;
     boneGroup.visible = fluoroscopy;
     injectButton.disabled = contrastActive;
     stopInjectButton.disabled = !injecting;
