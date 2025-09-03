@@ -30,11 +30,7 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
         const brush = new Brush(geom);
         brush.updateMatrixWorld();
         result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
-        // Leave the outer end of the introducer sheath uncapped so the
-        // guidewire can be withdrawn completely. Skip adding a blending sphere
-        // at the sheath's start but retain one at its inner end where it
-        // connects to the vessel.
-        if (!seg.isSheath) addNode(seg.start, seg.radius);
+        addNode(seg.start, seg.radius);
         addNode(seg.end, seg.radius);
     }
     // Fuse all touching segments by adding a sphere at each node with radius
