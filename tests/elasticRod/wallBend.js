@@ -1,5 +1,5 @@
-import { ElasticRod } from '../../physics/elasticRod.js';
-import { vesselToGeometry } from '../../vesselGeometry.js';
+import { ElasticRod } from '../../src/physics/elasticRod.js';
+import { vesselToGeometry } from '../../src/vesselGeometry.js';
 import fs from 'fs';
 
 const log = [];

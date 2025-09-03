@@ -1,4 +1,4 @@
-import { ElasticRod } from '../../physics/elasticRod.js';
+import { ElasticRod } from '../../src/physics/elasticRod.js';
 import fs from 'fs';
 
 const log = [];
