@@ -1,4 +1,4 @@
-import { ElasticRod, setWallFriction } from './elasticRod.js';
+import { ElasticRod, setWallFriction } from '../src/physics/elasticRod.js';
 import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 

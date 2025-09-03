@@ -1,5 +1,5 @@
-import { ElasticRod } from '../../physics/elasticRod.js';
-import { vesselToGeometry } from '../../vesselGeometry.js';
+import { ElasticRod } from '../../src/physics/elasticRod.js';
+import { vesselToGeometry } from '../../src/vesselGeometry.js';
 
 // Rod initially placed within the main vessel far from a large-radius sheath
 const rod = new ElasticRod(5, 0.5);
