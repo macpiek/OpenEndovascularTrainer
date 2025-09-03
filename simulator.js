@@ -472,11 +472,34 @@ function updateWireMesh() {
     wireGeometry.computeBoundingSphere();
 }
 
-let lastTime = performance.now();
 const fixedDt = 1 / 60;
-let accumulator = 0;
-// Maximum physics steps per frame; adjust for browser performance.
-let maxSubSteps = 5;
+let lastRenderTime = performance.now();
+
+function stepSimulation() {
+    advanceTailInput(advance, fixedDt);
+    wire.step(fixedDt);
+    wire.collide(vessel, fixedDt);
+    const inserted = Math.max(0, tailProgress);
+    insertedLength.textContent = (inserted / 10).toFixed(1) + ' cm';
+
+    if (injecting) {
+        const amt = Math.min(injectRate * fixedDt, remainingVolume);
+        voxelAgent.inject(amt, injectSegmentIndex, false);
+        totalDose += amt;
+        doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
+        injectTime += fixedDt;
+        remainingVolume -= amt;
+        if (injectTime >= injectDuration || remainingVolume <= 0) {
+            injecting = false;
+            stopInjectButton.disabled = true;
+        }
+    }
+    voxelAgent.update(fixedDt);
+    monitor.update(fixedDt);
+}
+
+// Run simulation logic independent of rendering to keep it active when the page is hidden.
+setInterval(stepSimulation, fixedDt * 1000);
 
 function withTransparentClear(renderer, fn) {
     renderer.setClearColor(0x000000, 0);
@@ -485,43 +508,10 @@ function withTransparentClear(renderer, fn) {
 }
 
 function animate(time) {
-    let dt = (time - lastTime) / 1000;
-    lastTime = time;
-    // When the tab is inactive, requestAnimationFrame pauses. The next
-    // frame reports a very large time delta which caused the patient monitor
-    // graphs to jump or flatline when returning. Clamp the timestep so we
-    // only advance the simulation by a reasonable amount each frame.
-    dt = Math.min(dt, 0.1);
-
-    // Accumulate time and step the physics at a fixed rate.
-    accumulator += Math.min(dt, fixedDt * maxSubSteps);
-    while (accumulator >= fixedDt) {
-
-        console.log(wire.nodes[0].x, wire.nodes[0].y, wire.nodes[0].z);
-
-        advanceTailInput(advance, fixedDt);
-        wire.step(fixedDt);
-        wire.collide(vessel, fixedDt);
-        accumulator -= fixedDt;
-        const inserted = Math.max(0, tailProgress);
-        insertedLength.textContent = (inserted / 10).toFixed(1) + ' cm';
-    }
+    const dt = (time - lastRenderTime) / 1000;
+    lastRenderTime = time;
 
     updateWireMesh();
-    if (injecting) {
-        const amt = Math.min(injectRate * dt, remainingVolume);
-        voxelAgent.inject(amt, injectSegmentIndex, false);
-        totalDose += amt;
-        doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
-        injectTime += dt;
-        remainingVolume -= amt;
-        if (injectTime >= injectDuration || remainingVolume <= 0) {
-            injecting = false;
-            stopInjectButton.disabled = true;
-        }
-    }
-    voxelAgent.update(dt);
-
     const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, !fluoroscopy);
 
     if (voxelGroup.visible) {
@@ -541,7 +531,6 @@ function animate(time) {
     boneGroup.visible = fluoroscopy;
     injectButton.disabled = contrastActive;
     stopInjectButton.disabled = !injecting;
-    monitor.update(dt);
     if (fluoroscopy) {
         const hidden = [];
         for (const child of scene.children) {
