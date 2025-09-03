@@ -25,7 +25,7 @@ export function createBoneModel() {
 
     const group = new THREE.Group();
     const loader = new OBJLoader();
-    loader.load('skeleton.obj', (obj) => {
+    loader.load('res/skeleton.obj', (obj) => {
         obj.traverse(child => {
             if (child.isMesh) {
                 child.material = material;
