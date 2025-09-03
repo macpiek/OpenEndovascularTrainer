@@ -107,12 +107,14 @@ const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
         contrastTexture: { value: contrastTarget.texture },
-        gray: { value: new THREE.Color(0xC3C3C3) },
+        gray: { value: new THREE.Color(0xEBEBEB) },
         fluoroscopy: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
         // Lower default bone opacity so bones appear less prominent
-        boneOpacity: { value: 0.5 }
+        boneOpacity: { value: 0.5 },
+        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        edgeStrength: { value: 1.0 }
 
     },
     vertexShader: `
@@ -130,13 +132,31 @@ const displayMaterial = new THREE.ShaderMaterial({
         uniform float time;
         uniform float noiseLevel;
         uniform float boneOpacity;
+        uniform vec2 resolution;
+        uniform float edgeStrength;
         varying vec2 vUv;
 
         float random(vec2 st) {
             return fract(sin(dot(st.xy, vec2(12.9898, 78.233)) + time) * 43758.5453123);
         }
+
+        float edgeFactor(vec2 uv) {
+            vec2 texel = 1.0 / resolution;
+            float tl = texture2D(uTexture, uv + texel * vec2(-1.0, -1.0)).a;
+            float t  = texture2D(uTexture, uv + texel * vec2(0.0, -1.0)).a;
+            float tr = texture2D(uTexture, uv + texel * vec2(1.0, -1.0)).a;
+            float l  = texture2D(uTexture, uv + texel * vec2(-1.0, 0.0)).a;
+            float r  = texture2D(uTexture, uv + texel * vec2(1.0, 0.0)).a;
+            float bl = texture2D(uTexture, uv + texel * vec2(-1.0, 1.0)).a;
+            float b  = texture2D(uTexture, uv + texel * vec2(0.0, 1.0)).a;
+            float br = texture2D(uTexture, uv + texel * vec2(1.0, 1.0)).a;
+            float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
+            float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
+            return length(vec2(gx, gy));
+        }
         void main() {
             vec4 tex = texture2D(uTexture, vUv);
+            float edge = edgeFactor(vUv) * edgeStrength;
             if (fluoroscopy) {
                 float intensity = tex.r * boneOpacity;
                 float noise = random(vUv * 100.0) - 0.5;
@@ -145,9 +165,11 @@ const displayMaterial = new THREE.ShaderMaterial({
                 vec4 cSample = texture2D(contrastTexture, vUv);
                 float contrast = clamp((cSample.r + cSample.b) * 2.0, 0.0, 1.0);
                 vec3 color = gray * (1.0 - intensity);
-                gl_FragColor = vec4(mix(color, vec3(0.0), contrast), 1.0);
+                float alpha = clamp(1.0 + edge, 0.0, 1.0);
+                gl_FragColor = vec4(mix(color, vec3(0.0), contrast), alpha);
             } else {
-                gl_FragColor = tex;
+                float alpha = clamp(tex.a + edge, 0.0, 1.0);
+                gl_FragColor = vec4(tex.rgb, alpha);
             }
         }
     `
@@ -497,7 +519,9 @@ function animate(time) {
         }
     }
     voxelAgent.update(dt);
+
     const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, !fluoroscopy);
+
     if (voxelGroup.visible) {
         voxelGroup.clear();
         for (const m of voxMeshes) voxelGroup.add(m);
@@ -510,6 +534,7 @@ function animate(time) {
         scene.add(voxelGroup);
     }
     const contrastActive = voxMeshes.length > 0 || injecting;
+
     vesselGroup.visible = !fluoroscopy;
     boneGroup.visible = fluoroscopy;
     injectButton.disabled = contrastActive;
@@ -596,5 +621,6 @@ window.addEventListener('resize', () => {
     frontDepthTarget.setSize(w, h);
     backDepthTarget.setSize(w, h);
     thicknessTarget.setSize(w, h);
+    displayMaterial.uniforms.resolution.value.set(w, h);
 });
 
