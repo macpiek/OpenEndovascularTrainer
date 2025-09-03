@@ -278,6 +278,8 @@ for (let i = 0; i < wire.nodes.length; i++) {
     wire.nodes[i].y = tailStart.y + wireDir.y * t;
     wire.nodes[i].z = tailStart.z + wireDir.z * t;
 }
+// Keep the tail fixed outside the sheath
+wire.nodes[0].pinned = true;
 
 let advance = 0;
 document.addEventListener('keydown', e => {

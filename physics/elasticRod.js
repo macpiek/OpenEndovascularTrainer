@@ -93,6 +93,7 @@ export class ElasticRod {
                 mass,
                 bendingStiffness,
                 kx: 0, ky: 0, kz: 0,
+                pinned: false,
             });
         }
     }
@@ -185,6 +186,10 @@ export class ElasticRod {
     // Integrate positions and velocities using semi-implicit Euler
     integrate(dt) {
         for (const n of this.nodes) {
+            if (n.pinned) {
+                n.vx = n.vy = n.vz = 0;
+                continue;
+            }
             const ax = n.fx / n.mass;
             const ay = n.fy / n.mass;
             const az = n.fz / n.mass;
@@ -210,15 +215,24 @@ export class ElasticRod {
             let dz = n1.z - n0.z;
             let dist = Math.hypot(dx, dy, dz);
             if (!dist) continue;
-            const diff = (dist - L) / dist * 0.5;
-            dx *= diff; dy *= diff; dz *= diff;
-            n0.x += dx; n0.y += dy; n0.z += dz;
-            n1.x -= dx; n1.y -= dy; n1.z -= dz;
-
-            // update velocities from positional corrections
+            const diff = (dist - L) / dist;
             const invDt = 1 / dt;
-            n0.vx += dx * invDt; n0.vy += dy * invDt; n0.vz += dz * invDt;
-            n1.vx -= dx * invDt; n1.vy -= dy * invDt; n1.vz -= dz * invDt;
+            if (n0.pinned && n1.pinned) continue;
+            if (n0.pinned) {
+                dx *= diff; dy *= diff; dz *= diff;
+                n1.x -= dx; n1.y -= dy; n1.z -= dz;
+                n1.vx -= dx * invDt; n1.vy -= dy * invDt; n1.vz -= dz * invDt;
+            } else if (n1.pinned) {
+                dx *= diff; dy *= diff; dz *= diff;
+                n0.x += dx; n0.y += dy; n0.z += dz;
+                n0.vx += dx * invDt; n0.vy += dy * invDt; n0.vz += dz * invDt;
+            } else {
+                dx *= diff * 0.5; dy *= diff * 0.5; dz *= diff * 0.5;
+                n0.x += dx; n0.y += dy; n0.z += dz;
+                n1.x -= dx; n1.y -= dy; n1.z -= dz;
+                n0.vx += dx * invDt; n0.vy += dy * invDt; n0.vz += dz * invDt;
+                n1.vx -= dx * invDt; n1.vy -= dy * invDt; n1.vz -= dz * invDt;
+            }
         }
 
         // simple bending constraint: pull interior nodes toward midpoint of neighbours
@@ -226,6 +240,7 @@ export class ElasticRod {
             const p0 = this.nodes[i - 1];
             const p1 = this.nodes[i];
             const p2 = this.nodes[i + 1];
+            if (p1.pinned) continue;
             const cx = (p0.x + p2.x) * 0.5;
             const cy = (p0.y + p2.y) * 0.5;
             const cz = (p0.z + p2.z) * 0.5;
@@ -242,6 +257,7 @@ export class ElasticRod {
 
         // velocity damping
         for (const n of this.nodes) {
+            if (n.pinned) continue;
             n.vx *= 0.98;
             n.vy *= 0.98;
             n.vz *= 0.98;
@@ -260,6 +276,11 @@ export class ElasticRod {
         for (let iter = 0; iter < this.smoothingIterations; iter++) {
             const newPos = new Array(count);
             for (let i = 1; i < count - 1; i++) {
+                const n = this.nodes[i];
+                if (n.pinned) {
+                    newPos[i] = { x: n.x, y: n.y, z: n.z };
+                    continue;
+                }
                 const p0 = this.nodes[i - 1];
                 const p2 = this.nodes[i + 1];
                 newPos[i] = {
@@ -270,6 +291,7 @@ export class ElasticRod {
             }
             for (let i = 1; i < count - 1; i++) {
                 const n = this.nodes[i];
+                if (n.pinned) continue;
                 const np = newPos[i];
                 const dx = np.x - n.x;
                 const dy = np.y - n.y;
@@ -290,6 +312,7 @@ export class ElasticRod {
         const target = new THREE.Vector3();
         const normal = new THREE.Vector3();
         for (const n of this.nodes) {
+            if (n.pinned) continue;
             if (sheath) {
                 const shProj = projectOnSegment(n, sheath);
                 const radial = Math.sqrt(shProj.dx * shProj.dx + shProj.dy * shProj.dy + shProj.dz * shProj.dz);
