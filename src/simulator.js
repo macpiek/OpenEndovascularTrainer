@@ -4,6 +4,9 @@ import { generateVessel } from './vesselGeometry.js';
 import { initUI } from './ui/ui.js';
 import { createBoneModel } from './boneModel.js';
 import { VoxelContrastAgent, getVoxelMeshes } from './voxelContrastAgent.js';
+import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
+import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js';
 
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -33,24 +36,8 @@ const blendMaterial = new THREE.ShaderMaterial({
         previousFrame: { value: null },
         decay: { value: 0.95 }
     },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = vec4(position.xy, 0.0, 1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform sampler2D currentFrame;
-        uniform sampler2D previousFrame;
-        uniform float decay;
-        varying vec2 vUv;
-        void main() {
-            vec4 prev = texture2D(previousFrame, vUv);
-            vec4 curr = texture2D(currentFrame, vUv);
-            gl_FragColor = curr + prev * decay;
-        }
-    `
+    vertexShader: blendVS,
+    fragmentShader: blendFS
 });
 const blendQuad = new THREE.Mesh(quadGeometry, blendMaterial);
 const blendScene = new THREE.Scene();
@@ -68,25 +55,8 @@ const thicknessMaterial = new THREE.ShaderMaterial({
         frontDepth: { value: frontDepthTarget.texture },
         backDepth: { value: backDepthTarget.texture }
     },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = vec4(position.xy, 0.0, 1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform sampler2D frontDepth;
-        uniform sampler2D backDepth;
-        varying vec2 vUv;
-        void main() {
-            float front = texture2D(frontDepth, vUv).r;
-            float back = texture2D(backDepth, vUv).r;
-            float thick = max(back - front, 0.0);
-
-            gl_FragColor = vec4(vec3(thick), 1.0);
-        }
-    `
+    vertexShader: thicknessVS,
+    fragmentShader: thicknessFS
 });
 const thicknessQuad = new THREE.Mesh(quadGeometry, thicknessMaterial);
 const thicknessScene = new THREE.Scene();
@@ -106,62 +76,8 @@ const displayMaterial = new THREE.ShaderMaterial({
         edgeStrength: { value: 1.0 }
 
     },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = vec4(position.xy, 0.0, 1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform sampler2D uTexture;
-        uniform sampler2D contrastTexture;
-        uniform vec3 gray;
-        uniform bool fluoroscopy;
-        uniform float time;
-        uniform float noiseLevel;
-        uniform float boneOpacity;
-        uniform vec2 resolution;
-        uniform float edgeStrength;
-        varying vec2 vUv;
-
-        float random(vec2 st) {
-            return fract(sin(dot(st.xy, vec2(12.9898, 78.233)) + time) * 43758.5453123);
-        }
-
-        float edgeFactor(vec2 uv) {
-            vec2 texel = 1.0 / resolution;
-            float tl = texture2D(uTexture, uv + texel * vec2(-1.0, -1.0)).a;
-            float t  = texture2D(uTexture, uv + texel * vec2(0.0, -1.0)).a;
-            float tr = texture2D(uTexture, uv + texel * vec2(1.0, -1.0)).a;
-            float l  = texture2D(uTexture, uv + texel * vec2(-1.0, 0.0)).a;
-            float r  = texture2D(uTexture, uv + texel * vec2(1.0, 0.0)).a;
-            float bl = texture2D(uTexture, uv + texel * vec2(-1.0, 1.0)).a;
-            float b  = texture2D(uTexture, uv + texel * vec2(0.0, 1.0)).a;
-            float br = texture2D(uTexture, uv + texel * vec2(1.0, 1.0)).a;
-            float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
-            float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
-            return length(vec2(gx, gy));
-        }
-        void main() {
-            vec4 tex = texture2D(uTexture, vUv);
-            float edge = edgeFactor(vUv) * edgeStrength;
-            if (fluoroscopy) {
-                float intensity = tex.r * boneOpacity;
-                float noise = random(vUv * 100.0) - 0.5;
-                intensity += noise * noiseLevel;
-                intensity = clamp(intensity, 0.0, 1.0);
-                vec4 cSample = texture2D(contrastTexture, vUv);
-                float contrast = clamp((cSample.r + cSample.b) * 2.0, 0.0, 1.0);
-                vec3 color = gray * (1.0 - intensity);
-                float alpha = clamp(1.0 + edge, 0.0, 1.0);
-                gl_FragColor = vec4(mix(color, vec3(0.0), contrast), alpha);
-            } else {
-                float alpha = clamp(tex.a + edge, 0.0, 1.0);
-                gl_FragColor = vec4(tex.rgb, alpha);
-            }
-        }
-    `
+    vertexShader: displayVS,
+    fragmentShader: displayFS
 });
 const displayQuad = new THREE.Mesh(quadGeometry, displayMaterial);
 const displayScene = new THREE.Scene();
