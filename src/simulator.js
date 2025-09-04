@@ -1,9 +1,7 @@
 import * as THREE from 'three';
-import { ElasticRod, setBendingStiffness, setWallFriction, setSmoothingIterations } from './physics/elasticRod.js';
+import { ElasticRod } from './physics/elasticRod.js';
 import { generateVessel } from './vesselGeometry.js';
-import { setupCArmControls } from './carm.js';
-import { PatientMonitor } from './ui/patientMonitor.js';
-import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './ui/carmPreview.js';
+import { initUI } from './ui/ui.js';
 import { createBoneModel } from './boneModel.js';
 import { VoxelContrastAgent, getVoxelMeshes } from './voxelContrastAgent.js';
 
@@ -16,15 +14,6 @@ scene.background = new THREE.Color(0x000000);
 
 // Separate scene for rendering contrast in fluoroscopy mode
 const contrastScene = new THREE.Scene();
-
-const monitor = new PatientMonitor(
-    document.getElementById('ecgCanvas'),
-    document.getElementById('bpCanvas'),
-    document.getElementById('hrValue'),
-    document.getElementById('bpValue')
-);
-
-initCArmPreview();
 
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -183,12 +172,9 @@ const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerH
 camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
 
-const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-scene.add(light);
-
 let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
 let vesselGroup;
-const { group: boneGroup, material: boneMaterial } = createBoneModel();
+const { group: skeletonModel, material: boneMaterial } = createBoneModel();
 
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
 vesselGroup = new THREE.Group();
@@ -197,45 +183,26 @@ vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
-boneGroup.position.set(
+skeletonModel.position.set(
     vessel.branchPoint.x,
     vessel.branchPoint.y - 60,
     vessel.branchPoint.z - 50 // push bones back so they render behind vessels
 );
-boneGroup.renderOrder = -1; // ensure bones draw before vessel geometry
-scene.add(boneGroup);
+skeletonModel.renderOrder = -1; // ensure bones draw before vessel geometry
+scene.add(skeletonModel);
 
-const injSegmentSelect = document.getElementById('injSegment');
-// Populate injection segment choices
-if (injSegmentSelect) {
-    vessel.segments.forEach((_, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = `Segment ${idx}`;
-        injSegmentSelect.appendChild(opt);
-    });
-}
-
-const pivot = new THREE.Vector3(
-    vessel.branchPoint.x,
-    vessel.branchPoint.y - 60,
-    vessel.branchPoint.z
-);
-
+// Removed injection segment selector UI; default injection remains main vessel
 const voxelAgent = new VoxelContrastAgent(vessel, 2, 0.05);
 const voxelGroup = new THREE.Group();
 scene.add(voxelGroup);
 
-// Default to injecting into the main vessel and hide the segment selector
+// Default to injecting into the main vessel
 const injectSegmentIndex = 0;
-if (injSegmentSelect) {
-    injSegmentSelect.value = injectSegmentIndex;
-    injSegmentSelect.parentElement.style.display = 'none';
-}
 
 const segmentLength = 5;
 const nodeCount = 100;
-const initialWireLength = segmentLength * (nodeCount - 1);
+const guidewireLength = segmentLength * (nodeCount - 1);
+
 // Direction along the sheath from its outer start toward the vessel
 const sheathDirVec = {
     x: vessel.sheath.end.x - vessel.sheath.start.x,
@@ -258,15 +225,14 @@ const tipStart = {
 
 // Position the tail so the wire extends far outside the sheath
 const tailStart = {
-    x: tipStart.x - wireDir.x * initialWireLength,
-    y: tipStart.y - wireDir.y * initialWireLength,
-    z: tipStart.z - wireDir.z * initialWireLength
+    x: tipStart.x - wireDir.x * guidewireLength,
+    y: tipStart.y - wireDir.y * guidewireLength,
+    z: tipStart.z - wireDir.z * guidewireLength
 };
-
 
 const wire = new ElasticRod(nodeCount, segmentLength);
 let tailProgress = 0;
-const maxInsert = initialWireLength;
+const maxInsert = guidewireLength;
 // Prevent withdrawing the wire past the sheath entrance so the tip
 // always remains within the sheath.
 const minInsert = 0;
@@ -278,44 +244,9 @@ for (let i = 0; i < wire.nodes.length; i++) {
     wire.nodes[i].y = tailStart.y + wireDir.y * t;
     wire.nodes[i].z = tailStart.z + wireDir.z * t;
 }
+
 // Keep the tail fixed outside the sheath
 wire.nodes[0].pinned = true;
-
-let advance = 0;
-document.addEventListener('keydown', e => {
-    if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-        advance = 1;
-        e.preventDefault();
-    }
-    if (e.code === 'KeyS' || e.code === 'ArrowDown') {
-        advance = -1;
-        e.preventDefault();
-    }
-    if (e.code === 'KeyC' && fluoroscopy) {
-        injecting = true;
-        injectTime = 0;
-        e.preventDefault();
-    }
-}, true);
-document.addEventListener('keyup', e => {
-    if (['KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
-        advance = 0;
-        e.preventDefault();
-    }
-}, true);
-
-const bendSlider = document.getElementById('stiffness');
-const staticFricSlider = document.getElementById('staticFriction');
-const kineticFricSlider = document.getElementById('kineticFriction');
-const smoothIterSlider = document.getElementById('smoothIterations');
-const modeToggle = document.getElementById('modeToggle');
-const voxelRenderToggle = document.getElementById('renderVoxels');
-voxelGroup.visible = voxelRenderToggle ? voxelRenderToggle.checked : true;
-const injectButton = document.getElementById('injectContrast');
-const stopInjectButton = document.getElementById('stopInjection');
-const injRateSlider = document.getElementById('injRate');
-const injDurationSlider = document.getElementById('injDuration');
-const injVolumeSlider = document.getElementById('injVolume');
 
 let injecting = false;
 let injectTime = 0;
@@ -324,129 +255,46 @@ let injectRate = 2; // ml per second
 let injectVolume = 10; // total ml
 let remainingVolume = 0;
 let totalDose = 0;
-const insertedLength = document.getElementById('insertedLength');
-const doseDisplay = document.getElementById('currentDose');
-const persistenceSlider = document.getElementById('persistence');
-const noiseSlider = document.getElementById('noiseLevel');
-const perfStats = document.getElementById('perfStats');
-
-const sliders = [
-    bendSlider,
-    staticFricSlider,
-    kineticFricSlider,
-    smoothIterSlider,
-    persistenceSlider,
-    noiseSlider,
-    injVolumeSlider,
-    injRateSlider,
-    injDurationSlider
-];
-sliders.forEach(s => s.addEventListener('change', () => s.blur()));
-
-if (voxelRenderToggle) {
-    voxelRenderToggle.addEventListener('change', e => {
-        voxelGroup.visible = e.target.checked;
-    });
-}
-
-// Display current values next to each slider
-document.querySelectorAll('#controls input[type="range"], #carm-controls input[type="range"]').forEach(slider => {
-    const valueLabel = slider.nextElementSibling;
-    if (!valueLabel) return;
-    const update = () => { valueLabel.textContent = slider.value; };
-    update();
-    slider.addEventListener('input', update);
-});
-
-// Toggle visibility of control sections
-document.querySelectorAll('.section-header').forEach(header => {
-    header.addEventListener('click', () => {
-        const content = header.nextElementSibling;
-        header.classList.toggle('collapsed');
-        if (content) {
-            content.classList.toggle('hidden');
-        }
-    });
-});
-setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup, cArmPreviewGantry);
-
-displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
-noiseSlider.addEventListener('input', e => {
-    displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
-});
-
-let bendingStiffness = parseFloat(bendSlider.value);
-setBendingStiffness(bendingStiffness);
-bendSlider.addEventListener('input', e => {
-    bendingStiffness = parseFloat(e.target.value);
-    setBendingStiffness(bendingStiffness);
-});
-
-let staticFriction = parseFloat(staticFricSlider.value);
-let kineticFriction = parseFloat(kineticFricSlider.value);
-let decay = parseFloat(persistenceSlider.value);
-let smoothingIterations = parseInt(smoothIterSlider.value);
-setWallFriction(staticFriction, kineticFriction);
-setSmoothingIterations(smoothingIterations);
-blendMaterial.uniforms.decay.value = decay;
-staticFricSlider.addEventListener('input', e => {
-    staticFriction = parseFloat(e.target.value);
-    setWallFriction(staticFriction, kineticFriction);
-});
-kineticFricSlider.addEventListener('input', e => {
-    kineticFriction = parseFloat(e.target.value);
-    setWallFriction(staticFriction, kineticFriction);
-});
-smoothIterSlider.addEventListener('input', e => {
-    smoothingIterations = parseInt(e.target.value);
-    setSmoothingIterations(smoothingIterations);
-});
-persistenceSlider.addEventListener('input', e => {
-    blendMaterial.uniforms.decay.value = parseFloat(e.target.value);
-});
-
-let fluoroscopy = true;
-vesselGroup.visible = false;
-boneGroup.visible = fluoroscopy;
-displayMaterial.uniforms.fluoroscopy.value = true;
-modeToggle.textContent = 'Wireframe';
-modeToggle.addEventListener('click', () => {
-    fluoroscopy = !fluoroscopy;
-    vesselGroup.visible = !fluoroscopy;
-    boneGroup.visible = fluoroscopy;
-    displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
-    modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
-    // Render the guidewire in white so it appears black after the fluoroscopy
-    // shader inversion.
-    wireMaterial.color.set(0xffffff);
-});
-
-injectButton.addEventListener('click', () => {
-    if (!injecting) {
-        injecting = true;
-        injectTime = 0;
-        injectRate = parseFloat(injRateSlider.value);
-        injectDuration = parseFloat(injDurationSlider.value) / 1000;
-        injectVolume = parseFloat(injVolumeSlider.value);
-        remainingVolume = injectVolume;
-        injectButton.disabled = true;
-        stopInjectButton.disabled = false;
-    }
-});
-
-stopInjectButton.addEventListener('click', () => {
-    if (injecting) {
-        injecting = false;
-        remainingVolume = 0;
-        stopInjectButton.disabled = true;
-    }
-});
 
 // Use a white guidewire so the fluoroscopy shader can invert it to black.
 const wireMaterial = new THREE.LineBasicMaterial({
     color: 0xffffff,
     depthTest: false
 });
+// Initialize UI after wireMaterial is created so mode toggle can affect it
+let fluoroscopy = true;
+const ui = initUI({
+    camera,
+    cameraRadius,
+    vessel,
+    voxelGroup,
+    displayMaterial,
+    blendMaterial,
+    wireMaterial,
+    onStartInjection: ({ rate, duration, volume }) => {
+        if (!injecting) {
+            injecting = true;
+            injectTime = 0;
+            injectRate = rate;
+            injectDuration = duration;
+            injectVolume = volume;
+            remainingVolume = injectVolume;
+        }
+    },
+    onStopInjection: () => {
+        if (injecting) {
+            injecting = false;
+            remainingVolume = 0;
+        }
+    },
+    onModeChange: (f) => {
+        fluoroscopy = f;
+        vesselGroup.visible = !fluoroscopy;
+        skeletonModel.visible = fluoroscopy;
+        displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
+    },
+});
+const { monitor } = ui;
 const wireGeometry = new THREE.BufferGeometry();
 const wirePositions = new Float32Array(nodeCount * 3);
 wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
@@ -478,22 +326,22 @@ const fixedDt = 1 / 60;
 let lastRenderTime = performance.now();
 
 function stepSimulation() {
-    advanceTailInput(advance, fixedDt);
+    advanceTailInput(ui.getAdvance(), fixedDt);
     wire.step(fixedDt);
     wire.collide(vessel, fixedDt);
     const inserted = Math.max(0, tailProgress);
-    insertedLength.textContent = (inserted / 10).toFixed(1) + ' cm';
+    ui.updateInsertedLength(inserted / 10);
 
     if (injecting) {
         const amt = Math.min(injectRate * fixedDt, remainingVolume);
         voxelAgent.inject(amt, injectSegmentIndex, false);
         totalDose += amt;
-        doseDisplay.textContent = totalDose.toFixed(1) + ' ml';
+        ui.updateDose(totalDose);
         injectTime += fixedDt;
         remainingVolume -= amt;
         if (injectTime >= injectDuration || remainingVolume <= 0) {
             injecting = false;
-            stopInjectButton.disabled = true;
+            ui.setStopInjectionDisabled(true);
         }
     }
     voxelAgent.update(fixedDt);
@@ -530,13 +378,13 @@ function animate(time) {
     const contrastActive = voxMeshes.length > 0 || injecting;
 
     vesselGroup.visible = !fluoroscopy;
-    boneGroup.visible = fluoroscopy;
-    injectButton.disabled = contrastActive;
-    stopInjectButton.disabled = !injecting;
+    skeletonModel.visible = fluoroscopy;
+    ui.setInjectButtonDisabled(contrastActive);
+    ui.setStopInjectionDisabled(!injecting);
     if (fluoroscopy) {
         const hidden = [];
         for (const child of scene.children) {
-            if (child !== boneGroup && !child.isCamera) {
+            if (child !== skeletonModel && !child.isCamera) {
                 hidden.push({ obj: child, visible: child.visible });
                 child.visible = false;
             }
@@ -588,14 +436,7 @@ function animate(time) {
         renderer.render(scene, camera);
     }
 
-    if (perfStats) {
-        const fps = (1 / dt).toFixed(1);
-        let mem = 'N/A';
-        if (performance.memory) {
-            mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
-        }
-        perfStats.textContent = `FPS: ${fps} | Mem: ${mem}`;
-    }
+    ui.updatePerfStats(dt);
 
     requestAnimationFrame(animate);
 }
@@ -616,4 +457,3 @@ window.addEventListener('resize', () => {
     thicknessTarget.setSize(w, h);
     displayMaterial.uniforms.resolution.value.set(w, h);
 });
-
