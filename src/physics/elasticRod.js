@@ -46,30 +46,8 @@ export function setWallFriction(staticCoeff, kineticCoeff) {
     wallKineticFriction = kineticCoeff;
 }
 
-// Project point n onto vessel segment seg.
-// Returns closest point (px,py,pz), offset vector (dx,dy,dz) from projection
-// to the node and the distance between them. Also returns the unclamped
-// segment parameter t before restricting it to [0,1] so callers can detect
-// if the node lies beyond an endpoint.
-function projectOnSegment(n, seg) {
-    const vx = seg.end.x - seg.start.x;
-    const vy = seg.end.y - seg.start.y;
-    const vz = (seg.end.z || 0) - (seg.start.z || 0);
-    const wx = n.x - seg.start.x;
-    const wy = n.y - seg.start.y;
-    const wz = n.z - (seg.start.z || 0);
-    const len2 = vx * vx + vy * vy + vz * vz;
-    const tRaw = (wx * vx + wy * vy + wz * vz) / len2;
-    const t = Math.max(0, Math.min(1, tRaw));
-    const px = seg.start.x + vx * t;
-    const py = seg.start.y + vy * t;
-    const pz = (seg.start.z || 0) + vz * t;
-    const dx = n.x - px;
-    const dy = n.y - py;
-    const dz = n.z - pz;
-    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    return { px, py, pz, dx, dy, dz, dist, t: tRaw };
-}
+// (removed) Previously projected nodes onto analytic vessel segments to
+// special-case sheath behavior. Collisions now rely solely on the mesh BVH.
 
 export class ElasticRod {
     constructor(count, segmentLength, {
@@ -302,27 +280,23 @@ export class ElasticRod {
         }
     }
 
-    // Constrain nodes to stay inside the vessel geometry.
-    collide(vessel, dt = 1) {
-        if (!vessel) return;
-        const geom = vessel.geometry;
-        const sheath = vessel.segments && vessel.segments.find(s => s.isSheath);
+    // Constrain nodes to stay inside a mesh geometry using BVH queries only.
+    // Accepts either a THREE.BufferGeometry, a THREE.Mesh, or any object with
+    // a `geometry` property containing a BufferGeometry with a boundsTree.
+    collide(target, dt = 1) {
+        if (!target) return;
+        const geom = target.isBufferGeometry ? target : (target.geometry || target);
         if (!geom || !geom.boundsTree) return;
         const p = new THREE.Vector3();
-        const target = new THREE.Vector3();
+        const closest = new THREE.Vector3();
         const normal = new THREE.Vector3();
         for (const n of this.nodes) {
             if (n.pinned) continue;
-            if (sheath) {
-                const shProj = projectOnSegment(n, sheath);
-                const radial = Math.sqrt(shProj.dx * shProj.dx + shProj.dy * shProj.dy + shProj.dz * shProj.dz);
-                if (shProj.t < 0 && radial <= sheath.radius) continue;
-            }
             p.set(n.x, n.y, n.z);
-            geom.boundsTree.closestPointToPoint(p, { point: target, normal });
-            const dx = p.x - target.x;
-            const dy = p.y - target.y;
-            const dz = p.z - target.z;
+            geom.boundsTree.closestPointToPoint(p, { point: closest, normal });
+            const dx = p.x - closest.x;
+            const dy = p.y - closest.y;
+            const dz = p.z - closest.z;
             const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (normal.lengthSq() === 0) {
                 const inv = 1 / (dist || 1);
@@ -334,9 +308,9 @@ export class ElasticRod {
             const ny = normal.y;
             const nz = normal.z;
             if (penetration > 0) {
-                n.x = target.x;
-                n.y = target.y;
-                n.z = target.z;
+                n.x = closest.x;
+                n.y = closest.y;
+                n.z = closest.z;
                 const vn = n.vx * nx + n.vy * ny + n.vz * nz;
                 let tx = n.vx - vn * nx;
                 let ty = n.vy - vn * ny;

@@ -1,3 +1,4 @@
+// Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js';
 import { generateVessel } from './vesselGeometry.js';
@@ -8,16 +9,19 @@ import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/bl
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js';
 
+// WebGL renderer attached to the fullscreen canvas
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 
+// Primary 3D scene (wire, vessels, bones)
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-// Separate scene for rendering contrast in fluoroscopy mode
+// Separate scene for rendering contrast meshes in fluoroscopy mode
 const contrastScene = new THREE.Scene();
 
+// Offscreen render targets used by various post-processing passes
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -28,6 +32,7 @@ const thicknessTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.in
 let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
 
+// Fullscreen post-processing setup
 const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 const quadGeometry = new THREE.PlaneGeometry(2, 2);
 const blendMaterial = new THREE.ShaderMaterial({
@@ -43,6 +48,7 @@ const blendQuad = new THREE.Mesh(quadGeometry, blendMaterial);
 const blendScene = new THREE.Scene();
 blendScene.add(blendQuad);
 
+// Depth-only materials used to compute front/back depth for thickness
 const depthMaterialFront = new THREE.MeshDepthMaterial({ side: THREE.FrontSide });
 const depthMaterialBack = new THREE.MeshDepthMaterial({
     side: THREE.BackSide,
@@ -83,19 +89,22 @@ const displayQuad = new THREE.Mesh(quadGeometry, displayMaterial);
 const displayScene = new THREE.Scene();
 displayScene.add(displayQuad);
 
+// C-arm configuration: camera acts as X-ray source; detector is simulated in shaders
 const cameraRadius = 350;
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
 
-let vesselMaterial = new THREE.MeshStandardMaterial({color: 0x3366ff});
+// Vessel mesh (procedurally generated)
+// Use unlit material so wireframe is visible without lights
+let vesselMaterial = new THREE.MeshBasicMaterial({ color: 0x3366ff, wireframe: true });
 let vesselGroup;
 const { group: skeletonModel, material: boneMaterial } = createBoneModel();
 
+// Generate a deterministic vessel model (branch parameter = 0)
 const { geometry, vessel } = generateVessel(140, 0); // deterministic branch parameters
 vesselGroup = new THREE.Group();
 const vesselMesh = new THREE.Mesh(geometry, vesselMaterial);
-vesselMesh.material.wireframe = true;
 vesselGroup.add(vesselMesh);
 scene.add(vesselGroup);
 
@@ -107,6 +116,7 @@ skeletonModel.position.set(
 skeletonModel.renderOrder = -1; // ensure bones draw before vessel geometry
 scene.add(skeletonModel);
 
+// Contrast agent simulation (voxel-based)
 // Removed injection segment selector UI; default injection remains main vessel
 const voxelAgent = new VoxelContrastAgent(vessel, 2, 0.05);
 const voxelGroup = new THREE.Group();
@@ -115,6 +125,7 @@ scene.add(voxelGroup);
 // Default to injecting into the main vessel
 const injectSegmentIndex = 0;
 
+// Guidewire physical model (discrete elastic rod)
 const segmentLength = 5;
 const nodeCount = 100;
 const guidewireLength = segmentLength * (nodeCount - 1);
@@ -146,6 +157,7 @@ const tailStart = {
     z: tipStart.z - wireDir.z * guidewireLength
 };
 
+// Initialize wire nodes along the sheath axis, tail outside the body
 const wire = new ElasticRod(nodeCount, segmentLength);
 let tailProgress = 0;
 const maxInsert = guidewireLength;
@@ -164,6 +176,7 @@ for (let i = 0; i < wire.nodes.length; i++) {
 // Keep the tail fixed outside the sheath
 wire.nodes[0].pinned = true;
 
+// Injection state (managed by UI callbacks)
 let injecting = false;
 let injectTime = 0;
 let injectDuration = 2; // seconds
@@ -172,7 +185,7 @@ let injectVolume = 10; // total ml
 let remainingVolume = 0;
 let totalDose = 0;
 
-// Use a white guidewire so the fluoroscopy shader can invert it to black.
+// Renderable guidewire: white so the fluoroscopy shader can invert it to black
 const wireMaterial = new THREE.LineBasicMaterial({
     color: 0xffffff,
     depthTest: false
@@ -219,6 +232,7 @@ wireMesh.renderOrder = 1; // draw on top of additive bone rendering
 scene.add(wireMesh);
 
 function advanceTailInput(advance, dt) {
+    // Move the pinned tail node forward/backward along the sheath axis
     tailProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * 40 * dt));
     const tail = wire.nodes[0];
     tail.x = tailStart.x + wireDir.x * tailProgress;
@@ -228,6 +242,7 @@ function advanceTailInput(advance, dt) {
 }
 
 function updateWireMesh() {
+    // Copy simulated node positions into the GPU buffer used by the line
     for (let i = 0; i < wire.nodes.length; i++) {
         const n = wire.nodes[i];
         wirePositions[i * 3] = n.x;
@@ -242,9 +257,11 @@ const fixedDt = 1 / 60;
 let lastRenderTime = performance.now();
 
 function stepSimulation() {
+    // Advance input, integrate rod physics, collisions, and update medical monitors
     advanceTailInput(ui.getAdvance(), fixedDt);
     wire.step(fixedDt);
-    wire.collide(vessel, fixedDt);
+    // Collide using only the vessel mesh BVH
+    wire.collide(vesselMesh, fixedDt);
     const inserted = Math.max(0, tailProgress);
     ui.updateInsertedLength(inserted / 10);
 
@@ -264,16 +281,18 @@ function stepSimulation() {
     monitor.update(fixedDt);
 }
 
-// Run simulation logic independent of rendering to keep it active when the page is hidden.
+// Keep simulation ticking even when the tab is hidden (decoupled from rendering)
 setInterval(stepSimulation, fixedDt * 1000);
 
 function withTransparentClear(renderer, fn) {
+    // Temporarily render with transparent clears (for contrast overlay)
     renderer.setClearColor(0x000000, 0);
     fn();
     renderer.setClearColor(0x000000, 1);
 }
 
 function animate(time) {
+    // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
     const dt = (time - lastRenderTime) / 1000;
     lastRenderTime = time;
 
@@ -298,6 +317,11 @@ function animate(time) {
     ui.setInjectButtonDisabled(contrastActive);
     ui.setStopInjectionDisabled(!injecting);
     if (fluoroscopy) {
+        // Fluoroscopy path:
+        // 1) render front/back depth for thickness
+        // 2) render contrast to its target with transparent clear
+        // 3) render scene to offscreen, accumulate with decay
+        // 4) display accumulated + contrast via display shader
         const hidden = [];
         for (const child of scene.children) {
             if (child !== skeletonModel && !child.isCamera) {
@@ -344,6 +368,7 @@ function animate(time) {
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
 
+        // Ping-pong accumulation targets for next frame's persistence
         const temp = previousTarget;
         previousTarget = currentTarget;
         currentTarget = temp;
@@ -359,6 +384,7 @@ function animate(time) {
 requestAnimationFrame(animate);
 
 window.addEventListener('resize', () => {
+    // Keep all targets and shader uniforms in sync with the canvas size
     const w = window.innerWidth;
     const h = window.innerHeight;
     renderer.setSize(w, h);
