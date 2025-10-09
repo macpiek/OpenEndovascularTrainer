@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 import { Brush, Evaluator, ADDITION } from 'three-bvh-csg';
 
-export function vesselToGeometry(vessel, radialSegments = 16) {
+export function vesselToGeometry(vessel, radialSegments = 24) {
     const yAxis = new THREE.Vector3(0, 1, 0);
     const evaluator = new Evaluator();
     let result = null;
@@ -11,10 +11,24 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
     // from its branches because the open-ended cylinders only meet at their
     // faces and share no volume.
     const nodeMap = new Map();
+    // Track junction connectivity to place additional fillet spheres that
+    // smooth the transition at bifurcations (degree >= 3 nodes).
+    const junctions = new Map();
+    const nodeKey = (p) => `${p.x.toFixed(5)},${p.y.toFixed(5)},${p.z.toFixed(5)}`;
     const addNode = (p, radius) => {
-        const key = `${p.x.toFixed(5)},${p.y.toFixed(5)},${p.z.toFixed(5)}`;
+        const key = nodeKey(p);
         const r = nodeMap.get(key);
         nodeMap.set(key, r ? Math.max(r, radius) : radius);
+    };
+    const recordConn = (pos, dir, radius, isSheath = false) => {
+        const key = nodeKey(pos);
+        let j = junctions.get(key);
+        if (!j) {
+            j = { pos: new THREE.Vector3(pos.x, pos.y, pos.z), conns: [], maxR: 0 };
+            junctions.set(key, j);
+        }
+        j.maxR = Math.max(j.maxR, radius);
+        j.conns.push({ dir: dir.clone().normalize(), radius, isSheath });
     };
     for (const seg of vessel.segments || []) {
         const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
@@ -22,6 +36,8 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
         const dir = new THREE.Vector3().subVectors(end, start);
         const length = dir.length();
         if (!length) continue;
+        // Model each straight segment as an open cylinder aligned to its
+        // centerline. Using higher radial resolution improves smoothness.
         const geom = new THREE.CylinderGeometry(seg.radius, seg.radius, length, radialSegments, 1, true);
         const quat = new THREE.Quaternion().setFromUnitVectors(yAxis, dir.clone().normalize());
         geom.applyQuaternion(quat);
@@ -35,15 +51,23 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
             // Only add a node at the vessel-facing end so it fuses seamlessly with
             // the branch while keeping the external end uncapped.
             addNode(seg.end, seg.radius);
+            // Record connectivity for smoothing at the vessel-facing end of the sheath
+            const dirToEnd = new THREE.Vector3().subVectors(end, start).normalize();
+            recordConn(seg.end, dirToEnd, seg.radius, true);
         } else {
             addNode(seg.start, seg.radius);
             addNode(seg.end, seg.radius);
+            // Record connectivity for potential junction smoothing
+            const dirToEnd = new THREE.Vector3().subVectors(end, start).normalize();
+            recordConn(seg.start, dirToEnd.clone().negate(), seg.radius);
+            recordConn(seg.end, dirToEnd, seg.radius);
         }
     }
     // Fuse all touching segments by adding a sphere at each node with radius
     // equal to the largest adjoining segment radius. This guarantees the
     // bifurcation and branches share overlapping volume and results in a single
-    // connected mesh.
+    // connected mesh while acting as a simple fillet at junctions for a
+    // smoother result.
     for (const [key, radius] of nodeMap) {
         const [x, y, z] = key.split(',').map(Number);
         const geom = new THREE.SphereGeometry(radius, radialSegments, radialSegments);
@@ -51,6 +75,35 @@ export function vesselToGeometry(vessel, radialSegments = 16) {
         const brush = new Brush(geom);
         brush.updateMatrixWorld();
         result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
+    }
+
+    // Add additional smaller fillet spheres along each connected segment near
+    // true junctions (degree >= 3). These approximate a rounded Y by gently
+    // expanding the union away from the node, reducing creases.
+    for (const [key, j] of junctions) {
+        if (j.conns.length < 3) continue; // only bifurcations or higher
+        const centerR = nodeMap.get(key) ?? j.maxR;
+        for (const c of j.conns) {
+            // Skip external sheath entrance; we don't want to bulb it.
+            if (c.isSheath) continue;
+            // Two steps along the branch with decreasing radius.
+            const d1 = 0.35 * c.radius;
+            const d2 = 0.9 * c.radius;
+            const p1 = j.pos.clone().add(c.dir.clone().multiplyScalar(d1));
+            const p2 = j.pos.clone().add(c.dir.clone().multiplyScalar(d2));
+            const r1 = Math.min(centerR, c.radius) * 0.85;
+            const r2 = c.radius * 0.75;
+            for (const [px, py, pz, rr] of [
+                [p1.x, p1.y, p1.z, r1],
+                [p2.x, p2.y, p2.z, r2]
+            ]) {
+                const geom = new THREE.SphereGeometry(rr, radialSegments, radialSegments);
+                geom.translate(px, py, pz);
+                const brush = new Brush(geom);
+                brush.updateMatrixWorld();
+                result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
+            }
+        }
     }
     if (!result) return new THREE.BufferGeometry();
     const merged = result.geometry;
@@ -78,7 +131,6 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
     const branchPointY = -300;
-    const blend = 40;
 
     const vessel = {
         radius: mainRadius,
@@ -88,71 +140,35 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     };
 
     const mainStart = {x: 0, y: 0, z: 0};
-    // Extend the primary vessel all the way to the bifurcation point so the
-    // branches can attach seamlessly. Previously the main vessel terminated
-    // above the bifurcation which left a gap in the generated mesh.
+    // Extend the primary vessel to the bifurcation point so branches can
+    // attach seamlessly. Keeping the model minimal (one main + two branch
+    // segments) reduces CSG artifacts and produces a cleaner mesh.
     const mainEnd = {x: 0, y: branchPointY, z: 0};
     vessel.main = {start: mainStart, end: mainEnd};
     vessel.segments.push({start: mainStart, end: mainEnd, radius: mainRadius});
 
-    function branch(dir) {
-        const angle = Math.PI / 6 * dir + branchAngleOffset * dir;
-        const curveEnd = {
-            x: Math.sin(angle) * blend,
-            y: branchPointY - blend,
-            z: 0
-        };
+    // Define straight branches from the bifurcation. We rely on a rounded
+    // union at the branchPoint (via node spheres in vesselToGeometry) to
+    // produce a smooth bifurcation without the complexity of discretized
+    // curve segments. This greatly reduces seams and eliminates tiny gaps.
+    function buildBranch(dir) {
+        const angle = Math.PI / 6 * dir + branchAngleOffset * dir; // ±30° plus offset
         const end = {
-            x: Math.sin(angle) * (blend + branchLength),
-            y: branchPointY - (blend + branchLength),
+            x: vessel.branchPoint.x + Math.sin(angle) * branchLength,
+            y: vessel.branchPoint.y - branchLength,
             z: 0
         };
-        const length = branchLength + blend;
-        return {angle, curveEnd, end, length};
+        const length = branchLength;
+        return { angle, end, length };
     }
 
-    vessel.right = branch(1);
-    vessel.left = branch(-1);
+    vessel.right = buildBranch(1);
+    vessel.left = buildBranch(-1);
 
-    // Smoothly join each branch to the main vessel without overlapping geometry.
-    // Direction pointing downstream from the bifurcation used to define the
-    // initial tangent of each branch's joining curve. It's simply a downward
-    // vector of length equal to the blend distance.
-    const mainDir = { x: 0, y: -blend, z: 0 };
-
-    function addBranchCurve(endPoint) {
-        const p0 = vessel.branchPoint;
-        const p1 = {
-            x: vessel.branchPoint.x + mainDir.x,
-            y: vessel.branchPoint.y + mainDir.y,
-            z: vessel.branchPoint.z + mainDir.z
-        };
-        const steps = 24;
-        let prev = p0;
-        for (let i = 1; i <= steps; i++) {
-            const t = i / steps;
-            const tt = 1 - t;
-            const p = {
-                x: tt * tt * p0.x + 2 * tt * t * p1.x + t * t * endPoint.x,
-                y: tt * tt * p0.y + 2 * tt * t * p1.y + t * t * endPoint.y,
-                z: tt * tt * p0.z + 2 * tt * t * p1.z + t * t * endPoint.z
-            };
-            // Use the previous step's t value when interpolating the radius so
-            // the branch starts with the same radius as the main vessel. The
-            // original implementation used the current step's t which resulted
-            // in a slightly smaller first segment and left a visible gap where
-            // the branches meet the bifurcation.
-            const rStep = (i - 1) / (steps - 1);
-            const r = mainRadius + (branchRadius - mainRadius) * rStep;
-            vessel.segments.push({ start: prev, end: p, radius: r });
-            prev = p;
-        }
-    }
-
-    addBranchCurve(vessel.right.curveEnd);
-    vessel.segments.push({ start: vessel.right.curveEnd, end: vessel.right.end, radius: branchRadius });
-    addBranchCurve(vessel.left.curveEnd);
-    vessel.segments.push({ start: vessel.left.curveEnd, end: vessel.left.end, radius: branchRadius });
+    // Add branch segments starting exactly at the bifurcation point. The
+    // blending sphere added at this node will smoothly fuse the junction.
+    vessel.segments.push({ start: vessel.branchPoint, end: vessel.right.end, radius: branchRadius });
+    vessel.segments.push({ start: vessel.branchPoint, end: vessel.left.end, radius: branchRadius });
 
     // Introducer sheath entering the vessel at a fixed 30° angle toward the
     // anterior (+Z) direction. The angle is measured relative to the left
@@ -284,4 +300,3 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
     vessel.geometry = geometry;
     return { vessel, geometry };
 }
-
