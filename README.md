@@ -47,6 +47,15 @@ relax sharp bends. Default values for bending stiffness and the number of
 smoothing iterations may be configured via the `setBendingStiffness` and
 `setSmoothingIterations` functions exported from `physics/elasticRod.js`.
 
+The solver also exposes `setInternalDamping` and `setVelocityDamping` helpers.
+Internal damping acts as a velocity-proportional drag on each node so that the
+rod's kinetic energy decays, while velocity damping applies an exponential
+decay to free motion during constraint projection. Together they prevent the
+guidewire from oscillating indefinitely and drive it toward a static
+equilibrium. After each simulation `step` the rod reports its kinetic,
+potential and total energy via the `energy` property and through the optional
+logger callback, making it easy to monitor convergence toward equilibrium.
+
 ## Simulation logging and tests
 
 `ElasticRod` accepts an optional `logger` callback. When provided, the callback

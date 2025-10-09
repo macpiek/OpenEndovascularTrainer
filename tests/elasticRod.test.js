@@ -6,11 +6,21 @@ import { MeshBVH } from 'three-mesh-bvh';
 const rod = new ElasticRod(5, 1, { mass: 1, bendingStiffness: 0.5 });
 // introduce a perturbation
 rod.nodes[2].y = 0.5;
+rod.updateCurvature();
+const initialEnergy = rod.computeEnergies();
 
 const dt = 0.01;
 for (let i = 0; i < 200; i++) {
     rod.step(dt);
 }
+const finalEnergy = rod.energy;
+
+console.log('initial total energy', initialEnergy.total.toFixed(6));
+console.log('final kinetic energy', finalEnergy.kinetic.toFixed(6));
+console.log('final potential energy', finalEnergy.potential.toFixed(6));
+console.log('final total energy', finalEnergy.total.toFixed(6));
+console.assert(finalEnergy.total < initialEnergy.total * 0.1, 'energy should dissipate toward equilibrium');
+console.assert(finalEnergy.kinetic < 1e-3, 'kinetic energy should be near zero at equilibrium');
 
 let maxErr = 0;
 const L = rod.segmentLength;

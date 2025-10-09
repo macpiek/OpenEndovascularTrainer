@@ -27,6 +27,8 @@ import * as THREE from 'three';
 // higher default stiffness gives stronger self-straightening
 let defaultBendingStiffness = 20;
 let defaultSmoothingIterations = 0;
+let defaultInternalDamping = 2.5;
+let defaultVelocityDamping = 4;
 
 // Coefficients for static and kinetic friction against vessel walls.
 // Values are relative to the normal component of velocity.
@@ -39,6 +41,14 @@ export function setBendingStiffness(value) {
 
 export function setSmoothingIterations(value) {
     defaultSmoothingIterations = value;
+}
+
+export function setInternalDamping(value) {
+    defaultInternalDamping = value;
+}
+
+export function setVelocityDamping(value) {
+    defaultVelocityDamping = value;
 }
 
 export function setWallFriction(staticCoeff, kineticCoeff) {
@@ -77,12 +87,17 @@ export class ElasticRod {
         bendingStiffness = defaultBendingStiffness,
         smoothingIterations = defaultSmoothingIterations,
         logger = null,
+        internalDamping = defaultInternalDamping,
+        velocityDamping = defaultVelocityDamping,
     } = {}) {
         this.segmentLength = segmentLength;
         this.nodes = [];
         this.smoothingIterations = smoothingIterations;
         this.logger = logger;
         this.iteration = 0;
+        this.internalDamping = internalDamping;
+        this.velocityDamping = velocityDamping;
+        this.energy = { kinetic: 0, potential: 0, total: 0 };
         for (let i = 0; i < count; i++) {
             const x = i * segmentLength;
             const y = 0, z = 0;
@@ -183,6 +198,18 @@ export class ElasticRod {
         }
     }
 
+    applyInternalDamping() {
+        if (!this.internalDamping) return;
+        const damping = this.internalDamping;
+        for (const n of this.nodes) {
+            if (n.pinned) continue;
+            const mass = n.mass;
+            n.fx -= damping * mass * n.vx;
+            n.fy -= damping * mass * n.vy;
+            n.fz -= damping * mass * n.vz;
+        }
+    }
+
     // Integrate positions and velocities using semi-implicit Euler
     integrate(dt) {
         for (const n of this.nodes) {
@@ -256,11 +283,12 @@ export class ElasticRod {
         }
 
         // velocity damping
+        const damping = Math.exp(-Math.max(0, this.velocityDamping) * dt);
         for (const n of this.nodes) {
             if (n.pinned) continue;
-            n.vx *= 0.98;
-            n.vy *= 0.98;
-            n.vz *= 0.98;
+            n.vx *= damping;
+            n.vy *= damping;
+            n.vz *= damping;
         }
 
         // optional Laplacian smoothing after constraints
@@ -377,18 +405,55 @@ export class ElasticRod {
         }
     }
 
+    computeKineticEnergy() {
+        let sum = 0;
+        for (const n of this.nodes) {
+            if (n.pinned) continue;
+            const v2 = n.vx * n.vx + n.vy * n.vy + n.vz * n.vz;
+            sum += 0.5 * n.mass * v2;
+        }
+        return sum;
+    }
+
+    computePotentialEnergy() {
+        let sum = 0;
+        const L = this.segmentLength;
+        if (this.nodes.length < 3) return sum;
+        for (let i = 1; i < this.nodes.length - 1; i++) {
+            const n = this.nodes[i];
+            const kx = n.kx;
+            const ky = n.ky;
+            const kz = n.kz;
+            const k2 = kx * kx + ky * ky + kz * kz;
+            sum += 0.5 * n.bendingStiffness * k2 * L;
+        }
+        return sum;
+    }
+
+    computeEnergies() {
+        const kinetic = this.computeKineticEnergy();
+        const potential = this.computePotentialEnergy();
+        return { kinetic, potential, total: kinetic + potential };
+    }
+
     step(dt) {
         this.resetForces();
         this.updateCurvature();
         this.accumulateBendingForces();
+        this.applyInternalDamping();
         this.integrate(dt);
         this.solveConstraints(dt);
+        this.updateCurvature();
+        this.energy = this.computeEnergies();
         this.iteration++;
         if (this.logger) {
             this.logger({
                 iteration: this.iteration,
                 curvature: this.averageCurvature(),
                 length: this.computeLength(),
+                kineticEnergy: this.energy.kinetic,
+                potentialEnergy: this.energy.potential,
+                totalEnergy: this.energy.total,
             });
         }
     }
