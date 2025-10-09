@@ -51,11 +51,14 @@ smoothing iterations may be configured via the `setBendingStiffness` and
 
 `ElasticRod` accepts an optional `logger` callback. When provided, the callback
 is invoked after each `step` with the current iteration count, average
-curvature and total rod length:
+curvature and total rod length. A `velocityDamping` parameter (default `3.0` 1/s)
+controls continuous exponential damping applied during integration and
+constraint solves:
 
 ```js
 const rod = new ElasticRod(10, 1, {
-  logger: data => console.log(data)
+  logger: data => console.log(data),
+  velocityDamping: 2.5
 });
 ```
 

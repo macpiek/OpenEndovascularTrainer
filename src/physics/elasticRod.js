@@ -54,6 +54,7 @@ export class ElasticRod {
         mass = 1,
         bendingStiffness = defaultBendingStiffness,
         smoothingIterations = defaultSmoothingIterations,
+        velocityDamping = 3.0,
         logger = null,
     } = {}) {
         this.segmentLength = segmentLength;
@@ -61,6 +62,7 @@ export class ElasticRod {
         this.smoothingIterations = smoothingIterations;
         this.logger = logger;
         this.iteration = 0;
+        this.velocityDamping = velocityDamping;
         for (let i = 0; i < count; i++) {
             const x = i * segmentLength;
             const y = 0, z = 0;
@@ -163,6 +165,7 @@ export class ElasticRod {
 
     // Integrate positions and velocities using semi-implicit Euler
     integrate(dt) {
+        const damping = Math.exp(-this.velocityDamping * dt);
         for (const n of this.nodes) {
             if (n.pinned) {
                 n.vx = n.vy = n.vz = 0;
@@ -174,6 +177,9 @@ export class ElasticRod {
             n.vx += ax * dt;
             n.vy += ay * dt;
             n.vz += az * dt;
+            n.vx *= damping;
+            n.vy *= damping;
+            n.vz *= damping;
             n.x += n.vx * dt;
             n.y += n.vy * dt;
             n.z += n.vz * dt;
@@ -183,6 +189,7 @@ export class ElasticRod {
     // Solve positional constraints and apply velocity damping
     solveConstraints(dt) {
         const L = this.segmentLength;
+        const damping = Math.exp(-this.velocityDamping * dt);
 
         // enforce segment lengths
         for (let i = 0; i < this.nodes.length - 1; i++) {
@@ -236,9 +243,9 @@ export class ElasticRod {
         // velocity damping
         for (const n of this.nodes) {
             if (n.pinned) continue;
-            n.vx *= 0.98;
-            n.vy *= 0.98;
-            n.vz *= 0.98;
+            n.vx *= damping;
+            n.vy *= damping;
+            n.vz *= damping;
         }
 
         // optional Laplacian smoothing after constraints
