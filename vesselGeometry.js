@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Brush, Evaluator, ADDITION } from 'https://unpkg.com/three-bvh-csg@0.0.17/build/index.module.js';
+import { Brush, Evaluator, ADDITION } from 'three-bvh-csg';
 
 function verifyManifold(geometry) {
     const index = geometry.index;
