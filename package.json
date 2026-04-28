@@ -1,16 +1,23 @@
 {
   "name": "openendovasculartrainer",
   "version": "1.0.0",
-  "description": "This prototype demonstrates a basic browser-based simulator for guiding a stiff wire through a branched vessel. The vessel consists of a main tube with smoothly joined side branches modeled with quadratic curves. The guidewire is now simulated with a position‑based dynamics solver that preserves segment length, adds bending stiffness, and applies tangential friction when it contacts the vessel wall, producing more realistic motion and preventing artificial shortening. The visual style mimics fluoroscopy by using a monochrome palette and persistent trail.",
+  "description": "This prototype demonstrates a basic browser-based simulator for guiding a stiff wire through a branched vessel. The vessel consists of a main tube with smoothly joined side branches modeled with quadratic curves. The guidewire is now simulated with a position\u2011based dynamics solver that preserves segment length, adds bending stiffness, and applies tangential friction when it contacts the vessel wall, producing more realistic motion and preventing artificial shortening. The visual style mimics fluoroscopy by using a monochrome palette and persistent trail.",
   "main": "carm.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --check simulator.js && node --check vesselGeometry.js && node --check contrastAgent.js && node --check carm.js && node --check carmModel.js && node --check carmPreview.js && node --check operatingTable.js && node --check patientMonitor.js && node --check boneModel.js && node --check physics/guidewire.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "three": "^0.160.0"
+    "three": "^0.160.0",
+    "three-bvh-csg": "^0.0.17"
+  },
+  "devDependencies": {
+    "vite": "^7.1.12"
   }
 }
