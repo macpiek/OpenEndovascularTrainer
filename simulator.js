@@ -68,12 +68,12 @@ const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
         contrastTexture: { value: contrastTarget.texture },
-        gray: { value: new THREE.Color(0xC3C3C3) },
+        gray: { value: new THREE.Color(0x9a9a9a) },
         fluoroscopy: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
         // Lower default bone opacity so bones appear less prominent
-        boneOpacity: { value: 0.5 }
+        boneOpacity: { value: 0.35 }
 
     },
     vertexShader: `
@@ -99,13 +99,20 @@ const displayMaterial = new THREE.ShaderMaterial({
         void main() {
             vec4 tex = texture2D(uTexture, vUv);
             if (fluoroscopy) {
-                float intensity = max(tex.r, max(tex.g, tex.b)) * boneOpacity;
+                float luma = dot(tex.rgb, vec3(0.2126, 0.7152, 0.0722));
+                float intensity = smoothstep(0.05, 0.75, luma) * boneOpacity;
                 float noise = random(vUv * 100.0) - 0.5;
                 intensity += noise * noiseLevel;
                 intensity = clamp(intensity, 0.0, 1.0);
                 vec4 cSample = texture2D(contrastTexture, vUv);
                 float contrast = clamp((cSample.r + cSample.b) * 2.0, 0.0, 1.0);
-                vec3 color = mix(gray, vec3(1.0), intensity);
+                // Real fluoroscopy usually has a dark detector background and
+                // off-white bony structures instead of pure white clipping.
+                vec3 detector = vec3(0.08);
+                vec3 boneTint = vec3(0.86);
+                vec3 color = mix(detector, mix(gray, boneTint, intensity), 0.95);
+                float vignette = smoothstep(0.95, 0.25, distance(vUv, vec2(0.5)));
+                color *= vignette;
                 gl_FragColor = vec4(mix(color, vec3(0.0), contrast), 1.0);
             } else {
                 gl_FragColor = tex;
@@ -595,4 +602,3 @@ window.addEventListener('resize', () => {
     accumulateTarget1.setSize(w, h);
     accumulateTarget2.setSize(w, h);
 });
-
