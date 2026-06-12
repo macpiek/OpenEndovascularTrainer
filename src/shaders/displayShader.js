@@ -58,7 +58,8 @@ void main() {
         // Contrast agent (additive brightening) sampled separately and
         // mixed into the image.
         vec4 cSample = texture2D(contrastTexture, vUv);
-        float contrast = clamp((cSample.r + cSample.b) * 2.0, 0.0, 1.0);
+        float contrastSignal = max(max(cSample.r, cSample.g), cSample.b);
+        float contrast = clamp(contrastSignal * 3.35, 0.0, 1.0);
         vec3 color = gray * (1.0 - intensity);
         float alpha = clamp(1.0 + edge, 0.0, 1.0);
         gl_FragColor = vec4(mix(color, vec3(0.0), contrast), alpha);
@@ -69,4 +70,3 @@ void main() {
     }
 }
 `;
-

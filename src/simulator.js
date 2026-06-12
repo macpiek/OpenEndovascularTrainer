@@ -1,13 +1,14 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js';
-import { generateVessel } from './vesselGeometry.js';
-import { initUI } from './ui/ui.js';
+import { generateVessel } from './vesselGeometry.js?v=20260612catheter20';
+import { initUI } from './ui/ui.js?v=20260612catheter20';
 import { createBoneModel } from './boneModel.js';
-import { VoxelContrastAgent, getVoxelMeshes } from './voxelContrastAgent.js';
+import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260612catheter20';
+import { PigtailCatheter } from './pigtailCatheter.js?v=20260612catheter20';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260612catheter20';
 
 // WebGL renderer attached to the fullscreen canvas
 const canvas = document.getElementById('sim');
@@ -116,14 +117,15 @@ skeletonModel.position.set(
 skeletonModel.renderOrder = -1; // ensure bones draw before vessel geometry
 scene.add(skeletonModel);
 
-// Contrast agent simulation (voxel-based)
-// Removed injection segment selector UI; default injection remains main vessel
-const voxelAgent = new VoxelContrastAgent(vessel, 2, 0.05);
+// Contrast agent simulation: a centreline flow model with fast core stream,
+// slower wall layer, axial dispersion, reflux from the sheath, and downstream
+// washout through the vessel graph.
+const contrastAgent = new FlowContrastAgent(vessel, 3.5);
 const voxelGroup = new THREE.Group();
 scene.add(voxelGroup);
-
-// Default to injecting into the main vessel
-const injectSegmentIndex = 0;
+let contrastMesh = null;
+let contrastMeshCount = 0;
+let contrastRenderAccumulator = 0;
 
 // Guidewire physical model (discrete elastic rod)
 const segmentLength = 5;
@@ -231,9 +233,29 @@ const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
 wireMesh.renderOrder = 1; // draw on top of additive bone rendering
 scene.add(wireMesh);
 
+const pigtailCatheter = new PigtailCatheter({
+    wire,
+    segmentLength,
+    guidewireLength,
+    tailProgressRef: () => tailProgress,
+    vessel
+});
+scene.add(pigtailCatheter.mesh);
+
 function advanceTailInput(advance, dt) {
-    // Move the pinned tail node forward/backward along the sheath axis
-    tailProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * 40 * dt));
+    const nextProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * 40 * dt));
+    const delta = nextProgress - tailProgress;
+    tailProgress = nextProgress;
+    if (delta !== 0) {
+        const dx = wireDir.x * delta;
+        const dy = wireDir.y * delta;
+        const dz = wireDir.z * delta;
+        for (const n of wire.nodes) {
+            n.x += dx;
+            n.y += dy;
+            n.z += dz;
+        }
+    }
     const tail = wire.nodes[0];
     tail.x = tailStart.x + wireDir.x * tailProgress;
     tail.y = tailStart.y + wireDir.y * tailProgress;
@@ -258,16 +280,31 @@ let lastRenderTime = performance.now();
 
 function stepSimulation() {
     // Advance input, integrate rod physics, collisions, and update medical monitors
-    advanceTailInput(ui.getAdvance(), fixedDt);
+    const advance = ui.getAdvance();
+    advanceTailInput(advance, fixedDt);
     wire.step(fixedDt);
-    // Collide using only the vessel mesh BVH
-    wire.collide(vesselMesh, fixedDt);
+    wire.collide(vessel, fixedDt);
+    wire.solveConstraints(fixedDt);
+    if (advance < 0) {
+        wire.releaseFromVesselWall(vessel.segments, 0.08, 2);
+        wire.solveConstraints(fixedDt);
+        wire.straightenByTension(0.18, 4);
+        wire.solveConstraints(fixedDt);
+    }
+    wire.collide(vessel, fixedDt);
     const inserted = Math.max(0, tailProgress);
+    pigtailCatheter.advance(ui.getCatheterAdvance(), fixedDt, inserted);
+    pigtailCatheter.rotate(ui.getCatheterRotation(), fixedDt);
+    pigtailCatheter.stepPhysics(fixedDt);
+    pigtailCatheter.constrainGuidewire(fixedDt);
+    wire.solveConstraints(fixedDt);
+    pigtailCatheter.constrainGuidewire(fixedDt);
     ui.updateInsertedLength(inserted / 10);
+    ui.updateCatheterLength(pigtailCatheter.progress / 10);
 
     if (injecting) {
         const amt = Math.min(injectRate * fixedDt, remainingVolume);
-        voxelAgent.inject(amt, injectSegmentIndex, false);
+        contrastAgent.injectThroughSheath(amt, injectRate);
         totalDose += amt;
         ui.updateDose(totalDose);
         injectTime += fixedDt;
@@ -277,7 +314,7 @@ function stepSimulation() {
             ui.setStopInjectionDisabled(true);
         }
     }
-    voxelAgent.update(fixedDt);
+    contrastAgent.update(fixedDt);
     monitor.update(fixedDt);
 }
 
@@ -297,12 +334,25 @@ function animate(time) {
     lastRenderTime = time;
 
     updateWireMesh();
-    const voxMeshes = getVoxelMeshes(voxelAgent, 1e-4, !fluoroscopy);
-
-    if (voxelGroup.visible) {
-        voxelGroup.clear();
-        for (const m of voxMeshes) voxelGroup.add(m);
+    pigtailCatheter.updateMesh();
+    const contrastShouldRender = injecting || contrastAgent.hasVisibleContrast() || contrastMeshCount > 0;
+    if (contrastShouldRender) {
+        contrastRenderAccumulator += dt;
+        const contrastRenderInterval = injecting ? 1 / 30 : 1 / 24;
+        if (!contrastMesh || contrastRenderAccumulator >= contrastRenderInterval) {
+            contrastRenderAccumulator = 0;
+            const contrastRender = updateFlowContrastMesh(contrastAgent, 0.01, !fluoroscopy, contrastMesh, 6000);
+            contrastMeshCount = contrastRender.count;
+            if (contrastRender.mesh && contrastRender.mesh !== contrastMesh) {
+                if (contrastMesh) voxelGroup.remove(contrastMesh);
+                contrastMesh = contrastRender.mesh;
+                voxelGroup.add(contrastMesh);
+            }
+        }
+    } else if (contrastMesh) {
+        contrastMesh.visible = false;
     }
+
     if (fluoroscopy && voxelGroup.parent !== contrastScene) {
         scene.remove(voxelGroup);
         contrastScene.add(voxelGroup);
@@ -310,7 +360,7 @@ function animate(time) {
         contrastScene.remove(voxelGroup);
         scene.add(voxelGroup);
     }
-    const contrastActive = voxMeshes.length > 0 || injecting;
+    const contrastActive = contrastMeshCount > 0 || injecting || contrastAgent.hasVisibleContrast();
 
     vesselGroup.visible = !fluoroscopy;
     skeletonModel.visible = fluoroscopy;

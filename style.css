@@ -20,7 +20,7 @@ canvas {
     position: absolute;
     top: 430px;
     right: 10px;
-    width: 300px;
+    width: 330px;
 }
 #controls, #carm-controls {
     color: white;
@@ -35,41 +35,188 @@ canvas {
     margin-bottom: 4px;
 }
 
-#joystick-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+#insertedLength,
+#catheterLength,
+#currentDose {
+    line-height: 1.25;
 }
+
+.tool-button-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.tool-button-row button {
+    min-height: 28px;
+    font-size: 13px;
+}
+
+.tool-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    opacity: 0.75;
+}
+
 #carmZButtons {
-    display: flex;
-    flex-direction: column;
-    margin-right: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin: 8px auto 4px;
+    width: 126px;
 }
 #carmZButtons button {
-    margin: 2px 0;
-    width: 60px;
-    height: 40px;
-    font-size: 18px;
+    width: 100%;
+    height: 30px;
+    font-size: 13px;
 }
-#joystick {
+.carm-readouts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 8px 0;
+}
+.carm-readout {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 5px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    font-size: 12px;
+}
+.plane-icon {
     position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 10px;
+    width: 22px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+.plane-icon::before,
+.plane-icon::after {
+    content: "";
+    position: absolute;
+    background: rgba(255, 255, 255, 0.85);
+}
+.plane-transverse::before {
+    left: 2px;
+    right: 2px;
+    top: 8px;
+    height: 2px;
+}
+.plane-transverse::after {
+    left: 10px;
+    top: 2px;
+    width: 2px;
+    height: 14px;
+}
+.plane-sagittal::before {
+    left: 4px;
+    top: 2px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    background: transparent;
+}
+.plane-sagittal::after {
+    left: 17px;
+    top: 8px;
+    width: 4px;
+    height: 2px;
+}
+.plane-roll::before {
+    left: 4px;
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-left-color: transparent;
+    border-radius: 50%;
+    background: transparent;
+}
+.plane-roll::after {
+    right: 1px;
+    top: 2px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid rgba(255, 255, 255, 0.85);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    background: transparent;
+}
+.carm-joystick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+}
+.carm-joystick-block {
+    text-align: center;
+}
+.carm-joystick-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.joystick-caption {
+    font-size: 10px;
+    opacity: 0.8;
+    line-height: 1.2;
+    min-height: 24px;
+}
+.joystick {
+    position: relative;
+    width: 112px;
+    height: 112px;
+    margin: 0 auto 6px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid #666;
     border-radius: 50%;
     touch-action: none;
 }
-#joystick-handle {
+.joystick::before,
+.joystick::after {
+    content: "";
     position: absolute;
-    width: 30px;
-    height: 30px;
+    background: rgba(255, 255, 255, 0.16);
+}
+.joystick::before {
+    left: 50%;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+}
+.joystick::after {
+    top: 50%;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+}
+.joystick-handle {
+    position: absolute;
+    width: 28px;
+    height: 28px;
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+.roll-control {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    width: 126px;
+    margin: 8px auto 4px;
+}
+.roll-control button {
+    width: 100%;
+    height: 30px;
+    font-size: 18px;
+    line-height: 1;
 }
 
 .parameter-label {
@@ -106,13 +253,14 @@ canvas {
     top: 10px;
     right: 10px;
     color: white;
-    font-family: sans-serif;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     display: flex;
     flex-direction: column;
+    gap: 6px;
 }
 
 #monitor canvas {
-    background: black;
+    background: #020303;
     display: block;
 }
 
@@ -120,7 +268,10 @@ canvas {
     position: relative;
     width: 300px;
     height: 100px;
-    margin-bottom: 5px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #020303;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .vitalBox canvas {
@@ -130,19 +281,25 @@ canvas {
 
 .vitalLabel {
     position: absolute;
-    top: 4px;
-    left: 4px;
-    font-size: 28px;
+    top: 6px;
+    left: 8px;
+    font-size: 23px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    padding: 2px 5px 3px;
+    background: rgba(0, 0, 0, 0.65);
+    border-radius: 3px;
 }
 
 #hrBox {
-    border: 1px solid lime;
-    color: lime;
+    border: 1px solid #24d95d;
+    color: #2dff68;
 }
 
 #bpBox {
-    border: 1px solid red;
-    color: red;
+    border: 1px solid #d93636;
+    color: #ff3a3a;
 }
 
 #carm-preview {

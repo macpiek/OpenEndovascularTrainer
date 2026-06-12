@@ -1,6 +1,6 @@
-import { PatientMonitor } from './patientMonitor.js';
-import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry } from './carmPreview.js';
-import { setupCArmControls } from '../carm.js';
+import { PatientMonitor } from './patientMonitor.js?v=20260611carmmodel1';
+import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260611carmmodel1';
+import { setupCArmControls } from '../carmControls.js?v=20260611carmmodel1';
 import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
 
 // Initializes all UI elements and event listeners.
@@ -30,7 +30,7 @@ export function initUI(options) {
 
   // C-arm UI preview + controls
   initCArmPreview();
-  setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup, cArmPreviewGantry);
+  setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable);
 
   // UI elements
   const bendSlider = document.getElementById('stiffness');
@@ -47,6 +47,11 @@ export function initUI(options) {
   const persistenceSlider = document.getElementById('persistence');
   const noiseSlider = document.getElementById('noiseLevel');
   const insertedLengthEl = document.getElementById('insertedLength');
+  const catheterLengthEl = document.getElementById('catheterLength');
+  const catheterAdvanceButton = document.getElementById('catheterAdvance');
+  const catheterWithdrawButton = document.getElementById('catheterWithdraw');
+  const catheterRotateLeftButton = document.getElementById('catheterRotateLeft');
+  const catheterRotateRightButton = document.getElementById('catheterRotateRight');
   const doseDisplayEl = document.getElementById('currentDose');
   const perfStatsEl = document.getElementById('perfStats');
 
@@ -157,12 +162,57 @@ export function initUI(options) {
 
   // Keyboard controls for guidewire advance and keyboard-triggered injection
   let advance = 0;
+  let catheterAdvance = 0;
+  let catheterRotation = 0;
+  const setCatheterAdvance = value => {
+    catheterAdvance = value;
+  };
+  const stopCatheterAdvance = () => {
+    catheterAdvance = 0;
+  };
+  const setCatheterRotation = value => {
+    catheterRotation = value;
+  };
+  const stopCatheterRotation = () => {
+    catheterRotation = 0;
+  };
+
+  function wireHoldButton(button, onDown, onUp) {
+    if (!button) return;
+    button.addEventListener('pointerdown', e => {
+      onDown();
+      button.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    });
+    button.addEventListener('pointerup', onUp);
+    button.addEventListener('pointercancel', onUp);
+    button.addEventListener('pointerleave', e => {
+      if (e.buttons === 0) onUp();
+    });
+  }
+  wireHoldButton(catheterAdvanceButton, () => setCatheterAdvance(1), stopCatheterAdvance);
+  wireHoldButton(catheterWithdrawButton, () => setCatheterAdvance(-1), stopCatheterAdvance);
+  wireHoldButton(catheterRotateLeftButton, () => setCatheterRotation(-1), stopCatheterRotation);
+  wireHoldButton(catheterRotateRightButton, () => setCatheterRotation(1), stopCatheterRotation);
+
   document.addEventListener('keydown', e => {
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
       advance = 1; e.preventDefault();
     }
     if (e.code === 'KeyS' || e.code === 'ArrowDown') {
       advance = -1; e.preventDefault();
+    }
+    if (e.code === 'KeyD') {
+      catheterAdvance = 1; e.preventDefault();
+    }
+    if (e.code === 'KeyA') {
+      catheterAdvance = -1; e.preventDefault();
+    }
+    if (e.code === 'KeyE') {
+      catheterRotation = 1; e.preventDefault();
+    }
+    if (e.code === 'KeyQ') {
+      catheterRotation = -1; e.preventDefault();
     }
     if (e.code === 'KeyC' && fluoroscopy) {
       // Trigger injection with current UI values
@@ -179,7 +229,18 @@ export function initUI(options) {
     if (['KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
       advance = 0; e.preventDefault();
     }
+    if (['KeyA', 'KeyD'].includes(e.code)) {
+      catheterAdvance = 0; e.preventDefault();
+    }
+    if (['KeyQ', 'KeyE'].includes(e.code)) {
+      catheterRotation = 0; e.preventDefault();
+    }
   }, true);
+  window.addEventListener('blur', () => {
+    advance = 0;
+    catheterAdvance = 0;
+    catheterRotation = 0;
+  });
 
   // Injection buttons
   if (injectButton) {
@@ -201,6 +262,9 @@ export function initUI(options) {
   // Helpers to let simulator update UI
   function updateInsertedLength(cm) {
     if (insertedLengthEl) insertedLengthEl.textContent = cm.toFixed(1) + ' cm';
+  }
+  function updateCatheterLength(cm) {
+    if (catheterLengthEl) catheterLengthEl.textContent = 'Pigtail ' + cm.toFixed(1) + ' cm';
   }
   function updateDose(ml) {
     if (doseDisplayEl) doseDisplayEl.textContent = ml.toFixed(1) + ' ml';
@@ -224,12 +288,14 @@ export function initUI(options) {
   return {
     monitor,
     getAdvance: () => advance,
+    getCatheterAdvance: () => catheterAdvance,
+    getCatheterRotation: () => catheterRotation,
     getFluoroscopy: () => fluoroscopy,
     updateInsertedLength,
+    updateCatheterLength,
     updateDose,
     setInjectButtonDisabled,
     setStopInjectionDisabled,
     updatePerfStats,
   };
 }
-

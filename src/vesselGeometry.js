@@ -30,6 +30,14 @@ export function vesselToGeometry(vessel, radialSegments = 24) {
         j.maxR = Math.max(j.maxR, radius);
         j.conns.push({ dir: dir.clone().normalize(), radius, isSheath });
     };
+    const addSphere = (pos, radius) => {
+        const geom = new THREE.SphereGeometry(radius, radialSegments, radialSegments);
+        geom.translate(pos.x, pos.y, pos.z);
+        const brush = new Brush(geom);
+        brush.updateMatrixWorld();
+        result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
+    };
+    const lerp = (a, b, t) => a + (b - a) * t;
     for (const seg of vessel.segments || []) {
         const start = new THREE.Vector3(seg.start.x, seg.start.y, seg.start.z);
         const end = new THREE.Vector3(seg.end.x, seg.end.y, seg.end.z);
@@ -53,14 +61,14 @@ export function vesselToGeometry(vessel, radialSegments = 24) {
             addNode(seg.end, seg.radius);
             // Record connectivity for smoothing at the vessel-facing end of the sheath
             const dirToEnd = new THREE.Vector3().subVectors(end, start).normalize();
-            recordConn(seg.end, dirToEnd, seg.radius, true);
+            recordConn(seg.end, dirToEnd.clone().negate(), seg.radius, true);
         } else {
             addNode(seg.start, seg.radius);
             addNode(seg.end, seg.radius);
             // Record connectivity for potential junction smoothing
             const dirToEnd = new THREE.Vector3().subVectors(end, start).normalize();
-            recordConn(seg.start, dirToEnd.clone().negate(), seg.radius);
-            recordConn(seg.end, dirToEnd, seg.radius);
+            recordConn(seg.start, dirToEnd, seg.radius);
+            recordConn(seg.end, dirToEnd.clone().negate(), seg.radius);
         }
     }
     // Fuse all touching segments by adding a sphere at each node with radius
@@ -70,11 +78,7 @@ export function vesselToGeometry(vessel, radialSegments = 24) {
     // smoother result.
     for (const [key, radius] of nodeMap) {
         const [x, y, z] = key.split(',').map(Number);
-        const geom = new THREE.SphereGeometry(radius, radialSegments, radialSegments);
-        geom.translate(x, y, z);
-        const brush = new Brush(geom);
-        brush.updateMatrixWorld();
-        result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
+        addSphere(new THREE.Vector3(x, y, z), radius);
     }
 
     // Add additional smaller fillet spheres along each connected segment near
@@ -83,25 +87,36 @@ export function vesselToGeometry(vessel, radialSegments = 24) {
     for (const [key, j] of junctions) {
         if (j.conns.length < 3) continue; // only bifurcations or higher
         const centerR = nodeMap.get(key) ?? j.maxR;
-        for (const c of j.conns) {
+        const vesselConns = j.conns.filter(c => !c.isSheath);
+        const branchConns = vesselConns.filter(c => c.radius < centerR);
+        if (branchConns.length >= 2) {
+            const saddleDir = new THREE.Vector3();
+            for (const c of branchConns) saddleDir.add(c.dir);
+            if (saddleDir.lengthSq() > 0) {
+                saddleDir.normalize();
+                addSphere(j.pos.clone().add(saddleDir.multiplyScalar(centerR * 0.45)), centerR * 0.82);
+            }
+        }
+
+        for (const c of vesselConns) {
             // Skip external sheath entrance; we don't want to bulb it.
-            if (c.isSheath) continue;
-            // Two steps along the branch with decreasing radius.
-            const d1 = 0.35 * c.radius;
-            const d2 = 0.9 * c.radius;
-            const p1 = j.pos.clone().add(c.dir.clone().multiplyScalar(d1));
-            const p2 = j.pos.clone().add(c.dir.clone().multiplyScalar(d2));
-            const r1 = Math.min(centerR, c.radius) * 0.85;
-            const r2 = c.radius * 0.75;
-            for (const [px, py, pz, rr] of [
-                [p1.x, p1.y, p1.z, r1],
-                [p2.x, p2.y, p2.z, r2]
-            ]) {
-                const geom = new THREE.SphereGeometry(rr, radialSegments, radialSegments);
-                geom.translate(px, py, pz);
-                const brush = new Brush(geom);
-                brush.updateMatrixWorld();
-                result = result ? evaluator.evaluate(result, brush, ADDITION) : brush;
+            // Blend farther from the branch point and taper toward the child
+            // radius so the aorta divides as one rounded volume instead of
+            // three cylinder caps meeting at a hard Y seam.
+            const isChildBranch = c.radius < centerR;
+            const steps = isChildBranch
+                ? [
+                    [0.35, lerp(centerR, c.radius, 0.22)],
+                    [0.75, lerp(centerR, c.radius, 0.55)],
+                    [1.15, lerp(centerR, c.radius, 0.85)]
+                ]
+                : [
+                    [0.35, centerR * 0.98],
+                    [0.75, centerR * 0.92]
+                ];
+            for (const [distScale, radius] of steps) {
+                const pos = j.pos.clone().add(c.dir.clone().multiplyScalar(centerR * distScale));
+                addSphere(pos, radius);
             }
         }
     }
@@ -260,9 +275,10 @@ export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheath
         vessel.segments[i].parent = parents[i];
     }
 
-    // Compute flow direction and speed throughout the graph
-    // Increased base speed so contrast advects faster through vessels
-    const BASE_SPEED = 200; // cm/s default inflow speed
+    // Compute flow direction and speed throughout the graph. Units are model
+    // units per second; keep this moderate so contrast visibly washes through
+    // the iliac branches instead of disappearing in a single beat.
+    const BASE_SPEED = 85;
     const flow = {};
     const computeDir = seg => {
         const dx = seg.end.x - seg.start.x;

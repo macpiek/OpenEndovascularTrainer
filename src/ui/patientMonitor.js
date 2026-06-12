@@ -87,43 +87,24 @@ export class PatientMonitor {
     }
 
     #ecgWaveform(phase) {
-        let y = 0;
-        if (phase < 0.1) {
-            y = 0.1 * Math.sin(Math.PI * phase / 0.1); // P wave
-        } else if (phase < 0.2) {
-            y = 0; // PR segment
-        } else if (phase < 0.22) {
-            y = -0.15 * (phase - 0.2) / 0.02; // Q wave
-        } else if (phase < 0.23) {
-            y = 1 - 25 * Math.abs(phase - 0.225); // R wave
-        } else if (phase < 0.25) {
-            y = -0.15 * (0.25 - phase) / 0.02; // S wave
-        } else if (phase < 0.45) {
-            y = 0; // ST segment
-        } else if (phase < 0.6) {
-            y = 0.2 * Math.sin(Math.PI * (phase - 0.45) / 0.15); // T wave
-        }
-        return y;
+        const gaussian = (center, width, amplitude) => amplitude * Math.exp(-0.5 * ((phase - center) / width) ** 2);
+        return (
+            gaussian(0.12, 0.025, 0.12) +
+            gaussian(0.215, 0.008, -0.18) +
+            gaussian(0.235, 0.006, 1.05) +
+            gaussian(0.258, 0.012, -0.28) +
+            gaussian(0.5, 0.055, 0.26)
+        );
     }
 
     #bpWaveform(phase) {
         const sys = 120;
         const dia = 80;
-        let p = dia;
-        if (phase < 0.15) {
-            // rapid systolic upstroke
-            p = dia + (sys - dia) * Math.sin((phase / 0.15) * Math.PI / 2);
-        } else if (phase < 0.3) {
-            // decline from systole
-            p = sys - 20 * ((phase - 0.15) / 0.15);
-        } else if (phase < 0.35) {
-            // dicrotic notch
-            p = 100 - 10 * Math.sin(Math.PI * (phase - 0.3) / 0.05);
-        } else {
-            // diastolic runoff
-            p = 100 - 20 * ((phase - 0.35) / 0.65);
-        }
-        return p;
+        const upstroke = 1 / (1 + Math.exp(-(phase - 0.11) / 0.018));
+        const decay = Math.exp(-Math.max(phase - 0.16, 0) / 0.36);
+        const notch = -5.5 * Math.exp(-0.5 * ((phase - 0.33) / 0.018) ** 2);
+        const rebound = 3.2 * Math.exp(-0.5 * ((phase - 0.37) / 0.026) ** 2);
+        return dia + (sys - dia) * upstroke * decay + notch + rebound;
     }
 
     #createEcgTemplate() {
@@ -149,15 +130,14 @@ export class PatientMonitor {
         const w = this.ecgCanvas.width;
         const h = this.ecgCanvas.height;
         const len = this.ecgData.length;
-        ctx.clearRect(0, 0, w, h);
+        this.#clearTracePanel(ctx, w, h);
         ctx.beginPath();
-        ctx.moveTo(0, h / 2 - this.ecgData[0] * h / 2);
+        ctx.moveTo(0, h * 0.58 - this.ecgData[0] * h * 0.42);
         for (let i = 1; i < len; i++) {
             const x = (i / (len - 1)) * w;
-            ctx.lineTo(x, h / 2 - this.ecgData[i] * h / 2);
+            ctx.lineTo(x, h * 0.58 - this.ecgData[i] * h * 0.42);
         }
-        ctx.strokeStyle = 'lime';
-        ctx.stroke();
+        this.#strokeTrace(ctx, '#2dff68', 1.35);
     }
 
     #drawBp() {
@@ -165,18 +145,33 @@ export class PatientMonitor {
         const w = this.bpCanvas.width;
         const h = this.bpCanvas.height;
         const len = this.bpData.length;
-        const mapY = p => h - (p - 60) / 80 * h;
-        ctx.clearRect(0, 0, w, h);
+        const mapY = p => h - (p - 55) / 85 * h;
+        this.#clearTracePanel(ctx, w, h);
         ctx.beginPath();
         ctx.moveTo(0, mapY(this.bpData[0]));
         for (let i = 1; i < len; i++) {
             const x = (i / (len - 1)) * w;
             ctx.lineTo(x, mapY(this.bpData[i]));
         }
+        this.#strokeTrace(ctx, '#ff3a3a', 1.35);
+    }
+
+    #clearTracePanel(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const gradient = ctx.createLinearGradient(0, 0, 0, h);
+        gradient.addColorStop(0, '#050707');
+        gradient.addColorStop(1, '#010202');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+    }
+
+    #strokeTrace(ctx, color, width) {
         ctx.save();
-        ctx.strokeStyle = '#ff0000';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
         ctx.stroke();
         ctx.restore();
     }
 }
-
