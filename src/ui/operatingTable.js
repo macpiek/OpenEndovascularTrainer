@@ -40,22 +40,22 @@ export function createOperatingTable() {
     rightRail.position.z = 32;
     slideGroup.add(rightRail);
 
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(17, 72, 10, 22), drapeMaterial);
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(17, 64, 10, 22), drapeMaterial);
     body.rotation.z = Math.PI / 2;
-    body.position.set(12, 23, 0);
+    body.position.set(16, 23, 0);
     slideGroup.add(body);
 
-    const chestDrape = new THREE.Mesh(new THREE.BoxGeometry(70, 8, 42), drapeMaterial);
-    chestDrape.position.set(10, 20, 0);
+    const chestDrape = new THREE.Mesh(new THREE.BoxGeometry(62, 8, 42), drapeMaterial);
+    chestDrape.position.set(14, 20, 0);
     slideGroup.add(chestDrape);
 
     const head = new THREE.Mesh(new THREE.SphereGeometry(13, 28, 18), skinMaterial);
     head.scale.set(1.05, 0.82, 0.9);
-    head.position.set(-58, 21, 0);
+    head.position.set(-50, 21, 0);
     slideGroup.add(head);
 
     const pillow = new THREE.Mesh(new THREE.BoxGeometry(32, 5, 32), new THREE.MeshStandardMaterial({ color: 0xe8eef2, roughness: 0.75 }));
-    pillow.position.set(-58, 13, 0);
+    pillow.position.set(-50, 13, 0);
     slideGroup.add(pillow);
 
     const legLeft = new THREE.Mesh(new THREE.CapsuleGeometry(7, 62, 8, 16), drapeMaterial);

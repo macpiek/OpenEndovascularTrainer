@@ -1,17 +1,19 @@
 import * as THREE from 'three';
-import { createCArmModel } from './carmModel.js?v=20260611carmmodel1';
-import { createOperatingTable } from './operatingTable.js?v=20260611carmmodel1';
+import { createCArmModel } from './carmModel.js?v=20260614carmaxis1';
+import { createOperatingTable } from './operatingTable.js?v=20260614carmaxis1';
 
 let previewScene;
 let previewCamera;
 let previewRenderer;
 let cArmGroup;
 let cArmGantry;
+let cArmLift;
 let cArmTable;
 
 export function initCArmPreview() {
     const container = document.getElementById('carm-preview');
-    if (!container) return;
+    if (!container) return null;
+    container.replaceChildren();
 
     previewScene = new THREE.Scene();
     previewScene.background = new THREE.Color(0x071725);
@@ -47,13 +49,20 @@ export function initCArmPreview() {
     previewScene.add(cArmTable);
 
     cArmGroup = new THREE.Group();
-    const { group: cArm, gantryGroup } = createCArmModel();
+    const { group: cArm, gantryGroup, liftGroup } = createCArmModel();
     cArmGantry = gantryGroup;
+    cArmLift = liftGroup;
     cArmGroup.add(cArm);
     previewScene.add(cArmGroup);
 
     // Render once so the preview displays immediately.
     renderCArmPreview();
+    return {
+        group: cArmGroup,
+        gantry: cArmGantry,
+        lift: cArmLift,
+        table: cArmTable
+    };
 }
 
 export function renderCArmPreview() {
@@ -66,5 +75,6 @@ export {
     previewCamera as cArmPreviewCamera,
     cArmGroup as cArmPreviewGroup,
     cArmGantry as cArmPreviewGantry,
+    cArmLift as cArmPreviewLift,
     cArmTable as cArmPreviewTable
 };

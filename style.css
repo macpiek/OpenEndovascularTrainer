@@ -41,6 +41,61 @@ canvas {
     line-height: 1.25;
 }
 
+.guidewire-resistance {
+    margin: 6px 0 4px;
+    padding: 5px 6px;
+    border-left: 3px solid #ffd24a;
+    background: rgba(255, 190, 56, 0.18);
+    color: #ffe6a3;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.guidewire-resistance-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+#guidewireResistanceReason {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#guidewireResistanceValue {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.guidewire-resistance-meter {
+    height: 4px;
+    margin-top: 5px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.guidewire-resistance-fill {
+    width: 0%;
+    height: 100%;
+    background: #ffd24a;
+    transition: width 90ms linear;
+}
+
+.guidewire-resistance.strong {
+    border-left-color: #ff5d5d;
+    background: rgba(255, 70, 70, 0.22);
+    color: #ffd0d0;
+}
+
+.guidewire-resistance.strong .guidewire-resistance-fill {
+    background: #ff5d5d;
+}
+
+.guidewire-resistance.hidden {
+    display: none;
+}
+
 .tool-button-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -205,11 +260,24 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
 }
-.roll-control {
+.angle-preset-control {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 7px;
-    width: 126px;
+    width: 150px;
+    margin: 6px auto 0;
+}
+.angle-preset-control button {
+    width: 100%;
+    height: 28px;
+    font-size: 12px;
+    line-height: 1;
+}
+.roll-control {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 7px;
+    width: 150px;
     margin: 8px auto 4px;
 }
 .roll-control button {
@@ -217,6 +285,11 @@ canvas {
     height: 30px;
     font-size: 18px;
     line-height: 1;
+}
+.angle-preset-control button.active,
+.roll-control button.active {
+    background: #b9dcff;
+    border-color: #e2f1ff;
 }
 
 .parameter-label {

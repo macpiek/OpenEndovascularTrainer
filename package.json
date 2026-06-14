@@ -4,6 +4,9 @@
   "description": "This prototype demonstrates a basic browser-based simulator for guiding a stiff wire through a branched vessel. The vessel consists of a main tube with smoothly joined side branches modeled with quadratic curves. The guidewire is now simulated with a position‑based dynamics solver that preserves segment length, adds bending stiffness, and applies tangential friction when it contacts the vessel wall, producing more realistic motion and preventing artificial shortening. The visual style mimics fluoroscopy by using a monochrome palette and persistent trail.",
   "main": "src/carm.js",
   "scripts": {
+    "video:studio": "remotion studio video/index.ts",
+    "video:render": "remotion render video/index.ts EndovascularTrainerAd out/endovascular-trainer-ad.mp4 --codec=h264 --overwrite",
+    "video:still": "remotion still video/index.ts EndovascularTrainerAd out/endovascular-trainer-frame.png --frame=210 --overwrite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,6 +14,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@remotion/cli": "^4.0.476",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "remotion": "^4.0.476",
     "three": "^0.160.0",
     "three-bvh-csg": "^0.0.17",
     "three-mesh-bvh": "^0.9.1"

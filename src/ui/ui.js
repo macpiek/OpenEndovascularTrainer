@@ -1,7 +1,7 @@
-import { PatientMonitor } from './patientMonitor.js?v=20260611carmmodel1';
-import { initCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260611carmmodel1';
-import { setupCArmControls } from '../carmControls.js?v=20260611carmmodel1';
-import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
+import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis1';
+import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260614carmaxis1';
+import { setupCArmControls } from '../carmControls.js?v=20260614carmaxis1';
+import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis1';
 
 // Initializes all UI elements and event listeners.
 // Expects options with references and callbacks to interact with the simulator.
@@ -29,8 +29,17 @@ export function initUI(options) {
   );
 
   // C-arm UI preview + controls
-  initCArmPreview();
-  setupCArmControls(camera, vessel, cameraRadius, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable);
+  const cArmPreview = initCArmPreview();
+  setupCArmControls(
+    camera,
+    vessel,
+    cameraRadius,
+    cArmPreview?.group || cArmPreviewGroup,
+    cArmPreview?.gantry || cArmPreviewGantry,
+    cArmPreview?.lift,
+    cArmPreview?.table || cArmPreviewTable,
+    renderCArmPreview
+  );
 
   // UI elements
   const bendSlider = document.getElementById('stiffness');
@@ -53,6 +62,10 @@ export function initUI(options) {
   const catheterRotateLeftButton = document.getElementById('catheterRotateLeft');
   const catheterRotateRightButton = document.getElementById('catheterRotateRight');
   const doseDisplayEl = document.getElementById('currentDose');
+  const guidewireResistanceEl = document.getElementById('guidewireResistanceStatus');
+  const guidewireResistanceReasonEl = document.getElementById('guidewireResistanceReason');
+  const guidewireResistanceValueEl = document.getElementById('guidewireResistanceValue');
+  const guidewireResistanceFillEl = document.getElementById('guidewireResistanceFill');
   const perfStatsEl = document.getElementById('perfStats');
 
   // Initial UI state
@@ -269,6 +282,25 @@ export function initUI(options) {
   function updateDose(ml) {
     if (doseDisplayEl) doseDisplayEl.textContent = ml.toFixed(1) + ' ml';
   }
+  function updateGuidewireResistance(level, reason = '') {
+    if (!guidewireResistanceEl) return;
+    if (level < 0.35) {
+      guidewireResistanceEl.classList.add('hidden');
+      guidewireResistanceEl.classList.remove('strong');
+      if (guidewireResistanceReasonEl) guidewireResistanceReasonEl.textContent = 'Opór na prowadniku';
+      if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = '0%';
+      if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = '0%';
+      return;
+    }
+    const percent = Math.round(Math.max(0, Math.min(1, level)) * 100);
+    guidewireResistanceEl.classList.remove('hidden');
+    guidewireResistanceEl.classList.toggle('strong', level > 0.72);
+    if (guidewireResistanceReasonEl) {
+      guidewireResistanceReasonEl.textContent = reason || 'Opór na prowadniku - cofnij lekko lub zmień kierunek.';
+    }
+    if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = `${percent}%`;
+    if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = `${percent}%`;
+  }
   function setInjectButtonDisabled(disabled) {
     if (injectButton) injectButton.disabled = !!disabled;
   }
@@ -294,6 +326,7 @@ export function initUI(options) {
     updateInsertedLength,
     updateCatheterLength,
     updateDose,
+    updateGuidewireResistance,
     setInjectButtonDisabled,
     setStopInjectionDisabled,
     updatePerfStats,

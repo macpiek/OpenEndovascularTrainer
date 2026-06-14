@@ -25,14 +25,14 @@ import * as THREE from 'three';
 // Default configuration values. These can be overridden from outside the module
 // using the exported setter functions below.
 // higher default stiffness gives stronger self-straightening
-let defaultBendingStiffness = 20;
+let defaultBendingStiffness = 32;
 let defaultSmoothingIterations = 0;
 let defaultConstraintIterations = 8;
 
 // Coefficients for static and kinetic friction against vessel walls.
 // Values are relative to the normal component of velocity.
-let wallStaticFriction = 0.03;
-let wallKineticFriction = 0.01;
+let wallStaticFriction = 0.006;
+let wallKineticFriction = 0.002;
 
 export function setBendingStiffness(value) {
     defaultBendingStiffness = value;
@@ -53,6 +53,12 @@ export function setWallFriction(staticCoeff, kineticCoeff) {
 
 const SHEATH_ENTRY_TOLERANCE = 1e-4;
 const MAX_WALL_CORRECTION_SEGMENTS = 1.25;
+const MESH_SEGMENT_CORRECTION_BLEND = 0.92;
+const VOLUME_SEGMENT_CORRECTION_BLEND = 0.68;
+const WALL_CORRECTION_VELOCITY_DAMPING = 0.94;
+const DEFAULT_MESH_COLLISION_PASSES = 2;
+const VOLUME_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
+const MESH_COLLIDER_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 
 export class ElasticRod {
     constructor(count, segmentLength, {
@@ -68,6 +74,7 @@ export class ElasticRod {
         this.constraintIterations = constraintIterations;
         this.logger = logger;
         this.iteration = 0;
+        this.collisionPrevPositions = null;
         for (let i = 0; i < count; i++) {
             const x = i * segmentLength;
             const y = 0, z = 0;
@@ -80,6 +87,18 @@ export class ElasticRod {
                 kx: 0, ky: 0, kz: 0,
                 pinned: false,
             });
+        }
+    }
+
+    storeCollisionPreviousPositions() {
+        if (!this.collisionPrevPositions || this.collisionPrevPositions.length !== this.nodes.length) {
+            this.collisionPrevPositions = this.nodes.map(n => new THREE.Vector3(n.x, n.y, n.z));
+            return;
+        }
+
+        for (let i = 0; i < this.nodes.length; i++) {
+            const n = this.nodes[i];
+            this.collisionPrevPositions[i].set(n.x, n.y, n.z);
         }
     }
 
@@ -409,37 +428,12 @@ export class ElasticRod {
     }
 
     isInsideSegmentVolume(n, segments) {
-        for (const seg of segments) {
-            const ax = seg.end.x - seg.start.x;
-            const ay = seg.end.y - seg.start.y;
-            const az = seg.end.z - seg.start.z;
-            const lenSq = ax * ax + ay * ay + az * az;
-            if (!lenSq) continue;
-
-            const px = n.x - seg.start.x;
-            const py = n.y - seg.start.y;
-            const pz = n.z - seg.start.z;
-            const t = (px * ax + py * ay + pz * az) / lenSq;
-            if (t >= 0 && t <= 1) {
-                const radialX = px - ax * t;
-                const radialY = py - ay * t;
-                const radialZ = pz - az * t;
-                if (Math.hypot(radialX, radialY, radialZ) <= seg.radius) return true;
-            }
-
-            if (!seg.isSheath) {
-                const startDist = Math.hypot(px, py, pz);
-                if (startDist <= seg.radius) return true;
-            }
-            const endDist = Math.hypot(n.x - seg.end.x, n.y - seg.end.y, n.z - seg.end.z);
-            if (endDist <= seg.radius) return true;
-        }
-        return false;
+        return this.segmentVolumeContact(n, segments).inside;
     }
 
-    collideWithSegments(n, segments, dt) {
-        let best = null;
-        for (const seg of segments) {
+    segmentVolumeContact(n, segments) {
+        let closestOutside = null;
+        for (const seg of segments || []) {
             const ax = seg.end.x - seg.start.x;
             const ay = seg.end.y - seg.start.y;
             const az = seg.end.z - seg.start.z;
@@ -449,9 +443,8 @@ export class ElasticRod {
             const px = n.x - seg.start.x;
             const py = n.y - seg.start.y;
             const pz = n.z - seg.start.z;
-            const t = (px * ax + py * ay + pz * az) / lenSq;
-            if (t < 0 || t > 1) continue;
-
+            const rawT = (px * ax + py * ay + pz * az) / lenSq;
+            const t = Math.max(0, Math.min(1, rawT));
             const cx = seg.start.x + ax * t;
             const cy = seg.start.y + ay * t;
             const cz = seg.start.z + az * t;
@@ -459,58 +452,322 @@ export class ElasticRod {
             const ry = n.y - cy;
             const rz = n.z - cz;
             const radialDist = Math.hypot(rx, ry, rz);
-            const penetration = radialDist - seg.radius;
-            if (penetration <= 0) continue;
-            if (penetration > this.segmentLength * MAX_WALL_CORRECTION_SEGMENTS) continue;
-            if (!best || penetration < best.penetration) {
-                best = { cx, cy, cz, rx, ry, rz, radialDist, radius: seg.radius, penetration };
+            const outside = radialDist - seg.radius;
+
+            if (outside <= 0) {
+                return { inside: true, segment: seg, outside, cx, cy, cz, rx, ry, rz, radialDist, rawT };
+            }
+
+            if (!closestOutside || outside < closestOutside.outside) {
+                closestOutside = { inside: false, segment: seg, outside, cx, cy, cz, rx, ry, rz, radialDist, rawT };
+            }
+        }
+        return closestOutside || { inside: false, outside: Infinity };
+    }
+
+    collideWithSegments(n, segments, dt, options = {}) {
+        const contact = this.segmentVolumeContact(n, segments);
+        if (contact.inside || !Number.isFinite(contact.outside)) return false;
+        if (options.localOnly) {
+            const band = options.contactBand ?? this.segmentLength * MAX_WALL_CORRECTION_SEGMENTS;
+            if (contact.outside > band) return false;
+            if (contact.rawT < -SHEATH_ENTRY_TOLERANCE || contact.rawT > 1 + SHEATH_ENTRY_TOLERANCE) {
+                return false;
             }
         }
 
-        if (!best) return false;
-
-        const invRadial = 1 / (best.radialDist || 1);
-        const nx = best.rx * invRadial;
-        const ny = best.ry * invRadial;
-        const nz = best.rz * invRadial;
-        n.x = best.cx + nx * best.radius;
-        n.y = best.cy + ny * best.radius;
-        n.z = best.cz + nz * best.radius;
+        const invRadial = 1 / (contact.radialDist || 1);
+        const nx = contact.rx * invRadial;
+        const ny = contact.ry * invRadial;
+        const nz = contact.rz * invRadial;
+        n.x = contact.cx + nx * contact.segment.radius;
+        n.y = contact.cy + ny * contact.segment.radius;
+        n.z = contact.cz + nz * contact.segment.radius;
         this.applyWallResponse(n, nx, ny, nz, dt, true);
         return true;
     }
 
-    collideWithMesh(n, geom, dt) {
-        const p = new THREE.Vector3(n.x, n.y, n.z);
-        const closest = new THREE.Vector3();
-        const normal = new THREE.Vector3();
-        geom.boundsTree.closestPointToPoint(p, { point: closest, normal });
-        const dx = p.x - closest.x;
-        const dy = p.y - closest.y;
-        const dz = p.z - closest.z;
-        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (normal.lengthSq() === 0) {
-            const inv = 1 / (dist || 1);
-            normal.set(dx * inv, dy * inv, dz * inv);
-        }
-        const dot = dx * normal.x + dy * normal.y + dz * normal.z;
-        const penetration = dot > 0 ? dist : -dist;
-        const nx = normal.x;
-        const ny = normal.y;
-        const nz = normal.z;
+    collideRodSegmentsWithSegments(segments, dt, options = {}) {
+        if (!segments?.length) return;
+        const samples = options.segmentSamples || VOLUME_SEGMENT_SAMPLES;
+        const band = options.contactBand ?? this.segmentLength * MAX_WALL_CORRECTION_SEGMENTS;
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            const n0 = this.nodes[i];
+            const n1 = this.nodes[i + 1];
+            if (n0.pinned && n1.pinned) continue;
 
-        if (penetration > 0) {
-            n.x = closest.x;
-            n.y = closest.y;
-            n.z = closest.z;
+            for (const t of samples) {
+                const w0 = 1 - t;
+                const w1 = t;
+                const sample = {
+                    x: n0.x * w0 + n1.x * w1,
+                    y: n0.y * w0 + n1.y * w1,
+                    z: n0.z * w0 + n1.z * w1
+                };
+                if (this.isPastOpenSheathEntrance(sample, segments)) continue;
+                const contact = this.segmentVolumeContact(sample, segments);
+                if (contact.inside || !Number.isFinite(contact.outside)) continue;
+                if (options.localOnly) {
+                    if (contact.outside > band) continue;
+                    if (contact.rawT < -SHEATH_ENTRY_TOLERANCE || contact.rawT > 1 + SHEATH_ENTRY_TOLERANCE) {
+                        continue;
+                    }
+                }
+
+                const invRadial = 1 / (contact.radialDist || 1);
+                const targetX = contact.cx + contact.rx * invRadial * contact.segment.radius;
+                const targetY = contact.cy + contact.ry * invRadial * contact.segment.radius;
+                const targetZ = contact.cz + contact.rz * invRadial * contact.segment.radius;
+                const corrX = (targetX - sample.x) * VOLUME_SEGMENT_CORRECTION_BLEND;
+                const corrY = (targetY - sample.y) * VOLUME_SEGMENT_CORRECTION_BLEND;
+                const corrZ = (targetZ - sample.z) * VOLUME_SEGMENT_CORRECTION_BLEND;
+
+                const freeW0 = n0.pinned ? 0 : w0;
+                const freeW1 = n1.pinned ? 0 : w1;
+                const denom = freeW0 * freeW0 + freeW1 * freeW1;
+                if (denom <= 1e-8) continue;
+
+                if (!n0.pinned) {
+                    const s = freeW0 / denom;
+                    n0.x += corrX * s;
+                    n0.y += corrY * s;
+                    n0.z += corrZ * s;
+                    n0.vx *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n0.vy *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n0.vz *= WALL_CORRECTION_VELOCITY_DAMPING;
+                }
+                if (!n1.pinned) {
+                    const s = freeW1 / denom;
+                    n1.x += corrX * s;
+                    n1.y += corrY * s;
+                    n1.z += corrZ * s;
+                    n1.vx *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n1.vy *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n1.vz *= WALL_CORRECTION_VELOCITY_DAMPING;
+                }
+            }
+        }
+    }
+
+    collideWithMeshCollider(n, collider, dt, clearance = 0, previous = null) {
+        if (previous && collider?.crossingContact) {
+            const crossing = collider.crossingContact(previous, n, clearance);
+            if (crossing) {
+                n.x = crossing.target.x;
+                n.y = crossing.target.y;
+                n.z = crossing.target.z;
+                const normal = crossing.normal || new THREE.Vector3(1, 0, 0);
+                this.applyWallResponse(n, normal.x, normal.y, normal.z, dt, true);
+                return true;
+            }
+        }
+
+        const contact = collider?.pointContact?.(n, clearance);
+        if (!contact?.violation) return false;
+        n.x = contact.target.x;
+        n.y = contact.target.y;
+        n.z = contact.target.z;
+        const normal = contact.normal || new THREE.Vector3(1, 0, 0);
+        this.applyWallResponse(n, normal.x, normal.y, normal.z, dt, true);
+        return true;
+    }
+
+    isPastOpenMeshOutlet(point, options = {}) {
+        return Number.isFinite(options.openOutletY) && point.y > options.openOutletY;
+    }
+
+    meshContactAtPoint(p, geom, options = {}) {
+        const clearance = Math.max(0, options.clearance || 0);
+        const closest = new THREE.Vector3();
+        const hit = geom.boundsTree.closestPointToPoint(p, { point: closest });
+        const dist = hit?.distance ?? p.distanceTo(closest);
+        const interior = typeof options.interiorDirection === 'function'
+            ? options.interiorDirection(p, closest).clone()
+            : new THREE.Vector3().subVectors(p, closest);
+        if (interior.lengthSq() < 1e-8) interior.set(1, 0, 0);
+        interior.normalize();
+        const insideDepth = new THREE.Vector3().subVectors(p, closest).dot(interior);
+        return { closest, interior, insideDepth, dist, clearance };
+    }
+
+    collideWithMesh(n, geom, dt, options = {}) {
+        const p = new THREE.Vector3(n.x, n.y, n.z);
+        const contact = this.meshContactAtPoint(p, geom, options);
+        const { closest, interior, insideDepth, dist, clearance } = contact;
+        const contactBand = Math.max(clearance + this.segmentLength * MAX_WALL_CORRECTION_SEGMENTS, this.segmentLength * 1.5);
+
+        const nx = -interior.x;
+        const ny = -interior.y;
+        const nz = -interior.z;
+
+        if (insideDepth < clearance) {
+            n.x = closest.x + interior.x * clearance;
+            n.y = closest.y + interior.y * clearance;
+            n.z = closest.z + interior.z * clearance;
             this.applyWallResponse(n, nx, ny, nz, dt, true);
         } else {
+            if (dist > contactBand) return;
             const normalForce = Math.max(0, n.fx * nx + n.fy * ny + n.fz * nz);
             const tangentialSpeedSq =
                 n.vx * n.vx + n.vy * n.vy + n.vz * n.vz -
                 (n.vx * nx + n.vy * ny + n.vz * nz) ** 2;
             if (normalForce > 0 && tangentialSpeedSq > 0) {
                 this.applyWallResponse(n, nx, ny, nz, dt, false);
+            }
+        }
+    }
+
+    collideRodSegmentsWithMesh(geom, dt, options = {}, segments = null) {
+        const samples = options.segmentSamples || MESH_COLLIDER_SEGMENT_SAMPLES;
+        const segmentClearance = Math.max(
+            0,
+            options.segmentClearance ?? Math.min(options.clearance || 0, this.segmentLength * 0.06)
+        );
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            const n0 = this.nodes[i];
+            const n1 = this.nodes[i + 1];
+            if (n0.pinned && n1.pinned) continue;
+
+            for (const t of samples) {
+                const w0 = 1 - t;
+                const w1 = t;
+                const p = new THREE.Vector3(
+                    n0.x * w0 + n1.x * w1,
+                    n0.y * w0 + n1.y * w1,
+                    n0.z * w0 + n1.z * w1
+                );
+                const sample = { x: p.x, y: p.y, z: p.z };
+                if (this.isPastOpenMeshOutlet(sample, options)) continue;
+                if (segments) {
+                    if (this.isInsideSegmentVolume(sample, segments)) continue;
+                    if (this.isPastOpenSheathEntrance(sample, segments)) continue;
+                }
+
+                const contact = this.meshContactAtPoint(p, geom, options);
+                if (contact.insideDepth >= segmentClearance) continue;
+
+                const targetX = contact.closest.x + contact.interior.x * segmentClearance;
+                const targetY = contact.closest.y + contact.interior.y * segmentClearance;
+                const targetZ = contact.closest.z + contact.interior.z * segmentClearance;
+                const corrX = (targetX - p.x) * MESH_SEGMENT_CORRECTION_BLEND;
+                const corrY = (targetY - p.y) * MESH_SEGMENT_CORRECTION_BLEND;
+                const corrZ = (targetZ - p.z) * MESH_SEGMENT_CORRECTION_BLEND;
+
+                const freeW0 = n0.pinned ? 0 : w0;
+                const freeW1 = n1.pinned ? 0 : w1;
+                const denom = freeW0 * freeW0 + freeW1 * freeW1;
+                if (denom <= 1e-8) continue;
+
+                if (!n0.pinned) {
+                    const s = freeW0 / denom;
+                    n0.x += corrX * s;
+                    n0.y += corrY * s;
+                    n0.z += corrZ * s;
+                    n0.vx *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n0.vy *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n0.vz *= WALL_CORRECTION_VELOCITY_DAMPING;
+                }
+                if (!n1.pinned) {
+                    const s = freeW1 / denom;
+                    n1.x += corrX * s;
+                    n1.y += corrY * s;
+                    n1.z += corrZ * s;
+                    n1.vx *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n1.vy *= WALL_CORRECTION_VELOCITY_DAMPING;
+                    n1.vz *= WALL_CORRECTION_VELOCITY_DAMPING;
+                }
+            }
+        }
+    }
+
+    collideRodSegmentsWithMeshCollider(collider, dt, options = {}, segments = null, prevPositions = null) {
+        const samples = options.segmentSamples || MESH_COLLIDER_SEGMENT_SAMPLES;
+        const segmentClearance = Math.max(
+            0,
+            options.segmentClearance ?? Math.min(options.clearance || 0, this.segmentLength * 0.08)
+        );
+        const maxCorrection = this.segmentLength * 4.5;
+        const samplePoint = new THREE.Vector3();
+        const correction = new THREE.Vector3();
+        const startPoint = new THREE.Vector3();
+        const endPoint = new THREE.Vector3();
+        const applySegmentCorrection = (n0, n1, t, sample, target) => {
+            correction.subVectors(target, sample);
+            if (correction.length() > maxCorrection) correction.setLength(maxCorrection);
+            correction.multiplyScalar(MESH_SEGMENT_CORRECTION_BLEND);
+
+            const w0 = 1 - t;
+            const w1 = t;
+            const freeW0 = n0.pinned ? 0 : w0;
+            const freeW1 = n1.pinned ? 0 : w1;
+            const denom = freeW0 * freeW0 + freeW1 * freeW1;
+            if (denom <= 1e-8) return;
+
+            if (!n0.pinned) {
+                const s = freeW0 / denom;
+                n0.x += correction.x * s;
+                n0.y += correction.y * s;
+                n0.z += correction.z * s;
+                n0.vx *= WALL_CORRECTION_VELOCITY_DAMPING;
+                n0.vy *= WALL_CORRECTION_VELOCITY_DAMPING;
+                n0.vz *= WALL_CORRECTION_VELOCITY_DAMPING;
+            }
+            if (!n1.pinned) {
+                const s = freeW1 / denom;
+                n1.x += correction.x * s;
+                n1.y += correction.y * s;
+                n1.z += correction.z * s;
+                n1.vx *= WALL_CORRECTION_VELOCITY_DAMPING;
+                n1.vy *= WALL_CORRECTION_VELOCITY_DAMPING;
+                n1.vz *= WALL_CORRECTION_VELOCITY_DAMPING;
+            }
+        };
+
+        for (let i = 0; i < this.nodes.length - 1; i++) {
+            const n0 = this.nodes[i];
+            const n1 = this.nodes[i + 1];
+            if (n0.pinned && n1.pinned) continue;
+
+            if (collider.crossingContact) {
+                samplePoint.set(
+                    (n0.x + n1.x) * 0.5,
+                    (n0.y + n1.y) * 0.5,
+                    (n0.z + n1.z) * 0.5
+                );
+                const sample = { x: samplePoint.x, y: samplePoint.y, z: samplePoint.z };
+                if (this.isPastOpenMeshOutlet(sample, options)) continue;
+                const skipSegment = segments && (
+                    this.isInsideSegmentVolume(sample, segments) ||
+                    this.isPastOpenSheathEntrance(sample, segments)
+                );
+                if (!skipSegment) {
+                    startPoint.set(n0.x, n0.y, n0.z);
+                    endPoint.set(n1.x, n1.y, n1.z);
+                    const crossing = collider.crossingContact(startPoint, endPoint, segmentClearance);
+                    if (crossing && crossing.t > 0.03 && crossing.t < 0.97) {
+                        applySegmentCorrection(n0, n1, crossing.t, crossing.point, crossing.target);
+                    }
+                }
+            }
+
+            for (const t of samples) {
+                const w0 = 1 - t;
+                const w1 = t;
+                samplePoint.set(
+                    n0.x * w0 + n1.x * w1,
+                    n0.y * w0 + n1.y * w1,
+                    n0.z * w0 + n1.z * w1
+                );
+                const sample = { x: samplePoint.x, y: samplePoint.y, z: samplePoint.z };
+                if (this.isPastOpenMeshOutlet(sample, options)) continue;
+                if (segments) {
+                    if (this.isInsideSegmentVolume(sample, segments)) continue;
+                    if (this.isPastOpenSheathEntrance(sample, segments)) continue;
+                }
+
+                const contact = collider.pointContact(samplePoint, segmentClearance);
+                if (!contact?.violation) continue;
+                applySegmentCorrection(n0, n1, t, samplePoint, contact.target);
             }
         }
     }
@@ -522,24 +779,71 @@ export class ElasticRod {
     collide(target, dt = 1) {
         if (!target) return;
         const segments = target.segments || null;
-        const geom = target.isBufferGeometry ? target : (target.geometry || target);
-        if ((!geom || !geom.boundsTree) && !segments) return;
-        for (const n of this.nodes) {
-            if (n.pinned) continue;
-            if (segments) {
-                if (this.isInsideSegmentVolume(n, segments)) continue;
-                if (this.isPastOpenSheathEntrance(n, segments)) continue;
-                this.collideWithSegments(n, segments, dt);
-                continue;
+        const meshCollider = target.meshCollider || target.lumenMeshCollider || null;
+        const geom = target.collisionGeometry || (target.isBufferGeometry ? target : (target.geometry || target));
+        const prevPositions = this.collisionPrevPositions;
+        const meshOptions = {
+            clearance: target.guidewireClearance ?? target.collisionClearance ?? target.clearance ?? 0,
+            segmentClearance: target.guidewireSegmentClearance ?? target.segmentClearance,
+            segmentSamples: target.guidewireSegmentSamples ?? target.segmentSamples,
+            openOutletY: target.openOutletY,
+            interiorDirection: target.interiorDirection || target.collisionInteriorDirection
+        };
+        const hasSurfaceCollider = !!meshCollider || !!geom?.boundsTree;
+        const segmentOptions = { localOnly: hasSurfaceCollider };
+        const collisionPasses = Math.max(
+            1,
+            target.guidewireCollisionPasses ?? target.collisionPasses ?? (hasSurfaceCollider ? DEFAULT_MESH_COLLISION_PASSES : 4)
+        );
+        if (!hasSurfaceCollider && !segments) return;
+        const collideNodes = () => {
+            for (let i = 0; i < this.nodes.length; i++) {
+                const n = this.nodes[i];
+                if (n.pinned) continue;
+                if (segments) {
+                    if (this.isInsideSegmentVolume(n, segments)) continue;
+                    if (this.isPastOpenSheathEntrance(n, segments)) continue;
+                    if (this.collideWithSegments(n, segments, dt, segmentOptions) || !hasSurfaceCollider) continue;
+                }
+                if (this.isPastOpenMeshOutlet(n, meshOptions)) continue;
+                if (meshCollider) {
+                    const previous = prevPositions?.[i] || null;
+                    this.collideWithMeshCollider(n, meshCollider, dt, meshOptions.clearance, previous);
+                } else if (geom && geom.boundsTree) {
+                    this.collideWithMesh(n, geom, dt, meshOptions);
+                }
             }
-            if (geom && geom.boundsTree) this.collideWithMesh(n, geom, dt);
+        };
+        if (meshCollider) {
+            for (let pass = 0; pass < collisionPasses; pass++) {
+                collideNodes();
+                if (segments) this.collideRodSegmentsWithSegments(segments, dt, segmentOptions);
+                this.collideRodSegmentsWithMeshCollider(meshCollider, dt, meshOptions, segments, prevPositions);
+            }
+            collideNodes();
+            if (segments) this.collideRodSegmentsWithSegments(segments, dt, segmentOptions);
+        } else if (geom && geom.boundsTree) {
+            for (let pass = 0; pass < collisionPasses; pass++) {
+                collideNodes();
+                if (segments) this.collideRodSegmentsWithSegments(segments, dt, segmentOptions);
+                this.collideRodSegmentsWithMesh(geom, dt, meshOptions, segments);
+            }
+            collideNodes();
+            if (segments) this.collideRodSegmentsWithSegments(segments, dt, segmentOptions);
+        } else {
+            for (let pass = 0; pass < collisionPasses; pass++) {
+                collideNodes();
+                if (segments) this.collideRodSegmentsWithSegments(segments, dt);
+            }
         }
         if (this.smoothingIterations > 0) {
             this.laplacianSmooth(dt);
         }
+        this.storeCollisionPreviousPositions();
     }
 
     step(dt) {
+        this.storeCollisionPreviousPositions();
         this.resetForces();
         this.updateCurvature();
         this.accumulateBendingForces();

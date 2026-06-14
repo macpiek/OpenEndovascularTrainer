@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { renderCArmPreview } from './ui/carmPreview.js?v=20260611carmmodel1';
 
 // The perspective camera is placed at the X-ray source so that the rendered
 // image matches what a detector would capture. A virtual detector sits opposite
@@ -7,7 +6,7 @@ import { renderCArmPreview } from './ui/carmPreview.js?v=20260611carmmodel1';
 // magnification. Rays diverge from the source toward this plane, so objects
 // nearer the source appear larger on the on-screen "detector" view just as in a
 // real C-arm.
-export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry, previewTable) {
+export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry, previewLift, previewTable, renderPreview = () => {}) {
     const carmXSlider = document.getElementById('carmX');
     const carmYSlider = document.getElementById('carmY');
     const carmZSlider = document.getElementById('carmZ');
@@ -16,6 +15,9 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const carmZDownButton = document.getElementById('carmZDown');
     const carmRollLeftButton = document.getElementById('carmRollLeft');
     const carmRollRightButton = document.getElementById('carmRollRight');
+    const carmAngleResetButton = document.getElementById('carmAngleReset');
+    const carmLao30Button = document.getElementById('carmLao30');
+    const carmRao30Button = document.getElementById('carmRao30');
     const carmYawReadout = document.getElementById('carmYawReadout');
     const carmPitchReadout = document.getElementById('carmPitchReadout');
     const carmRollReadout = document.getElementById('carmRollReadout');
@@ -40,12 +42,19 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const initialY = carmY;
     const initialZ = carmZ;
     const previewPelvisX = 10;
+    const previewYawAxis = new THREE.Vector3(1, 0, 0);
+    const previewPitchAxis = new THREE.Vector3(0, 0, 1);
+    const previewRollAxis = new THREE.Vector3(0, 1, 0);
+    const previewYawQuat = new THREE.Quaternion();
+    const previewPitchQuat = new THREE.Quaternion();
+    const previewRollQuat = new THREE.Quaternion();
 
     function getPivotPoint() {
+        const fluoroscopyZ = initialZ - (carmZ - initialZ);
         return new THREE.Vector3(
             vessel.branchPoint.x + carmX,
             vessel.branchPoint.y + carmY,
-            vessel.branchPoint.z + carmZ
+            vessel.branchPoint.z + fluoroscopyZ
         );
     }
 
@@ -94,7 +103,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         const previewDy = carmY - initialY;
         const previewDz = carmZ - initialZ;
         if (previewGroup) {
-            previewGroup.position.set(previewPelvisX, previewDz * 0.12, 0);
+            previewGroup.position.set(previewPelvisX, 0, 0);
+        }
+        if (previewLift) {
+            previewLift.position.y = previewDz * 0.12;
         }
 
         if (previewTable) {
@@ -103,17 +115,18 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         }
 
         if (previewGantry) {
-            previewGantry.rotation.set(0, 0, 0);
             // Patient axis in preview: X=head/feet, Y=vertical beam, Z=lateral.
-            // AP starts over the pelvis; LAO/RAO swings around the patient long
-            // axis, CRA/CAU around the lateral axis, Roll around the beam.
-            previewGantry.rotateX(-carmYaw);
-            previewGantry.rotateZ(carmPitch);
-            previewGantry.rotateY(carmRoll);
+            // AP starts over the pelvis; LAO/RAO and CRA/CAU are composed on
+            // the initial fixed axes so cranial/caudal tilt is not dragged by
+            // the current LAO/RAO angle.
+            previewYawQuat.setFromAxisAngle(previewYawAxis, -carmYaw);
+            previewPitchQuat.setFromAxisAngle(previewPitchAxis, carmPitch);
+            previewRollQuat.setFromAxisAngle(previewRollAxis, carmRoll);
+            previewGantry.quaternion.copy(previewPitchQuat).multiply(previewYawQuat).multiply(previewRollQuat);
         }
 
-        if (previewGroup || previewGantry || previewTable) {
-            renderCArmPreview();
+        if (previewGroup || previewGantry || previewLift || previewTable) {
+            renderPreview();
         }
         updateReadouts();
     }
@@ -143,12 +156,17 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let rollSpeed = 0;
     let angleSpeedYaw = 0;
     let angleSpeedPitch = 0;
-    const maxYaw = THREE.MathUtils.degToRad(60);
+    let angleResetActive = false;
+    let angleTargetYaw = null;
+    let activeAngleTargetButton = null;
+    const maxYaw = THREE.MathUtils.degToRad(90);
     const maxPitch = THREE.MathUtils.degToRad(45);
     const maxRoll = THREE.MathUtils.degToRad(45);
     const yawRate = THREE.MathUtils.degToRad(22);
     const pitchRate = THREE.MathUtils.degToRad(18);
     const rollRate = THREE.MathUtils.degToRad(18);
+    const angleResetRate = THREE.MathUtils.degToRad(24);
+    const angleTargetRate = THREE.MathUtils.degToRad(24);
 
     function wireJoystick(joystick, joystickHandle, onMove, onRelease, { resetOnRelease = true } = {}) {
         if (!joystick || !joystickHandle) return;
@@ -246,6 +264,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const maxSpeedZ = (maxZ - minZ) * 0.18;
     let lastTime = performance.now();
 
+    function moveTowardZero(value, amount) {
+        if (Math.abs(value) <= amount) return 0;
+        return value - Math.sign(value) * amount;
+    }
+
     function step(now) {
         const dt = (now - lastTime) / 1000;
         lastTime = now;
@@ -258,9 +281,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             updated = true;
         }
         if (speedZ !== 0) {
-            carmZ = Math.min(Math.max(carmZ + speedZ * maxSpeedZ * dt, minZ), maxZ);
+            const nextZ = THREE.MathUtils.clamp(carmZ + speedZ * maxSpeedZ * dt, minZ, maxZ);
+            updated = updated || nextZ !== carmZ;
+            carmZ = nextZ;
             carmZSlider.value = Math.round(carmZ);
-            updated = true;
         }
         if (angleSpeedYaw !== 0 || angleSpeedPitch !== 0) {
             carmYaw = Math.min(Math.max(carmYaw + angleSpeedYaw * yawRate * dt, -maxYaw), maxYaw);
@@ -270,6 +294,32 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         if (rollSpeed !== 0) {
             carmRoll = Math.min(Math.max(carmRoll + rollSpeed * rollRate * dt, -maxRoll), maxRoll);
             updated = true;
+        }
+        if (angleResetActive) {
+            angleSpeedYaw = 0;
+            angleSpeedPitch = 0;
+            angleTargetYaw = null;
+            activeAngleTargetButton?.classList.remove('active');
+            activeAngleTargetButton = null;
+            rollSpeed = 0;
+            const resetStep = angleResetRate * dt;
+            const nextYaw = moveTowardZero(carmYaw, resetStep);
+            const nextPitch = moveTowardZero(carmPitch, resetStep);
+            const nextRoll = moveTowardZero(carmRoll, resetStep);
+            updated = updated || nextYaw !== carmYaw || nextPitch !== carmPitch || nextRoll !== carmRoll;
+            carmYaw = nextYaw;
+            carmPitch = nextPitch;
+            carmRoll = nextRoll;
+        }
+        if (angleTargetYaw !== null) {
+            angleSpeedYaw = 0;
+            const targetStep = angleTargetRate * dt;
+            const delta = angleTargetYaw - carmYaw;
+            const nextYaw = Math.abs(delta) <= targetStep
+                ? angleTargetYaw
+                : carmYaw + Math.sign(delta) * targetStep;
+            updated = updated || nextYaw !== carmYaw;
+            carmYaw = THREE.MathUtils.clamp(nextYaw, -maxYaw, maxYaw);
         }
         if (updated) {
             updateCamera();
@@ -310,6 +360,77 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         window.addEventListener('touchcancel', stopRoll);
     }
 
+    function startAngleReset(e) {
+        e?.preventDefault?.();
+        angleResetActive = true;
+        angleSpeedYaw = 0;
+        angleSpeedPitch = 0;
+        rollSpeed = 0;
+        if (angleJoystickHandle) {
+            angleJoystickHandle.style.transition = 'transform 0.2s ease-out';
+            angleJoystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+        carmAngleResetButton?.classList.add('active');
+    }
+    function stopAngleReset() {
+        angleResetActive = false;
+        carmAngleResetButton?.classList.remove('active');
+    }
+    if (carmAngleResetButton) {
+        carmAngleResetButton.addEventListener('pointerdown', e => {
+            carmAngleResetButton.setPointerCapture?.(e.pointerId);
+            startAngleReset(e);
+        });
+        carmAngleResetButton.addEventListener('pointerup', e => {
+            carmAngleResetButton.releasePointerCapture?.(e.pointerId);
+            stopAngleReset();
+        });
+        carmAngleResetButton.addEventListener('pointercancel', stopAngleReset);
+        carmAngleResetButton.addEventListener('pointerleave', stopAngleReset);
+        carmAngleResetButton.addEventListener('click', e => e.preventDefault());
+        window.addEventListener('blur', stopAngleReset);
+    }
+
+    function startAngleTarget(targetYaw, button, e) {
+        e?.preventDefault?.();
+        angleResetActive = false;
+        carmAngleResetButton?.classList.remove('active');
+        angleSpeedYaw = 0;
+        angleSpeedPitch = 0;
+        angleTargetYaw = THREE.MathUtils.clamp(targetYaw, -maxYaw, maxYaw);
+        if (activeAngleTargetButton && activeAngleTargetButton !== button) {
+            activeAngleTargetButton.classList.remove('active');
+        }
+        activeAngleTargetButton = button;
+        activeAngleTargetButton?.classList.add('active');
+        if (angleJoystickHandle) {
+            angleJoystickHandle.style.transition = 'transform 0.2s ease-out';
+            angleJoystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+    function stopAngleTarget() {
+        angleTargetYaw = null;
+        activeAngleTargetButton?.classList.remove('active');
+        activeAngleTargetButton = null;
+    }
+    function bindAngleTarget(button, targetYaw) {
+        if (!button) return;
+        button.addEventListener('pointerdown', e => {
+            button.setPointerCapture?.(e.pointerId);
+            startAngleTarget(targetYaw, button, e);
+        });
+        button.addEventListener('pointerup', e => {
+            button.releasePointerCapture?.(e.pointerId);
+            stopAngleTarget();
+        });
+        button.addEventListener('pointercancel', stopAngleTarget);
+        button.addEventListener('pointerleave', stopAngleTarget);
+        button.addEventListener('click', e => e.preventDefault());
+    }
+    bindAngleTarget(carmLao30Button, THREE.MathUtils.degToRad(30));
+    bindAngleTarget(carmRao30Button, THREE.MathUtils.degToRad(-30));
+    window.addEventListener('blur', stopAngleTarget);
+
     wireJoystick(positionJoystick, positionJoystickHandle, (normX, normY) => {
         speedX = -normY;
         speedY = -normX;
@@ -319,8 +440,9 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     });
 
     wireJoystick(angleJoystick, angleJoystickHandle, (normX, normY) => {
-        angleSpeedYaw = normX;
-        angleSpeedPitch = -normY;
+        stopAngleTarget();
+        angleSpeedYaw = -normY;
+        angleSpeedPitch = -normX;
     }, () => {
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;

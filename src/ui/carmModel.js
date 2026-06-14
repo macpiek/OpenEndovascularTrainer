@@ -35,9 +35,25 @@ function arcTube(radius, startDeg, endDeg, z, tubeRadius, material, xOffset = 0)
     return new THREE.Mesh(new THREE.TubeGeometry(curve, 128, tubeRadius, 18, false), material);
 }
 
+function transverseArcTube(radius, startDeg, endDeg, x, tubeRadius, material, zOffset = 0) {
+    const points = [];
+    for (let i = 0; i <= 96; i++) {
+        const angle = THREE.MathUtils.degToRad(startDeg + ((endDeg - startDeg) * i) / 96);
+        points.push(new THREE.Vector3(
+            x,
+            radius * Math.sin(angle),
+            zOffset + radius * Math.cos(angle)
+        ));
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+    return new THREE.Mesh(new THREE.TubeGeometry(curve, 128, tubeRadius, 18, false), material);
+}
+
 export function createCArmModel() {
     const group = new THREE.Group();
+    const liftGroup = new THREE.Group();
     const gantryGroup = new THREE.Group();
+    const previewIsoCenter = new THREE.Vector3(10, 22, 0);
 
     const shell = new THREE.MeshStandardMaterial({
         color: 0xdde5ea,
@@ -81,78 +97,82 @@ export function createCArmModel() {
     });
     const isoMaterial = new THREE.MeshBasicMaterial({ color: 0x42d7ff });
 
-    // Mobile base and cabinet, kept stationary while the gantry rotates.
-    group.add(box(105, 12, 54, rubber, new THREE.Vector3(-118, -91, -84)));
-    group.add(box(68, 62, 58, shell, new THREE.Vector3(-116, -56, -84)));
-    group.add(box(70, 18, 58, darkMetal, new THREE.Vector3(-126, -90, -84)));
-    group.add(cylinder(13, 13, 10, rubber, new THREE.Vector3(-164, -94, -110), new THREE.Euler(Math.PI / 2, 0, 0), 32));
-    group.add(cylinder(13, 13, 10, rubber, new THREE.Vector3(-84, -94, -110), new THREE.Euler(Math.PI / 2, 0, 0), 32));
-    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(-164, -94, -58), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    // Mobile base and cabinet stay stationary; they act as the carriage and
+    // support for the rotating C arc.
+    group.add(box(118, 12, 58, rubber, new THREE.Vector3(10, -91, -82)));
+    group.add(box(78, 52, 62, shell, new THREE.Vector3(10, -58, -82)));
+    group.add(box(84, 18, 62, darkMetal, new THREE.Vector3(10, -89, -82)));
+    group.add(cylinder(12, 12, 10, rubber, new THREE.Vector3(-34, -94, -108), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(cylinder(12, 12, 10, rubber, new THREE.Vector3(54, -94, -108), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(-34, -94, -56), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(54, -94, -56), new THREE.Euler(Math.PI / 2, 0, 0), 32));
 
-    const column = cylinder(12, 15, 102, metal, new THREE.Vector3(-116, -9, -84));
-    group.add(column);
-    group.add(box(58, 22, 50, shell, new THREE.Vector3(-116, 50, -84)));
-    group.add(box(24, 10, 44, darkMetal, new THREE.Vector3(-116, 38, -84)));
+    group.add(cylinder(16, 18, 70, darkMetal, new THREE.Vector3(10, -23, -82)));
+    liftGroup.add(cylinder(12, 14, 96, metal, new THREE.Vector3(10, 0, -82)));
+    liftGroup.add(box(62, 24, 52, shell, new THREE.Vector3(10, 52, -82)));
+    liftGroup.add(box(28, 10, 44, darkMetal, new THREE.Vector3(10, 38, -82)));
 
-    // The horizontal equipment housing reaches from the column to the C-arm
-    // pivot, so the arc no longer appears detached from the standing unit.
-    group.add(capsule(14, 74, shell, new THREE.Vector3(-78, 52, -84), new THREE.Euler(0, 0, Math.PI / 2)));
-    group.add(box(54, 28, 42, shell, new THREE.Vector3(-44, 52, -84)));
-    group.add(cylinder(23, 23, 22, darkMetal, new THREE.Vector3(-24, 52, -84), new THREE.Euler(Math.PI / 2, 0, 0), 48));
+    // Straight support from the mobile column toward the gantry pivot.
+    liftGroup.add(capsule(12, 34, shell, new THREE.Vector3(10, 51, -82), new THREE.Euler(0, 0, Math.PI / 2)));
+    liftGroup.add(box(48, 26, 40, shell, new THREE.Vector3(10, 51, -82)));
+    liftGroup.add(box(54, 18, 28, shell, new THREE.Vector3(10, 43, -86)));
+    liftGroup.add(box(34, 22, 34, shell, new THREE.Vector3(10, 34, -86)));
+    liftGroup.add(cylinder(21, 21, 18, darkMetal, new THREE.Vector3(10, 40, -82), new THREE.Euler(Math.PI / 2, 0, 0), 48));
+    liftGroup.add(cylinder(25, 25, 18, darkMetal, new THREE.Vector3(10, 22, -86), new THREE.Euler(Math.PI / 2, 0, 0), 48));
+    liftGroup.add(box(46, 34, 24, darkMetal, new THREE.Vector3(10, 22, -86)));
 
-    // Small monitor and handles, modelled as simple readable silhouettes.
-    group.add(cylinder(5, 6, 28, metal, new THREE.Vector3(-98, 91, -84)));
-    group.add(box(46, 24, 6, whiteShell, new THREE.Vector3(-98, 108, -84), new THREE.Euler(THREE.MathUtils.degToRad(-8), 0, 0)));
-    group.add(box(31, 16, 2, new THREE.MeshBasicMaterial({ color: 0x16222f }), new THREE.Vector3(-98, 108, -80)));
-    group.add(capsule(3.5, 32, metal, new THREE.Vector3(-68, 38, -52), new THREE.Euler(Math.PI / 2, 0, 0)));
-    group.add(capsule(3.5, 32, metal, new THREE.Vector3(-86, 31, -52), new THREE.Euler(Math.PI / 2, 0, 0)));
+    // Small monitor and handles on the mobile module.
+    liftGroup.add(cylinder(5, 6, 28, metal, new THREE.Vector3(28, 93, -82)));
+    liftGroup.add(box(46, 24, 6, whiteShell, new THREE.Vector3(28, 110, -82), new THREE.Euler(THREE.MathUtils.degToRad(-8), 0, 0)));
+    liftGroup.add(box(31, 16, 2, new THREE.MeshBasicMaterial({ color: 0x16222f }), new THREE.Vector3(28, 110, -78)));
+    liftGroup.add(capsule(3.2, 30, metal, new THREE.Vector3(38, 33, -52), new THREE.Euler(Math.PI / 2, 0, 0)));
 
-    gantryGroup.position.set(0, 20, 0);
-    group.add(gantryGroup);
+    gantryGroup.position.copy(previewIsoCenter);
+    liftGroup.add(gantryGroup);
+    group.add(liftGroup);
 
-    // C-arm assembly. The left side of the arc sits on the pivot hub above,
-    // while the detector and tube extend from the open side toward isocentre.
-    const arcZ = -84;
-    const arcRadius = 74;
+    // Classic C-arm: a vertical C arc in the transverse plane of the patient.
+    // The patient lies along X, so the arc itself lives in Y/Z and is attached
+    // to the mobile module from the lateral side.
+    const arcRadius = 86;
     const arcX = 0;
-    const mainArc = arcTube(arcRadius, 80, 280, arcZ, 5.8, whiteShell, arcX);
-    const rearRail = arcTube(arcRadius + 8, 84, 276, arcZ + 5, 1.9, metal, arcX);
-    const frontRail = arcTube(arcRadius - 8, 84, 276, arcZ - 5, 1.9, metal, arcX);
+    const arcZ = 0;
+    const terminalDeg = 58;
+    const mainArc = transverseArcTube(arcRadius, terminalDeg, 360 - terminalDeg, arcX, 6.2, whiteShell, arcZ);
+    const rearRail = transverseArcTube(arcRadius + 8, terminalDeg + 2, 360 - terminalDeg - 2, arcX - 4.5, 1.8, metal, arcZ);
+    const frontRail = transverseArcTube(arcRadius - 8, terminalDeg + 2, 360 - terminalDeg - 2, arcX + 4.5, 1.8, metal, arcZ);
     gantryGroup.add(mainArc, rearRail, frontRail);
+    gantryGroup.add(box(28, 18, 34, shell, new THREE.Vector3(arcX, 0, -arcRadius)));
 
-    const pivotX = arcX - arcRadius;
-    gantryGroup.add(cylinder(17, 17, 18, darkMetal, new THREE.Vector3(pivotX, 0, arcZ), new THREE.Euler(Math.PI / 2, 0, 0), 48));
-    gantryGroup.add(box(36, 22, 30, shell, new THREE.Vector3(pivotX + 16, 0, arcZ)));
-    gantryGroup.add(box(52, 16, 20, shell, new THREE.Vector3(pivotX + 42, 0, arcZ)));
+    const terminalRad = THREE.MathUtils.degToRad(terminalDeg);
+    const topY = arcRadius * Math.sin(terminalRad);
+    const bottomY = -topY;
+    const beamZ = 0;
+    const arcEndZ = arcZ + arcRadius * Math.cos(terminalRad);
+    const connectorZ = (arcEndZ + beamZ) * 0.5;
+    const connectorDepth = Math.abs(beamZ - arcEndZ) + 12;
+    gantryGroup.add(box(48, 13, connectorDepth, whiteShell, new THREE.Vector3(arcX, topY, connectorZ)));
+    gantryGroup.add(box(48, 13, connectorDepth, whiteShell, new THREE.Vector3(arcX, bottomY, connectorZ)));
+    gantryGroup.add(box(42, 14, 16, whiteShell, new THREE.Vector3(arcX, topY, arcEndZ)));
+    gantryGroup.add(box(42, 14, 16, whiteShell, new THREE.Vector3(arcX, bottomY, arcEndZ)));
 
-    const topY = 62;
-    const bottomY = -62;
-    gantryGroup.add(box(46, 12, 18, whiteShell, new THREE.Vector3(-7, topY, arcZ)));
-    gantryGroup.add(box(46, 12, 18, whiteShell, new THREE.Vector3(-7, bottomY, arcZ)));
-    gantryGroup.add(box(12, 12, 86, whiteShell, new THREE.Vector3(13, topY, -42)));
-    gantryGroup.add(box(12, 12, 86, whiteShell, new THREE.Vector3(13, bottomY, -42)));
-
-    const detector = box(46, 16, 42, detectorMaterial, new THREE.Vector3(13, topY, 4));
+    const detector = box(50, 16, 42, detectorMaterial, new THREE.Vector3(arcX, topY, beamZ));
     gantryGroup.add(detector);
-    const detectorFace = box(38, 2, 34, detectorFaceMaterial, new THREE.Vector3(13, topY - 9, 4));
+    const detectorFace = box(40, 2, 34, detectorFaceMaterial, new THREE.Vector3(arcX, topY - 9, beamZ));
     gantryGroup.add(detectorFace);
 
-    const sourceHousing = box(58, 22, 44, sourceMaterial, new THREE.Vector3(13, bottomY, 4));
+    const sourceHousing = box(58, 22, 44, sourceMaterial, new THREE.Vector3(arcX, bottomY, beamZ));
     gantryGroup.add(sourceHousing);
-    const collimator = box(36, 9, 26, darkMetal, new THREE.Vector3(13, bottomY + 17, 4));
+    const collimator = box(36, 9, 26, darkMetal, new THREE.Vector3(arcX, bottomY + 17, beamZ));
     gantryGroup.add(collimator);
 
-    const beam = cylinder(16, 23, topY - bottomY - 20, beamMaterial, new THREE.Vector3(13, 0, 4));
+    const beam = cylinder(15, 22, topY - bottomY - 20, beamMaterial, new THREE.Vector3(arcX, 0, beamZ));
     gantryGroup.add(beam);
 
     const isoMarker = new THREE.Mesh(new THREE.RingGeometry(7.5, 9, 48), isoMaterial);
-    isoMarker.position.set(13, 0, 4);
+    isoMarker.position.set(arcX, 0, beamZ);
     isoMarker.rotation.x = Math.PI / 2;
     gantryGroup.add(isoMarker);
 
-    // Hinge cover in world/static coordinates aligned with the rotating pivot.
-    // It visually bridges the stationary boom and the gantry hub at AP start.
-    group.add(cylinder(25, 25, 14, darkMetal, new THREE.Vector3(-74, 20, -84), new THREE.Euler(Math.PI / 2, 0, 0), 48));
-
-    return { group, gantryGroup };
+    return { group, gantryGroup, liftGroup };
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260612catheter20">
+    <link rel="stylesheet" href="style.css?v=20260614guidewireiliac1">
 </head>
 <body>
 <canvas id="sim"></canvas>
@@ -11,6 +11,15 @@
     <div id="insertedLength">0 cm</div>
     <div id="catheterLength">Pigtail 0 cm</div>
     <div id="currentDose">0 ml</div>
+    <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
+        <div class="guidewire-resistance-header">
+            <span id="guidewireResistanceReason">Opór na prowadniku</span>
+            <span id="guidewireResistanceValue">0%</span>
+        </div>
+        <div class="guidewire-resistance-meter">
+            <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
+        </div>
+    </div>
 
     <div class="control-section">
         <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Guidewire</div>
@@ -45,11 +54,11 @@
         <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Friction</div>
         <div class="section-content hidden">
             <label class="parameter-label">Static friction
-                <input id="staticFriction" type="range" min="0" max="1" step="0.01" value="0.03">
+                <input id="staticFriction" type="range" min="0" max="1" step="0.001" value="0.006">
                 <span></span>
             </label>
             <label class="parameter-label">Kinetic friction
-                <input id="kineticFriction" type="range" min="0" max="1" step="0.01" value="0.01">
+                <input id="kineticFriction" type="range" min="0" max="1" step="0.001" value="0.002">
                 <span></span>
             </label>
         </div>
@@ -130,8 +139,13 @@
                         <div id="angleJoystickHandle" class="joystick-handle"></div>
                     </div>
                     <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
+                    <div class="angle-preset-control">
+                        <button id="carmLao30" title="Hold to move to LAO 30 degrees">LAO 30</button>
+                        <button id="carmRao30" title="Hold to move to RAO 30 degrees">RAO 30</button>
+                    </div>
                     <div class="roll-control">
                         <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
+                        <button id="carmAngleReset" title="Reset C-arm angles">0</button>
                         <button id="carmRollRight" title="Rotate detector clockwise">↻</button>
                     </div>
                 </div>
@@ -141,15 +155,15 @@
                         <div id="positionJoystickHandle" class="joystick-handle"></div>
                     </div>
                     <div id="carmZButtons">
-                        <button id="carmZUp">Up</button>
-                        <button id="carmZDown">Down</button>
+                        <button id="carmZUp" title="Move C-arm up">↑</button>
+                        <button id="carmZDown" title="Move C-arm down">↓</button>
                     </div>
                     <div class="joystick-caption">Table plane · height</div>
                 </div>
             </div>
             <input id="carmX" type="hidden" min="-200" max="200" step="1" value="0">
             <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
-            <input id="carmZ" type="hidden" min="-200" max="400" step="1" value="60">
+            <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
             <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
         </div>
     </div>
@@ -161,12 +175,12 @@
     "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
         "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.5/build/index.module.js",
-        "three-bvh-csg": "https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.17/build/index.module.js",
         "three/examples/jsm/utils/BufferGeometryUtils.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
-        "three/examples/jsm/loaders/OBJLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js"
+        "three/examples/jsm/loaders/OBJLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js",
+        "three/examples/jsm/loaders/STLLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js"
     }
 }
 </script>
-    <script type="module" src="./src/simulator.js?v=20260612catheter20"></script>
+    <script type="module" src="./src/simulator.js?v=20260614guidewireiliac1"></script>
 </body>
 </html>
