@@ -1,15 +1,15 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
-import { ElasticRod } from './physics/elasticRod.js?v=20260614guidewireiliac1';
-import { generateVessel } from './vesselGeometry.js?v=20260614guidewireiliac1';
-import { initUI } from './ui/ui.js?v=20260614guidewireiliac1';
+import { ElasticRod } from './physics/elasticRod.js?v=20260614carmaxis1';
+import { generateVessel } from './vesselGeometry.js?v=20260614carmaxis1';
+import { initUI } from './ui/ui.js?v=20260614carmaxis1';
 import { createBoneModel } from './boneModel.js';
-import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewireiliac1';
-import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewireiliac1';
-import { createAortaModel } from './aortaModel.js?v=20260614guidewireiliac1';
+import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614carmaxis1';
+import { PigtailCatheter } from './pigtailCatheter.js?v=20260614carmaxis1';
+import { createAortaModel } from './aortaModel.js?v=20260614carmaxis1';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614guidewireiliac1';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614carmaxis1';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const WALL_CONTACT_COLOR = 0xffd24a;
