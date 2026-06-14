@@ -167,6 +167,13 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const rollRate = THREE.MathUtils.degToRad(18);
     const angleResetRate = THREE.MathUtils.degToRad(24);
     const angleTargetRate = THREE.MathUtils.degToRad(24);
+    const angleAxisDeadzone = 0.22;
+
+    function applyAxisDeadzone(value, deadzone) {
+        const magnitude = Math.abs(value);
+        if (magnitude < deadzone) return 0;
+        return Math.sign(value) * ((magnitude - deadzone) / (1 - deadzone));
+    }
 
     function wireJoystick(joystick, joystickHandle, onMove, onRelease, { resetOnRelease = true } = {}) {
         if (!joystick || !joystickHandle) return;
@@ -441,8 +448,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
     wireJoystick(angleJoystick, angleJoystickHandle, (normX, normY) => {
         stopAngleTarget();
-        angleSpeedYaw = -normY;
-        angleSpeedPitch = -normX;
+        angleSpeedYaw = applyAxisDeadzone(-normY, angleAxisDeadzone);
+        angleSpeedPitch = applyAxisDeadzone(-normX, angleAxisDeadzone);
     }, () => {
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;

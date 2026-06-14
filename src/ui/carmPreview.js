@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { createCArmModel } from './carmModel.js?v=20260614carmaxis1';
-import { createOperatingTable } from './operatingTable.js?v=20260614carmaxis1';
+import { createCArmModel } from './carmModel.js?v=20260614carmaxis3';
+import { createOperatingTable } from './operatingTable.js?v=20260614carmaxis3';
 
 let previewScene;
 let previewCamera;

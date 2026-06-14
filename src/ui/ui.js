@@ -1,7 +1,7 @@
-import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis1';
-import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260614carmaxis1';
-import { setupCArmControls } from '../carmControls.js?v=20260614carmaxis1';
-import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis1';
+import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis3';
+import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260614carmaxis3';
+import { setupCArmControls } from '../carmControls.js?v=20260614carmaxis3';
+import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
 
 // Initializes all UI elements and event listeners.
 // Expects options with references and callbacks to interact with the simulator.

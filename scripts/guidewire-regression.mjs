@@ -17,10 +17,14 @@ const GUIDEWIRE_FEED_VELOCITY_BLEND = 0.015;
 const GUIDEWIRE_FEED_ACTIVE_LENGTH = guidewireLength;
 const GUIDEWIRE_FEED_DISTAL_WEIGHT = 0.34;
 const GUIDEWIRE_FEED_WALL_BAND = 3.2;
-const GUIDEWIRE_BODY_BENDING_STIFFNESS = 32;
-const GUIDEWIRE_TIP_BENDING_STIFFNESS = 8;
+const GUIDEWIRE_BODY_BENDING_STIFFNESS = 44;
+const GUIDEWIRE_TIP_BENDING_STIFFNESS = 9;
 const GUIDEWIRE_TIP_FLEX_LENGTH = 105;
 const GUIDEWIRE_TIP_SOFT_LENGTH = 24;
+const GUIDEWIRE_IDLE_STRAIGHTEN_STRENGTH = 0.007;
+const GUIDEWIRE_IDLE_DAMPING = 0.12;
+const GUIDEWIRE_IDLE_CONSTRAINT_DAMPING = 0.025;
+const GUIDEWIRE_SETTLE_BEND_START_ANGLE = 58;
 const SHEATH_EXIT_SUPPORT_LENGTH = segmentLength * 2.4;
 const SHEATH_EXIT_SUPPORT_BLEND = 0.12;
 const SHEATH_EXIT_VELOCITY_DAMPING = 0.28;
@@ -116,6 +120,29 @@ function bendAngleAt(nodes, index) {
 
     const dot = (ax * bx + ay * by + az * bz) / (aLen * bLen);
     return Math.acos(Math.max(-1, Math.min(1, dot))) * 180 / Math.PI;
+}
+
+function bendStats() {
+    let maxAngle = 0;
+    let maxInserted = 0;
+    let maxEarlyAngle = 0;
+    let maxEarlyInserted = 0;
+    for (let i = 1; i < wire.nodes.length - 1; i++) {
+        if (wire.nodes[i].pinned) continue;
+        const inserted = guidewireInsertedCoordinate(i);
+        if (inserted <= sheathPath + segmentLength) continue;
+        const exitDistance = inserted - sheathPath;
+        const angle = bendAngleAt(wire.nodes, i);
+        if (angle > maxAngle) {
+            maxAngle = angle;
+            maxInserted = inserted;
+        }
+        if (exitDistance < 90 && angle > maxEarlyAngle) {
+            maxEarlyAngle = angle;
+            maxEarlyInserted = inserted;
+        }
+    }
+    return { maxAngle, maxInserted, maxEarlyAngle, maxEarlyInserted };
 }
 
 const { vessel } = generateVessel();
@@ -600,6 +627,137 @@ function limitGuidewireBuckling(strength = GUIDEWIRE_BUCKLE_LIMIT_STRENGTH, iter
     }
 }
 
+function smoothGuidewireBends(thresholdAngle, strength = 0.02, iterations = 1) {
+    if (strength <= 0 || iterations <= 0) return;
+    for (let iter = 0; iter < iterations; iter++) {
+        const corrections = new Array(wire.nodes.length);
+        for (let i = 1; i < wire.nodes.length - 1; i++) {
+            const n = wire.nodes[i];
+            if (n.pinned) continue;
+
+            const inserted = guidewireInsertedCoordinate(i);
+            const exitDistance = inserted - sheathPath;
+            if (exitDistance <= segmentLength) continue;
+
+            const angle = bendAngleAt(wire.nodes, i);
+            if (angle <= thresholdAngle) continue;
+
+            const prev = wire.nodes[i - 1];
+            const next = wire.nodes[i + 1];
+            const excess = Math.max(0, Math.min(1, (angle - thresholdAngle) / (150 - thresholdAngle)));
+            const lumenFade = smoothRange(0, 35, exitDistance);
+            const amount = strength * excess * lumenFade;
+            corrections[i] = {
+                x: ((prev.x + next.x) * 0.5 - n.x) * amount,
+                y: ((prev.y + next.y) * 0.5 - n.y) * amount,
+                z: ((prev.z + next.z) * 0.5 - n.z) * amount
+            };
+        }
+
+        for (let i = 1; i < wire.nodes.length - 1; i++) {
+            const n = wire.nodes[i];
+            const c = corrections[i];
+            if (!c || n.pinned) continue;
+            n.x += c.x;
+            n.y += c.y;
+            n.z += c.z;
+            n.vx *= 0.82;
+            n.vy *= 0.82;
+            n.vz *= 0.82;
+        }
+    }
+}
+
+function dampGuidewireMotion(factor = GUIDEWIRE_IDLE_DAMPING) {
+    const amount = Math.max(0, Math.min(1, factor));
+    for (const n of wire.nodes) {
+        if (n.pinned) continue;
+        n.vx *= amount;
+        n.vy *= amount;
+        n.vz *= amount;
+    }
+}
+
+function captureGuidewireState() {
+    return wire.nodes.map(n => ({
+        x: n.x,
+        y: n.y,
+        z: n.z,
+        vx: n.vx,
+        vy: n.vy,
+        vz: n.vz,
+        pinned: n.pinned
+    }));
+}
+
+function restoreGuidewireState(state) {
+    for (let i = 0; i < wire.nodes.length && i < state.length; i++) {
+        const n = wire.nodes[i];
+        const saved = state[i];
+        n.x = saved.x;
+        n.y = saved.y;
+        n.z = saved.z;
+        n.vx = saved.vx;
+        n.vy = saved.vy;
+        n.vz = saved.vz;
+        n.pinned = saved.pinned;
+    }
+}
+
+function guidewireRelaxationScore() {
+    let score = 0;
+    for (let i = 1; i < wire.nodes.length - 1; i++) {
+        if (wire.nodes[i].pinned) continue;
+        const inserted = guidewireInsertedCoordinate(i);
+        if (inserted <= sheathPath + segmentLength) continue;
+
+        const angle = bendAngleAt(wire.nodes, i);
+        const bendExcess = Math.max(0, angle - GUIDEWIRE_SETTLE_BEND_START_ANGLE);
+        score += bendExcess * bendExcess * 0.015;
+
+        const n = wire.nodes[i];
+        const contact = collision.meshCollider.pointContact(n, 0);
+        if (!contact || !Number.isFinite(contact.signedDistance)) continue;
+        if (!contact.inside || contact.signedDistance > 0) {
+            score += 90 + Math.max(0, contact.signedDistance) * 18;
+        }
+    }
+    return score;
+}
+
+function holdGuidewireAxialPosition(strength = 0.5) {
+    const amount = Math.max(0, Math.min(1, strength));
+    if (amount <= 0) return;
+
+    for (let i = 0; i < wire.nodes.length; i++) {
+        const n = wire.nodes[i];
+        if (n.pinned) continue;
+
+        const inserted = guidewireInsertedCoordinate(i);
+        const exitDistance = inserted - sheathPath;
+        if (exitDistance <= segmentLength) continue;
+
+        const { point, tangent } = sampleGuidewireLumen(exitDistance);
+        const dx = n.x - point.x;
+        const dy = n.y - point.y;
+        const dz = n.z - point.z;
+        const axialOffset = dx * tangent.x + dy * tangent.y + dz * tangent.z;
+        const axialLimit = segmentLength * 0.55;
+        if (Math.abs(axialOffset) <= axialLimit) continue;
+
+        const targetAxial = Math.sign(axialOffset) * axialLimit;
+        const correction = (targetAxial - axialOffset) * amount;
+        n.x += tangent.x * correction;
+        n.y += tangent.y * correction;
+        n.z += tangent.z * correction;
+
+        const axialVelocity = n.vx * tangent.x + n.vy * tangent.y + n.vz * tangent.z;
+        n.vx -= tangent.x * axialVelocity * amount;
+        n.vy -= tangent.y * axialVelocity * amount;
+        n.vz -= tangent.z * axialVelocity * amount;
+    }
+}
+
 function advanceTailInput(advance, dt) {
     const nextProgress = Math.max(0, Math.min(guidewireLength, tailProgress + advance * GUIDEWIRE_ADVANCE_RATE * dt));
     const delta = nextProgress - tailProgress;
@@ -608,21 +766,76 @@ function advanceTailInput(advance, dt) {
     tailProgress = nextProgress;
     constrainWireToSheath(feedSpeed);
     feedGuidewireMaterial(delta, dt, previousPositions);
-    supportWireAtSheathExit(0.7);
+    if (Math.abs(delta) > 1e-6) supportWireAtSheathExit(0.7);
     if (advance > 0) applyGuidewireLumenGlide(0.72);
     return delta;
 }
 
+function solveGuidewireConstraints(options = {}) {
+    const resolved = typeof options === 'boolean'
+        ? { applyBending: !options }
+        : options;
+    wire.solveConstraints(fixedDt, resolved);
+}
+
+function settleGuidewireShapeAtRest() {
+    const beforeState = captureGuidewireState();
+    const beforeScore = guidewireRelaxationScore();
+    const beforeBend = bendStats();
+    const tip = wire.nodes[wire.nodes.length - 1];
+    const wasTipPinned = tip.pinned;
+    const tipX = tip.x;
+    const tipY = tip.y;
+    const tipZ = tip.z;
+    tip.pinned = true;
+    smoothGuidewireBends(
+        GUIDEWIRE_SETTLE_BEND_START_ANGLE,
+        GUIDEWIRE_IDLE_STRAIGHTEN_STRENGTH,
+        1
+    );
+    wire.collide(collision, fixedDt);
+    solveGuidewireConstraints({
+        applyBending: true,
+        velocityDamping: GUIDEWIRE_IDLE_CONSTRAINT_DAMPING
+    });
+    supportWireAtSheathExit(0.35);
+    wire.collide(collision, fixedDt);
+    tip.x = tipX;
+    tip.y = tipY;
+    tip.z = tipZ;
+    tip.vx = 0;
+    tip.vy = 0;
+    tip.vz = 0;
+    tip.pinned = wasTipPinned;
+    const afterScore = guidewireRelaxationScore();
+    const afterBend = bendStats();
+    if (
+        afterScore > beforeScore * 1.01 + 0.5 ||
+        afterBend.maxAngle > beforeBend.maxAngle + 1e-6 ||
+        afterBend.maxEarlyAngle > beforeBend.maxEarlyAngle + 1e-6
+    ) {
+        restoreGuidewireState(beforeState);
+    }
+    dampGuidewireMotion(GUIDEWIRE_IDLE_DAMPING);
+}
+
 function step(advance = 1) {
+    const isGuidewireIdle = Math.abs(advance) < 1e-4;
     advanceTailInput(advance, fixedDt);
+    if (isGuidewireIdle) {
+        settleGuidewireShapeAtRest();
+        dampGuidewireMotion(0.08);
+        return;
+    }
+
     wire.step(fixedDt);
     wire.collide(collision, fixedDt);
-    wire.solveConstraints(fixedDt);
+    solveGuidewireConstraints(false);
     supportWireAtSheathExit();
     if (advance > 0) applyGuidewireLumenGlide();
     if (advance > 0) {
         limitGuidewireBuckling(GUIDEWIRE_BUCKLE_LIMIT_STRENGTH, 2);
-        wire.solveConstraints(fixedDt);
+        solveGuidewireConstraints(false);
         wire.collide(collision, fixedDt);
         applyGuidewireLumenGlide();
     }
@@ -632,10 +845,10 @@ function step(advance = 1) {
         limitGuidewireBuckling(0.055, 2);
         applyGuidewireLumenGlide(0.68);
     }
-    wire.solveConstraints(fixedDt);
+    solveGuidewireConstraints(false);
     supportWireAtSheathExit();
     wire.collide(collision, fixedDt);
-    wire.solveConstraints(fixedDt);
+    solveGuidewireConstraints(false);
     supportWireAtSheathExit(0.8);
     if (advance > 0) applyGuidewireLumenGlide(0.52);
 }
@@ -713,4 +926,10 @@ for (let frame = 0; frame < 1200; frame++) {
     if (tailProgress >= 820) break;
 }
 
-console.log(JSON.stringify(reports, null, 2));
+const idleBefore = stats();
+for (let frame = 0; frame < 360; frame++) {
+    step(0);
+}
+const idleAfter = stats();
+
+console.log(JSON.stringify({ reports, idleBefore, idleAfter }, null, 2));

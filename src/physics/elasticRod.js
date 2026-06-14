@@ -56,6 +56,7 @@ const MAX_WALL_CORRECTION_SEGMENTS = 1.25;
 const MESH_SEGMENT_CORRECTION_BLEND = 0.92;
 const VOLUME_SEGMENT_CORRECTION_BLEND = 0.68;
 const WALL_CORRECTION_VELOCITY_DAMPING = 0.94;
+const CONSTRAINT_VELOCITY_DAMPING = 0.76;
 const DEFAULT_MESH_COLLISION_PASSES = 2;
 const VOLUME_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 const MESH_COLLIDER_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
@@ -207,9 +208,10 @@ export class ElasticRod {
     }
 
     // Solve positional constraints and apply velocity damping
-    solveConstraints(dt) {
+    solveConstraints(dt, { applyBending = true, velocityDamping = CONSTRAINT_VELOCITY_DAMPING } = {}) {
         const L = this.segmentLength;
         const prev = this.nodes.map(n => ({ x: n.x, y: n.y, z: n.z }));
+        const damping = Math.max(0, Math.min(1, velocityDamping));
 
         // enforce segment lengths
         for (let iter = 0; iter < this.constraintIterations; iter++) {
@@ -237,23 +239,25 @@ export class ElasticRod {
             }
         }
 
-        // simple bending constraint: pull interior nodes toward midpoint of neighbours
-        for (let i = 1; i < this.nodes.length - 1; i++) {
-            const p0 = this.nodes[i - 1];
-            const p1 = this.nodes[i];
-            const p2 = this.nodes[i + 1];
-            if (p1.pinned) continue;
-            const cx = (p0.x + p2.x) * 0.5;
-            const cy = (p0.y + p2.y) * 0.5;
-            const cz = (p0.z + p2.z) * 0.5;
-            const dx = p1.x - cx;
-            const dy = p1.y - cy;
-            const dz = p1.z - cz;
-            const k = Math.min(1, p1.bendingStiffness * dt);
-            const corrX = dx * k;
-            const corrY = dy * k;
-            const corrZ = dz * k;
-            p1.x -= corrX; p1.y -= corrY; p1.z -= corrZ;
+        if (applyBending) {
+            // simple bending constraint: pull interior nodes toward midpoint of neighbours
+            for (let i = 1; i < this.nodes.length - 1; i++) {
+                const p0 = this.nodes[i - 1];
+                const p1 = this.nodes[i];
+                const p2 = this.nodes[i + 1];
+                if (p1.pinned) continue;
+                const cx = (p0.x + p2.x) * 0.5;
+                const cy = (p0.y + p2.y) * 0.5;
+                const cz = (p0.z + p2.z) * 0.5;
+                const dx = p1.x - cx;
+                const dy = p1.y - cy;
+                const dz = p1.z - cz;
+                const k = Math.min(1, p1.bendingStiffness * dt);
+                const corrX = dx * k;
+                const corrY = dy * k;
+                const corrZ = dz * k;
+                p1.x -= corrX; p1.y -= corrY; p1.z -= corrZ;
+            }
         }
 
         // optional Laplacian smoothing after constraints
@@ -268,9 +272,9 @@ export class ElasticRod {
                 n.vx = n.vy = n.vz = 0;
                 continue;
             }
-            n.vx = (n.x - prev[i].x) * invDt * 0.92;
-            n.vy = (n.y - prev[i].y) * invDt * 0.92;
-            n.vz = (n.z - prev[i].z) * invDt * 0.92;
+            n.vx = (n.x - prev[i].x) * invDt * damping;
+            n.vy = (n.y - prev[i].y) * invDt * damping;
+            n.vz = (n.z - prev[i].z) * invDt * damping;
         }
     }
 
