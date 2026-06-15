@@ -1,21 +1,21 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
-import { ElasticRod } from './physics/elasticRod.js?v=20260614carmaxis1';
-import { generateVessel } from './vesselGeometry.js?v=20260614carmaxis1';
-import { initUI } from './ui/ui.js?v=20260614carmaxis1';
+import { ElasticRod } from './physics/elasticRod.js?v=20260614physrevert1';
+import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
+import { initUI } from './ui/ui.js?v=20260614debug1';
 import { createBoneModel } from './boneModel.js';
-import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614carmaxis1';
-import { PigtailCatheter } from './pigtailCatheter.js?v=20260614carmaxis1';
-import { createAortaModel } from './aortaModel.js?v=20260614carmaxis1';
+import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
+import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
+import { createAortaModel } from './aortaModel.js?v=20260614guidewirestable1';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614carmaxis1';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614debug1';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const WALL_CONTACT_COLOR = 0xffd24a;
 const WALL_BREACH_COLOR = 0xff3355;
-const CONTACT_MARKER_LIMIT = 180;
-const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 12;
+const CONTACT_MARKER_LIMIT = 420;
+const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 18;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 
 // WebGL renderer attached to the fullscreen canvas
@@ -128,27 +128,31 @@ function createSheathGeometry(sheath, radiusScale = 1) {
 function createSheathMesh(sheath) {
     const geometry = createSheathGeometry(sheath);
     const material = new THREE.MeshBasicMaterial({
-        color: 0x8fc7ff,
-        wireframe: true,
+        color: LUMEN_DEBUG_COLOR,
+        side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.9,
-        depthTest: false
+        opacity: 0.24,
+        depthWrite: false,
+        depthTest: true
     });
-    return new THREE.Mesh(geometry, material);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.renderOrder = 3;
+    return mesh;
 }
 
-function createSheathFluoroOutline(sheath) {
-    const geometry = new THREE.EdgesGeometry(createSheathGeometry(sheath, 1.28), 18);
-    const material = new THREE.LineBasicMaterial({
+function createSheathFluoroMesh(sheath) {
+    const geometry = createSheathGeometry(sheath, 1.28);
+    const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
+        side: THREE.DoubleSide,
         transparent: true,
         opacity: 0.16,
         depthTest: false,
         depthWrite: false
     });
-    const outline = new THREE.LineSegments(geometry, material);
-    outline.renderOrder = 0.7;
-    return outline;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.renderOrder = 0.7;
+    return mesh;
 }
 
 function createExactLumenDebugMesh(geometry) {
@@ -165,9 +169,9 @@ function createExactLumenDebugMesh(geometry) {
     return mesh;
 }
 vesselGroup.add(createSheathMesh(vessel.sheath));
-const sheathFluoroOutline = createSheathFluoroOutline(vessel.sheath);
-sheathFluoroOutline.visible = true;
-scene.add(sheathFluoroOutline);
+const sheathFluoroMesh = createSheathFluoroMesh(vessel.sheath);
+sheathFluoroMesh.visible = true;
+scene.add(sheathFluoroMesh);
 const lumenDebugGroup = new THREE.Group();
 lumenDebugGroup.visible = false;
 vesselGroup.add(lumenDebugGroup);
@@ -882,10 +886,10 @@ const ui = initUI({
     onModeChange: (f) => {
         fluoroscopy = f;
         vesselGroup.visible = !fluoroscopy;
-        sheathFluoroOutline.visible = fluoroscopy;
+        sheathFluoroMesh.visible = fluoroscopy;
         lumenDebugGroup.visible = !fluoroscopy;
-        if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
-        if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
+        if (wallContactMarkers) wallContactMarkers.visible = true;
+        if (wallBreachMarkers) wallBreachMarkers.visible = true;
         skeletonModel.visible = fluoroscopy;
         displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     },
@@ -911,7 +915,7 @@ wallContactMarkers = new THREE.InstancedMesh(
 );
 wallContactMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 wallContactMarkers.count = 0;
-wallContactMarkers.visible = false;
+wallContactMarkers.visible = true;
 wallContactMarkers.renderOrder = 6;
 scene.add(wallContactMarkers);
 
@@ -927,7 +931,7 @@ wallBreachMarkers = new THREE.InstancedMesh(
 );
 wallBreachMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 wallBreachMarkers.count = 0;
-wallBreachMarkers.visible = false;
+wallBreachMarkers.visible = true;
 wallBreachMarkers.renderOrder = 7;
 scene.add(wallBreachMarkers);
 
@@ -974,8 +978,8 @@ function sampleGuidewireContactMarkers() {
     const markerMatrix = new THREE.Matrix4();
     const contactSamples = [];
     const breachSamples = [];
-    const samples = [0, 0.25, 0.5, 0.75, 1];
-    const contactBand = 1.35;
+    const samples = [0.15, 0.35, 0.55, 0.75, 0.9];
+    const contactBand = 1.75;
     if (!collider?.pointContact) {
         wallContactMarkers.count = 0;
         wallBreachMarkers.count = 0;
@@ -1147,16 +1151,10 @@ function animate(time) {
     lastRenderTime = time;
 
     updateWireMesh();
-    if (fluoroscopy) {
-        wallContactMarkers.count = 0;
-        wallBreachMarkers.count = 0;
-        contactMarkerAccumulator = CONTACT_MARKER_UPDATE_INTERVAL;
-    } else {
-        contactMarkerAccumulator += dt;
-        if (contactMarkerAccumulator >= CONTACT_MARKER_UPDATE_INTERVAL) {
-            contactMarkerAccumulator = 0;
-            sampleGuidewireContactMarkers();
-        }
+    contactMarkerAccumulator += dt;
+    if (contactMarkerAccumulator >= CONTACT_MARKER_UPDATE_INTERVAL) {
+        contactMarkerAccumulator = 0;
+        sampleGuidewireContactMarkers();
     }
     pigtailMeshAccumulator += dt;
     if (pigtailMeshAccumulator >= PIGTAIL_MESH_UPDATE_INTERVAL) {
@@ -1191,7 +1189,7 @@ function animate(time) {
     const contrastActive = contrastMeshCount > 0 || injecting || contrastAgent.hasVisibleContrast();
 
     vesselGroup.visible = !fluoroscopy;
-    sheathFluoroOutline.visible = fluoroscopy;
+    sheathFluoroMesh.visible = fluoroscopy;
     skeletonModel.visible = fluoroscopy;
     ui.setInjectButtonDisabled(contrastActive);
     ui.setStopInjectionDisabled(!injecting);

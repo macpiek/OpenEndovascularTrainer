@@ -82,6 +82,34 @@ console.log('force low stiffness', softForce.toFixed(4));
 console.log('force high stiffness', stiffForce.toFixed(4));
 console.assert(stiffForce > softForce * 4, 'higher stiffness should greatly increase straightening force');
 
+// shape constraints should turn a sharp kink into a smoother arc while
+// preserving inextensible guidewire segments.
+const kinkRod = new ElasticRod(7, 1, {
+    bendingStiffness: 4,
+    constraintIterations: 12,
+    bendingConstraintIterations: 8,
+    bendAngleLimit: 35,
+    bendProjectionStrength: 0.75,
+    curvatureFlow: 0.28
+});
+kinkRod.nodes[3].y = 2.5;
+kinkRod.solveConstraints(0.016, { applyBending: true, velocityDamping: 1 });
+let kinkMaxAngle = 0;
+let kinkMaxLengthErr = 0;
+for (let i = 1; i < kinkRod.nodes.length - 1; i++) {
+    kinkMaxAngle = Math.max(kinkMaxAngle, kinkRod.bendAngleAt(i));
+}
+for (let i = 0; i < kinkRod.nodes.length - 1; i++) {
+    const n0 = kinkRod.nodes[i];
+    const n1 = kinkRod.nodes[i + 1];
+    const dist = Math.hypot(n1.x - n0.x, n1.y - n0.y, n1.z - n0.z);
+    kinkMaxLengthErr = Math.max(kinkMaxLengthErr, Math.abs(dist - kinkRod.segmentLength));
+}
+console.log('kink projected max angle', kinkMaxAngle.toFixed(2));
+console.log('kink projected max length error', kinkMaxLengthErr.toFixed(4));
+console.assert(kinkMaxAngle < 70, 'shape constraints should smooth sharp local kinks');
+console.assert(kinkMaxLengthErr < 0.02, 'shape constraints should preserve segment length');
+
 // collision test: node outside vessel should be clamped to surface
 function makeVessel() {
     const geom = new THREE.CylinderGeometry(1, 1, 2, 8, 1, true)

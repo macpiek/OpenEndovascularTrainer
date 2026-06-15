@@ -1,7 +1,7 @@
-import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis1';
-import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260614carmaxis1';
-import { setupCArmControls } from '../carmControls.js?v=20260614carmaxis1';
-import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis1';
+import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis3';
+import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260614carmaxis3';
+import { setupCArmControls } from '../carmControls.js?v=20260614carmaxis3';
+import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
 
 // Initializes all UI elements and event listeners.
 // Expects options with references and callbacks to interact with the simulator.
@@ -159,12 +159,12 @@ export function initUI(options) {
   // Mode toggle
   let fluoroscopy = true;
   if (modeToggle) {
-    modeToggle.textContent = 'Wireframe';
+    modeToggle.textContent = 'Debug';
     displayMaterial.uniforms.fluoroscopy.value = true;
     modeToggle.addEventListener('click', () => {
       fluoroscopy = !fluoroscopy;
       displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
-      modeToggle.textContent = fluoroscopy ? 'Wireframe' : 'Fluoroscopy';
+      modeToggle.textContent = fluoroscopy ? 'Debug' : 'Fluoroscopy';
       // Render the guidewire in white so it appears black after inversion
       if (wireMaterial) wireMaterial.color.set(0xffffff);
       if (typeof onModeChange === 'function') onModeChange(fluoroscopy);

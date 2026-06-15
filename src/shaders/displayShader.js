@@ -64,7 +64,7 @@ void main() {
         float alpha = clamp(1.0 + edge, 0.0, 1.0);
         gl_FragColor = vec4(mix(color, vec3(0.0), contrast), alpha);
     } else {
-        // Wireframe mode: keep original color, use edge to boost alpha.
+        // Debug mode: keep original color, use edge to boost alpha.
         float alpha = clamp(tex.a + edge, 0.0, 1.0);
         gl_FragColor = vec4(tex.rgb, alpha);
     }

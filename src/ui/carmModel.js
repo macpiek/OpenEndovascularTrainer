@@ -99,33 +99,33 @@ export function createCArmModel() {
 
     // Mobile base and cabinet stay stationary; they act as the carriage and
     // support for the rotating C arc.
-    group.add(box(118, 12, 58, rubber, new THREE.Vector3(10, -91, -82)));
-    group.add(box(78, 52, 62, shell, new THREE.Vector3(10, -58, -82)));
-    group.add(box(84, 18, 62, darkMetal, new THREE.Vector3(10, -89, -82)));
-    group.add(cylinder(12, 12, 10, rubber, new THREE.Vector3(-34, -94, -108), new THREE.Euler(Math.PI / 2, 0, 0), 32));
-    group.add(cylinder(12, 12, 10, rubber, new THREE.Vector3(54, -94, -108), new THREE.Euler(Math.PI / 2, 0, 0), 32));
-    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(-34, -94, -56), new THREE.Euler(Math.PI / 2, 0, 0), 32));
-    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(54, -94, -56), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(box(118, 12, 58, rubber, new THREE.Vector3(10, -105, -82)));
+    group.add(box(78, 52, 62, shell, new THREE.Vector3(10, -72, -82)));
+    group.add(box(84, 18, 62, darkMetal, new THREE.Vector3(10, -103, -82)));
+    group.add(cylinder(12, 12, 10, rubber, new THREE.Vector3(-34, -108, -108), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(cylinder(12, 12, 10, rubber, new THREE.Vector3(54, -108, -108), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(-34, -108, -56), new THREE.Euler(Math.PI / 2, 0, 0), 32));
+    group.add(cylinder(10, 10, 8, rubber, new THREE.Vector3(54, -108, -56), new THREE.Euler(Math.PI / 2, 0, 0), 32));
 
-    group.add(cylinder(16, 18, 70, darkMetal, new THREE.Vector3(10, -23, -82)));
-    liftGroup.add(cylinder(12, 14, 96, metal, new THREE.Vector3(10, 0, -82)));
-    liftGroup.add(box(62, 24, 52, shell, new THREE.Vector3(10, 52, -82)));
-    liftGroup.add(box(28, 10, 44, darkMetal, new THREE.Vector3(10, 38, -82)));
+    group.add(cylinder(16, 18, 70, darkMetal, new THREE.Vector3(10, -37, -82)));
+    liftGroup.add(cylinder(12, 14, 96, metal, new THREE.Vector3(10, -14, -82)));
+    liftGroup.add(box(62, 24, 52, shell, new THREE.Vector3(10, 38, -82)));
+    liftGroup.add(box(28, 10, 44, darkMetal, new THREE.Vector3(10, 24, -82)));
 
     // Straight support from the mobile column toward the gantry pivot.
-    liftGroup.add(capsule(12, 34, shell, new THREE.Vector3(10, 51, -82), new THREE.Euler(0, 0, Math.PI / 2)));
-    liftGroup.add(box(48, 26, 40, shell, new THREE.Vector3(10, 51, -82)));
-    liftGroup.add(box(54, 18, 28, shell, new THREE.Vector3(10, 43, -86)));
-    liftGroup.add(box(34, 22, 34, shell, new THREE.Vector3(10, 34, -86)));
-    liftGroup.add(cylinder(21, 21, 18, darkMetal, new THREE.Vector3(10, 40, -82), new THREE.Euler(Math.PI / 2, 0, 0), 48));
+    liftGroup.add(capsule(12, 34, shell, new THREE.Vector3(10, 37, -82), new THREE.Euler(0, 0, Math.PI / 2)));
+    liftGroup.add(box(48, 26, 40, shell, new THREE.Vector3(10, 37, -82)));
+    liftGroup.add(box(54, 18, 28, shell, new THREE.Vector3(10, 29, -86)));
+    liftGroup.add(box(34, 22, 34, shell, new THREE.Vector3(10, 20, -86)));
+    liftGroup.add(cylinder(21, 21, 18, darkMetal, new THREE.Vector3(10, 26, -82), new THREE.Euler(Math.PI / 2, 0, 0), 48));
     liftGroup.add(cylinder(25, 25, 18, darkMetal, new THREE.Vector3(10, 22, -86), new THREE.Euler(Math.PI / 2, 0, 0), 48));
     liftGroup.add(box(46, 34, 24, darkMetal, new THREE.Vector3(10, 22, -86)));
 
     // Small monitor and handles on the mobile module.
-    liftGroup.add(cylinder(5, 6, 28, metal, new THREE.Vector3(28, 93, -82)));
-    liftGroup.add(box(46, 24, 6, whiteShell, new THREE.Vector3(28, 110, -82), new THREE.Euler(THREE.MathUtils.degToRad(-8), 0, 0)));
-    liftGroup.add(box(31, 16, 2, new THREE.MeshBasicMaterial({ color: 0x16222f }), new THREE.Vector3(28, 110, -78)));
-    liftGroup.add(capsule(3.2, 30, metal, new THREE.Vector3(38, 33, -52), new THREE.Euler(Math.PI / 2, 0, 0)));
+    liftGroup.add(cylinder(5, 6, 28, metal, new THREE.Vector3(28, 79, -82)));
+    liftGroup.add(box(46, 24, 6, whiteShell, new THREE.Vector3(28, 96, -82), new THREE.Euler(THREE.MathUtils.degToRad(-8), 0, 0)));
+    liftGroup.add(box(31, 16, 2, new THREE.MeshBasicMaterial({ color: 0x16222f }), new THREE.Vector3(28, 96, -78)));
+    liftGroup.add(capsule(3.2, 30, metal, new THREE.Vector3(38, 19, -52), new THREE.Euler(Math.PI / 2, 0, 0)));
 
     gantryGroup.position.copy(previewIsoCenter);
     liftGroup.add(gantryGroup);
