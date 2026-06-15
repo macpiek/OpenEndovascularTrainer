@@ -4,119 +4,37 @@ import { generateVessel } from '../src/vesselGeometry.js';
 import { ElasticRod } from '../src/physics/elasticRod.js';
 import { GuidewireSolver } from '../src/physics/guidewireSolver.js';
 
-function buildLumenSampler(vessel) {
-    const path = [
-        { point: new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z), radius: 2.8 },
-        { point: new THREE.Vector3(-71, -374, 12), radius: 3.4 },
-        { point: new THREE.Vector3(-68, -365, 10), radius: 4.6 },
-        { point: new THREE.Vector3(-60, -355, 2), radius: 7.2 },
-        { point: new THREE.Vector3(-28, -338, -8), radius: 10.8 },
-        { point: new THREE.Vector3(-10, -315, 2), radius: 12.5 },
-        { point: new THREE.Vector3(-14, -290, 8), radius: 13.8 },
-        { point: new THREE.Vector3(0, -230, 0), radius: 17.5 },
-        { point: new THREE.Vector3(0, -160, 0), radius: 18.0 },
-        { point: new THREE.Vector3(-9, -125, -6), radius: 17.0 },
-        { point: new THREE.Vector3(28, -100, -33), radius: 16.0 },
-        { point: new THREE.Vector3(38, -60, -49), radius: 13.0 },
-        { point: new THREE.Vector3(36, -25, -56), radius: 13.0 },
-        { point: new THREE.Vector3(19, 0, -22), radius: 16.0 },
-        { point: new THREE.Vector3(-8, 35, -18), radius: 18.0 },
-        { point: new THREE.Vector3(3, 95, -18), radius: 18.0 },
-        { point: new THREE.Vector3(10, 145, -18), radius: 18.0 },
-        { point: new THREE.Vector3(20, 230, -18), radius: 18.0 },
-        { point: new THREE.Vector3(32, 330, -18), radius: 18.0 }
-    ];
-    const radiusSegments = [];
-    let radiusLength = 0;
-    for (let i = 0; i < path.length - 1; i++) {
-        const start = path[i].point;
-        const end = path[i + 1].point;
-        const length = start.distanceTo(end);
-        radiusSegments.push({
-            startRadius: path[i].radius,
-            endRadius: path[i + 1].radius,
-            length,
-            offset: radiusLength
-        });
-        radiusLength += length;
-    }
+function buildProceduralSampler(vessel) {
+    const origin = new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z);
+    const forward = new THREE.Vector3(
+        vessel.sheath.end.x - vessel.sheath.start.x,
+        vessel.sheath.end.y - vessel.sheath.start.y,
+        vessel.sheath.end.z - vessel.sheath.start.z
+    ).normalize();
+    const side = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0));
+    if (side.lengthSq() < 1e-8) side.set(1, 0, 0);
+    side.normalize();
+    const up = new THREE.Vector3().crossVectors(side, forward).normalize();
 
-    const curve = new THREE.CatmullRomCurve3(
-        path.map(entry => entry.point),
-        false,
-        'centripetal',
-        0.35
-    );
-    curve.arcLengthDivisions = Math.max(200, path.length * 48);
-    const curveLength = curve.getLength();
-    const sampleSpacing = 2.5;
-    const sampleCount = Math.max(2, Math.ceil(curveLength / sampleSpacing) + 1);
-    const samples = [];
-
-    const sampleRadius = distance => {
+    const centerAt = distance => {
         const d = Math.max(0, distance);
-        for (const seg of radiusSegments) {
-            if (d <= seg.offset + seg.length) {
-                const t = Math.max(0, Math.min(1, (d - seg.offset) / Math.max(1e-6, seg.length)));
-                return seg.startRadius * (1 - t) + seg.endRadius * t;
-            }
-        }
-        return radiusSegments[radiusSegments.length - 1].endRadius;
+        const fade = Math.min(1, d / 120);
+        return origin.clone()
+            .addScaledVector(forward, d)
+            .addScaledVector(side, Math.sin(d * 0.034) * 12 * fade)
+            .addScaledVector(up, (Math.sin(d * 0.021 + 0.5) - Math.sin(0.5)) * 10 * fade);
     };
-
-    for (let i = 0; i < sampleCount; i++) {
-        const u = i / (sampleCount - 1);
-        const point = curve.getPointAt(u);
-        const tangent = curve.getTangentAt(u).normalize();
-        samples.push({
-            distance: u * curveLength,
-            x: point.x,
-            y: point.y,
-            z: point.z,
-            tx: tangent.x,
-            ty: tangent.y,
-            tz: tangent.z,
-            radius: sampleRadius(u * radiusLength)
-        });
-    }
 
     return distance => {
         const d = Math.max(0, distance);
-        if (d <= curveLength) {
-            const samplePosition = d / Math.max(1e-6, curveLength) * (samples.length - 1);
-            const lowerIndex = Math.max(0, Math.min(samples.length - 2, Math.floor(samplePosition)));
-            const upperIndex = lowerIndex + 1;
-            const t = samplePosition - lowerIndex;
-            const a = samples[lowerIndex];
-            const b = samples[upperIndex];
-            let tx = a.tx * (1 - t) + b.tx * t;
-            let ty = a.ty * (1 - t) + b.ty * t;
-            let tz = a.tz * (1 - t) + b.tz * t;
-            const tangentLength = Math.hypot(tx, ty, tz) || 1;
-            tx /= tangentLength;
-            ty /= tangentLength;
-            tz /= tangentLength;
-            return {
-                point: {
-                    x: a.x * (1 - t) + b.x * t,
-                    y: a.y * (1 - t) + b.y * t,
-                    z: a.z * (1 - t) + b.z * t
-                },
-                tangent: { x: tx, y: ty, z: tz },
-                radius: a.radius * (1 - t) + b.radius * t
-            };
-        }
-
-        const last = samples[samples.length - 1];
-        const overrun = d - curveLength;
+        const point = centerAt(d);
+        const ahead = centerAt(d + 0.5);
+        const behind = centerAt(Math.max(0, d - 0.5));
+        const tangent = ahead.sub(behind).normalize();
         return {
-            point: {
-                x: last.x + last.tx * overrun,
-                y: last.y + last.ty * overrun,
-                z: last.z + last.tz * overrun
-            },
-            tangent: { x: last.tx, y: last.ty, z: last.tz },
-            radius: radiusSegments[radiusSegments.length - 1].endRadius
+            point: { x: point.x, y: point.y, z: point.z },
+            tangent: { x: tangent.x, y: tangent.y, z: tangent.z },
+            radius: 9.5 + Math.sin(d * 0.017) * 1.2
         };
     };
 }
@@ -139,7 +57,7 @@ const solver = new GuidewireSolver({
     segmentLength,
     guidewireLength,
     sheath: vessel.sheath,
-    lumenSampler: buildLumenSampler(vessel),
+    lumenSampler: buildProceduralSampler(vessel),
     advanceRate: 44,
     minInsert: 0,
     maxInsert: guidewireLength,
@@ -212,7 +130,7 @@ const earlySolver = new GuidewireSolver({
     segmentLength,
     guidewireLength,
     sheath: vessel.sheath,
-    lumenSampler: buildLumenSampler(vessel),
+    lumenSampler: buildProceduralSampler(vessel),
     advanceRate: 44,
     minInsert: 0,
     maxInsert: guidewireLength,

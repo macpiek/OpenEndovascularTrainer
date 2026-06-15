@@ -1,18 +1,20 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
-import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260615rigidguidewire9';
+import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260615rigidguidewire17';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
 import { initUI } from './ui/ui.js?v=20260614debug1';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
-import { createAortaModel } from './aortaModel.js?v=20260615rigidguidewire4';
+import { createAortaModel } from './aortaModel.js?v=20260615rigidguidewire9';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614debug1';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
+const STL_INTERIOR_SAMPLE_COLOR = 0x69ff8e;
+const STL_BOUNDARY_EDGE_COLOR = 0xff9b3d;
 const WALL_CONTACT_COLOR = 0xffd24a;
 const WALL_BREACH_COLOR = 0xff3355;
 const CONTACT_MARKER_LIMIT = 420;
@@ -185,6 +187,7 @@ createAortaModel(vessel, {
         };
         lumenDebugGroup.clear();
         lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry));
+        lumenDebugGroup.add(createStlPreprocessDebug(collision.preprocessing));
         guidewireSolver?.requestSettle?.(90);
         pigtailCatheter?.setCollisionGeometry(collision);
     }
@@ -233,11 +236,6 @@ const GUIDEWIRE_TIP_SOFT_LENGTH = 24;
 const SHEATH_EXIT_SUPPORT_LENGTH = segmentLength * 2.4;
 const SHEATH_EXIT_SUPPORT_BLEND = 0.12;
 const SHEATH_EXIT_VELOCITY_DAMPING = 0.28;
-const GUIDEWIRE_LUMEN_GLIDE_STRENGTH = 0.86;
-const GUIDEWIRE_LUMEN_GLIDE_DAMPING = 0.86;
-const GUIDEWIRE_LUMEN_GLIDE_START = 0;
-const GUIDEWIRE_LUMEN_GLIDE_FADE = 20;
-const GUIDEWIRE_LUMEN_CENTERING = 0.035;
 
 // Direction along the sheath from its outer start toward the vessel
 const sheathDirVec = {
@@ -301,122 +299,62 @@ function sheathAxisPoint(inserted) {
     };
 }
 
-const guidewireLumenPath = [
-    { point: new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z), radius: 2.8 },
-    { point: new THREE.Vector3(-71, -374, 12), radius: 3.4 },
-    { point: new THREE.Vector3(-68, -365, 10), radius: 4.6 },
-    { point: new THREE.Vector3(-60, -355, 2), radius: 7.2 },
-    { point: new THREE.Vector3(-28, -338, -8), radius: 10.8 },
-    { point: new THREE.Vector3(-10, -315, 2), radius: 12.5 },
-    { point: new THREE.Vector3(-14, -290, 8), radius: 13.8 },
-    { point: new THREE.Vector3(0, -230, 0), radius: 17.5 },
-    { point: new THREE.Vector3(0, -160, 0), radius: 18.0 },
-    { point: new THREE.Vector3(-9, -125, -6), radius: 17.0 },
-    { point: new THREE.Vector3(28, -100, -33), radius: 16.0 },
-    { point: new THREE.Vector3(38, -60, -49), radius: 13.0 },
-    { point: new THREE.Vector3(36, -25, -56), radius: 13.0 },
-    { point: new THREE.Vector3(19, 0, -22), radius: 16.0 },
-    { point: new THREE.Vector3(-8, 35, -18), radius: 18.0 },
-    { point: new THREE.Vector3(3, 95, -18), radius: 18.0 },
-    { point: new THREE.Vector3(10, 145, -18), radius: 18.0 },
-    { point: new THREE.Vector3(20, 230, -18), radius: 18.0 },
-    { point: new THREE.Vector3(32, 330, -18), radius: 18.0 }
-];
-const guidewireLumenSegments = [];
-let guidewireLumenLength = 0;
-for (let i = 0; i < guidewireLumenPath.length - 1; i++) {
-    const start = guidewireLumenPath[i].point;
-    const end = guidewireLumenPath[i + 1].point;
-    const length = start.distanceTo(end);
-    guidewireLumenSegments.push({
-        start,
-        end,
-        startRadius: guidewireLumenPath[i].radius,
-        endRadius: guidewireLumenPath[i + 1].radius,
-        length,
-        offset: guidewireLumenLength
-    });
-    guidewireLumenLength += length;
-}
-const guidewireLumenCurve = new THREE.CatmullRomCurve3(
-    guidewireLumenPath.map(entry => entry.point),
-    false,
-    'centripetal',
-    0.35
-);
-guidewireLumenCurve.arcLengthDivisions = Math.max(200, guidewireLumenPath.length * 48);
-const guidewireLumenCurveLength = guidewireLumenCurve.getLength();
-const GUIDEWIRE_LUMEN_SAMPLE_SPACING = 2.5;
-const guidewireLumenSamples = [];
-const guidewireLumenSampleCount = Math.max(2, Math.ceil(guidewireLumenCurveLength / GUIDEWIRE_LUMEN_SAMPLE_SPACING) + 1);
-for (let i = 0; i < guidewireLumenSampleCount; i++) {
-    const u = i / (guidewireLumenSampleCount - 1);
-    const point = guidewireLumenCurve.getPointAt(u);
-    const tangent = guidewireLumenCurve.getTangentAt(u).normalize();
-    guidewireLumenSamples.push({
-        distance: u * guidewireLumenCurveLength,
-        x: point.x,
-        y: point.y,
-        z: point.z,
-        tx: tangent.x,
-        ty: tangent.y,
-        tz: tangent.z,
-        radius: sampleGuidewireLumenRadius(u * guidewireLumenLength)
-    });
-}
+function createStlPreprocessDebug(preprocessing) {
+    const group = new THREE.Group();
+    if (!preprocessing) return group;
 
-function sampleGuidewireLumenRadius(distance) {
-    const d = Math.max(0, distance);
-    for (const seg of guidewireLumenSegments) {
-        if (d <= seg.offset + seg.length) {
-            const t = Math.max(0, Math.min(1, (d - seg.offset) / Math.max(1e-6, seg.length)));
-            return seg.startRadius * (1 - t) + seg.endRadius * t;
+    if (preprocessing.boundaryDebugSegments?.length) {
+        const boundaryGeometry = new THREE.BufferGeometry();
+        boundaryGeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(preprocessing.boundaryDebugSegments, 3)
+        );
+        const boundaryLines = new THREE.LineSegments(
+            boundaryGeometry,
+            new THREE.LineBasicMaterial({
+                color: STL_BOUNDARY_EDGE_COLOR,
+                transparent: true,
+                opacity: 0.85,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            })
+        );
+        boundaryLines.frustumCulled = false;
+        boundaryLines.renderOrder = 9;
+        group.add(boundaryLines);
+    }
+
+    const interiorSamples = preprocessing.interiorSamples || [];
+    if (interiorSamples.length) {
+        const samples = new THREE.InstancedMesh(
+            new THREE.SphereGeometry(1.15, 10, 6),
+            new THREE.MeshBasicMaterial({
+                color: STL_INTERIOR_SAMPLE_COLOR,
+                transparent: true,
+                opacity: 0.82,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            }),
+            interiorSamples.length
+        );
+        const matrix = new THREE.Matrix4();
+        for (let i = 0; i < interiorSamples.length; i++) {
+            matrix.makeTranslation(
+                interiorSamples[i].x,
+                interiorSamples[i].y,
+                interiorSamples[i].z
+            );
+            samples.setMatrixAt(i, matrix);
         }
+        samples.frustumCulled = false;
+        samples.instanceMatrix.needsUpdate = true;
+        samples.renderOrder = 8;
+        group.add(samples);
     }
 
-    const last = guidewireLumenSegments[guidewireLumenSegments.length - 1];
-    return last.endRadius;
-}
-
-function sampleGuidewireLumen(distance) {
-    const d = Math.max(0, distance);
-    if (d <= guidewireLumenCurveLength) {
-        const samplePosition = d / Math.max(1e-6, guidewireLumenCurveLength) * (guidewireLumenSamples.length - 1);
-        const lowerIndex = Math.max(0, Math.min(guidewireLumenSamples.length - 2, Math.floor(samplePosition)));
-        const upperIndex = lowerIndex + 1;
-        const t = samplePosition - lowerIndex;
-        const a = guidewireLumenSamples[lowerIndex];
-        const b = guidewireLumenSamples[upperIndex];
-        let tx = a.tx * (1 - t) + b.tx * t;
-        let ty = a.ty * (1 - t) + b.ty * t;
-        let tz = a.tz * (1 - t) + b.tz * t;
-        const tangentLength = Math.hypot(tx, ty, tz) || 1;
-        tx /= tangentLength;
-        ty /= tangentLength;
-        tz /= tangentLength;
-        return {
-            point: {
-                x: a.x * (1 - t) + b.x * t,
-                y: a.y * (1 - t) + b.y * t,
-                z: a.z * (1 - t) + b.z * t
-            },
-            tangent: { x: tx, y: ty, z: tz },
-            radius: a.radius * (1 - t) + b.radius * t
-        };
-    }
-
-    const last = guidewireLumenSegments[guidewireLumenSegments.length - 1];
-    const endSample = guidewireLumenSamples[guidewireLumenSamples.length - 1];
-    const overrun = d - guidewireLumenCurveLength;
-    return {
-        point: {
-            x: endSample.x + endSample.tx * overrun,
-            y: endSample.y + endSample.ty * overrun,
-            z: endSample.z + endSample.tz * overrun
-        },
-        tangent: { x: endSample.tx, y: endSample.ty, z: endSample.tz },
-        radius: last.endRadius
-    };
+    return group;
 }
 
 guidewireSolver = new GuidewireSolver({
@@ -424,19 +362,18 @@ guidewireSolver = new GuidewireSolver({
     segmentLength,
     guidewireLength,
     sheath: vessel.sheath,
-    lumenSampler: sampleGuidewireLumen,
     advanceRate: GUIDEWIRE_ADVANCE_RATE,
     minInsert,
     maxInsert,
-    lumenClearance: 0.78,
     straightening: 0.72,
-    routeBlend: 0.018,
+    routeBlend: 0,
     relaxationIterations: 10,
     lengthIterations: 10,
-    segmentSamples: [0.12, 0.25, 0.4, 0.55, 0.7, 0.85, 0.94],
+    meshClearance: 0.45,
+    segmentSamples: [0.08, 0.18, 0.3, 0.42, 0.55, 0.68, 0.8, 0.9, 0.96],
     finalCollisionPasses: 4,
     finalLengthPasses: 2,
-    finalProjectionPasses: 1
+    finalProjectionPasses: 3
 });
 
 function constrainWireToSheath(feedSpeed = 0) {
@@ -795,68 +732,6 @@ function supportWireAtSheathExit(strength = 1) {
     }
 }
 
-function applyGuidewireLumenGlide(strength = GUIDEWIRE_LUMEN_GLIDE_STRENGTH) {
-    if (strength <= 0) return;
-    for (let i = 0; i < wire.nodes.length; i++) {
-        const n = wire.nodes[i];
-        if (n.pinned) continue;
-
-        const inserted = guidewireInsertedCoordinate(i);
-        const exitDistance = inserted - sheathPath;
-        if (exitDistance <= GUIDEWIRE_LUMEN_GLIDE_START) continue;
-
-        const { point, tangent, radius } = sampleGuidewireLumen(exitDistance);
-        const fade = smoothRange(
-            GUIDEWIRE_LUMEN_GLIDE_START,
-            GUIDEWIRE_LUMEN_GLIDE_START + GUIDEWIRE_LUMEN_GLIDE_FADE,
-            exitDistance
-        );
-        const distalTaper = 1 - Math.max(0, Math.min(1, exitDistance / guidewireLength));
-        const amount = strength * fade * (0.38 + distalTaper * 0.62);
-        if (amount <= 0) continue;
-
-        const dx = n.x - point.x;
-        const dy = n.y - point.y;
-        const dz = n.z - point.z;
-        const axialOffset = dx * tangent.x + dy * tangent.y + dz * tangent.z;
-        const lateralX = dx - tangent.x * axialOffset;
-        const lateralY = dy - tangent.y * axialOffset;
-        const lateralZ = dz - tangent.z * axialOffset;
-        const lateralLength = Math.hypot(lateralX, lateralY, lateralZ);
-        const corridorRadius = Math.max(1.2, radius - 0.8);
-
-        if (lateralLength > corridorRadius) {
-            const scale = corridorRadius / Math.max(1e-6, lateralLength);
-            const targetX = point.x + tangent.x * axialOffset + lateralX * scale;
-            const targetY = point.y + tangent.y * axialOffset + lateralY * scale;
-            const targetZ = point.z + tangent.z * axialOffset + lateralZ * scale;
-            n.x += (targetX - n.x) * amount;
-            n.y += (targetY - n.y) * amount;
-            n.z += (targetZ - n.z) * amount;
-        }
-
-        const axialLimit = segmentLength * 0.6;
-        if (Math.abs(axialOffset) > axialLimit) {
-            const targetAxial = Math.sign(axialOffset) * axialLimit;
-            const axialCorrection = (targetAxial - axialOffset) * amount * 0.62;
-            n.x += tangent.x * axialCorrection;
-            n.y += tangent.y * axialCorrection;
-            n.z += tangent.z * axialCorrection;
-        }
-
-        const centering = GUIDEWIRE_LUMEN_CENTERING * amount;
-        n.x += (point.x - n.x) * centering;
-        n.y += (point.y - n.y) * centering;
-        n.z += (point.z - n.z) * centering;
-
-        const axialVelocity = n.vx * tangent.x + n.vy * tangent.y + n.vz * tangent.z;
-        const damping = GUIDEWIRE_LUMEN_GLIDE_DAMPING * amount;
-        n.vx -= (n.vx - tangent.x * axialVelocity) * damping;
-        n.vy -= (n.vy - tangent.y * axialVelocity) * damping;
-        n.vz -= (n.vz - tangent.z * axialVelocity) * damping;
-    }
-}
-
 // The proximal guidewire and the part inside the introducer sheath are
 // constrained by the sheath lumen. Once a node exits the sheath tip it becomes
 // free and is governed by rod stiffness and vessel-wall collision.
@@ -942,6 +817,7 @@ wallContactMarkers = new THREE.InstancedMesh(
 wallContactMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 wallContactMarkers.count = 0;
 wallContactMarkers.visible = true;
+wallContactMarkers.frustumCulled = false;
 wallContactMarkers.renderOrder = 6;
 scene.add(wallContactMarkers);
 
@@ -960,6 +836,7 @@ wallBreachMarkers = new THREE.InstancedMesh(
 wallBreachMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 wallBreachMarkers.count = 0;
 wallBreachMarkers.visible = true;
+wallBreachMarkers.frustumCulled = false;
 wallBreachMarkers.renderOrder = 7;
 scene.add(wallBreachMarkers);
 

@@ -13,6 +13,7 @@ const DEFAULT_BEND_LIMIT_STRENGTH = 0.32;
 const DEFAULT_BEND_LIMIT_ITERATIONS = 0;
 const DEFAULT_SEGMENT_PROJECTION_BLEND = 1;
 const DEFAULT_MAX_SEGMENT_PROJECTION_STEP = 0.55;
+const DEFAULT_MESH_CLEARANCE = 0.45;
 const DEFAULT_FOLD_ANGLE = 142;
 const DEFAULT_FOLD_UNTANGLE_STRENGTH = 0;
 const DEFAULT_FOLD_UNTANGLE_WINDOW = 5;
@@ -70,7 +71,7 @@ export class GuidewireSolver {
         segmentLength,
         guidewireLength,
         sheath,
-        lumenSampler,
+        lumenSampler = null,
         advanceRate = 44,
         minInsert = 0,
         maxInsert = guidewireLength,
@@ -86,6 +87,7 @@ export class GuidewireSolver {
         bendLimitIterations = DEFAULT_BEND_LIMIT_ITERATIONS,
         segmentProjectionBlend = DEFAULT_SEGMENT_PROJECTION_BLEND,
         maxSegmentProjectionStep = DEFAULT_MAX_SEGMENT_PROJECTION_STEP,
+        meshClearance = DEFAULT_MESH_CLEARANCE,
         foldAngle = DEFAULT_FOLD_ANGLE,
         foldUntangleStrength = DEFAULT_FOLD_UNTANGLE_STRENGTH,
         foldUntangleWindow = DEFAULT_FOLD_UNTANGLE_WINDOW,
@@ -97,7 +99,7 @@ export class GuidewireSolver {
         this.segmentLength = segmentLength;
         this.guidewireLength = guidewireLength;
         this.sheath = sheath;
-        this.lumenSampler = lumenSampler;
+        this.lumenSampler = typeof lumenSampler === 'function' ? lumenSampler : null;
         this.advanceRate = advanceRate;
         this.minInsert = minInsert;
         this.maxInsert = maxInsert;
@@ -113,6 +115,7 @@ export class GuidewireSolver {
         this.bendLimitIterations = bendLimitIterations;
         this.segmentProjectionBlend = segmentProjectionBlend;
         this.maxSegmentProjectionStep = maxSegmentProjectionStep;
+        this.meshClearance = meshClearance;
         this.foldAngle = foldAngle;
         this.foldUntangleStrength = foldUntangleStrength;
         this.foldUntangleWindow = foldUntangleWindow;
@@ -192,6 +195,13 @@ export class GuidewireSolver {
                 point: this.sheathAxisPoint(inserted),
                 tangent: { ...this.sheathDir },
                 radius: this.sheath.radius || 2
+            };
+        }
+        if (!this.lumenSampler) {
+            return {
+                point: this.sheathAxisPoint(inserted),
+                tangent: { ...this.sheathDir },
+                radius: Infinity
             };
         }
         return this.lumenSampler(Math.max(0, inserted - this.sheathLength));
@@ -286,6 +296,7 @@ export class GuidewireSolver {
         for (let pass = 0; pass < this.finalProjectionPasses; pass++) {
             this.#projectNodesInside(collisionTarget, true);
             this.#projectSegmentsInside(collisionTarget, true);
+            this.#projectNodesInside(collisionTarget, true);
         }
         this.#zeroVelocities(before, dt);
         if (Math.abs(this.lastAdvanceDelta) <= 1e-6 && this.settleFramesRemaining > 0) {
@@ -294,8 +305,8 @@ export class GuidewireSolver {
     }
 
     collectContactSamples(collisionTarget = null, contactBand = DEFAULT_CONTACT_BAND) {
-        const contacts = [...this.contactPoints];
-        const breaches = [...this.breachPoints];
+        const contacts = [];
+        const breaches = [];
         const samples = [0, 0.15, 0.35, 0.55, 0.75, 0.9, 1];
         const addDiagnosticPoint = (point, inserted) => {
             if (this.#isInSheath(inserted)) return;
@@ -321,9 +332,11 @@ export class GuidewireSolver {
     }
 
     diagnosePoint(point, inserted, collisionTarget = null, contactBand = DEFAULT_CONTACT_BAND) {
-        const lumen = this.#lumenConstraint(point, inserted);
-        let contact = lumen.radialMargin <= contactBand || Math.abs(lumen.axialOffset) >= lumen.axialWindow - contactBand;
-        let breach = lumen.breach;
+        const lumen = this.lumenSampler ? this.#lumenConstraint(point, inserted) : null;
+        let contact = lumen
+            ? lumen.radialMargin <= contactBand || Math.abs(lumen.axialOffset) >= lumen.axialWindow - contactBand
+            : false;
+        let breach = lumen?.breach || false;
         const collider = collisionTarget?.meshCollider || collisionTarget?.lumenMeshCollider || null;
         if (collider?.pointContact && !this.#isInSheath(inserted)) {
             const meshContact = collider.pointContact(point, 0);
@@ -348,9 +361,11 @@ export class GuidewireSolver {
             if (this.#isInSheath(inserted)) continue;
 
             const source = this.#samplePreviousPosition(previous, i + sourceShift);
-            const route = this.routeSample(inserted).point;
+            const route = this.lumenSampler ? this.routeSample(inserted).point : source;
             const justExited = inserted < this.sheathLength + this.segmentLength * 2;
-            const blend = justExited ? 0.64 : 0.12;
+            const blend = this.lumenSampler
+                ? (justExited ? 0.64 : 0.12)
+                : 0;
             const target = {
                 x: source.x * (1 - blend) + route.x * blend,
                 y: source.y * (1 - blend) + route.y * blend,
@@ -398,7 +413,7 @@ export class GuidewireSolver {
     }
 
     #routeNudge(multiplier = 1) {
-        if (this.routeBlend <= 0) return;
+        if (this.routeBlend <= 0 || !this.lumenSampler) return;
         for (let i = 0; i < this.rod.nodes.length; i++) {
             const node = this.rod.nodes[i];
             if (node.pinned) continue;
@@ -660,26 +675,30 @@ export class GuidewireSolver {
     #projectPointInside(point, inserted, collisionTarget, recordContacts) {
         const collider = collisionTarget?.meshCollider || collisionTarget?.lumenMeshCollider || null;
         if (collider?.pointContact && !this.#isInSheath(inserted)) {
-            const lumenState = this.#lumenConstraint(point, inserted);
-            const lumenProjected = lumenState.projected;
-            if (recordContacts) {
-                if (lumenState.breach) this.#pushLimited(this.breachPoints, point);
-                else if (lumenState.radialMargin <= DEFAULT_CONTACT_BAND) this.#pushLimited(this.contactPoints, point);
+            let projected = { x: point.x, y: point.y, z: point.z };
+            if (this.lumenSampler) {
+                const lumenState = this.#lumenConstraint(point, inserted);
+                projected = lumenState.projected;
+                if (recordContacts) {
+                    if (lumenState.breach) this.#pushLimited(this.breachPoints, point);
+                    else if (lumenState.radialMargin <= DEFAULT_CONTACT_BAND) this.#pushLimited(this.contactPoints, point);
+                }
             }
-            const contact = collider.pointContact(lumenProjected, 0);
+            const contact = collider.pointContact(projected, this.meshClearance);
             if (contact?.violation && contact.target) {
-                if (recordContacts) this.#pushLimited(this.breachPoints, lumenProjected);
+                if (recordContacts) this.#pushLimited(this.breachPoints, projected);
                 return { x: contact.target.x, y: contact.target.y, z: contact.target.z };
             } else if (recordContacts && Number.isFinite(contact?.distance) && contact.distance <= DEFAULT_CONTACT_BAND) {
-                this.#pushLimited(this.contactPoints, lumenProjected);
+                this.#pushLimited(this.contactPoints, projected);
             }
-            return lumenProjected;
+            return projected;
         }
 
         return this.#projectToLumen(point, inserted, recordContacts);
     }
 
     #projectToLumen(point, inserted, recordContacts) {
+        if (!this.lumenSampler) return { x: point.x, y: point.y, z: point.z };
         const state = this.#lumenConstraint(point, inserted);
         if (recordContacts) {
             if (state.breach) this.#pushLimited(this.breachPoints, point);

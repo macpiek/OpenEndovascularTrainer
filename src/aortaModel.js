@@ -1,12 +1,11 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { MeshBVH } from 'three-mesh-bvh';
+import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260615stlpreprocess3';
 
 const AORTA_MODEL_URL = 'res/Aorta_plain.stl';
 const AORTA_MODEL_SCALE = 1.3;
 const AORTA_MODEL_Y_OFFSET = 40;
-const LUMEN_HINT_SAMPLE_SPACING = 3;
-const LUMEN_HINT_Y_WINDOW = 38;
+const INTERIOR_REFERENCE_Y_WINDOW = 38;
 
 function targetFromVessel(vessel) {
     const ys = [];
@@ -54,28 +53,37 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
             geometry.rotateX(-Math.PI / 2);
             geometry.scale(scale, scale, scale);
             geometry.translate(target.center.x, target.center.y, target.center.z);
-            geometry.computeVertexNormals();
-            geometry.computeBoundingBox();
-            geometry.boundsTree = new MeshBVH(geometry);
+            const preprocessing = preprocessAortaGeometry(geometry, {
+                transform: {
+                    rotationX: -Math.PI / 2,
+                    scale,
+                    sourceCenter,
+                    sourceSize,
+                    targetCenter: target.center,
+                    targetLength: target.length
+                }
+            });
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.renderOrder = 0;
             group.add(mesh);
             group.visible = true;
-            const lumenHintSamples = buildAortaLumenHintSamples(vessel);
             const collision = {
                 geometry,
-                meshCollider: createMeshLumenCollider(geometry, { lumenHintSamples }),
+                meshCollider: createMeshLumenCollider(geometry, {
+                    interiorSamples: preprocessing.interiorSamples
+                }),
                 clearance: 0.6,
                 guidewireClearance: 0.35,
                 guidewireSegmentClearance: 0.12,
                 guidewireCollisionPasses: 3,
                 guidewireSegmentSamples: [0.2, 0.4, 0.6, 0.8],
-                openOutletY: geometry.boundingBox.max.y - 1
+                openOutletY: geometry.boundingBox.max.y - 1,
+                preprocessing
             };
 
             if (typeof onLoaded === 'function') {
-                onLoaded({ group, mesh, geometry, collision, scale });
+                onLoaded({ group, mesh, geometry, collision, preprocessing, scale });
             }
         },
         undefined,
@@ -88,45 +96,7 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
     return { group, material };
 }
 
-export function buildAortaLumenHintSamples(vessel, spacing = LUMEN_HINT_SAMPLE_SPACING) {
-    const path = [
-        { point: new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z) },
-        { point: new THREE.Vector3(-71, -374, 12) },
-        { point: new THREE.Vector3(-68, -365, 10) },
-        { point: new THREE.Vector3(-60, -355, 2) },
-        { point: new THREE.Vector3(-28, -338, -8) },
-        { point: new THREE.Vector3(-10, -315, 2) },
-        { point: new THREE.Vector3(-14, -290, 8) },
-        { point: new THREE.Vector3(0, -230, 0) },
-        { point: new THREE.Vector3(0, -160, 0) },
-        { point: new THREE.Vector3(-9, -125, -6) },
-        { point: new THREE.Vector3(28, -100, -33) },
-        { point: new THREE.Vector3(38, -60, -49) },
-        { point: new THREE.Vector3(36, -25, -56) },
-        { point: new THREE.Vector3(19, 0, -22) },
-        { point: new THREE.Vector3(-8, 35, -18) },
-        { point: new THREE.Vector3(3, 95, -18) },
-        { point: new THREE.Vector3(10, 145, -18) },
-        { point: new THREE.Vector3(20, 230, -18) },
-        { point: new THREE.Vector3(32, 330, -18) }
-    ];
-    const curve = new THREE.CatmullRomCurve3(
-        path.map(entry => entry.point),
-        false,
-        'centripetal',
-        0.35
-    );
-    curve.arcLengthDivisions = Math.max(200, path.length * 48);
-    const curveLength = curve.getLength();
-    const sampleCount = Math.max(2, Math.ceil(curveLength / Math.max(0.5, spacing)) + 1);
-    const samples = [];
-    for (let i = 0; i < sampleCount; i++) {
-        samples.push(curve.getPointAt(i / (sampleCount - 1)));
-    }
-    return samples;
-}
-
-export function createMeshLumenCollider(geometry, { lumenHintSamples = [] } = {}) {
+export function createMeshLumenCollider(geometry, { interiorSamples = [] } = {}) {
     const closest = new THREE.Vector3();
     const point = new THREE.Vector3();
     const ray = new THREE.Ray();
@@ -137,8 +107,8 @@ export function createMeshLumenCollider(geometry, { lumenHintSamples = [] } = {}
     const normalC = new THREE.Vector3();
     const faceNormal = new THREE.Vector3();
     const pointDelta = new THREE.Vector3();
-    const hintedInward = new THREE.Vector3();
-    const orderedHints = lumenHintSamples
+    const referenceInward = new THREE.Vector3();
+    const orderedInteriorSamples = interiorSamples
         .map(sample => sample.clone ? sample.clone() : new THREE.Vector3(sample.x, sample.y, sample.z))
         .sort((a, b) => a.y - b.y);
 
@@ -161,10 +131,10 @@ export function createMeshLumenCollider(geometry, { lumenHintSamples = [] } = {}
     function inwardDirectionForSurface(surfacePoint, faceIndex) {
         let best = null;
         let bestDistanceSq = Infinity;
-        const yMin = surfacePoint.y - LUMEN_HINT_Y_WINDOW;
-        const yMax = surfacePoint.y + LUMEN_HINT_Y_WINDOW;
+        const yMin = surfacePoint.y - INTERIOR_REFERENCE_Y_WINDOW;
+        const yMax = surfacePoint.y + INTERIOR_REFERENCE_Y_WINDOW;
         let candidates = 0;
-        for (const sample of orderedHints) {
+        for (const sample of orderedInteriorSamples) {
             if (sample.y < yMin) continue;
             if (sample.y > yMax) break;
             const distanceSq = surfacePoint.distanceToSquared(sample);
@@ -176,7 +146,7 @@ export function createMeshLumenCollider(geometry, { lumenHintSamples = [] } = {}
         }
 
         if (candidates === 0) {
-            for (const sample of orderedHints) {
+            for (const sample of orderedInteriorSamples) {
                 const distanceSq = surfacePoint.distanceToSquared(sample);
                 if (distanceSq < bestDistanceSq) {
                     best = sample;
@@ -186,9 +156,9 @@ export function createMeshLumenCollider(geometry, { lumenHintSamples = [] } = {}
         }
 
         if (best) {
-            hintedInward.subVectors(best, surfacePoint);
-            if (hintedInward.lengthSq() > 1e-8) {
-                return hintedInward.normalize().clone();
+            referenceInward.subVectors(best, surfacePoint);
+            if (referenceInward.lengthSq() > 1e-8) {
+                return referenceInward.normalize().clone();
             }
         }
 
