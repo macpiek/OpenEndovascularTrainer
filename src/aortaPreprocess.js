@@ -7,6 +7,8 @@ const DEFAULT_CONTOUR_POINT_TOLERANCE = 0.08;
 const DEFAULT_LUMEN_CONTOUR_MIN_AREA = 10;
 const INTERIOR_SAMPLE_GRID_STEPS = 17;
 const MAX_DEBUG_BOUNDARY_SEGMENTS = 6000;
+const MAX_DEBUG_LUMEN_CONTOUR_SEGMENTS = 12000;
+const FIELD_POLYGON_SIMPLIFY_TOLERANCE = 0.35;
 
 function vertexKey(position, index, precision = DEFAULT_EDGE_PRECISION) {
     const x = position.getX(index).toFixed(precision);
@@ -149,12 +151,119 @@ function pointSegmentDistanceSq(point, a, b) {
     return px * px + pz * pz;
 }
 
+function closestPointOnSegment(point, a, b) {
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const lengthSq = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.z - a.z) * dz) / lengthSq));
+    const x = a.x + dx * t;
+    const z = a.z + dz * t;
+    const px = point.x - x;
+    const pz = point.z - z;
+    return {
+        point: { x, z },
+        distanceSq: px * px + pz * pz
+    };
+}
+
 function distanceToPolygonSq(point, polygon) {
     let distanceSq = Infinity;
     for (let i = 0; i < polygon.length; i++) {
         distanceSq = Math.min(distanceSq, pointSegmentDistanceSq(point, polygon[i], polygon[(i + 1) % polygon.length]));
     }
     return distanceSq;
+}
+
+function closestPointOnPolygon(point, polygon) {
+    let best = null;
+    for (let i = 0; i < polygon.length; i++) {
+        const candidate = closestPointOnSegment(point, polygon[i], polygon[(i + 1) % polygon.length]);
+        if (!best || candidate.distanceSq < best.distanceSq) best = candidate;
+    }
+    return best || { point: { x: point.x, z: point.z }, distanceSq: 0 };
+}
+
+function polygonBounds(points) {
+    const bounds = {
+        minX: Infinity,
+        maxX: -Infinity,
+        minZ: Infinity,
+        maxZ: -Infinity
+    };
+    for (const point of points) {
+        bounds.minX = Math.min(bounds.minX, point.x);
+        bounds.maxX = Math.max(bounds.maxX, point.x);
+        bounds.minZ = Math.min(bounds.minZ, point.z);
+        bounds.maxZ = Math.max(bounds.maxZ, point.z);
+    }
+    return bounds;
+}
+
+function simplifyClosedPolygon(points, tolerance = FIELD_POLYGON_SIMPLIFY_TOLERANCE) {
+    if (points.length <= 18 || tolerance <= 0) return points;
+    const toleranceSq = tolerance * tolerance;
+    let simplified = points.slice();
+
+    for (let pass = 0; pass < 8 && simplified.length > 18; pass++) {
+        const next = [];
+        let changed = false;
+        for (let i = 0; i < simplified.length; i++) {
+            const previous = simplified[(i - 1 + simplified.length) % simplified.length];
+            const current = simplified[i];
+            const following = simplified[(i + 1) % simplified.length];
+            const distanceSq = pointSegmentDistanceSq(current, previous, following);
+            if (distanceSq < toleranceSq && simplified.length - next.length > 18) {
+                changed = true;
+                continue;
+            }
+            next.push(current);
+        }
+        simplified = next;
+        if (!changed) break;
+    }
+
+    return simplified.length >= 18 ? simplified : points;
+}
+
+function boundsDistanceSq(point, bounds) {
+    const dx = point.x < bounds.minX
+        ? bounds.minX - point.x
+        : point.x > bounds.maxX
+            ? point.x - bounds.maxX
+            : 0;
+    const dz = point.z < bounds.minZ
+        ? bounds.minZ - point.z
+        : point.z > bounds.maxZ
+            ? point.z - bounds.maxZ
+            : 0;
+    return dx * dx + dz * dz;
+}
+
+function signedDistanceToContour(point, contour) {
+    const closest = closestPointOnPolygon(point, contour.polygon);
+    const distance = Math.sqrt(closest.distanceSq);
+    const inside = pointInPolygon(point, contour.polygon);
+    let x = inside ? point.x - closest.point.x : closest.point.x - point.x;
+    let z = inside ? point.z - closest.point.z : closest.point.z - point.z;
+    const length = Math.hypot(x, z);
+    if (length > 1e-8) {
+        x /= length;
+        z /= length;
+    } else {
+        x = contour.sample.x - closest.point.x;
+        z = contour.sample.z - closest.point.z;
+        const fallbackLength = Math.hypot(x, z) || 1;
+        x /= fallbackLength;
+        z /= fallbackLength;
+    }
+
+    return {
+        signedDistance: inside ? distance : -distance,
+        inside,
+        inward: { x, z },
+        closestPoint: closest.point,
+        contour
+    };
 }
 
 function bestInteriorPoint(polygon) {
@@ -290,18 +399,21 @@ function buildContourLoops(segments, tolerance, minArea) {
     return loops;
 }
 
-function buildInteriorReferenceSamples(geometry, spacing, contourTolerance, lumenContourMinArea) {
+function buildLumenSlices(geometry, spacing, contourTolerance, lumenContourMinArea) {
     const position = geometry.attributes.position;
     const box = geometry.boundingBox;
+    const slices = [];
     const samples = [];
-    if (!box || !Number.isFinite(box.min.y) || !Number.isFinite(box.max.y)) return samples;
+    if (!box || !Number.isFinite(box.min.y) || !Number.isFinite(box.max.y)) {
+        return { slices, samples };
+    }
 
     const firstY = box.min.y + spacing * 0.37;
     const sliceYs = [];
     for (let y = firstY; y <= box.max.y - spacing * 0.15; y += spacing) {
         sliceYs.push(y);
     }
-    if (!sliceYs.length) return samples;
+    if (!sliceYs.length) return { slices, samples };
     const segmentsBySlice = sliceYs.map(() => []);
 
     for (let i = 0; i < position.count; i += 3) {
@@ -324,14 +436,178 @@ function buildInteriorReferenceSamples(geometry, spacing, contourTolerance, lume
 
     for (let sliceIndex = 0; sliceIndex < sliceYs.length; sliceIndex++) {
         const loops = buildContourLoops(segmentsBySlice[sliceIndex], contourTolerance, lumenContourMinArea);
+        const contours = [];
         for (const loop of loops) {
             if (loop.depth % 2 !== 1) continue;
             const sample = bestInteriorPoint(loop.polygon);
+            const polygon = simplifyClosedPolygon(loop.polygon);
+            const contour = {
+                polygon,
+                area: loop.area,
+                bounds: polygonBounds(polygon),
+                centroid: loop.centroid,
+                sample
+            };
+            contours.push(contour);
             samples.push(new THREE.Vector3(sample.x, sliceYs[sliceIndex], sample.z));
+        }
+        if (contours.length) {
+            slices.push({
+                y: sliceYs[sliceIndex],
+                contours
+            });
         }
     }
 
-    return samples;
+    return { slices, samples };
+}
+
+function buildLumenContourDebugSegments(slices) {
+    const allEdges = [];
+    for (const slice of slices) {
+        for (const contour of slice.contours) {
+            for (let i = 0; i < contour.polygon.length; i++) {
+                const a = contour.polygon[i];
+                const b = contour.polygon[(i + 1) % contour.polygon.length];
+                allEdges.push({ y: slice.y, a, b });
+            }
+        }
+    }
+
+    const positions = [];
+    const step = Math.max(1, Math.ceil(allEdges.length / MAX_DEBUG_LUMEN_CONTOUR_SEGMENTS));
+    for (let i = 0; i < allEdges.length; i += step) {
+        const edge = allEdges[i];
+        positions.push(
+            edge.a.x, edge.y, edge.a.z,
+            edge.b.x, edge.y, edge.b.z
+        );
+    }
+    return new Float32Array(positions);
+}
+
+function querySlice(slice, x, z) {
+    const point = { x, z };
+    let best = null;
+    for (const contour of slice.contours) {
+        const boundDistanceSq = boundsDistanceSq(point, contour.bounds);
+        if (
+            best &&
+            best.signedDistance < 0 &&
+            -Math.sqrt(boundDistanceSq) <= best.signedDistance
+        ) {
+            continue;
+        }
+
+        const candidate = signedDistanceToContour(point, contour);
+        if (!best || candidate.signedDistance > best.signedDistance) best = candidate;
+    }
+    return best || {
+        signedDistance: -Infinity,
+        inside: false,
+        inward: { x: 1, z: 0 },
+        closestPoint: { x, z },
+        contour: null
+    };
+}
+
+function findSliceInterval(slices, y) {
+    if (slices.length <= 1) return { lower: 0, upper: 0, t: 0 };
+    if (y <= slices[0].y) return { lower: 0, upper: 0, t: 0 };
+    const last = slices.length - 1;
+    if (y >= slices[last].y) return { lower: last, upper: last, t: 0 };
+
+    let lo = 0;
+    let hi = last;
+    while (hi - lo > 1) {
+        const mid = Math.floor((lo + hi) * 0.5);
+        if (slices[mid].y <= y) lo = mid;
+        else hi = mid;
+    }
+    const span = Math.max(1e-6, slices[hi].y - slices[lo].y);
+    return {
+        lower: lo,
+        upper: hi,
+        t: Math.max(0, Math.min(1, (y - slices[lo].y) / span))
+    };
+}
+
+function normalize3(x, y, z, fallback = { x: 1, y: 0, z: 0 }) {
+    const length = Math.hypot(x, y, z);
+    if (length < 1e-8) return { ...fallback };
+    return { x: x / length, y: y / length, z: z / length };
+}
+
+export function createLumenField(lumenSlices) {
+    const slices = (lumenSlices || [])
+        .filter(slice => slice?.contours?.length)
+        .slice()
+        .sort((a, b) => a.y - b.y);
+
+    function query(input) {
+        const x = input.x;
+        const y = input.y;
+        const z = input.z;
+        if (!slices.length) {
+            const fallback = new THREE.Vector3(1, 0, 0);
+            return {
+                inside: false,
+                signedDistance: -Infinity,
+                distance: Infinity,
+                inward: fallback,
+                normal: fallback.clone().multiplyScalar(-1),
+                closestPoint: new THREE.Vector3(x, y, z),
+                targetAtClearance: clearance => new THREE.Vector3(x + clearance, y, z)
+            };
+        }
+
+        const interval = findSliceInterval(slices, y);
+        const lowerSlice = slices[interval.lower];
+        const upperSlice = slices[interval.upper];
+        const lower = querySlice(lowerSlice, x, z);
+        const upper = interval.upper === interval.lower
+            ? lower
+            : querySlice(upperSlice, x, z);
+        const t = interval.t;
+        const signedDistance = lower.signedDistance * (1 - t) + upper.signedDistance * t;
+        const dy = Math.max(1e-6, Math.abs(upperSlice.y - lowerSlice.y));
+        const yGradient = interval.upper === interval.lower
+            ? 0
+            : Math.max(-0.85, Math.min(0.85, (upper.signedDistance - lower.signedDistance) / dy));
+        const inward = normalize3(
+            lower.inward.x * (1 - t) + upper.inward.x * t,
+            yGradient,
+            lower.inward.z * (1 - t) + upper.inward.z * t
+        );
+        const closestPoint = new THREE.Vector3(
+            x - inward.x * signedDistance,
+            y - inward.y * signedDistance,
+            z - inward.z * signedDistance
+        );
+        const inwardVector = new THREE.Vector3(inward.x, inward.y, inward.z);
+        const normal = inwardVector.clone().multiplyScalar(-1);
+
+        return {
+            inside: signedDistance >= 0,
+            signedDistance,
+            distance: Math.abs(signedDistance),
+            inward: inwardVector,
+            normal,
+            closestPoint,
+            lowerSlice,
+            upperSlice,
+            targetAtClearance(clearance = 0) {
+                const correction = Math.max(0, clearance - signedDistance);
+                return new THREE.Vector3(x, y, z).addScaledVector(inwardVector, correction);
+            }
+        };
+    }
+
+    return {
+        slices,
+        query,
+        containsPoint: point => query(point).inside
+    };
 }
 
 export function preprocessAortaGeometry(geometry, {
@@ -348,24 +624,30 @@ export function preprocessAortaGeometry(geometry, {
     const box = geometry.boundingBox.clone();
     const size = box.getSize(new THREE.Vector3());
     const topology = computeTopologyDiagnostics(geometry);
-    const interiorSamples = buildInteriorReferenceSamples(
+    const lumen = buildLumenSlices(
         geometry,
         interiorSampleSpacing,
         contourPointTolerance,
         lumenContourMinArea
     );
     const boundaryDebugSegments = buildBoundaryDebugSegments(topology.boundaryEdges);
+    const lumenContourDebugSegments = buildLumenContourDebugSegments(lumen.slices);
+    const lumenField = createLumenField(lumen.slices);
 
     return {
         geometry,
-        interiorSamples,
+        interiorSamples: lumen.samples,
+        lumenSlices: lumen.slices,
+        lumenField,
         boundaryDebugSegments,
+        lumenContourDebugSegments,
         diagnostics: {
             boundingBox: box,
             boundaryEdgeCount: topology.boundaryEdgeCount,
             degenerateTriangleCount: topology.degenerateTriangleCount,
             edgeCount: topology.edgeCount,
-            interiorSampleCount: interiorSamples.length,
+            interiorSampleCount: lumen.samples.length,
+            lumenSliceCount: lumen.slices.length,
             nonManifoldEdgeCount: topology.nonManifoldEdgeCount,
             size,
             transform,

@@ -91,6 +91,28 @@ for (let frame = 0; frame < 180; frame++) {
 const settledB = wire.nodes.map(node => ({ x: node.x, y: node.y, z: node.z }));
 
 const diagnostics = solver.collectContactSamples(null, 1.85);
+const insideLumenDiagnostics = solver.collectLumenDiagnostics({
+    meshCollider: {
+        pointContact() {
+            return {
+                signedDistance: 2,
+                distance: 2,
+                violation: false
+            };
+        }
+    }
+}, { clearance: 0.45, contactBand: 1.85 });
+const outsideLumenDiagnostics = solver.collectLumenDiagnostics({
+    meshCollider: {
+        pointContact() {
+            return {
+                signedDistance: -0.25,
+                distance: 0,
+                violation: true
+            };
+        }
+    }
+}, { clearance: 0.45, contactBand: 1.85 });
 const firstInsertedIndex = solver.firstInsertedNodeIndex();
 const firstVisibleIndex = solver.firstLumenNodeIndex();
 const maxSegmentError = wire.nodes.slice(1).reduce((max, node, i) => {
@@ -106,11 +128,25 @@ console.log('guidewire contacts', diagnostics.contacts.length);
 console.log('guidewire breaches', diagnostics.breaches.length);
 console.log('guidewire rest drift', maxNodeDrift(settledA, settledB).toFixed(5));
 console.log('guidewire max segment error', maxSegmentError.toFixed(5));
+console.log('guidewire lumen diagnostic samples', insideLumenDiagnostics.checkedCount);
 console.log('guidewire first inserted visible', solver.insertedCoordinate(firstInsertedIndex).toFixed(2));
 console.log('guidewire first visible inserted', solver.insertedCoordinate(firstVisibleIndex).toFixed(2));
 
 assert.equal(diagnostics.breaches.length, 0, 'guidewire should remain inside the modeled lumen');
 assert.ok(diagnostics.contacts.length > 0, 'straightened guidewire should touch the vessel wall somewhere');
+assert.ok(insideLumenDiagnostics.checkedCount > 0, 'lumen diagnostics should sample guidewire points outside the sheath');
+assert.equal(insideLumenDiagnostics.outsideCount, 0, 'positive signed distances should not count as outside lumen');
+assert.equal(insideLumenDiagnostics.clearanceViolationCount, 0, 'positive signed distances above clearance should keep clearance clear');
+assert.equal(
+    outsideLumenDiagnostics.outsideCount,
+    outsideLumenDiagnostics.checkedCount,
+    'negative signed distances should count as outside lumen'
+);
+assert.equal(
+    outsideLumenDiagnostics.clearanceViolationCount,
+    outsideLumenDiagnostics.checkedCount,
+    'negative signed distances should also count as clearance violations'
+);
 assert.ok(maxNodeDrift(settledA, settledB) < 0.025, 'guidewire should be stable at rest');
 assert.ok(maxSegmentError < 0.035, 'guidewire segment lengths should stay rigid');
 assert.ok(

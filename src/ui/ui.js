@@ -66,6 +66,7 @@ export function initUI(options) {
   const guidewireResistanceReasonEl = document.getElementById('guidewireResistanceReason');
   const guidewireResistanceValueEl = document.getElementById('guidewireResistanceValue');
   const guidewireResistanceFillEl = document.getElementById('guidewireResistanceFill');
+  const guidewireDiagnosticsEl = document.getElementById('guidewireDiagnostics');
   const perfStatsEl = document.getElementById('perfStats');
 
   // Initial UI state
@@ -301,6 +302,34 @@ export function initUI(options) {
     if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = `${percent}%`;
     if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = `${percent}%`;
   }
+  function formatDebugDistance(value) {
+    if (!Number.isFinite(value)) return '--';
+    return Math.abs(value) < 10 ? value.toFixed(2) : value.toFixed(1);
+  }
+  function updateGuidewireDiagnostics(metrics = null) {
+    if (!guidewireDiagnosticsEl) return;
+    guidewireDiagnosticsEl.classList.remove('warn', 'breach');
+    if (!metrics) {
+      guidewireDiagnosticsEl.textContent = 'GW STL: debug off';
+      return;
+    }
+    if (!metrics.checkedCount || !Number.isFinite(metrics.minSignedDistance)) {
+      guidewireDiagnosticsEl.textContent = 'GW STL: no lumen samples';
+      return;
+    }
+
+    guidewireDiagnosticsEl.classList.toggle('breach', metrics.outsideCount > 0);
+    guidewireDiagnosticsEl.classList.toggle(
+      'warn',
+      metrics.outsideCount === 0 && metrics.clearanceViolationCount > 0
+    );
+    guidewireDiagnosticsEl.textContent =
+      `GW STL: min ${formatDebugDistance(metrics.minSignedDistance)} mm ` +
+      `/ clr ${formatDebugDistance(metrics.clearance)} | ` +
+      `out ${metrics.outsideCount} | near ${metrics.clearanceViolationCount} | ` +
+      `seg ${formatDebugDistance(metrics.maxSegmentError)} | ` +
+      `bend ${formatDebugDistance(metrics.maxBendAngle)} deg`;
+  }
   function setInjectButtonDisabled(disabled) {
     if (injectButton) injectButton.disabled = !!disabled;
   }
@@ -327,6 +356,7 @@ export function initUI(options) {
     updateCatheterLength,
     updateDose,
     updateGuidewireResistance,
+    updateGuidewireDiagnostics,
     setInjectButtonDisabled,
     setStopInjectionDisabled,
     updatePerfStats,

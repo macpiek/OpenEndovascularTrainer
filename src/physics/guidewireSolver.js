@@ -14,6 +14,8 @@ const DEFAULT_BEND_LIMIT_ITERATIONS = 0;
 const DEFAULT_SEGMENT_PROJECTION_BLEND = 1;
 const DEFAULT_MAX_SEGMENT_PROJECTION_STEP = 0.55;
 const DEFAULT_MESH_CLEARANCE = 0.45;
+const DEFAULT_COLLISION_PROJECTION_REPEATS = 2;
+const DEFAULT_DIAGNOSTIC_SAMPLES = [0, 0.2, 0.4, 0.6, 0.8, 1];
 const DEFAULT_FOLD_ANGLE = 142;
 const DEFAULT_FOLD_UNTANGLE_STRENGTH = 0;
 const DEFAULT_FOLD_UNTANGLE_WINDOW = 5;
@@ -88,6 +90,7 @@ export class GuidewireSolver {
         segmentProjectionBlend = DEFAULT_SEGMENT_PROJECTION_BLEND,
         maxSegmentProjectionStep = DEFAULT_MAX_SEGMENT_PROJECTION_STEP,
         meshClearance = DEFAULT_MESH_CLEARANCE,
+        collisionProjectionRepeats = DEFAULT_COLLISION_PROJECTION_REPEATS,
         foldAngle = DEFAULT_FOLD_ANGLE,
         foldUntangleStrength = DEFAULT_FOLD_UNTANGLE_STRENGTH,
         foldUntangleWindow = DEFAULT_FOLD_UNTANGLE_WINDOW,
@@ -116,6 +119,7 @@ export class GuidewireSolver {
         this.segmentProjectionBlend = segmentProjectionBlend;
         this.maxSegmentProjectionStep = maxSegmentProjectionStep;
         this.meshClearance = meshClearance;
+        this.collisionProjectionRepeats = Math.max(1, Math.floor(collisionProjectionRepeats));
         this.foldAngle = foldAngle;
         this.foldUntangleStrength = foldUntangleStrength;
         this.foldUntangleWindow = foldUntangleWindow;
@@ -269,13 +273,12 @@ export class GuidewireSolver {
         for (let pass = 0; pass < passCount; pass++) {
             this.#straightenInsideVessel(pass / passCount);
             this.#untangleFoldedSections();
-            this.#limitBendsInsideVessel();
-            this.#solveLengths(this.lengthIterations);
-            this.#projectNodesInside(collisionTarget, true);
-            this.#projectSegmentsInside(collisionTarget, true);
-            this.#limitBendsInsideVessel();
-            this.#projectNodesInside(collisionTarget, true);
-            this.#projectSegmentsInside(collisionTarget, true);
+            for (let repeat = 0; repeat < this.collisionProjectionRepeats; repeat++) {
+                this.#limitBendsInsideVessel();
+                this.#solveLengths(this.lengthIterations);
+                this.#projectNodesInside(collisionTarget, true);
+                this.#projectSegmentsInside(collisionTarget, true);
+            }
             this.#solveLengths(2);
         }
 
@@ -329,6 +332,87 @@ export class GuidewireSolver {
         addDiagnosticPoint(tip, this.insertedCoordinate(this.rod.nodes.length - 1));
 
         return { contacts, breaches };
+    }
+
+    collectLumenDiagnostics(
+        collisionTarget = null,
+        {
+            clearance = this.meshClearance,
+            contactBand = DEFAULT_CONTACT_BAND,
+            samples = DEFAULT_DIAGNOSTIC_SAMPLES
+        } = {}
+    ) {
+        const collider = collisionTarget?.meshCollider || collisionTarget?.lumenMeshCollider || null;
+        const result = {
+            checkedCount: 0,
+            contactCount: 0,
+            outsideCount: 0,
+            clearanceViolationCount: 0,
+            minSignedDistance: null,
+            minClearanceMargin: null,
+            maxSegmentError: 0,
+            maxBendAngle: 0,
+            clearance,
+            contactBand
+        };
+
+        for (let i = 0; i < this.rod.nodes.length - 1; i++) {
+            const n0 = this.rod.nodes[i];
+            const n1 = this.rod.nodes[i + 1];
+            result.maxSegmentError = Math.max(
+                result.maxSegmentError,
+                Math.abs(nodeDistance(n0, n1) - this.segmentLength)
+            );
+
+            if (collider?.pointContact) {
+                for (const t of samples) {
+                    const inserted = this.insertedCoordinate(i + t);
+                    if (this.#isInSheath(inserted)) continue;
+
+                    const point = interpolatePosition(n0, n1, t);
+                    const contact = collider.pointContact(point, clearance);
+                    const signedDistance = Number.isFinite(contact?.signedDistance)
+                        ? contact.signedDistance
+                        : null;
+                    if (!Number.isFinite(signedDistance)) continue;
+
+                    result.checkedCount++;
+                    if (
+                        result.minSignedDistance === null ||
+                        signedDistance < result.minSignedDistance
+                    ) {
+                        result.minSignedDistance = signedDistance;
+                    }
+
+                    const clearanceMargin = signedDistance - clearance;
+                    if (
+                        result.minClearanceMargin === null ||
+                        clearanceMargin < result.minClearanceMargin
+                    ) {
+                        result.minClearanceMargin = clearanceMargin;
+                    }
+
+                    if (signedDistance < 0) {
+                        result.outsideCount++;
+                    } else if (signedDistance <= contactBand) {
+                        result.contactCount++;
+                    }
+                    if (signedDistance < clearance) {
+                        result.clearanceViolationCount++;
+                    }
+                }
+            }
+        }
+
+        if (typeof this.rod.bendAngleAt === 'function') {
+            for (let i = 1; i < this.rod.nodes.length - 1; i++) {
+                const inserted = this.insertedCoordinate(i);
+                if (this.#isInSheath(inserted)) continue;
+                result.maxBendAngle = Math.max(result.maxBendAngle, this.rod.bendAngleAt(i) || 0);
+            }
+        }
+
+        return result;
     }
 
     diagnosePoint(point, inserted, collisionTarget = null, contactBand = DEFAULT_CONTACT_BAND) {

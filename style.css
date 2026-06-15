@@ -41,6 +41,30 @@ canvas {
     line-height: 1.25;
 }
 
+.guidewire-diagnostics {
+    margin-top: 4px;
+    padding: 4px 5px;
+    border-left: 3px solid #42d6ff;
+    background: rgba(25, 170, 220, 0.16);
+    color: #c9f5ff;
+    font-size: 11px;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.guidewire-diagnostics.warn {
+    border-left-color: #ffd24a;
+    background: rgba(255, 190, 56, 0.18);
+    color: #ffe6a3;
+}
+
+.guidewire-diagnostics.breach {
+    border-left-color: #ff5d5d;
+    background: rgba(255, 70, 70, 0.22);
+    color: #ffd0d0;
+}
+
 .guidewire-resistance {
     margin: 6px 0 4px;
     padding: 5px 6px;

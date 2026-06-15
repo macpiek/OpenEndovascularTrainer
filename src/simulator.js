@@ -1,13 +1,13 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
-import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260615rigidguidewire17';
+import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260615rigidguidewire18';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260614debug1';
+import { initUI } from './ui/ui.js?v=20260615guidewirediagnostics1';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
-import { createAortaModel } from './aortaModel.js?v=20260615rigidguidewire9';
+import { createAortaModel } from './aortaModel.js?v=20260615rigidguidewire10';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614debug1';
@@ -15,10 +15,12 @@ import { vertexShader as displayVS, fragmentShader as displayFS } from './shader
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const STL_INTERIOR_SAMPLE_COLOR = 0x69ff8e;
 const STL_BOUNDARY_EDGE_COLOR = 0xff9b3d;
+const STL_LUMEN_CONTOUR_COLOR = 0xa7ff5c;
 const WALL_CONTACT_COLOR = 0xffd24a;
 const WALL_BREACH_COLOR = 0xff3355;
 const CONTACT_MARKER_LIMIT = 420;
 const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 18;
+const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 
 // WebGL renderer attached to the fullscreen canvas
@@ -325,6 +327,28 @@ function createStlPreprocessDebug(preprocessing) {
         group.add(boundaryLines);
     }
 
+    if (preprocessing.lumenContourDebugSegments?.length) {
+        const contourGeometry = new THREE.BufferGeometry();
+        contourGeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(preprocessing.lumenContourDebugSegments, 3)
+        );
+        const contourLines = new THREE.LineSegments(
+            contourGeometry,
+            new THREE.LineBasicMaterial({
+                color: STL_LUMEN_CONTOUR_COLOR,
+                transparent: true,
+                opacity: 0.72,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            })
+        );
+        contourLines.frustumCulled = false;
+        contourLines.renderOrder = 8.5;
+        group.add(contourLines);
+    }
+
     const interiorSamples = preprocessing.interiorSamples || [];
     if (interiorSamples.length) {
         const samples = new THREE.InstancedMesh(
@@ -367,13 +391,14 @@ guidewireSolver = new GuidewireSolver({
     maxInsert,
     straightening: 0.72,
     routeBlend: 0,
-    relaxationIterations: 10,
+    relaxationIterations: 6,
     lengthIterations: 10,
     meshClearance: 0.45,
-    segmentSamples: [0.08, 0.18, 0.3, 0.42, 0.55, 0.68, 0.8, 0.9, 0.96],
-    finalCollisionPasses: 4,
+    collisionProjectionRepeats: 1,
+    segmentSamples: [0.12, 0.28, 0.44, 0.6, 0.76, 0.91],
+    finalCollisionPasses: 3,
     finalLengthPasses: 2,
-    finalProjectionPasses: 3
+    finalProjectionPasses: 2
 });
 
 function constrainWireToSheath(feedSpeed = 0) {
@@ -876,13 +901,21 @@ function updateWireMesh() {
 function sampleGuidewireContactMarkers() {
     const markerMatrix = new THREE.Matrix4();
     if (fluoroscopy) {
+        ui.updateGuidewireDiagnostics(null);
         wallContactMarkers.count = 0;
         wallBreachMarkers.count = 0;
         return;
     }
 
+    ui.updateGuidewireDiagnostics(
+        guidewireSolver.collectLumenDiagnostics(vesselCollisionTarget, {
+            clearance: guidewireSolver.meshClearance,
+            contactBand: GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND
+        })
+    );
+
     const { contacts: contactSamples, breaches: breachSamples } =
-        guidewireSolver.collectContactSamples(vesselCollisionTarget, 1.85);
+        guidewireSolver.collectContactSamples(vesselCollisionTarget, GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND);
 
     const applySamples = (mesh, points) => {
         const count = Math.min(points.length, CONTACT_MARKER_LIMIT);
@@ -921,7 +954,7 @@ function stepSimulation() {
     const tipBefore = guidewireTipPosition();
     const commandedDelta = advanceTailInput(advance, fixedDt);
     guidewireSolver.solve(fixedDt, vesselCollisionTarget, {
-        iterations: advance === 0 ? 6 : 8
+        iterations: advance === 0 ? 4 : 5
     });
     const inserted = Math.max(0, tailProgress);
     pigtailCatheter.advance(ui.getCatheterAdvance(), fixedDt, inserted);

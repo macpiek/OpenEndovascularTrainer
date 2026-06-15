@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260615stlpreprocess3';
+import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260615stlpreprocess4';
 
 const AORTA_MODEL_URL = 'res/Aorta_plain.stl';
 const AORTA_MODEL_SCALE = 1.3;
 const AORTA_MODEL_Y_OFFSET = 40;
-const INTERIOR_REFERENCE_Y_WINDOW = 38;
 
 function targetFromVessel(vessel) {
     const ys = [];
@@ -71,7 +70,7 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
             const collision = {
                 geometry,
                 meshCollider: createMeshLumenCollider(geometry, {
-                    interiorSamples: preprocessing.interiorSamples
+                    lumenField: preprocessing.lumenField
                 }),
                 clearance: 0.6,
                 guidewireClearance: 0.35,
@@ -96,141 +95,64 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
     return { group, material };
 }
 
-export function createMeshLumenCollider(geometry, { interiorSamples = [] } = {}) {
-    const closest = new THREE.Vector3();
-    const point = new THREE.Vector3();
-    const ray = new THREE.Ray();
-    const fallbackInward = new THREE.Vector3(0, 0, 1);
-    const rayFar = (geometry.boundingBox?.getSize(new THREE.Vector3()).length() || 1000) * 2;
-    const normalA = new THREE.Vector3();
-    const normalB = new THREE.Vector3();
-    const normalC = new THREE.Vector3();
-    const faceNormal = new THREE.Vector3();
-    const pointDelta = new THREE.Vector3();
-    const referenceInward = new THREE.Vector3();
-    const orderedInteriorSamples = interiorSamples
-        .map(sample => sample.clone ? sample.clone() : new THREE.Vector3(sample.x, sample.y, sample.z))
-        .sort((a, b) => a.y - b.y);
-
-    function triangleNormal(faceIndex) {
-        const position = geometry.attributes.position;
-        const base = faceIndex * 3;
-        normalA.fromBufferAttribute(position, base);
-        normalB.fromBufferAttribute(position, base + 1);
-        normalC.fromBufferAttribute(position, base + 2);
-        faceNormal.subVectors(normalB, normalA).cross(normalC.sub(normalA));
-        if (faceNormal.lengthSq() < 1e-8) faceNormal.copy(fallbackInward);
-        return faceNormal.normalize();
-    }
-
-    function inwardNormalForFace(faceIndex) {
-        if (!Number.isFinite(faceIndex)) return fallbackInward.clone();
-        return triangleNormal(faceIndex).clone().negate();
-    }
-
-    function inwardDirectionForSurface(surfacePoint, faceIndex) {
-        let best = null;
-        let bestDistanceSq = Infinity;
-        const yMin = surfacePoint.y - INTERIOR_REFERENCE_Y_WINDOW;
-        const yMax = surfacePoint.y + INTERIOR_REFERENCE_Y_WINDOW;
-        let candidates = 0;
-        for (const sample of orderedInteriorSamples) {
-            if (sample.y < yMin) continue;
-            if (sample.y > yMax) break;
-            const distanceSq = surfacePoint.distanceToSquared(sample);
-            candidates++;
-            if (distanceSq < bestDistanceSq) {
-                best = sample;
-                bestDistanceSq = distanceSq;
-            }
-        }
-
-        if (candidates === 0) {
-            for (const sample of orderedInteriorSamples) {
-                const distanceSq = surfacePoint.distanceToSquared(sample);
-                if (distanceSq < bestDistanceSq) {
-                    best = sample;
-                    bestDistanceSq = distanceSq;
-                }
-            }
-        }
-
-        if (best) {
-            referenceInward.subVectors(best, surfacePoint);
-            if (referenceInward.lengthSq() > 1e-8) {
-                return referenceInward.normalize().clone();
-            }
-        }
-
-        return inwardNormalForFace(faceIndex);
-    }
-
-    // The STL is an open vessel surface, so ray-parity containment is unstable
-    // around branch ostia and raw triangle normals are not a reliable inside
-    // signal. Orient each local wall normal toward a sampled lumen centerline.
+export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
     function pointContact(input, clearance = 0) {
-        point.set(input.x, input.y, input.z);
-        const hit = geometry.boundsTree.closestPointToPoint(point, { point: closest });
-        const distance = hit?.distance ?? point.distanceTo(closest);
-        const inward = inwardDirectionForSurface(closest, hit?.faceIndex);
-        const depth = pointDelta.subVectors(point, closest).dot(inward);
-        const target = closest.clone().addScaledVector(inward, Math.max(0, clearance));
-        const wallNormal = inward.clone().negate();
-
-        if (depth >= clearance) {
-            return {
-                inside: true,
-                violation: false,
-                distance,
-                signedDistance: -depth,
-                target: point.clone(),
-                normal: wallNormal
-            };
-        }
-
+        const query = lumenField?.query?.(input);
+        if (!query) return {
+            inside: true,
+            violation: false,
+            distance: Infinity,
+            signedDistance: Infinity,
+            target: new THREE.Vector3(input.x, input.y, input.z),
+            normal: new THREE.Vector3(1, 0, 0)
+        };
+        const violation = query.signedDistance < clearance;
         return {
-            inside: depth >= 0,
-            violation: true,
-            distance,
-            signedDistance: -depth,
-            target,
-            normal: wallNormal
+            inside: query.inside,
+            violation,
+            distance: Math.max(0, query.signedDistance),
+            signedDistance: query.signedDistance,
+            target: violation
+                ? query.targetAtClearance(clearance)
+                : new THREE.Vector3(input.x, input.y, input.z),
+            closestPoint: query.closestPoint.clone(),
+            inward: query.inward.clone(),
+            normal: query.normal.clone()
         };
     }
 
     function crossingContact(fromInput, toInput, clearance = 0) {
         const from = new THREE.Vector3(fromInput.x, fromInput.y, fromInput.z);
         const to = new THREE.Vector3(toInput.x, toInput.y, toInput.z);
-        const delta = to.sub(from);
+        const delta = to.clone().sub(from);
         const length = delta.length();
         if (length < 1e-6) return null;
 
-        const direction = delta.multiplyScalar(1 / length);
-        ray.origin.copy(from);
-        ray.direction.copy(direction);
-        const far = length + Math.max(0, clearance) + 1e-3;
-        const hit = typeof geometry.boundsTree.raycastFirst === 'function'
-            ? geometry.boundsTree.raycastFirst(ray, THREE.DoubleSide, 1e-4, far)
-            : geometry.boundsTree
-                .raycast(ray, THREE.DoubleSide, 1e-4, far)
-                .filter(candidate => candidate.distance > 1e-4)
-                .sort((a, b) => a.distance - b.distance)[0];
-        if (!hit || hit.distance > length + 1e-3) return null;
-
-        const inward = inwardDirectionForSurface(hit.point, hit.faceIndex);
-        const target = hit.point.clone().addScaledVector(inward, Math.max(0, clearance));
-        return {
-            hit,
-            point: hit.point.clone(),
-            target,
-            normal: inward.clone().negate(),
-            inward,
-            t: hit.distance / length
-        };
+        let worst = null;
+        const sampleCount = Math.max(5, Math.ceil(length / 3));
+        for (let i = 1; i < sampleCount; i++) {
+            const t = i / sampleCount;
+            const point = from.clone().addScaledVector(delta, t);
+            const contact = pointContact(point, clearance);
+            if (!contact.violation) continue;
+            const penetration = clearance - contact.signedDistance;
+            if (!worst || penetration > worst.penetration) {
+                worst = {
+                    penetration,
+                    point,
+                    target: contact.target,
+                    normal: contact.normal,
+                    inward: contact.inward,
+                    t
+                };
+            }
+        }
+        return worst;
     }
 
     return {
         geometry,
+        lumenField,
         containsPoint: input => !pointContact(input, 0).violation,
         pointContact,
         crossingContact,
