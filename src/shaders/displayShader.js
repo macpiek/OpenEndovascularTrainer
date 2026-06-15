@@ -18,6 +18,8 @@ uniform sampler2D uTexture;
 uniform sampler2D contrastTexture;
 uniform sampler2D thicknessTexture;
 uniform sampler2D metalTexture;
+uniform sampler2D sheathTexture;
+uniform sampler2D boneTexture;
 uniform vec3 gray;
 uniform bool fluoroscopy;
 uniform float time;
@@ -61,21 +63,81 @@ float metalAt(vec2 uv) {
     return smoothstep(0.025, 0.58, signal);
 }
 
-float bonePathAt(vec2 uv) {
+float sheathAt(vec2 uv) {
+    float signal = sampleSignal(sheathTexture, uv);
+    return smoothstep(0.018, 0.24, signal);
+}
+
+vec3 boneProjectionSampleAt(vec2 uv) {
+    return texture2D(boneTexture, uv).rgb;
+}
+
+float boneProjectionAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float center = boneProjectionSampleAt(uv).b * 0.42;
+    float axial = (
+        boneProjectionSampleAt(uv + texel * vec2(1.5, 0.0)).b +
+        boneProjectionSampleAt(uv + texel * vec2(-1.5, 0.0)).b +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.5)).b +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.5)).b
+    ) * 0.10;
+    float diagonal = (
+        boneProjectionSampleAt(uv + texel * vec2(1.2, 1.2)).b +
+        boneProjectionSampleAt(uv + texel * vec2(-1.2, 1.2)).b +
+        boneProjectionSampleAt(uv + texel * vec2(1.2, -1.2)).b +
+        boneProjectionSampleAt(uv + texel * vec2(-1.2, -1.2)).b
+    ) * 0.045;
+    return center + axial + diagonal;
+}
+
+float corticalProjectionAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float center = boneProjectionSampleAt(uv).r * 0.50;
+    float axial = (
+        boneProjectionSampleAt(uv + texel * vec2(1.0, 0.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-1.0, 0.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.0)).r
+    ) * 0.12;
+    return center + axial;
+}
+
+float thicknessPathAt(vec2 uv) {
     float thickness = texture2D(thicknessTexture, uv).r;
-    return pow(saturate(thickness * 58.0), 0.82);
+    return saturate(thickness * 6.2);
+}
+
+float bonePathAt(vec2 uv) {
+    float thicknessPath = pow(thicknessPathAt(uv), 0.72);
+    float projectedBone = boneProjectionAt(uv);
+    float projectionPath = pow(saturate(projectedBone * 2.5), 0.9) * 0.46;
+    return saturate(thicknessPath * (0.78 + projectionPath * 0.42) + projectionPath * 0.18);
+}
+
+float corticalBoneAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float c = thicknessPathAt(uv);
+    float l = thicknessPathAt(uv + texel * vec2(-1.0, 0.0));
+    float r = thicknessPathAt(uv + texel * vec2(1.0, 0.0));
+    float t = thicknessPathAt(uv + texel * vec2(0.0, -1.0));
+    float b = thicknessPathAt(uv + texel * vec2(0.0, 1.0));
+    float thicknessEdge = smoothstep(0.018, 0.14, length(vec2(r - l, b - t)));
+    float entryExitCortex = smoothstep(0.025, 0.22, c) * (0.16 + thicknessEdge * 0.72);
+    float projectedCortex = pow(saturate(corticalProjectionAt(uv) * 3.1), 0.82);
+    return saturate(entryExitCortex + projectedCortex * (0.34 + c * 0.46));
 }
 
 float attenuationAt(vec2 uv) {
     float boneMu = mix(0.18, 2.15, saturate(boneOpacity));
-    float bone = bonePathAt(uv) * boneMu;
+    float bone = (bonePathAt(uv) * 0.72 + corticalBoneAt(uv) * 1.18) * boneMu;
     float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
     float metal = metalAt(uv) * 5.25;
+    float sheath = sheathAt(uv) * 0.72;
 
     // A small contribution from the accumulated visible frame preserves mild
     // detector lag without letting the old postprocess dominate the image.
     float temporalTrace = smoothstep(0.04, 0.85, sampleSignal(uTexture, uv)) * 0.22;
-    return max(0.0, bone + iodine + metal + temporalTrace);
+    return max(0.0, bone + iodine + metal + sheath + temporalTrace);
 }
 
 float vignetteField(vec2 uv) {

@@ -55,6 +55,9 @@ export function initUI(options) {
   const injVolumeSlider = document.getElementById('injVolume');
   const persistenceSlider = document.getElementById('persistence');
   const noiseSlider = document.getElementById('noiseLevel');
+  const boneVisibilitySlider = document.getElementById('boneVisibility');
+  const contrastOpacitySlider = document.getElementById('opacityScale');
+  const contrastGainSlider = document.getElementById('gain');
   const insertedLengthEl = document.getElementById('insertedLength');
   const catheterLengthEl = document.getElementById('catheterLength');
   const catheterAdvanceButton = document.getElementById('catheterAdvance');
@@ -81,6 +84,9 @@ export function initUI(options) {
     smoothIterSlider,
     persistenceSlider,
     noiseSlider,
+    boneVisibilitySlider,
+    contrastOpacitySlider,
+    contrastGainSlider,
     injVolumeSlider,
     injRateSlider,
     injDurationSlider
@@ -122,6 +128,24 @@ export function initUI(options) {
     blendMaterial.uniforms.decay.value = parseFloat(persistenceSlider.value);
     persistenceSlider.addEventListener('input', e => {
       blendMaterial.uniforms.decay.value = parseFloat(e.target.value);
+    });
+  }
+  if (boneVisibilitySlider && displayMaterial.uniforms.boneOpacity) {
+    displayMaterial.uniforms.boneOpacity.value = parseFloat(boneVisibilitySlider.value);
+    boneVisibilitySlider.addEventListener('input', e => {
+      displayMaterial.uniforms.boneOpacity.value = parseFloat(e.target.value);
+    });
+  }
+  if (contrastOpacitySlider && displayMaterial.uniforms.contrastOpacity) {
+    displayMaterial.uniforms.contrastOpacity.value = parseFloat(contrastOpacitySlider.value) / 100;
+    contrastOpacitySlider.addEventListener('input', e => {
+      displayMaterial.uniforms.contrastOpacity.value = parseFloat(e.target.value) / 100;
+    });
+  }
+  if (contrastGainSlider && displayMaterial.uniforms.contrastGain) {
+    displayMaterial.uniforms.contrastGain.value = parseFloat(contrastGainSlider.value);
+    contrastGainSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.contrastGain.value = parseFloat(e.target.value);
     });
   }
 
