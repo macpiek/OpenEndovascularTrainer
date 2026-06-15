@@ -3,157 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            background: black;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-            margin: 0 auto;
-        }
-        #controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            font-family: sans-serif;
-            font-size: 14px;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 8px;
-            border-radius: 4px;
-            width: 200px;
-            max-height: calc(100vh - 20px);
-            overflow-y: auto;
-        }
-        #controls label {
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .parameter-label {
-            font-size: 12px;
-            padding-left: 4px;
-        }
-
-        .section-header {
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 8px;
-            font-size: 16px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid #666;
-            padding: 4px;
-        }
-
-        .collapse-triangle {
-            display: inline-block;
-            margin-right: 4px;
-            transition: transform 0.2s;
-        }
-
-        .section-header.collapsed .collapse-triangle {
-            transform: rotate(-90deg);
-        }
-
-        .section-content.hidden {
-            display: none;
-        }
-
-        #monitor {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: white;
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #monitor canvas {
-            background: black;
-            display: block;
-        }
-
-        .vitalBox {
-            position: relative;
-            width: 300px;
-            height: 100px;
-            margin-bottom: 5px;
-        }
-
-        .vitalBox canvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        .vitalLabel {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            font-size: 28px;
-        }
-
-        #hrBox {
-            border: 1px solid lime;
-            color: lime;
-        }
-
-        #bpBox {
-            border: 1px solid red;
-            color: red;
-        }
-
-        #carm-preview {
-            position: absolute;
-            top: 220px;
-            right: 10px;
-            width: 300px;
-            height: 200px;
-            border: 1px solid gray;
-            background: black;
-        }
-
-        #perfStats {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            font-family: sans-serif;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 4px;
-            border-radius: 4px;
-        }
-        #joystick-container {
-            position: absolute;
-            bottom: 100px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
-            border: 2px solid #666;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            touch-action: none;
-        }
-        #joystick {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            left: 40px;
-            top: 40px;
-            background: rgba(200, 200, 200, 0.5);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css?v=20260614guidewireinside1">
 </head>
 <body>
 <canvas id="sim"></canvas>
 <div id="controls">
     <div id="insertedLength">0 cm</div>
+    <div id="catheterLength">Pigtail 0 cm</div>
     <div id="currentDose">0 ml</div>
+    <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
+        <div class="guidewire-resistance-header">
+            <span id="guidewireResistanceReason">Opór na prowadniku</span>
+            <span id="guidewireResistanceValue">0%</span>
+        </div>
+        <div class="guidewire-resistance-meter">
+            <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
+        </div>
+    </div>
 
     <div class="control-section">
         <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Guidewire</div>
@@ -162,22 +28,25 @@
                 <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
                 <span></span>
             </label>
-            <label class="parameter-label">Normal damping
-                <input id="normalDamping" type="range" min="0" max="1" step="0.01" value="0.5">
-                <span></span>
-            </label>
-            <label class="parameter-label">Velocity damping
-                <input id="velocityDamping" type="range" min="0" max="1" step="0.01" value="0.98">
-                <span></span>
-            </label>
             <label class="parameter-label">Smoothing iterations
                 <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
                 <span></span>
             </label>
-            <label class="parameter-label">Smoothing alpha
-                <input id="smoothAlpha" type="range" min="0" max="1" step="0.01" value="0.5">
-                <span></span>
-            </label>
+        </div>
+    </div>
+
+    <div class="control-section">
+        <div class="section-header"><span class="collapse-triangle">▼</span> Pigtail catheter</div>
+        <div class="section-content">
+            <div class="tool-button-row">
+                <button id="catheterWithdraw" title="Withdraw pigtail catheter">Withdraw</button>
+                <button id="catheterAdvance" title="Advance pigtail catheter">Advance</button>
+            </div>
+            <div class="tool-button-row">
+                <button id="catheterRotateLeft" title="Rotate pigtail catheter counterclockwise">↺ Rotate</button>
+                <button id="catheterRotateRight" title="Rotate pigtail catheter clockwise">Rotate ↻</button>
+            </div>
+            <div class="tool-hint">A/D advance · Q/E rotate</div>
         </div>
     </div>
 
@@ -185,11 +54,11 @@
         <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Friction</div>
         <div class="section-content hidden">
             <label class="parameter-label">Static friction
-                <input id="staticFriction" type="range" min="0" max="1" step="0.01" value="0.2">
+                <input id="staticFriction" type="range" min="0" max="1" step="0.001" value="0.006">
                 <span></span>
             </label>
             <label class="parameter-label">Kinetic friction
-                <input id="kineticFriction" type="range" min="0" max="1" step="0.01" value="0.1">
+                <input id="kineticFriction" type="range" min="0" max="1" step="0.001" value="0.002">
                 <span></span>
             </label>
         </div>
@@ -203,7 +72,7 @@
                 <span></span>
             </label>
             <label class="parameter-label">Noise level
-                <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.3">
+                <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.2">
             </label>
             <label class="parameter-label">Contrast opacity scale
                 <input id="opacityScale" type="range" min="0" max="100" step="1" value="100">
@@ -223,9 +92,7 @@
                 <input id="injVolume" type="range" min="0" max="200" step="0.5" value="100">
                 <span></span>
             </label>
-            <label>Injection segment
-                <select id="injSegment"></select>
-            </label>
+            
 
             <label class="parameter-label">Injection rate (ml/s)
                 <input id="injRate" type="range" min="0" max="100" step="0.1" value="50">
@@ -238,39 +105,10 @@
         </div>
     </div>
 
-    <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> C-arm</div>
-        <div class="section-content">
-            <label class="parameter-label">C-arm yaw
-                <input id="carmYaw" type="range" min="-180" max="180" step="1" value="0">
-                <span></span>
-            </label>
-            <label class="parameter-label">C-arm pitch
-                <input id="carmPitch" type="range" min="-90" max="90" step="1" value="0">
-                <span></span>
-            </label>
-            <label class="parameter-label">C-arm roll
-                <input id="carmRoll" type="range" min="-180" max="180" step="1" value="0">
-                <span></span>
-            </label>
-            <label class="parameter-label">C-arm X
-                <input id="carmX" type="range" min="-200" max="200" step="1" value="0">
-                <span></span>
-            </label>
-            <label class="parameter-label">C-arm Y
-                <input id="carmY" type="range" min="-1000" max="600" step="1" value="-90">
-                <span></span>
-            </label>
-            <label class="parameter-label">C-arm Z
-                <input id="carmZ" type="range" min="-200" max="400" step="1" value="60">
-                <span></span>
-            </label>
-        </div>
-    </div>
-
     <button id="injectContrast">Inject</button>
     <button id="stopInjection" disabled>Stop Injection</button>
-    <button id="modeToggle">Wireframe</button>
+    <button id="modeToggle">Debug</button>
+    <label><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
 </div>
 
 <div id="monitor">
@@ -285,18 +123,64 @@
 </div>
 
 <div id="carm-preview"></div>
+<div id="carm-controls">
+    <div class="control-section">
+        <div class="section-header"><span class="collapse-triangle">▼</span> C-arm</div>
+        <div class="section-content">
+            <div class="carm-readouts">
+                <div class="carm-readout"><span class="plane-icon plane-transverse"></span><span id="carmYawReadout">AP 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-sagittal"></span><span id="carmPitchReadout">CRA 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-roll"></span><span id="carmRollReadout">Roll 0°</span></div>
+            </div>
+            <div class="carm-joystick-grid">
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Angle</div>
+                    <div id="angleJoystick" class="joystick">
+                        <div id="angleJoystickHandle" class="joystick-handle"></div>
+                    </div>
+                    <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
+                    <div class="angle-preset-control">
+                        <button id="carmLao30" title="Hold to move to LAO 30 degrees">LAO 30</button>
+                        <button id="carmRao30" title="Hold to move to RAO 30 degrees">RAO 30</button>
+                    </div>
+                    <div class="roll-control">
+                        <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
+                        <button id="carmAngleReset" title="Reset C-arm angles">0</button>
+                        <button id="carmRollRight" title="Rotate detector clockwise">↻</button>
+                    </div>
+                </div>
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Position</div>
+                    <div id="positionJoystick" class="joystick">
+                        <div id="positionJoystickHandle" class="joystick-handle"></div>
+                    </div>
+                    <div id="carmZButtons">
+                        <button id="carmZUp" title="Move C-arm up">↑</button>
+                        <button id="carmZDown" title="Move C-arm down">↓</button>
+                    </div>
+                    <div class="joystick-caption">Table plane · height</div>
+                </div>
+            </div>
+            <input id="carmX" type="hidden" min="-200" max="200" step="1" value="0">
+            <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
+            <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
+            <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
+        </div>
+    </div>
+</div>
 <div id="perfStats">FPS: 0 | Mem: N/A</div>
-<div id="joystick-container"><div id="joystick"></div></div>
 
 <script type="importmap">
 {
     "imports": {
-        "three": "./node_modules/three/build/three.module.js",
-        "three/": "./node_modules/three/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.5/build/index.module.js",
+        "three/examples/jsm/utils/BufferGeometryUtils.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
+        "three/examples/jsm/loaders/OBJLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js",
+        "three/examples/jsm/loaders/STLLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js"
     }
 }
 </script>
-
-<script type="module" src="./simulator.js"></script>
+    <script type="module" src="./src/simulator.js?v=20260614physrevert1"></script>
 </body>
 </html>
