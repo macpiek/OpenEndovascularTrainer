@@ -2,14 +2,14 @@
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260614physrevert1';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260614debug1';
+import { initUI } from './ui/ui.js?v=20260615fluoro1';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
 import { createAortaModel } from './aortaModel.js?v=20260614guidewirestable1';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614debug1';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260615fluoro1';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const WALL_CONTACT_COLOR = 0xffd24a;
@@ -33,6 +33,7 @@ const contrastScene = new THREE.Scene();
 // Offscreen render targets used by various post-processing passes
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const metalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget2 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const frontDepthTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -81,6 +82,8 @@ const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
         contrastTexture: { value: contrastTarget.texture },
+        thicknessTexture: { value: thicknessTarget.texture },
+        metalTexture: { value: metalTarget.texture },
         gray: { value: new THREE.Color(0xEBEBEB) },
         fluoroscopy: { value: false },
         time: { value: 0 },
@@ -88,7 +91,9 @@ const displayMaterial = new THREE.ShaderMaterial({
         // Lower default bone opacity so bones appear less prominent
         boneOpacity: { value: 0.5 },
         resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        edgeStrength: { value: 1.0 }
+        edgeStrength: { value: 1.0 },
+        contrastOpacity: { value: 1.0 },
+        contrastGain: { value: 5.0 }
 
     },
     vertexShader: displayVS,
@@ -1145,6 +1150,21 @@ function withTransparentClear(renderer, fn) {
     renderer.setClearColor(0x000000, 1);
 }
 
+function renderOnlySceneObjects(scene, camera, objects) {
+    const keep = new Set(objects.filter(Boolean));
+    const hidden = [];
+    for (const child of scene.children) {
+        if (child.isCamera) continue;
+        const shouldRender = keep.has(child) && child.visible;
+        if (!shouldRender && child.visible) {
+            hidden.push(child);
+            child.visible = false;
+        }
+    }
+    renderer.render(scene, camera);
+    for (const obj of hidden) obj.visible = true;
+}
+
 function animate(time) {
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
     const dt = (time - lastRenderTime) / 1000;
@@ -1229,9 +1249,24 @@ function animate(time) {
             renderer.render(contrastScene, camera);
         });
 
+        renderer.setRenderTarget(metalTarget);
+        withTransparentClear(renderer, () => {
+            renderer.clear();
+            renderOnlySceneObjects(scene, camera, [
+                wireMesh,
+                pigtailCatheter.mesh,
+                sheathFluoroMesh
+            ]);
+        });
+
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
-        renderer.render(scene, camera);
+        renderOnlySceneObjects(scene, camera, [
+            skeletonModel,
+            sheathFluoroMesh,
+            wireMesh,
+            pigtailCatheter.mesh
+        ]);
 
         blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
         blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
@@ -1242,6 +1277,8 @@ function animate(time) {
 
         displayMaterial.uniforms.uTexture.value = currentTarget.texture;
         displayMaterial.uniforms.contrastTexture.value = contrastTarget.texture;
+        displayMaterial.uniforms.thicknessTexture.value = thicknessTarget.texture;
+        displayMaterial.uniforms.metalTexture.value = metalTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
 
@@ -1269,6 +1306,7 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     offscreenTarget.setSize(w, h);
     contrastTarget.setSize(w, h);
+    metalTarget.setSize(w, h);
     accumulateTarget1.setSize(w, h);
     accumulateTarget2.setSize(w, h);
     frontDepthTarget.setSize(w, h);

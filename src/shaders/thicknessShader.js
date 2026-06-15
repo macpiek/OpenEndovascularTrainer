@@ -10,18 +10,17 @@ void main() {
 
 export const fragmentShader = `
 // Thickness estimation shader.
-// Uses front and back depth renders of opaque geometry to estimate
-// per-pixel thickness along the view ray: thickness = back - front.
-// This can be used to approximate X-ray attenuation or soft shading.
+// Uses front and back depth renders to estimate per-pixel path length through
+// the rendered anatomy. MeshDepthMaterial depth direction can vary with the
+// packing path, so the signed front/back delta is treated as a magnitude here.
 uniform sampler2D frontDepth;
 uniform sampler2D backDepth;
 varying vec2 vUv;
 void main() {
     float front = texture2D(frontDepth, vUv).r;
     float back = texture2D(backDepth, vUv).r;
-    float thick = max(back - front, 0.0);
+    float thick = abs(back - front);
 
     gl_FragColor = vec4(vec3(thick), 1.0);
 }
 `;
-
