@@ -86,7 +86,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
         // Lower default bone opacity so bones appear less prominent
-        boneOpacity: { value: 0.5 },
+        boneOpacity: { value: 0.35 },
         resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
         edgeStrength: { value: 1.0 }
 
