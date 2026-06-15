@@ -10,24 +10,193 @@ void main() {
 
 export const fragmentShader = `
 // Final display shader.
-// - In fluoroscopy mode: interprets the accumulated buffer as intensity,
-//   adds procedural noise, mixes contrast agent texture, and inverts to
-//   a grayscale X-ray look with adjustable edge emphasis.
+// - In fluoroscopy mode: composes anatomy thickness, iodine contrast, and
+//   metallic devices as radiographic attenuation, then applies detector-style
+//   windowing, edge enhancement, field falloff, and dose-dependent noise.
 // - In wireframe mode: just visualizes the scene with edge-enhanced alpha.
 uniform sampler2D uTexture;
 uniform sampler2D contrastTexture;
+uniform sampler2D thicknessTexture;
+uniform sampler2D metalTexture;
+uniform sampler2D sheathTexture;
+uniform sampler2D boneTexture;
 uniform vec3 gray;
 uniform bool fluoroscopy;
 uniform float time;
 uniform float noiseLevel;
+uniform float imageBrightness;
+uniform float imageContrast;
+uniform bool autoExposureEnabled;
+uniform float autoExposureLevel;
+uniform float pulseRate;
+uniform float scatterStrength;
+uniform float collimation;
 uniform float boneOpacity;
 uniform vec2 resolution;
 uniform float edgeStrength;
+uniform float contrastOpacity;
+uniform float contrastGain;
 varying vec2 vUv;
 
-// Hash-based noise; time-varying for animated grain.
+float saturate(float value) {
+    return clamp(value, 0.0, 1.0);
+}
+
+float max3(vec3 value) {
+    return max(max(value.r, value.g), value.b);
+}
+
+// Hash-based noise. Animated samples mimic quantum mottle; stable samples are
+// reused for detector fixed-pattern noise.
 float random(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898, 78.233)) + time) * 43758.5453123);
+    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+float animatedNoise(vec2 st, float phase) {
+    return random(st + vec2(phase * 17.37, phase * 5.91));
+}
+
+float sampleSignal(sampler2D source, vec2 uv) {
+    return max3(texture2D(source, uv).rgb);
+}
+
+float contrastAt(vec2 uv) {
+    float signal = sampleSignal(contrastTexture, uv);
+    return saturate(1.0 - exp(-signal * max(0.0, contrastGain) * 1.45));
+}
+
+float metalAt(vec2 uv) {
+    float signal = sampleSignal(metalTexture, uv);
+    return smoothstep(0.025, 0.58, signal);
+}
+
+float sheathAt(vec2 uv) {
+    float signal = sampleSignal(sheathTexture, uv);
+    return smoothstep(0.03, 0.32, signal);
+}
+
+vec3 boneProjectionSampleAt(vec2 uv) {
+    return texture2D(boneTexture, uv).rgb;
+}
+
+float boneProjectionAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float center = boneProjectionSampleAt(uv).b * 0.42;
+    float axial = (
+        boneProjectionSampleAt(uv + texel * vec2(1.5, 0.0)).b +
+        boneProjectionSampleAt(uv + texel * vec2(-1.5, 0.0)).b +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.5)).b +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.5)).b
+    ) * 0.10;
+    float diagonal = (
+        boneProjectionSampleAt(uv + texel * vec2(1.2, 1.2)).b +
+        boneProjectionSampleAt(uv + texel * vec2(-1.2, 1.2)).b +
+        boneProjectionSampleAt(uv + texel * vec2(1.2, -1.2)).b +
+        boneProjectionSampleAt(uv + texel * vec2(-1.2, -1.2)).b
+    ) * 0.045;
+    return center + axial + diagonal;
+}
+
+float corticalProjectionAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float center = boneProjectionSampleAt(uv).r * 0.34;
+    float nearAxial = (
+        boneProjectionSampleAt(uv + texel * vec2(1.45, 0.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-1.45, 0.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.45)).r +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.45)).r
+    ) * 0.075;
+    float diagonal = (
+        boneProjectionSampleAt(uv + texel * vec2(1.75, 1.75)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-1.75, 1.75)).r +
+        boneProjectionSampleAt(uv + texel * vec2(1.75, -1.75)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-1.75, -1.75)).r
+    ) * 0.04;
+    float wideAxial = (
+        boneProjectionSampleAt(uv + texel * vec2(3.25, 0.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-3.25, 0.0)).r +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, 3.25)).r +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, -3.25)).r
+    ) * 0.03;
+    float wideDiagonal = (
+        boneProjectionSampleAt(uv + texel * vec2(2.75, 2.75)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-2.75, 2.75)).r +
+        boneProjectionSampleAt(uv + texel * vec2(2.75, -2.75)).r +
+        boneProjectionSampleAt(uv + texel * vec2(-2.75, -2.75)).r
+    ) * 0.018;
+    return center + nearAxial + diagonal + wideAxial + wideDiagonal;
+}
+
+float thicknessPathAt(vec2 uv) {
+    float thickness = texture2D(thicknessTexture, uv).r;
+    return saturate(thickness * 6.2);
+}
+
+float bonePathAt(vec2 uv) {
+    float thicknessPath = pow(thicknessPathAt(uv), 0.72);
+    float projectedBone = boneProjectionAt(uv);
+    float projectionPath = pow(saturate(projectedBone * 2.5), 0.9) * 0.46;
+    return saturate(thicknessPath * (0.78 + projectionPath * 0.42) + projectionPath * 0.18);
+}
+
+float corticalBoneAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float c = thicknessPathAt(uv);
+    float l = thicknessPathAt(uv + texel * vec2(-1.0, 0.0));
+    float r = thicknessPathAt(uv + texel * vec2(1.0, 0.0));
+    float t = thicknessPathAt(uv + texel * vec2(0.0, -1.0));
+    float b = thicknessPathAt(uv + texel * vec2(0.0, 1.0));
+    float thicknessEdge = smoothstep(0.014, 0.19, length(vec2(r - l, b - t)));
+    float entryExitCortex = smoothstep(0.026, 0.31, c) * (0.11 + thicknessEdge * 0.4);
+    float projectedCortex = pow(saturate(corticalProjectionAt(uv) * 2.65), 0.78);
+    return saturate(entryExitCortex + projectedCortex * (0.27 + c * 0.38));
+}
+
+float attenuationAt(vec2 uv) {
+    float boneMu = mix(0.18, 2.15, saturate(boneOpacity));
+    float bone = (bonePathAt(uv) * 0.74 + corticalBoneAt(uv) * 0.82) * boneMu;
+    float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
+    float metal = metalAt(uv) * 5.25;
+    float sheath = sheathAt(uv) * 0.42;
+
+    // A small contribution from the accumulated visible frame preserves mild
+    // detector lag without letting the old postprocess dominate the image.
+    float temporalTrace = smoothstep(0.04, 0.85, sampleSignal(uTexture, uv)) * 0.22;
+    return max(0.0, bone + iodine + metal + sheath + temporalTrace);
+}
+
+float vignetteField(vec2 uv) {
+    vec2 centered = uv * 2.0 - 1.0;
+    centered.x *= resolution.x / max(1.0, resolution.y);
+    float radius = length(centered);
+    return 1.0 - 0.22 * smoothstep(0.28, 1.35, radius);
+}
+
+float patientBodyField(vec2 uv) {
+    vec2 centered = uv * 2.0 - 1.0;
+    centered.x *= resolution.x / max(1.0, resolution.y);
+    float pelvis = 1.0 - smoothstep(0.42, 1.18, length(centered * vec2(0.72, 1.05)));
+    float trunk = 1.0 - smoothstep(0.35, 1.08, length((centered - vec2(0.0, -0.18)) * vec2(0.62, 1.35)));
+    return saturate(max(pelvis, trunk * 0.72));
+}
+
+float scatterFieldAt(vec2 uv, float attenuation) {
+    float tissuePath = patientBodyField(uv);
+    float projectedPath = saturate(thicknessPathAt(uv) * 0.55 + bonePathAt(uv) * 0.26 + tissuePath * 0.22);
+    return saturate(scatterStrength * (projectedPath * 0.72 + attenuation * 0.08));
+}
+
+float collimatorMask(vec2 uv) {
+    vec2 centered = uv * 2.0 - 1.0;
+    float crop = saturate(collimation);
+    vec2 halfSize = vec2(1.0 - crop * 1.35, 1.0 - crop * 1.18);
+    float softness = 0.022 + crop * 0.055;
+    float maskX = 1.0 - smoothstep(halfSize.x, halfSize.x + softness, abs(centered.x));
+    float maskY = 1.0 - smoothstep(halfSize.y, halfSize.y + softness, abs(centered.y));
+    vec2 roundCoord = centered;
+    roundCoord.x *= resolution.x / max(1.0, resolution.y);
+    float roundMask = 1.0 - smoothstep(1.28 - crop * 0.62, 1.34 - crop * 0.62, length(roundCoord));
+    return saturate(maskX * maskY * roundMask);
 }
 
 // Simple Sobel-like edge factor based on alpha channel of uTexture.
@@ -48,23 +217,64 @@ float edgeFactor(vec2 uv) {
 }
 void main() {
     vec4 tex = texture2D(uTexture, vUv);
-    float edge = edgeFactor(vUv) * edgeStrength;
     if (fluoroscopy) {
-        // Convert accumulated intensity to inverted grayscale appearance.
-        float intensity = tex.r * boneOpacity;
-        float noise = random(vUv * 100.0) - 0.5;
-        intensity += noise * noiseLevel;
-        intensity = clamp(intensity, 0.0, 1.0);
-        // Contrast agent (additive brightening) sampled separately and
-        // mixed into the image.
-        vec4 cSample = texture2D(contrastTexture, vUv);
-        float contrastSignal = max(max(cSample.r, cSample.g), cSample.b);
-        float contrast = clamp(contrastSignal * 3.35, 0.0, 1.0);
-        vec3 color = gray * (1.0 - intensity);
-        float alpha = clamp(1.0 + edge, 0.0, 1.0);
-        gl_FragColor = vec4(mix(color, vec3(0.0), contrast), alpha);
+        vec2 texel = 1.0 / resolution;
+        float centerAttenuation = attenuationAt(vUv);
+        float localScatter = scatterFieldAt(vUv, centerAttenuation);
+        float exposureLift = autoExposureEnabled ? autoExposureLevel : 0.0;
+        float neighborAttenuation = (
+            attenuationAt(vUv + texel * vec2(1.0, 0.0)) +
+            attenuationAt(vUv + texel * vec2(-1.0, 0.0)) +
+            attenuationAt(vUv + texel * vec2(0.0, 1.0)) +
+            attenuationAt(vUv + texel * vec2(0.0, -1.0))
+        ) * 0.25;
+
+        // C-arm images are usually edge-enhanced after acquisition. Sharpen
+        // attenuation before transmission so radiopaque borders get the expected
+        // dark/bright overshoot instead of an alpha-only outline.
+        float scatterSoftenedEdge = mix(0.34, 0.16, localScatter);
+        float sharpenedAttenuation = max(
+            0.0,
+            centerAttenuation + (centerAttenuation - neighborAttenuation) * edgeStrength * scatterSoftenedEdge
+        );
+
+        float transmission = exp(-sharpenedAttenuation);
+        float scatterFog = saturate(centerAttenuation * 0.045 + localScatter * 0.42);
+        transmission = mix(transmission, 0.60 + exposureLift * 0.18, scatterFog);
+
+        // Detector window/level with a soft shoulder. This keeps the air field
+        // from becoming pure white and gives dense contrast a real black floor.
+        float luma = pow(saturate(transmission), 0.72);
+        luma = smoothstep(0.035, 0.985, luma);
+        luma = mix(0.08, 0.88, luma);
+
+        float field = vignetteField(vUv);
+        float fixedPattern = (random(floor(vUv * resolution / 7.0)) - 0.5) * 0.022;
+        float columnPattern = (random(vec2(floor(vUv.x * resolution.x / 3.0), 19.0)) - 0.5) * 0.012;
+        float gridPattern =
+            sin(vUv.x * resolution.x * 0.86) * 0.0035 +
+            sin(vUv.y * resolution.y * 0.42) * 0.0025;
+        float doseNoiseScale = sqrt(30.0 / clamp(pulseRate, 7.5, 30.0));
+        float pulseIndex = floor(time * max(1.0, pulseRate));
+        float pulseJitter = (random(vec2(pulseIndex, 37.0)) - 0.5) * 0.012 * doseNoiseScale;
+        float mottle = (animatedNoise(vUv * resolution, pulseIndex * 0.73) - 0.5)
+            * noiseLevel
+            * doseNoiseScale
+            * (0.15 + 0.32 * sqrt(max(luma, 0.0)));
+
+        luma = saturate(luma * field + fixedPattern + columnPattern + gridPattern + mottle + pulseJitter);
+        luma = mix(luma, 0.56 + (luma - 0.56) * 0.54, localScatter * 0.46);
+        luma = saturate(luma + exposureLift);
+        luma = saturate((luma - 0.5) * max(0.0, imageContrast) + 0.5 + imageBrightness);
+        luma = mix(0.018, luma, collimatorMask(vUv));
+
+        // Phosphor/detector response is slightly warm-neutral, not mathematically
+        // flat grayscale. Keep it subtle so it still reads as fluoroscopy.
+        vec3 detectorTint = vec3(0.965, 0.982, 1.0);
+        gl_FragColor = vec4(gray * detectorTint * luma, 1.0);
     } else {
         // Debug mode: keep original color, use edge to boost alpha.
+        float edge = edgeFactor(vUv) * edgeStrength;
         float alpha = clamp(tex.a + edge, 0.0, 1.0);
         gl_FragColor = vec4(tex.rgb, alpha);
     }
