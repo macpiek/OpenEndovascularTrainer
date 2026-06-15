@@ -5,6 +5,8 @@ import { MeshBVH } from 'three-mesh-bvh';
 const AORTA_MODEL_URL = 'res/Aorta_plain.stl';
 const AORTA_MODEL_SCALE = 1.3;
 const AORTA_MODEL_Y_OFFSET = 40;
+const LUMEN_HINT_SAMPLE_SPACING = 3;
+const LUMEN_HINT_Y_WINDOW = 38;
 
 function targetFromVessel(vessel) {
     const ys = [];
@@ -60,9 +62,10 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
             mesh.renderOrder = 0;
             group.add(mesh);
             group.visible = true;
+            const lumenHintSamples = buildAortaLumenHintSamples(vessel);
             const collision = {
                 geometry,
-                meshCollider: createMeshLumenCollider(geometry),
+                meshCollider: createMeshLumenCollider(geometry, { lumenHintSamples }),
                 clearance: 0.6,
                 guidewireClearance: 0.35,
                 guidewireSegmentClearance: 0.12,
@@ -85,7 +88,45 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
     return { group, material };
 }
 
-export function createMeshLumenCollider(geometry) {
+export function buildAortaLumenHintSamples(vessel, spacing = LUMEN_HINT_SAMPLE_SPACING) {
+    const path = [
+        { point: new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z) },
+        { point: new THREE.Vector3(-71, -374, 12) },
+        { point: new THREE.Vector3(-68, -365, 10) },
+        { point: new THREE.Vector3(-60, -355, 2) },
+        { point: new THREE.Vector3(-28, -338, -8) },
+        { point: new THREE.Vector3(-10, -315, 2) },
+        { point: new THREE.Vector3(-14, -290, 8) },
+        { point: new THREE.Vector3(0, -230, 0) },
+        { point: new THREE.Vector3(0, -160, 0) },
+        { point: new THREE.Vector3(-9, -125, -6) },
+        { point: new THREE.Vector3(28, -100, -33) },
+        { point: new THREE.Vector3(38, -60, -49) },
+        { point: new THREE.Vector3(36, -25, -56) },
+        { point: new THREE.Vector3(19, 0, -22) },
+        { point: new THREE.Vector3(-8, 35, -18) },
+        { point: new THREE.Vector3(3, 95, -18) },
+        { point: new THREE.Vector3(10, 145, -18) },
+        { point: new THREE.Vector3(20, 230, -18) },
+        { point: new THREE.Vector3(32, 330, -18) }
+    ];
+    const curve = new THREE.CatmullRomCurve3(
+        path.map(entry => entry.point),
+        false,
+        'centripetal',
+        0.35
+    );
+    curve.arcLengthDivisions = Math.max(200, path.length * 48);
+    const curveLength = curve.getLength();
+    const sampleCount = Math.max(2, Math.ceil(curveLength / Math.max(0.5, spacing)) + 1);
+    const samples = [];
+    for (let i = 0; i < sampleCount; i++) {
+        samples.push(curve.getPointAt(i / (sampleCount - 1)));
+    }
+    return samples;
+}
+
+export function createMeshLumenCollider(geometry, { lumenHintSamples = [] } = {}) {
     const closest = new THREE.Vector3();
     const point = new THREE.Vector3();
     const ray = new THREE.Ray();
@@ -96,6 +137,10 @@ export function createMeshLumenCollider(geometry) {
     const normalC = new THREE.Vector3();
     const faceNormal = new THREE.Vector3();
     const pointDelta = new THREE.Vector3();
+    const hintedInward = new THREE.Vector3();
+    const orderedHints = lumenHintSamples
+        .map(sample => sample.clone ? sample.clone() : new THREE.Vector3(sample.x, sample.y, sample.z))
+        .sort((a, b) => a.y - b.y);
 
     function triangleNormal(faceIndex) {
         const position = geometry.attributes.position;
@@ -113,14 +158,51 @@ export function createMeshLumenCollider(geometry) {
         return triangleNormal(faceIndex).clone().negate();
     }
 
+    function inwardDirectionForSurface(surfacePoint, faceIndex) {
+        let best = null;
+        let bestDistanceSq = Infinity;
+        const yMin = surfacePoint.y - LUMEN_HINT_Y_WINDOW;
+        const yMax = surfacePoint.y + LUMEN_HINT_Y_WINDOW;
+        let candidates = 0;
+        for (const sample of orderedHints) {
+            if (sample.y < yMin) continue;
+            if (sample.y > yMax) break;
+            const distanceSq = surfacePoint.distanceToSquared(sample);
+            candidates++;
+            if (distanceSq < bestDistanceSq) {
+                best = sample;
+                bestDistanceSq = distanceSq;
+            }
+        }
+
+        if (candidates === 0) {
+            for (const sample of orderedHints) {
+                const distanceSq = surfacePoint.distanceToSquared(sample);
+                if (distanceSq < bestDistanceSq) {
+                    best = sample;
+                    bestDistanceSq = distanceSq;
+                }
+            }
+        }
+
+        if (best) {
+            hintedInward.subVectors(best, surfacePoint);
+            if (hintedInward.lengthSq() > 1e-8) {
+                return hintedInward.normalize().clone();
+            }
+        }
+
+        return inwardNormalForFace(faceIndex);
+    }
+
     // The STL is an open vessel surface, so ray-parity containment is unstable
-    // around branch ostia and large lumens. Treat the STL face normal as the
-    // wall/outside direction and the opposite side as the lumen side.
+    // around branch ostia and raw triangle normals are not a reliable inside
+    // signal. Orient each local wall normal toward a sampled lumen centerline.
     function pointContact(input, clearance = 0) {
         point.set(input.x, input.y, input.z);
         const hit = geometry.boundsTree.closestPointToPoint(point, { point: closest });
         const distance = hit?.distance ?? point.distanceTo(closest);
-        const inward = inwardNormalForFace(hit?.faceIndex).clone();
+        const inward = inwardDirectionForSurface(closest, hit?.faceIndex);
         const depth = pointDelta.subVectors(point, closest).dot(inward);
         const target = closest.clone().addScaledVector(inward, Math.max(0, clearance));
         const wallNormal = inward.clone().negate();
@@ -165,7 +247,7 @@ export function createMeshLumenCollider(geometry) {
                 .sort((a, b) => a.distance - b.distance)[0];
         if (!hit || hit.distance > length + 1e-3) return null;
 
-        const inward = inwardNormalForFace(hit.faceIndex);
+        const inward = inwardDirectionForSurface(hit.point, hit.faceIndex);
         const target = hit.point.clone().addScaledVector(inward, Math.max(0, clearance));
         return {
             hit,
