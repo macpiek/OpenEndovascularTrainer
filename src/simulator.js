@@ -2,14 +2,14 @@
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260614physrevert1';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260614debug1';
+import { initUI } from './ui/ui.js?v=20260615fluoro18';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
 import { createAortaModel } from './aortaModel.js?v=20260614guidewirestable1';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614debug1';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260615fluoro19';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const WALL_CONTACT_COLOR = 0xffd24a;
@@ -17,6 +17,8 @@ const WALL_BREACH_COLOR = 0xff3355;
 const CONTACT_MARKER_LIMIT = 420;
 const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 18;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
+const XRAY_CAMERA_NEAR = 0.1;
+const XRAY_CAMERA_FAR = 1000;
 
 // WebGL renderer attached to the fullscreen canvas
 const canvas = document.getElementById('sim');
@@ -33,6 +35,9 @@ const contrastScene = new THREE.Scene();
 // Offscreen render targets used by various post-processing passes
 const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const metalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const sheathTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const boneTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const accumulateTarget2 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const frontDepthTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
@@ -57,14 +62,38 @@ const blendQuad = new THREE.Mesh(quadGeometry, blendMaterial);
 const blendScene = new THREE.Scene();
 blendScene.add(blendQuad);
 
-// Depth-only materials used to compute front/back depth for thickness
-const depthMaterialFront = new THREE.MeshDepthMaterial({ side: THREE.FrontSide });
-const depthMaterialBack = new THREE.MeshDepthMaterial({
-    side: THREE.BackSide,
+function createLinearDepthMaterial(side) {
+    return new THREE.ShaderMaterial({
+        side,
+        depthTest: true,
+        depthWrite: true,
+        uniforms: {
+            cameraNear: { value: XRAY_CAMERA_NEAR },
+            cameraFar: { value: XRAY_CAMERA_FAR }
+        },
+        vertexShader: `
+            varying float vViewDepth;
+            void main() {
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewDepth = -mvPosition.z;
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform float cameraNear;
+            uniform float cameraFar;
+            varying float vViewDepth;
+            void main() {
+                float depth = clamp((vViewDepth - cameraNear) / max(1.0, cameraFar - cameraNear), 0.0, 1.0);
+                gl_FragColor = vec4(vec3(depth), 1.0);
+            }
+        `
+    });
+}
 
-    depthTest: false
-
-});
+// Depth-only materials used to compute front/back ray length through bone.
+const depthMaterialFront = createLinearDepthMaterial(THREE.FrontSide);
+const depthMaterialBack = createLinearDepthMaterial(THREE.BackSide);
 const thicknessMaterial = new THREE.ShaderMaterial({
     uniforms: {
         frontDepth: { value: frontDepthTarget.texture },
@@ -76,19 +105,95 @@ const thicknessMaterial = new THREE.ShaderMaterial({
 const thicknessQuad = new THREE.Mesh(quadGeometry, thicknessMaterial);
 const thicknessScene = new THREE.Scene();
 thicknessScene.add(thicknessQuad);
+const boneProjectionMaterial = new THREE.ShaderMaterial({
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    depthTest: true,
+    depthWrite: false,
+    vertexShader: `
+        varying vec3 vViewNormal;
+        varying vec3 vWorldPosition;
+        void main() {
+            vViewNormal = normalize(normalMatrix * normal);
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldPosition = worldPosition.xyz;
+            gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        }
+    `,
+    fragmentShader: `
+        varying vec3 vViewNormal;
+        varying vec3 vWorldPosition;
+
+        float hash(vec3 p) {
+            return fract(sin(dot(p, vec3(17.13, 47.71, 91.37))) * 43758.5453);
+        }
+
+        float valueNoise(vec3 p) {
+            vec3 i = floor(p);
+            vec3 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            float n000 = hash(i + vec3(0.0, 0.0, 0.0));
+            float n100 = hash(i + vec3(1.0, 0.0, 0.0));
+            float n010 = hash(i + vec3(0.0, 1.0, 0.0));
+            float n110 = hash(i + vec3(1.0, 1.0, 0.0));
+            float n001 = hash(i + vec3(0.0, 0.0, 1.0));
+            float n101 = hash(i + vec3(1.0, 0.0, 1.0));
+            float n011 = hash(i + vec3(0.0, 1.0, 1.0));
+            float n111 = hash(i + vec3(1.0, 1.0, 1.0));
+            float nx00 = mix(n000, n100, f.x);
+            float nx10 = mix(n010, n110, f.x);
+            float nx01 = mix(n001, n101, f.x);
+            float nx11 = mix(n011, n111, f.x);
+            float nxy0 = mix(nx00, nx10, f.y);
+            float nxy1 = mix(nx01, nx11, f.y);
+            return mix(nxy0, nxy1, f.z);
+        }
+
+        void main() {
+            float facing = abs(normalize(vViewNormal).z);
+            float cortex = pow(1.0 - facing, 1.16);
+            float broadDensity = pow(facing, 0.55) * 0.035;
+
+            vec3 p = vWorldPosition * 0.035;
+            float coarse = valueNoise(p);
+            float fine = valueNoise(p * 2.8 + vec3(4.0, 11.0, 2.0));
+            float trabeculae = smoothstep(0.42, 0.92, coarse * 0.62 + fine * 0.38);
+            float marrowMottle = mix(0.72, 1.08, valueNoise(p * 1.35 + vec3(2.0, 7.0, 13.0)));
+
+            float corticalSignal = cortex * 0.18 + broadDensity * 0.06;
+            float trabecularSignal = broadDensity * 0.66 + trabeculae * marrowMottle * 0.032;
+            float totalSignal = corticalSignal + trabecularSignal * 0.62;
+
+            gl_FragColor = vec4(corticalSignal, trabecularSignal, totalSignal, 1.0);
+        }
+    `
+});
 
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: previousTarget.texture },
         contrastTexture: { value: contrastTarget.texture },
+        thicknessTexture: { value: thicknessTarget.texture },
+        metalTexture: { value: metalTarget.texture },
+        sheathTexture: { value: sheathTarget.texture },
+        boneTexture: { value: boneTarget.texture },
         gray: { value: new THREE.Color(0xEBEBEB) },
         fluoroscopy: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.05 },
-        // Lower default bone opacity so bones appear less prominent
-        boneOpacity: { value: 0.35 },
+        imageBrightness: { value: 0.0 },
+        imageContrast: { value: 1.0 },
+        autoExposureEnabled: { value: true },
+        autoExposureLevel: { value: 0.0 },
+        pulseRate: { value: 15.0 },
+        scatterStrength: { value: 0.45 },
+        collimation: { value: 0.08 },
+        boneOpacity: { value: 0.5 },
         resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        edgeStrength: { value: 1.0 }
+        edgeStrength: { value: 1.0 },
+        contrastOpacity: { value: 1.0 },
+        contrastGain: { value: 5.0 }
 
     },
     vertexShader: displayVS,
@@ -100,7 +205,7 @@ displayScene.add(displayQuad);
 
 // C-arm configuration: camera acts as X-ray source; detector is simulated in shaders
 const cameraRadius = 350;
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, XRAY_CAMERA_NEAR, XRAY_CAMERA_FAR);
 camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
 
@@ -146,7 +251,7 @@ function createSheathFluoroMesh(sheath) {
         color: 0xffffff,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.16,
+        opacity: 0.065,
         depthTest: false,
         depthWrite: false
     });
@@ -1068,8 +1173,50 @@ function updateGuidewireResistance(advance, commandedDelta, tipBefore) {
 
 const fixedDt = 1 / 60;
 let lastRenderTime = performance.now();
+let lastFluoroPulseTime = -Infinity;
+let autoExposureLevel = 0;
+const autoExposureBeamDirection = new THREE.Vector3();
 let contactMarkerAccumulator = CONTACT_MARKER_UPDATE_INTERVAL;
 let pigtailMeshAccumulator = PIGTAIL_MESH_UPDATE_INTERVAL;
+
+function updateAutoExposure(dt) {
+    const uniforms = displayMaterial.uniforms;
+    const response = Math.min(1, Math.max(0, dt) * 1.35);
+    if (!uniforms.autoExposureEnabled.value) {
+        autoExposureLevel += (0 - autoExposureLevel) * Math.min(1, response * 1.6);
+        uniforms.autoExposureLevel.value = autoExposureLevel;
+        return;
+    }
+
+    camera.getWorldDirection(autoExposureBeamDirection);
+    const lateralPath = Math.abs(autoExposureBeamDirection.x);
+    const cranialPath = Math.abs(autoExposureBeamDirection.y);
+    const obliquityLoad = Math.max(0, lateralPath - 0.1);
+    const collimationAmount = THREE.MathUtils.clamp((uniforms.collimation.value || 0) / 0.45, 0, 1);
+    const collimationExposureRelief = 1 - collimationAmount * 0.34;
+    const uncollimatedTarget = 0.012 + obliquityLoad * 0.15 + cranialPath * 0.035;
+    const target = THREE.MathUtils.clamp(
+        uncollimatedTarget * collimationExposureRelief - collimationAmount * 0.006,
+        -0.03,
+        0.18
+    );
+    autoExposureLevel += (target - autoExposureLevel) * response;
+    uniforms.autoExposureLevel.value = autoExposureLevel;
+}
+
+function updateXrayTechniqueReadout() {
+    const uniforms = displayMaterial.uniforms;
+    const pulseRate = THREE.MathUtils.clamp(uniforms.pulseRate.value || 15, 7.5, 30);
+    const exposureRatio = uniforms.autoExposureEnabled.value
+        ? THREE.MathUtils.clamp(autoExposureLevel / 0.18, 0, 1)
+        : 0.25;
+    const kV = 70 + exposureRatio * 28;
+    const pulseLoad = Math.pow(pulseRate / 15, 0.72);
+    const collimationAmount = THREE.MathUtils.clamp((uniforms.collimation.value || 0) / 0.45, 0, 1);
+    const collimationDoseLoad = 1 - collimationAmount * 0.42;
+    const mA = (2.4 + exposureRatio * 7.2) * pulseLoad * collimationDoseLoad;
+    ui.updateXrayTechnique(kV, mA);
+}
 
 function stepSimulation() {
     // Advance input, integrate rod physics, collisions, and update medical monitors
@@ -1145,6 +1292,21 @@ function withTransparentClear(renderer, fn) {
     renderer.setClearColor(0x000000, 1);
 }
 
+function renderOnlySceneObjects(scene, camera, objects) {
+    const keep = new Set(objects.filter(Boolean));
+    const hidden = [];
+    for (const child of scene.children) {
+        if (child.isCamera) continue;
+        const shouldRender = keep.has(child) && child.visible;
+        if (!shouldRender && child.visible) {
+            hidden.push(child);
+            child.visible = false;
+        }
+    }
+    renderer.render(scene, camera);
+    for (const obj of hidden) obj.visible = true;
+}
+
 function animate(time) {
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
     const dt = (time - lastRenderTime) / 1000;
@@ -1194,11 +1356,25 @@ function animate(time) {
     ui.setInjectButtonDisabled(contrastActive);
     ui.setStopInjectionDisabled(!injecting);
     if (fluoroscopy) {
+        updateAutoExposure(dt);
+        updateXrayTechniqueReadout();
+        const pulseRate = Math.max(1, displayMaterial.uniforms.pulseRate.value || 15);
+        const pulseInterval = 1000 / pulseRate;
+        const shouldAcquireFluoroFrame = time - lastFluoroPulseTime >= pulseInterval;
+        if (!shouldAcquireFluoroFrame) {
+            renderer.setRenderTarget(null);
+            renderer.render(displayScene, postCamera);
+            ui.updatePerfStats(dt);
+            requestAnimationFrame(animate);
+            return;
+        }
+        lastFluoroPulseTime = time;
+
         // Fluoroscopy path:
         // 1) render front/back depth for thickness
-        // 2) render contrast to its target with transparent clear
+        // 2) render stable bone/contrast/metal masks for attenuation
         // 3) render scene to offscreen, accumulate with decay
-        // 4) display accumulated + contrast via display shader
+        // 4) display attenuated fluoroscopy image via display shader
         const hidden = [];
         for (const child of scene.children) {
             if (child !== skeletonModel && !child.isCamera) {
@@ -1223,15 +1399,42 @@ function animate(time) {
         renderer.render(thicknessScene, postCamera);
         renderer.setRenderTarget(null);
 
+        renderer.setRenderTarget(boneTarget);
+        renderer.clear();
+        scene.overrideMaterial = boneProjectionMaterial;
+        renderOnlySceneObjects(scene, camera, [skeletonModel]);
+        scene.overrideMaterial = null;
+        renderer.setRenderTarget(null);
+
         renderer.setRenderTarget(contrastTarget);
         withTransparentClear(renderer, () => {
             renderer.clear();
             renderer.render(contrastScene, camera);
         });
 
+        renderer.setRenderTarget(metalTarget);
+        withTransparentClear(renderer, () => {
+            renderer.clear();
+            renderOnlySceneObjects(scene, camera, [
+                wireMesh,
+                pigtailCatheter.mesh
+            ]);
+        });
+
+        renderer.setRenderTarget(sheathTarget);
+        withTransparentClear(renderer, () => {
+            renderer.clear();
+            renderOnlySceneObjects(scene, camera, [sheathFluoroMesh]);
+        });
+
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
-        renderer.render(scene, camera);
+        renderOnlySceneObjects(scene, camera, [
+            skeletonModel,
+            sheathFluoroMesh,
+            wireMesh,
+            pigtailCatheter.mesh
+        ]);
 
         blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
         blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
@@ -1242,6 +1445,10 @@ function animate(time) {
 
         displayMaterial.uniforms.uTexture.value = currentTarget.texture;
         displayMaterial.uniforms.contrastTexture.value = contrastTarget.texture;
+        displayMaterial.uniforms.thicknessTexture.value = thicknessTarget.texture;
+        displayMaterial.uniforms.metalTexture.value = metalTarget.texture;
+        displayMaterial.uniforms.sheathTexture.value = sheathTarget.texture;
+        displayMaterial.uniforms.boneTexture.value = boneTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
 
@@ -1250,6 +1457,8 @@ function animate(time) {
         previousTarget = currentTarget;
         currentTarget = temp;
     } else {
+        lastFluoroPulseTime = -Infinity;
+        updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
     }
@@ -1269,6 +1478,9 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     offscreenTarget.setSize(w, h);
     contrastTarget.setSize(w, h);
+    metalTarget.setSize(w, h);
+    sheathTarget.setSize(w, h);
+    boneTarget.setSize(w, h);
     accumulateTarget1.setSize(w, h);
     accumulateTarget2.setSize(w, h);
     frontDepthTarget.setSize(w, h);
