@@ -25,7 +25,14 @@ export function initUI(options) {
     document.getElementById('ecgCanvas'),
     document.getElementById('bpCanvas'),
     document.getElementById('hrValue'),
-    document.getElementById('bpValue')
+    document.getElementById('bpValue'),
+    {
+      spo2Elem: document.getElementById('spo2Value'),
+      mapElem: document.getElementById('mapValue'),
+      rrElem: document.getElementById('rrValue'),
+      rhythmElem: document.getElementById('monitorRhythm'),
+      clockElem: document.getElementById('monitorClock'),
+    }
   );
 
   // C-arm UI preview + controls
