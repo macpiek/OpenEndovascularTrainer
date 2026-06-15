@@ -53,8 +53,15 @@ export function initUI(options) {
   const injRateSlider = document.getElementById('injRate');
   const injDurationSlider = document.getElementById('injDuration');
   const injVolumeSlider = document.getElementById('injVolume');
+  const autoExposureToggle = document.getElementById('autoExposureToggle');
   const persistenceSlider = document.getElementById('persistence');
+  const pulseRateSlider = document.getElementById('pulseRate');
   const noiseSlider = document.getElementById('noiseLevel');
+  const scatterStrengthSlider = document.getElementById('scatterStrength');
+  const collimationSlider = document.getElementById('collimation');
+  const imageBrightnessSlider = document.getElementById('imageBrightness');
+  const imageContrastSlider = document.getElementById('imageContrast');
+  const edgeEnhancementSlider = document.getElementById('edgeEnhancement');
   const boneVisibilitySlider = document.getElementById('boneVisibility');
   const contrastOpacitySlider = document.getElementById('opacityScale');
   const contrastGainSlider = document.getElementById('gain');
@@ -65,6 +72,8 @@ export function initUI(options) {
   const catheterRotateLeftButton = document.getElementById('catheterRotateLeft');
   const catheterRotateRightButton = document.getElementById('catheterRotateRight');
   const doseDisplayEl = document.getElementById('currentDose');
+  const currentKVEl = document.getElementById('currentKV');
+  const currentMAEl = document.getElementById('currentMA');
   const guidewireResistanceEl = document.getElementById('guidewireResistanceStatus');
   const guidewireResistanceReasonEl = document.getElementById('guidewireResistanceReason');
   const guidewireResistanceValueEl = document.getElementById('guidewireResistanceValue');
@@ -83,7 +92,13 @@ export function initUI(options) {
     kineticFricSlider,
     smoothIterSlider,
     persistenceSlider,
+    pulseRateSlider,
     noiseSlider,
+    scatterStrengthSlider,
+    collimationSlider,
+    imageBrightnessSlider,
+    imageContrastSlider,
+    edgeEnhancementSlider,
     boneVisibilitySlider,
     contrastOpacitySlider,
     contrastGainSlider,
@@ -118,10 +133,62 @@ export function initUI(options) {
   });
 
   // Imaging controls
+  if (autoExposureToggle && displayMaterial.uniforms.autoExposureEnabled) {
+    let autoExposureEnabled = Boolean(displayMaterial.uniforms.autoExposureEnabled.value);
+    const updateAutoExposureToggle = () => {
+      displayMaterial.uniforms.autoExposureEnabled.value = autoExposureEnabled;
+      autoExposureToggle.textContent = `Auto exposure: ${autoExposureEnabled ? 'On' : 'Off'}`;
+      autoExposureToggle.classList.toggle('active', autoExposureEnabled);
+    };
+    updateAutoExposureToggle();
+    autoExposureToggle.addEventListener('click', () => {
+      autoExposureEnabled = !autoExposureEnabled;
+      updateAutoExposureToggle();
+      autoExposureToggle.blur();
+    });
+  }
   if (noiseSlider) {
     displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
     noiseSlider.addEventListener('input', e => {
       displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
+    });
+  }
+  if (pulseRateSlider && displayMaterial.uniforms.pulseRate) {
+    const updatePulseRate = e => {
+      displayMaterial.uniforms.pulseRate.value = parseFloat(e.target.value);
+    };
+    displayMaterial.uniforms.pulseRate.value = parseFloat(pulseRateSlider.value);
+    pulseRateSlider.addEventListener('input', updatePulseRate);
+    pulseRateSlider.addEventListener('change', updatePulseRate);
+  }
+  if (scatterStrengthSlider && displayMaterial.uniforms.scatterStrength) {
+    displayMaterial.uniforms.scatterStrength.value = parseFloat(scatterStrengthSlider.value);
+    scatterStrengthSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.scatterStrength.value = parseFloat(e.target.value);
+    });
+  }
+  if (collimationSlider && displayMaterial.uniforms.collimation) {
+    displayMaterial.uniforms.collimation.value = parseFloat(collimationSlider.value);
+    collimationSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.collimation.value = parseFloat(e.target.value);
+    });
+  }
+  if (imageBrightnessSlider && displayMaterial.uniforms.imageBrightness) {
+    displayMaterial.uniforms.imageBrightness.value = parseFloat(imageBrightnessSlider.value);
+    imageBrightnessSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.imageBrightness.value = parseFloat(e.target.value);
+    });
+  }
+  if (imageContrastSlider && displayMaterial.uniforms.imageContrast) {
+    displayMaterial.uniforms.imageContrast.value = parseFloat(imageContrastSlider.value);
+    imageContrastSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.imageContrast.value = parseFloat(e.target.value);
+    });
+  }
+  if (edgeEnhancementSlider && displayMaterial.uniforms.edgeStrength) {
+    displayMaterial.uniforms.edgeStrength.value = parseFloat(edgeEnhancementSlider.value);
+    edgeEnhancementSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.edgeStrength.value = parseFloat(e.target.value);
     });
   }
   if (persistenceSlider) {
@@ -306,6 +373,10 @@ export function initUI(options) {
   function updateDose(ml) {
     if (doseDisplayEl) doseDisplayEl.textContent = ml.toFixed(1) + ' ml';
   }
+  function updateXrayTechnique(kv, ma) {
+    if (currentKVEl) currentKVEl.textContent = `${Math.round(kv)} kV`;
+    if (currentMAEl) currentMAEl.textContent = `${ma.toFixed(1)} mA`;
+  }
   function updateGuidewireResistance(level, reason = '') {
     if (!guidewireResistanceEl) return;
     if (level < 0.35) {
@@ -350,6 +421,7 @@ export function initUI(options) {
     updateInsertedLength,
     updateCatheterLength,
     updateDose,
+    updateXrayTechnique,
     updateGuidewireResistance,
     setInjectButtonDisabled,
     setStopInjectionDisabled,
