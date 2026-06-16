@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260615stlpreprocess4';
+import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260616stlpreprocess6';
 
 const AORTA_MODEL_URL = 'res/Aorta_plain.stl';
 const AORTA_MODEL_SCALE = 1.3;

@@ -47,6 +47,25 @@ function maxNodeDrift(a, b) {
     return max;
 }
 
+function maxSolverBendAngle(wire, solver) {
+    let max = 0;
+    for (let i = 1; i < wire.nodes.length - 1; i++) {
+        if (solver.insertedCoordinate(i) <= solver.sheathLength) continue;
+        max = Math.max(max, wire.bendAngleAt(i) || 0);
+    }
+    return max;
+}
+
+function maxSegmentLengthError(wire, segmentLength) {
+    return wire.nodes.slice(1).reduce((max, node, i) => {
+        return Math.max(max, Math.abs(Math.hypot(
+            node.x - wire.nodes[i].x,
+            node.y - wire.nodes[i].y,
+            node.z - wire.nodes[i].z
+        ) - segmentLength));
+    }, 0);
+}
+
 const { vessel } = generateVessel(140, 0);
 const segmentLength = 5;
 const nodeCount = 201;
@@ -115,13 +134,7 @@ const outsideLumenDiagnostics = solver.collectLumenDiagnostics({
 }, { clearance: 0.45, contactBand: 1.85 });
 const firstInsertedIndex = solver.firstInsertedNodeIndex();
 const firstVisibleIndex = solver.firstLumenNodeIndex();
-const maxSegmentError = wire.nodes.slice(1).reduce((max, node, i) => {
-    return Math.max(max, Math.abs(Math.hypot(
-        node.x - wire.nodes[i].x,
-        node.y - wire.nodes[i].y,
-        node.z - wire.nodes[i].z
-    ) - segmentLength));
-}, 0);
+const maxSegmentError = maxSegmentLengthError(wire, segmentLength);
 
 console.log('guidewire inserted cm', (solver.progress / 10).toFixed(1));
 console.log('guidewire contacts', diagnostics.contacts.length);
@@ -135,6 +148,8 @@ console.log('guidewire first visible inserted', solver.insertedCoordinate(firstV
 assert.equal(diagnostics.breaches.length, 0, 'guidewire should remain inside the modeled lumen');
 assert.ok(diagnostics.contacts.length > 0, 'straightened guidewire should touch the vessel wall somewhere');
 assert.ok(insideLumenDiagnostics.checkedCount > 0, 'lumen diagnostics should sample guidewire points outside the sheath');
+assert.ok(insideLumenDiagnostics.worstPoint, 'lumen diagnostics should expose the worst sampled point');
+assert.equal(insideLumenDiagnostics.minSignedDistance, 2, 'lumen diagnostics should preserve signed-distance minima');
 assert.equal(insideLumenDiagnostics.outsideCount, 0, 'positive signed distances should not count as outside lumen');
 assert.equal(insideLumenDiagnostics.clearanceViolationCount, 0, 'positive signed distances above clearance should keep clearance clear');
 assert.equal(
@@ -159,6 +174,38 @@ assert.ok(
         solver.insertedCoordinate(firstVisibleIndex) >= solver.sheathLength,
     'lumen-only diagnostics should still start at the vessel lumen'
 );
+
+const withdrawalStartProgress = solver.progress;
+let withdrawalLastProgress = solver.progress;
+for (let frame = 0; frame < 180; frame++) {
+    const delta = solver.advance(-1, dt);
+    assert.ok(Math.abs(delta + 44 * dt) < 1e-9, 'withdrawal should move freely at commanded speed');
+    solver.solve(dt, null, { iterations: 16 });
+    assert.ok(
+        solver.progress <= withdrawalLastProgress + 1e-9,
+        'guidewire progress should decrease monotonically during withdrawal'
+    );
+    withdrawalLastProgress = solver.progress;
+}
+for (let frame = 0; frame < 60; frame++) {
+    solver.advance(0, dt);
+    solver.solve(dt, null, { iterations: 12 });
+}
+const withdrawalDiagnostics = solver.collectContactSamples(null, 1.85);
+const withdrawalSegmentError = maxSegmentLengthError(wire, segmentLength);
+const withdrawalMaxBend = maxSolverBendAngle(wire, solver);
+console.log('guidewire withdrawn cm', ((withdrawalStartProgress - solver.progress) / 10).toFixed(1));
+console.log('guidewire withdrawal breaches', withdrawalDiagnostics.breaches.length);
+console.log('guidewire withdrawal max segment error', withdrawalSegmentError.toFixed(5));
+console.log('guidewire withdrawal max bend', withdrawalMaxBend.toFixed(2));
+
+assert.ok(
+    withdrawalStartProgress - solver.progress > 120,
+    'withdrawal test should retract a meaningful length of guidewire'
+);
+assert.equal(withdrawalDiagnostics.breaches.length, 0, 'withdrawn guidewire should remain inside the modeled lumen');
+assert.ok(withdrawalSegmentError < 0.06, 'withdrawal should preserve guidewire segment lengths');
+assert.ok(withdrawalMaxBend < 135, 'withdrawal should not create a sharp local fold');
 
 const earlyWire = new ElasticRod(nodeCount, segmentLength, { constraintIterations: 28 });
 const earlySolver = new GuidewireSolver({
@@ -191,3 +238,107 @@ assert.ok(
     earlySolver.firstLumenNodeIndex() >= earlyWire.nodes.length,
     'early guidewire should not be treated as a lumen segment before it leaves the sheath'
 );
+
+const slidingSegmentLength = 1;
+const slidingNodeCount = 30;
+const slidingGuidewireLength = slidingSegmentLength * (slidingNodeCount - 1);
+const slidingSheath = {
+    start: { x: 0, y: 0, z: 0 },
+    end: { x: 0, y: 5, z: 0 },
+    radius: 2
+};
+const slidingWire = new ElasticRod(slidingNodeCount, slidingSegmentLength, { constraintIterations: 8 });
+const slidingSolver = new GuidewireSolver({
+    rod: slidingWire,
+    segmentLength: slidingSegmentLength,
+    guidewireLength: slidingGuidewireLength,
+    sheath: slidingSheath,
+    advanceRate: 1,
+    minInsert: 0,
+    maxInsert: 20,
+    straightening: 0,
+    routeBlend: 0,
+    relaxationIterations: 1,
+    lengthIterations: 1,
+    meshClearance: 0.45
+});
+slidingSolver.initialize();
+slidingSolver.advance(1, 12);
+for (let i = 0; i < slidingWire.nodes.length; i++) {
+    const inserted = slidingSolver.insertedCoordinate(i);
+    if (inserted <= slidingSolver.sheathLength) continue;
+    slidingWire.nodes[i].x = (inserted - slidingSolver.sheathLength) * 0.5;
+    slidingWire.nodes[i].y = inserted;
+    slidingWire.nodes[i].z = 0;
+}
+
+const slidingIndex = 25;
+const slidingBeforeX = slidingWire.nodes[slidingIndex].x;
+const slidingBeforeY = slidingWire.nodes[slidingIndex].y;
+const tangentPlaneCollision = {
+    meshCollider: {
+        pointContact(point) {
+            return {
+                signedDistance: 0.3,
+                distance: 0.3,
+                violation: false,
+                normal: { x: 1, y: 0, z: 0 },
+                target: { x: point.x, y: point.y, z: point.z }
+            };
+        }
+    }
+};
+slidingSolver.advance(1, 1, tangentPlaneCollision);
+assert.ok(
+    slidingWire.nodes[slidingIndex].x <= slidingBeforeX + 1e-9,
+    'feed convection near the STL wall should remove the outward normal component'
+);
+assert.ok(
+    slidingWire.nodes[slidingIndex].y > slidingBeforeY,
+    'feed convection near the STL wall should preserve tangential sliding'
+);
+
+function assertHairpinGuardAtProgress(progress) {
+    const foldWire = new ElasticRod(16, 5, { constraintIterations: 12 });
+    const foldGuidewireLength = 5 * (foldWire.nodes.length - 1);
+    const foldSolver = new GuidewireSolver({
+        rod: foldWire,
+        segmentLength: 5,
+        guidewireLength: foldGuidewireLength,
+        sheath: slidingSheath,
+        advanceRate: progress,
+        minInsert: 0,
+        maxInsert: foldGuidewireLength,
+        straightening: 0,
+        routeBlend: 0,
+        relaxationIterations: 1,
+        lengthIterations: 8,
+        foldGuardAngle: 118,
+        foldGuardStrength: 0.85,
+        foldGuardPasses: 4,
+        foldGuardCenterPull: 1.25
+    });
+    foldSolver.initialize();
+    foldSolver.advance(1, 1);
+    for (let i = 0; i < foldWire.nodes.length; i++) {
+        const inserted = foldSolver.insertedCoordinate(i);
+        if (inserted <= foldSolver.sheathLength) continue;
+        const local = inserted - foldSolver.sheathLength;
+        foldWire.nodes[i].x = local < 20 ? local : 40 - local;
+        foldWire.nodes[i].y = 12;
+        foldWire.nodes[i].z = 0;
+    }
+    assert.ok(
+        maxSolverBendAngle(foldWire, foldSolver) > 145,
+        `synthetic setup should start with a sharp hairpin at ${progress} mm`
+    );
+    foldSolver.solve(dt, null, { iterations: 1, forceRelax: true });
+    assert.ok(
+        maxSolverBendAngle(foldWire, foldSolver) < 122,
+        `hairpin guard should reduce sharp local folding at ${progress} mm`
+    );
+}
+
+for (const progress of [44, 60, 72]) {
+    assertHairpinGuardAtProgress(progress);
+}

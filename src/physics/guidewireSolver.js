@@ -22,6 +22,10 @@ const DEFAULT_FOLD_UNTANGLE_WINDOW = 5;
 const DEFAULT_FINAL_COLLISION_PASSES = 10;
 const DEFAULT_FINAL_LENGTH_PASSES = 6;
 const DEFAULT_FINAL_PROJECTION_PASSES = 2;
+const DEFAULT_FOLD_GUARD_ANGLE = 128;
+const DEFAULT_FOLD_GUARD_STRENGTH = 0.38;
+const DEFAULT_FOLD_GUARD_PASSES = 2;
+const DEFAULT_FOLD_GUARD_CENTER_PULL = 1.1;
 const SHEATH_BOUNDARY_EPSILON = 1e-3;
 
 function clamp(value, min, max) {
@@ -96,7 +100,11 @@ export class GuidewireSolver {
         foldUntangleWindow = DEFAULT_FOLD_UNTANGLE_WINDOW,
         finalCollisionPasses = DEFAULT_FINAL_COLLISION_PASSES,
         finalLengthPasses = DEFAULT_FINAL_LENGTH_PASSES,
-        finalProjectionPasses = DEFAULT_FINAL_PROJECTION_PASSES
+        finalProjectionPasses = DEFAULT_FINAL_PROJECTION_PASSES,
+        foldGuardAngle = DEFAULT_FOLD_GUARD_ANGLE,
+        foldGuardStrength = DEFAULT_FOLD_GUARD_STRENGTH,
+        foldGuardPasses = DEFAULT_FOLD_GUARD_PASSES,
+        foldGuardCenterPull = DEFAULT_FOLD_GUARD_CENTER_PULL
     }) {
         this.rod = rod;
         this.segmentLength = segmentLength;
@@ -126,6 +134,10 @@ export class GuidewireSolver {
         this.finalCollisionPasses = finalCollisionPasses;
         this.finalLengthPasses = finalLengthPasses;
         this.finalProjectionPasses = finalProjectionPasses;
+        this.foldGuardAngle = foldGuardAngle;
+        this.foldGuardStrength = foldGuardStrength;
+        this.foldGuardPasses = foldGuardPasses;
+        this.foldGuardCenterPull = foldGuardCenterPull;
         this.tailProgress = 0;
         this.lastAdvanceDelta = 0;
         this.settleFramesRemaining = 0;
@@ -227,7 +239,7 @@ export class GuidewireSolver {
         }
     }
 
-    advance(command, dt) {
+    advance(command, dt, collisionTarget = null) {
         const previous = this.rod.nodes.map(copyNodePosition);
         const nextProgress = clamp(
             this.tailProgress + command * this.advanceRate * dt,
@@ -242,7 +254,7 @@ export class GuidewireSolver {
 
         this.constrainSheath(feedSpeed);
         if (Math.abs(delta) > 1e-6) {
-            this.#convectMaterial(delta, previous, dt);
+            this.#convectMaterial(delta, previous, dt, collisionTarget);
         }
 
         this.previousPositions = previous;
@@ -261,7 +273,7 @@ export class GuidewireSolver {
         this.constrainSheath();
         const shouldRelax = forceRelax || Math.abs(this.lastAdvanceDelta) > 1e-6 || this.settleFramesRemaining > 0;
         if (!shouldRelax) {
-            this.#zeroVelocities(before, dt);
+            this.#zeroVelocities(before, dt, collisionTarget);
             return;
         }
 
@@ -271,37 +283,42 @@ export class GuidewireSolver {
 
         const passCount = Math.max(1, iterations);
         for (let pass = 0; pass < passCount; pass++) {
-            this.#straightenInsideVessel(pass / passCount);
+            this.#straightenInsideVessel(pass / passCount, collisionTarget);
             this.#untangleFoldedSections();
             for (let repeat = 0; repeat < this.collisionProjectionRepeats; repeat++) {
                 this.#limitBendsInsideVessel();
                 this.#solveLengths(this.lengthIterations);
-                this.#projectNodesInside(collisionTarget, true);
-                this.#projectSegmentsInside(collisionTarget, true);
+                this.#projectGuidewireInside(collisionTarget, true);
             }
             this.#solveLengths(2);
+            this.#projectGuidewireInside(collisionTarget, true);
         }
 
         this.constrainSheath();
         for (let pass = 0; pass < this.finalCollisionPasses; pass++) {
             this.#untangleFoldedSections();
             this.#limitBendsInsideVessel();
-            this.#projectNodesInside(collisionTarget, true);
-            this.#projectSegmentsInside(collisionTarget, true);
+            this.#projectGuidewireInside(collisionTarget, true);
             this.#solveLengths(this.lengthIterations + 2);
         }
         this.#solveLengths(this.lengthIterations + 4);
         for (let pass = 0; pass < this.finalLengthPasses; pass++) {
-            this.#projectNodesInside(collisionTarget, true);
-            this.#projectSegmentsInside(collisionTarget, true);
+            this.#projectGuidewireInside(collisionTarget, true);
             this.#solveLengths(5);
         }
         for (let pass = 0; pass < this.finalProjectionPasses; pass++) {
-            this.#projectNodesInside(collisionTarget, true);
-            this.#projectSegmentsInside(collisionTarget, true);
-            this.#projectNodesInside(collisionTarget, true);
+            this.#projectGuidewireInside(collisionTarget, true);
         }
-        this.#zeroVelocities(before, dt);
+        let foldGuarded = this.#guardAgainstHairpinFolds();
+        this.#projectGuidewireInside(collisionTarget, true);
+        if (foldGuarded || this.#hasBendOver(this.foldGuardAngle)) {
+            foldGuarded = this.#guardAgainstHairpinFolds() || foldGuarded;
+            this.#solveLengths(this.lengthIterations + 4);
+            this.#projectGuidewireInside(collisionTarget, true);
+            this.#solveLengths(4);
+            this.#projectGuidewireInside(collisionTarget, true);
+        }
+        this.#zeroVelocities(before, dt, collisionTarget);
         if (Math.abs(this.lastAdvanceDelta) <= 1e-6 && this.settleFramesRemaining > 0) {
             this.settleFramesRemaining--;
         }
@@ -339,7 +356,9 @@ export class GuidewireSolver {
         {
             clearance = this.meshClearance,
             contactBand = DEFAULT_CONTACT_BAND,
-            samples = DEFAULT_DIAGNOSTIC_SAMPLES
+            samples = DEFAULT_DIAGNOSTIC_SAMPLES,
+            collectMarkers = false,
+            markerLimit = 420
         } = {}
     ) {
         const collider = collisionTarget?.meshCollider || collisionTarget?.lumenMeshCollider || null;
@@ -350,10 +369,14 @@ export class GuidewireSolver {
             clearanceViolationCount: 0,
             minSignedDistance: null,
             minClearanceMargin: null,
+            worstPoint: null,
+            worstInserted: null,
             maxSegmentError: 0,
             maxBendAngle: 0,
             clearance,
-            contactBand
+            contactBand,
+            contacts: collectMarkers ? [] : null,
+            breaches: collectMarkers ? [] : null
         };
 
         for (let i = 0; i < this.rod.nodes.length - 1; i++) {
@@ -382,6 +405,8 @@ export class GuidewireSolver {
                         signedDistance < result.minSignedDistance
                     ) {
                         result.minSignedDistance = signedDistance;
+                        result.worstPoint = { x: point.x, y: point.y, z: point.z };
+                        result.worstInserted = inserted;
                     }
 
                     const clearanceMargin = signedDistance - clearance;
@@ -394,8 +419,10 @@ export class GuidewireSolver {
 
                     if (signedDistance < 0) {
                         result.outsideCount++;
+                        if (collectMarkers) this.#pushLimited(result.breaches, point, markerLimit);
                     } else if (signedDistance <= contactBand) {
                         result.contactCount++;
+                        if (collectMarkers) this.#pushLimited(result.contacts, point, markerLimit);
                     }
                     if (signedDistance < clearance) {
                         result.clearanceViolationCount++;
@@ -435,16 +462,17 @@ export class GuidewireSolver {
         return { contact: !breach && contact, breach };
     }
 
-    #convectMaterial(delta, previous, dt) {
+    #convectMaterial(delta, previous, dt, collisionTarget = null) {
         const sourceShift = delta / this.segmentLength;
         const invDt = 1 / Math.max(dt, 1e-6);
+        const collider = this.#collisionCollider(collisionTarget);
 
         for (let i = 0; i < this.rod.nodes.length; i++) {
             const node = this.rod.nodes[i];
             const inserted = this.insertedCoordinate(i);
             if (this.#isInSheath(inserted)) continue;
 
-            const source = this.#samplePreviousPosition(previous, i + sourceShift);
+            const source = this.#samplePreviousPosition(previous, i + sourceShift, collisionTarget);
             const route = this.lumenSampler ? this.routeSample(inserted).point : source;
             const justExited = inserted < this.sheathLength + this.segmentLength * 2;
             const blend = this.lumenSampler
@@ -457,14 +485,23 @@ export class GuidewireSolver {
             };
 
             const old = previous[i];
-            setNode(node, target);
-            node.vx = (target.x - old.x) * invDt * 0.2;
-            node.vy = (target.y - old.y) * invDt * 0.2;
-            node.vz = (target.z - old.z) * invDt * 0.2;
+            const slide = this.#slideVectorAlongCollider(old, {
+                x: target.x - old.x,
+                y: target.y - old.y,
+                z: target.z - old.z
+            }, collider);
+            target.x = old.x + slide.x;
+            target.y = old.y + slide.y;
+            target.z = old.z + slide.z;
+            const constrained = this.#projectPointInside(target, inserted, collisionTarget, false);
+            setNode(node, constrained);
+            node.vx = (constrained.x - old.x) * invDt * 0.2;
+            node.vy = (constrained.y - old.y) * invDt * 0.2;
+            node.vz = (constrained.z - old.z) * invDt * 0.2;
         }
     }
 
-    #samplePreviousPosition(previous, sourceIndex) {
+    #samplePreviousPosition(previous, sourceIndex, collisionTarget = null) {
         const lastIndex = previous.length - 1;
         if (sourceIndex <= 0) {
             const head = previous[0];
@@ -488,11 +525,15 @@ export class GuidewireSolver {
             y: tip.y - prev.y,
             z: tip.z - prev.z
         }, this.routeSample(this.tailProgress).tangent);
+        const tangent = normalizeVector(
+            this.#slideVectorAlongCollider(tip, direction, this.#collisionCollider(collisionTarget)),
+            direction
+        );
         const distance = (sourceIndex - lastIndex) * this.segmentLength;
         return {
-            x: tip.x + direction.x * distance,
-            y: tip.y + direction.y * distance,
-            z: tip.z + direction.z * distance
+            x: tip.x + tangent.x * distance,
+            y: tip.y + tangent.y * distance,
+            z: tip.z + tangent.z * distance
         };
     }
 
@@ -513,7 +554,7 @@ export class GuidewireSolver {
         }
     }
 
-    #straightenInsideVessel(progress) {
+    #straightenInsideVessel(progress, collisionTarget = null) {
         const corrections = new Array(this.rod.nodes.length);
         const endpointBias = 0.35 + 0.65 * smoothstep(0, 1, progress);
 
@@ -542,7 +583,13 @@ export class GuidewireSolver {
             const node = this.rod.nodes[i];
             const correction = corrections[i];
             if (!correction || node.pinned) continue;
-            addScaled(node, correction, 1);
+            const inserted = this.insertedCoordinate(i);
+            const constrained = this.#projectPointInside({
+                x: node.x + correction.x,
+                y: node.y + correction.y,
+                z: node.z + correction.z
+            }, inserted, collisionTarget, false);
+            setNode(node, constrained);
         }
 
         const spans = [2, 4, 8, 12];
@@ -569,7 +616,13 @@ export class GuidewireSolver {
                 const node = this.rod.nodes[i];
                 const correction = spanCorrections[i];
                 if (!correction || node.pinned) continue;
-                addScaled(node, correction, 1);
+                const inserted = this.insertedCoordinate(i);
+                const constrained = this.#projectPointInside({
+                    x: node.x + correction.x,
+                    y: node.y + correction.y,
+                    z: node.z + correction.z
+                }, inserted, collisionTarget, false);
+                setNode(node, constrained);
             }
         }
     }
@@ -615,13 +668,19 @@ export class GuidewireSolver {
         }
     }
 
-    #limitBendsInsideVessel() {
-        if (this.bendLimitIterations <= 0 || this.bendLimitStrength <= 0) return;
-        const limit = clamp(this.maxBendAngle, 1, 179) * Math.PI / 180;
+    #limitBendsInsideVessel(
+        maxBendAngle = this.maxBendAngle,
+        bendLimitStrength = this.bendLimitStrength,
+        bendLimitIterations = this.bendLimitIterations,
+        centerPull = 0.45
+    ) {
+        if (bendLimitIterations <= 0 || bendLimitStrength <= 0) return;
+        const clampedMaxAngle = clamp(maxBendAngle, 1, 179);
+        const limit = clampedMaxAngle * Math.PI / 180;
         const minChord = 2 * this.segmentLength * Math.cos(limit * 0.5);
-        const baseStrength = clamp(this.bendLimitStrength, 0, 1);
+        const baseStrength = clamp(bendLimitStrength, 0, 1);
 
-        for (let iter = 0; iter < this.bendLimitIterations; iter++) {
+        for (let iter = 0; iter < bendLimitIterations; iter++) {
             const corrections = new Array(this.rod.nodes.length);
             for (let i = 1; i < this.rod.nodes.length - 1; i++) {
                 const node = this.rod.nodes[i];
@@ -630,7 +689,7 @@ export class GuidewireSolver {
                 if (inserted <= this.sheathLength + this.segmentLength + SHEATH_BOUNDARY_EPSILON) continue;
 
                 const angleDegrees = this.rod.bendAngleAt?.(i) ?? 0;
-                if (angleDegrees <= this.maxBendAngle) continue;
+                if (angleDegrees <= clampedMaxAngle) continue;
 
                 const prev = this.rod.nodes[i - 1];
                 const next = this.rod.nodes[i + 1];
@@ -642,7 +701,7 @@ export class GuidewireSolver {
                 const chordLength = Math.hypot(chord.x, chord.y, chord.z);
                 const routeTangent = this.routeSample(inserted).tangent;
                 const direction = normalizeVector(chord, routeTangent);
-                const severity = clamp((angleDegrees - this.maxBendAngle) / Math.max(1, 180 - this.maxBendAngle), 0, 1);
+                const severity = clamp((angleDegrees - clampedMaxAngle) / Math.max(1, 180 - clampedMaxAngle), 0, 1);
                 const strength = baseStrength * (0.35 + 0.65 * severity);
 
                 if (chordLength < minChord) {
@@ -662,9 +721,9 @@ export class GuidewireSolver {
                 }
 
                 corrections[i] ??= { x: 0, y: 0, z: 0 };
-                corrections[i].x += ((prev.x + next.x) * 0.5 - node.x) * strength * 0.45;
-                corrections[i].y += ((prev.y + next.y) * 0.5 - node.y) * strength * 0.45;
-                corrections[i].z += ((prev.z + next.z) * 0.5 - node.z) * strength * 0.45;
+                corrections[i].x += ((prev.x + next.x) * 0.5 - node.x) * strength * centerPull;
+                corrections[i].y += ((prev.y + next.y) * 0.5 - node.y) * strength * centerPull;
+                corrections[i].z += ((prev.z + next.z) * 0.5 - node.z) * strength * centerPull;
             }
 
             for (let i = 1; i < this.rod.nodes.length - 1; i++) {
@@ -674,6 +733,118 @@ export class GuidewireSolver {
                 addScaled(node, correction, 1);
             }
         }
+    }
+
+    #hasBendOver(angleThreshold) {
+        const threshold = clamp(angleThreshold, 1, 179);
+        for (let i = 1; i < this.rod.nodes.length - 1; i++) {
+            const node = this.rod.nodes[i];
+            if (node.pinned) continue;
+            const inserted = this.insertedCoordinate(i);
+            if (inserted <= this.sheathLength + this.segmentLength + SHEATH_BOUNDARY_EPSILON) continue;
+            const angle = this.rod.bendAngleAt?.(i) ?? 0;
+            if (angle > threshold) return true;
+        }
+        return false;
+    }
+
+    #orthogonalFallback(direction) {
+        const ax = Math.abs(direction.x);
+        const ay = Math.abs(direction.y);
+        const basis = ax < 0.7
+            ? { x: 1, y: 0, z: 0 }
+            : ay < 0.7
+                ? { x: 0, y: 1, z: 0 }
+                : { x: 0, y: 0, z: 1 };
+        return normalizeVector({
+            x: direction.y * basis.z - direction.z * basis.y,
+            y: direction.z * basis.x - direction.x * basis.z,
+            z: direction.x * basis.y - direction.y * basis.x
+        }, { x: 1, y: 0, z: 0 });
+    }
+
+    #limitHairpinDirections(maxBendAngle, strength) {
+        const angle = clamp(maxBendAngle, 1, 179) * Math.PI / 180;
+        const minDot = Math.cos(angle);
+        const sinLimit = Math.sin(angle);
+        const amount = clamp(strength, 0, 1);
+        if (amount <= 0) return;
+
+        for (let i = 1; i < this.rod.nodes.length - 1; i++) {
+            const prev = this.rod.nodes[i - 1];
+            const curr = this.rod.nodes[i];
+            const next = this.rod.nodes[i + 1];
+            if (curr.pinned || next.pinned) continue;
+            const inserted = this.insertedCoordinate(i);
+            if (inserted <= this.sheathLength + this.segmentLength + SHEATH_BOUNDARY_EPSILON) continue;
+
+            const incoming = normalizeVector({
+                x: curr.x - prev.x,
+                y: curr.y - prev.y,
+                z: curr.z - prev.z
+            }, this.sheathDir);
+            const outgoingRaw = {
+                x: next.x - curr.x,
+                y: next.y - curr.y,
+                z: next.z - curr.z
+            };
+            const outgoing = normalizeVector(outgoingRaw, incoming);
+            const dot = incoming.x * outgoing.x + incoming.y * outgoing.y + incoming.z * outgoing.z;
+            if (dot >= minDot) continue;
+
+            let lateral = {
+                x: outgoing.x - incoming.x * dot,
+                y: outgoing.y - incoming.y * dot,
+                z: outgoing.z - incoming.z * dot
+            };
+            const lateralLength = Math.hypot(lateral.x, lateral.y, lateral.z);
+            if (lateralLength < 1e-8) {
+                lateral = this.#orthogonalFallback(incoming);
+            } else {
+                lateral.x /= lateralLength;
+                lateral.y /= lateralLength;
+                lateral.z /= lateralLength;
+            }
+
+            const desired = normalizeVector({
+                x: incoming.x * minDot + lateral.x * sinLimit,
+                y: incoming.y * minDot + lateral.y * sinLimit,
+                z: incoming.z * minDot + lateral.z * sinLimit
+            }, incoming);
+            const target = {
+                x: curr.x + desired.x * this.segmentLength,
+                y: curr.y + desired.y * this.segmentLength,
+                z: curr.z + desired.z * this.segmentLength
+            };
+            next.x += (target.x - next.x) * amount;
+            next.y += (target.y - next.y) * amount;
+            next.z += (target.z - next.z) * amount;
+        }
+    }
+
+    #guardAgainstHairpinFolds() {
+        if (this.foldGuardPasses <= 0 || this.foldGuardStrength <= 0) return false;
+        if (!this.#hasBendOver(this.foldGuardAngle)) return false;
+
+        const passes = Math.max(1, Math.floor(this.foldGuardPasses));
+        let applied = false;
+        for (let pass = 0; pass < passes; pass++) {
+            applied = true;
+            this.#limitHairpinDirections(
+                this.foldGuardAngle,
+                this.foldGuardStrength
+            );
+            this.#limitBendsInsideVessel(
+                this.foldGuardAngle,
+                this.foldGuardStrength,
+                1,
+                this.foldGuardCenterPull
+            );
+            this.#solveLengths(Math.max(3, Math.ceil(this.lengthIterations * 0.5)));
+            this.#solveLengths(2);
+            if (!this.#hasBendOver(this.foldGuardAngle)) break;
+        }
+        return applied;
     }
 
     #solveLengths(iterations) {
@@ -709,6 +880,12 @@ export class GuidewireSolver {
             }
             this.constrainSheath();
         }
+    }
+
+    #projectGuidewireInside(collisionTarget, recordContacts) {
+        this.#projectNodesInside(collisionTarget, recordContacts);
+        this.#projectSegmentsInside(collisionTarget, recordContacts);
+        this.#projectNodesInside(collisionTarget, recordContacts);
     }
 
     #projectNodesInside(collisionTarget, recordContacts) {
@@ -770,7 +947,13 @@ export class GuidewireSolver {
             }
             const contact = collider.pointContact(projected, this.meshClearance);
             if (contact?.violation && contact.target) {
-                if (recordContacts) this.#pushLimited(this.breachPoints, projected);
+                if (recordContacts) {
+                    if (Number.isFinite(contact.signedDistance) && contact.signedDistance < 0) {
+                        this.#pushLimited(this.breachPoints, projected);
+                    } else {
+                        this.#pushLimited(this.contactPoints, projected);
+                    }
+                }
                 return { x: contact.target.x, y: contact.target.y, z: contact.target.z };
             } else if (recordContacts && Number.isFinite(contact?.distance) && contact.distance <= DEFAULT_CONTACT_BAND) {
                 this.#pushLimited(this.contactPoints, projected);
@@ -779,6 +962,54 @@ export class GuidewireSolver {
         }
 
         return this.#projectToLumen(point, inserted, recordContacts);
+    }
+
+    #collisionCollider(collisionTarget) {
+        return collisionTarget?.meshCollider || collisionTarget?.lumenMeshCollider || null;
+    }
+
+    #slideVectorAlongCollider(point, vector, collider) {
+        if (!collider?.pointContact) return { x: vector.x, y: vector.y, z: vector.z };
+
+        const target = {
+            x: point.x + vector.x,
+            y: point.y + vector.y,
+            z: point.z + vector.z
+        };
+        const pointContact = collider.pointContact(point, this.meshClearance);
+        const targetContact = collider.pointContact(target, this.meshClearance);
+        const pointNearWall = pointContact?.violation || (
+            Number.isFinite(pointContact?.signedDistance) &&
+            pointContact.signedDistance <= this.meshClearance + DEFAULT_CONTACT_BAND
+        );
+        const targetNearWall = targetContact?.violation || (
+            Number.isFinite(targetContact?.signedDistance) &&
+            targetContact.signedDistance <= this.meshClearance + DEFAULT_CONTACT_BAND
+        );
+        if (!pointNearWall && !targetNearWall) {
+            return { x: vector.x, y: vector.y, z: vector.z };
+        }
+
+        const contact = targetContact?.violation ? targetContact : (targetNearWall ? targetContact : pointContact);
+        const normal = contact?.normal || pointContact?.normal || targetContact?.normal;
+        const normalLength = normal ? Math.hypot(normal.x, normal.y, normal.z) : 0;
+        if (normalLength < 1e-8) {
+            return { x: vector.x, y: vector.y, z: vector.z };
+        }
+
+        const nx = normal.x / normalLength;
+        const ny = normal.y / normalLength;
+        const nz = normal.z / normalLength;
+        const outward = vector.x * nx + vector.y * ny + vector.z * nz;
+        if (outward <= 0) {
+            return { x: vector.x, y: vector.y, z: vector.z };
+        }
+
+        return {
+            x: vector.x - nx * outward,
+            y: vector.y - ny * outward,
+            z: vector.z - nz * outward
+        };
     }
 
     #projectToLumen(point, inserted, recordContacts) {
@@ -828,15 +1059,38 @@ export class GuidewireSolver {
         };
     }
 
-    #zeroVelocities(before, dt) {
+    #zeroVelocities(before, dt, collisionTarget = null) {
         const invDt = 1 / Math.max(dt, 1e-6);
+        const collider = collisionTarget?.meshCollider || collisionTarget?.lumenMeshCollider || null;
         for (let i = 0; i < this.rod.nodes.length; i++) {
             const node = this.rod.nodes[i];
             const moved = nodeDistance(node, before[i]);
             const scale = moved > 0.02 ? 0.08 : 0;
-            node.vx = (node.x - before[i].x) * invDt * scale;
-            node.vy = (node.y - before[i].y) * invDt * scale;
-            node.vz = (node.z - before[i].z) * invDt * scale;
+            let vx = (node.x - before[i].x) * invDt * scale;
+            let vy = (node.y - before[i].y) * invDt * scale;
+            let vz = (node.z - before[i].z) * invDt * scale;
+
+            const inserted = this.insertedCoordinate(i);
+            if (collider?.pointContact && !this.#isInSheath(inserted)) {
+                const contact = collider.pointContact(node, this.meshClearance);
+                const normal = contact?.normal;
+                const nearWall = contact?.violation || (
+                    Number.isFinite(contact?.signedDistance) &&
+                    contact.signedDistance <= this.meshClearance + DEFAULT_CONTACT_BAND
+                );
+                if (nearWall && normal) {
+                    const outwardSpeed = vx * normal.x + vy * normal.y + vz * normal.z;
+                    if (outwardSpeed > 0) {
+                        vx -= normal.x * outwardSpeed;
+                        vy -= normal.y * outwardSpeed;
+                        vz -= normal.z * outwardSpeed;
+                    }
+                }
+            }
+
+            node.vx = vx;
+            node.vy = vy;
+            node.vz = vz;
         }
     }
 

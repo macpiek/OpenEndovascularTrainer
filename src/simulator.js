@@ -1,13 +1,13 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
-import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260615rigidguidewire18';
+import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260616rigidguidewire29';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
 import { initUI } from './ui/ui.js?v=20260615guidewirediagnostics1';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
-import { createAortaModel } from './aortaModel.js?v=20260615rigidguidewire10';
+import { createAortaModel } from './aortaModel.js?v=20260616aortacollider2';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260614debug1';
@@ -18,8 +18,9 @@ const STL_BOUNDARY_EDGE_COLOR = 0xff9b3d;
 const STL_LUMEN_CONTOUR_COLOR = 0xa7ff5c;
 const WALL_CONTACT_COLOR = 0xffd24a;
 const WALL_BREACH_COLOR = 0xff3355;
+const WALL_WORST_POINT_COLOR = 0xff55ff;
 const CONTACT_MARKER_LIMIT = 420;
-const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 18;
+const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 10;
 const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 
@@ -394,8 +395,12 @@ guidewireSolver = new GuidewireSolver({
     relaxationIterations: 6,
     lengthIterations: 10,
     meshClearance: 0.45,
+    foldGuardAngle: 118,
+    foldGuardStrength: 0.85,
+    foldGuardPasses: 4,
+    foldGuardCenterPull: 1.25,
     collisionProjectionRepeats: 1,
-    segmentSamples: [0.12, 0.28, 0.44, 0.6, 0.76, 0.91],
+    segmentSamples: [0.1, 0.24, 0.38, 0.52, 0.66, 0.8, 0.93],
     finalCollisionPasses: 3,
     finalLengthPasses: 2,
     finalProjectionPasses: 2
@@ -782,6 +787,7 @@ const wireMaterial = new THREE.LineBasicMaterial({
 let fluoroscopy = true;
 let wallContactMarkers = null;
 let wallBreachMarkers = null;
+let wallWorstPointMarker = null;
 const ui = initUI({
     camera,
     cameraRadius,
@@ -813,6 +819,7 @@ const ui = initUI({
         lumenDebugGroup.visible = !fluoroscopy;
         if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
         if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
+        if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
         skeletonModel.visible = fluoroscopy;
         displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     },
@@ -865,6 +872,23 @@ wallBreachMarkers.frustumCulled = false;
 wallBreachMarkers.renderOrder = 7;
 scene.add(wallBreachMarkers);
 
+wallWorstPointMarker = new THREE.Mesh(
+    new THREE.SphereGeometry(2.8, 16, 10),
+    new THREE.MeshBasicMaterial({
+        color: WALL_WORST_POINT_COLOR,
+        transparent: true,
+        opacity: 1,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false
+    })
+);
+wallWorstPointMarker.visible = false;
+wallWorstPointMarker.frustumCulled = false;
+wallWorstPointMarker.renderOrder = 8;
+wallWorstPointMarker.userData.hasPoint = false;
+scene.add(wallWorstPointMarker);
+
 pigtailCatheter = new PigtailCatheter({
     wire,
     segmentLength,
@@ -878,7 +902,7 @@ if (vesselCollisionTarget !== vessel) {
 scene.add(pigtailCatheter.mesh);
 
 function advanceTailInput(advance, dt) {
-    const delta = guidewireSolver.advance(advance, dt);
+    const delta = guidewireSolver.advance(advance, dt, vesselCollisionTarget);
     tailProgress = guidewireSolver.progress;
     guidewireFeedClutchLevel = 0;
     return delta;
@@ -904,18 +928,30 @@ function sampleGuidewireContactMarkers() {
         ui.updateGuidewireDiagnostics(null);
         wallContactMarkers.count = 0;
         wallBreachMarkers.count = 0;
+        wallWorstPointMarker.userData.hasPoint = false;
+        wallWorstPointMarker.visible = false;
         return;
     }
 
-    ui.updateGuidewireDiagnostics(
-        guidewireSolver.collectLumenDiagnostics(vesselCollisionTarget, {
-            clearance: guidewireSolver.meshClearance,
-            contactBand: GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND
-        })
-    );
-
-    const { contacts: contactSamples, breaches: breachSamples } =
-        guidewireSolver.collectContactSamples(vesselCollisionTarget, GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND);
+    const lumenDiagnostics = guidewireSolver.collectLumenDiagnostics(vesselCollisionTarget, {
+        clearance: guidewireSolver.meshClearance,
+        contactBand: GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND,
+        collectMarkers: true,
+        markerLimit: CONTACT_MARKER_LIMIT
+    });
+    ui.updateGuidewireDiagnostics(lumenDiagnostics);
+    if (lumenDiagnostics.worstPoint) {
+        wallWorstPointMarker.position.set(
+            lumenDiagnostics.worstPoint.x,
+            lumenDiagnostics.worstPoint.y,
+            lumenDiagnostics.worstPoint.z
+        );
+        wallWorstPointMarker.userData.hasPoint = true;
+        wallWorstPointMarker.visible = true;
+    } else {
+        wallWorstPointMarker.userData.hasPoint = false;
+        wallWorstPointMarker.visible = false;
+    }
 
     const applySamples = (mesh, points) => {
         const count = Math.min(points.length, CONTACT_MARKER_LIMIT);
@@ -928,8 +964,8 @@ function sampleGuidewireContactMarkers() {
         mesh.instanceMatrix.needsUpdate = true;
     };
 
-    applySamples(wallContactMarkers, contactSamples);
-    applySamples(wallBreachMarkers, breachSamples);
+    applySamples(wallContactMarkers, lumenDiagnostics.contacts || []);
+    applySamples(wallBreachMarkers, lumenDiagnostics.breaches || []);
 }
 
 function guidewireTipPosition(target = new THREE.Vector3()) {
@@ -954,7 +990,7 @@ function stepSimulation() {
     const tipBefore = guidewireTipPosition();
     const commandedDelta = advanceTailInput(advance, fixedDt);
     guidewireSolver.solve(fixedDt, vesselCollisionTarget, {
-        iterations: advance === 0 ? 4 : 5
+        iterations: advance === 0 ? 3 : 4
     });
     const inserted = Math.max(0, tailProgress);
     pigtailCatheter.advance(ui.getCatheterAdvance(), fixedDt, inserted);
@@ -1044,6 +1080,7 @@ function animate(time) {
     sheathFluoroMesh.visible = fluoroscopy;
     if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
     if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
+    if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
     skeletonModel.visible = fluoroscopy;
     ui.setInjectButtonDisabled(contrastActive);
     ui.setStopInjectionDisabled(!injecting);
