@@ -20,7 +20,8 @@ canvas {
     position: absolute;
     top: 430px;
     right: 10px;
-    width: min(310px, calc(100vw - 240px));
+    width: 310px;
+    max-width: calc(100vw - 240px);
     min-width: 260px;
     box-sizing: border-box;
 }
@@ -41,6 +42,31 @@ canvas {
 #catheterLength,
 #currentDose {
     line-height: 1.25;
+}
+
+.guidewire-diagnostics {
+    margin-top: 4px;
+    padding: 4px 5px;
+    border-left: 3px solid #42d6ff;
+    background: rgba(25, 170, 220, 0.16);
+    color: #c9f5ff;
+    font-size: 11px;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.guidewire-diagnostics.warn {
+    border-left-color: #ffd24a;
+    background: rgba(255, 190, 56, 0.18);
+    color: #ffe6a3;
+}
+
+.guidewire-diagnostics.breach {
+    border-left-color: #ff5d5d;
+    background: rgba(255, 70, 70, 0.22);
+    color: #ffd0d0;
 }
 
 .xray-technique {
@@ -355,7 +381,8 @@ canvas {
     position: absolute;
     top: 10px;
     right: 10px;
-    width: min(310px, calc(100vw - 240px));
+    width: 310px;
+    max-width: calc(100vw - 240px);
     min-width: 260px;
     color: #d8dfdc;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -595,7 +622,8 @@ canvas {
     position: absolute;
     top: 220px;
     right: 10px;
-    width: min(310px, calc(100vw - 240px));
+    width: 310px;
+    max-width: calc(100vw - 240px);
     min-width: 260px;
     height: 200px;
     box-sizing: border-box;

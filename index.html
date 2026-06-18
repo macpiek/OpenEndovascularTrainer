@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260615fluoro18">
+    <link rel="stylesheet" href="style.css?v=20260618layoutfix1">
 </head>
 <body>
 <canvas id="sim"></canvas>
@@ -11,6 +11,7 @@
     <div id="insertedLength">0 cm</div>
     <div id="catheterLength">Pigtail 0 cm</div>
     <div id="currentDose">0 ml</div>
+    <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
     <div id="xrayTechnique" class="xray-technique">
         <span id="currentKV">72 kV</span>
         <span id="currentMA">3.0 mA</span>
@@ -261,6 +262,6 @@
     }
 }
 </script>
-    <script type="module" src="./src/simulator.js?v=20260615fluoro20"></script>
+    <script type="module" src="./src/simulator.js?v=20260618prmerge1"></script>
 </body>
 </html>
