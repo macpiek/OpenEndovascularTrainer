@@ -66,12 +66,20 @@ export class ElasticRod {
         bendingStiffness = defaultBendingStiffness,
         smoothingIterations = defaultSmoothingIterations,
         constraintIterations = defaultConstraintIterations,
+        bendingConstraintIterations = 0,
+        bendAngleLimit = 50,
+        bendProjectionStrength = 0.35,
+        curvatureFlow = 0,
         logger = null,
     } = {}) {
         this.segmentLength = segmentLength;
         this.nodes = [];
         this.smoothingIterations = smoothingIterations;
         this.constraintIterations = constraintIterations;
+        this.bendingConstraintIterations = bendingConstraintIterations;
+        this.bendAngleLimit = bendAngleLimit;
+        this.bendProjectionStrength = bendProjectionStrength;
+        this.curvatureFlow = curvatureFlow;
         this.logger = logger;
         this.iteration = 0;
         this.collisionPrevPositions = null;
@@ -118,6 +126,26 @@ export class ElasticRod {
             sum += Math.hypot(n.kx, n.ky, n.kz);
         }
         return sum / this.nodes.length;
+    }
+
+    bendAngleAt(index) {
+        const prev = this.nodes[index - 1];
+        const curr = this.nodes[index];
+        const next = this.nodes[index + 1];
+        if (!prev || !curr || !next) return 0;
+
+        const ax = curr.x - prev.x;
+        const ay = curr.y - prev.y;
+        const az = curr.z - prev.z;
+        const bx = next.x - curr.x;
+        const by = next.y - curr.y;
+        const bz = next.z - curr.z;
+        const aLen = Math.hypot(ax, ay, az);
+        const bLen = Math.hypot(bx, by, bz);
+        if (aLen < 1e-8 || bLen < 1e-8) return 0;
+
+        const dot = (ax * bx + ay * by + az * bz) / (aLen * bLen);
+        return Math.acos(Math.max(-1, Math.min(1, dot))) * 180 / Math.PI;
     }
 
     resetForces() {
@@ -218,9 +246,11 @@ export class ElasticRod {
     }
 
     // Solve positional constraints and apply velocity damping
-    solveConstraints(dt) {
+    solveConstraints(dt, options = {}) {
         const L = this.segmentLength;
         const prev = this.nodes.map(n => ({ x: n.x, y: n.y, z: n.z }));
+        const applyBending = options.applyBending ?? true;
+        const velocityDamping = options.velocityDamping ?? 0.92;
 
         // enforce segment lengths
         for (let iter = 0; iter < this.constraintIterations; iter++) {
@@ -248,23 +278,54 @@ export class ElasticRod {
             }
         }
 
-        // simple bending constraint: pull interior nodes toward midpoint of neighbours
-        for (let i = 1; i < this.nodes.length - 1; i++) {
-            const p0 = this.nodes[i - 1];
-            const p1 = this.nodes[i];
-            const p2 = this.nodes[i + 1];
-            if (p1.pinned) continue;
-            const cx = (p0.x + p2.x) * 0.5;
-            const cy = (p0.y + p2.y) * 0.5;
-            const cz = (p0.z + p2.z) * 0.5;
-            const dx = p1.x - cx;
-            const dy = p1.y - cy;
-            const dz = p1.z - cz;
-            const k = Math.min(1, p1.bendingStiffness * dt);
-            const corrX = dx * k;
-            const corrY = dy * k;
-            const corrZ = dz * k;
-            p1.x -= corrX; p1.y -= corrY; p1.z -= corrZ;
+        if (applyBending) {
+            // simple bending constraint: pull interior nodes toward midpoint of neighbours
+            for (let i = 1; i < this.nodes.length - 1; i++) {
+                const p0 = this.nodes[i - 1];
+                const p1 = this.nodes[i];
+                const p2 = this.nodes[i + 1];
+                if (p1.pinned) continue;
+                const cx = (p0.x + p2.x) * 0.5;
+                const cy = (p0.y + p2.y) * 0.5;
+                const cz = (p0.z + p2.z) * 0.5;
+                const dx = p1.x - cx;
+                const dy = p1.y - cy;
+                const dz = p1.z - cz;
+                const k = Math.min(1, p1.bendingStiffness * dt + this.curvatureFlow);
+                const corrX = dx * k;
+                const corrY = dy * k;
+                const corrZ = dz * k;
+                p1.x -= corrX; p1.y -= corrY; p1.z -= corrZ;
+            }
+
+            const bendIterations = options.bendingConstraintIterations ?? this.bendingConstraintIterations;
+            if (bendIterations > 0) {
+                this.projectBendingConstraints(bendIterations);
+                for (let iter = 0; iter < Math.max(2, Math.ceil(this.constraintIterations * 0.5)); iter++) {
+                    for (let i = 0; i < this.nodes.length - 1; i++) {
+                        const n0 = this.nodes[i];
+                        const n1 = this.nodes[i + 1];
+                        let dx = n1.x - n0.x;
+                        let dy = n1.y - n0.y;
+                        let dz = n1.z - n0.z;
+                        let dist = Math.hypot(dx, dy, dz);
+                        if (!dist) continue;
+                        const diff = (dist - L) / dist;
+                        if (n0.pinned && n1.pinned) continue;
+                        if (n0.pinned) {
+                            dx *= diff; dy *= diff; dz *= diff;
+                            n1.x -= dx; n1.y -= dy; n1.z -= dz;
+                        } else if (n1.pinned) {
+                            dx *= diff; dy *= diff; dz *= diff;
+                            n0.x += dx; n0.y += dy; n0.z += dz;
+                        } else {
+                            dx *= diff * 0.5; dy *= diff * 0.5; dz *= diff * 0.5;
+                            n0.x += dx; n0.y += dy; n0.z += dz;
+                            n1.x -= dx; n1.y -= dy; n1.z -= dz;
+                        }
+                    }
+                }
+            }
         }
 
         // optional Laplacian smoothing after constraints
@@ -279,9 +340,44 @@ export class ElasticRod {
                 n.vx = n.vy = n.vz = 0;
                 continue;
             }
-            n.vx = (n.x - prev[i].x) * invDt * 0.92;
-            n.vy = (n.y - prev[i].y) * invDt * 0.92;
-            n.vz = (n.z - prev[i].z) * invDt * 0.92;
+            n.vx = (n.x - prev[i].x) * invDt * velocityDamping;
+            n.vy = (n.y - prev[i].y) * invDt * velocityDamping;
+            n.vz = (n.z - prev[i].z) * invDt * velocityDamping;
+        }
+    }
+
+    projectBendingConstraints(iterations = this.bendingConstraintIterations) {
+        if (iterations <= 0 || this.nodes.length < 3) return;
+        const limit = Math.max(0, this.bendAngleLimit);
+        const baseStrength = Math.max(0, Math.min(1, this.bendProjectionStrength));
+
+        for (let iter = 0; iter < iterations; iter++) {
+            const corrections = new Array(this.nodes.length);
+            for (let i = 1; i < this.nodes.length - 1; i++) {
+                const n = this.nodes[i];
+                if (n.pinned) continue;
+                const angle = this.bendAngleAt(i);
+                if (angle <= limit) continue;
+
+                const prev = this.nodes[i - 1];
+                const next = this.nodes[i + 1];
+                const severity = Math.max(0, Math.min(1, (angle - limit) / Math.max(1, 180 - limit)));
+                const strength = baseStrength * (0.35 + 0.65 * severity);
+                corrections[i] = {
+                    x: ((prev.x + next.x) * 0.5 - n.x) * strength,
+                    y: ((prev.y + next.y) * 0.5 - n.y) * strength,
+                    z: ((prev.z + next.z) * 0.5 - n.z) * strength
+                };
+            }
+
+            for (let i = 1; i < this.nodes.length - 1; i++) {
+                const n = this.nodes[i];
+                const c = corrections[i];
+                if (!c || n.pinned) continue;
+                n.x += c.x;
+                n.y += c.y;
+                n.z += c.z;
+            }
         }
     }
 

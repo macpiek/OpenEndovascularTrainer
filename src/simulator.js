@@ -1,21 +1,27 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
-import { ElasticRod } from './physics/elasticRod.js?v=20260614physrevert1';
+import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
+import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260618withdrawrelax4';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260615fluoro18';
+import { initUI } from './ui/ui.js?v=20260618prmerge1';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
-import { createAortaModel } from './aortaModel.js?v=20260614guidewirestable1';
+import { createAortaModel } from './aortaModel.js?v=20260616aortacollider2';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260615fluoro19';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
+const STL_INTERIOR_SAMPLE_COLOR = 0x69ff8e;
+const STL_BOUNDARY_EDGE_COLOR = 0xff9b3d;
+const STL_LUMEN_CONTOUR_COLOR = 0xa7ff5c;
 const WALL_CONTACT_COLOR = 0xffd24a;
 const WALL_BREACH_COLOR = 0xff3355;
+const WALL_WORST_POINT_COLOR = 0xff55ff;
 const CONTACT_MARKER_LIMIT = 420;
-const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 18;
+const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 10;
+const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
@@ -218,6 +224,7 @@ const { vessel } = generateVessel(140, 0);
 vesselGroup = new THREE.Group();
 let vesselCollisionTarget = vessel;
 let pigtailCatheter = null;
+let guidewireSolver = null;
 function createSheathGeometry(sheath, radiusScale = 1) {
     const start = new THREE.Vector3(sheath.start.x, sheath.start.y, sheath.start.z);
     const end = new THREE.Vector3(sheath.end.x, sheath.end.y, sheath.end.z);
@@ -288,6 +295,8 @@ createAortaModel(vessel, {
         };
         lumenDebugGroup.clear();
         lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry));
+        lumenDebugGroup.add(createStlPreprocessDebug(collision.preprocessing));
+        guidewireSolver?.requestSettle?.(90);
         pigtailCatheter?.setCollisionGeometry(collision);
     }
 });
@@ -335,11 +344,6 @@ const GUIDEWIRE_TIP_SOFT_LENGTH = 24;
 const SHEATH_EXIT_SUPPORT_LENGTH = segmentLength * 2.4;
 const SHEATH_EXIT_SUPPORT_BLEND = 0.12;
 const SHEATH_EXIT_VELOCITY_DAMPING = 0.28;
-const GUIDEWIRE_LUMEN_GLIDE_STRENGTH = 0.86;
-const GUIDEWIRE_LUMEN_GLIDE_DAMPING = 0.86;
-const GUIDEWIRE_LUMEN_GLIDE_START = 0;
-const GUIDEWIRE_LUMEN_GLIDE_FADE = 20;
-const GUIDEWIRE_LUMEN_CENTERING = 0.035;
 
 // Direction along the sheath from its outer start toward the vessel
 const sheathDirVec = {
@@ -403,122 +407,118 @@ function sheathAxisPoint(inserted) {
     };
 }
 
-const guidewireLumenPath = [
-    { point: new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z), radius: 2.8 },
-    { point: new THREE.Vector3(-71, -374, 12), radius: 3.4 },
-    { point: new THREE.Vector3(-69, -365, 10), radius: 4.6 },
-    { point: new THREE.Vector3(-61, -338, 7), radius: 7.2 },
-    { point: new THREE.Vector3(-41, -315, 4), radius: 9.8 },
-    { point: new THREE.Vector3(-10, -290, 1), radius: 13.8 },
-    { point: new THREE.Vector3(0, -230, 0), radius: 17.5 },
-    { point: new THREE.Vector3(0, -160, 0), radius: 18.0 },
-    { point: new THREE.Vector3(-9, -125, -6), radius: 17.0 },
-    { point: new THREE.Vector3(28, -100, -33), radius: 16.0 },
-    { point: new THREE.Vector3(38, -60, -49), radius: 13.0 },
-    { point: new THREE.Vector3(36, -25, -56), radius: 13.0 },
-    { point: new THREE.Vector3(19, 0, -22), radius: 16.0 },
-    { point: new THREE.Vector3(-8, 35, -18), radius: 18.0 },
-    { point: new THREE.Vector3(3, 95, -18), radius: 18.0 },
-    { point: new THREE.Vector3(10, 145, -18), radius: 18.0 },
-    { point: new THREE.Vector3(20, 230, -18), radius: 18.0 },
-    { point: new THREE.Vector3(32, 330, -18), radius: 18.0 }
-];
-const guidewireLumenSegments = [];
-let guidewireLumenLength = 0;
-for (let i = 0; i < guidewireLumenPath.length - 1; i++) {
-    const start = guidewireLumenPath[i].point;
-    const end = guidewireLumenPath[i + 1].point;
-    const length = start.distanceTo(end);
-    guidewireLumenSegments.push({
-        start,
-        end,
-        startRadius: guidewireLumenPath[i].radius,
-        endRadius: guidewireLumenPath[i + 1].radius,
-        length,
-        offset: guidewireLumenLength
-    });
-    guidewireLumenLength += length;
-}
-const guidewireLumenCurve = new THREE.CatmullRomCurve3(
-    guidewireLumenPath.map(entry => entry.point),
-    false,
-    'centripetal',
-    0.35
-);
-guidewireLumenCurve.arcLengthDivisions = Math.max(200, guidewireLumenPath.length * 48);
-const guidewireLumenCurveLength = guidewireLumenCurve.getLength();
-const GUIDEWIRE_LUMEN_SAMPLE_SPACING = 2.5;
-const guidewireLumenSamples = [];
-const guidewireLumenSampleCount = Math.max(2, Math.ceil(guidewireLumenCurveLength / GUIDEWIRE_LUMEN_SAMPLE_SPACING) + 1);
-for (let i = 0; i < guidewireLumenSampleCount; i++) {
-    const u = i / (guidewireLumenSampleCount - 1);
-    const point = guidewireLumenCurve.getPointAt(u);
-    const tangent = guidewireLumenCurve.getTangentAt(u).normalize();
-    guidewireLumenSamples.push({
-        distance: u * guidewireLumenCurveLength,
-        x: point.x,
-        y: point.y,
-        z: point.z,
-        tx: tangent.x,
-        ty: tangent.y,
-        tz: tangent.z,
-        radius: sampleGuidewireLumenRadius(u * guidewireLumenLength)
-    });
-}
+function createStlPreprocessDebug(preprocessing) {
+    const group = new THREE.Group();
+    if (!preprocessing) return group;
 
-function sampleGuidewireLumenRadius(distance) {
-    const d = Math.max(0, distance);
-    for (const seg of guidewireLumenSegments) {
-        if (d <= seg.offset + seg.length) {
-            const t = Math.max(0, Math.min(1, (d - seg.offset) / Math.max(1e-6, seg.length)));
-            return seg.startRadius * (1 - t) + seg.endRadius * t;
+    if (preprocessing.boundaryDebugSegments?.length) {
+        const boundaryGeometry = new THREE.BufferGeometry();
+        boundaryGeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(preprocessing.boundaryDebugSegments, 3)
+        );
+        const boundaryLines = new THREE.LineSegments(
+            boundaryGeometry,
+            new THREE.LineBasicMaterial({
+                color: STL_BOUNDARY_EDGE_COLOR,
+                transparent: true,
+                opacity: 0.85,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            })
+        );
+        boundaryLines.frustumCulled = false;
+        boundaryLines.renderOrder = 9;
+        group.add(boundaryLines);
+    }
+
+    if (preprocessing.lumenContourDebugSegments?.length) {
+        const contourGeometry = new THREE.BufferGeometry();
+        contourGeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(preprocessing.lumenContourDebugSegments, 3)
+        );
+        const contourLines = new THREE.LineSegments(
+            contourGeometry,
+            new THREE.LineBasicMaterial({
+                color: STL_LUMEN_CONTOUR_COLOR,
+                transparent: true,
+                opacity: 0.72,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            })
+        );
+        contourLines.frustumCulled = false;
+        contourLines.renderOrder = 8.5;
+        group.add(contourLines);
+    }
+
+    const interiorSamples = preprocessing.interiorSamples || [];
+    if (interiorSamples.length) {
+        const samples = new THREE.InstancedMesh(
+            new THREE.SphereGeometry(1.15, 10, 6),
+            new THREE.MeshBasicMaterial({
+                color: STL_INTERIOR_SAMPLE_COLOR,
+                transparent: true,
+                opacity: 0.82,
+                depthTest: false,
+                depthWrite: false,
+                toneMapped: false
+            }),
+            interiorSamples.length
+        );
+        const matrix = new THREE.Matrix4();
+        for (let i = 0; i < interiorSamples.length; i++) {
+            matrix.makeTranslation(
+                interiorSamples[i].x,
+                interiorSamples[i].y,
+                interiorSamples[i].z
+            );
+            samples.setMatrixAt(i, matrix);
         }
+        samples.frustumCulled = false;
+        samples.instanceMatrix.needsUpdate = true;
+        samples.renderOrder = 8;
+        group.add(samples);
     }
 
-    const last = guidewireLumenSegments[guidewireLumenSegments.length - 1];
-    return last.endRadius;
+    return group;
 }
 
-function sampleGuidewireLumen(distance) {
-    const d = Math.max(0, distance);
-    if (d <= guidewireLumenCurveLength) {
-        const samplePosition = d / Math.max(1e-6, guidewireLumenCurveLength) * (guidewireLumenSamples.length - 1);
-        const lowerIndex = Math.max(0, Math.min(guidewireLumenSamples.length - 2, Math.floor(samplePosition)));
-        const upperIndex = lowerIndex + 1;
-        const t = samplePosition - lowerIndex;
-        const a = guidewireLumenSamples[lowerIndex];
-        const b = guidewireLumenSamples[upperIndex];
-        let tx = a.tx * (1 - t) + b.tx * t;
-        let ty = a.ty * (1 - t) + b.ty * t;
-        let tz = a.tz * (1 - t) + b.tz * t;
-        const tangentLength = Math.hypot(tx, ty, tz) || 1;
-        tx /= tangentLength;
-        ty /= tangentLength;
-        tz /= tangentLength;
-        return {
-            point: {
-                x: a.x * (1 - t) + b.x * t,
-                y: a.y * (1 - t) + b.y * t,
-                z: a.z * (1 - t) + b.z * t
-            },
-            tangent: { x: tx, y: ty, z: tz },
-            radius: a.radius * (1 - t) + b.radius * t
-        };
-    }
-
-    const last = guidewireLumenSegments[guidewireLumenSegments.length - 1];
-    const endSample = guidewireLumenSamples[guidewireLumenSamples.length - 1];
-    const overrun = d - guidewireLumenCurveLength;
-    return {
-        point: {
-            x: endSample.x + endSample.tx * overrun,
-            y: endSample.y + endSample.ty * overrun,
-            z: endSample.z + endSample.tz * overrun
-        },
-        tangent: { x: endSample.tx, y: endSample.ty, z: endSample.tz },
-        radius: last.endRadius
-    };
-}
+guidewireSolver = new GuidewireSolver({
+    rod: wire,
+    segmentLength,
+    guidewireLength,
+    sheath: vessel.sheath,
+    advanceRate: GUIDEWIRE_ADVANCE_RATE,
+    minInsert,
+    maxInsert,
+    straightening: 0.72,
+    routeBlend: 0,
+    relaxationIterations: 6,
+    lengthIterations: 10,
+    meshClearance: 0.45,
+    foldGuardAngle: 166,
+    foldGuardStrength: 0.62,
+    foldGuardPasses: 2,
+    foldGuardCenterPull: 1.25,
+    stabilityRepairSegmentError: 0.09,
+    stabilityRepairBendAngle: 150,
+    stabilityRepairTargetBendAngle: 112,
+    stabilityRepairPasses: 3,
+    stabilityRepairLengthIterations: 10,
+    tipBacktrackAngle: 108,
+    tipBacktrackStrength: 1,
+    segmentProjectionBlend: 0.48,
+    maxSegmentProjectionStep: 0.32,
+    collisionProjectionRepeats: 1,
+    segmentSamples: [0.1, 0.24, 0.38, 0.52, 0.66, 0.8, 0.93],
+    finalCollisionPasses: 3,
+    finalLengthPasses: 2,
+    finalProjectionPasses: 2
+});
 
 function constrainWireToSheath(feedSpeed = 0) {
     for (let i = 0; i < wire.nodes.length; i++) {
@@ -876,75 +876,12 @@ function supportWireAtSheathExit(strength = 1) {
     }
 }
 
-function applyGuidewireLumenGlide(strength = GUIDEWIRE_LUMEN_GLIDE_STRENGTH) {
-    if (strength <= 0) return;
-    for (let i = 0; i < wire.nodes.length; i++) {
-        const n = wire.nodes[i];
-        if (n.pinned) continue;
-
-        const inserted = guidewireInsertedCoordinate(i);
-        const exitDistance = inserted - sheathPath;
-        if (exitDistance <= GUIDEWIRE_LUMEN_GLIDE_START) continue;
-
-        const { point, tangent, radius } = sampleGuidewireLumen(exitDistance);
-        const fade = smoothRange(
-            GUIDEWIRE_LUMEN_GLIDE_START,
-            GUIDEWIRE_LUMEN_GLIDE_START + GUIDEWIRE_LUMEN_GLIDE_FADE,
-            exitDistance
-        );
-        const distalTaper = 1 - Math.max(0, Math.min(1, exitDistance / guidewireLength));
-        const amount = strength * fade * (0.38 + distalTaper * 0.62);
-        if (amount <= 0) continue;
-
-        const dx = n.x - point.x;
-        const dy = n.y - point.y;
-        const dz = n.z - point.z;
-        const axialOffset = dx * tangent.x + dy * tangent.y + dz * tangent.z;
-        const lateralX = dx - tangent.x * axialOffset;
-        const lateralY = dy - tangent.y * axialOffset;
-        const lateralZ = dz - tangent.z * axialOffset;
-        const lateralLength = Math.hypot(lateralX, lateralY, lateralZ);
-        const corridorRadius = Math.max(1.2, radius - 0.8);
-
-        if (lateralLength > corridorRadius) {
-            const scale = corridorRadius / Math.max(1e-6, lateralLength);
-            const targetX = point.x + tangent.x * axialOffset + lateralX * scale;
-            const targetY = point.y + tangent.y * axialOffset + lateralY * scale;
-            const targetZ = point.z + tangent.z * axialOffset + lateralZ * scale;
-            n.x += (targetX - n.x) * amount;
-            n.y += (targetY - n.y) * amount;
-            n.z += (targetZ - n.z) * amount;
-        }
-
-        const axialLimit = segmentLength * 0.6;
-        if (Math.abs(axialOffset) > axialLimit) {
-            const targetAxial = Math.sign(axialOffset) * axialLimit;
-            const axialCorrection = (targetAxial - axialOffset) * amount * 0.62;
-            n.x += tangent.x * axialCorrection;
-            n.y += tangent.y * axialCorrection;
-            n.z += tangent.z * axialCorrection;
-        }
-
-        const centering = GUIDEWIRE_LUMEN_CENTERING * amount;
-        n.x += (point.x - n.x) * centering;
-        n.y += (point.y - n.y) * centering;
-        n.z += (point.z - n.z) * centering;
-
-        const axialVelocity = n.vx * tangent.x + n.vy * tangent.y + n.vz * tangent.z;
-        const damping = GUIDEWIRE_LUMEN_GLIDE_DAMPING * amount;
-        n.vx -= (n.vx - tangent.x * axialVelocity) * damping;
-        n.vy -= (n.vy - tangent.y * axialVelocity) * damping;
-        n.vz -= (n.vz - tangent.z * axialVelocity) * damping;
-    }
-}
-
 // The proximal guidewire and the part inside the introducer sheath are
 // constrained by the sheath lumen. Once a node exits the sheath tip it becomes
 // free and is governed by rod stiffness and vessel-wall collision.
 applyGuidewireStiffnessProfile();
-constrainWireToSheath();
-supportWireAtSheathExit();
-applyGuidewireLumenGlide(0.5);
+guidewireSolver.initialize();
+tailProgress = guidewireSolver.progress;
 
 // Injection state (managed by UI callbacks)
 let injecting = false;
@@ -964,6 +901,7 @@ const wireMaterial = new THREE.LineBasicMaterial({
 let fluoroscopy = true;
 let wallContactMarkers = null;
 let wallBreachMarkers = null;
+let wallWorstPointMarker = null;
 const ui = initUI({
     camera,
     cameraRadius,
@@ -993,8 +931,9 @@ const ui = initUI({
         vesselGroup.visible = !fluoroscopy;
         sheathFluoroMesh.visible = fluoroscopy;
         lumenDebugGroup.visible = !fluoroscopy;
-        if (wallContactMarkers) wallContactMarkers.visible = true;
-        if (wallBreachMarkers) wallBreachMarkers.visible = true;
+        if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
+        if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
+        if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
         skeletonModel.visible = fluoroscopy;
         displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     },
@@ -1007,44 +946,68 @@ const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
 wireMesh.renderOrder = 1; // draw on top of additive bone rendering
 scene.add(wireMesh);
 
-const contactMarkerGeometry = new THREE.SphereGeometry(2.1, 12, 8);
+const contactMarkerGeometry = new THREE.SphereGeometry(1.35, 12, 8);
+const breachMarkerGeometry = new THREE.SphereGeometry(2.1, 12, 8);
 wallContactMarkers = new THREE.InstancedMesh(
     contactMarkerGeometry,
     new THREE.MeshBasicMaterial({
         color: WALL_CONTACT_COLOR,
         transparent: true,
         opacity: 0.95,
-        depthTest: false
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false
     }),
     CONTACT_MARKER_LIMIT
 );
 wallContactMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 wallContactMarkers.count = 0;
 wallContactMarkers.visible = true;
+wallContactMarkers.frustumCulled = false;
 wallContactMarkers.renderOrder = 6;
 scene.add(wallContactMarkers);
 
 wallBreachMarkers = new THREE.InstancedMesh(
-    contactMarkerGeometry,
+    breachMarkerGeometry,
     new THREE.MeshBasicMaterial({
         color: WALL_BREACH_COLOR,
         transparent: true,
         opacity: 1,
-        depthTest: false
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false
     }),
     CONTACT_MARKER_LIMIT
 );
 wallBreachMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 wallBreachMarkers.count = 0;
 wallBreachMarkers.visible = true;
+wallBreachMarkers.frustumCulled = false;
 wallBreachMarkers.renderOrder = 7;
 scene.add(wallBreachMarkers);
+
+wallWorstPointMarker = new THREE.Mesh(
+    new THREE.SphereGeometry(2.8, 16, 10),
+    new THREE.MeshBasicMaterial({
+        color: WALL_WORST_POINT_COLOR,
+        transparent: true,
+        opacity: 1,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false
+    })
+);
+wallWorstPointMarker.visible = false;
+wallWorstPointMarker.frustumCulled = false;
+wallWorstPointMarker.renderOrder = 8;
+wallWorstPointMarker.userData.hasPoint = false;
+scene.add(wallWorstPointMarker);
 
 pigtailCatheter = new PigtailCatheter({
     wire,
     segmentLength,
     guidewireLength,
-    tailProgressRef: () => tailProgress,
+    tailProgressRef: () => guidewireSolver.progress,
     vessel
 });
 if (vesselCollisionTarget !== vessel) {
@@ -1053,16 +1016,9 @@ if (vesselCollisionTarget !== vessel) {
 scene.add(pigtailCatheter.mesh);
 
 function advanceTailInput(advance, dt) {
-    const clutch = guidewireAdvanceClutch(advance);
-    const nextProgress = Math.max(minInsert, Math.min(maxInsert, tailProgress + advance * GUIDEWIRE_ADVANCE_RATE * clutch * dt));
-    const delta = nextProgress - tailProgress;
-    const feedSpeed = delta / Math.max(dt, 1e-6);
-    const previousPositions = wire.nodes.map(n => ({ x: n.x, y: n.y, z: n.z }));
-    tailProgress = nextProgress;
-    constrainWireToSheath(feedSpeed);
-    feedGuidewireMaterial(delta, dt, previousPositions);
-    supportWireAtSheathExit(0.7);
-    if (advance > 0) applyGuidewireLumenGlide(0.72);
+    const delta = guidewireSolver.advance(advance, dt, vesselCollisionTarget);
+    tailProgress = guidewireSolver.progress;
+    guidewireFeedClutchLevel = 0;
     return delta;
 }
 
@@ -1074,44 +1030,42 @@ function updateWireMesh() {
         wirePositions[i * 3 + 1] = n.y;
         wirePositions[i * 3 + 2] = n.z;
     }
+    const firstVisible = guidewireSolver.firstInsertedNodeIndex();
+    wireGeometry.setDrawRange(firstVisible, Math.max(0, nodeCount - firstVisible));
     wireGeometry.attributes.position.needsUpdate = true;
     wireGeometry.computeBoundingSphere();
 }
 
 function sampleGuidewireContactMarkers() {
-    const collider = vesselCollisionTarget.meshCollider || vesselCollisionTarget.lumenMeshCollider;
     const markerMatrix = new THREE.Matrix4();
-    const contactSamples = [];
-    const breachSamples = [];
-    const samples = [0.15, 0.35, 0.55, 0.75, 0.9];
-    const contactBand = 1.75;
-    if (!collider?.pointContact) {
+    if (fluoroscopy) {
+        ui.updateGuidewireDiagnostics(null);
         wallContactMarkers.count = 0;
         wallBreachMarkers.count = 0;
+        wallWorstPointMarker.userData.hasPoint = false;
+        wallWorstPointMarker.visible = false;
         return;
     }
 
-    for (let i = 0; i < wire.nodes.length - 1; i++) {
-        const n0 = wire.nodes[i];
-        const n1 = wire.nodes[i + 1];
-        for (const t of samples) {
-            const inserted = segmentLength * (i + t) - guidewireLength + tailProgress;
-            if (inserted <= sheathPath) continue;
-
-            const p = {
-                x: n0.x * (1 - t) + n1.x * t,
-                y: n0.y * (1 - t) + n1.y * t,
-                z: n0.z * (1 - t) + n1.z * t
-            };
-            const contact = collider.pointContact(p, 0);
-            if (!Number.isFinite(contact.signedDistance)) continue;
-
-            if (!contact.inside || contact.signedDistance > 0.1) {
-                breachSamples.push(p);
-            } else if (contact.distance < contactBand) {
-                contactSamples.push(p);
-            }
-        }
+    const lumenDiagnostics = guidewireSolver.collectLumenDiagnostics(vesselCollisionTarget, {
+        clearance: guidewireSolver.meshClearance,
+        contactBand: GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND,
+        collectMarkers: true,
+        markerLimit: CONTACT_MARKER_LIMIT
+    });
+    lumenDiagnostics.performance = guidewireSolver.getPerformanceStats();
+    ui.updateGuidewireDiagnostics(lumenDiagnostics);
+    if (lumenDiagnostics.worstPoint) {
+        wallWorstPointMarker.position.set(
+            lumenDiagnostics.worstPoint.x,
+            lumenDiagnostics.worstPoint.y,
+            lumenDiagnostics.worstPoint.z
+        );
+        wallWorstPointMarker.userData.hasPoint = true;
+        wallWorstPointMarker.visible = true;
+    } else {
+        wallWorstPointMarker.userData.hasPoint = false;
+        wallWorstPointMarker.visible = false;
     }
 
     const applySamples = (mesh, points) => {
@@ -1125,8 +1079,8 @@ function sampleGuidewireContactMarkers() {
         mesh.instanceMatrix.needsUpdate = true;
     };
 
-    applySamples(wallContactMarkers, contactSamples);
-    applySamples(wallBreachMarkers, breachSamples);
+    applySamples(wallContactMarkers, lumenDiagnostics.contacts || []);
+    applySamples(wallBreachMarkers, lumenDiagnostics.breaches || []);
 }
 
 function guidewireTipPosition(target = new THREE.Vector3()) {
@@ -1135,40 +1089,9 @@ function guidewireTipPosition(target = new THREE.Vector3()) {
 }
 
 function updateGuidewireResistance(advance, commandedDelta, tipBefore) {
-    let instantLevel = 0;
-    let reason = '';
-    if (advance > 0 && commandedDelta > 1e-5) {
-        const tipAfter = guidewireTipPosition();
-        const tipTravel = tipAfter.distanceTo(tipBefore);
-        const tipRatio = tipTravel / commandedDelta;
-        const bendStats = guidewireBendStats();
-        const stallLevel = Math.max(0, Math.min(1, (GUIDEWIRE_RESISTANCE_TIP_RATIO - tipRatio) / GUIDEWIRE_RESISTANCE_TIP_RATIO));
-        const buckleLevel = Math.max(0, Math.min(1, (bendStats.maxAngle - GUIDEWIRE_BUCKLE_START_ANGLE) / (170 - GUIDEWIRE_BUCKLE_START_ANGLE)));
-
-        if (stallLevel >= buckleLevel && stallLevel > 0) {
-            instantLevel = stallLevel;
-            reason = 'Opór na prowadniku - końcówka nie postępuje proporcjonalnie do podawania.';
-        } else if (buckleLevel > 0) {
-            instantLevel = buckleLevel;
-            reason = 'Opór na prowadniku - prowadnik zaczyna się zawijać.';
-        }
-    }
-    if (advance > 0 && guidewireFeedClutchLevel > instantLevel) {
-        instantLevel = guidewireFeedClutchLevel;
-        reason = guidewireFeedClutchLevel > 0.55
-            ? 'Opór na prowadniku - zmniejszono podawanie, żeby nie zawijać prowadnika.'
-            : 'Narastający opór na prowadniku.';
-    }
-
-    const rise = instantLevel > guidewireResistanceLevel ? 0.28 : 0.08;
-    guidewireResistanceLevel += (instantLevel - guidewireResistanceLevel) * rise;
-    if (instantLevel > 0.2) {
-        guidewireResistanceReason = reason;
-    } else if (guidewireResistanceLevel < 0.2) {
-        guidewireResistanceReason = '';
-    }
-
-    ui.updateGuidewireResistance(guidewireResistanceLevel, guidewireResistanceReason);
+    guidewireResistanceLevel = 0;
+    guidewireResistanceReason = '';
+    ui.updateGuidewireResistance(0, '');
 }
 
 const fixedDt = 1 / 60;
@@ -1223,45 +1146,20 @@ function stepSimulation() {
     const advance = ui.getAdvance();
     const tipBefore = guidewireTipPosition();
     const commandedDelta = advanceTailInput(advance, fixedDt);
-    wire.step(fixedDt);
-    wire.collide(vesselCollisionTarget, fixedDt);
-    wire.solveConstraints(fixedDt);
-    supportWireAtSheathExit();
-    if (advance > 0) applyGuidewireLumenGlide();
-    if (advance > 0) {
-        limitGuidewireBuckling(GUIDEWIRE_BUCKLE_LIMIT_STRENGTH, 2);
-        wire.solveConstraints(fixedDt);
-        wire.collide(vesselCollisionTarget, fixedDt);
-        applyGuidewireLumenGlide();
-    }
-    if (advance < 0) {
-        if (vesselCollisionTarget === vessel) {
-            wire.releaseFromVesselWall(vessel.segments, 0.08, 2);
-            wire.solveConstraints(fixedDt);
-            supportWireAtSheathExit(0.8);
-        }
-        wire.straightenByTension(0.18, 4);
-        wire.solveConstraints(fixedDt);
-        supportWireAtSheathExit(0.8);
-    }
-    wire.collide(vesselCollisionTarget, fixedDt);
-    supportWireAtSheathExit(0.7);
-    if (advance > 0) {
-        limitGuidewireBuckling(0.055, 2);
-        applyGuidewireLumenGlide(0.68);
-    }
+    guidewireSolver.solve(fixedDt, vesselCollisionTarget, {
+        iterations: advance === 0 ? 3 : 4
+    });
     const inserted = Math.max(0, tailProgress);
     pigtailCatheter.advance(ui.getCatheterAdvance(), fixedDt, inserted);
     pigtailCatheter.rotate(ui.getCatheterRotation(), fixedDt);
     pigtailCatheter.stepPhysics(fixedDt);
     pigtailCatheter.constrainGuidewire(fixedDt);
-    wire.solveConstraints(fixedDt);
-    supportWireAtSheathExit();
-    pigtailCatheter.constrainGuidewire(fixedDt);
-    wire.collide(vesselCollisionTarget, fixedDt);
-    wire.solveConstraints(fixedDt);
-    supportWireAtSheathExit(0.8);
-    if (advance > 0) applyGuidewireLumenGlide(0.52);
+    const catheterActive = ui.getCatheterAdvance() !== 0 || ui.getCatheterRotation() !== 0;
+    if (catheterActive) {
+        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 10, forceRelax: true });
+        pigtailCatheter.constrainGuidewire(fixedDt);
+        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 8, forceRelax: true });
+    }
     updateGuidewireResistance(advance, Math.max(0, commandedDelta), tipBefore);
     ui.updateInsertedLength(inserted / 10);
     ui.updateCatheterLength(pigtailCatheter.progress / 10);
@@ -1352,6 +1250,9 @@ function animate(time) {
 
     vesselGroup.visible = !fluoroscopy;
     sheathFluoroMesh.visible = fluoroscopy;
+    if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
+    if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
+    if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
     skeletonModel.visible = fluoroscopy;
     ui.setInjectButtonDisabled(contrastActive);
     ui.setStopInjectionDisabled(!injecting);
