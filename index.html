@@ -149,14 +149,57 @@
     <label><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
 </div>
 
-<div id="monitor">
-    <div class="vitalBox" id="hrBox">
-        <canvas id="ecgCanvas" width="300" height="100"></canvas>
-        <div class="vitalLabel">HR: <span id="hrValue">0</span></div>
+<div id="monitor" class="patient-monitor">
+    <div class="monitor-header">
+        <div>
+            <div class="monitor-title">MONITOR</div>
+            <div class="monitor-subtitle">ADULT | ANGIO</div>
+        </div>
+        <div class="monitor-status">
+            <span id="monitorRhythm">SINUS</span>
+            <span id="monitorClock">00:00</span>
+        </div>
     </div>
-    <div class="vitalBox" id="bpBox">
-        <canvas id="bpCanvas" width="300" height="100"></canvas>
-        <div class="vitalLabel">BP: <span id="bpValue">0/0</span></div>
+
+    <div class="monitor-trace monitor-trace-ecg" id="hrBox">
+        <canvas id="ecgCanvas" width="270" height="58"></canvas>
+        <div class="trace-label">
+            <span>ECG II</span>
+            <span>1 mV</span>
+        </div>
+        <div class="monitor-value value-hr">
+            <span class="value-label">HR</span>
+            <span id="hrValue" class="value-number">0</span>
+            <span class="value-unit">bpm</span>
+        </div>
+    </div>
+
+    <div class="monitor-trace monitor-trace-bp" id="bpBox">
+        <canvas id="bpCanvas" width="270" height="58"></canvas>
+        <div class="trace-label">
+            <span>ART</span>
+            <span>mmHg</span>
+        </div>
+        <div class="monitor-value value-bp">
+            <span class="value-label">BP</span>
+            <span id="bpValue" class="value-number value-number-wide">0/0</span>
+            <span class="value-unit">mmHg</span>
+        </div>
+    </div>
+
+    <div class="monitor-metrics">
+        <div class="monitor-metric metric-spo2">
+            <span class="metric-label">SpO2</span>
+            <span class="metric-readout"><span id="spo2Value">98</span><small>%</small></span>
+        </div>
+        <div class="monitor-metric metric-map">
+            <span class="metric-label">MAP</span>
+            <span class="metric-readout"><span id="mapValue">93</span><small>mmHg</small></span>
+        </div>
+        <div class="monitor-metric metric-rr">
+            <span class="metric-label">RR</span>
+            <span class="metric-readout"><span id="rrValue">14</span><small>/min</small></span>
+        </div>
     </div>
 </div>
 

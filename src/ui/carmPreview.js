@@ -16,15 +16,15 @@ export function initCArmPreview() {
     container.replaceChildren();
 
     previewScene = new THREE.Scene();
-    previewScene.background = new THREE.Color(0x071725);
+    previewScene.background = new THREE.Color(0x020303);
 
     // Simple lighting so models are visible in the preview.
-    const ambient = new THREE.AmbientLight(0xd7efff, 0.8);
+    const ambient = new THREE.AmbientLight(0xdde7e4, 0.72);
     previewScene.add(ambient);
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
     dirLight.position.set(120, 180, 160);
     previewScene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x87b9ff, 0.35);
+    const fillLight = new THREE.DirectionalLight(0x9ab9b3, 0.24);
     fillLight.position.set(-160, 40, -130);
     previewScene.add(fillLight);
 
@@ -41,7 +41,7 @@ export function initCArmPreview() {
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(previewRenderer.domElement);
 
-    const floor = new THREE.GridHelper(300, 12, 0x2f566f, 0x183247);
+    const floor = new THREE.GridHelper(300, 12, 0x485a57, 0x1d2524);
     floor.position.y = -94;
     previewScene.add(floor);
 
