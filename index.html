@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260616guidewireperf1">
+    <link rel="stylesheet" href="style.css?v=20260618prmerge1">
 </head>
 <body>
 <canvas id="sim"></canvas>
@@ -12,6 +12,10 @@
     <div id="catheterLength">Pigtail 0 cm</div>
     <div id="currentDose">0 ml</div>
     <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
+    <div id="xrayTechnique" class="xray-technique">
+        <span id="currentKV">72 kV</span>
+        <span id="currentMA">3.0 mA</span>
+    </div>
     <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
         <div class="guidewire-resistance-header">
             <span id="guidewireResistanceReason">Opór na prowadniku</span>
@@ -68,12 +72,45 @@
     <div class="control-section">
         <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Imaging</div>
         <div class="section-content hidden">
+            <button id="autoExposureToggle" class="imaging-toggle active" type="button">Auto exposure: On</button>
             <label class="parameter-label">Persistence
                 <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.35">
                 <span></span>
             </label>
+            <label class="parameter-label">Pulse fluoro
+                <select id="pulseRate">
+                    <option value="7.5">7.5 fps</option>
+                    <option value="15" selected>15 fps</option>
+                    <option value="30">30 fps</option>
+                </select>
+            </label>
             <label class="parameter-label">Noise level
                 <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.2">
+                <span></span>
+            </label>
+            <label class="parameter-label">Thickness scatter
+                <input id="scatterStrength" type="range" min="0" max="1" step="0.01" value="0.45">
+                <span></span>
+            </label>
+            <label class="parameter-label">Collimation
+                <input id="collimation" type="range" min="0" max="0.45" step="0.01" value="0.08">
+                <span></span>
+            </label>
+            <label class="parameter-label">Brightness
+                <input id="imageBrightness" type="range" min="-0.35" max="0.35" step="0.01" value="0">
+                <span></span>
+            </label>
+            <label class="parameter-label">Image contrast
+                <input id="imageContrast" type="range" min="0.5" max="1.8" step="0.01" value="1">
+                <span></span>
+            </label>
+            <label class="parameter-label">Edge enhancement
+                <input id="edgeEnhancement" type="range" min="0" max="2" step="0.05" value="1">
+                <span></span>
+            </label>
+            <label class="parameter-label">Bone visibility
+                <input id="boneVisibility" type="range" min="0" max="1" step="0.01" value="0.5">
+                <span></span>
             </label>
             <label class="parameter-label">Contrast opacity scale
                 <input id="opacityScale" type="range" min="0" max="100" step="1" value="100">
@@ -182,6 +219,6 @@
     }
 }
 </script>
-    <script type="module" src="./src/simulator.js?v=20260618wirepersist1"></script>
+    <script type="module" src="./src/simulator.js?v=20260618prmerge1"></script>
 </body>
 </html>

@@ -66,6 +66,19 @@ canvas {
     color: #ffd0d0;
 }
 
+.xray-technique {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 4px 0 6px;
+    padding: 4px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.09);
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+}
+
 .guidewire-resistance {
     margin: 6px 0 4px;
     padding: 5px 6px;
@@ -137,6 +150,21 @@ canvas {
     margin-top: 4px;
     font-size: 11px;
     opacity: 0.75;
+}
+
+.imaging-toggle {
+    width: 100%;
+    min-height: 28px;
+    margin: 0 0 7px;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    font-weight: bold;
+}
+
+.imaging-toggle.active {
+    border-color: rgba(115, 180, 255, 0.86);
+    background: rgba(40, 118, 255, 0.45);
 }
 
 #carmZButtons {

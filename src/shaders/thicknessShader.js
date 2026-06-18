@@ -10,9 +10,9 @@ void main() {
 
 export const fragmentShader = `
 // Thickness estimation shader.
-// Uses front and back depth renders of opaque geometry to estimate
-// per-pixel thickness along the view ray: thickness = back - front.
-// This can be used to approximate X-ray attenuation or soft shading.
+// Front/back textures store linear camera-space depth normalized to camera far.
+// Their difference is an approximation of X-ray path length through bone for
+// the current C-arm projection.
 uniform sampler2D frontDepth;
 uniform sampler2D backDepth;
 varying vec2 vUv;
@@ -21,7 +21,6 @@ void main() {
     float back = texture2D(backDepth, vUv).r;
     float thick = max(back - front, 0.0);
 
-    gl_FragColor = vec4(vec3(thick), 1.0);
+    gl_FragColor = vec4(vec3(clamp(thick, 0.0, 1.0)), 1.0);
 }
 `;
-

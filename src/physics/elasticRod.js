@@ -234,6 +234,17 @@ export class ElasticRod {
         }
     }
 
+    bendAngleAt(index) {
+        if (index <= 0 || index >= this.nodes.length - 1) return 0;
+        const prev = this.nodes[index - 1];
+        const curr = this.nodes[index];
+        const next = this.nodes[index + 1];
+        const a = new THREE.Vector3(prev.x - curr.x, prev.y - curr.y, prev.z - curr.z).normalize();
+        const b = new THREE.Vector3(next.x - curr.x, next.y - curr.y, next.z - curr.z).normalize();
+        const internalAngle = Math.acos(THREE.MathUtils.clamp(a.dot(b), -1, 1));
+        return 180 - THREE.MathUtils.radToDeg(internalAngle);
+    }
+
     // Solve positional constraints and apply velocity damping
     solveConstraints(dt, options = {}) {
         const L = this.segmentLength;
