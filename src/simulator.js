@@ -1,9 +1,9 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
-import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260616rigidguidewire29';
+import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260618withdrawrelax4';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260615guidewirediagnostics1';
+import { initUI } from './ui/ui.js?v=20260618withdrawrelax1';
 import { createBoneModel } from './boneModel.js';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
@@ -395,10 +395,19 @@ guidewireSolver = new GuidewireSolver({
     relaxationIterations: 6,
     lengthIterations: 10,
     meshClearance: 0.45,
-    foldGuardAngle: 118,
-    foldGuardStrength: 0.85,
-    foldGuardPasses: 4,
+    foldGuardAngle: 166,
+    foldGuardStrength: 0.62,
+    foldGuardPasses: 2,
     foldGuardCenterPull: 1.25,
+    stabilityRepairSegmentError: 0.09,
+    stabilityRepairBendAngle: 150,
+    stabilityRepairTargetBendAngle: 112,
+    stabilityRepairPasses: 3,
+    stabilityRepairLengthIterations: 10,
+    tipBacktrackAngle: 108,
+    tipBacktrackStrength: 1,
+    segmentProjectionBlend: 0.48,
+    maxSegmentProjectionStep: 0.32,
     collisionProjectionRepeats: 1,
     segmentSamples: [0.1, 0.24, 0.38, 0.52, 0.66, 0.8, 0.93],
     finalCollisionPasses: 3,
@@ -939,6 +948,7 @@ function sampleGuidewireContactMarkers() {
         collectMarkers: true,
         markerLimit: CONTACT_MARKER_LIMIT
     });
+    lumenDiagnostics.performance = guidewireSolver.getPerformanceStats();
     ui.updateGuidewireDiagnostics(lumenDiagnostics);
     if (lumenDiagnostics.worstPoint) {
         wallWorstPointMarker.position.set(

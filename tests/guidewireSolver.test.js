@@ -239,6 +239,56 @@ assert.ok(
     'early guidewire should not be treated as a lumen segment before it leaves the sheath'
 );
 
+const maxInsertWire = new ElasticRod(nodeCount, segmentLength, { constraintIterations: 28 });
+const maxInsertSolver = new GuidewireSolver({
+    rod: maxInsertWire,
+    segmentLength,
+    guidewireLength,
+    sheath: vessel.sheath,
+    lumenSampler: buildProceduralSampler(vessel),
+    advanceRate: 220,
+    minInsert: 0,
+    maxInsert: guidewireLength,
+    lumenClearance: 0.78,
+    straightening: 0.72,
+    routeBlend: 0.018,
+    relaxationIterations: 26,
+    lengthIterations: 18,
+    segmentSamples: [0.06, 0.12, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.9, 0.94],
+    foldGuardAngle: 118,
+    foldGuardStrength: 0.85,
+    foldGuardPasses: 4,
+    foldGuardCenterPull: 1.25
+});
+maxInsertSolver.initialize();
+let maxInsertLastProgress = maxInsertSolver.progress;
+for (let frame = 0; frame < 420 && maxInsertSolver.progress < maxInsertSolver.maxInsert - 1e-6; frame++) {
+    maxInsertSolver.advance(1, dt);
+    maxInsertSolver.solve(dt, null, { iterations: 16 });
+    assert.ok(
+        maxInsertSolver.progress >= maxInsertLastProgress - 1e-9,
+        'guidewire progress should increase monotonically toward max insert'
+    );
+    maxInsertLastProgress = maxInsertSolver.progress;
+}
+for (let frame = 0; frame < 120; frame++) {
+    maxInsertSolver.advance(0, dt);
+    maxInsertSolver.solve(dt, null, { iterations: 14 });
+}
+const maxInsertDiagnostics = maxInsertSolver.collectContactSamples(null, 1.85);
+const maxInsertSegmentError = maxSegmentLengthError(maxInsertWire, segmentLength);
+const maxInsertMaxBend = maxSolverBendAngle(maxInsertWire, maxInsertSolver);
+console.log('guidewire max inserted cm', (maxInsertSolver.progress / 10).toFixed(1));
+console.log('guidewire max insert breaches', maxInsertDiagnostics.breaches.length);
+console.log('guidewire max insert segment error', maxInsertSegmentError.toFixed(5));
+console.log('guidewire max insert bend', maxInsertMaxBend.toFixed(2));
+
+assert.equal(maxInsertSolver.progress, maxInsertSolver.maxInsert, 'guidewire should reach maximum insertion');
+assert.equal(maxInsertDiagnostics.breaches.length, 0, 'max inserted guidewire should remain inside the modeled lumen');
+assert.ok(maxInsertDiagnostics.contacts.length > 0, 'max inserted guidewire should still report wall contacts');
+assert.ok(maxInsertSegmentError < 0.08, 'max inserted guidewire should preserve guidewire segment lengths');
+assert.ok(maxInsertMaxBend < 135, 'max inserted guidewire should not create a sharp local fold');
+
 const slidingSegmentLength = 1;
 const slidingNodeCount = 30;
 const slidingGuidewireLength = slidingSegmentLength * (slidingNodeCount - 1);
@@ -298,6 +348,146 @@ assert.ok(
     'feed convection near the STL wall should preserve tangential sliding'
 );
 
+const retractingWire = new ElasticRod(slidingNodeCount, slidingSegmentLength, { constraintIterations: 8 });
+const retractingSolver = new GuidewireSolver({
+    rod: retractingWire,
+    segmentLength: slidingSegmentLength,
+    guidewireLength: slidingGuidewireLength,
+    sheath: slidingSheath,
+    advanceRate: 1,
+    minInsert: 0,
+    maxInsert: 24,
+    straightening: 0,
+    routeBlend: 0,
+    relaxationIterations: 2,
+    lengthIterations: 3,
+    meshClearance: 0.45,
+    withdrawalStraightening: 0.8,
+    withdrawalStraighteningPasses: 3
+});
+retractingSolver.initialize();
+retractingSolver.advance(1, 18);
+const firstRetractingFreeIndex = retractingWire.nodes.findIndex((_, index) => {
+    return retractingSolver.insertedCoordinate(index) > retractingSolver.sheathLength;
+});
+const bendIndex = firstRetractingFreeIndex + 3;
+const bendAngle = Math.PI / 4;
+for (let i = firstRetractingFreeIndex; i < retractingWire.nodes.length; i++) {
+    const local = i - firstRetractingFreeIndex;
+    const node = retractingWire.nodes[i];
+    if (local <= 3) {
+        node.x = slidingSheath.end.x;
+        node.y = slidingSheath.end.y + local * slidingSegmentLength;
+    } else {
+        const angled = local - 3;
+        node.x = slidingSheath.end.x + Math.sin(bendAngle) * angled * slidingSegmentLength;
+        node.y = slidingSheath.end.y + 3 * slidingSegmentLength +
+            Math.cos(bendAngle) * angled * slidingSegmentLength;
+    }
+    node.z = 0;
+}
+const retractingBeforeBend = retractingWire.bendAngleAt(bendIndex);
+retractingSolver.advance(-1, 1, tangentPlaneCollision);
+retractingSolver.solve(dt, tangentPlaneCollision, { iterations: 2 });
+const retractingAfterBend = retractingWire.bendAngleAt(bendIndex);
+assert.ok(
+    retractingAfterBend < retractingBeforeBend - 5,
+    'withdrawal should relax a stored guidewire bend instead of preserving its frozen angle'
+);
+
+const freeEndWire = new ElasticRod(slidingNodeCount, slidingSegmentLength, { constraintIterations: 8 });
+const freeEndSolver = new GuidewireSolver({
+    rod: freeEndWire,
+    segmentLength: slidingSegmentLength,
+    guidewireLength: slidingGuidewireLength,
+    sheath: slidingSheath,
+    advanceRate: 1,
+    minInsert: 0,
+    maxInsert: 24,
+    straightening: 0,
+    routeBlend: 0,
+    relaxationIterations: 2,
+    lengthIterations: 3,
+    meshClearance: 0.45,
+    withdrawalStraightening: 0.8,
+    withdrawalStraighteningPasses: 3
+});
+freeEndSolver.initialize();
+freeEndSolver.advance(1, 18);
+const firstFreeEndIndex = freeEndWire.nodes.findIndex((_, index) => {
+    return freeEndSolver.insertedCoordinate(index) > freeEndSolver.sheathLength;
+});
+const freeEndBendIndex = firstFreeEndIndex + 3;
+for (let i = firstFreeEndIndex; i < freeEndWire.nodes.length; i++) {
+    const local = i - firstFreeEndIndex;
+    const node = freeEndWire.nodes[i];
+    if (local <= 3) {
+        node.x = slidingSheath.end.x;
+        node.y = slidingSheath.end.y + local * slidingSegmentLength;
+    } else {
+        const angled = local - 3;
+        node.x = slidingSheath.end.x + Math.sin(bendAngle) * angled * slidingSegmentLength;
+        node.y = slidingSheath.end.y + 3 * slidingSegmentLength +
+            Math.cos(bendAngle) * angled * slidingSegmentLength;
+    }
+    node.z = 0;
+}
+freeEndSolver.lastAdvanceDelta = 0;
+freeEndSolver.settleFramesRemaining = 0;
+freeEndSolver.withdrawalRelaxFramesRemaining = 0;
+const freeEndBeforeBend = freeEndWire.bendAngleAt(freeEndBendIndex);
+freeEndSolver.advance(0, dt);
+freeEndSolver.solve(dt, null, { iterations: 2 });
+const freeEndAfterBend = freeEndWire.bendAngleAt(freeEndBendIndex);
+assert.ok(
+    freeEndAfterBend < freeEndBeforeBend - 5,
+    'unsupported free guidewire end should self-straighten even after withdrawal input has stopped'
+);
+
+const advancingFreeEndWire = new ElasticRod(slidingNodeCount, slidingSegmentLength, { constraintIterations: 8 });
+const advancingFreeEndSolver = new GuidewireSolver({
+    rod: advancingFreeEndWire,
+    segmentLength: slidingSegmentLength,
+    guidewireLength: slidingGuidewireLength,
+    sheath: slidingSheath,
+    advanceRate: 1,
+    minInsert: 0,
+    maxInsert: 24,
+    straightening: 0,
+    routeBlend: 0,
+    relaxationIterations: 2,
+    lengthIterations: 3,
+    meshClearance: 0.45,
+    withdrawalStraightening: 0.8,
+    withdrawalStraighteningPasses: 3
+});
+advancingFreeEndSolver.initialize();
+advancingFreeEndSolver.advance(1, 18);
+const firstAdvancingFreeEndIndex = advancingFreeEndWire.nodes.findIndex((_, index) => {
+    return advancingFreeEndSolver.insertedCoordinate(index) > advancingFreeEndSolver.sheathLength;
+});
+for (let i = firstAdvancingFreeEndIndex; i < advancingFreeEndWire.nodes.length; i++) {
+    const local = i - firstAdvancingFreeEndIndex;
+    const node = advancingFreeEndWire.nodes[i];
+    if (local <= 3) {
+        node.x = slidingSheath.end.x;
+        node.y = slidingSheath.end.y + local * slidingSegmentLength;
+    } else {
+        const angled = local - 3;
+        node.x = slidingSheath.end.x + Math.sin(bendAngle) * angled * slidingSegmentLength;
+        node.y = slidingSheath.end.y + 3 * slidingSegmentLength +
+            Math.cos(bendAngle) * angled * slidingSegmentLength;
+    }
+    node.z = 0;
+}
+advancingFreeEndSolver.advance(1, dt);
+advancingFreeEndSolver.solve(dt, null, { iterations: 2 });
+assert.equal(
+    advancingFreeEndSolver.getPerformanceStats().withdrawalRelaxed,
+    false,
+    'active guidewire advance should not trigger the withdrawal/free-end relaxation mode'
+);
+
 function assertHairpinGuardAtProgress(progress) {
     const foldWire = new ElasticRod(16, 5, { constraintIterations: 12 });
     const foldGuidewireLength = 5 * (foldWire.nodes.length - 1);
@@ -336,6 +526,10 @@ function assertHairpinGuardAtProgress(progress) {
     assert.ok(
         maxSolverBendAngle(foldWire, foldSolver) < 122,
         `hairpin guard should reduce sharp local folding at ${progress} mm`
+    );
+    assert.ok(
+        maxSegmentLengthError(foldWire, 5) < 0.12,
+        `hairpin guard should preserve rigid guidewire segment lengths at ${progress} mm`
     );
 }
 

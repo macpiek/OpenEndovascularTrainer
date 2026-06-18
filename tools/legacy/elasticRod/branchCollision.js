@@ -1,5 +1,4 @@
-import { ElasticRod } from '../../src/physics/elasticRod.js';
-import { vesselToGeometry } from '../../src/vesselGeometry.js';
+import { ElasticRod } from '../../../src/physics/elasticRod.js';
 import fs from 'fs';
 
 const log = [];
@@ -17,7 +16,6 @@ const vessel = {
         { start: { x: 3, y: 0, z: 0 }, end: { x: 3, y: 3, z: 0 }, radius: 1 }
     ]
 };
-vessel.geometry = vesselToGeometry(vessel);
 
 const dt = 0.001;
 for (let i = 0; i < 100; i++) {
@@ -38,4 +36,3 @@ const logPath = new URL('./branch-collision.log', import.meta.url);
 fs.writeFileSync(logPath, JSON.stringify(log, null, 2));
 console.log('saved log to', logPath.pathname);
 console.log('final tip', tip);
-

@@ -306,6 +306,10 @@ export function initUI(options) {
     if (!Number.isFinite(value)) return '--';
     return Math.abs(value) < 10 ? value.toFixed(2) : value.toFixed(1);
   }
+  function formatDebugMs(value) {
+    if (!Number.isFinite(value)) return '--';
+    return value < 10 ? value.toFixed(2) : value.toFixed(1);
+  }
   function updateGuidewireDiagnostics(metrics = null) {
     if (!guidewireDiagnosticsEl) return;
     guidewireDiagnosticsEl.classList.remove('warn', 'breach');
@@ -323,12 +327,25 @@ export function initUI(options) {
       'warn',
       metrics.outsideCount === 0 && metrics.clearanceViolationCount > 0
     );
+    const perf = metrics.performance;
+    const perfText = perf
+      ? `\nGW perf: adv ${formatDebugMs(perf.advanceMs)} ` +
+        `/ solve ${formatDebugMs(perf.solveMs)} ` +
+        `/ proj ${formatDebugMs(perf.projectMs)} ` +
+        `/ dbg ${formatDebugMs(perf.diagnosticMs)} ms | ` +
+        `q ${perf.pointContactCount}+${perf.diagnosticPointContactCount} | ` +
+        `segS ${perf.segmentSampleCount}` +
+        `${perf.foldGuarded ? ' | fold' : ''}` +
+        `${perf.stabilityRepaired ? ' | repair' : ''}` +
+        `${perf.withdrawalRelaxed ? ' | withdraw' : ''}`
+      : '';
     guidewireDiagnosticsEl.textContent =
       `GW STL: min ${formatDebugDistance(metrics.minSignedDistance)} mm ` +
       `/ clr ${formatDebugDistance(metrics.clearance)} | ` +
       `out ${metrics.outsideCount} | near ${metrics.clearanceViolationCount} | ` +
       `seg ${formatDebugDistance(metrics.maxSegmentError)} | ` +
-      `bend ${formatDebugDistance(metrics.maxBendAngle)} deg`;
+      `bend ${formatDebugDistance(metrics.maxBendAngle)} deg` +
+      perfText;
   }
   function setInjectButtonDisabled(disabled) {
     if (injectButton) injectButton.disabled = !!disabled;

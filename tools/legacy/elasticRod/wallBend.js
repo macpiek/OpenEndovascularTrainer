@@ -1,5 +1,4 @@
-import { ElasticRod } from '../../src/physics/elasticRod.js';
-import { vesselToGeometry } from '../../src/vesselGeometry.js';
+import { ElasticRod } from '../../../src/physics/elasticRod.js';
 import fs from 'fs';
 
 const log = [];
@@ -13,7 +12,6 @@ const vessel = {
         { start: { x: 0, y: 0, z: 0 }, end: { x: 5, y: 0, z: 0 }, radius: 1 }
     ]
 };
-vessel.geometry = vesselToGeometry(vessel);
 
 // place tip slightly outside to force contact with wall
 rod.nodes[rod.nodes.length - 1].y = 1.2;

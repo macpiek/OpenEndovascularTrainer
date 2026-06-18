@@ -1,5 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { ElasticRod } from '../../src/physics/elasticRod.js';
+import { ElasticRod } from '../../../src/physics/elasticRod.js';
 
 const rod = new ElasticRod(20, 0.5);
 rod.nodes[5].y = 1;

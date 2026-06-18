@@ -12,9 +12,9 @@ Click the **Fluoroscopy** button to hide the debug vessel surfaces and display o
 ## Vessel Geometry
 
 
-The vessel is generated deterministically. Branch length and angle offset use fixed defaults (140 units and 0 radians) and only change when explicitly provided to `generateVessel`. A short introducer sheath extends from the distal left branch with a 30° tilt against the vessel wall toward +Z.
+The centerline metadata is generated deterministically. Branch length and angle offset use fixed defaults (140 units and 0 radians) and only change when explicitly provided to `generateVessel`. A short introducer sheath extends from the distal left branch with a tilt against the vessel wall toward +Z.
 
-`vesselToGeometry(vessel)` converts the segment-based description into a `THREE.BufferGeometry` mesh with an acceleration structure used for both rendering and guidewire collisions.
+The visible vessel and guidewire wall collisions are driven by the imported STL aorta model and its preprocessed lumen field; the procedural vessel data is kept for flow, controls, and tool path metadata.
 
 
 ## Tuning wall friction
@@ -59,7 +59,13 @@ const rod = new ElasticRod(10, 1, {
 });
 ```
 
-Example scripts exercising the rod model live in `tests/elasticRod`:
+Automated regression tests live in `tests/` and can be run with:
+
+```sh
+npm test
+```
+
+Legacy demonstration scripts exercising the rod model live in `tools/legacy/elasticRod`:
 
 * `straightening.js` – rod straightening after release
 * `wallBend.js` – bending while sliding along a vessel wall
@@ -68,10 +74,10 @@ Example scripts exercising the rod model live in `tests/elasticRod`:
 Run them with Node to produce JSON logs describing the simulation state:
 
 ```sh
-node tests/elasticRod/straightening.js
-node tests/elasticRod/wallBend.js
-node tests/elasticRod/branchCollision.js
+node tools/legacy/elasticRod/straightening.js
+node tools/legacy/elasticRod/wallBend.js
+node tools/legacy/elasticRod/branchCollision.js
 ```
 
-For a quick visual check, open `tests/elasticRod/visualize.html` in a modern
+For a quick visual check, open `tools/legacy/elasticRod/visualize.html` in a modern
 browser. It uses Three.js to display the rod evolving in isolation.

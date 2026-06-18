@@ -1,4 +1,4 @@
-import { VoxelContrastAgent, getVoxelMeshes } from '../src/voxelContrastAgent.js';
+import { VoxelContrastAgent, getVoxelMeshes } from '../../../src/voxelContrastAgent.js';
 
 // Minimal straight vessel composed of two aligned segments
 const vessel = {

@@ -7,7 +7,7 @@
     "video:studio": "remotion studio video/index.ts",
     "video:render": "remotion render video/index.ts EndovascularTrainerAd out/endovascular-trainer-ad.mp4 --codec=h264 --overwrite",
     "video:still": "remotion still video/index.ts EndovascularTrainerAd out/endovascular-trainer-frame.png --frame=210 --overwrite",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/elasticRod.test.js && node tests/aortaPreprocess.test.js && node tests/guidewireSolver.test.js"
   },
   "keywords": [],
   "author": "",
