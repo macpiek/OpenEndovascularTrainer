@@ -60,6 +60,123 @@ const DEFAULT_MESH_COLLISION_PASSES = 2;
 const VOLUME_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 const MESH_COLLIDER_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 
+function ensurePointBuffer(buffer, count) {
+    if (!buffer || buffer.length !== count) {
+        return Array.from({ length: count }, () => ({ x: 0, y: 0, z: 0, active: false }));
+    }
+    return buffer;
+}
+
+function snapshotNodePositions(nodes, buffer) {
+    const positions = ensurePointBuffer(buffer, nodes.length);
+    const storage = nodes.nodeStorage;
+    if (storage) {
+        const { x, y, z } = storage;
+        for (let i = 0; i < nodes.length; i++) {
+            const position = positions[i];
+            position.x = x[i];
+            position.y = y[i];
+            position.z = z[i];
+            position.active = true;
+        }
+        return positions;
+    }
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const position = positions[i];
+        position.x = node.x;
+        position.y = node.y;
+        position.z = node.z;
+        position.active = true;
+    }
+    return positions;
+}
+
+function clearPointBuffer(buffer) {
+    for (let i = 0; i < buffer.length; i++) {
+        const point = buffer[i];
+        point.x = 0;
+        point.y = 0;
+        point.z = 0;
+        point.active = false;
+    }
+}
+
+function createNodeStorage(count, mass, bendingStiffness) {
+    const storage = {
+        x: new Float64Array(count),
+        y: new Float64Array(count),
+        z: new Float64Array(count),
+        vx: new Float64Array(count),
+        vy: new Float64Array(count),
+        vz: new Float64Array(count),
+        fx: new Float64Array(count),
+        fy: new Float64Array(count),
+        fz: new Float64Array(count),
+        kx: new Float64Array(count),
+        ky: new Float64Array(count),
+        kz: new Float64Array(count),
+        mass: new Float64Array(count),
+        bendingStiffness: new Float64Array(count),
+        pinned: new Uint8Array(count)
+    };
+    storage.mass.fill(mass);
+    storage.bendingStiffness.fill(bendingStiffness);
+    return storage;
+}
+
+class RodNodeView {
+    constructor(storage, index) {
+        this._storage = storage;
+        this.index = index;
+    }
+
+    get x() { return this._storage.x[this.index]; }
+    set x(value) { this._storage.x[this.index] = value; }
+
+    get y() { return this._storage.y[this.index]; }
+    set y(value) { this._storage.y[this.index] = value; }
+
+    get z() { return this._storage.z[this.index]; }
+    set z(value) { this._storage.z[this.index] = value; }
+
+    get vx() { return this._storage.vx[this.index]; }
+    set vx(value) { this._storage.vx[this.index] = value; }
+
+    get vy() { return this._storage.vy[this.index]; }
+    set vy(value) { this._storage.vy[this.index] = value; }
+
+    get vz() { return this._storage.vz[this.index]; }
+    set vz(value) { this._storage.vz[this.index] = value; }
+
+    get fx() { return this._storage.fx[this.index]; }
+    set fx(value) { this._storage.fx[this.index] = value; }
+
+    get fy() { return this._storage.fy[this.index]; }
+    set fy(value) { this._storage.fy[this.index] = value; }
+
+    get fz() { return this._storage.fz[this.index]; }
+    set fz(value) { this._storage.fz[this.index] = value; }
+
+    get mass() { return this._storage.mass[this.index]; }
+    set mass(value) { this._storage.mass[this.index] = value; }
+
+    get bendingStiffness() { return this._storage.bendingStiffness[this.index]; }
+    set bendingStiffness(value) { this._storage.bendingStiffness[this.index] = value; }
+
+    get kx() { return this._storage.kx[this.index]; }
+    set kx(value) { this._storage.kx[this.index] = value; }
+
+    get ky() { return this._storage.ky[this.index]; }
+    set ky(value) { this._storage.ky[this.index] = value; }
+
+    get kz() { return this._storage.kz[this.index]; }
+    set kz(value) { this._storage.kz[this.index] = value; }
+
+    get pinned() { return this._storage.pinned[this.index] !== 0; }
+    set pinned(value) { this._storage.pinned[this.index] = value ? 1 : 0; }
+}
+
 export class ElasticRod {
     constructor(count, segmentLength, {
         mass = 1,
@@ -73,7 +190,9 @@ export class ElasticRod {
         logger = null,
     } = {}) {
         this.segmentLength = segmentLength;
-        this.nodes = [];
+        this.nodeStorage = createNodeStorage(count, mass, bendingStiffness);
+        this.nodes = Array.from({ length: count }, (_, index) => new RodNodeView(this.nodeStorage, index));
+        this.nodes.nodeStorage = this.nodeStorage;
         this.smoothingIterations = smoothingIterations;
         this.constraintIterations = constraintIterations;
         this.bendingConstraintIterations = bendingConstraintIterations;
@@ -83,63 +202,57 @@ export class ElasticRod {
         this.logger = logger;
         this.iteration = 0;
         this.collisionPrevPositions = null;
+        this._constraintPrevPositions = null;
+        this._bendingCorrections = null;
+        this._smoothPositions = null;
+        this._tensionCorrections = null;
         for (let i = 0; i < count; i++) {
-            const x = i * segmentLength;
-            const y = 0, z = 0;
-            this.nodes.push({
-                x, y, z,
-                vx: 0, vy: 0, vz: 0,
-                fx: 0, fy: 0, fz: 0,
-                mass,
-                bendingStiffness,
-                kx: 0, ky: 0, kz: 0,
-                pinned: false,
-            });
+            this.nodeStorage.x[i] = i * segmentLength;
         }
     }
 
     storeCollisionPreviousPositions() {
+        const { x, y, z } = this.nodeStorage;
         if (!this.collisionPrevPositions || this.collisionPrevPositions.length !== this.nodes.length) {
-            this.collisionPrevPositions = this.nodes.map(n => new THREE.Vector3(n.x, n.y, n.z));
+            this.collisionPrevPositions = Array.from(
+                { length: this.nodes.length },
+                (_, i) => new THREE.Vector3(x[i], y[i], z[i])
+            );
             return;
         }
 
         for (let i = 0; i < this.nodes.length; i++) {
-            const n = this.nodes[i];
-            this.collisionPrevPositions[i].set(n.x, n.y, n.z);
+            this.collisionPrevPositions[i].set(x[i], y[i], z[i]);
         }
     }
 
     computeLength() {
+        const { x, y, z } = this.nodeStorage;
         let total = 0;
         for (let i = 0; i < this.nodes.length - 1; i++) {
-            const n0 = this.nodes[i];
-            const n1 = this.nodes[i + 1];
-            total += Math.hypot(n1.x - n0.x, n1.y - n0.y, n1.z - n0.z);
+            total += Math.hypot(x[i + 1] - x[i], y[i + 1] - y[i], z[i + 1] - z[i]);
         }
         return total;
     }
 
     averageCurvature() {
+        const { kx, ky, kz } = this.nodeStorage;
         let sum = 0;
-        for (const n of this.nodes) {
-            sum += Math.hypot(n.kx, n.ky, n.kz);
+        for (let i = 0; i < this.nodes.length; i++) {
+            sum += Math.hypot(kx[i], ky[i], kz[i]);
         }
         return sum / this.nodes.length;
     }
 
     bendAngleAt(index) {
-        const prev = this.nodes[index - 1];
-        const curr = this.nodes[index];
-        const next = this.nodes[index + 1];
-        if (!prev || !curr || !next) return 0;
-
-        const ax = curr.x - prev.x;
-        const ay = curr.y - prev.y;
-        const az = curr.z - prev.z;
-        const bx = next.x - curr.x;
-        const by = next.y - curr.y;
-        const bz = next.z - curr.z;
+        if (index <= 0 || index >= this.nodes.length - 1) return 0;
+        const { x, y, z } = this.nodeStorage;
+        const ax = x[index] - x[index - 1];
+        const ay = y[index] - y[index - 1];
+        const az = z[index] - z[index - 1];
+        const bx = x[index + 1] - x[index];
+        const by = y[index + 1] - y[index];
+        const bz = z[index + 1] - z[index];
         const aLen = Math.hypot(ax, ay, az);
         const bLen = Math.hypot(bx, by, bz);
         if (aLen < 1e-8 || bLen < 1e-8) return 0;
@@ -149,26 +262,23 @@ export class ElasticRod {
     }
 
     resetForces() {
-        for (const n of this.nodes) {
-            n.fx = n.fy = n.fz = 0;
-        }
+        this.nodeStorage.fx.fill(0);
+        this.nodeStorage.fy.fill(0);
+        this.nodeStorage.fz.fill(0);
     }
 
     // Compute discrete curvature vector for each interior node using
     // a second derivative approximation along the rod.
     updateCurvature() {
+        const { x, y, z, kx, ky, kz } = this.nodeStorage;
         const L2 = this.segmentLength * this.segmentLength;
-        // reset curvature
-        for (const n of this.nodes) {
-            n.kx = n.ky = n.kz = 0;
-        }
+        kx.fill(0);
+        ky.fill(0);
+        kz.fill(0);
         for (let i = 1; i < this.nodes.length - 1; i++) {
-            const p0 = this.nodes[i - 1];
-            const p1 = this.nodes[i];
-            const p2 = this.nodes[i + 1];
-            p1.kx = (p0.x - 2 * p1.x + p2.x) / L2;
-            p1.ky = (p0.y - 2 * p1.y + p2.y) / L2;
-            p1.kz = (p0.z - 2 * p1.z + p2.z) / L2;
+            kx[i] = (x[i - 1] - 2 * x[i] + x[i + 1]) / L2;
+            ky[i] = (y[i - 1] - 2 * y[i] + y[i + 1]) / L2;
+            kz[i] = (z[i - 1] - 2 * z[i] + z[i + 1]) / L2;
         }
     }
 
@@ -178,77 +288,62 @@ export class ElasticRod {
     accumulateBendingForces() {
         const count = this.nodes.length;
         if (count < 3) return;
+        const { fx: forceX, fy: forceY, fz: forceZ, kx, ky, kz, bendingStiffness } = this.nodeStorage;
         for (let i = 1; i < count - 1; i++) {
-            const prev = this.nodes[i - 1];
-            const curr = this.nodes[i];
-            const next = this.nodes[i + 1];
-            const prev2 = this.nodes[i - 2];
-            const next2 = this.nodes[i + 2];
-            const kx = curr.kx;
-            const ky = curr.ky;
-            const kz = curr.kz;
-
-            const EI = curr.bendingStiffness;
+            const curKx = kx[i];
+            const curKy = ky[i];
+            const curKz = kz[i];
+            const EI = bendingStiffness[i];
             // amplify straightening force when curvature is large
-            const k2 = kx * kx + ky * ky + kz * kz;
+            const k2 = curKx * curKx + curKy * curKy + curKz * curKz;
             const scale = 1 + k2; // nonlinear scaling for strong bends
-            const fx = EI * kx * scale;
-            const fy = EI * ky * scale;
-            const fz = EI * kz * scale;
+            const fx = EI * curKx * scale;
+            const fy = EI * curKy * scale;
+            const fz = EI * curKz * scale;
 
             // weights for immediate and next-nearest neighbours
             const w1 = 0.4;
             const w2 = 0.1;
-            if (prev2) {
-                prev2.fx += w2 * fx; prev2.fy += w2 * fy; prev2.fz += w2 * fz;
+            if (i >= 2) {
+                forceX[i - 2] += w2 * fx; forceY[i - 2] += w2 * fy; forceZ[i - 2] += w2 * fz;
             }
-            if (next2) {
-                next2.fx += w2 * fx; next2.fy += w2 * fy; next2.fz += w2 * fz;
+            if (i + 2 < count) {
+                forceX[i + 2] += w2 * fx; forceY[i + 2] += w2 * fy; forceZ[i + 2] += w2 * fz;
             }
-            prev.fx += w1 * fx; prev.fy += w1 * fy; prev.fz += w1 * fz;
-            next.fx += w1 * fx; next.fy += w1 * fy; next.fz += w1 * fz;
+            forceX[i - 1] += w1 * fx; forceY[i - 1] += w1 * fy; forceZ[i - 1] += w1 * fz;
+            forceX[i + 1] += w1 * fx; forceY[i + 1] += w1 * fy; forceZ[i + 1] += w1 * fz;
 
-            const sumWeights = w1 * 2 + (prev2 ? w2 : 0) + (next2 ? w2 : 0);
-            curr.fx -= sumWeights * fx;
-            curr.fy -= sumWeights * fy;
-            curr.fz -= sumWeights * fz;
+            const sumWeights = w1 * 2 + (i >= 2 ? w2 : 0) + (i + 2 < count ? w2 : 0);
+            forceX[i] -= sumWeights * fx;
+            forceY[i] -= sumWeights * fy;
+            forceZ[i] -= sumWeights * fz;
         }
     }
 
     // Integrate positions and velocities using semi-implicit Euler
     integrate(dt) {
-        for (const n of this.nodes) {
-            if (n.pinned) {
-                n.vx = n.vy = n.vz = 0;
+        const { x, y, z, vx, vy, vz, fx, fy, fz, mass, pinned } = this.nodeStorage;
+        for (let i = 0; i < this.nodes.length; i++) {
+            if (pinned[i]) {
+                vx[i] = 0;
+                vy[i] = 0;
+                vz[i] = 0;
                 continue;
             }
-            const ax = n.fx / n.mass;
-            const ay = n.fy / n.mass;
-            const az = n.fz / n.mass;
-            n.vx += ax * dt;
-            n.vy += ay * dt;
-            n.vz += az * dt;
-            n.x += n.vx * dt;
-            n.y += n.vy * dt;
-            n.z += n.vz * dt;
+            vx[i] += (fx[i] / mass[i]) * dt;
+            vy[i] += (fy[i] / mass[i]) * dt;
+            vz[i] += (fz[i] / mass[i]) * dt;
+            x[i] += vx[i] * dt;
+            y[i] += vy[i] * dt;
+            z[i] += vz[i] * dt;
         }
-    }
-
-    bendAngleAt(index) {
-        if (index <= 0 || index >= this.nodes.length - 1) return 0;
-        const prev = this.nodes[index - 1];
-        const curr = this.nodes[index];
-        const next = this.nodes[index + 1];
-        const a = new THREE.Vector3(prev.x - curr.x, prev.y - curr.y, prev.z - curr.z).normalize();
-        const b = new THREE.Vector3(next.x - curr.x, next.y - curr.y, next.z - curr.z).normalize();
-        const internalAngle = Math.acos(THREE.MathUtils.clamp(a.dot(b), -1, 1));
-        return 180 - THREE.MathUtils.radToDeg(internalAngle);
     }
 
     // Solve positional constraints and apply velocity damping
     solveConstraints(dt, options = {}) {
         const L = this.segmentLength;
-        const prev = this.nodes.map(n => ({ x: n.x, y: n.y, z: n.z }));
+        const prev = snapshotNodePositions(this.nodes, this._constraintPrevPositions);
+        this._constraintPrevPositions = prev;
         const applyBending = options.applyBending ?? true;
         const velocityDamping = options.velocityDamping ?? 0.92;
 
@@ -350,9 +445,11 @@ export class ElasticRod {
         if (iterations <= 0 || this.nodes.length < 3) return;
         const limit = Math.max(0, this.bendAngleLimit);
         const baseStrength = Math.max(0, Math.min(1, this.bendProjectionStrength));
+        this._bendingCorrections = ensurePointBuffer(this._bendingCorrections, this.nodes.length);
 
         for (let iter = 0; iter < iterations; iter++) {
-            const corrections = new Array(this.nodes.length);
+            const corrections = this._bendingCorrections;
+            clearPointBuffer(corrections);
             for (let i = 1; i < this.nodes.length - 1; i++) {
                 const n = this.nodes[i];
                 if (n.pinned) continue;
@@ -363,17 +460,17 @@ export class ElasticRod {
                 const next = this.nodes[i + 1];
                 const severity = Math.max(0, Math.min(1, (angle - limit) / Math.max(1, 180 - limit)));
                 const strength = baseStrength * (0.35 + 0.65 * severity);
-                corrections[i] = {
-                    x: ((prev.x + next.x) * 0.5 - n.x) * strength,
-                    y: ((prev.y + next.y) * 0.5 - n.y) * strength,
-                    z: ((prev.z + next.z) * 0.5 - n.z) * strength
-                };
+                const correction = corrections[i];
+                correction.x = ((prev.x + next.x) * 0.5 - n.x) * strength;
+                correction.y = ((prev.y + next.y) * 0.5 - n.y) * strength;
+                correction.z = ((prev.z + next.z) * 0.5 - n.z) * strength;
+                correction.active = true;
             }
 
             for (let i = 1; i < this.nodes.length - 1; i++) {
                 const n = this.nodes[i];
                 const c = corrections[i];
-                if (!c || n.pinned) continue;
+                if (!c.active || n.pinned) continue;
                 n.x += c.x;
                 n.y += c.y;
                 n.z += c.z;
@@ -385,26 +482,26 @@ export class ElasticRod {
     laplacianSmooth() {
         const count = this.nodes.length;
         if (count < 3) return;
+        this._smoothPositions = ensurePointBuffer(this._smoothPositions, count);
         for (let iter = 0; iter < this.smoothingIterations; iter++) {
-            const newPos = new Array(count);
+            const newPos = this._smoothPositions;
+            clearPointBuffer(newPos);
             for (let i = 1; i < count - 1; i++) {
                 const n = this.nodes[i];
-                if (n.pinned) {
-                    newPos[i] = { x: n.x, y: n.y, z: n.z };
-                    continue;
-                }
+                if (n.pinned) continue;
                 const p0 = this.nodes[i - 1];
                 const p2 = this.nodes[i + 1];
-                newPos[i] = {
-                    x: (p0.x + p2.x) * 0.5,
-                    y: (p0.y + p2.y) * 0.5,
-                    z: (p0.z + p2.z) * 0.5,
-                };
+                const target = newPos[i];
+                target.x = (p0.x + p2.x) * 0.5;
+                target.y = (p0.y + p2.y) * 0.5;
+                target.z = (p0.z + p2.z) * 0.5;
+                target.active = true;
             }
             for (let i = 1; i < count - 1; i++) {
                 const n = this.nodes[i];
                 if (n.pinned) continue;
                 const np = newPos[i];
+                if (!np.active) continue;
                 n.x = np.x; n.y = np.y; n.z = np.z;
             }
         }
@@ -414,23 +511,25 @@ export class ElasticRod {
         const count = this.nodes.length;
         if (count < 3 || strength <= 0 || iterations <= 0) return;
         const alpha = Math.max(0, Math.min(1, strength));
+        this._tensionCorrections = ensurePointBuffer(this._tensionCorrections, count);
         for (let iter = 0; iter < iterations; iter++) {
-            const corrections = new Array(count);
+            const corrections = this._tensionCorrections;
+            clearPointBuffer(corrections);
             for (let i = 1; i < count - 1; i++) {
                 const n = this.nodes[i];
                 if (n.pinned) continue;
                 const prev = this.nodes[i - 1];
                 const next = this.nodes[i + 1];
-                corrections[i] = {
-                    x: ((prev.x + next.x) * 0.5 - n.x) * alpha,
-                    y: ((prev.y + next.y) * 0.5 - n.y) * alpha,
-                    z: ((prev.z + next.z) * 0.5 - n.z) * alpha,
-                };
+                const correction = corrections[i];
+                correction.x = ((prev.x + next.x) * 0.5 - n.x) * alpha;
+                correction.y = ((prev.y + next.y) * 0.5 - n.y) * alpha;
+                correction.z = ((prev.z + next.z) * 0.5 - n.z) * alpha;
+                correction.active = true;
             }
             for (let i = 1; i < count - 1; i++) {
                 const n = this.nodes[i];
                 const c = corrections[i];
-                if (!c || n.pinned) continue;
+                if (!c.active || n.pinned) continue;
                 n.x += c.x;
                 n.y += c.y;
                 n.z += c.z;
