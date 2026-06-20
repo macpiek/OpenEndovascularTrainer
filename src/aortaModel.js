@@ -96,17 +96,60 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
 }
 
 export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
-    function pointContact(input, clearance = 0) {
-        const query = lumenField?.query?.(input);
-        if (!query) return {
-            inside: true,
-            violation: false,
-            distance: Infinity,
-            signedDistance: Infinity,
-            target: new THREE.Vector3(input.x, input.y, input.z),
-            normal: new THREE.Vector3(1, 0, 0)
-        };
+    const setPoint = (target, x, y, z) => {
+        if (typeof target?.set === 'function') target.set(x, y, z);
+        else {
+            target.x = x;
+            target.y = y;
+            target.z = z;
+        }
+        return target;
+    };
+
+    function pointContact(input, clearance = 0, out = null) {
+        const query = lumenField?.query?.(input, out?.query);
+        if (!query) {
+            if (out) {
+                out.inside = true;
+                out.violation = false;
+                out.distance = Infinity;
+                out.signedDistance = Infinity;
+                out.target = setPoint(out.target || (out.target = {}), input.x, input.y, input.z);
+                out.normal = setPoint(out.normal || (out.normal = {}), 1, 0, 0);
+                return out;
+            }
+            return {
+                inside: true,
+                violation: false,
+                distance: Infinity,
+                signedDistance: Infinity,
+                target: new THREE.Vector3(input.x, input.y, input.z),
+                normal: new THREE.Vector3(1, 0, 0)
+            };
+        }
         const violation = query.signedDistance < clearance;
+        if (out) {
+            out.inside = query.inside;
+            out.violation = violation;
+            out.distance = Math.max(0, query.signedDistance);
+            out.signedDistance = query.signedDistance;
+            out.target = out.target || {};
+            if (violation) {
+                const correction = Math.max(0, clearance - query.signedDistance);
+                setPoint(
+                    out.target,
+                    input.x + query.inward.x * correction,
+                    input.y + query.inward.y * correction,
+                    input.z + query.inward.z * correction
+                );
+            } else {
+                setPoint(out.target, input.x, input.y, input.z);
+            }
+            out.closestPoint = setPoint(out.closestPoint || (out.closestPoint = {}), query.closestPoint.x, query.closestPoint.y, query.closestPoint.z);
+            out.inward = setPoint(out.inward || (out.inward = {}), query.inward.x, query.inward.y, query.inward.z);
+            out.normal = setPoint(out.normal || (out.normal = {}), query.normal.x, query.normal.y, query.normal.z);
+            return out;
+        }
         return {
             inside: query.inside,
             violation,
