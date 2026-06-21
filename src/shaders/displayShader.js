@@ -133,10 +133,10 @@ float thicknessPathAt(vec2 uv) {
 }
 
 float bonePathAt(vec2 uv) {
-    float thicknessPath = pow(thicknessPathAt(uv), 0.72);
+    float thicknessPath = pow(thicknessPathAt(uv), 0.68);
     float projectedBone = boneProjectionAt(uv);
     float projectionPath = pow(saturate(projectedBone * 2.5), 0.9) * 0.46;
-    return saturate(thicknessPath * (0.78 + projectionPath * 0.42) + projectionPath * 0.18);
+    return saturate(thicknessPath * (1.12 + projectionPath * 0.52) + projectionPath * 0.12);
 }
 
 float corticalBoneAt(vec2 uv) {
@@ -147,21 +147,22 @@ float corticalBoneAt(vec2 uv) {
     float t = thicknessPathAt(uv + texel * vec2(0.0, -1.0));
     float b = thicknessPathAt(uv + texel * vec2(0.0, 1.0));
     float thicknessEdge = smoothstep(0.014, 0.19, length(vec2(r - l, b - t)));
-    float entryExitCortex = smoothstep(0.026, 0.31, c) * (0.11 + thicknessEdge * 0.4);
+    float entryExitCortex = smoothstep(0.026, 0.31, c) * (0.15 + thicknessEdge * 0.48);
     float projectedCortex = pow(saturate(corticalProjectionAt(uv) * 2.65), 0.78);
     return saturate(entryExitCortex + projectedCortex * (0.27 + c * 0.38));
 }
 
 float attenuationAt(vec2 uv) {
-    float boneMu = mix(0.18, 2.15, saturate(boneOpacity));
-    float bone = (bonePathAt(uv) * 0.74 + corticalBoneAt(uv) * 0.82) * boneMu;
+    float boneVisibility = saturate(boneOpacity);
+    float boneSignal = bonePathAt(uv) * 1.08 + corticalBoneAt(uv) * 0.88;
+    float bone = boneSignal * 2.15 * boneVisibility;
     float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
     float metal = metalAt(uv) * 5.25;
     float sheath = sheathAt(uv) * 0.42;
 
-    // A small contribution from the accumulated visible frame preserves mild
-    // detector lag without letting the old postprocess dominate the image.
-    float temporalTrace = smoothstep(0.04, 0.85, sampleSignal(uTexture, uv)) * 0.22;
+    // The accumulated visible frame creates detector persistence across the
+    // full fluoroscopy image while current attenuation still leads the frame.
+    float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
     return max(0.0, bone + iodine + metal + sheath + temporalTrace);
 }
 
@@ -188,15 +189,19 @@ float scatterFieldAt(vec2 uv, float attenuation) {
 
 float collimatorMask(vec2 uv) {
     vec2 centered = uv * 2.0 - 1.0;
+    float aspect = resolution.x / max(1.0, resolution.y);
+    vec2 squareCoord = centered;
+    if (aspect >= 1.0) {
+        squareCoord.x *= aspect;
+    } else {
+        squareCoord.y /= max(0.001, aspect);
+    }
     float crop = saturate(collimation);
-    vec2 halfSize = vec2(1.0 - crop * 1.35, 1.0 - crop * 1.18);
+    float halfSize = 1.0 - crop * 1.35;
     float softness = 0.022 + crop * 0.055;
-    float maskX = 1.0 - smoothstep(halfSize.x, halfSize.x + softness, abs(centered.x));
-    float maskY = 1.0 - smoothstep(halfSize.y, halfSize.y + softness, abs(centered.y));
-    vec2 roundCoord = centered;
-    roundCoord.x *= resolution.x / max(1.0, resolution.y);
-    float roundMask = 1.0 - smoothstep(1.28 - crop * 0.62, 1.34 - crop * 0.62, length(roundCoord));
-    return saturate(maskX * maskY * roundMask);
+    float maskX = 1.0 - smoothstep(halfSize, halfSize + softness, abs(squareCoord.x));
+    float maskY = 1.0 - smoothstep(halfSize, halfSize + softness, abs(squareCoord.y));
+    return saturate(maskX * maskY);
 }
 
 // Simple Sobel-like edge factor based on alpha channel of uTexture.
@@ -249,18 +254,20 @@ void main() {
         luma = mix(0.08, 0.88, luma);
 
         float field = vignetteField(vUv);
-        float fixedPattern = (random(floor(vUv * resolution / 7.0)) - 0.5) * 0.022;
-        float columnPattern = (random(vec2(floor(vUv.x * resolution.x / 3.0), 19.0)) - 0.5) * 0.012;
+        float fixedPattern = (random(floor(vUv * resolution / 7.0)) - 0.5) * 0.012;
+        float columnPattern = (random(vec2(floor(vUv.x * resolution.x / 3.0), 19.0)) - 0.5) * 0.004;
         float gridPattern =
-            sin(vUv.x * resolution.x * 0.86) * 0.0035 +
-            sin(vUv.y * resolution.y * 0.42) * 0.0025;
+            sin(vUv.x * resolution.x * 0.86) * 0.0008 +
+            sin(vUv.y * resolution.y * 0.42) * 0.0006;
         float doseNoiseScale = sqrt(30.0 / clamp(pulseRate, 7.5, 30.0));
         float pulseIndex = floor(time * max(1.0, pulseRate));
-        float pulseJitter = (random(vec2(pulseIndex, 37.0)) - 0.5) * 0.012 * doseNoiseScale;
-        float mottle = (animatedNoise(vUv * resolution, pulseIndex * 0.73) - 0.5)
+        float pulseJitter = (random(vec2(pulseIndex, 37.0)) - 0.5) * 0.003 * doseNoiseScale;
+        float stableMottle = random(floor(vUv * resolution / 2.0)) - 0.5;
+        float animatedMottle = animatedNoise(vUv * resolution, pulseIndex * 0.73) - 0.5;
+        float mottle = mix(stableMottle, animatedMottle, 0.32)
             * noiseLevel
             * doseNoiseScale
-            * (0.15 + 0.32 * sqrt(max(luma, 0.0)));
+            * (0.10 + 0.24 * sqrt(max(luma, 0.0)));
 
         luma = saturate(luma * field + fixedPattern + columnPattern + gridPattern + mottle + pulseJitter);
         luma = mix(luma, 0.56 + (luma - 0.56) * 0.54, localScatter * 0.46);

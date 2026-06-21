@@ -3,14 +3,14 @@ import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
 import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260618withdrawrelax4';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260618prmerge1';
-import { createBoneModel } from './boneModel.js';
+import { initUI } from './ui/ui.js?v=20260620rollpreview1';
+import { createBoneModel } from './boneModel.js?v=20260618loading1';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
 import { createAortaModel } from './aortaModel.js?v=20260616aortacollider2';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260615fluoro19';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260621boneopacity1';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const STL_INTERIOR_SAMPLE_COLOR = 0x69ff8e;
@@ -25,6 +25,58 @@ const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
+const loadingScreen = document.getElementById('loadingScreen');
+const loadingMessage = document.getElementById('loadingMessage');
+const loadingMilestones = new Set(['aorta', 'skeleton', 'firstFrame']);
+let loadingDismissed = false;
+let firstFrameFallbackTimer = null;
+
+function setLoadingMessage(message) {
+    if (loadingMessage) loadingMessage.textContent = message;
+}
+
+function loadingAssetsReady() {
+    return !loadingMilestones.has('aorta') && !loadingMilestones.has('skeleton');
+}
+
+function hideLoadingScreen() {
+    if (loadingDismissed || !loadingScreen) return;
+    loadingDismissed = true;
+    setLoadingMessage('Ready');
+    loadingScreen.classList.add('is-hidden');
+    loadingScreen.addEventListener('transitionend', () => loadingScreen.remove(), { once: true });
+    setTimeout(() => loadingScreen.remove(), 900);
+}
+
+function completeLoadingMilestone(name, message) {
+    if (!loadingMilestones.has(name)) return;
+    loadingMilestones.delete(name);
+    if (name === 'firstFrame' && firstFrameFallbackTimer) {
+        clearTimeout(firstFrameFallbackTimer);
+        firstFrameFallbackTimer = null;
+    }
+    if (message) setLoadingMessage(message);
+    scheduleFirstFrameFallback();
+    if (loadingMilestones.size === 0) hideLoadingScreen();
+}
+
+function failLoadingMilestone(name) {
+    completeLoadingMilestone(name, 'Loading fallback view');
+}
+
+function scheduleFirstFrameFallback() {
+    if (!loadingAssetsReady() || !loadingMilestones.has('firstFrame') || firstFrameFallbackTimer) return;
+    setLoadingMessage('Rendering first frame');
+    requestAnimationFrame(() => completeLoadingMilestone('firstFrame', 'Ready'));
+    firstFrameFallbackTimer = setTimeout(() => completeLoadingMilestone('firstFrame', 'Ready'), 1800);
+}
+
+function completeFirstLoadedFrame() {
+    if (!loadingAssetsReady()) return;
+    completeLoadingMilestone('firstFrame', 'Ready');
+}
+
+setLoadingMessage('Preparing renderer');
 
 // WebGL renderer attached to the fullscreen canvas
 const canvas = document.getElementById('sim');
@@ -187,17 +239,17 @@ const displayMaterial = new THREE.ShaderMaterial({
         gray: { value: new THREE.Color(0xEBEBEB) },
         fluoroscopy: { value: false },
         time: { value: 0 },
-        noiseLevel: { value: 0.05 },
+        noiseLevel: { value: 0.1 },
         imageBrightness: { value: 0.0 },
-        imageContrast: { value: 1.0 },
+        imageContrast: { value: 1.5 },
         autoExposureEnabled: { value: true },
         autoExposureLevel: { value: 0.0 },
         pulseRate: { value: 15.0 },
         scatterStrength: { value: 0.45 },
         collimation: { value: 0.08 },
-        boneOpacity: { value: 0.5 },
+        boneOpacity: { value: 0.2 },
         resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        edgeStrength: { value: 1.0 },
+        edgeStrength: { value: 0.1 },
         contrastOpacity: { value: 1.0 },
         contrastGain: { value: 5.0 }
 
@@ -216,7 +268,13 @@ camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
 
 let vesselGroup;
-const { group: skeletonModel, material: boneMaterial } = createBoneModel();
+const { group: skeletonModel, material: boneMaterial } = createBoneModel({
+    onLoaded: () => completeLoadingMilestone(
+        'skeleton',
+        loadingMilestones.has('aorta') ? 'Loading vessel model' : 'Rendering first frame'
+    ),
+    onError: () => failLoadingMilestone('skeleton')
+});
 
 // Lightweight centerline metadata; the visible vessel and collision surface are
 // loaded from the STL aorta model.
@@ -287,6 +345,7 @@ scene.add(sheathFluoroMesh);
 const lumenDebugGroup = new THREE.Group();
 lumenDebugGroup.visible = false;
 vesselGroup.add(lumenDebugGroup);
+setLoadingMessage('Loading anatomy models');
 createAortaModel(vessel, {
     onLoaded: ({ collision }) => {
         vesselCollisionTarget = {
@@ -298,6 +357,13 @@ createAortaModel(vessel, {
         lumenDebugGroup.add(createStlPreprocessDebug(collision.preprocessing));
         guidewireSolver?.requestSettle?.(90);
         pigtailCatheter?.setCollisionGeometry(collision);
+        completeLoadingMilestone(
+            'aorta',
+            loadingMilestones.has('skeleton') ? 'Loading skeleton model' : 'Rendering first frame'
+        );
+    },
+    onError: () => {
+        failLoadingMilestone('aorta');
     }
 });
 scene.add(vesselGroup);
@@ -1336,6 +1402,10 @@ function animate(time) {
             wireMesh,
             pigtailCatheter.mesh
         ]);
+        const previousAutoClear = renderer.autoClear;
+        renderer.autoClear = false;
+        renderer.render(contrastScene, camera);
+        renderer.autoClear = previousAutoClear;
 
         blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
         blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
@@ -1352,6 +1422,7 @@ function animate(time) {
         displayMaterial.uniforms.boneTexture.value = boneTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
         renderer.render(displayScene, postCamera);
+        completeFirstLoadedFrame();
 
         // Ping-pong accumulation targets for next frame's persistence
         const temp = previousTarget;
@@ -1362,6 +1433,7 @@ function animate(time) {
         updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
+        completeFirstLoadedFrame();
     }
 
     ui.updatePerfStats(dt);

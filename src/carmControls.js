@@ -6,7 +6,7 @@ import * as THREE from 'three';
 // magnification. Rays diverge from the source toward this plane, so objects
 // nearer the source appear larger on the on-screen "detector" view just as in a
 // real C-arm.
-export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry, previewLift, previewTable, renderPreview = () => {}) {
+export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry, previewDetectorAssembly, previewLift, previewTable, renderPreview = () => {}) {
     const carmXSlider = document.getElementById('carmX');
     const carmYSlider = document.getElementById('carmY');
     const carmZSlider = document.getElementById('carmZ');
@@ -121,11 +121,15 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             // the current LAO/RAO angle.
             previewYawQuat.setFromAxisAngle(previewYawAxis, -carmYaw);
             previewPitchQuat.setFromAxisAngle(previewPitchAxis, carmPitch);
-            previewRollQuat.setFromAxisAngle(previewRollAxis, carmRoll);
-            previewGantry.quaternion.copy(previewPitchQuat).multiply(previewYawQuat).multiply(previewRollQuat);
+            previewGantry.quaternion.copy(previewPitchQuat).multiply(previewYawQuat);
         }
 
-        if (previewGroup || previewGantry || previewLift || previewTable) {
+        if (previewDetectorAssembly) {
+            previewRollQuat.setFromAxisAngle(previewRollAxis, carmRoll);
+            previewDetectorAssembly.quaternion.copy(previewRollQuat);
+        }
+
+        if (previewGroup || previewGantry || previewDetectorAssembly || previewLift || previewTable) {
             renderPreview();
         }
         updateReadouts();
@@ -161,7 +165,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let activeAngleTargetButton = null;
     const maxYaw = THREE.MathUtils.degToRad(90);
     const maxPitch = THREE.MathUtils.degToRad(45);
-    const maxRoll = THREE.MathUtils.degToRad(45);
+    const maxRoll = THREE.MathUtils.degToRad(90);
     const yawRate = THREE.MathUtils.degToRad(22);
     const pitchRate = THREE.MathUtils.degToRad(18);
     const rollRate = THREE.MathUtils.degToRad(18);
