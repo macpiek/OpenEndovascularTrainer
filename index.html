@@ -3,150 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260618layoutfix1">
+    <link rel="stylesheet" href="style.css?v=20260621presetbuttons1">
 </head>
 <body>
+<div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
+    <div class="loading-panel">
+        <div class="loading-aorta" aria-hidden="true">
+            <div class="loading-aorta-figure">
+                <img src="res/aorta-loading.png?v=20260619stl2" alt="">
+                <span class="loading-aorta-contrast"></span>
+            </div>
+        </div>
+        <div class="loading-copy">
+            <div class="loading-title">Endovascular Trainer</div>
+            <div id="loadingMessage" class="loading-message">Loading simulator</div>
+        </div>
+    </div>
+</div>
 <canvas id="sim"></canvas>
+<div id="view-mode-switch">
+    <button id="modeToggle" class="mode-toggle fluoro-active" type="button" aria-label="Current view: fluoroscopy" aria-pressed="false">
+        <span class="mode-toggle-thumb" aria-hidden="true"></span>
+        <span class="mode-toggle-option mode-toggle-fluoro">Fluoro</span>
+        <span class="mode-toggle-option mode-toggle-debug">Debug</span>
+    </button>
+    <div id="perfStats">FPS: 0 | Mem: N/A</div>
+    <div class="control-readout-strip">
+        <div class="control-readout" id="insertedLength">0 cm</div>
+        <div class="control-readout" id="catheterLength">Pigtail 0 cm</div>
+        <div class="control-readout" id="currentDose">0 ml</div>
+        <div id="xrayTechnique" class="xray-technique">
+            <span id="currentKV">72 kV</span>
+            <span id="currentMA">3.0 mA</span>
+        </div>
+    </div>
+</div>
+<div id="bottom-control-panel" aria-hidden="true"></div>
 <div id="controls">
-    <div id="insertedLength">0 cm</div>
-    <div id="catheterLength">Pigtail 0 cm</div>
-    <div id="currentDose">0 ml</div>
-    <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
-    <div id="xrayTechnique" class="xray-technique">
-        <span id="currentKV">72 kV</span>
-        <span id="currentMA">3.0 mA</span>
-    </div>
-    <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
-        <div class="guidewire-resistance-header">
-            <span id="guidewireResistanceReason">Opór na prowadniku</span>
-            <span id="guidewireResistanceValue">0%</span>
-        </div>
-        <div class="guidewire-resistance-meter">
-            <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
-        </div>
+    <div class="control-tabs" role="tablist" aria-label="Simulator controls">
+        <button class="control-tab active" type="button" data-control-tab="tools" role="tab" aria-selected="true">Tools</button>
+        <button class="control-tab" type="button" data-control-tab="wire" role="tab" aria-selected="false">Wire</button>
+        <button class="control-tab" type="button" data-control-tab="injection" role="tab" aria-selected="false">Injection</button>
+        <button class="control-tab" type="button" data-control-tab="imaging" role="tab" aria-selected="false">Imaging</button>
+        <button class="control-tab" type="button" data-control-tab="debug" role="tab" aria-selected="false">Debug</button>
     </div>
 
-    <div class="control-section">
-        <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Guidewire</div>
-        <div class="section-content hidden">
-            <label class="parameter-label">Bending stiffness
-                <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
-                <span></span>
-            </label>
-            <label class="parameter-label">Smoothing iterations
-                <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
-                <span></span>
-            </label>
-        </div>
-    </div>
-
-    <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> Pigtail catheter</div>
-        <div class="section-content">
-            <div class="tool-button-row">
-                <button id="catheterWithdraw" title="Withdraw pigtail catheter">Withdraw</button>
-                <button id="catheterAdvance" title="Advance pigtail catheter">Advance</button>
+    <div class="control-tab-panels">
+        <div class="control-tab-panel active" data-control-panel="tools" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Pigtail catheter</div>
+                <div class="section-content">
+                    <div class="tool-button-row">
+                        <button id="catheterWithdraw" title="Withdraw pigtail catheter">Withdraw</button>
+                        <button id="catheterAdvance" title="Advance pigtail catheter">Advance</button>
+                    </div>
+                    <div class="tool-button-row">
+                        <button id="catheterRotateLeft" title="Rotate pigtail catheter counterclockwise">↺ Rotate</button>
+                        <button id="catheterRotateRight" title="Rotate pigtail catheter clockwise">Rotate ↻</button>
+                    </div>
+                    <div class="tool-hint">A/D advance · Q/E rotate</div>
+                </div>
             </div>
-            <div class="tool-button-row">
-                <button id="catheterRotateLeft" title="Rotate pigtail catheter counterclockwise">↺ Rotate</button>
-                <button id="catheterRotateRight" title="Rotate pigtail catheter clockwise">Rotate ↻</button>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="wire" role="tabpanel">
+            <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
+                <div class="guidewire-resistance-header">
+                    <span id="guidewireResistanceReason">Opór na prowadniku</span>
+                    <span id="guidewireResistanceValue">0%</span>
+                </div>
+                <div class="guidewire-resistance-meter">
+                    <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
+                </div>
             </div>
-            <div class="tool-hint">A/D advance · Q/E rotate</div>
+
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Bending stiffness
+                        <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Smoothing iterations
+                        <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Friction</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Static friction
+                        <input id="staticFriction" type="range" min="0" max="1" step="0.001" value="0.006">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Kinetic friction
+                        <input id="kineticFriction" type="range" min="0" max="1" step="0.001" value="0.002">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="imaging" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
+                <div class="section-content imaging-grid">
+                    <button id="autoExposureToggle" class="imaging-toggle active" type="button">Auto exposure: On</button>
+                    <label class="parameter-label">Persistence
+                        <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.3">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Pulse fluoro
+                        <select id="pulseRate">
+                            <option value="7.5">7.5 fps</option>
+                            <option value="15" selected>15 fps</option>
+                            <option value="30">30 fps</option>
+                        </select>
+                    </label>
+                    <label class="parameter-label">Noise level
+                        <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.1">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Thickness scatter
+                        <input id="scatterStrength" type="range" min="0" max="1" step="0.01" value="0.45">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Collimation
+                        <input id="collimation" type="range" min="0" max="0.45" step="0.01" value="0.08">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Brightness
+                        <input id="imageBrightness" type="range" min="-0.35" max="0.35" step="0.01" value="0.18">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Image contrast
+                        <input id="imageContrast" type="range" min="0.25" max="3" step="0.01" value="1.33">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Edge enhancement
+                        <input id="edgeEnhancement" type="range" min="0" max="2" step="0.05" value="0.1">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Bone visibility
+                        <input id="boneVisibility" type="range" min="0" max="1" step="0.01" value="0.62">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Contrast opacity
+                        <input id="opacityScale" type="range" min="0" max="100" step="1" value="100">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Contrast gain
+                        <input id="gain" type="range" min="0" max="5" step="0.1" value="5">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="injection" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Injection</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Volume (ml)
+                        <input id="injVolume" type="range" min="0" max="200" step="0.5" value="100">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Rate (ml/s)
+                        <input id="injRate" type="range" min="0" max="100" step="0.1" value="50">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Duration (ms)
+                        <input id="injDuration" type="range" min="0" max="5000" step="100" value="2000">
+                        <span></span>
+                    </label>
+                    <div class="control-actions">
+                        <button id="injectContrast">Inject</button>
+                        <button id="stopInjection" disabled>Stop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
+            <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
+            <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
         </div>
     </div>
-
-    <div class="control-section">
-        <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Friction</div>
-        <div class="section-content hidden">
-            <label class="parameter-label">Static friction
-                <input id="staticFriction" type="range" min="0" max="1" step="0.001" value="0.006">
-                <span></span>
-            </label>
-            <label class="parameter-label">Kinetic friction
-                <input id="kineticFriction" type="range" min="0" max="1" step="0.001" value="0.002">
-                <span></span>
-            </label>
-        </div>
-    </div>
-
-    <div class="control-section">
-        <div class="section-header collapsed"><span class="collapse-triangle">▼</span> Imaging</div>
-        <div class="section-content hidden">
-            <button id="autoExposureToggle" class="imaging-toggle active" type="button">Auto exposure: On</button>
-            <label class="parameter-label">Persistence
-                <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.35">
-                <span></span>
-            </label>
-            <label class="parameter-label">Pulse fluoro
-                <select id="pulseRate">
-                    <option value="7.5">7.5 fps</option>
-                    <option value="15" selected>15 fps</option>
-                    <option value="30">30 fps</option>
-                </select>
-            </label>
-            <label class="parameter-label">Noise level
-                <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.2">
-                <span></span>
-            </label>
-            <label class="parameter-label">Thickness scatter
-                <input id="scatterStrength" type="range" min="0" max="1" step="0.01" value="0.45">
-                <span></span>
-            </label>
-            <label class="parameter-label">Collimation
-                <input id="collimation" type="range" min="0" max="0.45" step="0.01" value="0.08">
-                <span></span>
-            </label>
-            <label class="parameter-label">Brightness
-                <input id="imageBrightness" type="range" min="-0.35" max="0.35" step="0.01" value="0">
-                <span></span>
-            </label>
-            <label class="parameter-label">Image contrast
-                <input id="imageContrast" type="range" min="0.5" max="1.8" step="0.01" value="1">
-                <span></span>
-            </label>
-            <label class="parameter-label">Edge enhancement
-                <input id="edgeEnhancement" type="range" min="0" max="2" step="0.05" value="1">
-                <span></span>
-            </label>
-            <label class="parameter-label">Bone visibility
-                <input id="boneVisibility" type="range" min="0" max="1" step="0.01" value="0.5">
-                <span></span>
-            </label>
-            <label class="parameter-label">Contrast opacity scale
-                <input id="opacityScale" type="range" min="0" max="100" step="1" value="100">
-                <span></span>
-            </label>
-            <label class="parameter-label">Contrast gain
-                <input id="gain" type="range" min="0" max="5" step="0.1" value="5">
-                <span></span>
-            </label>
-        </div>
-    </div>
-
-    <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> Injection</div>
-        <div class="section-content">
-            <label>Injection volume (ml)
-                <input id="injVolume" type="range" min="0" max="200" step="0.5" value="100">
-                <span></span>
-            </label>
-            
-
-            <label class="parameter-label">Injection rate (ml/s)
-                <input id="injRate" type="range" min="0" max="100" step="0.1" value="50">
-                <span></span>
-            </label>
-            <label class="parameter-label">Injection duration (ms)
-                <input id="injDuration" type="range" min="0" max="5000" step="100" value="2000">
-                <span></span>
-            </label>
-        </div>
-    </div>
-
-    <button id="injectContrast">Inject</button>
-    <button id="stopInjection" disabled>Stop Injection</button>
-    <button id="modeToggle">Debug</button>
-    <label><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
 </div>
 
 <div id="monitor" class="patient-monitor">
@@ -205,9 +249,8 @@
 
 <div id="carm-preview"></div>
 <div id="carm-controls">
-    <div class="control-section">
-        <div class="section-header"><span class="collapse-triangle">▼</span> C-arm</div>
-        <div class="section-content">
+    <div class="carm-panel-title">C-arm / table</div>
+    <div class="carm-controls-body">
             <div class="carm-readouts">
                 <div class="carm-readout"><span class="plane-icon plane-transverse"></span><span id="carmYawReadout">AP 0°</span></div>
                 <div class="carm-readout"><span class="plane-icon plane-sagittal"></span><span id="carmPitchReadout">CRA 0°</span></div>
@@ -216,13 +259,15 @@
             <div class="carm-joystick-grid">
                 <div class="carm-joystick-block">
                     <div class="carm-joystick-title">Angle</div>
-                    <div id="angleJoystick" class="joystick">
-                        <div id="angleJoystickHandle" class="joystick-handle"></div>
-                    </div>
-                    <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
-                    <div class="angle-preset-control">
-                        <button id="carmLao30" title="Hold to move to LAO 30 degrees">LAO 30</button>
-                        <button id="carmRao30" title="Hold to move to RAO 30 degrees">RAO 30</button>
+                    <div class="angle-control-layout">
+                        <button id="carmLao30" class="angle-preset-button" title="Hold to move to LAO 30 degrees">LAO 30</button>
+                        <div class="angle-joystick-stack">
+                            <div id="angleJoystick" class="joystick">
+                                <div id="angleJoystickHandle" class="joystick-handle"></div>
+                            </div>
+                            <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
+                        </div>
+                        <button id="carmRao30" class="angle-preset-button" title="Hold to move to RAO 30 degrees">RAO 30</button>
                     </div>
                     <div class="roll-control">
                         <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
@@ -246,10 +291,8 @@
             <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
             <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
             <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
-        </div>
     </div>
 </div>
-<div id="perfStats">FPS: 0 | Mem: N/A</div>
 
 <script type="importmap">
 {
@@ -262,6 +305,6 @@
     }
 }
 </script>
-    <script type="module" src="./src/simulator.js?v=20260618prmerge1"></script>
+    <script type="module" src="./src/simulator.js?v=20260623imagingdefaults1"></script>
 </body>
 </html>

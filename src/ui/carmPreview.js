@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createCArmModel } from './carmModel.js?v=20260614carmaxis3';
+import { createCArmModel } from './carmModel.js?v=20260620rollpreview1';
 import { createOperatingTable } from './operatingTable.js?v=20260614carmaxis3';
 
 let previewScene;
@@ -9,6 +9,8 @@ let cArmGroup;
 let cArmGantry;
 let cArmLift;
 let cArmTable;
+let cArmDetectorAssembly;
+const PREVIEW_CAMERA_TARGET = new THREE.Vector3(0, 24, -30);
 
 export function initCArmPreview() {
     const container = document.getElementById('carm-preview');
@@ -32,8 +34,8 @@ export function initCArmPreview() {
     const height = container.clientHeight;
 
     previewCamera = new THREE.PerspectiveCamera(39, width / height, 0.1, 1000);
-    previewCamera.position.set(210, 112, 245);
-    previewCamera.lookAt(-8, 4, -14);
+    previewCamera.position.set(268, 146, 289);
+    previewCamera.lookAt(PREVIEW_CAMERA_TARGET);
     previewScene.add(previewCamera);
 
     previewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -49,9 +51,10 @@ export function initCArmPreview() {
     previewScene.add(cArmTable);
 
     cArmGroup = new THREE.Group();
-    const { group: cArm, gantryGroup, liftGroup } = createCArmModel();
+    const { group: cArm, gantryGroup, liftGroup, detectorAssembly } = createCArmModel();
     cArmGantry = gantryGroup;
     cArmLift = liftGroup;
+    cArmDetectorAssembly = detectorAssembly;
     cArmGroup.add(cArm);
     previewScene.add(cArmGroup);
 
@@ -60,6 +63,7 @@ export function initCArmPreview() {
     return {
         group: cArmGroup,
         gantry: cArmGantry,
+        detectorAssembly: cArmDetectorAssembly,
         lift: cArmLift,
         table: cArmTable
     };
@@ -76,5 +80,6 @@ export {
     cArmGroup as cArmPreviewGroup,
     cArmGantry as cArmPreviewGantry,
     cArmLift as cArmPreviewLift,
+    cArmDetectorAssembly as cArmPreviewDetectorAssembly,
     cArmTable as cArmPreviewTable
 };
