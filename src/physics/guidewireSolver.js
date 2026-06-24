@@ -1,4 +1,11 @@
 import * as THREE from 'three';
+import { clamp, smoothstep } from '../mathUtils.js';
+import {
+    addPointCorrection,
+    clearPointBuffer,
+    ensurePointBuffer,
+    snapshotNodePositions
+} from './pointBuffer.js';
 
 const DEFAULT_CONTACT_BAND = 1.35;
 const DEFAULT_LUMEN_CLEARANCE = 0.72;
@@ -40,65 +47,6 @@ const DEFAULT_UNSUPPORTED_BEND_RELAX_ANGLE = 10;
 const DEFAULT_UNSUPPORTED_BEND_SUPPORT_BAND = 0.35;
 const DEFAULT_UNSUPPORTED_BEND_RELAX_FRAMES = 18;
 const SHEATH_BOUNDARY_EPSILON = 1e-3;
-
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-}
-
-function smoothstep(edge0, edge1, value) {
-    const t = clamp((value - edge0) / Math.max(1e-6, edge1 - edge0), 0, 1);
-    return t * t * (3 - 2 * t);
-}
-
-function ensurePointBuffer(buffer, count) {
-    if (!buffer || buffer.length !== count) {
-        return Array.from({ length: count }, () => ({ x: 0, y: 0, z: 0, active: false }));
-    }
-    return buffer;
-}
-
-function snapshotNodePositions(nodes, buffer) {
-    const positions = ensurePointBuffer(buffer, nodes.length);
-    const storage = nodes.nodeStorage;
-    if (storage) {
-        const { x, y, z } = storage;
-        for (let i = 0; i < nodes.length; i++) {
-            const position = positions[i];
-            position.x = x[i];
-            position.y = y[i];
-            position.z = z[i];
-            position.active = true;
-        }
-        return positions;
-    }
-    for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const position = positions[i];
-        position.x = node.x;
-        position.y = node.y;
-        position.z = node.z;
-        position.active = true;
-    }
-    return positions;
-}
-
-function clearPointBuffer(buffer) {
-    for (let i = 0; i < buffer.length; i++) {
-        const point = buffer[i];
-        point.x = 0;
-        point.y = 0;
-        point.z = 0;
-        point.active = false;
-    }
-}
-
-function addCorrection(buffer, index, x, y, z) {
-    const correction = buffer[index];
-    correction.x += x;
-    correction.y += y;
-    correction.z += z;
-    correction.active = true;
-}
 
 function createContactScratch() {
     return {
@@ -1217,7 +1165,7 @@ export class GuidewireSolver {
                 const strength = baseStrength * severity * falloff;
                 if (strength <= 0) continue;
                 const route = this.routeSample(targetInserted).point;
-                addCorrection(
+                addPointCorrection(
                     corrections,
                     index,
                     (route.x - targetNode.x) * strength,
@@ -1274,7 +1222,7 @@ export class GuidewireSolver {
                 if (chordLength < minChord) {
                     const spread = (minChord - chordLength) * 0.5 * strength;
                     if (!prev.pinned) {
-                        addCorrection(
+                        addPointCorrection(
                             corrections,
                             i - 1,
                             -direction.x * spread,
@@ -1283,7 +1231,7 @@ export class GuidewireSolver {
                         );
                     }
                     if (!next.pinned) {
-                        addCorrection(
+                        addPointCorrection(
                             corrections,
                             i + 1,
                             direction.x * spread,
@@ -1293,7 +1241,7 @@ export class GuidewireSolver {
                     }
                 }
 
-                addCorrection(
+                addPointCorrection(
                     corrections,
                     i,
                     ((prev.x + next.x) * 0.5 - node.x) * strength * centerPull,
