@@ -299,6 +299,9 @@ vesselGroup = new THREE.Group();
 let vesselCollisionTarget = vessel;
 let pigtailCatheter = null;
 let guidewireSolver = null;
+const SHEATH_DEBUG_RADIUS_SCALE = 0.72;
+const SHEATH_FLUORO_RADIUS_SCALE = 0.92;
+
 function createSheathGeometry(sheath, radiusScale = 1) {
     const start = new THREE.Vector3(sheath.start.x, sheath.start.y, sheath.start.z);
     const end = new THREE.Vector3(sheath.end.x, sheath.end.y, sheath.end.z);
@@ -312,7 +315,7 @@ function createSheathGeometry(sheath, radiusScale = 1) {
 }
 
 function createSheathMesh(sheath) {
-    const geometry = createSheathGeometry(sheath);
+    const geometry = createSheathGeometry(sheath, SHEATH_DEBUG_RADIUS_SCALE);
     const material = new THREE.MeshBasicMaterial({
         color: LUMEN_DEBUG_COLOR,
         side: THREE.DoubleSide,
@@ -327,7 +330,7 @@ function createSheathMesh(sheath) {
 }
 
 function createSheathFluoroMesh(sheath) {
-    const geometry = createSheathGeometry(sheath, 1.28);
+    const geometry = createSheathGeometry(sheath, SHEATH_FLUORO_RADIUS_SCALE);
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,

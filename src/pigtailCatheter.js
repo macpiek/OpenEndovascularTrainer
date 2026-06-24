@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { clamp, smoothstep } from './mathUtils.js';
 
-const CATHETER_RADIUS = 1.2;
+const CATHETER_RADIUS = 0.85;
 const PIGTAIL_RADIUS = 7.2;
 const PIGTAIL_TURNS = 1.05;
 const DISTAL_RELEASE_LENGTH = 48;
