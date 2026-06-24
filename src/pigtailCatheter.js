@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { clamp, smoothstep } from './mathUtils.js';
 
 const CATHETER_RADIUS = 1.2;
 const PIGTAIL_RADIUS = 7.2;
@@ -33,15 +34,6 @@ const CONTACT_CLEARANCE = CATHETER_RADIUS * 0.72;
 
 function nodePosition(node) {
     return new THREE.Vector3(node.x, node.y, node.z);
-}
-
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-}
-
-function smoothstep(edge0, edge1, value) {
-    const t = clamp((value - edge0) / Math.max(1e-6, edge1 - edge0), 0, 1);
-    return t * t * (3 - 2 * t);
 }
 
 export class PigtailCatheter {

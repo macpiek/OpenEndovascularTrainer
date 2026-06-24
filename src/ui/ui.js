@@ -1,6 +1,6 @@
 import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis3';
-import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewTable } from './carmPreview.js?v=20260614carmaxis3';
-import { setupCArmControls } from '../carmControls.js?v=20260614carmaxis3';
+import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js?v=20260620rollpreview1';
+import { setupCArmControls } from '../carmControls.js?v=20260620rollpreview1';
 import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
 
 // Initializes all UI elements and event listeners.
@@ -43,6 +43,7 @@ export function initUI(options) {
     cameraRadius,
     cArmPreview?.group || cArmPreviewGroup,
     cArmPreview?.gantry || cArmPreviewGantry,
+    cArmPreview?.detectorAssembly || cArmPreviewDetectorAssembly,
     cArmPreview?.lift,
     cArmPreview?.table || cArmPreviewTable,
     renderCArmPreview
@@ -91,6 +92,24 @@ export function initUI(options) {
   // Initial UI state
   if (voxelRenderToggle) {
     voxelGroup.visible = voxelRenderToggle.checked;
+  }
+
+  const controlTabs = Array.from(document.querySelectorAll('[data-control-tab]'));
+  const controlPanels = Array.from(document.querySelectorAll('[data-control-panel]'));
+  if (controlTabs.length && controlPanels.length) {
+    const activateControlTab = tabName => {
+      controlTabs.forEach(tab => {
+        const active = tab.dataset.controlTab === tabName;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      controlPanels.forEach(panel => {
+        panel.classList.toggle('active', panel.dataset.controlPanel === tabName);
+      });
+    };
+    controlTabs.forEach(tab => {
+      tab.addEventListener('click', () => activateControlTab(tab.dataset.controlTab));
+    });
   }
 
   // Avoid sticky focus on sliders
@@ -258,12 +277,18 @@ export function initUI(options) {
   // Mode toggle
   let fluoroscopy = true;
   if (modeToggle) {
-    modeToggle.textContent = 'Debug';
+    const updateModeToggle = () => {
+      modeToggle.classList.toggle('fluoro-active', fluoroscopy);
+      modeToggle.classList.toggle('debug-active', !fluoroscopy);
+      modeToggle.setAttribute('aria-pressed', String(!fluoroscopy));
+      modeToggle.setAttribute('aria-label', `Current view: ${fluoroscopy ? 'fluoroscopy' : 'debug'}`);
+    };
+    updateModeToggle();
     displayMaterial.uniforms.fluoroscopy.value = true;
     modeToggle.addEventListener('click', () => {
       fluoroscopy = !fluoroscopy;
       displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
-      modeToggle.textContent = fluoroscopy ? 'Debug' : 'Fluoroscopy';
+      updateModeToggle();
       // Render the guidewire in white so it appears black after inversion
       if (wireMaterial) wireMaterial.color.set(0xffffff);
       if (typeof onModeChange === 'function') onModeChange(fluoroscopy);

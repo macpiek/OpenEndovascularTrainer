@@ -125,13 +125,17 @@ function polygonCentroid(points) {
 }
 
 function pointInPolygon(point, polygon) {
+    return pointInPolygonCoords(point.x, point.z, polygon);
+}
+
+function pointInPolygonCoords(x, z, polygon) {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
         const a = polygon[i];
         const b = polygon[j];
         if (
-            (a.z > point.z) !== (b.z > point.z) &&
-            point.x < (b.x - a.x) * (point.z - a.z) / (b.z - a.z + 1e-12) + a.x
+            (a.z > z) !== (b.z > z) &&
+            x < (b.x - a.x) * (z - a.z) / (b.z - a.z + 1e-12) + a.x
         ) {
             inside = !inside;
         }
@@ -183,6 +187,36 @@ function closestPointOnPolygon(point, polygon) {
     return best || { point: { x: point.x, z: point.z }, distanceSq: 0 };
 }
 
+function closestPointOnPolygonCoords(x, z, polygon, out) {
+    let bestX = x;
+    let bestZ = z;
+    let bestDistanceSq = Infinity;
+
+    for (let i = 0; i < polygon.length; i++) {
+        const a = polygon[i];
+        const b = polygon[(i + 1) % polygon.length];
+        const dx = b.x - a.x;
+        const dz = b.z - a.z;
+        const lengthSq = dx * dx + dz * dz || 1;
+        const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / lengthSq));
+        const cx = a.x + dx * t;
+        const cz = a.z + dz * t;
+        const px = x - cx;
+        const pz = z - cz;
+        const distanceSq = px * px + pz * pz;
+        if (distanceSq < bestDistanceSq) {
+            bestDistanceSq = distanceSq;
+            bestX = cx;
+            bestZ = cz;
+        }
+    }
+
+    out.x = bestX;
+    out.z = bestZ;
+    out.distanceSq = Number.isFinite(bestDistanceSq) ? bestDistanceSq : 0;
+    return out;
+}
+
 function polygonBounds(points) {
     const bounds = {
         minX: Infinity,
@@ -226,15 +260,19 @@ function simplifyClosedPolygon(points, tolerance = FIELD_POLYGON_SIMPLIFY_TOLERA
 }
 
 function boundsDistanceSq(point, bounds) {
-    const dx = point.x < bounds.minX
-        ? bounds.minX - point.x
-        : point.x > bounds.maxX
-            ? point.x - bounds.maxX
+    return boundsDistanceSqCoords(point.x, point.z, bounds);
+}
+
+function boundsDistanceSqCoords(x, z, bounds) {
+    const dx = x < bounds.minX
+        ? bounds.minX - x
+        : x > bounds.maxX
+            ? x - bounds.maxX
             : 0;
-    const dz = point.z < bounds.minZ
-        ? bounds.minZ - point.z
-        : point.z > bounds.maxZ
-            ? point.z - bounds.maxZ
+    const dz = z < bounds.minZ
+        ? bounds.minZ - z
+        : z > bounds.maxZ
+            ? z - bounds.maxZ
             : 0;
     return dx * dx + dz * dz;
 }
@@ -264,6 +302,57 @@ function signedDistanceToContour(point, contour) {
         closestPoint: closest.point,
         contour
     };
+}
+
+function createSliceQueryScratch() {
+    return {
+        signedDistance: -Infinity,
+        inside: false,
+        inward: { x: 1, z: 0 },
+        closestPoint: { x: 0, z: 0 },
+        contour: null,
+        _closest: { x: 0, z: 0, distanceSq: 0 },
+        _candidate: null
+    };
+}
+
+function copySliceQuery(target, source) {
+    target.signedDistance = source.signedDistance;
+    target.inside = source.inside;
+    target.inward.x = source.inward.x;
+    target.inward.z = source.inward.z;
+    target.closestPoint.x = source.closestPoint.x;
+    target.closestPoint.z = source.closestPoint.z;
+    target.contour = source.contour;
+    return target;
+}
+
+function signedDistanceToContourCoords(x, z, contour, out) {
+    const closest = closestPointOnPolygonCoords(x, z, contour.polygon, out._closest);
+    const distance = Math.sqrt(closest.distanceSq);
+    const inside = pointInPolygonCoords(x, z, contour.polygon);
+    let inwardX = inside ? x - closest.x : closest.x - x;
+    let inwardZ = inside ? z - closest.z : closest.z - z;
+    const length = Math.hypot(inwardX, inwardZ);
+    if (length > 1e-8) {
+        inwardX /= length;
+        inwardZ /= length;
+    } else {
+        inwardX = contour.sample.x - closest.x;
+        inwardZ = contour.sample.z - closest.z;
+        const fallbackLength = Math.hypot(inwardX, inwardZ) || 1;
+        inwardX /= fallbackLength;
+        inwardZ /= fallbackLength;
+    }
+
+    out.signedDistance = inside ? distance : -distance;
+    out.inside = inside;
+    out.inward.x = inwardX;
+    out.inward.z = inwardZ;
+    out.closestPoint.x = closest.x;
+    out.closestPoint.z = closest.z;
+    out.contour = contour;
+    return out;
 }
 
 function bestInteriorPoint(polygon) {
@@ -486,23 +575,47 @@ function buildLumenContourDebugSegments(slices) {
     return new Float32Array(positions);
 }
 
-function querySlice(slice, x, z) {
-    const point = { x, z };
-    let best = null;
+function querySlice(slice, x, z, out = null) {
+    const point = out ? null : { x, z };
+    const candidateScratch = out
+        ? (out._candidate || (out._candidate = createSliceQueryScratch()))
+        : null;
+    let best = out || null;
+    let hasBest = false;
+
     for (const contour of slice.contours) {
-        const boundDistanceSq = boundsDistanceSq(point, contour.bounds);
+        const boundDistanceSq = out
+            ? boundsDistanceSqCoords(x, z, contour.bounds)
+            : boundsDistanceSq(point, contour.bounds);
         if (
-            best &&
+            hasBest &&
             best.signedDistance < 0 &&
             -Math.sqrt(boundDistanceSq) <= best.signedDistance
         ) {
             continue;
         }
 
-        const candidate = signedDistanceToContour(point, contour);
-        if (!best || candidate.signedDistance > best.signedDistance) best = candidate;
+        const candidate = out
+            ? signedDistanceToContourCoords(x, z, contour, candidateScratch)
+            : signedDistanceToContour(point, contour);
+        if (!hasBest || candidate.signedDistance > best.signedDistance) {
+            best = out ? copySliceQuery(out, candidate) : candidate;
+            hasBest = true;
+        }
     }
-    return best || {
+
+    if (hasBest) return best;
+    if (out) {
+        out.signedDistance = -Infinity;
+        out.inside = false;
+        out.inward.x = 1;
+        out.inward.z = 0;
+        out.closestPoint.x = x;
+        out.closestPoint.z = z;
+        out.contour = null;
+        return out;
+    }
+    return {
         signedDistance: -Infinity,
         inside: false,
         inward: { x: 1, z: 0 },
@@ -511,11 +624,38 @@ function querySlice(slice, x, z) {
     };
 }
 
-function findSliceInterval(slices, y) {
-    if (slices.length <= 1) return { lower: 0, upper: 0, t: 0 };
-    if (y <= slices[0].y) return { lower: 0, upper: 0, t: 0 };
+function setSliceInterval(out, lower, upper, t) {
+    if (!out) return { lower, upper, t };
+    out.lower = lower;
+    out.upper = upper;
+    out.t = t;
+    return out;
+}
+
+function findSliceInterval(slices, y, out = null) {
+    if (slices.length <= 1) return setSliceInterval(out, 0, 0, 0);
+    if (y <= slices[0].y) return setSliceInterval(out, 0, 0, 0);
     const last = slices.length - 1;
-    if (y >= slices[last].y) return { lower: last, upper: last, t: 0 };
+    if (y >= slices[last].y) return setSliceInterval(out, last, last, 0);
+
+    if (out && Number.isInteger(out.lower) && Number.isInteger(out.upper)) {
+        let lower = Math.max(0, Math.min(last, out.lower));
+        let upper = Math.max(0, Math.min(last, out.upper));
+        if (upper < lower) upper = lower;
+
+        while (lower > 0 && y < slices[lower].y) {
+            upper = lower;
+            lower--;
+        }
+        while (upper < last && y > slices[upper].y) {
+            lower = upper;
+            upper++;
+        }
+        if (lower !== upper && slices[lower].y <= y && y <= slices[upper].y) {
+            const span = Math.max(1e-6, slices[upper].y - slices[lower].y);
+            return setSliceInterval(out, lower, upper, Math.max(0, Math.min(1, (y - slices[lower].y) / span)));
+        }
+    }
 
     let lo = 0;
     let hi = last;
@@ -525,11 +665,7 @@ function findSliceInterval(slices, y) {
         else hi = mid;
     }
     const span = Math.max(1e-6, slices[hi].y - slices[lo].y);
-    return {
-        lower: lo,
-        upper: hi,
-        t: Math.max(0, Math.min(1, (y - slices[lo].y) / span))
-    };
+    return setSliceInterval(out, lo, hi, Math.max(0, Math.min(1, (y - slices[lo].y) / span)));
 }
 
 function normalize3(x, y, z, fallback = { x: 1, y: 0, z: 0 }) {
@@ -538,17 +674,40 @@ function normalize3(x, y, z, fallback = { x: 1, y: 0, z: 0 }) {
     return { x: x / length, y: y / length, z: z / length };
 }
 
+function setVectorLike(target, x, y, z) {
+    if (typeof target?.set === 'function') {
+        target.set(x, y, z);
+    } else {
+        target.x = x;
+        target.y = y;
+        target.z = z;
+    }
+    return target;
+}
+
 export function createLumenField(lumenSlices) {
     const slices = (lumenSlices || [])
         .filter(slice => slice?.contours?.length)
         .slice()
         .sort((a, b) => a.y - b.y);
+    const intervalCache = { lower: 0, upper: 0, t: 0 };
+    const lowerScratch = createSliceQueryScratch();
+    const upperScratch = createSliceQueryScratch();
 
-    function query(input) {
+    function query(input, out = null) {
         const x = input.x;
         const y = input.y;
         const z = input.z;
         if (!slices.length) {
+            if (out) {
+                out.inside = false;
+                out.signedDistance = -Infinity;
+                out.distance = Infinity;
+                out.inward = setVectorLike(out.inward || (out.inward = {}), 1, 0, 0);
+                out.normal = setVectorLike(out.normal || (out.normal = {}), -1, 0, 0);
+                out.closestPoint = setVectorLike(out.closestPoint || (out.closestPoint = {}), x, y, z);
+                return out;
+            }
             const fallback = new THREE.Vector3(1, 0, 0);
             return {
                 inside: false,
@@ -561,24 +720,45 @@ export function createLumenField(lumenSlices) {
             };
         }
 
-        const interval = findSliceInterval(slices, y);
+        const interval = findSliceInterval(slices, y, out ? intervalCache : null);
         const lowerSlice = slices[interval.lower];
         const upperSlice = slices[interval.upper];
-        const lower = querySlice(lowerSlice, x, z);
+        const lower = querySlice(lowerSlice, x, z, out ? lowerScratch : null);
         const upper = interval.upper === interval.lower
             ? lower
-            : querySlice(upperSlice, x, z);
+            : querySlice(upperSlice, x, z, out ? upperScratch : null);
         const t = interval.t;
         const signedDistance = lower.signedDistance * (1 - t) + upper.signedDistance * t;
         const dy = Math.max(1e-6, Math.abs(upperSlice.y - lowerSlice.y));
         const yGradient = interval.upper === interval.lower
             ? 0
             : Math.max(-0.85, Math.min(0.85, (upper.signedDistance - lower.signedDistance) / dy));
-        const inward = normalize3(
-            lower.inward.x * (1 - t) + upper.inward.x * t,
-            yGradient,
-            lower.inward.z * (1 - t) + upper.inward.z * t
-        );
+        const rawInwardX = lower.inward.x * (1 - t) + upper.inward.x * t;
+        const rawInwardY = yGradient;
+        const rawInwardZ = lower.inward.z * (1 - t) + upper.inward.z * t;
+        const inwardLength = Math.hypot(rawInwardX, rawInwardY, rawInwardZ);
+        const inwardX = inwardLength < 1e-8 ? 1 : rawInwardX / inwardLength;
+        const inwardY = inwardLength < 1e-8 ? 0 : rawInwardY / inwardLength;
+        const inwardZ = inwardLength < 1e-8 ? 0 : rawInwardZ / inwardLength;
+
+        if (out) {
+            out.inside = signedDistance >= 0;
+            out.signedDistance = signedDistance;
+            out.distance = Math.abs(signedDistance);
+            out.inward = setVectorLike(out.inward || (out.inward = {}), inwardX, inwardY, inwardZ);
+            out.normal = setVectorLike(out.normal || (out.normal = {}), -inwardX, -inwardY, -inwardZ);
+            out.closestPoint = setVectorLike(
+                out.closestPoint || (out.closestPoint = {}),
+                x - inwardX * signedDistance,
+                y - inwardY * signedDistance,
+                z - inwardZ * signedDistance
+            );
+            out.lowerSlice = lowerSlice;
+            out.upperSlice = upperSlice;
+            return out;
+        }
+
+        const inward = { x: inwardX, y: inwardY, z: inwardZ };
         const closestPoint = new THREE.Vector3(
             x - inward.x * signedDistance,
             y - inward.y * signedDistance,

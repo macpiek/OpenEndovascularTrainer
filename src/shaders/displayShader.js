@@ -75,56 +75,30 @@ float sheathAt(vec2 uv) {
     return smoothstep(0.03, 0.32, signal);
 }
 
-vec3 boneProjectionSampleAt(vec2 uv) {
-    return texture2D(boneTexture, uv).rgb;
+vec4 boneProjectionSampleAt(vec2 uv) {
+    return texture2D(boneTexture, uv);
 }
 
-float boneProjectionAt(vec2 uv) {
-    vec2 texel = 1.0 / resolution;
-    float center = boneProjectionSampleAt(uv).b * 0.42;
-    float axial = (
-        boneProjectionSampleAt(uv + texel * vec2(1.5, 0.0)).b +
-        boneProjectionSampleAt(uv + texel * vec2(-1.5, 0.0)).b +
-        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.5)).b +
-        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.5)).b
-    ) * 0.10;
-    float diagonal = (
-        boneProjectionSampleAt(uv + texel * vec2(1.2, 1.2)).b +
-        boneProjectionSampleAt(uv + texel * vec2(-1.2, 1.2)).b +
-        boneProjectionSampleAt(uv + texel * vec2(1.2, -1.2)).b +
-        boneProjectionSampleAt(uv + texel * vec2(-1.2, -1.2)).b
-    ) * 0.045;
-    return center + axial + diagonal;
+float rawBoneThicknessFromSample(vec4 projectionSample) {
+    return max(projectionSample.g - projectionSample.r, 0.0) * 10.2;
 }
 
-float corticalProjectionAt(vec2 uv) {
+vec4 boneTransportAt(vec2 uv) {
     vec2 texel = 1.0 / resolution;
-    float center = boneProjectionSampleAt(uv).r * 0.34;
-    float nearAxial = (
-        boneProjectionSampleAt(uv + texel * vec2(1.45, 0.0)).r +
-        boneProjectionSampleAt(uv + texel * vec2(-1.45, 0.0)).r +
-        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.45)).r +
-        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.45)).r
-    ) * 0.075;
-    float diagonal = (
-        boneProjectionSampleAt(uv + texel * vec2(1.75, 1.75)).r +
-        boneProjectionSampleAt(uv + texel * vec2(-1.75, 1.75)).r +
-        boneProjectionSampleAt(uv + texel * vec2(1.75, -1.75)).r +
-        boneProjectionSampleAt(uv + texel * vec2(-1.75, -1.75)).r
+    vec4 center = boneProjectionSampleAt(uv);
+    vec4 axial = (
+        boneProjectionSampleAt(uv + texel * vec2(1.4, 0.0)) +
+        boneProjectionSampleAt(uv + texel * vec2(-1.4, 0.0)) +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, 1.4)) +
+        boneProjectionSampleAt(uv + texel * vec2(0.0, -1.4))
     ) * 0.04;
-    float wideAxial = (
-        boneProjectionSampleAt(uv + texel * vec2(3.25, 0.0)).r +
-        boneProjectionSampleAt(uv + texel * vec2(-3.25, 0.0)).r +
-        boneProjectionSampleAt(uv + texel * vec2(0.0, 3.25)).r +
-        boneProjectionSampleAt(uv + texel * vec2(0.0, -3.25)).r
-    ) * 0.03;
-    float wideDiagonal = (
-        boneProjectionSampleAt(uv + texel * vec2(2.75, 2.75)).r +
-        boneProjectionSampleAt(uv + texel * vec2(-2.75, 2.75)).r +
-        boneProjectionSampleAt(uv + texel * vec2(2.75, -2.75)).r +
-        boneProjectionSampleAt(uv + texel * vec2(-2.75, -2.75)).r
-    ) * 0.018;
-    return center + nearAxial + diagonal + wideAxial + wideDiagonal;
+    vec4 diagonal = (
+        boneProjectionSampleAt(uv + texel * vec2(1.7, 1.7)) +
+        boneProjectionSampleAt(uv + texel * vec2(-1.7, 1.7)) +
+        boneProjectionSampleAt(uv + texel * vec2(1.7, -1.7)) +
+        boneProjectionSampleAt(uv + texel * vec2(-1.7, -1.7))
+    ) * 0.015;
+    return center * 0.78 + axial + diagonal;
 }
 
 float thicknessPathAt(vec2 uv) {
@@ -132,36 +106,63 @@ float thicknessPathAt(vec2 uv) {
     return saturate(thickness * 6.2);
 }
 
-float bonePathAt(vec2 uv) {
-    float thicknessPath = pow(thicknessPathAt(uv), 0.72);
-    float projectedBone = boneProjectionAt(uv);
-    float projectionPath = pow(saturate(projectedBone * 2.5), 0.9) * 0.46;
-    return saturate(thicknessPath * (0.78 + projectionPath * 0.42) + projectionPath * 0.18);
+vec4 boneLayerPathsAt(vec2 uv) {
+    vec4 transport = boneTransportAt(uv);
+    float rawThickness = max(transport.g - transport.r, 0.0) * 10.2;
+    float totalPath = 1.0 - exp(-rawThickness * 0.5);
+    float corticalPath = min(transport.b * 11.2, totalPath * 0.92);
+    float corticalShare = saturate(corticalPath / max(totalPath, 0.001));
+    float cancellousPath = max(totalPath - corticalPath * 0.8, 0.0) * mix(0.3, 0.54, corticalShare);
+    float cancellousTexture = mix(0.72, 0.98, saturate(transport.a * 2.05));
+    return vec4(totalPath, corticalPath, cancellousPath, cancellousTexture);
 }
 
-float corticalBoneAt(vec2 uv) {
+float bonePathAt(vec2 uv) {
+    return saturate(boneLayerPathsAt(uv).x);
+}
+
+float corticalEdgeAt(vec2 uv) {
     vec2 texel = 1.0 / resolution;
-    float c = thicknessPathAt(uv);
-    float l = thicknessPathAt(uv + texel * vec2(-1.0, 0.0));
-    float r = thicknessPathAt(uv + texel * vec2(1.0, 0.0));
-    float t = thicknessPathAt(uv + texel * vec2(0.0, -1.0));
-    float b = thicknessPathAt(uv + texel * vec2(0.0, 1.0));
-    float thicknessEdge = smoothstep(0.014, 0.19, length(vec2(r - l, b - t)));
-    float entryExitCortex = smoothstep(0.026, 0.31, c) * (0.11 + thicknessEdge * 0.4);
-    float projectedCortex = pow(saturate(corticalProjectionAt(uv) * 2.65), 0.78);
-    return saturate(entryExitCortex + projectedCortex * (0.27 + c * 0.38));
+    float thicknessL = thicknessPathAt(uv + texel * vec2(-1.0, 0.0));
+    float thicknessR = thicknessPathAt(uv + texel * vec2(1.0, 0.0));
+    float thicknessT = thicknessPathAt(uv + texel * vec2(0.0, -1.0));
+    float thicknessB = thicknessPathAt(uv + texel * vec2(0.0, 1.0));
+    float thicknessEdge = length(vec2(thicknessR - thicknessL, thicknessB - thicknessT));
+
+    vec4 sampleL = boneProjectionSampleAt(uv + texel * vec2(-1.0, 0.0));
+    vec4 sampleR = boneProjectionSampleAt(uv + texel * vec2(1.0, 0.0));
+    vec4 sampleT = boneProjectionSampleAt(uv + texel * vec2(0.0, -1.0));
+    vec4 sampleB = boneProjectionSampleAt(uv + texel * vec2(0.0, 1.0));
+    float pathEdge = length(vec2(
+        rawBoneThicknessFromSample(sampleR) - rawBoneThicknessFromSample(sampleL),
+        rawBoneThicknessFromSample(sampleB) - rawBoneThicknessFromSample(sampleT)
+    ));
+    float cortexEdge = length(vec2(sampleR.b - sampleL.b, sampleB.b - sampleT.b));
+
+    float depthEdge = smoothstep(0.02, 0.2, thicknessEdge);
+    float transportEdge = smoothstep(0.006, 0.095, pathEdge);
+    float corticalShellEdge = smoothstep(0.0025, 0.045, cortexEdge);
+    return saturate(max(depthEdge * 0.34, max(transportEdge * 0.38, corticalShellEdge * 0.42)));
 }
 
 float attenuationAt(vec2 uv) {
-    float boneMu = mix(0.18, 2.15, saturate(boneOpacity));
-    float bone = (bonePathAt(uv) * 0.74 + corticalBoneAt(uv) * 0.82) * boneMu;
+    float boneVisibility = pow(saturate(boneOpacity), 0.55);
+    vec4 bonePaths = boneLayerPathsAt(uv);
+    float corticalAbsorption = pow(saturate(bonePaths.y * 1.6), 0.96) * 0.84;
+    float edgeAbsorption = corticalEdgeAt(uv) * 0.16;
+    float cancellousAbsorption = pow(saturate(bonePaths.z), 0.82) * bonePaths.w * 0.34;
+    float layeredAbsorption = pow(saturate(bonePaths.x), 0.72) * 0.66;
+    float softBoneAbsorption = smoothstep(0.01, 0.72, bonePaths.x) * 0.48;
+    float rawBoneSignal = corticalAbsorption + edgeAbsorption + cancellousAbsorption + layeredAbsorption + softBoneAbsorption;
+    float boneSignal = 1.0 - exp(-rawBoneSignal * 1.08);
+    float bone = boneSignal * 1.58 * boneVisibility;
     float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
     float metal = metalAt(uv) * 5.25;
     float sheath = sheathAt(uv) * 0.42;
 
-    // A small contribution from the accumulated visible frame preserves mild
-    // detector lag without letting the old postprocess dominate the image.
-    float temporalTrace = smoothstep(0.04, 0.85, sampleSignal(uTexture, uv)) * 0.22;
+    // The accumulated visible frame creates detector persistence across the
+    // full fluoroscopy image while current attenuation still leads the frame.
+    float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
     return max(0.0, bone + iodine + metal + sheath + temporalTrace);
 }
 
@@ -175,9 +176,9 @@ float vignetteField(vec2 uv) {
 float patientBodyField(vec2 uv) {
     vec2 centered = uv * 2.0 - 1.0;
     centered.x *= resolution.x / max(1.0, resolution.y);
-    float pelvis = 1.0 - smoothstep(0.42, 1.18, length(centered * vec2(0.72, 1.05)));
+    float lowerBody = 1.0 - smoothstep(0.42, 1.18, length(centered * vec2(0.72, 1.05)));
     float trunk = 1.0 - smoothstep(0.35, 1.08, length((centered - vec2(0.0, -0.18)) * vec2(0.62, 1.35)));
-    return saturate(max(pelvis, trunk * 0.72));
+    return saturate(max(lowerBody, trunk * 0.72));
 }
 
 float scatterFieldAt(vec2 uv, float attenuation) {
@@ -188,15 +189,19 @@ float scatterFieldAt(vec2 uv, float attenuation) {
 
 float collimatorMask(vec2 uv) {
     vec2 centered = uv * 2.0 - 1.0;
+    float aspect = resolution.x / max(1.0, resolution.y);
+    vec2 squareCoord = centered;
+    if (aspect >= 1.0) {
+        squareCoord.x *= aspect;
+    } else {
+        squareCoord.y /= max(0.001, aspect);
+    }
     float crop = saturate(collimation);
-    vec2 halfSize = vec2(1.0 - crop * 1.35, 1.0 - crop * 1.18);
+    float halfSize = 1.0 - crop * 1.35;
     float softness = 0.022 + crop * 0.055;
-    float maskX = 1.0 - smoothstep(halfSize.x, halfSize.x + softness, abs(centered.x));
-    float maskY = 1.0 - smoothstep(halfSize.y, halfSize.y + softness, abs(centered.y));
-    vec2 roundCoord = centered;
-    roundCoord.x *= resolution.x / max(1.0, resolution.y);
-    float roundMask = 1.0 - smoothstep(1.28 - crop * 0.62, 1.34 - crop * 0.62, length(roundCoord));
-    return saturate(maskX * maskY * roundMask);
+    float maskX = 1.0 - smoothstep(halfSize, halfSize + softness, abs(squareCoord.x));
+    float maskY = 1.0 - smoothstep(halfSize, halfSize + softness, abs(squareCoord.y));
+    return saturate(maskX * maskY);
 }
 
 // Simple Sobel-like edge factor based on alpha channel of uTexture.
@@ -218,16 +223,10 @@ float edgeFactor(vec2 uv) {
 void main() {
     vec4 tex = texture2D(uTexture, vUv);
     if (fluoroscopy) {
-        vec2 texel = 1.0 / resolution;
         float centerAttenuation = attenuationAt(vUv);
         float localScatter = scatterFieldAt(vUv, centerAttenuation);
         float exposureLift = autoExposureEnabled ? autoExposureLevel : 0.0;
-        float neighborAttenuation = (
-            attenuationAt(vUv + texel * vec2(1.0, 0.0)) +
-            attenuationAt(vUv + texel * vec2(-1.0, 0.0)) +
-            attenuationAt(vUv + texel * vec2(0.0, 1.0)) +
-            attenuationAt(vUv + texel * vec2(0.0, -1.0))
-        ) * 0.25;
+        float neighborAttenuation = centerAttenuation;
 
         // C-arm images are usually edge-enhanced after acquisition. Sharpen
         // attenuation before transmission so radiopaque borders get the expected
@@ -239,38 +238,40 @@ void main() {
         );
 
         float transmission = exp(-sharpenedAttenuation);
-        float scatterFog = saturate(centerAttenuation * 0.045 + localScatter * 0.42);
-        transmission = mix(transmission, 0.60 + exposureLift * 0.18, scatterFog);
+        float scatterFog = saturate(centerAttenuation * 0.025 + localScatter * 0.24);
+        transmission = mix(transmission, 0.55 + exposureLift * 0.12, scatterFog);
 
         // Detector window/level with a soft shoulder. This keeps the air field
         // from becoming pure white and gives dense contrast a real black floor.
-        float luma = pow(saturate(transmission), 0.72);
-        luma = smoothstep(0.035, 0.985, luma);
-        luma = mix(0.08, 0.88, luma);
+        float luma = pow(saturate(transmission), 0.88);
+        luma = smoothstep(0.025, 0.975, luma);
+        luma = mix(0.045, 0.72, luma);
 
         float field = vignetteField(vUv);
-        float fixedPattern = (random(floor(vUv * resolution / 7.0)) - 0.5) * 0.022;
-        float columnPattern = (random(vec2(floor(vUv.x * resolution.x / 3.0), 19.0)) - 0.5) * 0.012;
+        float fixedPattern = (random(floor(vUv * resolution / 7.0)) - 0.5) * 0.012;
+        float columnPattern = (random(vec2(floor(vUv.x * resolution.x / 3.0), 19.0)) - 0.5) * 0.004;
         float gridPattern =
-            sin(vUv.x * resolution.x * 0.86) * 0.0035 +
-            sin(vUv.y * resolution.y * 0.42) * 0.0025;
+            sin(vUv.x * resolution.x * 0.86) * 0.0008 +
+            sin(vUv.y * resolution.y * 0.42) * 0.0006;
         float doseNoiseScale = sqrt(30.0 / clamp(pulseRate, 7.5, 30.0));
         float pulseIndex = floor(time * max(1.0, pulseRate));
-        float pulseJitter = (random(vec2(pulseIndex, 37.0)) - 0.5) * 0.012 * doseNoiseScale;
-        float mottle = (animatedNoise(vUv * resolution, pulseIndex * 0.73) - 0.5)
+        float pulseJitter = (random(vec2(pulseIndex, 37.0)) - 0.5) * 0.003 * doseNoiseScale;
+        float stableMottle = random(floor(vUv * resolution / 2.0)) - 0.5;
+        float animatedMottle = animatedNoise(vUv * resolution, pulseIndex * 0.73) - 0.5;
+        float mottle = mix(stableMottle, animatedMottle, 0.32)
             * noiseLevel
             * doseNoiseScale
-            * (0.15 + 0.32 * sqrt(max(luma, 0.0)));
+            * (0.08 + 0.18 * sqrt(max(luma, 0.0)));
 
         luma = saturate(luma * field + fixedPattern + columnPattern + gridPattern + mottle + pulseJitter);
-        luma = mix(luma, 0.56 + (luma - 0.56) * 0.54, localScatter * 0.46);
+        luma = mix(luma, 0.50 + (luma - 0.50) * 0.68, localScatter * 0.22);
         luma = saturate(luma + exposureLift);
         luma = saturate((luma - 0.5) * max(0.0, imageContrast) + 0.5 + imageBrightness);
         luma = mix(0.018, luma, collimatorMask(vUv));
 
         // Phosphor/detector response is slightly warm-neutral, not mathematically
         // flat grayscale. Keep it subtle so it still reads as fluoroscopy.
-        vec3 detectorTint = vec3(0.965, 0.982, 1.0);
+        vec3 detectorTint = vec3(0.992, 0.992, 0.988);
         gl_FragColor = vec4(gray * detectorTint * luma, 1.0);
     } else {
         // Debug mode: keep original color, use edge to boost alpha.

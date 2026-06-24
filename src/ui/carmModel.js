@@ -53,6 +53,7 @@ export function createCArmModel() {
     const group = new THREE.Group();
     const liftGroup = new THREE.Group();
     const gantryGroup = new THREE.Group();
+    const detectorAssembly = new THREE.Group();
     const previewIsoCenter = new THREE.Vector3(10, 22, 0);
 
     const shell = new THREE.MeshStandardMaterial({
@@ -142,7 +143,6 @@ export function createCArmModel() {
     const rearRail = transverseArcTube(arcRadius + 8, terminalDeg + 2, 360 - terminalDeg - 2, arcX - 4.5, 1.8, metal, arcZ);
     const frontRail = transverseArcTube(arcRadius - 8, terminalDeg + 2, 360 - terminalDeg - 2, arcX + 4.5, 1.8, metal, arcZ);
     gantryGroup.add(mainArc, rearRail, frontRail);
-    gantryGroup.add(box(28, 18, 34, shell, new THREE.Vector3(arcX, 0, -arcRadius)));
 
     const terminalRad = THREE.MathUtils.degToRad(terminalDeg);
     const topY = arcRadius * Math.sin(terminalRad);
@@ -157,22 +157,23 @@ export function createCArmModel() {
     gantryGroup.add(box(42, 14, 16, whiteShell, new THREE.Vector3(arcX, bottomY, arcEndZ)));
 
     const detector = box(50, 16, 42, detectorMaterial, new THREE.Vector3(arcX, topY, beamZ));
-    gantryGroup.add(detector);
+    detectorAssembly.add(detector);
     const detectorFace = box(40, 2, 34, detectorFaceMaterial, new THREE.Vector3(arcX, topY - 9, beamZ));
-    gantryGroup.add(detectorFace);
+    detectorAssembly.add(detectorFace);
 
     const sourceHousing = box(58, 22, 44, sourceMaterial, new THREE.Vector3(arcX, bottomY, beamZ));
-    gantryGroup.add(sourceHousing);
+    detectorAssembly.add(sourceHousing);
     const collimator = box(36, 9, 26, darkMetal, new THREE.Vector3(arcX, bottomY + 17, beamZ));
-    gantryGroup.add(collimator);
+    detectorAssembly.add(collimator);
 
     const beam = cylinder(15, 22, topY - bottomY - 20, beamMaterial, new THREE.Vector3(arcX, 0, beamZ));
-    gantryGroup.add(beam);
+    detectorAssembly.add(beam);
+    gantryGroup.add(detectorAssembly);
 
     const isoMarker = new THREE.Mesh(new THREE.RingGeometry(7.5, 9, 48), isoMaterial);
     isoMarker.position.set(arcX, 0, beamZ);
     isoMarker.rotation.x = Math.PI / 2;
     gantryGroup.add(isoMarker);
 
-    return { group, gantryGroup, liftGroup };
+    return { group, gantryGroup, liftGroup, detectorAssembly };
 }
