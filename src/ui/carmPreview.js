@@ -75,11 +75,8 @@ export function renderCArmPreview() {
 }
 
 export {
-    previewScene as cArmPreviewScene,
-    previewCamera as cArmPreviewCamera,
     cArmGroup as cArmPreviewGroup,
     cArmGantry as cArmPreviewGantry,
-    cArmLift as cArmPreviewLift,
     cArmDetectorAssembly as cArmPreviewDetectorAssembly,
     cArmTable as cArmPreviewTable
 };

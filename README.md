@@ -139,9 +139,3 @@ For an isolated browser visualization of the rod model, open:
 ```text
 tools/legacy/elasticRod/visualize.html
 ```
-
-The contrast transport demo can be run with:
-
-```bash
-node tools/legacy/contrast/voxelFlowDemo.js
-```

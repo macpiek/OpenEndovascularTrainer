@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { clearPointBuffer, ensurePointBuffer, snapshotNodePositions } from './pointBuffer.js';
 
 /**
  * ElasticRod models a slender elastic rod using a simple discrete formulation.
@@ -42,10 +43,6 @@ export function setSmoothingIterations(value) {
     defaultSmoothingIterations = value;
 }
 
-export function setConstraintIterations(value) {
-    defaultConstraintIterations = value;
-}
-
 export function setWallFriction(staticCoeff, kineticCoeff) {
     wallStaticFriction = staticCoeff;
     wallKineticFriction = kineticCoeff;
@@ -59,48 +56,6 @@ const WALL_CORRECTION_VELOCITY_DAMPING = 0.94;
 const DEFAULT_MESH_COLLISION_PASSES = 2;
 const VOLUME_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 const MESH_COLLIDER_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
-
-function ensurePointBuffer(buffer, count) {
-    if (!buffer || buffer.length !== count) {
-        return Array.from({ length: count }, () => ({ x: 0, y: 0, z: 0, active: false }));
-    }
-    return buffer;
-}
-
-function snapshotNodePositions(nodes, buffer) {
-    const positions = ensurePointBuffer(buffer, nodes.length);
-    const storage = nodes.nodeStorage;
-    if (storage) {
-        const { x, y, z } = storage;
-        for (let i = 0; i < nodes.length; i++) {
-            const position = positions[i];
-            position.x = x[i];
-            position.y = y[i];
-            position.z = z[i];
-            position.active = true;
-        }
-        return positions;
-    }
-    for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const position = positions[i];
-        position.x = node.x;
-        position.y = node.y;
-        position.z = node.z;
-        position.active = true;
-    }
-    return positions;
-}
-
-function clearPointBuffer(buffer) {
-    for (let i = 0; i < buffer.length; i++) {
-        const point = buffer[i];
-        point.x = 0;
-        point.y = 0;
-        point.z = 0;
-        point.active = false;
-    }
-}
 
 function createNodeStorage(count, mass, bendingStiffness) {
     const storage = {
@@ -339,16 +294,9 @@ export class ElasticRod {
         }
     }
 
-    // Solve positional constraints and apply velocity damping
-    solveConstraints(dt, options = {}) {
+    projectSegmentLengthConstraints(iterations = this.constraintIterations) {
         const L = this.segmentLength;
-        const prev = snapshotNodePositions(this.nodes, this._constraintPrevPositions);
-        this._constraintPrevPositions = prev;
-        const applyBending = options.applyBending ?? true;
-        const velocityDamping = options.velocityDamping ?? 0.92;
-
-        // enforce segment lengths
-        for (let iter = 0; iter < this.constraintIterations; iter++) {
+        for (let iter = 0; iter < iterations; iter++) {
             for (let i = 0; i < this.nodes.length - 1; i++) {
                 const n0 = this.nodes[i];
                 const n1 = this.nodes[i + 1];
@@ -372,6 +320,17 @@ export class ElasticRod {
                 }
             }
         }
+    }
+
+    // Solve positional constraints and apply velocity damping
+    solveConstraints(dt, options = {}) {
+        const prev = snapshotNodePositions(this.nodes, this._constraintPrevPositions);
+        this._constraintPrevPositions = prev;
+        const applyBending = options.applyBending ?? true;
+        const velocityDamping = options.velocityDamping ?? 0.92;
+
+        // enforce segment lengths
+        this.projectSegmentLengthConstraints();
 
         if (applyBending) {
             // simple bending constraint: pull interior nodes toward midpoint of neighbours
@@ -396,30 +355,7 @@ export class ElasticRod {
             const bendIterations = options.bendingConstraintIterations ?? this.bendingConstraintIterations;
             if (bendIterations > 0) {
                 this.projectBendingConstraints(bendIterations);
-                for (let iter = 0; iter < Math.max(2, Math.ceil(this.constraintIterations * 0.5)); iter++) {
-                    for (let i = 0; i < this.nodes.length - 1; i++) {
-                        const n0 = this.nodes[i];
-                        const n1 = this.nodes[i + 1];
-                        let dx = n1.x - n0.x;
-                        let dy = n1.y - n0.y;
-                        let dz = n1.z - n0.z;
-                        let dist = Math.hypot(dx, dy, dz);
-                        if (!dist) continue;
-                        const diff = (dist - L) / dist;
-                        if (n0.pinned && n1.pinned) continue;
-                        if (n0.pinned) {
-                            dx *= diff; dy *= diff; dz *= diff;
-                            n1.x -= dx; n1.y -= dy; n1.z -= dz;
-                        } else if (n1.pinned) {
-                            dx *= diff; dy *= diff; dz *= diff;
-                            n0.x += dx; n0.y += dy; n0.z += dz;
-                        } else {
-                            dx *= diff * 0.5; dy *= diff * 0.5; dz *= diff * 0.5;
-                            n0.x += dx; n0.y += dy; n0.z += dz;
-                            n1.x -= dx; n1.y -= dy; n1.z -= dz;
-                        }
-                    }
-                }
+                this.projectSegmentLengthConstraints(Math.max(2, Math.ceil(this.constraintIterations * 0.5)));
             }
         }
 
