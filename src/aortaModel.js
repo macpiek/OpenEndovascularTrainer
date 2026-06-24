@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260616stlpreprocess6';
+import { GUIDEWIRE_RADIUS_MM } from './toolDimensions.js';
 
 const AORTA_MODEL_URL = 'res/Aorta_plain.stl';
 const AORTA_MODEL_SCALE = 1.3;
@@ -73,7 +74,7 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
                     lumenField: preprocessing.lumenField
                 }),
                 clearance: 0.6,
-                guidewireClearance: 0.35,
+                guidewireClearance: GUIDEWIRE_RADIUS_MM,
                 guidewireSegmentClearance: 0.12,
                 guidewireCollisionPasses: 3,
                 guidewireSegmentSamples: [0.2, 0.4, 0.6, 0.8],
@@ -105,6 +106,23 @@ export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
         }
         return target;
     };
+    const finiteComponent = (value, fallback) => Number.isFinite(value) ? value : fallback;
+    const setQueryTargetAtClearance = (target, input, query, clearance) => {
+        const signedDistance = query?.signedDistance;
+        const correction = Number.isFinite(signedDistance)
+            ? Math.max(0, clearance - signedDistance)
+            : Math.max(0, clearance);
+        const inward = query?.inward;
+        const inwardX = finiteComponent(inward?.x, 1);
+        const inwardY = finiteComponent(inward?.y, 0);
+        const inwardZ = finiteComponent(inward?.z, 0);
+        return setPoint(
+            target,
+            input.x + inwardX * correction,
+            input.y + inwardY * correction,
+            input.z + inwardZ * correction
+        );
+    };
 
     function pointContact(input, clearance = 0, out = null) {
         const query = lumenField?.query?.(input, out?.query);
@@ -127,21 +145,16 @@ export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
                 normal: new THREE.Vector3(1, 0, 0)
             };
         }
-        const violation = query.signedDistance < clearance;
+        const signedDistance = Number.isFinite(query.signedDistance) ? query.signedDistance : -Infinity;
+        const violation = signedDistance < clearance;
         if (out) {
             out.inside = query.inside;
             out.violation = violation;
-            out.distance = Math.max(0, query.signedDistance);
-            out.signedDistance = query.signedDistance;
+            out.distance = Math.max(0, signedDistance);
+            out.signedDistance = signedDistance;
             out.target = out.target || {};
             if (violation) {
-                const correction = Math.max(0, clearance - query.signedDistance);
-                setPoint(
-                    out.target,
-                    input.x + query.inward.x * correction,
-                    input.y + query.inward.y * correction,
-                    input.z + query.inward.z * correction
-                );
+                setQueryTargetAtClearance(out.target, input, query, clearance);
             } else {
                 setPoint(out.target, input.x, input.y, input.z);
             }
@@ -153,10 +166,10 @@ export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
         return {
             inside: query.inside,
             violation,
-            distance: Math.max(0, query.signedDistance),
-            signedDistance: query.signedDistance,
+            distance: Math.max(0, signedDistance),
+            signedDistance,
             target: violation
-                ? query.targetAtClearance(clearance)
+                ? (query.targetAtClearance?.(clearance) || setQueryTargetAtClearance(new THREE.Vector3(), input, query, clearance))
                 : new THREE.Vector3(input.x, input.y, input.z),
             closestPoint: query.closestPoint.clone(),
             inward: query.inward.clone(),

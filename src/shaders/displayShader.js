@@ -18,6 +18,7 @@ uniform sampler2D uTexture;
 uniform sampler2D contrastTexture;
 uniform sampler2D thicknessTexture;
 uniform sampler2D metalTexture;
+uniform sampler2D catheterTexture;
 uniform sampler2D sheathTexture;
 uniform sampler2D boneTexture;
 uniform vec3 gray;
@@ -66,8 +67,13 @@ float contrastAt(vec2 uv) {
 }
 
 float metalAt(vec2 uv) {
-    float signal = sampleSignal(metalTexture, uv);
-    return smoothstep(0.025, 0.58, signal);
+    float center = sampleSignal(metalTexture, uv);
+    return pow(saturate(center), 1.18);
+}
+
+float catheterAt(vec2 uv) {
+    float signal = sampleSignal(catheterTexture, uv);
+    return smoothstep(0.025, 0.48, signal);
 }
 
 float sheathAt(vec2 uv) {
@@ -158,12 +164,13 @@ float attenuationAt(vec2 uv) {
     float bone = boneSignal * 1.58 * boneVisibility;
     float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
     float metal = metalAt(uv) * 5.25;
+    float catheter = catheterAt(uv) * 0.28;
     float sheath = sheathAt(uv) * 0.42;
 
     // The accumulated visible frame creates detector persistence across the
     // full fluoroscopy image while current attenuation still leads the frame.
     float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
-    return max(0.0, bone + iodine + metal + sheath + temporalTrace);
+    return max(0.0, bone + iodine + metal + catheter + sheath + temporalTrace);
 }
 
 float vignetteField(vec2 uv) {
@@ -226,7 +233,13 @@ void main() {
         float centerAttenuation = attenuationAt(vUv);
         float localScatter = scatterFieldAt(vUv, centerAttenuation);
         float exposureLift = autoExposureEnabled ? autoExposureLevel : 0.0;
-        float neighborAttenuation = centerAttenuation;
+        vec2 edgeSampleOffset = 1.35 / resolution;
+        float neighborAttenuation = (
+            attenuationAt(vUv + vec2(edgeSampleOffset.x, 0.0)) +
+            attenuationAt(vUv - vec2(edgeSampleOffset.x, 0.0)) +
+            attenuationAt(vUv + vec2(0.0, edgeSampleOffset.y)) +
+            attenuationAt(vUv - vec2(0.0, edgeSampleOffset.y))
+        ) * 0.25;
 
         // C-arm images are usually edge-enhanced after acquisition. Sharpen
         // attenuation before transmission so radiopaque borders get the expected

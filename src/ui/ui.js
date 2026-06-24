@@ -2,6 +2,14 @@ import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis3';
 import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js?v=20260620rollpreview1';
 import { setupCArmControls } from '../carmControls.js?v=20260620rollpreview1';
 import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
+import {
+  GUIDEWIRE_DIAMETER_IN,
+  GUIDEWIRE_DIAMETER_MM,
+  INTRODUCER_SHEATH_DIAMETER_MM,
+  INTRODUCER_SHEATH_FRENCH,
+  PIGTAIL_CATHETER_DIAMETER_MM,
+  PIGTAIL_CATHETER_FRENCH
+} from '../toolDimensions.js';
 
 // Initializes all UI elements and event listeners.
 // Expects options with references and callbacks to interact with the simulator.
@@ -87,9 +95,22 @@ export function initUI(options) {
   const guidewireResistanceValueEl = document.getElementById('guidewireResistanceValue');
   const guidewireResistanceFillEl = document.getElementById('guidewireResistanceFill');
   const guidewireDiagnosticsEl = document.getElementById('guidewireDiagnostics');
+  const guidewireDiameterEl = document.getElementById('guidewireDiameter');
+  const sheathDiameterEl = document.getElementById('sheathDiameter');
+  const catheterDiameterEl = document.getElementById('catheterDiameter');
   const perfStatsEl = document.getElementById('perfStats');
 
   // Initial UI state
+  if (guidewireDiameterEl) {
+    guidewireDiameterEl.textContent = `${GUIDEWIRE_DIAMETER_IN.toFixed(3)}" · ${GUIDEWIRE_DIAMETER_MM.toFixed(3)} mm`;
+  }
+  if (sheathDiameterEl) {
+    sheathDiameterEl.textContent = `${INTRODUCER_SHEATH_FRENCH}F · ${INTRODUCER_SHEATH_DIAMETER_MM.toFixed(3)} mm`;
+  }
+  if (catheterDiameterEl) {
+    catheterDiameterEl.textContent = `${PIGTAIL_CATHETER_FRENCH}F · ${PIGTAIL_CATHETER_DIAMETER_MM.toFixed(3)} mm`;
+  }
+
   if (voxelRenderToggle) {
     voxelGroup.visible = voxelRenderToggle.checked;
   }
@@ -398,10 +419,10 @@ export function initUI(options) {
 
   // Helpers to let simulator update UI
   function updateInsertedLength(cm) {
-    if (insertedLengthEl) insertedLengthEl.textContent = cm.toFixed(1) + ' cm';
+    if (insertedLengthEl) insertedLengthEl.textContent = 'Wire ' + cm.toFixed(1) + ' cm';
   }
   function updateCatheterLength(cm) {
-    if (catheterLengthEl) catheterLengthEl.textContent = 'Pigtail ' + cm.toFixed(1) + ' cm';
+    if (catheterLengthEl) catheterLengthEl.textContent = 'Catheter ' + cm.toFixed(1) + ' cm';
   }
   function updateDose(ml) {
     if (doseDisplayEl) doseDisplayEl.textContent = ml.toFixed(1) + ' ml';

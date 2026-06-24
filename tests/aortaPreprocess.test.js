@@ -3,8 +3,14 @@ import fs from 'node:fs';
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { createMeshLumenCollider } from '../src/aortaModel.js';
-import { preprocessAortaGeometry } from '../src/aortaPreprocess.js';
+import { createLumenField, preprocessAortaGeometry } from '../src/aortaPreprocess.js';
 import { generateVessel } from '../src/vesselGeometry.js';
+
+function assertFinitePoint(point, label) {
+    assert.ok(Number.isFinite(point.x), `${label}.x should be finite`);
+    assert.ok(Number.isFinite(point.y), `${label}.y should be finite`);
+    assert.ok(Number.isFinite(point.z), `${label}.z should be finite`);
+}
 
 function loadTransformedAorta() {
     const buffer = fs.readFileSync('res/Aorta_plain.stl');
@@ -70,3 +76,17 @@ assert.ok(!outsideIliac.inside, 'known external iliac point should be outside');
 const collider = createMeshLumenCollider(geometry, { lumenField: field });
 assert.equal(collider.pointContact(new THREE.Vector3(0, -300, 0), 0.45).violation, false);
 assert.equal(collider.pointContact(new THREE.Vector3(0, -300, 80), 0.45).violation, true);
+
+const emptyField = createLumenField([]);
+const emptyCollider = createMeshLumenCollider(new THREE.BufferGeometry(), { lumenField: emptyField });
+const malformedSample = new THREE.Vector3(12, -34, 56);
+const emptyContact = emptyCollider.pointContact(malformedSample, 0.45);
+assert.equal(emptyContact.violation, true, 'empty lumen should still report a boundary violation');
+assert.equal(emptyContact.signedDistance, -Infinity, 'empty lumen should preserve signed-distance failure state');
+assertFinitePoint(emptyContact.target, 'empty non-scratch contact target');
+
+const scratchContact = { query: {} };
+emptyCollider.pointContact(malformedSample, 0.45, scratchContact);
+assert.equal(scratchContact.violation, true, 'empty scratch lumen should still report a boundary violation');
+assert.equal(scratchContact.signedDistance, -Infinity, 'empty scratch lumen should preserve signed-distance failure state');
+assertFinitePoint(scratchContact.target, 'empty scratch contact target');

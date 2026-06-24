@@ -29,8 +29,8 @@
     </button>
     <div id="perfStats">FPS: 0 | Mem: N/A</div>
     <div class="control-readout-strip">
-        <div class="control-readout" id="insertedLength">0 cm</div>
-        <div class="control-readout" id="catheterLength">Pigtail 0 cm</div>
+        <div class="control-readout" id="insertedLength">Wire 0 cm</div>
+        <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
         <div class="control-readout" id="currentDose">0 ml</div>
         <div id="xrayTechnique" class="xray-technique">
             <span id="currentKV">72 kV</span>
@@ -110,7 +110,7 @@
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
                 <div class="section-content imaging-grid">
-                    <button id="autoExposureToggle" class="imaging-toggle active" type="button">Auto exposure: On</button>
+                    <button id="autoExposureToggle" class="imaging-toggle" type="button">Auto exposure: Off</button>
                     <label class="parameter-label">Persistence
                         <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.3">
                         <span></span>
@@ -188,6 +188,11 @@
 
         <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
             <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
+            <div id="toolDiameters" class="tool-diameters" aria-label="Tool diameters">
+                <div><span>Guidewire</span><strong id="guidewireDiameter">0.035&quot; · 0.889 mm</strong></div>
+                <div><span>Sheath</span><strong id="sheathDiameter">6F · 2.000 mm</strong></div>
+                <div><span>Pigtail</span><strong id="catheterDiameter">5F · 1.667 mm</strong></div>
+            </div>
             <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
         </div>
     </div>

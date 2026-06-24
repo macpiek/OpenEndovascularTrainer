@@ -8,6 +8,7 @@ import { createBoneModel } from './boneModel.js?v=20260618loading1';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
 import { createAortaModel } from './aortaModel.js?v=20260616aortacollider2';
+import { GUIDEWIRE_RADIUS_MM, GUIDEWIRE_RENDER_RADIUS_MM } from './toolDimensions.js';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260623imagingdefaults1';
@@ -16,12 +17,15 @@ const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const STL_INTERIOR_SAMPLE_COLOR = 0x69ff8e;
 const STL_BOUNDARY_EDGE_COLOR = 0xff9b3d;
 const STL_LUMEN_CONTOUR_COLOR = 0xa7ff5c;
+const SHEATH_ENTRY_MARKER_COLOR = 0xff4fd8;
 const WALL_CONTACT_COLOR = 0xffd24a;
 const WALL_BREACH_COLOR = 0xff3355;
 const WALL_WORST_POINT_COLOR = 0xff55ff;
 const CONTACT_MARKER_LIMIT = 420;
 const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 10;
 const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
+const GUIDEWIRE_SEGMENT_RADIAL_SEGMENTS = 32;
+const GUIDEWIRE_SEGMENT_OVERLAP_MM = GUIDEWIRE_RENDER_RADIUS_MM * 1.35;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
@@ -82,6 +86,8 @@ setLoadingMessage('Preparing renderer');
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
+const DEVICE_MASK_TARGET_SAMPLES = renderer.capabilities.isWebGL2 ? 4 : 0;
+const deviceMaskTargetOptions = { samples: DEVICE_MASK_TARGET_SAMPLES };
 
 // Primary 3D scene (wire, vessels, bones)
 const scene = new THREE.Scene();
@@ -91,9 +97,10 @@ scene.background = new THREE.Color(0x000000);
 const contrastScene = new THREE.Scene();
 
 // Offscreen render targets used by various post-processing passes
-const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deviceMaskTargetOptions);
 const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const metalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const metalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deviceMaskTargetOptions);
+const catheterTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const sheathTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 const boneTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
     type: THREE.HalfFloatType
@@ -250,6 +257,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         contrastTexture: { value: contrastTarget.texture },
         thicknessTexture: { value: thicknessTarget.texture },
         metalTexture: { value: metalTarget.texture },
+        catheterTexture: { value: catheterTarget.texture },
         sheathTexture: { value: sheathTarget.texture },
         boneTexture: { value: boneTarget.texture },
         gray: { value: new THREE.Color(0xEBEBEB) },
@@ -258,7 +266,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         noiseLevel: { value: 0.1 },
         imageBrightness: { value: 0.18 },
         imageContrast: { value: 1.33 },
-        autoExposureEnabled: { value: true },
+        autoExposureEnabled: { value: false },
         autoExposureLevel: { value: 0.0 },
         pulseRate: { value: 15.0 },
         scatterStrength: { value: 0.45 },
@@ -299,8 +307,6 @@ vesselGroup = new THREE.Group();
 let vesselCollisionTarget = vessel;
 let pigtailCatheter = null;
 let guidewireSolver = null;
-const SHEATH_DEBUG_RADIUS_SCALE = 0.72;
-const SHEATH_FLUORO_RADIUS_SCALE = 0.92;
 
 function createSheathGeometry(sheath, radiusScale = 1) {
     const start = new THREE.Vector3(sheath.start.x, sheath.start.y, sheath.start.z);
@@ -315,22 +321,22 @@ function createSheathGeometry(sheath, radiusScale = 1) {
 }
 
 function createSheathMesh(sheath) {
-    const geometry = createSheathGeometry(sheath, SHEATH_DEBUG_RADIUS_SCALE);
+    const geometry = createSheathGeometry(sheath);
     const material = new THREE.MeshBasicMaterial({
         color: LUMEN_DEBUG_COLOR,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.24,
+        opacity: 0.34,
         depthWrite: false,
-        depthTest: true
+        depthTest: false
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.renderOrder = 3;
+    mesh.renderOrder = 6.6;
     return mesh;
 }
 
 function createSheathFluoroMesh(sheath) {
-    const geometry = createSheathGeometry(sheath, SHEATH_FLUORO_RADIUS_SCALE);
+    const geometry = createSheathGeometry(sheath);
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
@@ -357,6 +363,76 @@ function createExactLumenDebugMesh(geometry) {
     mesh.renderOrder = 3;
     return mesh;
 }
+
+function findSheathVesselEntryPoint(collision, sheath) {
+    const collider = collision?.meshCollider || collision?.lumenMeshCollider || null;
+    if (!collider?.pointContact || !sheath?.start || !sheath?.end) return null;
+
+    const start = new THREE.Vector3(sheath.start.x, sheath.start.y, sheath.start.z);
+    const end = new THREE.Vector3(sheath.end.x, sheath.end.y, sheath.end.z);
+    const axis = new THREE.Vector3().subVectors(end, start);
+    const length = axis.length();
+    if (length < 1e-6) return null;
+
+    const pointAt = t => start.clone().addScaledVector(axis, t);
+    const signedDistanceAt = t => collider.pointContact(pointAt(t), 0)?.signedDistance ?? -Infinity;
+    const samples = Math.max(16, Math.ceil(length / 2));
+    let previousT = 0;
+    let previousSignedDistance = signedDistanceAt(0);
+
+    for (let i = 1; i <= samples; i++) {
+        const t = i / samples;
+        const signedDistance = signedDistanceAt(t);
+        if (previousSignedDistance < 0 && signedDistance >= 0) {
+            let lo = previousT;
+            let hi = t;
+            for (let iter = 0; iter < 14; iter++) {
+                const mid = (lo + hi) * 0.5;
+                if (signedDistanceAt(mid) >= 0) hi = mid;
+                else lo = mid;
+            }
+            return {
+                point: pointAt(hi),
+                tangent: axis.normalize()
+            };
+        }
+        previousT = t;
+        previousSignedDistance = signedDistance;
+    }
+
+    return null;
+}
+
+function createSheathEntryDebugMarker(collision, sheath) {
+    const entry = findSheathVesselEntryPoint(collision, sheath);
+    const group = new THREE.Group();
+    if (!entry) return group;
+
+    const markerMaterial = new THREE.MeshBasicMaterial({
+        color: SHEATH_ENTRY_MARKER_COLOR,
+        transparent: true,
+        opacity: 0.95,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false
+    });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(2.2, 18, 12), markerMaterial);
+    core.renderOrder = 9.5;
+    group.add(core);
+
+    const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(4.2, 0.32, 8, 32),
+        markerMaterial.clone()
+    );
+    ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), entry.tangent);
+    ring.renderOrder = 9.4;
+    group.add(ring);
+
+    group.position.copy(entry.point);
+    group.frustumCulled = false;
+    return group;
+}
+
 vesselGroup.add(createSheathMesh(vessel.sheath));
 const sheathFluoroMesh = createSheathFluoroMesh(vessel.sheath);
 sheathFluoroMesh.visible = true;
@@ -374,6 +450,7 @@ createAortaModel(vessel, {
         lumenDebugGroup.clear();
         lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry));
         lumenDebugGroup.add(createStlPreprocessDebug(collision.preprocessing));
+        lumenDebugGroup.add(createSheathEntryDebugMarker(collision, vessel.sheath));
         guidewireSolver?.requestSettle?.(90);
         pigtailCatheter?.setCollisionGeometry(collision);
         completeLoadingMilestone(
@@ -513,11 +590,12 @@ guidewireSolver = new GuidewireSolver({
     advanceRate: GUIDEWIRE_ADVANCE_RATE,
     minInsert,
     maxInsert,
+    lumenClearance: GUIDEWIRE_RADIUS_MM,
     straightening: 0.72,
     routeBlend: 0,
     relaxationIterations: 6,
     lengthIterations: 10,
-    meshClearance: 0.45,
+    meshClearance: GUIDEWIRE_RADIUS_MM,
     foldGuardAngle: 166,
     foldGuardStrength: 0.62,
     foldGuardPasses: 2,
@@ -570,10 +648,37 @@ let injectVolume = 10; // total ml
 let remainingVolume = 0;
 let totalDose = 0;
 
-// Renderable guidewire: white so the fluoroscopy shader can invert it to black
-const wireMaterial = new THREE.LineBasicMaterial({
+// Renderable guidewire: white so the fluoroscopy shader can invert it to black.
+const wireMaterial = new THREE.MeshBasicMaterial({
     color: 0xffffff,
-    depthTest: false
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false
+});
+const wireProjectionMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+        varying float vWireProfile;
+        void main() {
+            mat4 instanceTransform = mat4(1.0);
+            #ifdef USE_INSTANCING
+                instanceTransform = instanceMatrix;
+            #endif
+            vec4 mvPosition = modelViewMatrix * instanceTransform * vec4(position, 1.0);
+            vec3 viewNormal = normalize(normalMatrix * mat3(instanceTransform) * normal);
+            vWireProfile = pow(clamp(abs(viewNormal.z), 0.0, 1.0), 0.75);
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `,
+    fragmentShader: `
+        varying float vWireProfile;
+        void main() {
+            float profile = mix(0.06, 1.0, smoothstep(0.08, 0.94, vWireProfile));
+            gl_FragColor = vec4(vec3(profile), 1.0);
+        }
+    `,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false
 });
 // Initialize UI after wireMaterial is created so mode toggle can affect it
 let fluoroscopy = true;
@@ -617,12 +722,28 @@ const ui = initUI({
     },
 });
 const { monitor } = ui;
-const wireGeometry = new THREE.BufferGeometry();
-const wirePositions = new Float32Array(nodeCount * 3);
-wireGeometry.setAttribute('position', new THREE.BufferAttribute(wirePositions, 3));
-const wireMesh = new THREE.Line(wireGeometry, wireMaterial);
-wireMesh.renderOrder = 1; // draw on top of additive bone rendering
-scene.add(wireMesh);
+const wireSegmentGeometry = new THREE.CylinderGeometry(
+    GUIDEWIRE_RENDER_RADIUS_MM,
+    GUIDEWIRE_RENDER_RADIUS_MM,
+    1,
+    GUIDEWIRE_SEGMENT_RADIAL_SEGMENTS,
+    1,
+    false
+);
+const wireMesh = new THREE.InstancedMesh(wireSegmentGeometry, wireMaterial, nodeCount - 1);
+wireMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+wireMesh.frustumCulled = false;
+wireMesh.renderOrder = 7; // draw above translucent debug anatomy
+wireMesh.count = 0;
+const wireGroup = new THREE.Group();
+wireGroup.add(wireMesh);
+scene.add(wireGroup);
+const wireSegmentMatrix = new THREE.Matrix4();
+const wireSegmentQuaternion = new THREE.Quaternion();
+const wireSegmentAxis = new THREE.Vector3();
+const wireSegmentMidpoint = new THREE.Vector3();
+const wireSegmentScale = new THREE.Vector3(1, 1, 1);
+const wireSegmentUp = new THREE.Vector3(0, 1, 0);
 
 const contactMarkerGeometry = new THREE.SphereGeometry(1.35, 12, 8);
 const breachMarkerGeometry = new THREE.SphereGeometry(2.1, 12, 8);
@@ -700,17 +821,31 @@ function advanceTailInput(advance, dt) {
 }
 
 function updateWireMesh() {
-    // Copy simulated node positions into the GPU buffer used by the line
-    for (let i = 0; i < wire.nodes.length; i++) {
-        const n = wire.nodes[i];
-        wirePositions[i * 3] = n.x;
-        wirePositions[i * 3 + 1] = n.y;
-        wirePositions[i * 3 + 2] = n.z;
-    }
     const firstVisible = guidewireSolver.firstInsertedNodeIndex();
-    wireGeometry.setDrawRange(firstVisible, Math.max(0, nodeCount - firstVisible));
-    wireGeometry.attributes.position.needsUpdate = true;
-    wireGeometry.computeBoundingSphere();
+    let segmentIndex = 0;
+    for (let i = firstVisible; i < wire.nodes.length - 1; i++) {
+        const a = wire.nodes[i];
+        const b = wire.nodes[i + 1];
+        wireSegmentAxis.set(b.x - a.x, b.y - a.y, b.z - a.z);
+        const length = wireSegmentAxis.length();
+        if (length < 1e-6) continue;
+
+        wireSegmentAxis.multiplyScalar(1 / length);
+        wireSegmentMidpoint.set(
+            (a.x + b.x) * 0.5,
+            (a.y + b.y) * 0.5,
+            (a.z + b.z) * 0.5
+        );
+        wireSegmentQuaternion.setFromUnitVectors(wireSegmentUp, wireSegmentAxis);
+        wireSegmentScale.set(1, length + GUIDEWIRE_SEGMENT_OVERLAP_MM, 1);
+        wireSegmentMatrix.compose(wireSegmentMidpoint, wireSegmentQuaternion, wireSegmentScale);
+        wireMesh.setMatrixAt(segmentIndex, wireSegmentMatrix);
+        segmentIndex++;
+    }
+
+    wireMesh.count = segmentIndex;
+    wireMesh.instanceMatrix.needsUpdate = true;
+    wireGroup.visible = segmentIndex > 0;
 }
 
 function sampleGuidewireContactMarkers() {
@@ -989,10 +1124,15 @@ function animate(time) {
         renderer.setRenderTarget(metalTarget);
         withTransparentClear(renderer, () => {
             renderer.clear();
-            renderOnlySceneObjects(scene, camera, [
-                wireMesh,
-                pigtailCatheter.mesh
-            ]);
+            scene.overrideMaterial = wireProjectionMaterial;
+            renderOnlySceneObjects(scene, camera, [wireGroup]);
+            scene.overrideMaterial = null;
+        });
+
+        renderer.setRenderTarget(catheterTarget);
+        withTransparentClear(renderer, () => {
+            renderer.clear();
+            renderOnlySceneObjects(scene, camera, [pigtailCatheter.mesh]);
         });
 
         renderer.setRenderTarget(sheathTarget);
@@ -1003,15 +1143,14 @@ function animate(time) {
 
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
-        renderOnlySceneObjects(scene, camera, [
-            sheathFluoroMesh,
-            wireMesh,
-            pigtailCatheter.mesh
-        ]);
-        const previousAutoClear = renderer.autoClear;
+        renderOnlySceneObjects(scene, camera, [sheathFluoroMesh]);
+        const previousOverlayAutoClear = renderer.autoClear;
         renderer.autoClear = false;
+        scene.overrideMaterial = wireProjectionMaterial;
+        renderOnlySceneObjects(scene, camera, [wireGroup]);
+        scene.overrideMaterial = null;
         renderer.render(contrastScene, camera);
-        renderer.autoClear = previousAutoClear;
+        renderer.autoClear = previousOverlayAutoClear;
 
         blendMaterial.uniforms.currentFrame.value = offscreenTarget.texture;
         blendMaterial.uniforms.previousFrame.value = previousTarget.texture;
@@ -1024,6 +1163,7 @@ function animate(time) {
         displayMaterial.uniforms.contrastTexture.value = contrastTarget.texture;
         displayMaterial.uniforms.thicknessTexture.value = thicknessTarget.texture;
         displayMaterial.uniforms.metalTexture.value = metalTarget.texture;
+        displayMaterial.uniforms.catheterTexture.value = catheterTarget.texture;
         displayMaterial.uniforms.sheathTexture.value = sheathTarget.texture;
         displayMaterial.uniforms.boneTexture.value = boneTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
@@ -1058,6 +1198,7 @@ window.addEventListener('resize', () => {
     offscreenTarget.setSize(w, h);
     contrastTarget.setSize(w, h);
     metalTarget.setSize(w, h);
+    catheterTarget.setSize(w, h);
     sheathTarget.setSize(w, h);
     boneTarget.setSize(w, h);
     accumulateTarget1.setSize(w, h);

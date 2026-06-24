@@ -847,6 +847,7 @@ canvas {
 .trace-label span:last-child {
     color: #747f7d;
     font-weight: 500;
+    text-transform: none;
 }
 
 .monitor-value {
@@ -879,6 +880,7 @@ canvas {
 
 .value-unit {
     color: #687270;
+    text-transform: none;
 }
 
 .value-number {
@@ -1072,6 +1074,37 @@ canvas {
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.08);
+}
+
+.tool-diameters {
+    display: grid;
+    gap: 4px;
+    max-width: 360px;
+    margin: 8px 0;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+    background: rgba(8, 10, 10, 0.58);
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.tool-diameters div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 18px;
+}
+
+.tool-diameters span {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.tool-diameters strong {
+    color: #f6f7f2;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 @media (max-width: 950px) {

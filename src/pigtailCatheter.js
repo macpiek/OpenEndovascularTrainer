@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { clamp, smoothstep } from './mathUtils.js';
+import { PIGTAIL_CATHETER_RADIUS_MM, PIGTAIL_CATHETER_RENDER_RADIUS_MM } from './toolDimensions.js';
 
-const CATHETER_RADIUS = 0.85;
+const CATHETER_RADIUS = PIGTAIL_CATHETER_RADIUS_MM;
 const PIGTAIL_RADIUS = 7.2;
 const PIGTAIL_TURNS = 1.05;
 const DISTAL_RELEASE_LENGTH = 48;
@@ -68,7 +69,7 @@ export class PigtailCatheter {
         });
         this.mesh = new THREE.Mesh(new THREE.BufferGeometry(), this.material);
         this.mesh.frustumCulled = false;
-        this.mesh.renderOrder = 2;
+        this.mesh.renderOrder = 7;
         this.mesh.visible = false;
     }
 
@@ -211,7 +212,7 @@ export class PigtailCatheter {
 
         const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.35);
         const tubularSegments = clamp(Math.round(points.length * 2.6), 24, 180);
-        const geometry = new THREE.TubeGeometry(curve, tubularSegments, CATHETER_RADIUS, 10, false);
+        const geometry = new THREE.TubeGeometry(curve, tubularSegments, PIGTAIL_CATHETER_RENDER_RADIUS_MM, 10, false);
         this.mesh.geometry.dispose();
         this.mesh.geometry = geometry;
         this.mesh.visible = true;
