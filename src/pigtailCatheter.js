@@ -5,6 +5,12 @@ import { PIGTAIL_CATHETER_RADIUS_MM, PIGTAIL_CATHETER_RENDER_RADIUS_MM } from '.
 const CATHETER_RADIUS = PIGTAIL_CATHETER_RADIUS_MM;
 const PIGTAIL_RADIUS = 7.2;
 const PIGTAIL_TURNS = 1.05;
+const CATHETER_TYPE_PIGTAIL = 'pigtail';
+const CATHETER_TYPE_BERENSTEIN = 'berenstein';
+const BERENSTEIN_BEND_ANGLE = Math.PI / 4;
+const BERENSTEIN_STRAIGHT_EXIT_LENGTH = 8;
+const BERENSTEIN_BEND_LENGTH = 10;
+const BERENSTEIN_TIP_SHAPE_LENGTH = 48;
 const DISTAL_RELEASE_LENGTH = 48;
 const STRAIGHT_EXIT_LENGTH = 16;
 const MIN_GUIDE_SUPPORT = 18;
@@ -17,19 +23,32 @@ const FREE_DAMPING = 0.88;
 const FREE_CONSTRAINT_ITERATIONS = 18;
 const FREE_BEND_SMOOTHING = 0.085;
 const FREE_WALL_FRICTION = 0.08;
-const GUIDEWIRE_RECAPTURE_BLEND = 0.92;
+const FREE_SHAFT_STRAIGHTENING = 0.22;
+const FREE_LONG_SPAN_STRAIGHTENING = 0.075;
+const FREE_MAX_BEND_ANGLE = 72 * Math.PI / 180;
+const FREE_BEND_LIMIT_STRENGTH = 0.36;
+const FREE_SEGMENT_COLLISION_STRENGTH = 0.55;
+const FREE_SEGMENT_MAX_CORRECTION = 1.2;
+const FREE_SEGMENT_COLLISION_SAMPLES = [0.25, 0.5, 0.75];
+const PATH_RELAXATION_PASSES = 3;
+const PATH_STRAIGHTENING = 0.24;
+const PATH_LONG_SPAN_STRAIGHTENING = 0.085;
+const PATH_MAX_BEND_ANGLE = 68 * Math.PI / 180;
+const PATH_BEND_LIMIT_STRENGTH = 0.42;
+const PATH_MAX_RELAX_STEP = 1.15;
+const SOLO_CATHETER_STRAIGHTENING_SCALE = 1.7;
+const SOLO_CATHETER_BEND_LIMIT_SCALE = 1.45;
 const GUIDEWIRE_RECAPTURE_WINDOW = 7;
-const GUIDEWIRE_SUPPORT_ADVANCE_RATE = 42;
-const GUIDEWIRE_SUPPORT_WITHDRAW_RATE = 95;
-const TIP_FLEX_LENGTH = 46;
-const TIP_FLEX_MIN_FRACTION = 0.34;
-const TIP_FLEX_OVERHANG_FADE_START = 55;
-const TIP_FLEX_OVERHANG_FADE_END = 145;
+const GUIDEWIRE_SUPPORT_BLEND = 0.22;
+const GUIDEWIRE_MOVING_SUPPORT_BLEND = 0.42;
 const PIGTAIL_RELEASE_CURL_START = 0.42;
 const PIGTAIL_RELEASE_CURL_RATE = 0.82;
 const GUIDEWIRE_IN_CATHETER_BLEND = 0.78;
 const GUIDEWIRE_REACTION_BLEND = 0.16;
+const GUIDEWIRE_CATHETER_MAX_CORRECTION = 1.2;
 const EXTERNAL_CATHETER_VISIBLE_LENGTH = 90;
+const CATHETER_ADVANCE_SPEED = 52;
+const CATHETER_WITHDRAW_SPEED = 32;
 const ROTATION_SPEED = Math.PI * 0.9;
 const CONTACT_CLEARANCE = CATHETER_RADIUS * 0.72;
 
@@ -38,7 +57,7 @@ function nodePosition(node) {
 }
 
 export class PigtailCatheter {
-    constructor({ wire, segmentLength, guidewireLength, tailProgressRef, vessel = null, maxLength = 360 }) {
+    constructor({ wire, segmentLength, guidewireLength, tailProgressRef, vessel = null, maxLength = 1000 }) {
         this.wire = wire;
         this.segmentLength = segmentLength;
         this.guidewireLength = guidewireLength;
@@ -52,15 +71,14 @@ export class PigtailCatheter {
         this.guidewireInserted = 0;
         this.previousGuidewireInserted = 0;
         this.guidewireDelta = 0;
-        this.smoothedGuideSupportEnd = 0;
         this.motionCommand = 0;
         this.rotation = 0;
+        this.type = CATHETER_TYPE_PIGTAIL;
         this.pathSpacing = 4;
         this.pathSamples = [];
         this.freeNodes = [];
         this.freeRestDistances = [];
         this.freeLength = 0;
-        this.speed = 32;
         this.material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             depthTest: false,
@@ -71,6 +89,16 @@ export class PigtailCatheter {
         this.mesh.frustumCulled = false;
         this.mesh.renderOrder = 7;
         this.mesh.visible = false;
+    }
+
+    setType(type) {
+        const nextType = this.#normalizeType(type);
+        if (this.type === nextType) return;
+        this.type = nextType;
+        this.freeNodes.length = 0;
+        this.freeRestDistances.length = 0;
+        this.freeLength = 0;
+        this.updateMesh();
     }
 
     dispose() {
@@ -97,7 +125,8 @@ export class PigtailCatheter {
         this.previousGuidewireInserted = this.guidewireInserted;
         this.guidewireInserted = Math.max(0, guidewireInserted);
         this.guidewireDelta = this.guidewireInserted - this.previousGuidewireInserted;
-        const nextProgress = clamp(this.progress + command * this.speed * dt, 0, this.maxLength);
+        const speed = command > 0 ? CATHETER_ADVANCE_SPEED : CATHETER_WITHDRAW_SPEED;
+        const nextProgress = clamp(this.progress + command * speed * dt, 0, this.maxLength);
         if (nextProgress > this.progress) {
             this.#recordGuidewirePath(Math.min(nextProgress, this.guidewireInserted));
         } else if (nextProgress < this.progress) {
@@ -108,7 +137,6 @@ export class PigtailCatheter {
             this.#refreshGuidewirePath(supportedEnd);
         }
         this.progress = nextProgress;
-        this.#updateGuideSupportEnd(dt);
     }
 
     rotate(command, dt) {
@@ -118,6 +146,7 @@ export class PigtailCatheter {
 
     stepPhysics(dt = 1 / 60) {
         const state = this.#deploymentState();
+        this.#relaxSupportedPath(state.pathEnd);
         if (state.freeLength < 2 || state.supportEnd <= 0) {
             this.freeNodes.length = 0;
             this.freeRestDistances.length = 0;
@@ -140,7 +169,7 @@ export class PigtailCatheter {
             const node = this.freeNodes[i];
             node.curl = Math.min(1, (node.curl ?? 1) + PIGTAIL_RELEASE_CURL_RATE * dt);
             const relativeDistance = Math.max(0, (node.distance ?? 0) - (this.freeNodes[0].distance ?? 0));
-            const rest = this.#freeRestPoint(relativeDistance, frame, state.freeLength, node.curl);
+            const rest = this.#freeShapeTarget(relativeDistance, frame, state.freeLength, node.curl);
             node.vel.addScaledVector(new THREE.Vector3().subVectors(rest, node.pos), FREE_SHAPE_STIFFNESS * dt);
             node.vel.multiplyScalar(FREE_DAMPING);
             node.pos.addScaledVector(node.vel, dt);
@@ -152,7 +181,11 @@ export class PigtailCatheter {
             this.#solveFreeLengthConstraints();
             this.#solveFreeShape(frame, state.freeLength);
             this.#solveFreeBending(frame);
+            this.#solveFreeStraightening(state.freeLength);
+            this.#limitFreeBends(state.freeLength);
             this.#collideFreeNodes();
+            this.#collideFreeSegments();
+            this.#solveFreeLengthConstraints();
         }
 
         const invDt = 1 / Math.max(1e-4, dt);
@@ -163,7 +196,7 @@ export class PigtailCatheter {
         this.freeNodes[0].vel.set(0, 0, 0);
     }
 
-    constrainGuidewire(dt = 1 / 60) {
+    constrainGuidewire(dt = 1 / 60, { reactionScale = 1 } = {}) {
         if (this.progress < 4) return;
         const state = this.#deploymentState();
         if (state.freeLength >= 2 && this.freeNodes.length < 2 && state.supportEnd > 0) {
@@ -189,17 +222,22 @@ export class PigtailCatheter {
             const entranceTaper = smoothstep(0, this.segmentLength * 1.5, distance);
             const weight = (0.6 + entranceTaper * 0.4) * GUIDEWIRE_IN_CATHETER_BLEND;
             const correction = target.clone().sub(new THREE.Vector3(oldX, oldY, oldZ));
+            const correctionLength = correction.length();
+            if (correctionLength > GUIDEWIRE_CATHETER_MAX_CORRECTION) {
+                correction.multiplyScalar(GUIDEWIRE_CATHETER_MAX_CORRECTION / correctionLength);
+            }
+            const appliedCorrection = correction.multiplyScalar(weight);
 
-            node.x = oldX + correction.x * weight;
-            node.y = oldY + correction.y * weight;
-            node.z = oldZ + correction.z * weight;
+            node.x = oldX + appliedCorrection.x;
+            node.y = oldY + appliedCorrection.y;
+            node.z = oldZ + appliedCorrection.z;
 
             const invDt = 1 / Math.max(1e-4, dt);
             node.vx = (node.x - oldX) * invDt * 0.25;
             node.vy = (node.y - oldY) * invDt * 0.25;
             node.vz = (node.z - oldZ) * invDt * 0.25;
 
-            this.#applyGuidewireReaction(distance, correction.multiplyScalar(weight));
+            this.#applyGuidewireReaction(distance, appliedCorrection, reactionScale);
         }
     }
 
@@ -265,62 +303,9 @@ export class PigtailCatheter {
         const sheathSupportEnd = this.#sheathSupportEnd();
         const pathEnd = Math.max(sheathSupportEnd, Math.min(this.progress, this.#pathEndDistance()));
         if (pathEnd <= 0) return { pathEnd: 0, supportEnd: 0, freeLength: 0 };
-        const guideEnd = Math.min(this.guidewireInserted, this.#pathEndDistance());
-        const freeBeyondGuide = Math.max(0, this.progress - guideEnd);
-        const tipCapturedByGuidewire = freeBeyondGuide <= GUIDE_CAPTURE_TOLERANCE;
-        const elasticTipLength = this.#tipFlexLength(pathEnd, guideEnd);
-        const movingOnGuidewire = Math.abs(this.motionCommand) > 0
-            && this.guidewireInserted > MIN_GUIDE_SUPPORT
-            && tipCapturedByGuidewire;
-        const guideSupportEnd = movingOnGuidewire
-            ? pathEnd
-            : Math.max(sheathSupportEnd, clamp(this.smoothedGuideSupportEnd, 0, Math.min(pathEnd, guideEnd)));
-        const supportEnd = elasticTipLength > 0
-            ? Math.max(sheathSupportEnd, Math.min(guideSupportEnd, pathEnd - elasticTipLength))
-            : guideSupportEnd;
+        const supportEnd = sheathSupportEnd;
         const freeLength = Math.max(0, this.progress - supportEnd);
         return { pathEnd, supportEnd, freeLength };
-    }
-
-    #tipFlexLength(pathEnd, guideEnd) {
-        const sheathLength = this.sheathPath?.length || 0;
-        if (pathEnd <= sheathLength + 6 || guideEnd < pathEnd - GUIDE_CAPTURE_TOLERANCE) return 0;
-
-        const available = Math.max(0, pathEnd - sheathLength);
-        const overhang = Math.max(0, guideEnd - pathEnd);
-        const overhangFade = 1 - smoothstep(TIP_FLEX_OVERHANG_FADE_START, TIP_FLEX_OVERHANG_FADE_END, overhang);
-        const fraction = TIP_FLEX_MIN_FRACTION + (1 - TIP_FLEX_MIN_FRACTION) * overhangFade;
-        return Math.min(TIP_FLEX_LENGTH * fraction, available);
-    }
-
-    #updateGuideSupportEnd(dt) {
-        const pathEnd = Math.min(this.progress, this.#pathEndDistance());
-        if (pathEnd <= 0 || this.guidewireInserted <= MIN_GUIDE_SUPPORT) {
-            this.smoothedGuideSupportEnd = 0;
-            return;
-        }
-
-        const guideEnd = Math.min(this.guidewireInserted, pathEnd);
-        const freeBeyondGuide = Math.max(0, this.progress - guideEnd);
-        const tipCapturedByGuidewire = freeBeyondGuide <= GUIDE_CAPTURE_TOLERANCE;
-        const catheterMovingOnGuidewire = Math.abs(this.motionCommand) > 0
-            && this.guidewireInserted > MIN_GUIDE_SUPPORT
-            && tipCapturedByGuidewire;
-
-        if (catheterMovingOnGuidewire) {
-            this.smoothedGuideSupportEnd = pathEnd;
-            return;
-        }
-
-        const current = clamp(this.smoothedGuideSupportEnd, 0, pathEnd);
-        const target = guideEnd;
-        const rate = target > current ? GUIDEWIRE_SUPPORT_ADVANCE_RATE : GUIDEWIRE_SUPPORT_WITHDRAW_RATE;
-        const maxStep = rate * Math.max(0, dt);
-        if (Math.abs(target - current) <= maxStep) {
-            this.smoothedGuideSupportEnd = target;
-        } else {
-            this.smoothedGuideSupportEnd = current + Math.sign(target - current) * maxStep;
-        }
     }
 
     #freeFrame(supportEnd) {
@@ -371,11 +356,15 @@ export class PigtailCatheter {
                 const wasJustReleased = this.guidewireDelta < -1e-4
                     && distance >= this.guidewireInserted - GUIDE_CAPTURE_TOLERANCE
                     && distance <= this.previousGuidewireInserted + GUIDE_CAPTURE_TOLERANCE;
-                const restPoint = this.#freeRestPoint(relativeDistance, frame, state.freeLength, wasJustReleased ? PIGTAIL_RELEASE_CURL_START : 1);
+                const restPoint = this.#freeShapeTarget(relativeDistance, frame, state.freeLength, wasJustReleased ? PIGTAIL_RELEASE_CURL_START : 1);
                 const pathPoint = this.#sampleCatheterPath(Math.min(distance, this.#pathEndDistance()));
+                const guideSupported = this.guidewireInserted > MIN_GUIDE_SUPPORT
+                    && distance <= this.guidewireInserted + GUIDE_CAPTURE_TOLERANCE;
                 const point = wasJustReleased
                     ? pathPoint.lerp(restPoint, PIGTAIL_RELEASE_CURL_START)
-                    : restPoint;
+                    : guideSupported
+                        ? this.#sampleGuidewire(distance).lerp(restPoint, 0.28)
+                        : restPoint;
                 node = {
                     pos: this.#projectInsideVesselDetailed(point).point,
                     vel: new THREE.Vector3(),
@@ -398,22 +387,109 @@ export class PigtailCatheter {
     }
 
     #recaptureFreeNodes(state) {
-        const capturedLength = Math.max(0, this.guidewireInserted - state.supportEnd);
-        if (capturedLength <= 0 || this.freeNodes.length < 2) return;
-        const captureFront = Math.min(this.guidewireInserted, state.supportEnd + GUIDEWIRE_RECAPTURE_WINDOW);
+        const supportedEnd = Math.min(this.progress, this.guidewireInserted);
+        if (supportedEnd <= state.supportEnd + 0.5 || this.freeNodes.length < 2) return;
 
+        const moving = Math.abs(this.motionCommand) > 0;
+        const baseBlend = moving ? GUIDEWIRE_MOVING_SUPPORT_BLEND : GUIDEWIRE_SUPPORT_BLEND;
         for (let i = 1; i < this.freeNodes.length; i++) {
             const pathDistance = this.freeNodes[i].distance ?? state.supportEnd;
-            if (pathDistance > captureFront + GUIDE_CAPTURE_TOLERANCE) continue;
-            const fade = 1 - smoothstep(captureFront - GUIDE_CAPTURE_TOLERANCE, captureFront + GUIDE_CAPTURE_TOLERANCE, pathDistance);
+            if (pathDistance > supportedEnd + GUIDE_CAPTURE_TOLERANCE) continue;
+            const entranceFade = smoothstep(state.supportEnd, state.supportEnd + GUIDEWIRE_RECAPTURE_WINDOW, pathDistance);
+            const tipFade = 1 - smoothstep(supportedEnd - GUIDEWIRE_RECAPTURE_WINDOW, supportedEnd + GUIDE_CAPTURE_TOLERANCE, pathDistance);
             const target = this.#sampleGuidewire(pathDistance);
-            const blend = GUIDEWIRE_RECAPTURE_BLEND * fade;
+            const blend = baseBlend * entranceFade * (0.35 + tipFade * 0.65);
             this.freeNodes[i].pos.lerp(target, blend);
             this.freeNodes[i].vel.multiplyScalar(1 - blend);
         }
     }
 
+    #relaxSupportedPath(pathEnd) {
+        const sheathLength = this.sheathPath?.length || 0;
+        if (this.pathSamples.length < 3 || pathEnd <= sheathLength + this.pathSpacing * 2) return;
+
+        for (let pass = 0; pass < PATH_RELAXATION_PASSES; pass++) {
+            this.#straightenPathSamples(pathEnd, sheathLength);
+            this.#limitPathBends(pathEnd, sheathLength);
+        }
+    }
+
+    #straightenPathSamples(pathEnd, sheathLength) {
+        for (let i = 1; i < this.pathSamples.length - 1; i++) {
+            const sample = this.pathSamples[i];
+            const weight = this.#pathRelaxationWeight(sample.distance, pathEnd, sheathLength);
+            if (weight <= 0.001) continue;
+            const midpoint = this.pathSamples[i - 1].point.clone()
+                .add(this.pathSamples[i + 1].point)
+                .multiplyScalar(0.5);
+            this.#movePathSample(sample, midpoint, PATH_STRAIGHTENING * weight);
+        }
+
+        const spans = [2, 4, 8];
+        for (const span of spans) {
+            if (this.pathSamples.length <= span * 2) continue;
+            for (let i = span; i < this.pathSamples.length - span; i++) {
+                const sample = this.pathSamples[i];
+                const weight = this.#pathRelaxationWeight(sample.distance, pathEnd, sheathLength);
+                if (weight <= 0.001) continue;
+                const midpoint = this.pathSamples[i - span].point.clone()
+                    .add(this.pathSamples[i + span].point)
+                    .multiplyScalar(0.5);
+                this.#movePathSample(sample, midpoint, PATH_LONG_SPAN_STRAIGHTENING * weight / Math.sqrt(span));
+            }
+        }
+    }
+
+    #limitPathBends(pathEnd, sheathLength) {
+        const minDot = Math.cos(PATH_MAX_BEND_ANGLE);
+        for (let i = 1; i < this.pathSamples.length - 1; i++) {
+            const sample = this.pathSamples[i];
+            const weight = this.#pathRelaxationWeight(sample.distance, pathEnd, sheathLength);
+            if (weight <= 0.001) continue;
+
+            const prev = this.pathSamples[i - 1].point;
+            const curr = sample.point;
+            const next = this.pathSamples[i + 1].point;
+            const incoming = curr.clone().sub(prev);
+            const outgoing = next.clone().sub(curr);
+            const inLength = incoming.length();
+            const outLength = outgoing.length();
+            if (inLength < 1e-5 || outLength < 1e-5) continue;
+
+            incoming.multiplyScalar(1 / inLength);
+            outgoing.multiplyScalar(1 / outLength);
+            const dot = clamp(incoming.dot(outgoing), -1, 1);
+            if (dot >= minDot) continue;
+
+            const severity = clamp((Math.acos(dot) - PATH_MAX_BEND_ANGLE) / (Math.PI - PATH_MAX_BEND_ANGLE), 0, 1);
+            const midpoint = prev.clone().add(next).multiplyScalar(0.5);
+            this.#movePathSample(sample, midpoint, PATH_BEND_LIMIT_STRENGTH * severity * weight);
+        }
+    }
+
+    #pathRelaxationWeight(distance, pathEnd, sheathLength) {
+        if (distance <= sheathLength + this.pathSpacing) return 0;
+        const exitWeight = smoothstep(sheathLength + this.pathSpacing * 1.5, sheathLength + this.pathSpacing * 8, distance);
+        const tipWeight = 1 - smoothstep(pathEnd - this.pathSpacing * 4, pathEnd, distance);
+        return exitWeight * (0.35 + tipWeight * 0.65);
+    }
+
+    #movePathSample(sample, target, amount) {
+        const delta = target.clone().sub(sample.point).multiplyScalar(clamp(amount, 0, 1));
+        const deltaLength = delta.length();
+        if (deltaLength <= 1e-6) return;
+        if (deltaLength > PATH_MAX_RELAX_STEP) {
+            delta.multiplyScalar(PATH_MAX_RELAX_STEP / deltaLength);
+        }
+        const candidate = sample.point.clone().add(delta);
+        sample.point.copy(this.#projectInsideVesselDetailed(candidate).point);
+    }
+
     #freeRestPoint(distance, frame, freeLength, curlScale = 1) {
+        if (this.type === CATHETER_TYPE_BERENSTEIN) {
+            return this.#berensteinRestPoint(distance, frame, freeLength, curlScale);
+        }
+
         const deployLength = Math.min(freeLength, DISTAL_RELEASE_LENGTH);
         const proximalFreeLength = Math.max(0, freeLength - deployLength);
         if (distance <= proximalFreeLength) {
@@ -439,6 +515,55 @@ export class PigtailCatheter {
         return center
             .addScaledVector(frame.normal, Math.cos(theta) * radius)
             .addScaledVector(frame.tangent, Math.sin(theta) * radius);
+    }
+
+    #berensteinRestPoint(distance, frame, freeLength, curlScale = 1) {
+        const deployLength = Math.min(freeLength, DISTAL_RELEASE_LENGTH);
+        const proximalFreeLength = Math.max(0, freeLength - deployLength);
+        if (distance <= proximalFreeLength) {
+            return frame.supportTip.clone().addScaledVector(frame.tangent, distance);
+        }
+
+        const bendBase = frame.supportTip.clone().addScaledVector(frame.tangent, proximalFreeLength);
+        const local = distance - proximalFreeLength;
+        const leadLength = Math.min(deployLength, BERENSTEIN_STRAIGHT_EXIT_LENGTH);
+        if (local <= leadLength) {
+            return bendBase.clone().addScaledVector(frame.tangent, local);
+        }
+
+        const targetAngle = BERENSTEIN_BEND_ANGLE * clamp(curlScale, 0, 1);
+        if (targetAngle <= 0.001) {
+            return bendBase.clone().addScaledVector(frame.tangent, local);
+        }
+
+        const bendStart = bendBase.clone().addScaledVector(frame.tangent, leadLength);
+        const bendNormal = this.#berensteinBendNormal(frame);
+        const availableBendLength = Math.max(0, deployLength - leadLength);
+        const bendLength = Math.min(BERENSTEIN_BEND_LENGTH, Math.max(1e-4, availableBendLength));
+        const bendDistance = Math.min(local - leadLength, bendLength);
+        const angle = targetAngle * clamp(bendDistance / bendLength, 0, 1);
+        const radius = bendLength / targetAngle;
+        const point = bendStart
+            .addScaledVector(frame.tangent, Math.sin(angle) * radius)
+            .addScaledVector(bendNormal, (1 - Math.cos(angle)) * radius);
+
+        const afterBend = local - leadLength - bendLength;
+        if (afterBend > 0) {
+            const finalDirection = frame.tangent.clone()
+                .multiplyScalar(Math.cos(targetAngle))
+                .addScaledVector(bendNormal, Math.sin(targetAngle))
+                .normalize();
+            point.addScaledVector(finalDirection, afterBend);
+        }
+        return point;
+    }
+
+    #berensteinBendNormal(frame) {
+        const normal = frame.normal.clone();
+        normal.z *= 0.18;
+        normal.addScaledVector(frame.tangent, -normal.dot(frame.tangent));
+        if (normal.lengthSq() < 1e-6) return frame.normal.clone();
+        return normal.normalize();
     }
 
     #solveFreeLengthConstraints() {
@@ -477,9 +602,69 @@ export class PigtailCatheter {
     #solveFreeShape(frame, freeLength) {
         for (let i = 1; i < this.freeNodes.length; i++) {
             const relativeDistance = Math.max(0, (this.freeNodes[i].distance ?? 0) - (this.freeNodes[0].distance ?? 0));
-            const target = this.#freeRestPoint(relativeDistance, frame, freeLength, this.freeNodes[i].curl ?? 1);
+            const target = this.#freeShapeTarget(relativeDistance, frame, freeLength, this.freeNodes[i].curl ?? 1);
             const distalWeight = smoothstep(0, Math.max(FREE_NODE_SPACING, freeLength), relativeDistance);
-            this.freeNodes[i].pos.lerp(target, FREE_SHAPE_POSITION_BLEND * (0.45 + distalWeight * 0.55));
+            const shapeWeight = this.type === CATHETER_TYPE_BERENSTEIN
+                ? this.#distalTipShapeWeight(relativeDistance, freeLength)
+                : 0;
+            const blend = FREE_SHAPE_POSITION_BLEND * (0.45 + distalWeight * 0.55) * (1 + shapeWeight * 1.2);
+            this.freeNodes[i].pos.lerp(target, clamp(blend, 0, 0.42));
+        }
+    }
+
+    #solveFreeStraightening(freeLength) {
+        if (this.freeNodes.length < 4) return;
+        const scale = this.#isSoloCatheter() ? SOLO_CATHETER_STRAIGHTENING_SCALE : 1;
+
+        for (let i = 1; i < this.freeNodes.length - 1; i++) {
+            const weight = this.#shaftStraighteningWeight(this.freeNodes[i], freeLength);
+            if (weight <= 0.001) continue;
+            const prev = this.freeNodes[i - 1].pos;
+            const next = this.freeNodes[i + 1].pos;
+            const midpoint = prev.clone().add(next).multiplyScalar(0.5);
+            this.freeNodes[i].pos.lerp(midpoint, clamp(FREE_SHAFT_STRAIGHTENING * weight * scale, 0, 1));
+        }
+
+        const spans = [2, 4, 7];
+        for (const span of spans) {
+            if (this.freeNodes.length <= span * 2) continue;
+            for (let i = span; i < this.freeNodes.length - span; i++) {
+                const weight = this.#shaftStraighteningWeight(this.freeNodes[i], freeLength);
+                if (weight <= 0.001) continue;
+                const prev = this.freeNodes[i - span].pos;
+                const next = this.freeNodes[i + span].pos;
+                const midpoint = prev.clone().add(next).multiplyScalar(0.5);
+                const amount = FREE_LONG_SPAN_STRAIGHTENING * weight * scale / Math.sqrt(span);
+                this.freeNodes[i].pos.lerp(midpoint, clamp(amount, 0, 1));
+            }
+        }
+    }
+
+    #limitFreeBends(freeLength) {
+        if (this.freeNodes.length < 3) return;
+        const minDot = Math.cos(FREE_MAX_BEND_ANGLE);
+        const scale = this.#isSoloCatheter() ? SOLO_CATHETER_BEND_LIMIT_SCALE : 1;
+
+        for (let i = 1; i < this.freeNodes.length - 1; i++) {
+            const prev = this.freeNodes[i - 1].pos;
+            const curr = this.freeNodes[i].pos;
+            const next = this.freeNodes[i + 1].pos;
+            const incoming = curr.clone().sub(prev);
+            const outgoing = next.clone().sub(curr);
+            const inLength = incoming.length();
+            const outLength = outgoing.length();
+            if (inLength < 1e-5 || outLength < 1e-5) continue;
+
+            incoming.multiplyScalar(1 / inLength);
+            outgoing.multiplyScalar(1 / outLength);
+            const dot = clamp(incoming.dot(outgoing), -1, 1);
+            if (dot >= minDot) continue;
+
+            const severity = clamp((Math.acos(dot) - FREE_MAX_BEND_ANGLE) / (Math.PI - FREE_MAX_BEND_ANGLE), 0, 1);
+            const straighteningWeight = this.#shaftStraighteningWeight(this.freeNodes[i], freeLength);
+            const strength = FREE_BEND_LIMIT_STRENGTH * scale * severity * (0.28 + straighteningWeight * 0.72);
+            const midpoint = prev.clone().add(next).multiplyScalar(0.5);
+            curr.lerp(midpoint, clamp(strength, 0, 1));
         }
     }
 
@@ -494,6 +679,62 @@ export class PigtailCatheter {
             if (outwardSpeed > 0) node.vel.addScaledVector(normal, -outwardSpeed);
             node.vel.multiplyScalar(1 - FREE_WALL_FRICTION);
         }
+    }
+
+    #collideFreeSegments() {
+        if (this.freeNodes.length < 2) return;
+
+        for (let i = 1; i < this.freeNodes.length; i++) {
+            const prev = this.freeNodes[i - 1];
+            const node = this.freeNodes[i];
+            for (const t of FREE_SEGMENT_COLLISION_SAMPLES) {
+                const sample = prev.pos.clone().lerp(node.pos, t);
+                const projected = this.#projectInsideVesselDetailed(sample);
+                if (!projected.collided) continue;
+
+                const correction = projected.point.sub(sample);
+                const correctionLength = correction.length();
+                if (correctionLength <= 1e-6) continue;
+                if (correctionLength > FREE_SEGMENT_MAX_CORRECTION) {
+                    correction.multiplyScalar(FREE_SEGMENT_MAX_CORRECTION / correctionLength);
+                }
+
+                const prevWeight = i === 1 ? 0 : 1 - t;
+                const nodeWeight = i === 1 ? 1 : t;
+                prev.pos.addScaledVector(correction, FREE_SEGMENT_COLLISION_STRENGTH * prevWeight);
+                node.pos.addScaledVector(correction, FREE_SEGMENT_COLLISION_STRENGTH * nodeWeight);
+                prev.vel.multiplyScalar(1 - FREE_WALL_FRICTION * prevWeight);
+                node.vel.multiplyScalar(1 - FREE_WALL_FRICTION * nodeWeight);
+            }
+        }
+    }
+
+    #freeShapeTarget(distance, frame, freeLength, curlScale = 1) {
+        const target = this.#freeRestPoint(distance, frame, freeLength, curlScale);
+        return this.#projectInsideVesselDetailed(target).point;
+    }
+
+    #shaftStraighteningWeight(node, freeLength) {
+        const baseDistance = this.freeNodes[0]?.distance ?? 0;
+        const relativeDistance = Math.max(0, (node.distance ?? baseDistance) - baseDistance);
+        const shapeStart = Math.max(0, freeLength - this.#distalShapeLength(freeLength));
+        return 1 - smoothstep(Math.max(0, shapeStart - 10), shapeStart + 8, relativeDistance);
+    }
+
+    #distalTipShapeWeight(relativeDistance, freeLength) {
+        const shapeStart = Math.max(0, freeLength - this.#distalShapeLength(freeLength));
+        return smoothstep(shapeStart - 2, shapeStart + 10, relativeDistance);
+    }
+
+    #distalShapeLength(freeLength) {
+        const naturalLength = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_TIP_SHAPE_LENGTH
+            : DISTAL_RELEASE_LENGTH;
+        return Math.min(freeLength, naturalLength);
+    }
+
+    #isSoloCatheter() {
+        return this.guidewireInserted <= MIN_GUIDE_SUPPORT;
     }
 
     #projectInsideVesselDetailed(point) {
@@ -748,7 +989,8 @@ export class PigtailCatheter {
         return prev.pos.clone();
     }
 
-    #applyGuidewireReaction(insertedDistance, guideCorrection) {
+    #applyGuidewireReaction(insertedDistance, guideCorrection, reactionScale = 1) {
+        if (reactionScale <= 0) return;
         if (!this.freeNodes.length || guideCorrection.lengthSq() < 1e-8) return;
         if (insertedDistance <= (this.freeNodes[0].distance ?? 0)) return;
 
@@ -760,7 +1002,7 @@ export class PigtailCatheter {
             if (insertedDistance <= nextDistance + 0.5) {
                 const span = Math.max(1e-6, nextDistance - prevDistance);
                 const t = clamp((insertedDistance - prevDistance) / span, 0, 1);
-                const reaction = guideCorrection.clone().multiplyScalar(-GUIDEWIRE_REACTION_BLEND);
+                const reaction = guideCorrection.clone().multiplyScalar(-GUIDEWIRE_REACTION_BLEND * reactionScale);
                 const prevWeight = i === 1 ? 0 : 1 - t;
                 const nextWeight = i === 1 ? 1 : t;
                 prev.pos.addScaledVector(reaction, prevWeight);
@@ -773,8 +1015,8 @@ export class PigtailCatheter {
         }
 
         const tip = this.freeNodes[this.freeNodes.length - 1];
-        tip.pos.addScaledVector(guideCorrection, -GUIDEWIRE_REACTION_BLEND);
-        tip.vel.addScaledVector(guideCorrection, -0.18);
+        tip.pos.addScaledVector(guideCorrection, -GUIDEWIRE_REACTION_BLEND * reactionScale);
+        tip.vel.addScaledVector(guideCorrection, -0.18 * reactionScale);
     }
 
     #catheterPlaneNormal(tangent, beforeTip, beforePlane) {
@@ -819,5 +1061,11 @@ export class PigtailCatheter {
 
     #nodeInsertedCoordinate(index, tailProgress) {
         return this.segmentLength * index - this.guidewireLength + tailProgress;
+    }
+
+    #normalizeType(type) {
+        return type === CATHETER_TYPE_BERENSTEIN || type === 'bernstein'
+            ? CATHETER_TYPE_BERENSTEIN
+            : CATHETER_TYPE_PIGTAIL;
     }
 }

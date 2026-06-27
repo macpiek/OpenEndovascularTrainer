@@ -87,6 +87,10 @@ export function initUI(options) {
   const catheterWithdrawButton = document.getElementById('catheterWithdraw');
   const catheterRotateLeftButton = document.getElementById('catheterRotateLeft');
   const catheterRotateRightButton = document.getElementById('catheterRotateRight');
+  const catheterTypeSelect = document.getElementById('catheterType');
+  const guidewireTypeSelect = document.getElementById('guidewireType');
+  const catheterTypeStatusEl = document.getElementById('catheterTypeStatus');
+  const guidewireTypeStatusEl = document.getElementById('guidewireTypeStatus');
   const doseDisplayEl = document.getElementById('currentDose');
   const currentKVEl = document.getElementById('currentKV');
   const currentMAEl = document.getElementById('currentMA');
@@ -114,6 +118,46 @@ export function initUI(options) {
   if (voxelRenderToggle) {
     voxelGroup.visible = voxelRenderToggle.checked;
   }
+
+  let insertedLengthCm = 0;
+  let catheterLengthCm = 0;
+  let selectedCatheterType = catheterTypeSelect?.value || 'pigtail';
+  let selectedGuidewireType = guidewireTypeSelect?.value || 'glidewire';
+  const TOOL_SELECTION_UNLOCK_EPSILON_CM = 0.05;
+
+  function updateSelectLock(select, statusEl, locked, insertedCm) {
+    if (select) {
+      select.disabled = locked;
+      select.title = locked ? 'Withdraw to 0 cm before changing selection' : '';
+    }
+    if (statusEl) {
+      statusEl.textContent = locked ? `${insertedCm.toFixed(1)} cm inserted` : 'Ready';
+      statusEl.classList.toggle('locked', locked);
+    }
+  }
+
+  function updateToolSelectionLocks() {
+    updateSelectLock(
+      guidewireTypeSelect,
+      guidewireTypeStatusEl,
+      insertedLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM,
+      insertedLengthCm
+    );
+    updateSelectLock(
+      catheterTypeSelect,
+      catheterTypeStatusEl,
+      catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM,
+      catheterLengthCm
+    );
+  }
+
+  catheterTypeSelect?.addEventListener('change', e => {
+    selectedCatheterType = e.target.value;
+  });
+  guidewireTypeSelect?.addEventListener('change', e => {
+    selectedGuidewireType = e.target.value;
+  });
+  updateToolSelectionLocks();
 
   const controlTabs = Array.from(document.querySelectorAll('[data-control-tab]'));
   const controlPanels = Array.from(document.querySelectorAll('[data-control-panel]'));
@@ -419,13 +463,17 @@ export function initUI(options) {
 
   // Helpers to let simulator update UI
   function updateInsertedLength(cm) {
+    insertedLengthCm = Math.max(0, cm);
     if (insertedLengthEl) insertedLengthEl.textContent = 'Wire ' + cm.toFixed(1) + ' cm';
+    updateToolSelectionLocks();
   }
   function updateCatheterLength(cm) {
+    catheterLengthCm = Math.max(0, cm);
     if (catheterLengthEl) catheterLengthEl.textContent = 'Catheter ' + cm.toFixed(1) + ' cm';
+    updateToolSelectionLocks();
   }
   function updateDose(ml) {
-    if (doseDisplayEl) doseDisplayEl.textContent = ml.toFixed(1) + ' ml';
+    if (doseDisplayEl) doseDisplayEl.textContent = 'Contrast ' + ml.toFixed(1) + ' ml';
   }
   function updateXrayTechnique(kv, ma) {
     if (currentKVEl) currentKVEl.textContent = `${Math.round(kv)} kV`;
@@ -516,6 +564,8 @@ export function initUI(options) {
     getAdvance: () => advance,
     getCatheterAdvance: () => catheterAdvance,
     getCatheterRotation: () => catheterRotation,
+    getSelectedCatheterType: () => selectedCatheterType,
+    getSelectedGuidewireType: () => selectedGuidewireType,
     getFluoroscopy: () => fluoroscopy,
     updateInsertedLength,
     updateCatheterLength,

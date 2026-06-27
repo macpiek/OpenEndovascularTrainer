@@ -821,9 +821,10 @@ function advanceTailInput(advance, dt) {
 }
 
 function updateWireMesh() {
-    const firstVisible = guidewireSolver.firstInsertedNodeIndex();
     let segmentIndex = 0;
-    for (let i = firstVisible; i < wire.nodes.length - 1; i++) {
+    // Keep the full physical guidewire visible, including the external tail
+    // before it enters the introducer sheath.
+    for (let i = 0; i < wire.nodes.length - 1; i++) {
         const a = wire.nodes[i];
         const b = wire.nodes[i + 1];
         wireSegmentAxis.set(b.x - a.x, b.y - a.y, b.z - a.z);
@@ -954,11 +955,21 @@ function stepSimulation() {
         iterations: advance === 0 ? 3 : 4
     });
     const inserted = Math.max(0, tailProgress);
+    pigtailCatheter.setType(ui.getSelectedCatheterType());
     pigtailCatheter.advance(ui.getCatheterAdvance(), fixedDt, inserted);
     pigtailCatheter.rotate(ui.getCatheterRotation(), fixedDt);
     pigtailCatheter.stepPhysics(fixedDt);
-    pigtailCatheter.constrainGuidewire(fixedDt);
     const catheterActive = ui.getCatheterAdvance() !== 0 || ui.getCatheterRotation() !== 0;
+    const guidewireActive = advance !== 0;
+    const guidewireInsideCatheter = pigtailCatheter.progress > 4 && inserted > 0;
+    pigtailCatheter.constrainGuidewire(fixedDt, {
+        reactionScale: guidewireActive && !catheterActive ? 0.08 : 1
+    });
+    if (guidewireActive && !catheterActive && guidewireInsideCatheter) {
+        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 8, forceRelax: true });
+        pigtailCatheter.constrainGuidewire(fixedDt, { reactionScale: 0.04 });
+        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 5, forceRelax: true });
+    }
     if (catheterActive) {
         guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 10, forceRelax: true });
         pigtailCatheter.constrainGuidewire(fixedDt);

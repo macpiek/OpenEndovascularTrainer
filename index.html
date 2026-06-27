@@ -31,7 +31,7 @@
     <div class="control-readout-strip">
         <div class="control-readout" id="insertedLength">Wire 0 cm</div>
         <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
-        <div class="control-readout" id="currentDose">0 ml</div>
+        <div class="control-readout" id="currentDose">Contrast 0 ml</div>
         <div id="xrayTechnique" class="xray-technique">
             <span id="currentKV">72 kV</span>
             <span id="currentMA">3.0 mA</span>
@@ -41,7 +41,7 @@
 <div id="bottom-control-panel" aria-hidden="true"></div>
 <div id="controls">
     <div class="control-tabs" role="tablist" aria-label="Simulator controls">
-        <button class="control-tab active" type="button" data-control-tab="tools" role="tab" aria-selected="true">Tools</button>
+        <button class="control-tab active" type="button" data-control-tab="toolSelection" role="tab" aria-selected="true">Tool selection</button>
         <button class="control-tab" type="button" data-control-tab="wire" role="tab" aria-selected="false">Wire</button>
         <button class="control-tab" type="button" data-control-tab="injection" role="tab" aria-selected="false">Injection</button>
         <button class="control-tab" type="button" data-control-tab="imaging" role="tab" aria-selected="false">Imaging</button>
@@ -49,19 +49,23 @@
     </div>
 
     <div class="control-tab-panels">
-        <div class="control-tab-panel active" data-control-panel="tools" role="tabpanel">
+        <div class="control-tab-panel active" data-control-panel="toolSelection" role="tabpanel">
             <div class="control-section">
-                <div class="section-header"><span class="collapse-triangle">▼</span> Pigtail catheter</div>
-                <div class="section-content">
-                    <div class="tool-button-row">
-                        <button id="catheterWithdraw" title="Withdraw pigtail catheter">Withdraw</button>
-                        <button id="catheterAdvance" title="Advance pigtail catheter">Advance</button>
-                    </div>
-                    <div class="tool-button-row">
-                        <button id="catheterRotateLeft" title="Rotate pigtail catheter counterclockwise">↺ Rotate</button>
-                        <button id="catheterRotateRight" title="Rotate pigtail catheter clockwise">Rotate ↻</button>
-                    </div>
-                    <div class="tool-hint">A/D advance · Q/E rotate</div>
+                <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
+                <div class="section-content tool-selection-grid">
+                    <label class="parameter-label tool-select-label">Catheter
+                        <select id="catheterType">
+                            <option value="pigtail">Pigtail</option>
+                            <option value="berenstein" selected>Berenstein</option>
+                        </select>
+                        <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                    </label>
+                    <label class="parameter-label tool-select-label">Guidewire
+                        <select id="guidewireType">
+                            <option value="glidewire" selected>Glidewire</option>
+                        </select>
+                        <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -253,6 +257,19 @@
 </div>
 
 <div id="carm-preview"></div>
+<aside id="control-help-panel" aria-label="Opis sterowania">
+    <div class="control-help-title">Sterowanie</div>
+    <div class="control-help-grid">
+        <section class="control-help-section">
+            <h2>Prowadnik</h2>
+            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>Cewnik</h2>
+            <p><kbd>D</kbd> wsuń, <kbd>A</kbd> wycofaj, <kbd>Q</kbd>/<kbd>E</kbd> obróć.</p>
+        </section>
+    </div>
+</aside>
 <div id="carm-controls">
     <div class="carm-panel-title">C-arm / table</div>
     <div class="carm-controls-body">
