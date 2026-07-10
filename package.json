@@ -10,7 +10,7 @@
     "video:studio": "remotion studio video/index.ts",
     "video:render": "remotion render video/index.ts EndovascularTrainerAd out/endovascular-trainer-ad.mp4 --codec=h264 --overwrite",
     "video:still": "remotion still video/index.ts EndovascularTrainerAd out/endovascular-trainer-frame.png --frame=210 --overwrite",
-    "test": "node --check src/simulator.js && node --check src/vesselGeometry.js && node --check src/contrastFlowAgent.js && node --check src/aortaModel.js && node --check src/pigtailCatheter.js && node --check src/boneModel.js && node --check src/carmControls.js && node --check src/ui/ui.js && node --check src/ui/carmModel.js && node --check src/ui/carmPreview.js && node --check src/ui/operatingTable.js && node --check src/ui/patientMonitor.js && node --check src/physics/elasticRod.js && node --check src/physics/guidewireSolver.js && node tests/elasticRod.test.js && node tests/aortaPreprocess.test.js && node tests/guidewireSolver.test.js"
+    "test": "node --check src/simulator.js && node --check src/vesselGeometry.js && node --check src/vesselBroadPhase.js && node --check src/stlCenterline.js && node --check src/contrastFlowAgent.js && node --check src/aortaModel.js && node --check src/pigtailCatheter.js && node --check src/boneModel.js && node --check src/carmControls.js && node --check src/ui/ui.js && node --check src/ui/carmModel.js && node --check src/ui/carmPreview.js && node --check src/ui/operatingTable.js && node --check src/ui/patientMonitor.js && node --check src/physics/elasticRod.js && node --check src/physics/guidewireSolver.js && node tests/elasticRod.test.js && node tests/aortaPreprocess.test.js && node tests/guidewireSolver.test.js"
   },
   "keywords": [],
   "author": "",

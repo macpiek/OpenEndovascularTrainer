@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { preprocessAortaGeometry } from './aortaPreprocess.js?v=20260616stlpreprocess6';
+import { buildStlSliceCenterline } from './stlCenterline.js';
+import { createCenterlineCapsuleBroadPhase } from './vesselBroadPhase.js';
 import { GUIDEWIRE_RADIUS_MM } from './toolDimensions.js';
 
 const AORTA_MODEL_URL = 'res/Aorta_plain.stl';
@@ -63,6 +65,20 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
                     targetLength: target.length
                 }
             });
+            const stlCenterline = buildStlSliceCenterline(geometry, {
+                lumenField: preprocessing.lumenField
+            });
+            preprocessing.centerlineSliceDebugSegments = stlCenterline.debugSegments;
+            preprocessing.centerlineExtraction = stlCenterline.diagnostics;
+            preprocessing.lumenCastGeometry = stlCenterline.lumenCast?.geometry || null;
+            preprocessing.lumenCast = stlCenterline.lumenCast?.diagnostics || null;
+            const centerlineBroadPhase = createCenterlineCapsuleBroadPhase({
+                vessel,
+                centerlineSegments: stlCenterline.segments,
+                lumenSlices: preprocessing.lumenSlices,
+                lumenField: preprocessing.lumenField,
+                includeSheath: false
+            });
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.renderOrder = 0;
@@ -71,8 +87,10 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
             const collision = {
                 geometry,
                 meshCollider: createMeshLumenCollider(geometry, {
-                    lumenField: preprocessing.lumenField
+                    lumenField: preprocessing.lumenField,
+                    broadPhase: centerlineBroadPhase
                 }),
+                centerlineBroadPhase,
                 clearance: 0.6,
                 guidewireClearance: GUIDEWIRE_RADIUS_MM,
                 guidewireSegmentClearance: 0.12,
@@ -96,7 +114,7 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
     return { group, material };
 }
 
-export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
+export function createMeshLumenCollider(geometry, { lumenField = null, broadPhase = null } = {}) {
     const setPoint = (target, x, y, z) => {
         if (typeof target?.set === 'function') target.set(x, y, z);
         else {
@@ -209,6 +227,7 @@ export function createMeshLumenCollider(geometry, { lumenField = null } = {}) {
     return {
         geometry,
         lumenField,
+        broadPhase,
         containsPoint: input => !pointContact(input, 0).violation,
         pointContact,
         crossingContact,

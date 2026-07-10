@@ -8,12 +8,14 @@ import { createBoneModel } from './boneModel.js?v=20260618loading1';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
 import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
 import { createAortaModel } from './aortaModel.js?v=20260616aortacollider2';
+import { createBroadPhaseDebugGroup } from './vesselBroadPhase.js';
 import { GUIDEWIRE_RADIUS_MM, GUIDEWIRE_RENDER_RADIUS_MM } from './toolDimensions.js';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260623imagingdefaults1';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
+const STL_MODEL_DEBUG_COLOR = 0x4f8dff;
 const STL_INTERIOR_SAMPLE_COLOR = 0x69ff8e;
 const STL_BOUNDARY_EDGE_COLOR = 0xff9b3d;
 const STL_LUMEN_CONTOUR_COLOR = 0xa7ff5c;
@@ -350,17 +352,24 @@ function createSheathFluoroMesh(sheath) {
     return mesh;
 }
 
-function createExactLumenDebugMesh(geometry) {
+function createExactLumenDebugMesh(geometry, {
+    debugLayer = null,
+    color = LUMEN_DEBUG_COLOR,
+    opacity = 0.24,
+    renderOrder = 3,
+    depthTest = true
+} = {}) {
     const material = new THREE.MeshBasicMaterial({
-        color: LUMEN_DEBUG_COLOR,
+        color,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.24,
+        opacity,
         depthWrite: false,
-        depthTest: true
+        depthTest
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.renderOrder = 3;
+    mesh.renderOrder = renderOrder;
+    if (debugLayer) mesh.userData.debugLayer = debugLayer;
     return mesh;
 }
 
@@ -440,6 +449,20 @@ scene.add(sheathFluoroMesh);
 const lumenDebugGroup = new THREE.Group();
 lumenDebugGroup.visible = false;
 vesselGroup.add(lumenDebugGroup);
+const debugLayerVisibility = {
+    stlModel: true,
+    lumenCast: false,
+    sections: false,
+    centerline: true,
+    capsules: false
+};
+function applyDebugLayerVisibility() {
+    lumenDebugGroup.traverse(object => {
+        const layer = object.userData?.debugLayer;
+        if (!layer || !(layer in debugLayerVisibility)) return;
+        object.visible = !!debugLayerVisibility[layer];
+    });
+}
 setLoadingMessage('Loading anatomy models');
 createAortaModel(vessel, {
     onLoaded: ({ collision }) => {
@@ -448,9 +471,25 @@ createAortaModel(vessel, {
             segments: [vessel.sheath]
         };
         lumenDebugGroup.clear();
-        lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry));
+        lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry, {
+            debugLayer: 'stlModel',
+            color: STL_MODEL_DEBUG_COLOR,
+            opacity: 0.18,
+            renderOrder: 2.8
+        }));
+        if (collision.preprocessing?.lumenCastGeometry) {
+            lumenDebugGroup.add(createExactLumenDebugMesh(collision.preprocessing.lumenCastGeometry, {
+                debugLayer: 'lumenCast',
+                color: LUMEN_DEBUG_COLOR,
+                opacity: 0.28,
+                renderOrder: 9.15,
+                depthTest: false
+            }));
+        }
         lumenDebugGroup.add(createStlPreprocessDebug(collision.preprocessing));
+        lumenDebugGroup.add(createBroadPhaseDebugGroup(collision.centerlineBroadPhase));
         lumenDebugGroup.add(createSheathEntryDebugMarker(collision, vessel.sheath));
+        applyDebugLayerVisibility();
         guidewireSolver?.requestSettle?.(90);
         pigtailCatheter?.setCollisionGeometry(collision);
         completeLoadingMilestone(
@@ -525,14 +564,19 @@ function createStlPreprocessDebug(preprocessing) {
         );
         boundaryLines.frustumCulled = false;
         boundaryLines.renderOrder = 9;
+        boundaryLines.userData.debugLayer = 'sections';
         group.add(boundaryLines);
     }
 
-    if (preprocessing.lumenContourDebugSegments?.length) {
+    const contourDebugSegments = preprocessing.centerlineSliceDebugSegments?.length
+        ? preprocessing.centerlineSliceDebugSegments
+        : preprocessing.lumenContourDebugSegments;
+
+    if (contourDebugSegments?.length) {
         const contourGeometry = new THREE.BufferGeometry();
         contourGeometry.setAttribute(
             'position',
-            new THREE.BufferAttribute(preprocessing.lumenContourDebugSegments, 3)
+            new THREE.BufferAttribute(contourDebugSegments, 3)
         );
         const contourLines = new THREE.LineSegments(
             contourGeometry,
@@ -547,6 +591,7 @@ function createStlPreprocessDebug(preprocessing) {
         );
         contourLines.frustumCulled = false;
         contourLines.renderOrder = 8.5;
+        contourLines.userData.debugLayer = 'sections';
         group.add(contourLines);
     }
 
@@ -576,6 +621,7 @@ function createStlPreprocessDebug(preprocessing) {
         samples.frustumCulled = false;
         samples.instanceMatrix.needsUpdate = true;
         samples.renderOrder = 8;
+        samples.userData.debugLayer = 'sections';
         group.add(samples);
     }
 
@@ -719,6 +765,10 @@ const ui = initUI({
         if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
         skeletonModel.visible = fluoroscopy;
         displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
+    },
+    onDebugLayerChange: layers => {
+        Object.assign(debugLayerVisibility, layers);
+        applyDebugLayerVisibility();
     },
 });
 const { monitor } = ui;

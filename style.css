@@ -1192,6 +1192,13 @@ canvas {
     background: rgba(255, 255, 255, 0.08);
 }
 
+.debug-layer-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0;
+}
+
 .tool-diameters {
     display: grid;
     gap: 4px;

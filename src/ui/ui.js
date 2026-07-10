@@ -26,6 +26,7 @@ export function initUI(options) {
     onStartInjection,
     onStopInjection,
     onModeChange,
+    onDebugLayerChange,
   } = options;
 
   // Patient monitor
@@ -64,6 +65,11 @@ export function initUI(options) {
   const smoothIterSlider = document.getElementById('smoothIterations');
   const modeToggle = document.getElementById('modeToggle');
   const voxelRenderToggle = document.getElementById('renderVoxels');
+  const debugStlModelToggle = document.getElementById('showDebugStlModel');
+  const debugLumenCastToggle = document.getElementById('showDebugLumenCast');
+  const debugSectionsToggle = document.getElementById('showDebugSections');
+  const debugCenterlineToggle = document.getElementById('showDebugCenterline');
+  const debugCapsulesToggle = document.getElementById('showDebugCapsules');
   const injectButton = document.getElementById('injectContrast');
   const stopInjectButton = document.getElementById('stopInjection');
   const injRateSlider = document.getElementById('injRate');
@@ -118,6 +124,41 @@ export function initUI(options) {
   if (voxelRenderToggle) {
     voxelGroup.visible = voxelRenderToggle.checked;
   }
+  const debugLayerState = {
+    stlModel: debugStlModelToggle?.checked ?? true,
+    lumenCast: debugLumenCastToggle?.checked ?? false,
+    sections: debugSectionsToggle?.checked ?? false,
+    centerline: debugCenterlineToggle?.checked ?? true,
+    capsules: debugCapsulesToggle?.checked ?? false
+  };
+
+  function emitDebugLayerChange() {
+    if (typeof onDebugLayerChange === 'function') {
+      onDebugLayerChange({ ...debugLayerState });
+    }
+  }
+
+  debugStlModelToggle?.addEventListener('change', e => {
+    debugLayerState.stlModel = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugLumenCastToggle?.addEventListener('change', e => {
+    debugLayerState.lumenCast = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugSectionsToggle?.addEventListener('change', e => {
+    debugLayerState.sections = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugCenterlineToggle?.addEventListener('change', e => {
+    debugLayerState.centerline = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugCapsulesToggle?.addEventListener('change', e => {
+    debugLayerState.capsules = e.target.checked;
+    emitDebugLayerChange();
+  });
+  emitDebugLayerChange();
 
   let insertedLengthCm = 0;
   let catheterLengthCm = 0;
@@ -567,6 +608,7 @@ export function initUI(options) {
     getSelectedCatheterType: () => selectedCatheterType,
     getSelectedGuidewireType: () => selectedGuidewireType,
     getFluoroscopy: () => fluoroscopy,
+    getDebugLayerState: () => ({ ...debugLayerState }),
     updateInsertedLength,
     updateCatheterLength,
     updateDose,
