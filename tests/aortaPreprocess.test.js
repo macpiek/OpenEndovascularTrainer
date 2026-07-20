@@ -102,6 +102,23 @@ console.log('aorta centerline centering max offset', stlCenterline.diagnostics.c
 console.log('aorta centerline centering avg normalized', stlCenterline.diagnostics.centerlineCenteringAverageNormalizedOffset);
 console.log('aorta centerline centering max normalized', stlCenterline.diagnostics.centerlineCenteringMaxNormalizedOffset);
 console.log('aorta centerline outlier relaxed nodes', stlCenterline.diagnostics.centerlineOutlierRelaxedNodeCount);
+console.log('aorta centerline coverage', JSON.stringify(stlCenterline.diagnostics.centerlineCoverage));
+console.log('aorta centerline primary rescue', JSON.stringify({
+    candidates: stlCenterline.diagnostics.primaryAxisRescueCandidateComponentCount,
+    attempted: stlCenterline.diagnostics.primaryAxisRescueAttemptedComponentCount,
+    rescued: stlCenterline.diagnostics.primaryAxisRescuedComponentCount,
+    failures: stlCenterline.diagnostics.primaryAxisRescueFailures
+}));
+console.log('aorta centerline invalid segments', {
+    before: stlCenterline.diagnostics.centerlineInvalidSegmentCountBeforeReroute,
+    after: stlCenterline.diagnostics.centerlineInvalidSegmentCountAfterReroute,
+    final: stlCenterline.diagnostics.centerlineInvalidSegmentCountFinal
+});
+console.log('aorta centerline topology', {
+    before: stlCenterline.diagnostics.centerlineTopologyBeforeCleanup,
+    after: stlCenterline.diagnostics.centerlineTopologyAfterCleanup
+});
+console.log('aorta centerline timings', stlCenterline.diagnostics.timings);
 assert.ok(centerlineBroadPhase.segments.length > 240, 'centerline broad phase should cover distal branches');
 assert.equal(centerlineBroadPhase.diagnostics.uncoveredNodeCount, 0, 'all lumen contours should have a centerline segment or stub');
 assert.equal(centerlineBroadPhase.diagnostics.source, 'lumen-cast-centerline', 'centerline should come from the lumen cast pipeline');

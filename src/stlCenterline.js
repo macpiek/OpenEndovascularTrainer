@@ -35,12 +35,14 @@ const CENTERLINE_OUTLIER_REROUTE_MIN_SPAN = 8;
 const CENTERLINE_OUTLIER_REROUTE_MAX_SPAN = 92;
 const CENTERLINE_OUTLIER_ENABLE_VIA_CENTER_REROUTE = true;
 const CENTERLINE_OUTLIER_USE_CHAIN_ROUTE_BOUNDS = true;
-const CENTERLINE_OUTLIER_CHAIN_PATCH_PASSES = 2;
+const CENTERLINE_OUTLIER_CHAIN_PATCH_PASSES = 6;
 const CENTERLINE_OUTLIER_CHAIN_PATCH_MAX_CANDIDATES = 12;
 const CENTERLINE_OUTLIER_CHAIN_PATCH_SIDE_STEPS = 5;
-const CENTERLINE_OUTLIER_CHAIN_PATCH_MIN_NORMALIZED = 0.5;
+const CENTERLINE_OUTLIER_CHAIN_PATCH_MIN_NORMALIZED = 0.32;
 const CENTERLINE_OUTLIER_CHAIN_PATCH_MEASURED = true;
-const CENTERLINE_OUTLIER_LATE_CHAIN_PATCH_PASSES = 1;
+const CENTERLINE_OUTLIER_LATE_CHAIN_PATCH_PASSES = 8;
+const CENTERLINE_FINAL_CHAIN_PATCH_PASSES = 32;
+const CENTERLINE_FINAL_REROUTE_PASSES = 6;
 const CENTERLINE_OUTLIER_RECONNECT_PASSES = 1;
 const CENTERLINE_OUTLIER_REFERENCE_FIELD_PASSES = 1;
 const CENTERLINE_OUTLIER_REFERENCE_RECONNECT_PASSES = 1;
@@ -52,6 +54,9 @@ const CENTERLINE_OUTLIER_RECONNECT_MIN_NORMALIZED = 0.55;
 const CENTERLINE_OUTLIER_RELAX_MAX_CANDIDATES = 32;
 const CENTERLINE_OUTLIER_RELAX_MIN_OFFSET = 1.25;
 const CENTERLINE_OUTLIER_RELAX_MIN_NORMALIZED = 0.55;
+const CENTERLINE_BACKTRACK_MIN_DEFLECTION_DEG = 90;
+const CENTERLINE_BACKTRACK_MAX_PASSES = 10;
+const CENTERLINE_INVALID_REROUTE_MAX_CHAINS = 64;
 const OBLIQUE_ARTIFACT_MIN_RADIUS = 9;
 const OBLIQUE_ARTIFACT_MIN_ALIGNMENT = 0.18;
 const TREE_COVER_MARGIN = 1.5;
@@ -229,8 +234,33 @@ function branchRouteEdgeValid(a, b, lumenField, wallBvh, connectorLumenClearance
     return segmentStaysInsideLumen(segment, lumenField, connectorLumenClearance);
 }
 
-function branchRouteEdgeWeight(a, b, lumenField, wallBvh, connectorLumenClearance) {
+function branchRouteEdgeWeight(
+    a,
+    b,
+    lumenField,
+    wallBvh,
+    connectorLumenClearance,
+    validateEdge = false,
+    allowWallWhenInside = false
+) {
     const distance = a.point.distanceTo(b.point);
+    if (validateEdge) {
+        const edge = { start: a.point, end: b.point };
+        const inside = segmentStaysInsideLumen(
+            edge,
+            lumenField,
+            connectorLumenClearance
+        );
+        if (!inside) return Infinity;
+        if (segmentIntersectsWall(edge, wallBvh)) {
+            const certifiedInside = allowWallWhenInside && segmentStaysInsideLumen(
+                edge,
+                lumenField,
+                Math.max(0.12, connectorLumenClearance + 0.18)
+            );
+            if (!certifiedInside) return Infinity;
+        }
+    }
     const clearance = Math.max(
         0.25,
         Math.min(
@@ -261,9 +291,18 @@ function buildBranchRouteNodes(origin, lumenField, connectorLumenClearance) {
     const maxCells = Number.isFinite(origin.routeMaxCells) && origin.routeMaxCells > 0
         ? origin.routeMaxCells
         : BRANCH_ROUTE_MAX_CELLS;
+    const minimumPadding = Number.isFinite(origin.routeMinimumPadding)
+        ? Math.max(0.5, origin.routeMinimumPadding)
+        : BRANCH_ROUTE_PADDING;
+    const radiusPaddingScale = Number.isFinite(origin.routeRadiusPaddingScale)
+        ? Math.max(0, origin.routeRadiusPaddingScale)
+        : 0.75;
+    const radiusPaddingBase = Number.isFinite(origin.routeRadiusPaddingBase)
+        ? Math.max(0, origin.routeRadiusPaddingBase)
+        : 2;
     const padding = Math.max(
-        BRANCH_ROUTE_PADDING,
-        Math.min(22, maxRadius * 0.75 + 2),
+        minimumPadding,
+        Math.min(22, maxRadius * radiusPaddingScale + radiusPaddingBase),
         Number.isFinite(origin.routePadding) ? origin.routePadding : 0
     );
     const boundsPoints = [origin.start, origin.end];
@@ -757,7 +796,12 @@ function makeRelaxedGridRoute(route, lumenField, connectorLumenClearance) {
 
 function findBranchRoute(origin, lumenField, wallBvh, connectorLumenClearance) {
     if (!lumenField?.query) return null;
-    if (origin.start.distanceTo(origin.end) < BRANCH_ROUTE_MIN_LENGTH) return null;
+    if (
+        !origin.forceGridRoute &&
+        origin.start.distanceTo(origin.end) < BRANCH_ROUTE_MIN_LENGTH
+    ) {
+        return null;
+    }
     const route = buildBranchRouteNodes(origin, lumenField, connectorLumenClearance);
     if (route.nodes.length < 4) return null;
 
@@ -766,6 +810,7 @@ function findBranchRoute(origin, lumenField, wallBvh, connectorLumenClearance) {
     const previous = new Int32Array(route.nodes.length);
     previous.fill(-1);
     const heap = new MinHeap();
+    const edgeWeightCache = origin.validateRouteEdges ? new Map() : null;
     distances[0] = 0;
     heap.push({ node: route.nodes[0], cost: 0 });
 
@@ -774,7 +819,24 @@ function findBranchRoute(origin, lumenField, wallBvh, connectorLumenClearance) {
         if (!item || item.cost !== distances[item.node.id]) continue;
         if (item.node.id === 1) break;
         for (const neighbour of branchRouteNeighbours(item.node, route)) {
-            const weight = branchRouteEdgeWeight(item.node, neighbour, lumenField, wallBvh, connectorLumenClearance);
+            const edgeKey = edgeWeightCache
+                ? item.node.id < neighbour.id
+                    ? `${item.node.id}:${neighbour.id}`
+                    : `${neighbour.id}:${item.node.id}`
+                : null;
+            let weight = edgeKey ? edgeWeightCache.get(edgeKey) : undefined;
+            if (weight === undefined) {
+                weight = branchRouteEdgeWeight(
+                    item.node,
+                    neighbour,
+                    lumenField,
+                    wallBvh,
+                    connectorLumenClearance,
+                    Boolean(origin.validateRouteEdges),
+                    Boolean(origin.allowWallWhenInside)
+                );
+                if (edgeKey) edgeWeightCache.set(edgeKey, weight);
+            }
             if (!Number.isFinite(weight)) continue;
             const nextCost = item.cost + weight;
             if (nextCost >= distances[neighbour.id]) continue;
@@ -1095,7 +1157,7 @@ function segmentSetValidityFailureReason(
 
 function bestValidatedRouteForOrigin(origin, lumenField, wallBvh, connectorLumenClearance, lumenGeometry) {
     const directLength = origin.start.distanceTo(origin.end);
-    if (directLength < BRANCH_ROUTE_MIN_LENGTH) {
+    if (directLength < BRANCH_ROUTE_MIN_LENGTH || origin.allowLongDirectRoute) {
         const directSegment = {
             ...origin,
             source: origin.routeSegmentSource || origin.source || 'stl-slice-local-reroute',
@@ -1444,14 +1506,741 @@ function replaceCenterlineSegmentSet(segments, removeSet, replacements) {
     return true;
 }
 
+function replaceCenterlineSegmentSetPreservingComponents(segments, removeSet, replacements) {
+    const previousSegments = segments.slice();
+    const previousComponentCount = segmentComponents(segments).length;
+    if (!replaceCenterlineSegmentSet(segments, removeSet, replacements)) return false;
+    if (segmentComponents(segments).length <= previousComponentCount) return true;
+    segments.length = 0;
+    segments.push(...previousSegments);
+    return false;
+}
+
+function oppositeEndpointInfo(incidentEntry, endpointKeys) {
+    const { segment, endpoint } = incidentEntry;
+    const keys = segmentEndpointKeys(segment, endpointKeys);
+    if (endpoint === 'start') {
+        return {
+            key: keys.end,
+            point: segment.end,
+            nodeId: segment.nodeEndId,
+            radius: segment.radiusEnd
+        };
+    }
+    return {
+        key: keys.start,
+        point: segment.start,
+        nodeId: segment.nodeStartId,
+        radius: segment.radiusStart
+    };
+}
+
+function centerlineNodeDeflectionDegrees(key, incident, incidence, endpointKeys) {
+    if (!incident || incident.length !== 2) return 0;
+    const center = currentNodePointFromIncidence(key, incidence);
+    if (!center) return 0;
+    const first = oppositeEndpointInfo(incident[0], endpointKeys);
+    const second = oppositeEndpointInfo(incident[1], endpointKeys);
+    const firstDirection = new THREE.Vector3().subVectors(first.point, center);
+    const secondDirection = new THREE.Vector3().subVectors(second.point, center);
+    if (firstDirection.lengthSq() < 1e-8 || secondDirection.lengthSq() < 1e-8) return 0;
+    firstDirection.normalize();
+    secondDirection.normalize();
+    const angle = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(
+        firstDirection.dot(secondDirection),
+        -1,
+        1
+    )));
+    return 180 - angle;
+}
+
+function measureCenterlineTopology(segments) {
+    const incidence = collectNodeIncidence(segments);
+    const endpointKeys = collectSegmentEndpointKeyMap(incidence);
+    let leafNodeCount = 0;
+    let branchNodeCount = 0;
+    let degreeTwoNodeCount = 0;
+    let sharpTurnNodeCount = 0;
+    let severeBacktrackNodeCount = 0;
+    let maxDeflectionDegrees = 0;
+    for (const [key, incident] of incidence.entries()) {
+        if (incident.length === 1) leafNodeCount++;
+        else if (incident.length > 2) branchNodeCount++;
+        if (incident.length !== 2) continue;
+        degreeTwoNodeCount++;
+        const deflection = centerlineNodeDeflectionDegrees(key, incident, incidence, endpointKeys);
+        maxDeflectionDegrees = Math.max(maxDeflectionDegrees, deflection);
+        if (deflection > 45) sharpTurnNodeCount++;
+        if (deflection >= CENTERLINE_BACKTRACK_MIN_DEFLECTION_DEG) severeBacktrackNodeCount++;
+    }
+    return {
+        nodeCount: incidence.size,
+        leafNodeCount,
+        branchNodeCount,
+        degreeTwoNodeCount,
+        sharpTurnNodeCount,
+        severeBacktrackNodeCount,
+        maxDeflectionDegrees
+    };
+}
+
+function measureCenterlineSampleCoverage(samples, segments, cellSize = 10) {
+    if (!samples.length || !segments.length) {
+        return {
+            sampleCount: samples.length,
+            coveredSampleCount: 0,
+            uncoveredSampleCount: samples.length,
+            averageDistance: Infinity,
+            maxDistance: Infinity,
+            averageNormalizedDistance: Infinity,
+            maxNormalizedDistance: Infinity,
+            worstSamples: []
+        };
+    }
+
+    const grid = new Map();
+    const keyFor = (ix, iy, iz) => `${ix},${iy},${iz}`;
+    const cellFor = value => Math.floor(value / cellSize);
+    for (const segment of segments) {
+        const minX = cellFor(Math.min(segment.start.x, segment.end.x));
+        const minY = cellFor(Math.min(segment.start.y, segment.end.y));
+        const minZ = cellFor(Math.min(segment.start.z, segment.end.z));
+        const maxX = cellFor(Math.max(segment.start.x, segment.end.x));
+        const maxY = cellFor(Math.max(segment.start.y, segment.end.y));
+        const maxZ = cellFor(Math.max(segment.start.z, segment.end.z));
+        for (let ix = minX; ix <= maxX; ix++) {
+            for (let iy = minY; iy <= maxY; iy++) {
+                for (let iz = minZ; iz <= maxZ; iz++) {
+                    const key = keyFor(ix, iy, iz);
+                    let bucket = grid.get(key);
+                    if (!bucket) {
+                        bucket = [];
+                        grid.set(key, bucket);
+                    }
+                    bucket.push(segment);
+                }
+            }
+        }
+    }
+
+    let coveredSampleCount = 0;
+    let distanceSum = 0;
+    let normalizedDistanceSum = 0;
+    let maxDistance = 0;
+    let maxNormalizedDistance = 0;
+    const worstSamples = [];
+    for (const sample of samples) {
+        const radius = Math.max(0.5, finiteRadius(sample.radius));
+        const coverageDistance = Math.max(1.6, radius * 0.72);
+        const searchCellRadius = Math.max(1, Math.ceil(coverageDistance / cellSize) + 1);
+        const cx = cellFor(sample.point.x);
+        const cy = cellFor(sample.point.y);
+        const cz = cellFor(sample.point.z);
+        const candidates = new Set();
+        for (let dx = -searchCellRadius; dx <= searchCellRadius; dx++) {
+            for (let dy = -searchCellRadius; dy <= searchCellRadius; dy++) {
+                for (let dz = -searchCellRadius; dz <= searchCellRadius; dz++) {
+                    for (const segment of grid.get(keyFor(cx + dx, cy + dy, cz + dz)) || []) {
+                        candidates.add(segment);
+                    }
+                }
+            }
+        }
+        let distance = Infinity;
+        const distanceCandidates = candidates.size ? candidates : segments;
+        for (const segment of distanceCandidates) {
+            distance = Math.min(distance, pointCenterlineSegmentDistance(sample.point, segment));
+        }
+        const normalizedDistance = distance / radius;
+        if (distance <= coverageDistance) coveredSampleCount++;
+        distanceSum += distance;
+        normalizedDistanceSum += normalizedDistance;
+        maxDistance = Math.max(maxDistance, distance);
+        maxNormalizedDistance = Math.max(maxNormalizedDistance, normalizedDistance);
+        const entry = {
+            axis: sample.axis,
+            radius,
+            distance,
+            normalizedDistance,
+            point: {
+                x: sample.point.x,
+                y: sample.point.y,
+                z: sample.point.z
+            }
+        };
+        worstSamples.push(entry);
+        worstSamples.sort((a, b) => b.normalizedDistance - a.normalizedDistance);
+        if (worstSamples.length > 16) worstSamples.pop();
+    }
+
+    return {
+        sampleCount: samples.length,
+        coveredSampleCount,
+        uncoveredSampleCount: samples.length - coveredSampleCount,
+        averageDistance: distanceSum / samples.length,
+        maxDistance,
+        averageNormalizedDistance: normalizedDistanceSum / samples.length,
+        maxNormalizedDistance,
+        worstSamples
+    };
+}
+
+function simplifyCenterlineBacktracks(
+    segments,
+    lumenField,
+    wallBvh,
+    connectorLumenClearance,
+    {
+        minDeflectionDegrees = CENTERLINE_BACKTRACK_MIN_DEFLECTION_DEG,
+        maxPasses = CENTERLINE_BACKTRACK_MAX_PASSES
+    } = {}
+) {
+    let collapsedNodeCount = 0;
+    let removedSegmentCount = 0;
+    let insertedSegmentCount = 0;
+    let rejectedNodeCount = 0;
+    let pathLengthReduction = 0;
+    let passCount = 0;
+
+    for (let pass = 0; pass < maxPasses; pass++) {
+        const incidence = collectNodeIncidence(segments);
+        const endpointKeys = collectSegmentEndpointKeyMap(incidence);
+        const candidates = [];
+        for (const [key, incident] of incidence.entries()) {
+            if (incident.length !== 2 || incident[0].segment === incident[1].segment) continue;
+            const deflection = centerlineNodeDeflectionDegrees(key, incident, incidence, endpointKeys);
+            if (deflection < minDeflectionDegrees) continue;
+            candidates.push({ key, incident, deflection });
+        }
+        candidates.sort((a, b) => b.deflection - a.deflection);
+        if (!candidates.length) break;
+
+        const usedSegments = new Set();
+        let collapsedThisPass = 0;
+        for (const candidate of candidates) {
+            const [firstEntry, secondEntry] = candidate.incident;
+            if (usedSegments.has(firstEntry.segment) || usedSegments.has(secondEntry.segment)) continue;
+            if (!segments.includes(firstEntry.segment) || !segments.includes(secondEntry.segment)) continue;
+            const first = oppositeEndpointInfo(firstEntry, endpointKeys);
+            const second = oppositeEndpointInfo(secondEntry, endpointKeys);
+            if (!first.key || !second.key || first.key === second.key) {
+                rejectedNodeCount++;
+                continue;
+            }
+            const firstLength = firstEntry.segment.start.distanceTo(firstEntry.segment.end);
+            const secondLength = secondEntry.segment.start.distanceTo(secondEntry.segment.end);
+            const replacementLength = first.point.distanceTo(second.point);
+            const originalLength = firstLength + secondLength;
+            if (
+                replacementLength < 1e-4 ||
+                replacementLength >= originalLength * 0.94
+            ) {
+                rejectedNodeCount++;
+                continue;
+            }
+
+            const replacement = {
+                ...firstEntry.segment,
+                start: first.point.clone(),
+                end: second.point.clone(),
+                nodeStartId: first.nodeId,
+                nodeEndId: second.nodeId,
+                radiusStart: first.radius,
+                radiusEnd: second.radius,
+                source: firstEntry.segment.source === secondEntry.segment.source
+                    ? firstEntry.segment.source
+                    : 'stl-slice-centerline-simplified',
+                centerlineBacktrackCollapsed: true
+            };
+            const failureReason = segmentValidityFailureReason(
+                replacement,
+                wallBvh,
+                lumenField,
+                connectorLumenClearance
+            );
+            if (failureReason) {
+                rejectedNodeCount++;
+                continue;
+            }
+            if (!replaceCenterlineSegmentSetPreservingComponents(
+                segments,
+                new Set([firstEntry.segment, secondEntry.segment]),
+                [replacement]
+            )) {
+                rejectedNodeCount++;
+                continue;
+            }
+            usedSegments.add(firstEntry.segment);
+            usedSegments.add(secondEntry.segment);
+            collapsedNodeCount++;
+            removedSegmentCount += 2;
+            insertedSegmentCount++;
+            pathLengthReduction += originalLength - replacementLength;
+            collapsedThisPass++;
+        }
+        if (!collapsedThisPass) break;
+        passCount++;
+    }
+
+    return {
+        passCount,
+        collapsedNodeCount,
+        removedSegmentCount,
+        insertedSegmentCount,
+        rejectedNodeCount,
+        pathLengthReduction
+    };
+}
+
+function invalidCenterlineSegments(
+    segments,
+    lumenField,
+    wallBvh,
+    connectorLumenClearance
+) {
+    return segments.filter(segment => segmentValidityFailureReason(
+        segment,
+        wallBvh,
+        lumenField,
+        connectorLumenClearance,
+        { allowWallWhenInside: Boolean(segment.allowWallWhenInside) }
+    ));
+}
+
+function connectedInvalidSegmentComponents(invalidSegments, incidence, endpointKeys) {
+    const pending = new Set(invalidSegments);
+    const components = [];
+    while (pending.size) {
+        const seed = pending.values().next().value;
+        pending.delete(seed);
+        const component = [];
+        const stack = [seed];
+        while (stack.length) {
+            const segment = stack.pop();
+            component.push(segment);
+            const keys = segmentEndpointKeys(segment, endpointKeys);
+            for (const key of [keys.start, keys.end]) {
+                for (const { segment: neighbour } of incidence.get(key) || []) {
+                    if (!pending.has(neighbour)) continue;
+                    pending.delete(neighbour);
+                    stack.push(neighbour);
+                }
+            }
+        }
+        components.push(component);
+    }
+    return components.sort((a, b) => b.length - a.length);
+}
+
+function invalidComponentEndpointKeys(component, incidence, endpointKeys) {
+    const componentSet = new Set(component);
+    const endpointKeysFound = new Set();
+    for (const segment of component) {
+        const keys = segmentEndpointKeys(segment, endpointKeys);
+        for (const key of [keys.start, keys.end]) {
+            const invalidDegree = (incidence.get(key) || [])
+                .filter(entry => componentSet.has(entry.segment))
+                .length;
+            if (invalidDegree === 1) endpointKeysFound.add(key);
+        }
+    }
+    return [...endpointKeysFound];
+}
+
+function expandInvalidComponentEndpoint(
+    startKey,
+    removalSet,
+    incidence,
+    endpointKeys,
+    lumenField,
+    maxSteps = 3
+) {
+    let key = startKey;
+    for (let step = 0; step < maxSteps; step++) {
+        const outward = (incidence.get(key) || [])
+            .filter(entry => !removalSet.has(entry.segment));
+        if (outward.length !== 1) break;
+        const nextKey = otherSegmentEndpointKey(outward[0].segment, key, endpointKeys);
+        if (!nextKey || nextKey === key) break;
+        removalSet.add(outward[0].segment);
+        key = nextKey;
+    }
+    return nodeInfoForEndpointKey(key, incidence, lumenField);
+}
+
+function findInvalidComponentMedialHub(removalSet, lumenField) {
+    const bounds = new THREE.Box3();
+    const centroid = new THREE.Vector3();
+    let pointCount = 0;
+    for (const segment of removalSet) {
+        bounds.expandByPoint(segment.start);
+        bounds.expandByPoint(segment.end);
+        centroid.add(segment.start).add(segment.end);
+        pointCount += 2;
+    }
+    if (!pointCount || bounds.isEmpty()) return null;
+    centroid.multiplyScalar(1 / pointCount);
+    bounds.expandByScalar(4);
+    const size = bounds.getSize(new THREE.Vector3());
+    const spacing = Math.max(1.1, Math.min(1.8, Math.max(size.x, size.y, size.z) / 12));
+    const nx = Math.max(2, Math.ceil(size.x / spacing));
+    const ny = Math.max(2, Math.ceil(size.y / spacing));
+    const nz = Math.max(2, Math.ceil(size.z / spacing));
+    const point = new THREE.Vector3();
+    let best = null;
+    for (let ix = 0; ix <= nx; ix++) {
+        point.x = THREE.MathUtils.lerp(bounds.min.x, bounds.max.x, ix / nx);
+        for (let iy = 0; iy <= ny; iy++) {
+            point.y = THREE.MathUtils.lerp(bounds.min.y, bounds.max.y, iy / ny);
+            for (let iz = 0; iz <= nz; iz++) {
+                point.z = THREE.MathUtils.lerp(bounds.min.z, bounds.max.z, iz / nz);
+                const clearance = branchRoutePointClearance(point, lumenField);
+                if (!Number.isFinite(clearance) || clearance <= 0.2) continue;
+                const score = clearance - point.distanceTo(centroid) * 0.018;
+                if (!best || score > best.score) {
+                    best = { point: point.clone(), clearance, score };
+                }
+            }
+        }
+    }
+    return best;
+}
+
+function routeInvalidBranchComponent(
+    component,
+    componentEndpoints,
+    incidence,
+    endpointKeys,
+    lumenField,
+    wallBvh,
+    connectorLumenClearance,
+    lumenGeometry,
+    expansionSteps
+) {
+    const removalSet = new Set(component);
+    const endpoints = [];
+    for (const endpointKey of componentEndpoints) {
+        const endpoint = expandInvalidComponentEndpoint(
+            endpointKey,
+            removalSet,
+            incidence,
+            endpointKeys,
+            lumenField,
+            expansionSteps
+        );
+        if (!endpoint) return null;
+        const clearance = branchRoutePointClearance(endpoint.point, lumenField);
+        if (!Number.isFinite(clearance) || clearance <= connectorLumenClearance + 0.12) {
+            return null;
+        }
+        if (endpoints.some(existing => existing.key === endpoint.key)) return null;
+        endpoints.push(endpoint);
+    }
+    const hub = findInvalidComponentMedialHub(removalSet, lumenField);
+    if (!hub) return null;
+
+    const boundsPoints = [];
+    let pathLength = 0;
+    for (const segment of removalSet) {
+        boundsPoints.push(segment.start, segment.end);
+        pathLength += segment.start.distanceTo(segment.end);
+    }
+    const hubNodeId = `invalid-hub:${connectedNodeKey(hub.point)}`;
+    const replacements = [];
+    const routeTypes = [];
+    for (const endpoint of endpoints) {
+        const span = endpoint.point.distanceTo(hub.point);
+        if (span < 1e-4) continue;
+        const vesselScale = Math.max(
+            0.45,
+            Math.min(1.35, Math.min(endpoint.radius, hub.clearance) * 0.45)
+        );
+        const origin = {
+            start: endpoint.point.clone(),
+            end: hub.point.clone(),
+            nodeStartId: endpoint.nodeId,
+            nodeEndId: hubNodeId,
+            radiusStart: endpoint.radius,
+            radiusEnd: hub.clearance,
+            source: 'stl-slice-invalid-reroute',
+            routeSegmentSource: 'stl-slice-invalid-reroute',
+            routeBoundsPoints: boundsPoints,
+            routePadding: Math.max(1.2, vesselScale * 1.8, Math.min(8, span * 0.24)),
+            routeMinimumPadding: Math.max(0.8, vesselScale * 1.4),
+            routeRadiusPaddingScale: 0.3,
+            routeRadiusPaddingBase: 0.8,
+            routeGridSpacing: vesselScale * (expansionSteps >= 2 ? 0.75 : 1),
+            routeMaxCells: expansionSteps >= 2 ? 36000 : 18000,
+            forceGridRoute: true,
+            validateRouteEdges: true,
+            allowWallWhenInside: false
+        };
+        const route = bestValidatedRouteForOrigin(
+            origin,
+            lumenField,
+            wallBvh,
+            connectorLumenClearance,
+            lumenGeometry
+        );
+        if (!route?.segments?.length) return null;
+        if (segmentSetValidityFailureReason(
+            route.segments,
+            wallBvh,
+            lumenField,
+            connectorLumenClearance
+        )) {
+            return null;
+        }
+        replacements.push(...route.segments);
+        routeTypes.push(route.routeType || 'unknown');
+    }
+    if (replacements.length < componentEndpoints.length) return null;
+    return {
+        removalSet,
+        route: {
+            segments: replacements,
+            routeType: `branch-star:${routeTypes.join('+')}`
+        },
+        expansionSteps,
+        span: Math.max(...endpoints.map(endpoint => endpoint.point.distanceTo(hub.point))),
+        pathLength
+    };
+}
+
+function rerouteInvalidCenterlineChains(
+    segments,
+    lumenField,
+    wallBvh,
+    connectorLumenClearance,
+    lumenGeometry,
+    { maxChains = CENTERLINE_INVALID_REROUTE_MAX_CHAINS } = {}
+) {
+    const initialInvalidSegmentCount = invalidCenterlineSegments(
+        segments,
+        lumenField,
+        wallBvh,
+        connectorLumenClearance
+    ).length;
+    const blockedSegments = new Set();
+    let attemptedChainCount = 0;
+    let routedChainCount = 0;
+    let replacedSegmentCount = 0;
+    let insertedSegmentCount = 0;
+    const choices = [];
+    const blockedComponents = [];
+
+    while (routedChainCount < maxChains) {
+        const currentInvalidSegments = invalidCenterlineSegments(
+            segments,
+            lumenField,
+            wallBvh,
+            connectorLumenClearance
+        ).filter(segment => !blockedSegments.has(segment));
+        if (!currentInvalidSegments.length) break;
+
+        const incidence = collectNodeIncidence(segments);
+        const endpointKeys = collectSegmentEndpointKeyMap(incidence);
+        const components = connectedInvalidSegmentComponents(
+            currentInvalidSegments,
+            incidence,
+            endpointKeys
+        );
+        const component = components[0];
+        const componentEndpoints = invalidComponentEndpointKeys(component, incidence, endpointKeys);
+        let selected = null;
+        if (componentEndpoints.length === 2) {
+            for (const expansionSteps of [1, 2, 3, 5, 8]) {
+                const removalSet = new Set(component);
+                const start = expandInvalidComponentEndpoint(
+                    componentEndpoints[0],
+                    removalSet,
+                    incidence,
+                    endpointKeys,
+                    lumenField,
+                    expansionSteps
+                );
+                const end = expandInvalidComponentEndpoint(
+                    componentEndpoints[1],
+                    removalSet,
+                    incidence,
+                    endpointKeys,
+                    lumenField,
+                    expansionSteps
+                );
+                if (!start || !end || start.key === end.key) continue;
+                const startClearance = branchRoutePointClearance(start.point, lumenField);
+                const endClearance = branchRoutePointClearance(end.point, lumenField);
+                if (
+                    !Number.isFinite(startClearance) ||
+                    !Number.isFinite(endClearance) ||
+                    startClearance <= connectorLumenClearance + 0.12 ||
+                    endClearance <= connectorLumenClearance + 0.12
+                ) continue;
+
+                const boundsPoints = [];
+                let pathLength = 0;
+                for (const segment of removalSet) {
+                    boundsPoints.push(segment.start, segment.end);
+                    pathLength += segment.start.distanceTo(segment.end);
+                }
+                const span = start.point.distanceTo(end.point);
+                const vesselScale = Math.max(
+                    0.45,
+                    Math.min(1.35, Math.min(start.radius, end.radius) * 0.45)
+                );
+                attemptedChainCount++;
+                const origin = {
+                    start: start.point.clone(),
+                    end: end.point.clone(),
+                    nodeStartId: start.nodeId,
+                    nodeEndId: end.nodeId,
+                    radiusStart: start.radius,
+                    radiusEnd: end.radius,
+                    source: 'stl-slice-invalid-reroute',
+                    routeSegmentSource: 'stl-slice-invalid-reroute',
+                    routeBoundsPoints: boundsPoints,
+                    routePadding: Math.max(1.2, vesselScale * 1.8, Math.min(8, span * 0.22)),
+                    routeMinimumPadding: Math.max(0.8, vesselScale * 1.4),
+                    routeRadiusPaddingScale: 0.3,
+                    routeRadiusPaddingBase: 0.8,
+                    routeGridSpacing: vesselScale * (
+                        expansionSteps === 1 ? 1.25 : expansionSteps === 2 ? 0.9 : 0.7
+                    ),
+                    routeMaxCells: expansionSteps === 1 ? 14000 : expansionSteps === 2 ? 28000 : 48000,
+                    forceGridRoute: true,
+                    validateRouteEdges: true,
+                    allowWallWhenInside: false
+                };
+                const route = bestValidatedRouteForOrigin(
+                    origin,
+                    lumenField,
+                    wallBvh,
+                    connectorLumenClearance,
+                    lumenGeometry
+                );
+                if (!route?.segments?.length) continue;
+                const failureReason = segmentSetValidityFailureReason(
+                    route.segments,
+                    wallBvh,
+                    lumenField,
+                    connectorLumenClearance
+                );
+                if (failureReason) continue;
+                selected = {
+                    removalSet,
+                    route,
+                    expansionSteps,
+                    span,
+                    pathLength
+                };
+                break;
+            }
+            if (!selected) {
+                for (const expansionSteps of [1, 2, 3]) {
+                    attemptedChainCount++;
+                    selected = routeInvalidBranchComponent(
+                        component,
+                        componentEndpoints,
+                        incidence,
+                        endpointKeys,
+                        lumenField,
+                        wallBvh,
+                        connectorLumenClearance,
+                        lumenGeometry,
+                        expansionSteps
+                    );
+                    if (selected) break;
+                }
+            }
+        } else if (componentEndpoints.length >= 3 && componentEndpoints.length <= 6) {
+            for (const expansionSteps of [1, 2]) {
+                attemptedChainCount++;
+                selected = routeInvalidBranchComponent(
+                    component,
+                    componentEndpoints,
+                    incidence,
+                    endpointKeys,
+                    lumenField,
+                    wallBvh,
+                    connectorLumenClearance,
+                    lumenGeometry,
+                    expansionSteps
+                );
+                if (selected) break;
+            }
+        }
+
+        if (!selected || !replaceCenterlineSegmentSetPreservingComponents(
+            segments,
+            selected.removalSet,
+            selected.route.segments
+        )) {
+            for (const segment of component) blockedSegments.add(segment);
+            if (blockedComponents.length < 12) {
+                blockedComponents.push({
+                    segmentCount: component.length,
+                    endpointCount: componentEndpoints.length,
+                    sources: [...new Set(component.map(segment => segment.source || null))],
+                    bounds: component.reduce((box, segment) => (
+                        box.expandByPoint(segment.start).expandByPoint(segment.end)
+                    ), new THREE.Box3())
+                });
+            }
+            continue;
+        }
+        routedChainCount++;
+        replacedSegmentCount += selected.removalSet.size;
+        insertedSegmentCount += selected.route.segments.length;
+        if (choices.length < 16) {
+            choices.push({
+                sources: [...new Set(component.map(segment => segment.source || null))],
+                expansionSteps: selected.expansionSteps,
+                span: selected.span,
+                pathLength: selected.pathLength,
+                replacedSegmentCount: selected.removalSet.size,
+                insertedSegmentCount: selected.route.segments.length,
+                routeType: selected.route.routeType || null
+            });
+        }
+    }
+
+    const remainingInvalidSegmentCount = invalidCenterlineSegments(
+        segments,
+        lumenField,
+        wallBvh,
+        connectorLumenClearance
+    ).length;
+    return {
+        initialInvalidSegmentCount,
+        remainingInvalidSegmentCount,
+        attemptedChainCount,
+        routedChainCount,
+        replacedSegmentCount,
+        insertedSegmentCount,
+        blockedSegmentCount: blockedSegments.size,
+        choices,
+        blockedComponents
+    };
+}
+
 function rerouteMeasuredOutlierChains(segments, centering, {
     lumenField = null,
     connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
     wallBvh = null,
     lumenGeometry = null,
-    maxCandidates = CENTERLINE_OUTLIER_REROUTE_MAX_CANDIDATES
+    maxCandidates = CENTERLINE_OUTLIER_REROUTE_MAX_CANDIDATES,
+    maxRoutedChains = Infinity
 } = {}) {
-    const candidates = centering?.outlierCorrectionCandidates || [];
+    const candidates = (centering?.outlierCorrectionCandidates || []).filter(candidate => (
+        candidate.normalizedOffset >= CENTERLINE_OUTLIER_RELAX_MIN_NORMALIZED ||
+        (
+            candidate.offset >= CENTERLINE_OUTLIER_RELAX_MIN_OFFSET &&
+            candidate.normalizedOffset >= 0.35
+        )
+    )).sort((a, b) =>
+        b.normalizedOffset - a.normalizedOffset ||
+        b.offset - a.offset
+    );
     if (!segments.length || !candidates.length || !lumenField?.query || !lumenGeometry?.attributes?.position) {
         return {
             attemptedChainCount: 0,
@@ -1539,6 +2328,7 @@ function rerouteMeasuredOutlierChains(segments, centering, {
                 routeScore: routed.routeScore
             });
         }
+        if (routedChainCount >= maxRoutedChains) break;
     }
 
     return {
@@ -1718,6 +2508,99 @@ function scoreOutlierChainPatchUpdates(
     };
 }
 
+function scoreOutlierChainPatchNeighborhood(
+    updates,
+    incidence,
+    endpointKeys,
+    lumenBvh,
+    options,
+    applyUpdates
+) {
+    const measuredKeys = new Set(updates.keys());
+    for (const key of updates.keys()) {
+        for (const neighbourKey of neighbourKeysForNode(key, incidence, endpointKeys)) {
+            measuredKeys.add(neighbourKey);
+        }
+    }
+
+    const affectedSegments = new Set();
+    for (const key of measuredKeys) {
+        for (const { segment } of incidence.get(key) || []) affectedSegments.add(segment);
+    }
+    const previewSegments = [];
+    const previewKeyByOriginalKey = new Map();
+    for (const segment of affectedSegments) {
+        const keys = endpointKeys.get(segment);
+        const previewSegment = {
+            ...segment,
+            start: applyUpdates && keys && updates.has(keys.start)
+                ? updates.get(keys.start).clone()
+                : segment.start.clone(),
+            end: applyUpdates && keys && updates.has(keys.end)
+                ? updates.get(keys.end).clone()
+                : segment.end.clone()
+        };
+        previewSegments.push(previewSegment);
+        if (keys?.start) {
+            previewKeyByOriginalKey.set(
+                keys.start,
+                centerlineEndpointKey(previewSegment, 'start')
+            );
+        }
+        if (keys?.end) {
+            previewKeyByOriginalKey.set(
+                keys.end,
+                centerlineEndpointKey(previewSegment, 'end')
+            );
+        }
+    }
+
+    const previewNodes = collectRefinementNodes(previewSegments);
+    const previewPoints = new Map();
+    for (const key of measuredKeys) {
+        const previewKey = previewKeyByOriginalKey.get(key) || key;
+        const node = previewNodes.get(previewKey);
+        if (node) previewPoints.set(previewKey, node.point.clone());
+    }
+    return scoreOutlierChainPatchUpdates(previewPoints, previewNodes, lumenBvh, options);
+}
+
+function scoreOutlierChainPatchImprovement(before, after) {
+    if (!before || !after || after.failedCount > before.failedCount) return null;
+
+    const maxNormalizedGain = before.maxNormalizedOffset - after.maxNormalizedOffset;
+    const maxOffsetGain = before.maxOffset - after.maxOffset;
+    const averageNormalizedGain = before.averageNormalizedOffset - after.averageNormalizedOffset;
+    const averageOffsetGain = before.averageOffset - after.averageOffset;
+    const costGain = before.cost - after.cost;
+    const improvesWorst = maxNormalizedGain >= 0.003 || maxOffsetGain >= 0.025;
+    const improvesAverage = averageNormalizedGain >= 0.0005 || averageOffsetGain >= 0.004;
+    const preservesWorst = (
+        after.maxNormalizedOffset <= before.maxNormalizedOffset + 0.001 &&
+        after.maxOffset <= before.maxOffset + 0.015
+    );
+    const preservesAverage = (
+        after.averageNormalizedOffset <= before.averageNormalizedOffset + 0.00035 &&
+        after.averageOffset <= before.averageOffset + 0.003
+    );
+    if (
+        costGain <= 0.005 ||
+        !preservesAverage ||
+        !(improvesWorst || (improvesAverage && preservesWorst))
+    ) {
+        return null;
+    }
+
+    return {
+        costGain,
+        relativeCostGain: costGain / Math.max(0.001, before.cost),
+        maxNormalizedGain,
+        maxOffsetGain,
+        averageNormalizedGain,
+        averageOffsetGain
+    };
+}
+
 function patchMeasuredOutlierChains(segments, centering, {
     lumenField = null,
     referenceField = null,
@@ -1790,6 +2673,8 @@ function patchMeasuredOutlierChains(segments, centering, {
         let bestScale = 0;
         let bestMode = 'both';
         let bestPatchScore = null;
+        let bestBaselineScore = null;
+        let bestImprovement = null;
         const failureDetails = [];
         const noteFailure = (mode, scale, reason) => {
             if (failureDetails.length >= 16) return;
@@ -1935,19 +2820,40 @@ function patchMeasuredOutlierChains(segments, centering, {
                 noteFailure(mode, scale, failureReason || 'invalid');
                 continue;
             }
-            const patchScore = scoreOutlierChainPatchUpdates(
+            const scoreOptions = { radialSamples, sphereSamples };
+            const patchScore = scoreOutlierChainPatchNeighborhood(
                 updates,
-                refinementNodes,
+                incidence,
+                endpointKeys,
                 lumenBvh,
-                { radialSamples, sphereSamples }
+                scoreOptions,
+                true
             );
-            const candidateCost = patchScore?.cost ?? Infinity;
-            const bestCost = bestPatchScore?.cost ?? Infinity;
-            if (bestUpdates && candidateCost >= bestCost) continue;
+            const baselineScore = scoreOutlierChainPatchNeighborhood(
+                updates,
+                incidence,
+                endpointKeys,
+                lumenBvh,
+                scoreOptions,
+                false
+            );
+            const improvement = scoreOutlierChainPatchImprovement(baselineScore, patchScore);
+            if (!improvement) {
+                noteFailure(mode, scale, 'no-local-gain');
+                continue;
+            }
+            if (
+                bestUpdates &&
+                improvement.relativeCostGain <= bestImprovement.relativeCostGain + 1e-6
+            ) {
+                continue;
+            }
             bestUpdates = updates;
             bestScale = scale;
             bestMode = usedFallback ? `${mode}-lumen` : mode;
             bestPatchScore = patchScore;
+            bestBaselineScore = baselineScore;
+            bestImprovement = improvement;
         }
         if (!bestUpdates) {
             recordRejectedChain(candidate, 'validity', failureDetails);
@@ -1972,6 +2878,14 @@ function patchMeasuredOutlierChains(segments, centering, {
                 normalizedOffset: candidate.normalizedOffset || 0,
                 scale: bestScale,
                 mode: bestMode,
+                beforeScore: bestBaselineScore ? {
+                    averageOffset: bestBaselineScore.averageOffset,
+                    maxOffset: bestBaselineScore.maxOffset,
+                    averageNormalizedOffset: bestBaselineScore.averageNormalizedOffset,
+                    maxNormalizedOffset: bestBaselineScore.maxNormalizedOffset,
+                    failedCount: bestBaselineScore.failedCount,
+                    cost: bestBaselineScore.cost
+                } : null,
                 score: bestPatchScore ? {
                     averageOffset: bestPatchScore.averageOffset,
                     maxOffset: bestPatchScore.maxOffset,
@@ -1980,12 +2894,14 @@ function patchMeasuredOutlierChains(segments, centering, {
                     failedCount: bestPatchScore.failedCount,
                     cost: bestPatchScore.cost
                 } : null,
+                improvement: bestImprovement,
                 patchedNodeCount: bestUpdates.size,
                 span: chain.span,
                 pathLength: chain.pathLength,
                 sources: candidate.sources || []
             });
         }
+        break;
     }
 
     return {
@@ -3834,6 +4750,23 @@ function pointSegmentDistance(point, segment) {
     return Math.hypot(point.x - centerX, point.y - centerY, point.z - centerZ) - radius;
 }
 
+function pointCenterlineSegmentDistance(point, segment) {
+    const dx = segment.end.x - segment.start.x;
+    const dy = segment.end.y - segment.start.y;
+    const dz = segment.end.z - segment.start.z;
+    const lengthSq = dx * dx + dy * dy + dz * dz;
+    if (lengthSq < 1e-8) return point.distanceTo(segment.start);
+    const relX = point.x - segment.start.x;
+    const relY = point.y - segment.start.y;
+    const relZ = point.z - segment.start.z;
+    const t = THREE.MathUtils.clamp((relX * dx + relY * dy + relZ * dz) / lengthSq, 0, 1);
+    return Math.hypot(
+        point.x - (segment.start.x + dx * t),
+        point.y - (segment.start.y + dy * t),
+        point.z - (segment.start.z + dz * t)
+    );
+}
+
 function pointSegmentAttachment(point, segment) {
     const dx = segment.end.x - segment.start.x;
     const dy = segment.end.y - segment.start.y;
@@ -4029,6 +4962,21 @@ function nearestTreeAttachment(point, treeSegments, {
         }
     }
     return best;
+}
+
+function rankedTreeAttachments(point, treeSegments, lumenField, maxSignedDistance = Infinity, limit = 8) {
+    const attachments = [];
+    for (const segment of treeSegments) {
+        const attachment = pointSegmentAttachment(point, segment);
+        if (attachment.signedDistance > maxSignedDistance) continue;
+        attachment.clearance = attachmentClearance(attachment, lumenField);
+        attachments.push(attachment);
+    }
+    attachments.sort((a, b) =>
+        a.signedDistance - b.signedDistance ||
+        b.clearance - a.clearance
+    );
+    return attachments.slice(0, limit);
 }
 
 function attachBranchOriginToTree(origin, finalSegments, treeSegments, connectedNodes) {
@@ -4434,10 +5382,14 @@ function buildConnectedCenterlineTree(
             index,
             pathLength: componentPathLength(entry.segments),
             nonStubSegmentCount: entry.segments.filter(segment => !segment.source.startsWith('stl-slice-stub')).length,
-            passPriority: entry.pass === 'adaptive' ? 1 : 0
+            axisPriority: entry.axis === 'y'
+                ? 3
+                : entry.pass === 'adaptive'
+                    ? 2
+                    : 1
         }))
         .sort((a, b) =>
-            b.passPriority - a.passPriority ||
+            b.axisPriority - a.axisPriority ||
             b.nonStubSegmentCount - a.nonStubSegmentCount ||
             b.pathLength - a.pathLength ||
             b.segments.length - a.segments.length
@@ -4451,7 +5403,8 @@ function buildConnectedCenterlineTree(
             addedBranchOriginCount: 0,
             discardedComponentCount: 0,
             discardedSegmentCount: 0,
-            candidateComponentCount: 0
+            candidateComponentCount: 0,
+            discardedEntries: []
         };
     }
 
@@ -4586,7 +5539,329 @@ function buildConnectedCenterlineTree(
         addedBranchOriginCount,
         discardedComponentCount: pending.length,
         discardedSegmentCount: pending.reduce((sum, entry) => sum + entry.segments.length, 0),
-        candidateComponentCount: entries.length
+        candidateComponentCount: entries.length,
+        discardedEntries: pending
+    };
+}
+
+function rescuePrimaryAxisComponents(
+    finalSegments,
+    discardedEntries,
+    lumenField,
+    connectorLumenClearance,
+    wallBvh,
+    lumenGeometry,
+    maxComponents = 16
+) {
+    const candidates = (discardedEntries || [])
+        .filter(entry =>
+            entry.axis === 'y' &&
+            entry.segments?.length &&
+            entry.segments.some(segment => !segment.source.startsWith('stl-slice-stub'))
+        )
+        .sort((a, b) => b.pathLength - a.pathLength);
+    if (!finalSegments.length || !candidates.length) {
+        return {
+            candidateComponentCount: candidates.length,
+            attemptedComponentCount: 0,
+            rescuedComponentCount: 0,
+            failedComponentCount: candidates.length,
+            addedOriginSegmentCount: 0,
+            addedComponentSegmentCount: 0,
+            choices: [],
+            failures: []
+        };
+    }
+
+    const treeSegments = finalSegments.slice();
+    const connectedNodes = new Set();
+    for (const segment of treeSegments) markSegmentConnected(segment, connectedNodes);
+    let attemptedComponentCount = 0;
+    let rescuedComponentCount = 0;
+    let addedOriginSegmentCount = 0;
+    let addedComponentSegmentCount = 0;
+    const choices = [];
+    const failures = [];
+
+    const makeOrigin = (node, attachment, overrides = {}) => ({
+        start: attachment.point.clone(),
+        end: node.point.clone(),
+        nodeStartId: attachment.nodeId,
+        nodeEndId: node.id,
+        radiusStart: attachment.radius,
+        radiusEnd: node.radius,
+        source: 'stl-slice-branch-origin',
+        routeSegmentSource: 'stl-slice-branch-origin',
+        attachment,
+        validateRouteEdges: true,
+        allowWallWhenInside: true,
+        ...overrides
+    });
+
+    const sampledDirectRoute = origin => {
+        const length = origin.start.distanceTo(origin.end);
+        if (length < 1e-4) return null;
+        const stepCount = Math.max(1, Math.ceil(length / DEFAULT_CENTERLINE_NODE_SPACING));
+        const path = [];
+        for (let index = 0; index <= stepCount; index++) {
+            const point = origin.start.clone().lerp(origin.end, index / stepCount);
+            const clearance = branchRoutePointClearance(point, lumenField);
+            path.push(branchRouteNode(
+                point,
+                Number.isFinite(clearance) ? clearance : MIN_RADIUS,
+                index,
+                `primary-direct:${index}`
+            ));
+        }
+        const directRoute = {
+            path,
+            routeType: 'direct-sampled',
+            spacing: DEFAULT_CENTERLINE_NODE_SPACING
+        };
+        const directSegments = branchRouteToSegments(
+            origin,
+            directRoute.path,
+            directRoute.routeType
+        );
+        if (segmentSetValidityFailureReason(
+            directSegments,
+            wallBvh,
+            lumenField,
+            connectorLumenClearance,
+            { allowWallWhenInside: true }
+        )) {
+            return null;
+        }
+
+        const variants = [directRoute];
+        const centered = centerBranchRoutePath(directRoute, lumenGeometry, { passes: 3 });
+        if (centered) variants.push(centered);
+
+        let best = null;
+        for (const variant of variants) {
+            const segments = branchRouteToSegments(origin, variant.path, variant.routeType);
+            if (segmentSetValidityFailureReason(
+                segments,
+                wallBvh,
+                lumenField,
+                connectorLumenClearance,
+                { allowWallWhenInside: true }
+            )) {
+                continue;
+            }
+            const routeScore = scoreBranchRoutePath(variant.path, lumenGeometry);
+            const cost = branchRouteScoreCost(routeScore);
+            if (!best || cost < best.cost) {
+                best = {
+                    segments,
+                    path: variant.path,
+                    routeType: variant.routeType,
+                    routeScore,
+                    cost
+                };
+            }
+        }
+        return best;
+    };
+
+    const endpointContinuationDirection = (node, segments) => {
+        for (const segment of segments) {
+            if (segment.nodeStartId === node.id) {
+                return new THREE.Vector3()
+                    .subVectors(segment.start, segment.end)
+                    .normalize();
+            }
+            if (segment.nodeEndId === node.id) {
+                return new THREE.Vector3()
+                    .subVectors(segment.end, segment.start)
+                    .normalize();
+            }
+        }
+        return new THREE.Vector3();
+    };
+
+    for (const entry of candidates) {
+        if (attemptedComponentCount >= maxComponents) break;
+        if (componentFullyCoveredByTree(entry.segments, treeSegments)) continue;
+        attemptedComponentCount++;
+        const attachmentCandidates = [];
+        for (const node of componentEndpointNodes(entry.segments)) {
+            const continuation = endpointContinuationDirection(node, entry.segments);
+            for (const attachment of rankedTreeAttachments(
+                node.point,
+                treeSegments,
+                lumenField,
+                120,
+                48
+            )) {
+                const towardAttachment = new THREE.Vector3()
+                    .subVectors(attachment.point, node.point);
+                const distance = towardAttachment.length();
+                const alignment = distance > 1e-5 && continuation.lengthSq() > 1e-8
+                    ? continuation.dot(towardAttachment.multiplyScalar(1 / distance))
+                    : -1;
+                const directionPenalty = alignment >= 0
+                    ? (1 - alignment) * 12
+                    : 12 + Math.abs(alignment) * 28;
+                attachmentCandidates.push({
+                    node,
+                    attachment,
+                    alignment,
+                    routePriority: distance + directionPenalty
+                });
+            }
+        }
+        attachmentCandidates.sort((a, b) =>
+            a.routePriority - b.routePriority ||
+            b.alignment - a.alignment ||
+            a.attachment.distance - b.attachment.distance ||
+            a.attachment.signedDistance - b.attachment.signedDistance ||
+            b.attachment.clearance - a.attachment.clearance
+        );
+        let selected = null;
+        const directRoutes = [];
+        for (const { node, attachment } of attachmentCandidates) {
+            const origin = makeOrigin(node, attachment);
+            const route = sampledDirectRoute(origin);
+            if (!route) continue;
+            directRoutes.push({
+                origin,
+                route,
+                span: origin.start.distanceTo(origin.end),
+                cost: route.cost
+            });
+        }
+        directRoutes.sort((a, b) => a.cost - b.cost || a.span - b.span);
+        selected = directRoutes[0] || null;
+
+        const limitedAttachments = attachmentCandidates.slice(0, 12);
+        for (
+            let attachmentIndex = 0;
+            !selected && attachmentIndex < limitedAttachments.length;
+            attachmentIndex++
+        ) {
+            const { node, attachment } = limitedAttachments[attachmentIndex];
+            const span = attachment.point.distanceTo(node.point);
+            if (span < 1e-4) continue;
+            const vesselScale = Math.max(
+                0.5,
+                Math.min(1.6, Math.min(node.radius, attachment.radius) * 0.48)
+            );
+            const routeConfigurations = [{
+                padding: Math.max(1.4, vesselScale * 2, Math.min(7, span * 0.18)),
+                minimumPadding: Math.max(1, vesselScale * 1.5),
+                spacing: vesselScale,
+                maxCells: 7000,
+                boundsPoints: null
+            }];
+            for (const configuration of routeConfigurations) {
+                const origin = makeOrigin(node, attachment, {
+                    routeBoundsPoints: configuration.boundsPoints,
+                    routePadding: configuration.padding,
+                    routeMinimumPadding: configuration.minimumPadding,
+                    routeRadiusPaddingScale: 0.35,
+                    routeRadiusPaddingBase: 1,
+                    routeGridSpacing: configuration.spacing,
+                    routeMaxCells: configuration.maxCells,
+                    forceGridRoute: true,
+                    allowLongDirectRoute: false
+                });
+                const route = bestValidatedRouteForOrigin(
+                    origin,
+                    lumenField,
+                    wallBvh,
+                    connectorLumenClearance,
+                    lumenGeometry
+                );
+                if (!route?.segments?.length) continue;
+                if (segmentSetValidityFailureReason(
+                    route.segments,
+                    wallBvh,
+                    lumenField,
+                    connectorLumenClearance,
+                    { allowWallWhenInside: true }
+                )) {
+                    continue;
+                }
+                selected = { origin, route, span };
+                break;
+            }
+            if (selected) break;
+        }
+        if (!selected) {
+            if (failures.length < 8) {
+                const bounds = entry.segments.reduce((box, segment) => (
+                    box.expandByPoint(segment.start).expandByPoint(segment.end)
+                ), new THREE.Box3());
+                failures.push({
+                    pathLength: entry.pathLength,
+                    segmentCount: entry.segments.length,
+                    endpointCount: componentEndpointNodes(entry.segments).length,
+                    attachmentCandidateCount: attachmentCandidates.length,
+                    bounds,
+                    rankedAttachments: attachmentCandidates.slice(0, 12).map(candidate => ({
+                        endpoint: {
+                            x: candidate.node.point.x,
+                            y: candidate.node.point.y,
+                            z: candidate.node.point.z
+                        },
+                        attachment: {
+                            x: candidate.attachment.point.x,
+                            y: candidate.attachment.point.y,
+                            z: candidate.attachment.point.z
+                        },
+                        distance: candidate.attachment.distance,
+                        signedDistance: candidate.attachment.signedDistance,
+                        clearance: candidate.attachment.clearance,
+                        alignment: candidate.alignment,
+                        routePriority: candidate.routePriority
+                    }))
+                });
+            }
+            continue;
+        }
+
+        attachBranchOriginToTree(
+            selected.origin,
+            finalSegments,
+            treeSegments,
+            connectedNodes
+        );
+        const firstRouteSegment = selected.route.segments[0];
+        firstRouteSegment.start = selected.origin.start.clone();
+        firstRouteSegment.nodeStartId = selected.origin.nodeStartId;
+        firstRouteSegment.radiusStart = selected.origin.radiusStart;
+        for (const segment of selected.route.segments) {
+            finalSegments.push(segment);
+            addSegmentToTree(segment, treeSegments, connectedNodes);
+        }
+        for (const segment of entry.segments) {
+            finalSegments.push(segment);
+            addSegmentToTree(segment, treeSegments, connectedNodes);
+        }
+        rescuedComponentCount++;
+        addedOriginSegmentCount += selected.route.segments.length;
+        addedComponentSegmentCount += entry.segments.length;
+        if (choices.length < 12) {
+            choices.push({
+                pathLength: entry.pathLength,
+                span: selected.span,
+                componentSegmentCount: entry.segments.length,
+                routeSegmentCount: selected.route.segments.length,
+                routeType: selected.route.routeType || null
+            });
+        }
+    }
+
+    return {
+        candidateComponentCount: candidates.length,
+        attemptedComponentCount,
+        rescuedComponentCount,
+        failedComponentCount: candidates.length - rescuedComponentCount,
+        addedOriginSegmentCount,
+        addedComponentSegmentCount,
+        choices,
+        failures
     };
 }
 
@@ -5569,7 +6844,13 @@ function relaxMeasuredOutlierNodesByClearance(segments, centering, {
     wallBvh = null,
     enablePatches = false
 } = {}) {
-    const candidates = centering?.outlierCorrectionCandidates || [];
+    const candidates = (centering?.outlierCorrectionCandidates || []).filter(candidate => (
+        candidate.normalizedOffset >= CENTERLINE_OUTLIER_RELAX_MIN_NORMALIZED ||
+        (
+            candidate.offset >= CENTERLINE_OUTLIER_RELAX_MIN_OFFSET &&
+            candidate.normalizedOffset >= 0.35
+        )
+    ));
     if (!segments.length || !candidates.length || !lumenField?.query) {
         return {
             adjustedNodeCount: 0,
@@ -5952,7 +7233,10 @@ function measureCenterlineCentering(segments, lumenGeometry, options = {}) {
         const shouldTryCorrection = (
             node.directions.length <= 2 &&
             (
-                normalizedOffset >= CENTERLINE_OUTLIER_RELAX_MIN_NORMALIZED ||
+                normalizedOffset >= Math.min(
+                    CENTERLINE_OUTLIER_RELAX_MIN_NORMALIZED,
+                    CENTERLINE_OUTLIER_CHAIN_PATCH_MIN_NORMALIZED
+                ) ||
                 (offset >= CENTERLINE_OUTLIER_RELAX_MIN_OFFSET && normalizedOffset >= 0.35)
             )
         );
@@ -6211,13 +7495,19 @@ export function buildStlSliceCenterline(geometry, {
 } = {}) {
     const buildStartedAt = nowMs();
     const timings = {};
+    const profileStages = typeof process !== 'undefined' &&
+        process?.env?.CENTERLINE_PROFILE === '1';
     const recordTiming = (name, startedAt) => {
         timings[name] = (timings[name] || 0) + nowMs() - startedAt;
+        if (profileStages) {
+            console.log(`[centerline] ${name}: ${timings[name].toFixed(1)} ms`);
+        }
     };
     const allSegments = [];
     const debugPositions = [];
     const axisDiagnostics = [];
     const candidateComponents = [];
+    const primaryCoverageSamples = [];
     let nodeOffset = 0;
     let totalSlices = 0;
     let totalContours = 0;
@@ -6273,6 +7563,19 @@ export function buildStlSliceCenterline(geometry, {
             slices = cloneSlicesForCenterline(resolvedLumenCast.slices);
             axisDebugSegments = resolvedLumenCast.debugSegments;
             usedLumenSurfaceSlices = false;
+        }
+        if (axisId === 'y') {
+            for (const slice of slices) {
+                for (const contour of slice.contours) {
+                    const center = contour.center || contour.linkCenter || contour.centroid;
+                    if (!center) continue;
+                    primaryCoverageSamples.push({
+                        axis: axisId,
+                        point: axisPointFromLocal({ x: center.x, y: slice.y, z: center.z }, descriptor),
+                        radius: contour.radius
+                    });
+                }
+            }
         }
         const axisSegments = buildCenterlineFromSlices(slices, resolvedSliceSpacing, maxLinkGap);
         const mappedSegments = [];
@@ -6362,10 +7665,28 @@ export function buildStlSliceCenterline(geometry, {
     recordTiming('connectedTreeMs', stageStartedAt);
 
     stageStartedAt = nowMs();
+    const primaryAxisRescue = rescuePrimaryAxisComponents(
+        allSegments,
+        tree.discardedEntries,
+        connectorField,
+        connectorLumenClearance,
+        resolvedWallBvh,
+        resolvedLumenCast.geometry
+    );
+    recordTiming('primaryAxisRescueMs', stageStartedAt);
+
+    stageStartedAt = nowMs();
     const rooting = {
-        addedBranchOriginCount: tree.addedBranchOriginCount,
-        discardedComponentCount: tree.discardedComponentCount,
-        discardedSegmentCount: tree.discardedSegmentCount
+        addedBranchOriginCount:
+            tree.addedBranchOriginCount + primaryAxisRescue.rescuedComponentCount,
+        discardedComponentCount: Math.max(
+            0,
+            tree.discardedComponentCount - primaryAxisRescue.rescuedComponentCount
+        ),
+        discardedSegmentCount: Math.max(
+            0,
+            tree.discardedSegmentCount - primaryAxisRescue.addedComponentSegmentCount
+        )
     };
     if (allSegments.length) {
         const rooted = rootCenterlineComponents(allSegments, connectorField, connectorLumenClearance, resolvedWallBvh);
@@ -7439,8 +8760,8 @@ export function buildStlSliceCenterline(geometry, {
             sphereSamples: centerlineRefinementSphereSamples
         });
         const improvesWorst = (
-            latePatchedCentering.maxNormalizedOffset < centering.maxNormalizedOffset - 0.006 ||
-            latePatchedCentering.maxOffset < centering.maxOffset - 0.06
+            latePatchedCentering.maxNormalizedOffset < centering.maxNormalizedOffset - 0.001 ||
+            latePatchedCentering.maxOffset < centering.maxOffset - 0.03
         );
         const improvesAverage = (
             latePatchedCentering.averageNormalizedOffset < centering.averageNormalizedOffset - 0.00005 ||
@@ -7588,12 +8909,291 @@ export function buildStlSliceCenterline(geometry, {
     }
 
     recordTiming('outlierRelaxMs', stageStartedAt);
+    stageStartedAt = nowMs();
+    const topologyBeforeCleanup = measureCenterlineTopology(allSegments);
+    const initialBacktrackSimplification = simplifyCenterlineBacktracks(
+        allSegments,
+        connectorField,
+        resolvedWallBvh,
+        connectorLumenClearance
+    );
+    const invalidChainRerouting = rerouteInvalidCenterlineChains(
+        allSegments,
+        connectorField,
+        resolvedWallBvh,
+        connectorLumenClearance,
+        resolvedLumenCast.geometry
+    );
+    const finalBacktrackSimplification = simplifyCenterlineBacktracks(
+        allSegments,
+        connectorField,
+        resolvedWallBvh,
+        connectorLumenClearance
+    );
+    const cleanupResampling = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+    postRefinementInsertedResampleNodeCount += cleanupResampling.insertedNodeCount;
+    if (cleanupResampling.segments !== allSegments) {
+        allSegments.length = 0;
+        allSegments.push(...cleanupResampling.segments);
+    }
+    const cleanupCyclePruning = removeCenterlineCycles(allSegments);
+    cyclePruning = {
+        removedSegmentCount: cyclePruning.removedSegmentCount + cleanupCyclePruning.removedSegmentCount,
+        nodeCount: cleanupCyclePruning.nodeCount,
+        cycleCount: cleanupCyclePruning.cycleCount
+    };
+    centering = measureCenterlineCentering(allSegments, resolvedLumenCast.geometry, {
+        radialSamples: centerlineRefinementRadialSamples,
+        sphereSamples: centerlineRefinementSphereSamples
+    });
+    const finalChainPatch = {
+        passCount: 0,
+        keptPassCount: 0,
+        attemptedChainCount: 0,
+        keptChainCount: 0,
+        rejectedChainCount: 0,
+        rolledBackCount: 0,
+        choices: [],
+        rollbackDiagnostics: []
+    };
+    let remainingInvalidSegmentCount = invalidCenterlineSegments(
+        allSegments,
+        connectorField,
+        resolvedWallBvh,
+        connectorLumenClearance
+    ).length;
+    for (let pass = 0; pass < CENTERLINE_FINAL_CHAIN_PATCH_PASSES; pass++) {
+        const prePatchSegments = allSegments.map(segment => ({
+            ...segment,
+            start: segment.start.clone(),
+            end: segment.end.clone()
+        }));
+        const prePatchCyclePruning = { ...cyclePruning };
+        const prePatchCentering = centering;
+        const prePatchInvalidSegmentCount = remainingInvalidSegmentCount;
+        const patch = patchMeasuredOutlierChains(allSegments, centering, {
+            lumenField: connectorField,
+            referenceField: lumenField,
+            connectorLumenClearance,
+            wallBvh: resolvedWallBvh,
+            lumenGeometry: resolvedLumenCast.geometry,
+            radialSamples: centerlineRefinementRadialSamples,
+            sphereSamples: centerlineRefinementSphereSamples
+        });
+        finalChainPatch.passCount++;
+        finalChainPatch.attemptedChainCount += patch.attemptedChainCount;
+        finalChainPatch.rejectedChainCount += patch.rejectedChainCount;
+        if (patch.choices?.length && finalChainPatch.choices.length < 12) {
+            finalChainPatch.choices.push(...patch.choices.slice(
+                0,
+                12 - finalChainPatch.choices.length
+            ));
+        }
+        if (patch.patchedChainCount <= 0) break;
+
+        const resampling = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        postRefinementInsertedResampleNodeCount += resampling.insertedNodeCount;
+        if (resampling.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampling.segments);
+        }
+        const patchCyclePruning = removeCenterlineCycles(allSegments);
+        const patchedCyclePruning = {
+            removedSegmentCount: cyclePruning.removedSegmentCount + patchCyclePruning.removedSegmentCount,
+            nodeCount: patchCyclePruning.nodeCount,
+            cycleCount: patchCyclePruning.cycleCount
+        };
+        const patchedCentering = measureCenterlineCentering(allSegments, resolvedLumenCast.geometry, {
+            radialSamples: centerlineRefinementRadialSamples,
+            sphereSamples: centerlineRefinementSphereSamples
+        });
+        const patchedInvalidSegmentCount = invalidCenterlineSegments(
+            allSegments,
+            connectorField,
+            resolvedWallBvh,
+            connectorLumenClearance
+        ).length;
+        const improvesWorst = (
+            patchedCentering.maxNormalizedOffset < centering.maxNormalizedOffset - 0.001 ||
+            patchedCentering.maxOffset < centering.maxOffset - 0.03
+        );
+        const improvesAverage = (
+            patchedCentering.averageNormalizedOffset < centering.averageNormalizedOffset - 0.00003 ||
+            patchedCentering.averageOffset < centering.averageOffset - 0.0002
+        );
+        const preservesWorst = (
+            patchedCentering.maxNormalizedOffset <= centering.maxNormalizedOffset + 0.001 &&
+            patchedCentering.maxOffset <= centering.maxOffset + 0.02
+        );
+        const preservesAverage = (
+            patchedCentering.averageNormalizedOffset <= centering.averageNormalizedOffset + 0.0008 &&
+            patchedCentering.averageOffset <= centering.averageOffset + 0.004
+        );
+        const preservesTree = (
+            segmentComponents(allSegments).length === 1 &&
+            patchedCyclePruning.cycleCount === 0
+        );
+        const preservesValidity = patchedInvalidSegmentCount <= prePatchInvalidSegmentCount;
+        if (
+            (improvesWorst || (improvesAverage && preservesWorst)) &&
+            preservesAverage &&
+            preservesTree &&
+            preservesValidity
+        ) {
+            centering = patchedCentering;
+            cyclePruning = patchedCyclePruning;
+            remainingInvalidSegmentCount = patchedInvalidSegmentCount;
+            finalChainPatch.keptPassCount++;
+            finalChainPatch.keptChainCount += patch.patchedChainCount;
+            continue;
+        }
+
+        allSegments.length = 0;
+        allSegments.push(...prePatchSegments);
+        cyclePruning = prePatchCyclePruning;
+        centering = prePatchCentering;
+        remainingInvalidSegmentCount = prePatchInvalidSegmentCount;
+        finalChainPatch.rolledBackCount++;
+        if (finalChainPatch.rollbackDiagnostics.length < 8) {
+            finalChainPatch.rollbackDiagnostics.push({
+                improvesWorst,
+                improvesAverage,
+                preservesWorst,
+                preservesAverage,
+                preservesTree,
+                preservesValidity,
+                before: {
+                    maxNormalizedOffset: prePatchCentering.maxNormalizedOffset,
+                    averageNormalizedOffset: prePatchCentering.averageNormalizedOffset,
+                    invalidSegmentCount: prePatchInvalidSegmentCount
+                },
+                after: {
+                    maxNormalizedOffset: patchedCentering.maxNormalizedOffset,
+                    averageNormalizedOffset: patchedCentering.averageNormalizedOffset,
+                    invalidSegmentCount: patchedInvalidSegmentCount
+                }
+            });
+        }
+        break;
+    }
+    const finalRerouting = {
+        passCount: 0,
+        keptPassCount: 0,
+        attemptedChainCount: 0,
+        routedChainCount: 0,
+        keptChainCount: 0,
+        rejectedChainCount: 0,
+        rolledBackCount: 0,
+        choices: [],
+        rollbackDiagnostics: []
+    };
+    for (let pass = 0; pass < CENTERLINE_FINAL_REROUTE_PASSES; pass++) {
+        const beforeSegments = allSegments.map(segment => ({
+            ...segment,
+            start: segment.start.clone(),
+            end: segment.end.clone()
+        }));
+        const beforeCyclePruning = { ...cyclePruning };
+        const beforeCentering = centering;
+        const beforeInvalidSegmentCount = remainingInvalidSegmentCount;
+        const rerouted = rerouteMeasuredOutlierChains(allSegments, centering, {
+            lumenField: connectorField,
+            connectorLumenClearance,
+            wallBvh: resolvedWallBvh,
+            lumenGeometry: resolvedLumenCast.geometry,
+            maxCandidates: 12,
+            maxRoutedChains: 1
+        });
+        finalRerouting.passCount++;
+        finalRerouting.attemptedChainCount += rerouted.attemptedChainCount;
+        finalRerouting.routedChainCount += rerouted.routedChainCount;
+        finalRerouting.rejectedChainCount += rerouted.rejectedChainCount;
+        if (rerouted.routeChoices?.length && finalRerouting.choices.length < 12) {
+            finalRerouting.choices.push(...rerouted.routeChoices.slice(
+                0,
+                12 - finalRerouting.choices.length
+            ));
+        }
+        if (rerouted.routedChainCount <= 0) break;
+
+        const resampling = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        postRefinementInsertedResampleNodeCount += resampling.insertedNodeCount;
+        if (resampling.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampling.segments);
+        }
+        const passCyclePruning = removeCenterlineCycles(allSegments);
+        const nextCyclePruning = {
+            removedSegmentCount: cyclePruning.removedSegmentCount + passCyclePruning.removedSegmentCount,
+            nodeCount: passCyclePruning.nodeCount,
+            cycleCount: passCyclePruning.cycleCount
+        };
+        const nextCentering = measureCenterlineCentering(allSegments, resolvedLumenCast.geometry, {
+            radialSamples: centerlineRefinementRadialSamples,
+            sphereSamples: centerlineRefinementSphereSamples
+        });
+        const nextInvalidSegmentCount = invalidCenterlineSegments(
+            allSegments,
+            connectorField,
+            resolvedWallBvh,
+            connectorLumenClearance
+        ).length;
+        const improvesWorst = (
+            nextCentering.maxNormalizedOffset < centering.maxNormalizedOffset - 0.003 ||
+            nextCentering.maxOffset < centering.maxOffset - 0.08
+        );
+        const preservesAverage = (
+            nextCentering.averageNormalizedOffset <= centering.averageNormalizedOffset + 0.001 &&
+            nextCentering.averageOffset <= centering.averageOffset + 0.006
+        );
+        const preservesTree = (
+            segmentComponents(allSegments).length === 1 &&
+            nextCyclePruning.cycleCount === 0
+        );
+        const preservesValidity = nextInvalidSegmentCount <= beforeInvalidSegmentCount;
+        if (improvesWorst && preservesAverage && preservesTree && preservesValidity) {
+            centering = nextCentering;
+            cyclePruning = nextCyclePruning;
+            remainingInvalidSegmentCount = nextInvalidSegmentCount;
+            finalRerouting.keptPassCount++;
+            finalRerouting.keptChainCount += rerouted.routedChainCount;
+            continue;
+        }
+
+        allSegments.length = 0;
+        allSegments.push(...beforeSegments);
+        cyclePruning = beforeCyclePruning;
+        centering = beforeCentering;
+        remainingInvalidSegmentCount = beforeInvalidSegmentCount;
+        finalRerouting.rolledBackCount++;
+        finalRerouting.rollbackDiagnostics.push({
+            improvesWorst,
+            preservesAverage,
+            preservesTree,
+            preservesValidity,
+            before: {
+                maxOffset: beforeCentering.maxOffset,
+                maxNormalizedOffset: beforeCentering.maxNormalizedOffset
+            },
+            after: {
+                maxOffset: nextCentering.maxOffset,
+                maxNormalizedOffset: nextCentering.maxNormalizedOffset
+            }
+        });
+        break;
+    }
+    const topologyAfterCleanup = measureCenterlineTopology(allSegments);
+    recordTiming('topologyCleanupMs', stageStartedAt);
     outlierRelaxation.averageShift = outlierRelaxation.adjustedNodeCount
         ? outlierShiftSum / outlierRelaxation.adjustedNodeCount
         : 0;
     outlierRelaxation.averageClearanceGain = outlierRelaxation.adjustedNodeCount
         ? outlierClearanceGainSum / outlierRelaxation.adjustedNodeCount
         : 0;
+    const centerlineCoverage = measureCenterlineSampleCoverage(
+        primaryCoverageSamples,
+        allSegments
+    );
     const debugSegments = thinDebugPositions(debugPositions);
     const finalComponents = segmentComponents(allSegments);
     const finalStubSegmentCount = allSegments.filter(segment => segment.source.startsWith('stl-slice-stub')).length;
@@ -7613,10 +9213,25 @@ export function buildStlSliceCenterline(geometry, {
         candidateComponentCount: tree.candidateComponentCount,
         acceptedComponentCount: tree.acceptedComponentCount,
         coveredDuplicateComponentCount: tree.coveredDuplicateComponentCount,
+        primaryAxisRescueCandidateComponentCount:
+            primaryAxisRescue.candidateComponentCount,
+        primaryAxisRescueAttemptedComponentCount:
+            primaryAxisRescue.attemptedComponentCount,
+        primaryAxisRescuedComponentCount:
+            primaryAxisRescue.rescuedComponentCount,
+        primaryAxisRescueFailedComponentCount:
+            primaryAxisRescue.failedComponentCount,
+        primaryAxisRescueAddedOriginSegmentCount:
+            primaryAxisRescue.addedOriginSegmentCount,
+        primaryAxisRescueAddedComponentSegmentCount:
+            primaryAxisRescue.addedComponentSegmentCount,
+        primaryAxisRescueChoices: primaryAxisRescue.choices,
+        primaryAxisRescueFailures: primaryAxisRescue.failures,
         rootedBranchOriginCount: rooting.addedBranchOriginCount,
         discardedDisconnectedComponentCount: rooting.discardedComponentCount,
         discardedDisconnectedSegmentCount: rooting.discardedSegmentCount,
-        uncoveredNodeCount: 0,
+        uncoveredNodeCount: centerlineCoverage.uncoveredSampleCount,
+        centerlineCoverage,
         splitNodeCount: totalSplits,
         mergeNodeCount: totalMerges,
         contourCount: totalContours,
@@ -7788,6 +9403,67 @@ export function buildStlSliceCenterline(geometry, {
         centerlineCyclePrunedSegmentCount: cyclePruning.removedSegmentCount,
         centerlineGraphNodeCount: cyclePruning.nodeCount,
         centerlineGraphCycleCount: cyclePruning.cycleCount,
+        centerlineTopologyBeforeCleanup: topologyBeforeCleanup,
+        centerlineTopologyAfterCleanup: topologyAfterCleanup,
+        centerlineBacktrackCollapsedNodeCount:
+            initialBacktrackSimplification.collapsedNodeCount +
+            finalBacktrackSimplification.collapsedNodeCount,
+        centerlineBacktrackRemovedSegmentCount:
+            initialBacktrackSimplification.removedSegmentCount +
+            finalBacktrackSimplification.removedSegmentCount,
+        centerlineBacktrackInsertedSegmentCount:
+            initialBacktrackSimplification.insertedSegmentCount +
+            finalBacktrackSimplification.insertedSegmentCount,
+        centerlineBacktrackRejectedNodeCount:
+            initialBacktrackSimplification.rejectedNodeCount +
+            finalBacktrackSimplification.rejectedNodeCount,
+        centerlineBacktrackPathLengthReduction:
+            initialBacktrackSimplification.pathLengthReduction +
+            finalBacktrackSimplification.pathLengthReduction,
+        centerlineInvalidSegmentCountBeforeReroute:
+            invalidChainRerouting.initialInvalidSegmentCount,
+        centerlineInvalidSegmentCountAfterReroute:
+            invalidChainRerouting.remainingInvalidSegmentCount,
+        centerlineInvalidSegmentCountFinal: remainingInvalidSegmentCount,
+        centerlineInvalidRerouteAttemptedChainCount:
+            invalidChainRerouting.attemptedChainCount,
+        centerlineInvalidReroutedChainCount: invalidChainRerouting.routedChainCount,
+        centerlineInvalidRerouteReplacedSegmentCount:
+            invalidChainRerouting.replacedSegmentCount,
+        centerlineInvalidRerouteInsertedSegmentCount:
+            invalidChainRerouting.insertedSegmentCount,
+        centerlineInvalidRerouteBlockedSegmentCount:
+            invalidChainRerouting.blockedSegmentCount,
+        centerlineInvalidRerouteChoices: invalidChainRerouting.choices,
+        centerlineInvalidRerouteBlockedComponents:
+            invalidChainRerouting.blockedComponents,
+        centerlineFinalChainPatchPassCount: finalChainPatch.passCount,
+        centerlineFinalChainPatchKeptPassCount: finalChainPatch.keptPassCount,
+        centerlineFinalChainPatchAttemptedChainCount:
+            finalChainPatch.attemptedChainCount,
+        centerlineFinalChainPatchKeptChainCount: finalChainPatch.keptChainCount,
+        centerlineFinalChainPatchRejectedChainCount:
+            finalChainPatch.rejectedChainCount,
+        centerlineFinalChainPatchRolledBackCount:
+            finalChainPatch.rolledBackCount,
+        centerlineFinalChainPatchChoices: finalChainPatch.choices,
+        centerlineFinalChainPatchRollbackDiagnostics:
+            finalChainPatch.rollbackDiagnostics,
+        centerlineFinalReroutePassCount: finalRerouting.passCount,
+        centerlineFinalRerouteKeptPassCount: finalRerouting.keptPassCount,
+        centerlineFinalRerouteAttemptedChainCount:
+            finalRerouting.attemptedChainCount,
+        centerlineFinalRerouteRoutedChainCount:
+            finalRerouting.routedChainCount,
+        centerlineFinalRerouteKeptChainCount:
+            finalRerouting.keptChainCount,
+        centerlineFinalRerouteRejectedChainCount:
+            finalRerouting.rejectedChainCount,
+        centerlineFinalRerouteRolledBackCount:
+            finalRerouting.rolledBackCount,
+        centerlineFinalRerouteChoices: finalRerouting.choices,
+        centerlineFinalRerouteRollbackDiagnostics:
+            finalRerouting.rollbackDiagnostics,
         centerlineCenteringMeasuredNodeCount: centering.measuredNodeCount,
         centerlineCenteringFailedNodeCount: centering.failedNodeCount,
         centerlineCenteringAverageOffset: centering.averageOffset,
