@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
+import { buildMedialCenterlineTree } from './medialCenterlineTree.js';
 
 const DEFAULT_TARGET_SLICE_COUNT = 1000;
 const DEFAULT_SLICE_SPACING = null;
@@ -7464,6 +7465,452 @@ function thinDebugPositions(positions) {
     return new Float32Array(thinned);
 }
 
+function smoothCenterlineForSimulation(segments, geometry, wallBvh, {
+    passes = 4,
+    radialSamples = 16,
+    connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE
+} = {}) {
+    if (!segments.length || !geometry?.attributes?.position) {
+        return { passCount: 0, movedNodeCount: 0, averageShift: 0, maxShift: 0 };
+    }
+    const lumenBvh = geometry.boundsTree || (geometry.boundsTree = new MeshBVH(geometry));
+    let passCount = 0;
+    let movedNodeCount = 0;
+    let shiftSum = 0;
+    let maxShift = 0;
+    for (let pass = 0; pass < passes; pass++) {
+        const incidence = collectNodeIncidence(segments);
+        const endpointKeys = collectSegmentEndpointKeyMap(incidence);
+        const nodes = collectRefinementNodes(segments);
+        const candidates = [];
+        for (const [key, incident] of incidence) {
+            if (incident.length !== 2) continue;
+            const deflection = centerlineNodeDeflectionDegrees(key, incident, incidence, endpointKeys);
+            if (deflection < 5) continue;
+            candidates.push({ key, deflection });
+        }
+        candidates.sort((a, b) => b.deflection - a.deflection);
+        let movedThisPass = 0;
+        for (const entry of candidates) {
+            const node = nodes.get(entry.key);
+            const current = currentNodePointFromIncidence(entry.key, incidence);
+            const midpoint = nodeNeighbourMidpoint(entry.key, incidence);
+            if (!node || !current || !midpoint) continue;
+            const candidate = current.clone().lerp(midpoint, 0.45);
+            const shift = candidate.distanceTo(current);
+            if (shift < 0.01) continue;
+            if (nodeCandidateSegmentsValidityFailureReason(
+                entry.key,
+                candidate,
+                incidence,
+                null,
+                connectorLumenClearance,
+                wallBvh
+            )) {
+                continue;
+            }
+            const before = nodeCenterShift(node, current, lumenBvh, {
+                radialSamples,
+                sphereSamples: 0
+            });
+            const after = nodeCenterShift(node, candidate, lumenBvh, {
+                radialSamples,
+                sphereSamples: 0
+            });
+            if (!before.pairCount || !after.pairCount) continue;
+            const beforeOffset = before.shift.length();
+            const afterOffset = after.shift.length();
+            const beforeNormalized = beforeOffset / Math.max(0.5, before.meanRadius || node.radius || 1);
+            const afterNormalized = afterOffset / Math.max(0.5, after.meanRadius || node.radius || 1);
+            if (afterOffset > beforeOffset + 0.06 || afterNormalized > beforeNormalized + 0.012) continue;
+            applyNodeCandidate(entry.key, candidate, incidence);
+            movedNodeCount++;
+            movedThisPass++;
+            shiftSum += shift;
+            maxShift = Math.max(maxShift, shift);
+        }
+        if (!movedThisPass) break;
+        passCount++;
+    }
+    return {
+        passCount,
+        movedNodeCount,
+        averageShift: movedNodeCount ? shiftSum / movedNodeCount : 0,
+        maxShift
+    };
+}
+
+function maximizeCenterlineWallClearance(segments, geometry, wallBvh, {
+    passes = 3,
+    directionCount = 16,
+    connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE
+} = {}) {
+    if (!segments.length || !geometry?.attributes?.position || !wallBvh?.closestPointToPoint) {
+        return {
+            passCount: 0,
+            movedNodeCount: 0,
+            averageShift: 0,
+            maxShift: 0,
+            averageClearanceGain: 0,
+            maxClearanceGain: 0
+        };
+    }
+    let passCount = 0;
+    let movedNodeCount = 0;
+    let shiftSum = 0;
+    let maxShift = 0;
+    let clearanceGainSum = 0;
+    let maxClearanceGain = 0;
+    const hitScratch = { point: new THREE.Vector3() };
+    const wallDistance = point => wallBvh.closestPointToPoint(point, hitScratch)?.distance ?? 0;
+    for (let pass = 0; pass < passes; pass++) {
+        const incidence = collectNodeIncidence(segments);
+        const endpointKeys = collectSegmentEndpointKeyMap(incidence);
+        const nodes = collectRefinementNodes(segments);
+        const candidates = [];
+        for (const [key, node] of nodes) {
+            if (node.directions.length !== 2) continue;
+            const point = currentNodePointFromIncidence(key, incidence);
+            if (!point) continue;
+            candidates.push({
+                key,
+                node,
+                point,
+                clearance: wallDistance(point),
+                deflection: centerlineNodeDeflectionDegrees(key, incidence.get(key), incidence, endpointKeys)
+            });
+        }
+        candidates.sort((a, b) => a.clearance - b.clearance || b.deflection - a.deflection);
+        const lockedKeys = new Set();
+        let movedThisPass = 0;
+        for (const entry of candidates) {
+            if (lockedKeys.has(entry.key)) continue;
+            const current = currentNodePointFromIncidence(entry.key, incidence);
+            if (!current) continue;
+            const currentClearance = wallDistance(current);
+            const tangent = nodeTangent(entry.node);
+            if (!tangent) continue;
+            const { u, v } = transverseBasis(tangent);
+            const step = Math.max(0.22, Math.min(1.25, currentClearance * 0.32));
+            let best = null;
+            for (let directionIndex = 0; directionIndex < directionCount; directionIndex++) {
+                const angle = 2 * Math.PI * directionIndex / directionCount;
+                const direction = u.clone()
+                    .multiplyScalar(Math.cos(angle))
+                    .addScaledVector(v, Math.sin(angle))
+                    .normalize();
+                for (const scale of [1, 0.65, 0.4]) {
+                    const shift = direction.clone().multiplyScalar(step * scale);
+                    for (const neighbourScale of [0.62, 0.45]) {
+                        const updates = buildOutlierPatchUpdates(
+                            entry.key,
+                            current,
+                            shift,
+                            incidence,
+                            endpointKeys,
+                            1,
+                            neighbourScale
+                        );
+                        if (!updates || !nodePatchSegmentsStayValid(
+                            updates,
+                            incidence,
+                            endpointKeys,
+                            null,
+                            connectorLumenClearance,
+                            wallBvh
+                        )) {
+                            continue;
+                        }
+                        const candidatePoint = updates.get(entry.key);
+                        const clearance = wallDistance(candidatePoint);
+                        const gain = clearance - currentClearance;
+                        if (gain < 0.035) continue;
+                        const neighbourPoints = neighbourKeysForNode(entry.key, incidence, endpointKeys)
+                            .map(key => updates.get(key) || currentNodePointFromIncidence(key, incidence))
+                            .filter(Boolean);
+                        if (neighbourPoints.length !== 2) continue;
+                        const first = neighbourPoints[0].clone().sub(candidatePoint).normalize();
+                        const second = neighbourPoints[1].clone().sub(candidatePoint).normalize();
+                        const deflection = 180 - THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(
+                            first.dot(second),
+                            -1,
+                            1
+                        )));
+                        if (deflection > Math.max(42, entry.deflection + 4)) continue;
+                        const score = gain - Math.max(0, deflection - entry.deflection) * 0.006;
+                        if (!best || score > best.score) {
+                            best = { updates, shift: shift.length(), gain, score };
+                        }
+                    }
+                }
+            }
+            if (!best) continue;
+            applyNodePatch(best.updates, incidence);
+            movedNodeCount++;
+            movedThisPass++;
+            shiftSum += best.shift;
+            maxShift = Math.max(maxShift, best.shift);
+            clearanceGainSum += best.gain;
+            maxClearanceGain = Math.max(maxClearanceGain, best.gain);
+            lockedKeys.add(entry.key);
+            for (const neighbourKey of neighbourKeysForNode(entry.key, incidence, endpointKeys)) {
+                lockedKeys.add(neighbourKey);
+            }
+        }
+        if (!movedThisPass) break;
+        passCount++;
+    }
+    return {
+        passCount,
+        movedNodeCount,
+        averageShift: movedNodeCount ? shiftSum / movedNodeCount : 0,
+        maxShift,
+        averageClearanceGain: movedNodeCount ? clearanceGainSum / movedNodeCount : 0,
+        maxClearanceGain
+    };
+}
+
+function buildMedialSliceCenterline(geometry, {
+    sliceSpacing,
+    targetSliceCount,
+    contourTolerance,
+    centerlineMinLumenArea,
+    centerlineMinCompactness,
+    centerlineNodeSpacing,
+    centerlineRefinement,
+    centerlineRefinementRadialSamples,
+    centerlineRefinementIterations,
+    lumenField,
+    wallBvh
+}) {
+    const startedAt = nowMs();
+    const resolvedWallBvh = resolveWallBvh(geometry, wallBvh);
+    const requestedSpacing = resolveSliceSpacing(
+        geometry,
+        sliceSpacing,
+        Math.min(700, Math.max(180, targetSliceCount))
+    );
+    const medialSliceSpacing = Math.max(0.9, requestedSpacing);
+    const gridSpacing = Math.max(0.85, Math.min(1.35, medialSliceSpacing * 0.95));
+    const slices = extractStlSlices(
+        geometry,
+        medialSliceSpacing,
+        contourTolerance,
+        Math.max(0.35, Math.min(1, centerlineMinLumenArea)),
+        Math.max(0.005, Math.min(0.03, centerlineMinCompactness)),
+        Infinity,
+        { solidLumen: false, centerMode: 'medial' }
+    );
+    const extractionMs = nowMs() - startedAt;
+    const medial = buildMedialCenterlineTree(slices, {
+        lumenField,
+        wallBvh: resolvedWallBvh,
+        gridSpacing,
+        nodeSpacing: centerlineNodeSpacing,
+        smoothingPasses: 4
+    });
+    const allSegments = medial.segments;
+    const treeMs = nowMs() - startedAt - extractionMs;
+
+    let refinement = {
+        refinedNodeCount: 0,
+        skippedNodeCount: 0,
+        failedNodeCount: 0,
+        wallRejectedSegmentCount: 0,
+        wallClampedSegmentCount: 0,
+        averageShift: 0,
+        maxShift: 0
+    };
+    const refinementStartedAt = nowMs();
+    if (centerlineRefinement && allSegments.length) {
+        let shiftSum = 0;
+        for (let pass = 0; pass < 2; pass++) {
+            const passRefinement = refineCenterlineSegmentsToLumen(allSegments, geometry, {
+                radialSamples: Math.max(12, Math.min(24, centerlineRefinementRadialSamples)),
+                sphereSamples: 0,
+                iterations: Math.max(2, Math.min(4, centerlineRefinementIterations)),
+                wallBvh: resolvedWallBvh
+            });
+            refinement.refinedNodeCount += passRefinement.refinedNodeCount;
+            refinement.skippedNodeCount += passRefinement.skippedNodeCount;
+            refinement.failedNodeCount += passRefinement.failedNodeCount;
+            refinement.wallRejectedSegmentCount += passRefinement.wallRejectedSegmentCount;
+            refinement.wallClampedSegmentCount += passRefinement.wallClampedSegmentCount;
+            shiftSum += passRefinement.averageShift * passRefinement.refinedNodeCount;
+            refinement.maxShift = Math.max(refinement.maxShift, passRefinement.maxShift);
+            const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+            if (resampled.segments !== allSegments) {
+                allSegments.length = 0;
+                allSegments.push(...resampled.segments);
+            }
+        }
+        refinement.averageShift = refinement.refinedNodeCount
+            ? shiftSum / refinement.refinedNodeCount
+            : 0;
+    }
+    const refinementMs = nowMs() - refinementStartedAt;
+    const clearanceMaximization = maximizeCenterlineWallClearance(
+        allSegments,
+        geometry,
+        resolvedWallBvh,
+        { passes: 5 }
+    );
+    const backtrackSimplification = simplifyCenterlineBacktracks(
+        allSegments,
+        resolvedWallBvh ? null : lumenField,
+        resolvedWallBvh,
+        DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
+        { minDeflectionDegrees: 82, maxPasses: 12 }
+    );
+    if (backtrackSimplification.collapsedNodeCount) {
+        const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        if (resampled.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampled.segments);
+        }
+    }
+    const simulationSmoothing = smoothCenterlineForSimulation(
+        allSegments,
+        geometry,
+        resolvedWallBvh,
+        {
+            passes: 4,
+            radialSamples: Math.max(12, Math.min(20, centerlineRefinementRadialSamples))
+        }
+    );
+    if (simulationSmoothing.movedNodeCount) {
+        const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        if (resampled.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampled.segments);
+        }
+    }
+    const finalBacktrackSimplification = simplifyCenterlineBacktracks(
+        allSegments,
+        resolvedWallBvh ? null : lumenField,
+        resolvedWallBvh,
+        DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
+        { minDeflectionDegrees: 82, maxPasses: 12 }
+    );
+    if (finalBacktrackSimplification.collapsedNodeCount) {
+        const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        if (resampled.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampled.segments);
+        }
+    }
+    const cyclePruning = removeCenterlineCycles(allSegments);
+    const components = segmentComponents(allSegments);
+    const topology = measureCenterlineTopology(allSegments);
+    const centeringStartedAt = nowMs();
+    const centering = measureCenterlineCentering(allSegments, geometry, {
+        radialSamples: Math.max(12, Math.min(24, centerlineRefinementRadialSamples)),
+        sphereSamples: 0
+    });
+    const centeringMs = nowMs() - centeringStartedAt;
+    const invalidSegments = invalidCenterlineSegments(
+        allSegments,
+        resolvedWallBvh ? null : lumenField,
+        resolvedWallBvh,
+        DEFAULT_CONNECTOR_LUMEN_CLEARANCE
+    );
+    const debugSegments = thinDebugPositions(buildDebugSegments(slices));
+    const totalMs = nowMs() - startedAt;
+    const coverage = {
+        sampleCount: medial.diagnostics.retainedGraphNodeCount,
+        coveredSampleCount: medial.diagnostics.coveredNodeCount,
+        uncoveredSampleCount: medial.diagnostics.uncoveredNodeCount,
+        coverageRate: medial.diagnostics.retainedGraphNodeCount
+            ? medial.diagnostics.coveredNodeCount / medial.diagnostics.retainedGraphNodeCount
+            : 0
+    };
+    const diagnostics = {
+        source: 'medial-slice-teasar',
+        algorithm: 'medial-slice-teasar',
+        timings: { extractionMs, treeMs, refinementMs, centeringMs, totalMs },
+        axes: 'y-medial-skeleton',
+        axisDiagnostics: [{
+            axis: 'y',
+            pass: 'medial-skeleton',
+            sliceCount: slices.length,
+            contourCount: medial.diagnostics.contourCount,
+            candidateSegmentCount: medial.diagnostics.graphEdgeCount,
+            componentCount: medial.diagnostics.graphComponentCount,
+            usedLumenSurfaceSlices: true,
+            centerMode: 'topological-medial-axis',
+            sliceSpacing: medialSliceSpacing,
+            elapsedMs: extractionMs + treeMs
+        }],
+        sliceCount: slices.length,
+        contourCount: medial.diagnostics.contourCount,
+        edgeCount: allSegments.length,
+        stubSegmentCount: 0,
+        isolatedNodeCount: 0,
+        componentCount: components.length,
+        componentSegmentCounts: components.map(component => component.length),
+        uncoveredNodeCount: coverage.uncoveredSampleCount,
+        centerlineCoverage: coverage,
+        centerlineNodeSpacing,
+        centerlineMinLumenArea,
+        centerlineMinCompactness,
+        centerlineGraphNodeCount: topology.nodeCount,
+        centerlineGraphCycleCount: 0,
+        centerlineCyclePrunedSegmentCount: cyclePruning.removedSegmentCount,
+        centerlineTopologyBeforeCleanup: topology,
+        centerlineTopologyAfterCleanup: topology,
+        centerlineBacktrackCollapsedNodeCount:
+            backtrackSimplification.collapsedNodeCount + finalBacktrackSimplification.collapsedNodeCount,
+        centerlineBacktrackRemovedSegmentCount:
+            backtrackSimplification.removedSegmentCount + finalBacktrackSimplification.removedSegmentCount,
+        centerlineBacktrackInsertedSegmentCount:
+            backtrackSimplification.insertedSegmentCount + finalBacktrackSimplification.insertedSegmentCount,
+        centerlineBacktrackRejectedNodeCount:
+            backtrackSimplification.rejectedNodeCount + finalBacktrackSimplification.rejectedNodeCount,
+        centerlineBacktrackPathLengthReduction:
+            backtrackSimplification.pathLengthReduction + finalBacktrackSimplification.pathLengthReduction,
+        centerlineSimulationSmoothing: simulationSmoothing,
+        centerlineInvalidSegmentCountBeforeReroute: invalidSegments.length,
+        centerlineInvalidSegmentCountAfterReroute: invalidSegments.length,
+        centerlineInvalidSegmentCountFinal: invalidSegments.length,
+        centerlineCenteringMeasuredNodeCount: centering.measuredNodeCount,
+        centerlineCenteringFailedNodeCount: centering.failedNodeCount,
+        centerlineCenteringAverageOffset: centering.averageOffset,
+        centerlineCenteringMaxOffset: centering.maxOffset,
+        centerlineCenteringAverageNormalizedOffset: centering.averageNormalizedOffset,
+        centerlineCenteringMaxNormalizedOffset: centering.maxNormalizedOffset,
+        centerlineCenteringWorstOffsets: centering.worstOffsets,
+        centerlineCenteringWorstNormalizedOffsets: centering.worstNormalizedOffsets,
+        centerlineRefinement,
+        centerlineRefinedNodeCount: refinement.refinedNodeCount,
+        centerlineRefinementSkippedNodeCount: refinement.skippedNodeCount,
+        centerlineRefinementFailedNodeCount: refinement.failedNodeCount,
+        centerlineRefinementWallRejectedSegmentCount: refinement.wallRejectedSegmentCount,
+        centerlineRefinementWallClampedSegmentCount: refinement.wallClampedSegmentCount,
+        centerlineRefinementAverageShift: refinement.averageShift,
+        centerlineRefinementMaxShift: refinement.maxShift,
+        centerlineClearanceMaximization: clearanceMaximization,
+        medialTree: medial.diagnostics,
+        wallValidation: resolvedWallBvh ? 'stl-bvh' : 'lumen-field'
+    };
+    allSegments.diagnostics = diagnostics;
+    return {
+        slices,
+        lumenCast: {
+            geometry: null,
+            slices,
+            field: lumenField,
+            diagnostics: {
+                source: 'direct-medial-slices',
+                sliceCount: slices.length,
+                contourCount: medial.diagnostics.contourCount
+            }
+        },
+        segments: allSegments,
+        debugSegments,
+        diagnostics
+    };
+}
+
 export function buildStlSliceCenterline(geometry, {
     sliceSpacing = DEFAULT_SLICE_SPACING,
     targetSliceCount = DEFAULT_TARGET_SLICE_COUNT,
@@ -7491,8 +7938,24 @@ export function buildStlSliceCenterline(geometry, {
     centerlineRefinementPasses = DEFAULT_CENTERLINE_REFINE_PASSES,
     centerlineClearanceRelaxPasses = DEFAULT_CENTERLINE_CLEARANCE_RELAX_PASSES,
     centerlineOutlierReroutePasses = CENTERLINE_OUTLIER_REROUTE_PASSES,
-    centerlineOutlierRerouteMaxCandidates = CENTERLINE_OUTLIER_REROUTE_MAX_CANDIDATES
+    centerlineOutlierRerouteMaxCandidates = CENTERLINE_OUTLIER_REROUTE_MAX_CANDIDATES,
+    algorithm = 'medial-slice-teasar'
 } = {}) {
+    if (algorithm === 'medial-slice-teasar' && lumenField?.query) {
+        return buildMedialSliceCenterline(geometry, {
+            sliceSpacing,
+            targetSliceCount,
+            contourTolerance,
+            centerlineMinLumenArea,
+            centerlineMinCompactness,
+            centerlineNodeSpacing,
+            centerlineRefinement,
+            centerlineRefinementRadialSamples,
+            centerlineRefinementIterations,
+            lumenField,
+            wallBvh
+        });
+    }
     const buildStartedAt = nowMs();
     const timings = {};
     const profileStages = typeof process !== 'undefined' &&

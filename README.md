@@ -58,11 +58,14 @@ The vessel centerline metadata is generated deterministically. Branch length and
 
 The visible vessel and guidewire wall collisions are driven by the imported STL aorta model and its preprocessed lumen field; the procedural vessel data is kept for flow, controls, and tool path metadata.
 
+The STL centerline is extracted as one acyclic medial tree. Each lumen cross-section is thinned to a topological medial axis, the resulting 3D graph is reduced with a clearance-weighted TEASAR pass, and every final edge is checked against the STL wall BVH. A final optimization moves short path neighborhoods away from the nearest wall while limiting added curvature. This preserves connected distal branches without the parallel paths and wall shortcuts produced by merging independent axial centerlines.
+
 ## Development Scripts
 
 ```bash
 npm run dev          # start Vite development server
 npm run build        # build the browser app
+npm run centerline:diagnostics # export centerline metrics and orthogonal projections
 npm run preview      # preview the production build
 npm test             # run simulator syntax checks and regression tests
 npm run video:studio # open the Remotion studio

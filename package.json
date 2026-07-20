@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "centerline:diagnostics": "node scripts/centerline-diagnostics.mjs",
     "preview": "vite preview",
     "video:studio": "remotion studio video/index.ts",
     "video:render": "remotion render video/index.ts EndovascularTrainerAd out/endovascular-trainer-ad.mp4 --codec=h264 --overwrite",
