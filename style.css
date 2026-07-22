@@ -1199,6 +1199,60 @@ canvas {
     margin: 8px 0;
 }
 
+.browser-benchmark {
+    display: grid;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.browser-benchmark-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.browser-benchmark-actions button {
+    min-width: 0;
+    min-height: 30px;
+    padding: 4px 8px;
+}
+
+.browser-benchmark-status {
+    min-height: 28px;
+    padding: 6px 8px;
+    border-left: 3px solid #42d6ff;
+    background: rgba(25, 170, 220, 0.16);
+    color: #c9f5ff;
+    font-size: 11px;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+}
+
+.browser-benchmark-status.passed {
+    border-left-color: #55d98b;
+    background: rgba(50, 180, 105, 0.18);
+    color: #c9ffdc;
+}
+
+.browser-benchmark-status.failed {
+    border-left-color: #ff5d5d;
+    background: rgba(255, 70, 70, 0.18);
+    color: #ffd0d0;
+}
+
+.browser-benchmark-report {
+    width: 100%;
+    min-height: 62px;
+    resize: vertical;
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 4px;
+    background: rgba(8, 10, 10, 0.72);
+    color: rgba(255, 255, 255, 0.78);
+    font: 10px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0;
+}
+
 .tool-diameters {
     display: grid;
     gap: 4px;

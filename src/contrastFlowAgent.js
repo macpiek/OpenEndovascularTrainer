@@ -77,6 +77,11 @@ export class FlowContrastAgent {
         this.vessel = vessel;
         this.segments = buildFlowSegments(vessel, cellLength);
         this.segmentGraph = vessel.segmentGraph || vessel.segments.map(() => []);
+        this.outgoing = Array.from(
+            { length: this.segments.length * 2 },
+            () => ({ segmentIndex: -1, amount: 0, wallShare: 0, sourceArea: 0 })
+        );
+        this.outgoingCount = 0;
         this.sheathSegmentIndex = vessel.segments.findIndex(seg => seg.isSheath);
         this.time = 0;
         this.totalSignal = 0;
@@ -110,29 +115,32 @@ export class FlowContrastAgent {
 
     update(dt) {
         this.time += dt;
+        if (this.totalSignal <= 0) return;
         this.totalSignal = 0;
         const pulse = 1 + 0.18 * Math.sin(this.time * Math.PI * 2.15);
-        const outgoing = [];
+        this.outgoingCount = 0;
 
-        for (const seg of this.segments) {
+        for (let segmentIndex = 0; segmentIndex < this.segments.length; segmentIndex++) {
+            const seg = this.segments[segmentIndex];
             seg.nextCore.set(seg.core);
             seg.nextWall.set(seg.wall);
             const coreFrac = Math.min(0.96, Math.max(0, seg.flowSpeed * this.coreSpeedScale * pulse * dt / seg.cellLength));
             const wallFrac = Math.min(0.78, Math.max(0, seg.flowSpeed * this.wallSpeedScale * dt / seg.cellLength));
-            this.#advectCompartment(seg, seg.core, seg.nextCore, coreFrac, 1, outgoing);
-            this.#advectCompartment(seg, seg.wall, seg.nextWall, wallFrac, 0.35, outgoing);
+            this.#advectCompartment(seg, seg.core, seg.nextCore, coreFrac, 1);
+            this.#advectCompartment(seg, seg.wall, seg.nextWall, wallFrac, 0.35);
 
             seg.core.set(seg.nextCore);
             seg.wall.set(seg.nextWall);
             this.#exchangeAndDisperse(seg, dt);
         }
 
-        for (const out of outgoing) {
-            this.#transferOutflow(out);
+        for (let index = 0; index < this.outgoingCount; index++) {
+            this.#transferOutflow(this.outgoing[index]);
         }
 
         const postBolus = this.time - this.lastInjectionTime > 0.38;
-        for (const seg of this.segments) {
+        for (let segmentIndex = 0; segmentIndex < this.segments.length; segmentIndex++) {
+            const seg = this.segments[segmentIndex];
             for (let i = 0; i < seg.cells; i++) {
                 const localSignal = seg.core[i] + seg.wall[i] * 0.8;
                 const tailFactor = postBolus ? 1 - smoothstep(0.012, 0.13, localSignal) : 0;
@@ -206,7 +214,7 @@ export class FlowContrastAgent {
         this.totalSignal += concentration;
     }
 
-    #advectCompartment(seg, values, next, frac, wallShare, outgoing) {
+    #advectCompartment(seg, values, next, frac, wallShare) {
         if (frac <= 0) return;
         for (let i = seg.cells - 1; i >= 0; i--) {
             const amount = values[i] * frac;
@@ -214,12 +222,11 @@ export class FlowContrastAgent {
             if (i + 1 < seg.cells) {
                 next[i + 1] += amount;
             } else if (amount > 0) {
-                outgoing.push({
-                    segmentIndex: seg.segmentIndex,
-                    amount,
-                    wallShare,
-                    sourceArea: seg.area
-                });
+                const out = this.outgoing[this.outgoingCount++];
+                out.segmentIndex = seg.segmentIndex;
+                out.amount = amount;
+                out.wallShare = wallShare;
+                out.sourceArea = seg.area;
             }
         }
     }
@@ -247,12 +254,13 @@ export class FlowContrastAgent {
         const children = this.segmentGraph[out.segmentIndex] || [];
         if (!children.length) return;
         let totalArea = 0;
-        for (const childIdx of children) {
-            totalArea += this.segments[childIdx]?.area || 0;
+        for (let index = 0; index < children.length; index++) {
+            totalArea += this.segments[children[index]]?.area || 0;
         }
         if (totalArea <= 0) totalArea = children.length;
 
-        for (const childIdx of children) {
+        for (let index = 0; index < children.length; index++) {
+            const childIdx = children[index];
             const child = this.segments[childIdx];
             if (!child) continue;
             const share = (child.area || 1) / totalArea;

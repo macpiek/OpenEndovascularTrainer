@@ -204,6 +204,16 @@
                 <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox" checked> Centerline</label>
                 <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
             </div>
+            <div class="browser-benchmark" aria-label="Browser benchmark">
+                <div class="browser-benchmark-actions">
+                    <button id="runBrowserBenchmarkSmoke" type="button">Start 5 s</button>
+                    <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
+                    <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>
+                </div>
+                <output id="browserBenchmarkStatus" class="browser-benchmark-status" aria-live="polite">Idle</output>
+                <textarea id="browserBenchmarkReport" class="browser-benchmark-report" rows="4"
+                    aria-label="Browser benchmark report" readonly>No report</textarea>
+            </div>
             <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
         </div>
     </div>
@@ -334,6 +344,6 @@
     }
 }
 </script>
-    <script type="module" src="./src/simulator.js?v=20260623imagingdefaults1"></script>
+    <script type="module" src="./src/simulator.js?v=20260721collisionbenchmark46"></script>
 </body>
 </html>

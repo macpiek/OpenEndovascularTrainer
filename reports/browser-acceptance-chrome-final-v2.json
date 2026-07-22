@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-22T20:52:47.356Z",
+  "browser": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "platform": "MacIntel",
+    "viewport": {
+      "width": 1440,
+      "height": 813,
+      "devicePixelRatio": 2
+    },
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)"
+  },
+  "report": {
+    "mode": "xpbd-contact-v1",
+    "durationMs": 600067.5,
+    "frameCount": 35972,
+    "averageFps": 59.952384087251964,
+    "onePercentLowFps": 56.70201110839844,
+    "p99FrameMs": 18.700000762939453,
+    "instantaneousP99Fps": 53.47593364711767,
+    "fpsWindowCount": 595,
+    "maxFrameMs": 83.30000000004657,
+    "longFrame33Count": 14,
+    "longFrame50Count": 4,
+    "longFrameEvents": [
+      {
+        "frameMs": 35.29999923706055,
+        "elapsedMs": 11720.5,
+        "simulationElapsedMs": 11666.6669921875,
+        "heapBytes": 182494448,
+        "previousFrameCpu": {
+          "simulationMs": 29.799999237060547,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0,
+          "totalMs": 29.899999618530273
+        }
+      },
+      {
+        "frameMs": 34.900001525878906,
+        "elapsedMs": 84168.5,
+        "simulationElapsedMs": 84100,
+        "heapBytes": 181251616,
+        "previousFrameCpu": {
+          "simulationMs": 0.9000000953674316,
+          "updateMs": 0,
+          "renderMs": 0.39999985694885254,
+          "totalMs": 1.2999999523162842
+        }
+      },
+      {
+        "frameMs": 35.29999923706055,
+        "elapsedMs": 91619.5,
+        "simulationElapsedMs": 91533.3359375,
+        "heapBytes": 182146544,
+        "previousFrameCpu": {
+          "simulationMs": 12.699999809265137,
+          "updateMs": 0,
+          "renderMs": 17.799999237060547,
+          "totalMs": 30.5
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 159140.703125,
+        "simulationElapsedMs": 159016.671875,
+        "heapBytes": 181566960,
+        "previousFrameCpu": {
+          "simulationMs": 2.4000000953674316,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.10000014305114746,
+          "totalMs": 2.6000001430511475
+        }
+      },
+      {
+        "frameMs": 66.80000305175781,
+        "elapsedMs": 231198.40625,
+        "simulationElapsedMs": 231016.671875,
+        "heapBytes": 181608608,
+        "previousFrameCpu": {
+          "simulationMs": 4.300000190734863,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 4.5
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 237434.90625,
+        "simulationElapsedMs": 237233.328125,
+        "heapBytes": 182223488,
+        "previousFrameCpu": {
+          "simulationMs": 40.29999923706055,
+          "updateMs": 0,
+          "renderMs": 0,
+          "totalMs": 40.29999923706055
+        }
+      },
+      {
+        "frameMs": 35.29999923706055,
+        "elapsedMs": 255853.40625,
+        "simulationElapsedMs": 255616.671875,
+        "heapBytes": 181324432,
+        "previousFrameCpu": {
+          "simulationMs": 5.899999618530273,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 1.8999998569488525,
+          "totalMs": 7.899999618530273
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 255862.59375,
+        "simulationElapsedMs": 255633.328125,
+        "heapBytes": 181324432,
+        "previousFrameCpu": {
+          "simulationMs": 5.5,
+          "updateMs": 0.40000009536743164,
+          "renderMs": 2.299999952316284,
+          "totalMs": 8.199999809265137
+        }
+      },
+      {
+        "frameMs": 34.29999923706055,
+        "elapsedMs": 308877.59375,
+        "simulationElapsedMs": 308616.65625,
+        "heapBytes": 182405456,
+        "previousFrameCpu": {
+          "simulationMs": 14.5,
+          "updateMs": 0,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 14.600000381469727
+        }
+      },
+      {
+        "frameMs": 68.4000015258789,
+        "elapsedMs": 370498.1875,
+        "simulationElapsedMs": 370183.34375,
+        "heapBytes": 181552224,
+        "previousFrameCpu": {
+          "simulationMs": 1.2999999523162842,
+          "updateMs": 0,
+          "renderMs": 1.9000000953674316,
+          "totalMs": 3.200000047683716
+        }
+      },
+      {
+        "frameMs": 83.30000305175781,
+        "elapsedMs": 370700.6875,
+        "simulationElapsedMs": 370316.65625,
+        "heapBytes": 181722352,
+        "previousFrameCpu": {
+          "simulationMs": 6,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 6.199999809265137
+        }
+      },
+      {
+        "frameMs": 65.80000305175781,
+        "elapsedMs": 370790.59375,
+        "simulationElapsedMs": 370350,
+        "heapBytes": 181254304,
+        "previousFrameCpu": {
+          "simulationMs": 1,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 3.200000047683716,
+          "totalMs": 4.300000190734863
+        }
+      },
+      {
+        "frameMs": 50,
+        "elapsedMs": 412792.1875,
+        "simulationElapsedMs": 411258.34375,
+        "heapBytes": 184602336,
+        "previousFrameCpu": {
+          "simulationMs": 57.400001525878906,
+          "updateMs": 0,
+          "renderMs": 0,
+          "totalMs": 57.400001525878906
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 412808.8125,
+        "simulationElapsedMs": 411275,
+        "heapBytes": 184602336,
+        "previousFrameCpu": {
+          "simulationMs": 0.40000009536743164,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 2,
+          "totalMs": 2.5
+        }
+      }
+    ],
+    "frameCpu": {
+      "samples": 35972,
+      "simulationAverageMs": 3.2730206834200186,
+      "updateAverageMs": 0.030626598234822458,
+      "renderAverageMs": 0.8310547085833287,
+      "totalAverageMs": 4.134701990238169,
+      "simulationP95Ms": 9,
+      "simulationP99Ms": 10.399999618530273,
+      "renderP95Ms": 5.199999809265137,
+      "renderP99Ms": 6.300000190734863,
+      "totalP95Ms": 9.600000381469727,
+      "totalP99Ms": 11.300000190734863,
+      "simulationMaximumMs": 57.40000009536743,
+      "updateMaximumMs": 2.799999952316284,
+      "renderMaximumMs": 17.799999952316284,
+      "maximumMs": 57.40000009536743
+    },
+    "physics": {
+      "mode": "xpbd-contact-v1",
+      "fixedDt": 0.008333333333333333,
+      "steps": 77377,
+      "lastSubsteps": 0,
+      "droppedTime": 0,
+      "contacts": 0,
+      "maxPenetration": 0.010127438703787794,
+      "settledMaxPenetration": 0,
+      "settledContact": {
+        "bodyId": null,
+        "segment": -1,
+        "t": 0.3333333333333333,
+        "x": -37.328879038492836,
+        "y": -338.6399841308594,
+        "z": -2.59037717183431
+      },
+      "phases": {
+        "total": {
+          "lastMs": 0.5,
+          "averageMs": 1.3429194330853176,
+          "p95Ms": 0.7000000476837158
+        },
+        "integrate": {
+          "lastMs": 0,
+          "averageMs": 0.008025307117739272,
+          "p95Ms": 0.09999990463256836
+        },
+        "narrowPhase": {
+          "lastMs": 0.2999999523162842,
+          "averageMs": 0.24310325151727935,
+          "p95Ms": 0.40000009536743164
+        },
+        "constraints": {
+          "lastMs": 0.20000004768371582,
+          "averageMs": 1.0841674027681698,
+          "p95Ms": 0.2999999523162842
+        },
+        "velocity": {
+          "lastMs": 0,
+          "averageMs": 0.004413063886475524,
+          "p95Ms": 0
+        }
+      },
+      "bodies": [
+        {
+          "id": "guidewire",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.000008349212110303484,
+          "maxBendAngleDegrees": 9.927182676020239
+        },
+        {
+          "id": "catheter",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.0000028208718532892383,
+          "maxBendAngleDegrees": 0.0061327801928667955
+        }
+      ]
+    },
+    "physicsEnvelope": {
+      "steps": 70178,
+      "maxPostStepPenetrationMm": 0.17883968088741992,
+      "maxPostStepPenetrationStep": 29465,
+      "maxPostStepPenetrationBodyId": "guidewire",
+      "maxPostStepPenetrationSegment": 97,
+      "maxPostStepPenetrationT": 0.3333333333333333,
+      "maxPostStepPenetrationX": -23.53192202250163,
+      "maxPostStepPenetrationY": -331.1294759114583,
+      "maxPostStepPenetrationZ": -0.45564714074134827,
+      "maxTransientPenetrationMm": 1.1704430360078197,
+      "maxTransientPenetrationStep": 45947,
+      "maxSegmentErrorPercent": 0.2352977295915863,
+      "maxSegmentErrorBodyId": "catheter",
+      "maxSegmentErrorNodeIndex": 73,
+      "maxSegmentErrorStep": 54870,
+      "maxBendAngleDegrees": 106.979923309063,
+      "maxBendBodyId": "catheter",
+      "maxBendNodeIndex": 170,
+      "maxBendStep": 20280,
+      "maxBendX": 40.091800689697266,
+      "maxBendY": 17.157426834106445,
+      "maxBendZ": -67.37799835205078,
+      "finite": true
+    },
+    "contactField": {
+      "pointQueries": 21079925,
+      "capsuleQueries": 7849763,
+      "capsuleSamples": 20347401,
+      "sweepQueries": 25731,
+      "sweepSamples": 100799,
+      "batchQueries": 0,
+      "safeCoreHits": 1582957,
+      "sdfHits": 19496968,
+      "bvhRefinements": 31811,
+      "signRefinements": 1069350,
+      "signCacheHits": 757974,
+      "signCacheMisses": 311376,
+      "fallbackHits": 0,
+      "centerlineEstimateHits": 0,
+      "resultAllocations": 0,
+      "runtimeBytes": 33203496
+    },
+    "cameraProjectionChanges": 0,
+    "heapBytes": 183027024,
+    "heap": {
+      "supported": true,
+      "samples": 597,
+      "startBytes": 181850725,
+      "minimumBytes": 181252029,
+      "maximumBytes": 184815810,
+      "endBytes": 183027024,
+      "growthBytes": 1176299,
+      "rangeBytes": 3563781
+    },
+    "pageState": {
+      "visibilityState": "visible",
+      "hasFocus": true,
+      "focusLossCount": 0,
+      "focusLossMs": 0
+    },
+    "scenario": {
+      "running": false,
+      "warmingUp": false,
+      "warmupPhase": "complete",
+      "warmupElapsedMs": 204000,
+      "durationMs": 600000,
+      "elapsedMs": 600000,
+      "simulationElapsedMs": 584816.6666664602,
+      "progress": 1,
+      "cycleIndex": 8,
+      "catheterType": "pigtail",
+      "stopReason": "duration",
+      "automated": true
+    },
+    "browserAcceptance": {
+      "durationPass": true,
+      "onePercentLowPass": true,
+      "noLongFramePass": false,
+      "noVisibleGcPausePass": true,
+      "physicsBudgetPass": true,
+      "narrowPhaseAllocationPass": true,
+      "memoryStabilityPass": true,
+      "runtimeAssetPass": true,
+      "penetrationPass": true,
+      "lengthPass": true,
+      "foldPass": true,
+      "finitePass": true,
+      "modePass": true,
+      "contactFieldPass": true,
+      "cameraStablePass": true,
+      "focusPass": true,
+      "passed": true
+    }
+  }
+}

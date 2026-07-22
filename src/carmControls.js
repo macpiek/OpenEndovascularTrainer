@@ -37,10 +37,13 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let carmY = parseFloat(carmYSlider.value);
     let carmZ = parseFloat(carmZSlider.value);
     let detectorRadius = parseFloat(carmDetDistSlider.value);
+    let locked = false;
+    let revision = 0;
 
     const initialX = carmX;
     const initialY = carmY;
     const initialZ = carmZ;
+    const initialDetectorRadius = detectorRadius;
     const previewPelvisX = 10;
     const previewYawAxis = new THREE.Vector3(1, 0, 0);
     const previewPitchAxis = new THREE.Vector3(0, 0, 1);
@@ -133,22 +136,27 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             renderPreview();
         }
         updateReadouts();
+        revision++;
     }
 
     updateCamera();
     carmXSlider.addEventListener('input', e => {
+        if (locked) return;
         carmX = parseFloat(e.target.value);
         updateCamera();
     });
     carmYSlider.addEventListener('input', e => {
+        if (locked) return;
         carmY = parseFloat(e.target.value);
         updateCamera();
     });
     carmZSlider.addEventListener('input', e => {
+        if (locked) return;
         carmZ = parseFloat(e.target.value);
         updateCamera();
     });
     carmDetDistSlider.addEventListener('input', e => {
+        if (locked) return;
         detectorRadius = parseFloat(e.target.value);
         updateCamera();
     });
@@ -186,6 +194,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         let dragging = false;
         const handleTransition = 'transform 0.2s ease-out';
         function updateFromJoystick(clientX, clientY) {
+            if (locked) return;
             const rect = joystick.getBoundingClientRect();
             let x = clientX - rect.left - rect.width / 2;
             let y = clientY - rect.top - rect.height / 2;
@@ -199,6 +208,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             onMove(x / maxDistance, y / maxDistance);
         }
         joystick.addEventListener('mousedown', e => {
+            if (locked) return;
             dragging = true;
             joystickHandle.style.transition = 'none';
             updateFromJoystick(e.clientX, e.clientY);
@@ -215,6 +225,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             onRelease();
         });
         joystick.addEventListener('pointerdown', e => {
+            if (locked) return;
             dragging = true;
             joystick.setPointerCapture?.(e.pointerId);
             joystickHandle.style.transition = 'none';
@@ -241,6 +252,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             onRelease();
         });
         joystick.addEventListener('touchstart', e => {
+            if (locked) return;
             e.preventDefault();
             dragging = true;
             joystickHandle.style.transition = 'none';
@@ -283,6 +295,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     function step(now) {
         const dt = (now - lastTime) / 1000;
         lastTime = now;
+        if (locked) {
+            requestAnimationFrame(step);
+            return;
+        }
         let updated = false;
         if (speedX !== 0 || speedY !== 0) {
             carmX = Math.min(Math.max(carmX + speedX * maxSpeedX * dt, minX), maxX);
@@ -340,6 +356,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     requestAnimationFrame(step);
 
     function startZ(dir) {
+        if (locked) return;
         speedZ = dir;
     }
     function stopZ() {
@@ -356,6 +373,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     function startRoll(dir) {
+        if (locked) return;
         rollSpeed = dir;
     }
     function stopRoll() {
@@ -373,6 +391,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
     function startAngleReset(e) {
         e?.preventDefault?.();
+        if (locked) return;
         angleResetActive = true;
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;
@@ -404,6 +423,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
     function startAngleTarget(targetYaw, button, e) {
         e?.preventDefault?.();
+        if (locked) return;
         angleResetActive = false;
         carmAngleResetButton?.classList.remove('active');
         angleSpeedYaw = 0;
@@ -458,4 +478,49 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;
     });
+
+    function stopMotion() {
+        speedX = 0;
+        speedY = 0;
+        speedZ = 0;
+        rollSpeed = 0;
+        angleSpeedYaw = 0;
+        angleSpeedPitch = 0;
+        angleResetActive = false;
+        angleTargetYaw = null;
+        activeAngleTargetButton?.classList.remove('active');
+        activeAngleTargetButton = null;
+        carmAngleResetButton?.classList.remove('active');
+        if (positionJoystickHandle) {
+            positionJoystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+        if (angleJoystickHandle) {
+            angleJoystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+
+    function reset() {
+        stopMotion();
+        carmYaw = 0;
+        carmPitch = 0;
+        carmRoll = 0;
+        carmX = initialX;
+        carmY = initialY;
+        carmZ = initialZ;
+        detectorRadius = initialDetectorRadius;
+        carmXSlider.value = String(Math.round(carmX));
+        carmYSlider.value = String(Math.round(carmY));
+        carmZSlider.value = String(Math.round(carmZ));
+        carmDetDistSlider.value = String(Math.round(detectorRadius));
+        updateCamera();
+    }
+
+    return {
+        reset,
+        getRevision: () => revision,
+        setLocked(value) {
+            locked = value === true;
+            if (locked) stopMotion();
+        }
+    };
 }

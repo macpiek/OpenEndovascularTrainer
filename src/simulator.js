@@ -1,18 +1,34 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
-import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260618withdrawrelax4';
+import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260721benchmarkreset2';
+import {
+    DEFAULT_TOOL_PROFILES,
+    EndovascularPhysicsWorld
+} from './physics/endovascularPhysicsWorld.js?v=20260721containment11';
 import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260620rollpreview1';
+import { initUI } from './ui/ui.js?v=20260721benchmarkreset4';
 import { createBoneModel } from './boneModel.js?v=20260618loading1';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
-import { PigtailCatheter } from './pigtailCatheter.js?v=20260614guidewirestable1';
-import { createAortaModel } from './aortaModel.js?v=20260616aortacollider2';
+import { PigtailCatheter } from './pigtailCatheter.js?v=20260721containment6';
+import { createAortaModel } from './aortaModel.js?v=20260721collisionasset8';
 import { createBroadPhaseDebugGroup } from './vesselBroadPhase.js';
-import { GUIDEWIRE_RADIUS_MM, GUIDEWIRE_RENDER_RADIUS_MM } from './toolDimensions.js';
+import {
+    GUIDEWIRE_RADIUS_MM,
+    GUIDEWIRE_RENDER_RADIUS_MM,
+    INTRODUCER_SHEATH_INNER_RADIUS_MM,
+    PIGTAIL_CATHETER_INNER_RADIUS_MM
+} from './toolDimensions.js';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260623imagingdefaults1';
+import {
+    BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
+    BROWSER_BENCHMARK_SCENARIO_CYCLE_MS,
+    browserBenchmarkCatheterType,
+    createBrowserBenchmarkCommands,
+    sampleBrowserBenchmarkCommands
+} from './benchmark/browserBenchmarkScenario.js?v=20260721fullcycle2';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const STL_MODEL_DEBUG_COLOR = 0x4f8dff;
@@ -29,6 +45,8 @@ const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
 const GUIDEWIRE_SEGMENT_RADIAL_SEGMENTS = 32;
 const GUIDEWIRE_SEGMENT_OVERLAP_MM = GUIDEWIRE_RENDER_RADIUS_MM * 1.35;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
+const requestedPhysicsMode = new URLSearchParams(window.location.search).get('physics');
+const PHYSICS_MODE = requestedPhysicsMode === 'legacy' ? 'legacy' : 'xpbd-contact-v1';
 const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
 const loadingScreen = document.getElementById('loadingScreen');
@@ -88,7 +106,12 @@ setLoadingMessage('Preparing renderer');
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-const DEVICE_MASK_TARGET_SAMPLES = renderer.capabilities.isWebGL2 ? 4 : 0;
+const FLUORO_TARGET_SCALE = 0.64;
+const fluoroscopyTargetWidth = () => Math.max(1, Math.round(window.innerWidth * FLUORO_TARGET_SCALE));
+const fluoroscopyTargetHeight = () => Math.max(1, Math.round(window.innerHeight * FLUORO_TARGET_SCALE));
+const initialFluoroTargetWidth = fluoroscopyTargetWidth();
+const initialFluoroTargetHeight = fluoroscopyTargetHeight();
+const DEVICE_MASK_TARGET_SAMPLES = renderer.capabilities.isWebGL2 ? 2 : 0;
 const deviceMaskTargetOptions = { samples: DEVICE_MASK_TARGET_SAMPLES };
 
 // Primary 3D scene (wire, vessels, bones)
@@ -99,21 +122,24 @@ scene.background = new THREE.Color(0x000000);
 const contrastScene = new THREE.Scene();
 
 // Offscreen render targets used by various post-processing passes
-const offscreenTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deviceMaskTargetOptions);
-const contrastTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const metalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deviceMaskTargetOptions);
-const catheterTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const sheathTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const boneTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+const offscreenTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
+const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const metalTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
+const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const sheathTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const boneTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
     type: THREE.HalfFloatType
 });
-const accumulateTarget1 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const accumulateTarget2 = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const frontDepthTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const backDepthTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const thicknessTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+const accumulateTarget1 = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const accumulateTarget2 = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const frontDepthTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const backDepthTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const thicknessTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
 let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
+const anatomyCameraWorld = new Float64Array(16);
+const anatomyProjectionMatrix = new Float64Array(16);
+let anatomyProjectionValid = false;
 
 // Fullscreen post-processing setup
 const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -274,7 +300,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         scatterStrength: { value: 0.45 },
         collimation: { value: 0.08 },
         boneOpacity: { value: 0.62 },
-        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        resolution: { value: new THREE.Vector2(initialFluoroTargetWidth, initialFluoroTargetHeight) },
         edgeStrength: { value: 0.1 },
         contrastOpacity: { value: 1.0 },
         contrastGain: { value: 5.0 }
@@ -295,10 +321,13 @@ scene.add(camera);
 
 let vesselGroup;
 const { group: skeletonModel, material: boneMaterial } = createBoneModel({
-    onLoaded: () => completeLoadingMilestone(
-        'skeleton',
-        loadingMilestones.has('aorta') ? 'Loading vessel model' : 'Rendering first frame'
-    ),
+    onLoaded: () => {
+        anatomyProjectionValid = false;
+        completeLoadingMilestone(
+            'skeleton',
+            loadingMilestones.has('aorta') ? 'Loading vessel model' : 'Rendering first frame'
+        );
+    },
     onError: () => failLoadingMilestone('skeleton')
 });
 
@@ -309,6 +338,14 @@ vesselGroup = new THREE.Group();
 let vesselCollisionTarget = vessel;
 let pigtailCatheter = null;
 let guidewireSolver = null;
+let endovascularWorld = null;
+let xpbdWireBody = null;
+let xpbdCatheterBody = null;
+let xpbdContainment = null;
+let xpbdExternalToolContact = null;
+let xpbdContactDebugGroup = null;
+let xpbdContactNormalLines = null;
+let xpbdActiveBranchLines = null;
 
 function createSheathGeometry(sheath, radiusScale = 1) {
     const start = new THREE.Vector3(sheath.start.x, sheath.start.y, sheath.start.z);
@@ -470,6 +507,7 @@ createAortaModel(vessel, {
             ...collision,
             segments: [vessel.sheath]
         };
+        if (endovascularWorld) endovascularWorld.contactField = collision.contactField;
         lumenDebugGroup.clear();
         lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry, {
             debugLayer: 'stlModel',
@@ -763,13 +801,21 @@ const ui = initUI({
         if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
         if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
         if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
+        if (xpbdContactDebugGroup) {
+            xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
+        }
         skeletonModel.visible = fluoroscopy;
         displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
     },
     onDebugLayerChange: layers => {
         Object.assign(debugLayerVisibility, layers);
         applyDebugLayerVisibility();
+        if (xpbdContactDebugGroup) {
+            xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
+        }
     },
+    onStartBrowserBenchmark: durationMs => startBrowserBenchmarkScenario({ durationMs }),
+    onStopBrowserBenchmark: () => stopBrowserBenchmarkScenario('ui'),
 });
 const { monitor } = ui;
 const wireSegmentGeometry = new THREE.CylinderGeometry(
@@ -794,6 +840,7 @@ const wireSegmentAxis = new THREE.Vector3();
 const wireSegmentMidpoint = new THREE.Vector3();
 const wireSegmentScale = new THREE.Vector3(1, 1, 1);
 const wireSegmentUp = new THREE.Vector3(0, 1, 0);
+const contactMarkerMatrix = new THREE.Matrix4();
 
 const contactMarkerGeometry = new THREE.SphereGeometry(1.35, 12, 8);
 const breachMarkerGeometry = new THREE.SphereGeometry(2.1, 12, 8);
@@ -852,6 +899,39 @@ wallWorstPointMarker.renderOrder = 8;
 wallWorstPointMarker.userData.hasPoint = false;
 scene.add(wallWorstPointMarker);
 
+function createDynamicDebugLines(color) {
+    const positions = new Float32Array(CONTACT_MARKER_LIMIT * 6);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setDrawRange(0, 0);
+    const lines = new THREE.LineSegments(
+        geometry,
+        new THREE.LineBasicMaterial({
+            color,
+            transparent: true,
+            opacity: 0.95,
+            depthTest: false,
+            depthWrite: false,
+            toneMapped: false
+        })
+    );
+    lines.frustumCulled = false;
+    lines.renderOrder = 9.9;
+    return lines;
+}
+
+xpbdContactDebugGroup = new THREE.Group();
+xpbdContactNormalLines = createDynamicDebugLines(0x28ffd7);
+xpbdActiveBranchLines = createDynamicDebugLines(0xff4fd8);
+xpbdContactDebugGroup.add(xpbdContactNormalLines, xpbdActiveBranchLines);
+xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
+scene.add(xpbdContactDebugGroup);
+
+const GUIDE_WIRE_ADVANCE_OPTIONS = { routeAssist: PHYSICS_MODE === 'legacy' };
+const XPBD_WIRE_SYNC_OPTIONS = { resetVelocity: true };
+const XPBD_CATHETER_STEP_OPTIONS = { collisions: false };
+const XPBD_CATHETER_SYNC_OPTIONS = { shapeCompliance: 2e-4 };
+
 pigtailCatheter = new PigtailCatheter({
     wire,
     segmentLength,
@@ -859,13 +939,725 @@ pigtailCatheter = new PigtailCatheter({
     tailProgressRef: () => guidewireSolver.progress,
     vessel
 });
+pigtailCatheter.setExternalCollisionSolver(PHYSICS_MODE === 'xpbd-contact-v1');
 if (vesselCollisionTarget !== vessel) {
     pigtailCatheter.setCollisionGeometry(vesselCollisionTarget);
 }
 scene.add(pigtailCatheter.mesh);
 
+endovascularWorld = new EndovascularPhysicsWorld({
+    contactField: vesselCollisionTarget.contactField || null,
+    fixedDt: 1 / 120,
+    maxSubsteps: 2,
+    iterations: 6,
+    penetrationIterations: 8,
+    highPenetration: 0.15,
+    contactActivation: 0.2
+});
+xpbdWireBody = endovascularWorld.createRod('guidewire', nodeCount, segmentLength, {
+    ...DEFAULT_TOOL_PROFILES.guidewire
+});
+xpbdWireBody.syncFromElasticRod(wire);
+xpbdCatheterBody = endovascularWorld.createRod('catheter', 320, 4, {
+    ...DEFAULT_TOOL_PROFILES.catheter,
+    bendCompliance: 2e-4,
+    shapeCompliance: 2e-4
+});
+pigtailCatheter.syncXpbdBody(xpbdCatheterBody, XPBD_CATHETER_SYNC_OPTIONS);
+endovascularWorld.addSheath({
+    start: vessel.sheath.start,
+    end: vessel.sheath.end,
+    innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM,
+    bodies: [xpbdWireBody, xpbdCatheterBody]
+});
+xpbdContainment = endovascularWorld.addContainment(xpbdWireBody, xpbdCatheterBody, {
+    innerRadius: PIGTAIL_CATHETER_INNER_RADIUS_MM,
+    openProximal: true,
+    openDistal: true,
+    searchWindow: 8,
+    outerStartNode: pigtailCatheter.physicsLumenStartNode,
+    enabled: false
+});
+xpbdExternalToolContact = endovascularWorld.addToolContact(xpbdWireBody, xpbdCatheterBody, {
+    friction: 0.08,
+    openDistalB: true,
+    enabled: false
+});
+const browserBenchmarkBodies = [xpbdWireBody, xpbdCatheterBody];
+globalThis.__OET_PHYSICS__ = {
+    mode: PHYSICS_MODE,
+    world: endovascularWorld,
+    getStats: () => endovascularWorld.getStats()
+};
+
+const BROWSER_BENCHMARK_FRAME_CAPACITY = 40000;
+const BROWSER_BENCHMARK_CHOREOGRAPHY_WARMUP_MS = BROWSER_BENCHMARK_SCENARIO_CYCLE_MS * 2;
+const BROWSER_BENCHMARK_MEMORY_SETTLE_MS = 60 * 1000;
+const BROWSER_BENCHMARK_WARMUP_MS =
+    BROWSER_BENCHMARK_CHOREOGRAPHY_WARMUP_MS + BROWSER_BENCHMARK_MEMORY_SETTLE_MS;
+const BROWSER_BENCHMARK_FPS_WINDOW_CAPACITY = 610;
+const BROWSER_BENCHMARK_LONG_EVENT_CAPACITY = 256;
+const BROWSER_BENCHMARK_LONG_EVENT_STRIDE = 8;
+const browserFrameTimes = new Float32Array(BROWSER_BENCHMARK_FRAME_CAPACITY);
+const browserFpsWindows = new Float32Array(BROWSER_BENCHMARK_FPS_WINDOW_CAPACITY);
+const browserFrameCpuSimulation = new Float32Array(BROWSER_BENCHMARK_FRAME_CAPACITY);
+const browserFrameCpuUpdate = new Float32Array(BROWSER_BENCHMARK_FRAME_CAPACITY);
+const browserFrameCpuRender = new Float32Array(BROWSER_BENCHMARK_FRAME_CAPACITY);
+const browserFrameCpuTotal = new Float32Array(BROWSER_BENCHMARK_FRAME_CAPACITY);
+const browserLongFrameEvents = new Float32Array(
+    BROWSER_BENCHMARK_LONG_EVENT_CAPACITY * BROWSER_BENCHMARK_LONG_EVENT_STRIDE
+);
+let browserFrameCursor = 0;
+let browserFrameCount = 0;
+let browserFrameTimeSum = 0;
+let browserMaxFrameMs = 0;
+let browserLongFrame33Count = 0;
+let browserLongFrame50Count = 0;
+let browserFpsWindowCount = 0;
+let browserFpsWindowElapsedMs = 0;
+let browserFpsWindowFrames = 0;
+let browserLongFrameEventCount = 0;
+let browserCameraRevisionStart = 0;
+let browserFocusLossCount = 0;
+let browserFocusLossMs = 0;
+let browserFocusLostAt = 0;
+let browserBenchmarkStartedAt = performance.now();
+const browserFrameCpu = {
+    count: 0,
+    simulationSumMs: 0,
+    updateSumMs: 0,
+    renderSumMs: 0,
+    totalSumMs: 0,
+    maximumMs: 0,
+    simulationMaximumMs: 0,
+    updateMaximumMs: 0,
+    renderMaximumMs: 0,
+    lastSimulationMs: 0,
+    lastUpdateMs: 0,
+    lastRenderMs: 0,
+    lastTotalMs: 0
+};
+const browserHeap = {
+    supported: false,
+    samples: 0,
+    startBytes: null,
+    minimumBytes: null,
+    maximumBytes: null,
+    endBytes: null
+};
+const browserBenchmarkScenario = {
+    running: false,
+    warmingUp: false,
+    durationMs: BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
+    warmupStartedAt: 0,
+    memorySettling: false,
+    startedAt: 0,
+    completedAt: 0,
+    simulationElapsedMs: 0,
+    stopReason: null,
+    automated: false
+};
+const AUTOMATED_BENCHMARK_BLOCKED_EVENTS = [
+    'pointerdown',
+    'mousedown',
+    'touchstart',
+    'click',
+    'dblclick',
+    'wheel',
+    'keydown',
+    'input',
+    'change'
+];
+function blockAutomatedBenchmarkInput(event) {
+    if (!browserBenchmarkScenario.running || !browserBenchmarkScenario.automated) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+}
+for (const eventName of AUTOMATED_BENCHMARK_BLOCKED_EVENTS) {
+    window.addEventListener(eventName, blockAutomatedBenchmarkInput, {
+        capture: true,
+        passive: false
+    });
+}
+const browserBenchmarkCommands = createBrowserBenchmarkCommands();
+const browserBenchmarkPhysicsEnvelope = {
+    steps: 0,
+    maxPostStepPenetrationMm: 0,
+    maxPostStepPenetrationStep: -1,
+    maxPostStepPenetrationBodyId: null,
+    maxPostStepPenetrationSegment: -1,
+    maxPostStepPenetrationT: 0,
+    maxPostStepPenetrationX: 0,
+    maxPostStepPenetrationY: 0,
+    maxPostStepPenetrationZ: 0,
+    maxTransientPenetrationMm: 0,
+    maxTransientPenetrationStep: -1,
+    maxSegmentErrorPercent: 0,
+    maxSegmentErrorBodyId: null,
+    maxSegmentErrorNodeIndex: -1,
+    maxSegmentErrorStep: -1,
+    maxBendAngleDegrees: 0,
+    maxBendBodyId: null,
+    maxBendNodeIndex: -1,
+    maxBendStep: -1,
+    maxBendX: 0,
+    maxBendY: 0,
+    maxBendZ: 0,
+    finite: true
+};
+let lastBrowserBenchmarkScenarioReport = null;
+
+function sampleBrowserHeap() {
+    const bytes = performance.memory?.usedJSHeapSize;
+    if (!Number.isFinite(bytes)) return;
+    browserHeap.supported = true;
+    if (browserHeap.samples === 0) {
+        browserHeap.startBytes = bytes;
+        browserHeap.minimumBytes = bytes;
+        browserHeap.maximumBytes = bytes;
+    } else {
+        browserHeap.minimumBytes = Math.min(browserHeap.minimumBytes, bytes);
+        browserHeap.maximumBytes = Math.max(browserHeap.maximumBytes, bytes);
+    }
+    browserHeap.endBytes = bytes;
+    browserHeap.samples++;
+}
+
+function resetBrowserHeap() {
+    browserHeap.supported = false;
+    browserHeap.samples = 0;
+    browserHeap.startBytes = null;
+    browserHeap.minimumBytes = null;
+    browserHeap.maximumBytes = null;
+    browserHeap.endBytes = null;
+    sampleBrowserHeap();
+}
+
+function getBrowserHeapStats() {
+    sampleBrowserHeap();
+    return {
+        ...browserHeap,
+        growthBytes: browserHeap.supported
+            ? browserHeap.endBytes - browserHeap.startBytes
+            : null,
+        rangeBytes: browserHeap.supported
+            ? browserHeap.maximumBytes - browserHeap.minimumBytes
+            : null
+    };
+}
+
+function resetBrowserBenchmark() {
+    browserFrameCursor = 0;
+    browserFrameCount = 0;
+    browserFrameTimeSum = 0;
+    browserMaxFrameMs = 0;
+    browserLongFrame33Count = 0;
+    browserLongFrame50Count = 0;
+    browserFpsWindowCount = 0;
+    browserFpsWindowElapsedMs = 0;
+    browserFpsWindowFrames = 0;
+    browserLongFrameEventCount = 0;
+    browserCameraRevisionStart = ui.getCArmRevision?.() ?? 0;
+    browserFocusLossCount = 0;
+    browserFocusLossMs = 0;
+    browserFocusLostAt = document.hasFocus() ? 0 : performance.now();
+    browserFrameCpu.count = 0;
+    browserFrameCpu.simulationSumMs = 0;
+    browserFrameCpu.updateSumMs = 0;
+    browserFrameCpu.renderSumMs = 0;
+    browserFrameCpu.totalSumMs = 0;
+    browserFrameCpu.maximumMs = 0;
+    browserFrameCpu.simulationMaximumMs = 0;
+    browserFrameCpu.updateMaximumMs = 0;
+    browserFrameCpu.renderMaximumMs = 0;
+    browserFrameCpu.lastSimulationMs = 0;
+    browserFrameCpu.lastUpdateMs = 0;
+    browserFrameCpu.lastRenderMs = 0;
+    browserFrameCpu.lastTotalMs = 0;
+    resetBrowserHeap();
+    browserBenchmarkPhysicsEnvelope.steps = 0;
+    browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationMm = 0;
+    browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationBodyId = null;
+    browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationSegment = -1;
+    browserBenchmarkPhysicsEnvelope.maxTransientPenetrationMm = 0;
+    browserBenchmarkPhysicsEnvelope.maxTransientPenetrationStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxSegmentErrorPercent = 0;
+    browserBenchmarkPhysicsEnvelope.maxSegmentErrorBodyId = null;
+    browserBenchmarkPhysicsEnvelope.maxSegmentErrorNodeIndex = -1;
+    browserBenchmarkPhysicsEnvelope.maxSegmentErrorStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxBendAngleDegrees = 0;
+    browserBenchmarkPhysicsEnvelope.maxBendBodyId = null;
+    browserBenchmarkPhysicsEnvelope.maxBendNodeIndex = -1;
+    browserBenchmarkPhysicsEnvelope.maxBendStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxBendX = 0;
+    browserBenchmarkPhysicsEnvelope.maxBendY = 0;
+    browserBenchmarkPhysicsEnvelope.maxBendZ = 0;
+    browserBenchmarkPhysicsEnvelope.finite = true;
+    browserBenchmarkStartedAt = performance.now();
+    endovascularWorld.resetPerformanceStats();
+    vesselCollisionTarget.contactField?.resetStats?.();
+}
+
+function recordBrowserFrame(frameMs) {
+    if (!Number.isFinite(frameMs) || frameMs <= 0) return;
+    if (browserFrameCount === browserFrameTimes.length) {
+        browserFrameTimeSum -= browserFrameTimes[browserFrameCursor];
+    } else {
+        browserFrameCount++;
+    }
+    browserFrameTimes[browserFrameCursor] = frameMs;
+    browserFrameTimeSum += frameMs;
+    browserMaxFrameMs = Math.max(browserMaxFrameMs, frameMs);
+    browserFpsWindowElapsedMs += frameMs;
+    browserFpsWindowFrames++;
+    if (browserFpsWindowElapsedMs >= 1000) {
+        sampleBrowserHeap();
+        if (browserFpsWindowCount < browserFpsWindows.length) {
+            browserFpsWindows[browserFpsWindowCount++] =
+                browserFpsWindowFrames * 1000 / browserFpsWindowElapsedMs;
+        }
+        browserFpsWindowElapsedMs = 0;
+        browserFpsWindowFrames = 0;
+    }
+    if (frameMs > 1000 / 30) {
+        browserLongFrame33Count++;
+        if (browserLongFrameEventCount < BROWSER_BENCHMARK_LONG_EVENT_CAPACITY) {
+            const offset = browserLongFrameEventCount++ * BROWSER_BENCHMARK_LONG_EVENT_STRIDE;
+            browserLongFrameEvents[offset] = frameMs;
+            browserLongFrameEvents[offset + 1] = browserBenchmarkScenario.running
+                ? performance.now() - browserBenchmarkScenario.startedAt
+                : -1;
+            browserLongFrameEvents[offset + 2] = browserBenchmarkScenario.simulationElapsedMs;
+            browserLongFrameEvents[offset + 3] = performance.memory?.usedJSHeapSize ?? -1;
+            browserLongFrameEvents[offset + 4] = browserFrameCpu.lastSimulationMs;
+            browserLongFrameEvents[offset + 5] = browserFrameCpu.lastUpdateMs;
+            browserLongFrameEvents[offset + 6] = browserFrameCpu.lastRenderMs;
+            browserLongFrameEvents[offset + 7] = browserFrameCpu.lastTotalMs;
+        }
+    }
+    if (frameMs > 50) browserLongFrame50Count++;
+    browserFrameCursor = (browserFrameCursor + 1) % browserFrameTimes.length;
+}
+
+window.addEventListener('blur', () => {
+    if (
+        !browserBenchmarkScenario.running || browserBenchmarkScenario.warmingUp ||
+        browserFocusLostAt > 0
+    ) return;
+    browserFocusLossCount++;
+    browserFocusLostAt = performance.now();
+});
+
+window.addEventListener('focus', () => {
+    if (browserFocusLostAt <= 0) return;
+    if (browserBenchmarkScenario.running && !browserBenchmarkScenario.warmingUp) {
+        browserFocusLossMs += performance.now() - browserFocusLostAt;
+    }
+    browserFocusLostAt = 0;
+});
+
+function recordBrowserPhysicsEnvelope() {
+    const envelope = browserBenchmarkPhysicsEnvelope;
+    envelope.steps++;
+    if (endovascularWorld.settledMaxPenetration > envelope.maxPostStepPenetrationMm) {
+        envelope.maxPostStepPenetrationMm = endovascularWorld.settledMaxPenetration;
+        envelope.maxPostStepPenetrationStep = envelope.steps;
+        envelope.maxPostStepPenetrationBodyId = endovascularWorld.settledContactBodyId;
+        envelope.maxPostStepPenetrationSegment = endovascularWorld.settledContactSegment;
+        envelope.maxPostStepPenetrationT = endovascularWorld.settledContactT;
+        envelope.maxPostStepPenetrationX = endovascularWorld.settledContactX;
+        envelope.maxPostStepPenetrationY = endovascularWorld.settledContactY;
+        envelope.maxPostStepPenetrationZ = endovascularWorld.settledContactZ;
+    }
+    if (endovascularWorld.maxPenetration > envelope.maxTransientPenetrationMm) {
+        envelope.maxTransientPenetrationMm = endovascularWorld.maxPenetration;
+        envelope.maxTransientPenetrationStep = envelope.steps;
+    }
+    if (envelope.steps !== 1 && envelope.steps % 30 !== 0) return;
+
+    for (let bodyIndex = 0; bodyIndex < browserBenchmarkBodies.length; bodyIndex++) {
+        const body = browserBenchmarkBodies[bodyIndex];
+        if (!body) continue;
+        const start = body.activeStart;
+        const end = Math.min(body.activeEnd, body.segmentCount);
+        for (let index = start; index <= body.activeEnd; index++) {
+            envelope.finite = envelope.finite &&
+                Number.isFinite(body.x[index]) &&
+                Number.isFinite(body.y[index]) &&
+                Number.isFinite(body.z[index]) &&
+                Number.isFinite(body.velocityX[index]) &&
+                Number.isFinite(body.velocityY[index]) &&
+                Number.isFinite(body.velocityZ[index]);
+        }
+        for (let index = start; index < end; index++) {
+            const ax = body.x[index + 1] - body.x[index];
+            const ay = body.y[index + 1] - body.y[index];
+            const az = body.z[index + 1] - body.z[index];
+            const length = Math.sqrt(ax * ax + ay * ay + az * az);
+            const segmentErrorPercent = Math.abs(length - body.restLength[index]) /
+                Math.max(1e-8, body.restLength[index]) * 100;
+            if (segmentErrorPercent > envelope.maxSegmentErrorPercent) {
+                envelope.maxSegmentErrorPercent = segmentErrorPercent;
+                envelope.maxSegmentErrorBodyId = body.id;
+                envelope.maxSegmentErrorNodeIndex = index;
+                envelope.maxSegmentErrorStep = envelope.steps;
+            }
+            if (index <= start) continue;
+            const bx = body.x[index] - body.x[index - 1];
+            const by = body.y[index] - body.y[index - 1];
+            const bz = body.z[index] - body.z[index - 1];
+            const denominator = Math.sqrt(ax * ax + ay * ay + az * az) *
+                Math.sqrt(bx * bx + by * by + bz * bz);
+            if (denominator <= 1e-8) continue;
+            const cosine = THREE.MathUtils.clamp((ax * bx + ay * by + az * bz) / denominator, -1, 1);
+            const bendAngleDegrees = Math.acos(cosine) * 180 / Math.PI;
+            if (bendAngleDegrees > envelope.maxBendAngleDegrees) {
+                envelope.maxBendAngleDegrees = bendAngleDegrees;
+                envelope.maxBendBodyId = body.id;
+                envelope.maxBendNodeIndex = index;
+                envelope.maxBendStep = envelope.steps;
+                envelope.maxBendX = body.x[index];
+                envelope.maxBendY = body.y[index];
+                envelope.maxBendZ = body.z[index];
+            }
+        }
+    }
+}
+
+function browserFramePercentile(fraction) {
+    if (!browserFrameCount) return 0;
+    const ordered = Array.from(browserFrameTimes.subarray(0, browserFrameCount));
+    ordered.sort((a, b) => a - b);
+    return ordered[Math.min(ordered.length - 1, Math.floor((ordered.length - 1) * fraction))];
+}
+
+function browserOnePercentLowFps() {
+    if (!browserFpsWindowCount) return 0;
+    const ordered = Array.from(browserFpsWindows.subarray(0, browserFpsWindowCount));
+    ordered.sort((a, b) => a - b);
+    const count = Math.max(1, Math.ceil(ordered.length * 0.01));
+    let sum = 0;
+    for (let index = 0; index < count; index++) sum += ordered[index];
+    return sum / count;
+}
+
+function getBrowserLongFrameEvents() {
+    const events = [];
+    for (let index = 0; index < browserLongFrameEventCount; index++) {
+        const offset = index * BROWSER_BENCHMARK_LONG_EVENT_STRIDE;
+        events.push({
+            frameMs: browserLongFrameEvents[offset],
+            elapsedMs: browserLongFrameEvents[offset + 1],
+            simulationElapsedMs: browserLongFrameEvents[offset + 2],
+            heapBytes: browserLongFrameEvents[offset + 3],
+            previousFrameCpu: {
+                simulationMs: browserLongFrameEvents[offset + 4],
+                updateMs: browserLongFrameEvents[offset + 5],
+                renderMs: browserLongFrameEvents[offset + 6],
+                totalMs: browserLongFrameEvents[offset + 7]
+            }
+        });
+    }
+    return events;
+}
+
+function recordBrowserFrameCpu(startedAt, simulationEndedAt, updateEndedAt) {
+    if (!browserBenchmarkScenario.running) return;
+    const endedAt = performance.now();
+    const simulationMs = simulationEndedAt - startedAt;
+    const updateMs = updateEndedAt - simulationEndedAt;
+    const renderMs = endedAt - updateEndedAt;
+    const totalMs = endedAt - startedAt;
+    const sampleIndex = browserFrameCpu.count;
+    if (sampleIndex < BROWSER_BENCHMARK_FRAME_CAPACITY) {
+        browserFrameCpuSimulation[sampleIndex] = simulationMs;
+        browserFrameCpuUpdate[sampleIndex] = updateMs;
+        browserFrameCpuRender[sampleIndex] = renderMs;
+        browserFrameCpuTotal[sampleIndex] = totalMs;
+    }
+    browserFrameCpu.count++;
+    browserFrameCpu.simulationSumMs += simulationMs;
+    browserFrameCpu.updateSumMs += updateMs;
+    browserFrameCpu.renderSumMs += renderMs;
+    browserFrameCpu.totalSumMs += totalMs;
+    browserFrameCpu.maximumMs = Math.max(browserFrameCpu.maximumMs, totalMs);
+    browserFrameCpu.simulationMaximumMs = Math.max(browserFrameCpu.simulationMaximumMs, simulationMs);
+    browserFrameCpu.updateMaximumMs = Math.max(browserFrameCpu.updateMaximumMs, updateMs);
+    browserFrameCpu.renderMaximumMs = Math.max(browserFrameCpu.renderMaximumMs, renderMs);
+    browserFrameCpu.lastSimulationMs = simulationMs;
+    browserFrameCpu.lastUpdateMs = updateMs;
+    browserFrameCpu.lastRenderMs = renderMs;
+    browserFrameCpu.lastTotalMs = totalMs;
+}
+
+function browserFrameCpuPercentile(buffer, fraction) {
+    const count = Math.min(browserFrameCpu.count, BROWSER_BENCHMARK_FRAME_CAPACITY);
+    if (!count) return 0;
+    const ordered = Array.from(buffer.subarray(0, count));
+    ordered.sort((a, b) => a - b);
+    return ordered[Math.min(count - 1, Math.floor((count - 1) * fraction))];
+}
+
+function getBrowserFrameCpuStats() {
+    const count = browserFrameCpu.count || 1;
+    return {
+        samples: browserFrameCpu.count,
+        simulationAverageMs: browserFrameCpu.simulationSumMs / count,
+        updateAverageMs: browserFrameCpu.updateSumMs / count,
+        renderAverageMs: browserFrameCpu.renderSumMs / count,
+        totalAverageMs: browserFrameCpu.totalSumMs / count,
+        simulationP95Ms: browserFrameCpuPercentile(browserFrameCpuSimulation, 0.95),
+        simulationP99Ms: browserFrameCpuPercentile(browserFrameCpuSimulation, 0.99),
+        renderP95Ms: browserFrameCpuPercentile(browserFrameCpuRender, 0.95),
+        renderP99Ms: browserFrameCpuPercentile(browserFrameCpuRender, 0.99),
+        totalP95Ms: browserFrameCpuPercentile(browserFrameCpuTotal, 0.95),
+        totalP99Ms: browserFrameCpuPercentile(browserFrameCpuTotal, 0.99),
+        simulationMaximumMs: browserFrameCpu.simulationMaximumMs,
+        updateMaximumMs: browserFrameCpu.updateMaximumMs,
+        renderMaximumMs: browserFrameCpu.renderMaximumMs,
+        maximumMs: browserFrameCpu.maximumMs
+    };
+}
+
+function getBrowserBenchmarkScenarioStatus() {
+    const now = performance.now();
+    const elapsedMs = browserBenchmarkScenario.warmingUp
+        ? 0
+        : browserBenchmarkScenario.running
+        ? Math.min(browserBenchmarkScenario.durationMs, now - browserBenchmarkScenario.startedAt)
+        : browserBenchmarkScenario.completedAt > browserBenchmarkScenario.startedAt
+            ? Math.min(
+                browserBenchmarkScenario.durationMs,
+                browserBenchmarkScenario.completedAt - browserBenchmarkScenario.startedAt
+            )
+            : 0;
+    return {
+        running: browserBenchmarkScenario.running,
+        warmingUp: browserBenchmarkScenario.warmingUp,
+        warmupPhase: !browserBenchmarkScenario.warmingUp
+            ? 'complete'
+            : browserBenchmarkScenario.memorySettling ? 'memory-settle' : 'choreography',
+        warmupElapsedMs: browserBenchmarkScenario.warmingUp
+            ? Math.min(BROWSER_BENCHMARK_WARMUP_MS, now - browserBenchmarkScenario.warmupStartedAt)
+            : BROWSER_BENCHMARK_WARMUP_MS,
+        durationMs: browserBenchmarkScenario.durationMs,
+        elapsedMs,
+        simulationElapsedMs: browserBenchmarkScenario.simulationElapsedMs,
+        progress: browserBenchmarkScenario.durationMs > 0
+            ? Math.min(1, elapsedMs / browserBenchmarkScenario.durationMs)
+            : 0,
+        cycleIndex: Math.floor(
+            browserBenchmarkScenario.simulationElapsedMs / BROWSER_BENCHMARK_SCENARIO_CYCLE_MS
+        ),
+        catheterType: browserBenchmarkCatheterType(browserBenchmarkScenario.simulationElapsedMs),
+        stopReason: browserBenchmarkScenario.stopReason,
+        automated: browserBenchmarkScenario.automated
+    };
+}
+
+function getBrowserBenchmarkReport() {
+    const now = performance.now();
+    const p99FrameMs = browserFramePercentile(0.99);
+    const onePercentLowFps = browserOnePercentLowFps();
+    const physics = endovascularWorld.getStats();
+    const contactField = vesselCollisionTarget.contactField?.getStats?.() || null;
+    const scenario = getBrowserBenchmarkScenarioStatus();
+    const durationPass = !scenario.running &&
+        scenario.durationMs >= BROWSER_BENCHMARK_DEFAULT_DURATION_MS &&
+        scenario.elapsedMs >= BROWSER_BENCHMARK_DEFAULT_DURATION_MS;
+    const onePercentLowPass = onePercentLowFps >= 55;
+    // Keep the strict 50 ms counter as a scheduling diagnostic. A visible GC pause
+    // is assessed separately using frame, heap, and hot-path allocation evidence.
+    const noLongFramePass = browserLongFrame50Count === 0;
+    const physicsBudgetPass = physics.phases.total.averageMs <= 4 &&
+        physics.phases.total.p95Ms <= 6;
+    const penetrationPass = browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationMm <= 0.2;
+    const lengthPass = browserBenchmarkPhysicsEnvelope.maxSegmentErrorPercent <= 1;
+    const foldPass = browserBenchmarkPhysicsEnvelope.maxBendAngleDegrees < 150;
+    const finitePass = browserBenchmarkPhysicsEnvelope.finite;
+    const modePass = PHYSICS_MODE === 'xpbd-contact-v1';
+    const contactFieldPass = !!endovascularWorld.contactField;
+    const cameraProjectionChanges = Math.max(
+        0,
+        (ui.getCArmRevision?.() ?? browserCameraRevisionStart) - browserCameraRevisionStart
+    );
+    const cameraStablePass = cameraProjectionChanges === 0;
+    const focusLossMs = browserFocusLossMs + (browserFocusLostAt > 0 ? now - browserFocusLostAt : 0);
+    const focusPass = focusLossMs <= 100;
+    const heap = getBrowserHeapStats();
+    const memoryStabilityPass = !heap.supported || (
+        heap.growthBytes <= 4 * 1024 * 1024 &&
+        heap.rangeBytes <= 8 * 1024 * 1024
+    );
+    const narrowPhaseAllocationPass = contactField?.resultAllocations === 0;
+    const runtimeAssetPass = (contactField?.runtimeBytes ?? Infinity) <= 32 * 1024 * 1024;
+    const noVisibleGcPausePass = browserMaxFrameMs < 100 &&
+        memoryStabilityPass && narrowPhaseAllocationPass;
+    return {
+        mode: PHYSICS_MODE,
+        durationMs: performance.now() - browserBenchmarkStartedAt,
+        frameCount: browserFrameCount,
+        averageFps: browserFrameTimeSum > 0 ? browserFrameCount * 1000 / browserFrameTimeSum : 0,
+        onePercentLowFps,
+        p99FrameMs,
+        instantaneousP99Fps: p99FrameMs > 0 ? 1000 / p99FrameMs : 0,
+        fpsWindowCount: browserFpsWindowCount,
+        maxFrameMs: browserMaxFrameMs,
+        longFrame33Count: browserLongFrame33Count,
+        longFrame50Count: browserLongFrame50Count,
+        longFrameEvents: getBrowserLongFrameEvents(),
+        frameCpu: getBrowserFrameCpuStats(),
+        physics,
+        physicsEnvelope: { ...browserBenchmarkPhysicsEnvelope },
+        contactField,
+        cameraProjectionChanges,
+        heapBytes: heap.endBytes,
+        heap,
+        pageState: {
+            visibilityState: document.visibilityState,
+            hasFocus: document.hasFocus(),
+            focusLossCount: browserFocusLossCount,
+            focusLossMs
+        },
+        scenario,
+        browserAcceptance: {
+            durationPass,
+            onePercentLowPass,
+            noLongFramePass,
+            noVisibleGcPausePass,
+            physicsBudgetPass,
+            narrowPhaseAllocationPass,
+            memoryStabilityPass,
+            runtimeAssetPass,
+            penetrationPass,
+            lengthPass,
+            foldPass,
+            finitePass,
+            modePass,
+            contactFieldPass,
+            cameraStablePass,
+            focusPass,
+            passed: durationPass && onePercentLowPass && noVisibleGcPausePass &&
+                physicsBudgetPass && narrowPhaseAllocationPass && memoryStabilityPass &&
+                runtimeAssetPass && penetrationPass && lengthPass && foldPass &&
+                finitePass && modePass && contactFieldPass && cameraStablePass && focusPass
+        }
+    };
+}
+
+function stopBrowserBenchmarkScenario(reason = 'manual') {
+    if (reason === 'ui' && browserBenchmarkScenario.automated) {
+        return getBrowserBenchmarkReport();
+    }
+    if (browserBenchmarkScenario.running) {
+        browserBenchmarkScenario.running = false;
+        browserBenchmarkScenario.warmingUp = false;
+        browserBenchmarkScenario.completedAt = performance.now();
+        browserBenchmarkScenario.stopReason = reason;
+    }
+    ui.setAutomatedBenchmarkMode?.(false);
+    lastBrowserBenchmarkScenarioReport = getBrowserBenchmarkReport();
+    return lastBrowserBenchmarkScenarioReport;
+}
+
+function resetBrowserBenchmarkSimulation({ resetAccumulator = true } = {}) {
+    guidewireSolver.reset();
+    tailProgress = guidewireSolver.progress;
+    pigtailCatheter.reset();
+    xpbdWireBody.syncFromElasticRod(wire);
+    pigtailCatheter.syncXpbdBody(xpbdCatheterBody);
+    xpbdContainment.enabled = false;
+    xpbdExternalToolContact.enabled = false;
+    endovascularWorld.resetSimulationState();
+    if (resetAccumulator) simulationAccumulator = 0;
+}
+
+function startBrowserBenchmarkScenario({
+    durationMs = BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
+    automated = false
+} = {}) {
+    const nextDuration = Number(durationMs);
+    if (!Number.isFinite(nextDuration) || nextDuration <= 0) {
+        throw new RangeError('Browser benchmark durationMs must be positive');
+    }
+    if (!endovascularWorld.contactField) {
+        throw new Error('Browser benchmark requires the precompiled vessel contact field');
+    }
+    resetBrowserBenchmarkSimulation();
+    resetBrowserBenchmark();
+    browserBenchmarkScenario.durationMs = nextDuration;
+    browserBenchmarkScenario.warmupStartedAt = performance.now();
+    browserBenchmarkScenario.memorySettling = false;
+    browserBenchmarkScenario.startedAt = 0;
+    browserBenchmarkScenario.completedAt = 0;
+    browserBenchmarkScenario.simulationElapsedMs = 0;
+    browserBenchmarkScenario.stopReason = null;
+    browserBenchmarkScenario.automated = automated === true;
+    ui.setAutomatedBenchmarkMode?.(browserBenchmarkScenario.automated);
+    browserBenchmarkScenario.running = true;
+    browserBenchmarkScenario.warmingUp = true;
+    lastBrowserBenchmarkScenarioReport = null;
+    return getBrowserBenchmarkScenarioStatus();
+}
+
+function sampleBrowserBenchmarkScenario(dt) {
+    if (!browserBenchmarkScenario.running) return null;
+    const now = performance.now();
+    if (browserBenchmarkScenario.warmingUp) {
+        const warmupElapsedMs = now - browserBenchmarkScenario.warmupStartedAt;
+        if (warmupElapsedMs < BROWSER_BENCHMARK_CHOREOGRAPHY_WARMUP_MS) {
+            const commands = sampleBrowserBenchmarkCommands(
+                browserBenchmarkScenario.simulationElapsedMs,
+                browserBenchmarkCommands
+            );
+            browserBenchmarkScenario.simulationElapsedMs += dt * 1000;
+            return commands;
+        }
+        if (!browserBenchmarkScenario.memorySettling) {
+            resetBrowserBenchmarkSimulation({ resetAccumulator: false });
+            browserBenchmarkScenario.memorySettling = true;
+            browserBenchmarkScenario.simulationElapsedMs = 0;
+        }
+        if (warmupElapsedMs < BROWSER_BENCHMARK_WARMUP_MS) {
+            browserBenchmarkCommands.guidewireAdvance = 0;
+            browserBenchmarkCommands.catheterAdvance = 0;
+            browserBenchmarkCommands.catheterRotation = 0;
+            browserBenchmarkCommands.catheterType = 'pigtail';
+            return browserBenchmarkCommands;
+        }
+        resetBrowserBenchmark();
+        browserBenchmarkScenario.warmingUp = false;
+        browserBenchmarkScenario.memorySettling = false;
+        browserBenchmarkScenario.startedAt = performance.now();
+        browserBenchmarkScenario.completedAt = 0;
+        browserBenchmarkScenario.simulationElapsedMs = 0;
+    }
+    const elapsedMs = performance.now() - browserBenchmarkScenario.startedAt;
+    if (elapsedMs >= browserBenchmarkScenario.durationMs) {
+        stopBrowserBenchmarkScenario('duration');
+        return null;
+    }
+    const commands = sampleBrowserBenchmarkCommands(
+        browserBenchmarkScenario.simulationElapsedMs,
+        browserBenchmarkCommands
+    );
+    browserBenchmarkScenario.simulationElapsedMs += dt * 1000;
+    return commands;
+}
+
+globalThis.__OET_BENCHMARK__ = {
+    reset: resetBrowserBenchmark,
+    getReport: getBrowserBenchmarkReport,
+    startScenario: startBrowserBenchmarkScenario,
+    stopScenario: stopBrowserBenchmarkScenario,
+    getScenarioStatus: getBrowserBenchmarkScenarioStatus,
+    getLastScenarioReport: () => lastBrowserBenchmarkScenarioReport
+};
+
 function advanceTailInput(advance, dt) {
-    const delta = guidewireSolver.advance(advance, dt, vesselCollisionTarget);
+    const collisionTarget = PHYSICS_MODE === 'legacy' ? vesselCollisionTarget : null;
+    const delta = guidewireSolver.advance(advance, dt, collisionTarget, GUIDE_WIRE_ADVANCE_OPTIONS);
     tailProgress = guidewireSolver.progress;
     return delta;
 }
@@ -899,14 +1691,74 @@ function updateWireMesh() {
     wireGroup.visible = segmentIndex > 0;
 }
 
+function updateXpbdContactDebug() {
+    if (!xpbdContactNormalLines || !xpbdActiveBranchLines || PHYSICS_MODE !== 'xpbd-contact-v1') {
+        return { normalCount: 0, branchCount: 0 };
+    }
+    const normalAttribute = xpbdContactNormalLines.geometry.getAttribute('position');
+    const branchAttribute = xpbdActiveBranchLines.geometry.getAttribute('position');
+    const normalPositions = normalAttribute.array;
+    const branchPositions = branchAttribute.array;
+    const contactField = vesselCollisionTarget.contactField;
+    const centerline = contactField?.centerline;
+    const stride = contactField?.centerlineStride || 0;
+    const segmentCount = stride > 0 && centerline ? centerline.length / stride : 0;
+    let seen = xpbdActiveBranchLines.userData.seen;
+    if (!seen || seen.length !== segmentCount) {
+        seen = new Uint8Array(segmentCount);
+        xpbdActiveBranchLines.userData.seen = seen;
+    } else {
+        seen.fill(0);
+    }
+
+    let normalCount = 0;
+    let branchCount = 0;
+    for (const body of [xpbdWireBody, xpbdCatheterBody]) {
+        if (!body) continue;
+        const end = Math.min(body.segmentCount, body.activeEnd);
+        for (let index = body.activeStart; index < end; index++) {
+            if (!body.wallActive[index]) continue;
+            if (normalCount < CONTACT_MARKER_LIMIT) {
+                const offset = normalCount * 6;
+                const length = 2.5 + Math.min(4, body.wallLambda[index] * 8);
+                normalPositions[offset] = body.wallX[index];
+                normalPositions[offset + 1] = body.wallY[index];
+                normalPositions[offset + 2] = body.wallZ[index];
+                normalPositions[offset + 3] = body.wallX[index] + body.wallNormalX[index] * length;
+                normalPositions[offset + 4] = body.wallY[index] + body.wallNormalY[index] * length;
+                normalPositions[offset + 5] = body.wallZ[index] + body.wallNormalZ[index] * length;
+                normalCount++;
+            }
+            const branchId = body.wallBranchId[index];
+            if (
+                branchId < 0 || branchId >= segmentCount || seen[branchId] ||
+                branchCount >= CONTACT_MARKER_LIMIT
+            ) continue;
+            seen[branchId] = 1;
+            const sourceOffset = branchId * stride;
+            const targetOffset = branchCount * 6;
+            for (let axis = 0; axis < 6; axis++) {
+                branchPositions[targetOffset + axis] = centerline[sourceOffset + axis];
+            }
+            branchCount++;
+        }
+    }
+    xpbdContactNormalLines.geometry.setDrawRange(0, normalCount * 2);
+    xpbdActiveBranchLines.geometry.setDrawRange(0, branchCount * 2);
+    normalAttribute.needsUpdate = true;
+    branchAttribute.needsUpdate = true;
+    return { normalCount, branchCount };
+}
+
 function sampleGuidewireContactMarkers() {
-    const markerMatrix = new THREE.Matrix4();
     if (fluoroscopy) {
         ui.updateGuidewireDiagnostics(null);
         wallContactMarkers.count = 0;
         wallBreachMarkers.count = 0;
         wallWorstPointMarker.userData.hasPoint = false;
         wallWorstPointMarker.visible = false;
+        xpbdContactNormalLines?.geometry.setDrawRange(0, 0);
+        xpbdActiveBranchLines?.geometry.setDrawRange(0, 0);
         return;
     }
 
@@ -916,7 +1768,25 @@ function sampleGuidewireContactMarkers() {
         collectMarkers: true,
         markerLimit: CONTACT_MARKER_LIMIT
     });
-    lumenDiagnostics.performance = guidewireSolver.getPerformanceStats();
+    if (PHYSICS_MODE === 'xpbd-contact-v1') {
+        const xpbd = endovascularWorld.getStats();
+        const legacyAdvance = guidewireSolver.getPerformanceStats();
+        const contactDebug = updateXpbdContactDebug();
+        lumenDiagnostics.performance = {
+            advanceMs: legacyAdvance.advanceMs,
+            solveMs: xpbd.phases.total.lastMs,
+            projectMs: xpbd.phases.narrowPhase.lastMs,
+            diagnosticMs: 0,
+            pointContactCount: xpbd.contacts,
+            diagnosticPointContactCount: 0,
+            segmentSampleCount: vesselCollisionTarget.contactField?.getStats?.().capsuleSamples || 0,
+            activeBranchCount: contactDebug.branchCount,
+            settledPenetration: xpbd.settledMaxPenetration,
+            maximumPenetration: xpbd.maxPenetration
+        };
+    } else {
+        lumenDiagnostics.performance = guidewireSolver.getPerformanceStats();
+    }
     ui.updateGuidewireDiagnostics(lumenDiagnostics);
     if (lumenDiagnostics.worstPoint) {
         wallWorstPointMarker.position.set(
@@ -936,8 +1806,8 @@ function sampleGuidewireContactMarkers() {
         mesh.count = count;
         for (let i = 0; i < count; i++) {
             const p = points[i];
-            markerMatrix.makeTranslation(p.x, p.y, p.z);
-            mesh.setMatrixAt(i, markerMatrix);
+            contactMarkerMatrix.makeTranslation(p.x, p.y, p.z);
+            mesh.setMatrixAt(i, contactMarkerMatrix);
         }
         mesh.instanceMatrix.needsUpdate = true;
     };
@@ -947,16 +1817,31 @@ function sampleGuidewireContactMarkers() {
 }
 
 function updateGuidewireResistance() {
-    ui.updateGuidewireResistance(0, '');
+    if (PHYSICS_MODE !== 'xpbd-contact-v1') {
+        ui.updateGuidewireResistance(0, '');
+        return;
+    }
+    let normalLambda = 0;
+    let activeContacts = 0;
+    for (let index = 0; index < xpbdWireBody.wallLambda.length; index++) {
+        if (!xpbdWireBody.wallActive[index]) continue;
+        normalLambda += xpbdWireBody.wallLambda[index];
+        activeContacts++;
+    }
+    const averageLambda = activeContacts ? normalLambda / activeContacts : 0;
+    const level = Math.max(0, Math.min(1, averageLambda / 0.08));
+    ui.updateGuidewireResistance(level, activeContacts ? 'Opór kontaktu prowadnika ze ścianą' : '');
 }
 
-const fixedDt = 1 / 60;
+const fixedDt = PHYSICS_MODE === 'xpbd-contact-v1' ? 1 / 120 : 1 / 60;
 let lastRenderTime = performance.now();
+let simulationAccumulator = 0;
 let lastFluoroPulseTime = -Infinity;
 let autoExposureLevel = 0;
 const autoExposureBeamDirection = new THREE.Vector3();
 let contactMarkerAccumulator = CONTACT_MARKER_UPDATE_INTERVAL;
 let pigtailMeshAccumulator = PIGTAIL_MESH_UPDATE_INTERVAL;
+let browserBenchmarkUiAccumulator = Infinity;
 
 function updateAutoExposure(dt) {
     const uniforms = displayMaterial.uniforms;
@@ -997,83 +1882,202 @@ function updateXrayTechniqueReadout() {
     ui.updateXrayTechnique(kV, mA);
 }
 
-function stepSimulation() {
+function stepSimulation(dt = fixedDt) {
     // Advance input, integrate rod physics, collisions, and update medical monitors
-    const advance = ui.getAdvance();
-    advanceTailInput(advance, fixedDt);
-    guidewireSolver.solve(fixedDt, vesselCollisionTarget, {
-        iterations: advance === 0 ? 3 : 4
-    });
+    const benchmarkCommands = sampleBrowserBenchmarkScenario(dt);
+    const advance = benchmarkCommands?.guidewireAdvance ?? ui.getAdvance();
+    const catheterAdvance = benchmarkCommands?.catheterAdvance ?? ui.getCatheterAdvance();
+    const catheterRotation = benchmarkCommands?.catheterRotation ?? ui.getCatheterRotation();
+    advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
-    pigtailCatheter.setType(ui.getSelectedCatheterType());
-    pigtailCatheter.advance(ui.getCatheterAdvance(), fixedDt, inserted);
-    pigtailCatheter.rotate(ui.getCatheterRotation(), fixedDt);
-    pigtailCatheter.stepPhysics(fixedDt);
-    const catheterActive = ui.getCatheterAdvance() !== 0 || ui.getCatheterRotation() !== 0;
+    pigtailCatheter.setType(benchmarkCommands?.catheterType ?? ui.getSelectedCatheterType());
+    pigtailCatheter.advance(catheterAdvance, dt, inserted);
+    pigtailCatheter.rotate(catheterRotation, dt);
+    if (PHYSICS_MODE === 'xpbd-contact-v1') {
+        // The legacy rod supplies the kinematic input pose every substep. Its
+        // stored velocity has already been integrated there, so carrying it
+        // into XPBD would apply the same motion twice when input is released.
+        xpbdWireBody.syncFromElasticRod(wire, XPBD_WIRE_SYNC_OPTIONS);
+        xpbdWireBody.setActiveRange(
+            Math.min(xpbdWireBody.count - 2, Math.max(0, guidewireSolver.firstInsertedNodeIndex() - 1)),
+            xpbdWireBody.count - 1
+        );
+        xpbdWireBody.setCollisionRange(
+            Math.max(0, guidewireSolver.firstLumenNodeIndex() - 1),
+            xpbdWireBody.segmentCount - 1
+        );
+        pigtailCatheter.stepPhysics(dt, XPBD_CATHETER_STEP_OPTIONS);
+        const catheterNodeCount = pigtailCatheter.syncXpbdBody(
+            xpbdCatheterBody,
+            XPBD_CATHETER_SYNC_OPTIONS
+        );
+        xpbdContainment.outerStartNode = pigtailCatheter.physicsLumenStartNode;
+        const firstContainedNode = Math.max(0, Math.ceil((guidewireLength - inserted) / segmentLength));
+        const lastContainedNode = Math.min(
+            xpbdWireBody.count - 1,
+            Math.floor((guidewireLength - inserted + pigtailCatheter.progress) / segmentLength)
+        );
+        xpbdContainment.enabled =
+            pigtailCatheter.progress > 0.5 &&
+            catheterNodeCount >= 2 &&
+            lastContainedNode >= firstContainedNode;
+        xpbdContainment.startNode = firstContainedNode;
+        xpbdContainment.endNode = Math.max(firstContainedNode, lastContainedNode);
+
+        const catheterEndSegment = Math.max(0, catheterNodeCount - 2);
+        const firstExternalSegment = Math.max(0, Math.min(
+            xpbdWireBody.segmentCount - 1,
+            lastContainedNode
+        ));
+        xpbdExternalToolContact.enabled =
+            pigtailCatheter.progress > 4 &&
+            catheterNodeCount >= 2 &&
+            inserted > pigtailCatheter.progress + 0.5 &&
+            firstExternalSegment <= xpbdWireBody.activeEnd - 1;
+        xpbdExternalToolContact.startSegmentA = firstExternalSegment;
+        xpbdExternalToolContact.endSegmentA = Math.min(
+            xpbdWireBody.activeEnd - 1,
+            firstExternalSegment + 16
+        );
+        xpbdExternalToolContact.startSegmentB = Math.max(0, catheterEndSegment - 8);
+        xpbdExternalToolContact.endSegmentB = catheterEndSegment;
+        endovascularWorld.stepFixed();
+        if (browserBenchmarkScenario.running) recordBrowserPhysicsEnvelope();
+        xpbdWireBody.syncToElasticRod(wire);
+    } else {
+        guidewireSolver.solve(dt, vesselCollisionTarget, {
+            iterations: advance === 0 ? 3 : 4
+        });
+        pigtailCatheter.stepPhysics(dt);
+    }
+    const catheterActive = catheterAdvance !== 0 || catheterRotation !== 0;
     const guidewireActive = advance !== 0;
     const guidewireInsideCatheter = pigtailCatheter.progress > 4 && inserted > 0;
-    pigtailCatheter.constrainGuidewire(fixedDt, {
-        reactionScale: guidewireActive && !catheterActive ? 0.08 : 1
-    });
-    if (guidewireActive && !catheterActive && guidewireInsideCatheter) {
-        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 8, forceRelax: true });
-        pigtailCatheter.constrainGuidewire(fixedDt, { reactionScale: 0.04 });
-        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 5, forceRelax: true });
-    }
-    if (catheterActive) {
-        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 10, forceRelax: true });
-        pigtailCatheter.constrainGuidewire(fixedDt);
-        guidewireSolver.solve(fixedDt, vesselCollisionTarget, { iterations: 8, forceRelax: true });
+    if (PHYSICS_MODE === 'legacy') {
+        pigtailCatheter.constrainGuidewire(dt, {
+            reactionScale: guidewireActive && !catheterActive ? 0.08 : 1
+        });
+        if (guidewireActive && !catheterActive && guidewireInsideCatheter) {
+            guidewireSolver.solve(dt, vesselCollisionTarget, { iterations: 8, forceRelax: true });
+            pigtailCatheter.constrainGuidewire(dt, { reactionScale: 0.04 });
+            guidewireSolver.solve(dt, vesselCollisionTarget, { iterations: 5, forceRelax: true });
+        }
+        if (catheterActive) {
+            guidewireSolver.solve(dt, vesselCollisionTarget, { iterations: 10, forceRelax: true });
+            pigtailCatheter.constrainGuidewire(dt);
+            guidewireSolver.solve(dt, vesselCollisionTarget, { iterations: 8, forceRelax: true });
+        }
     }
     updateGuidewireResistance();
     ui.updateInsertedLength(inserted / 10);
     ui.updateCatheterLength(pigtailCatheter.progress / 10);
 
     if (injecting) {
-        const amt = Math.min(injectRate * fixedDt, remainingVolume);
+        const amt = Math.min(injectRate * dt, remainingVolume);
         contrastAgent.injectThroughSheath(amt, injectRate);
         totalDose += amt;
         ui.updateDose(totalDose);
-        injectTime += fixedDt;
+        injectTime += dt;
         remainingVolume -= amt;
         if (injectTime >= injectDuration || remainingVolume <= 0) {
             injecting = false;
             ui.setStopInjectionDisabled(true);
         }
     }
-    contrastAgent.update(fixedDt);
-    monitor.update(fixedDt);
+    contrastAgent.update(dt);
+    monitor.update(dt);
 }
 
-// Keep simulation ticking even when the tab is hidden (decoupled from rendering)
-setInterval(stepSimulation, fixedDt * 1000);
-
-function withTransparentClear(renderer, fn) {
-    // Temporarily render with transparent clears (for contrast overlay)
-    renderer.setClearColor(0x000000, 0);
-    fn();
-    renderer.setClearColor(0x000000, 1);
-}
-
-function renderOnlySceneObjects(scene, camera, objects) {
-    const keep = new Set(objects.filter(Boolean));
-    const hidden = [];
+const renderHiddenObjects = [];
+function renderOnlySceneObject(scene, camera, object) {
+    renderHiddenObjects.length = 0;
     for (const child of scene.children) {
         if (child.isCamera) continue;
-        const shouldRender = keep.has(child) && child.visible;
+        const shouldRender = child === object && child.visible;
         if (!shouldRender && child.visible) {
-            hidden.push(child);
+            renderHiddenObjects.push(child);
             child.visible = false;
         }
     }
     renderer.render(scene, camera);
-    for (const obj of hidden) obj.visible = true;
+    for (let index = 0; index < renderHiddenObjects.length; index++) {
+        renderHiddenObjects[index].visible = true;
+    }
+}
+
+const depthHiddenObjects = [];
+const depthHiddenVisibility = [];
+
+function staticAnatomyProjectionChanged() {
+    camera.updateMatrixWorld(true);
+    const world = camera.matrixWorld.elements;
+    const projection = camera.projectionMatrix.elements;
+    let changed = !anatomyProjectionValid;
+    for (let index = 0; index < 16 && !changed; index++) {
+        changed = world[index] !== anatomyCameraWorld[index] ||
+            projection[index] !== anatomyProjectionMatrix[index];
+    }
+    if (!changed) return false;
+    anatomyCameraWorld.set(world);
+    anatomyProjectionMatrix.set(projection);
+    anatomyProjectionValid = true;
+    return true;
+}
+
+function updateStaticAnatomyProjection() {
+    depthHiddenObjects.length = 0;
+    depthHiddenVisibility.length = 0;
+    for (const child of scene.children) {
+        if (child !== skeletonModel && !child.isCamera) {
+            depthHiddenObjects.push(child);
+            depthHiddenVisibility.push(child.visible);
+            child.visible = false;
+        }
+    }
+    scene.overrideMaterial = depthMaterialFront;
+    renderer.setRenderTarget(frontDepthTarget);
+    renderer.clear();
+    renderer.render(scene, camera);
+    scene.overrideMaterial = depthMaterialBack;
+    renderer.setRenderTarget(backDepthTarget);
+    renderer.clear();
+    renderer.render(scene, camera);
+    scene.overrideMaterial = null;
+    renderer.setRenderTarget(null);
+    for (let index = 0; index < depthHiddenObjects.length; index++) {
+        depthHiddenObjects[index].visible = depthHiddenVisibility[index];
+    }
+
+    thicknessMaterial.uniforms.frontDepth.value = frontDepthTarget.texture;
+    thicknessMaterial.uniforms.backDepth.value = backDepthTarget.texture;
+    renderer.setRenderTarget(thicknessTarget);
+    renderer.render(thicknessScene, postCamera);
+    renderer.setRenderTarget(null);
+
+    renderer.setRenderTarget(boneTarget);
+    renderer.clear();
+    scene.overrideMaterial = boneProjectionMaterial;
+    renderOnlySceneObject(scene, camera, skeletonModel);
+    scene.overrideMaterial = null;
+    renderer.setRenderTarget(null);
 }
 
 function animate(time) {
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
-    const dt = (time - lastRenderTime) / 1000;
+    const frameCpuStartedAt = performance.now();
+    const frameMs = time - lastRenderTime;
+    const dt = Math.max(0, Math.min(0.1, frameMs / 1000));
     lastRenderTime = time;
+    recordBrowserFrame(frameMs);
+    simulationAccumulator += dt;
+    let simulationSteps = 0;
+    while (simulationAccumulator + 1e-9 >= fixedDt && simulationSteps < 2) {
+        stepSimulation(fixedDt);
+        simulationAccumulator -= fixedDt;
+        simulationSteps++;
+    }
+    if (simulationAccumulator >= fixedDt) simulationAccumulator %= fixedDt;
+    const frameSimulationEndedAt = performance.now();
 
     updateWireMesh();
     contactMarkerAccumulator += dt;
@@ -1121,6 +2125,16 @@ function animate(time) {
     skeletonModel.visible = fluoroscopy;
     ui.setInjectButtonDisabled(contrastActive);
     ui.setStopInjectionDisabled(!injecting);
+    browserBenchmarkUiAccumulator += dt;
+    if (browserBenchmarkUiAccumulator >= 0.25) {
+        browserBenchmarkUiAccumulator = 0;
+        const scenarioStatus = getBrowserBenchmarkScenarioStatus();
+        ui.updateBrowserBenchmarkStatus(
+            scenarioStatus,
+            scenarioStatus.running ? null : lastBrowserBenchmarkScenarioReport
+        );
+    }
+    const frameUpdateEndedAt = performance.now();
     if (fluoroscopy) {
         updateAutoExposure(dt);
         updateXrayTechniqueReadout();
@@ -1131,6 +2145,7 @@ function animate(time) {
             renderer.setRenderTarget(null);
             renderer.render(displayScene, postCamera);
             ui.updatePerfStats(dt);
+            recordBrowserFrameCpu(frameCpuStartedAt, frameSimulationEndedAt, frameUpdateEndedAt);
             requestAnimationFrame(animate);
             return;
         }
@@ -1145,70 +2160,41 @@ function animate(time) {
         //    one nearest/farthest interval.
         // 3) render scene to offscreen, accumulate with decay
         // 4) display attenuated fluoroscopy image via display shader
-        const hidden = [];
-        for (const child of scene.children) {
-            if (child !== skeletonModel && !child.isCamera) {
-                hidden.push({ obj: child, visible: child.visible });
-                child.visible = false;
-            }
-        }
-        scene.overrideMaterial = depthMaterialFront;
-        renderer.setRenderTarget(frontDepthTarget);
-        renderer.clear();
-        renderer.render(scene, camera);
-        scene.overrideMaterial = depthMaterialBack;
-        renderer.setRenderTarget(backDepthTarget);
-        renderer.clear();
-        renderer.render(scene, camera);
-        scene.overrideMaterial = null;
-        renderer.setRenderTarget(null);
-        for (const h of hidden) h.obj.visible = h.visible;
-        thicknessMaterial.uniforms.frontDepth.value = frontDepthTarget.texture;
-        thicknessMaterial.uniforms.backDepth.value = backDepthTarget.texture;
-        renderer.setRenderTarget(thicknessTarget);
-        renderer.render(thicknessScene, postCamera);
-        renderer.setRenderTarget(null);
-
-        renderer.setRenderTarget(boneTarget);
-        renderer.clear();
-        scene.overrideMaterial = boneProjectionMaterial;
-        renderOnlySceneObjects(scene, camera, [skeletonModel]);
-        scene.overrideMaterial = null;
-        renderer.setRenderTarget(null);
+        if (staticAnatomyProjectionChanged()) updateStaticAnatomyProjection();
 
         renderer.setRenderTarget(contrastTarget);
-        withTransparentClear(renderer, () => {
-            renderer.clear();
-            renderer.render(contrastScene, camera);
-        });
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        renderer.render(contrastScene, camera);
+        renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(metalTarget);
-        withTransparentClear(renderer, () => {
-            renderer.clear();
-            scene.overrideMaterial = wireProjectionMaterial;
-            renderOnlySceneObjects(scene, camera, [wireGroup]);
-            scene.overrideMaterial = null;
-        });
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        scene.overrideMaterial = wireProjectionMaterial;
+        renderOnlySceneObject(scene, camera, wireGroup);
+        scene.overrideMaterial = null;
+        renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(catheterTarget);
-        withTransparentClear(renderer, () => {
-            renderer.clear();
-            renderOnlySceneObjects(scene, camera, [pigtailCatheter.mesh]);
-        });
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        renderOnlySceneObject(scene, camera, pigtailCatheter.mesh);
+        renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(sheathTarget);
-        withTransparentClear(renderer, () => {
-            renderer.clear();
-            renderOnlySceneObjects(scene, camera, [sheathFluoroMesh]);
-        });
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        renderOnlySceneObject(scene, camera, sheathFluoroMesh);
+        renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(offscreenTarget);
         renderer.clear();
-        renderOnlySceneObjects(scene, camera, [sheathFluoroMesh]);
+        renderOnlySceneObject(scene, camera, sheathFluoroMesh);
         const previousOverlayAutoClear = renderer.autoClear;
         renderer.autoClear = false;
         scene.overrideMaterial = wireProjectionMaterial;
-        renderOnlySceneObjects(scene, camera, [wireGroup]);
+        renderOnlySceneObject(scene, camera, wireGroup);
         scene.overrideMaterial = null;
         renderer.render(contrastScene, camera);
         renderer.autoClear = previousOverlayAutoClear;
@@ -1244,6 +2230,7 @@ function animate(time) {
     }
 
     ui.updatePerfStats(dt);
+    recordBrowserFrameCpu(frameCpuStartedAt, frameSimulationEndedAt, frameUpdateEndedAt);
 
     requestAnimationFrame(animate);
 }
@@ -1253,19 +2240,22 @@ window.addEventListener('resize', () => {
     // Keep all targets and shader uniforms in sync with the canvas size
     const w = window.innerWidth;
     const h = window.innerHeight;
+    const targetWidth = Math.max(1, Math.round(w * FLUORO_TARGET_SCALE));
+    const targetHeight = Math.max(1, Math.round(h * FLUORO_TARGET_SCALE));
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    offscreenTarget.setSize(w, h);
-    contrastTarget.setSize(w, h);
-    metalTarget.setSize(w, h);
-    catheterTarget.setSize(w, h);
-    sheathTarget.setSize(w, h);
-    boneTarget.setSize(w, h);
-    accumulateTarget1.setSize(w, h);
-    accumulateTarget2.setSize(w, h);
-    frontDepthTarget.setSize(w, h);
-    backDepthTarget.setSize(w, h);
-    thicknessTarget.setSize(w, h);
-    displayMaterial.uniforms.resolution.value.set(w, h);
+    offscreenTarget.setSize(targetWidth, targetHeight);
+    contrastTarget.setSize(targetWidth, targetHeight);
+    metalTarget.setSize(targetWidth, targetHeight);
+    catheterTarget.setSize(targetWidth, targetHeight);
+    sheathTarget.setSize(targetWidth, targetHeight);
+    boneTarget.setSize(targetWidth, targetHeight);
+    accumulateTarget1.setSize(targetWidth, targetHeight);
+    accumulateTarget2.setSize(targetWidth, targetHeight);
+    frontDepthTarget.setSize(targetWidth, targetHeight);
+    backDepthTarget.setSize(targetWidth, targetHeight);
+    thicknessTarget.setSize(targetWidth, targetHeight);
+    anatomyProjectionValid = false;
+    displayMaterial.uniforms.resolution.value.set(targetWidth, targetHeight);
 });

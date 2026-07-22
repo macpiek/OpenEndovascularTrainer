@@ -1763,7 +1763,11 @@ function simplifyCenterlineBacktracks(
                 rejectedNodeCount++;
                 continue;
             }
-            if (!replaceCenterlineSegmentSetPreservingComponents(
+            // Replacing the two edges incident to a degree-two node with the
+            // validated edge between their opposite endpoints preserves the
+            // component by construction. A full component traversal here made
+            // the simplification quadratic on dense medial trees.
+            if (!replaceCenterlineSegmentSet(
                 segments,
                 new Set([firstEntry.segment, secondEntry.segment]),
                 [replacement]
@@ -4284,7 +4288,8 @@ export function buildStlLumenCast(geometry, {
     contourTolerance = DEFAULT_CONTOUR_TOLERANCE,
     minLumenArea = DEFAULT_MIN_LUMEN_AREA,
     minCompactness = DEFAULT_MIN_COMPACTNESS,
-    lumenField = null
+    lumenField = null,
+    fieldOnly = false
 } = {}) {
     const baseSliceSpacing = resolveSliceSpacing(geometry, sliceSpacing, targetSliceCount);
     const slices = extractStlSlices(
@@ -4309,6 +4314,35 @@ export function buildStlLumenCast(geometry, {
     );
     const allTaggingSlices = taggingAxisSlices.flatMap(entry => entry.slices);
     const sliceLumenCastField = createMultiAxisLumenCastField(taggingAxisSlices);
+    const baseDiagnostics = {
+        sliceCount: slices.length,
+        contourCount: slices.reduce((sum, slice) => sum + slice.contours.length, 0),
+        debugSegmentCount: debugSegments.length / 6,
+        requestedSliceCount: targetSliceCount,
+        sliceSpacing: baseSliceSpacing,
+        taggingRequestedSliceCount: taggingTargetSliceCount,
+        taggingSliceSpacing,
+        minCompactness,
+        taggingAxes: taggingAxisSlices.map(entry => ({
+            axis: entry.axisId,
+            sliceCount: entry.slices.length,
+            contourCount: entry.contourCount,
+            taggedTriangleCount: entry.taggedTriangleCount
+        }))
+    };
+    if (fieldOnly) {
+        return {
+            geometry: null,
+            slices,
+            axisSlices: taggingAxisSlices,
+            debugSegments,
+            field: sliceLumenCastField,
+            diagnostics: {
+                source: 'multi-axis-slice-field',
+                ...baseDiagnostics
+            }
+        };
+    }
     const taggedSurfaceCast = buildSliceTaggedInnerSurfaceGeometry(geometry, allTaggingSlices);
     const lumenSurfaceCast = taggedSurfaceCast || buildInnerSurfaceLumenCastGeometry(geometry, sliceLumenCastField);
     const volumeCast = lumenSurfaceCast ? null : buildVolumeLumenCastGeometry(geometry, sliceLumenCastField);
@@ -4317,24 +4351,12 @@ export function buildStlLumenCast(geometry, {
     return {
         geometry: castGeometry,
         slices,
+        axisSlices: taggingAxisSlices,
         debugSegments,
         field: sliceLumenCastField,
         diagnostics: {
             ...castDiagnostics,
-            sliceCount: slices.length,
-            contourCount: slices.reduce((sum, slice) => sum + slice.contours.length, 0),
-            debugSegmentCount: debugSegments.length / 6,
-            requestedSliceCount: targetSliceCount,
-            sliceSpacing: baseSliceSpacing,
-            taggingRequestedSliceCount: taggingTargetSliceCount,
-            taggingSliceSpacing,
-            minCompactness,
-            taggingAxes: taggingAxisSlices.map(entry => ({
-                axis: entry.axisId,
-                sliceCount: entry.slices.length,
-                contourCount: entry.contourCount,
-                taggedTriangleCount: entry.taggedTriangleCount
-            }))
+            ...baseDiagnostics
         }
     };
 }
@@ -6676,13 +6698,17 @@ function buildOutlierPatchUpdates(
     incidence,
     endpointKeys,
     scale,
-    neighbourScale
+    neighbourScale,
+    cachedNeighbourKeys = null,
+    cachedNeighbourPoints = null
 ) {
     if (measuredShift.lengthSq() < 1e-8) return null;
     const updates = new Map();
     updates.set(key, currentPoint.clone().addScaledVector(measuredShift, scale));
-    for (const neighbourKey of neighbourKeysForNode(key, incidence, endpointKeys)) {
-        const neighbourPoint = currentNodePointFromIncidence(neighbourKey, incidence);
+    const neighbourKeys = cachedNeighbourKeys || neighbourKeysForNode(key, incidence, endpointKeys);
+    for (let index = 0; index < neighbourKeys.length; index++) {
+        const neighbourKey = neighbourKeys[index];
+        const neighbourPoint = cachedNeighbourPoints?.[index] || currentNodePointFromIncidence(neighbourKey, incidence);
         if (!neighbourPoint) continue;
         updates.set(neighbourKey, neighbourPoint.clone().addScaledVector(measuredShift, scale * neighbourScale));
     }
@@ -7474,6 +7500,10 @@ function smoothCenterlineForSimulation(segments, geometry, wallBvh, {
         return { passCount: 0, movedNodeCount: 0, averageShift: 0, maxShift: 0 };
     }
     const lumenBvh = geometry.boundsTree || (geometry.boundsTree = new MeshBVH(geometry));
+    const originalSegments = segments.map(segment => ({
+        start: segment.start.clone(),
+        end: segment.end.clone()
+    }));
     let passCount = 0;
     let movedNodeCount = 0;
     let shiftSum = 0;
@@ -7562,7 +7592,9 @@ function maximizeCenterlineWallClearance(segments, geometry, wallBvh, {
     let clearanceGainSum = 0;
     let maxClearanceGain = 0;
     const hitScratch = { point: new THREE.Vector3() };
-    const wallDistance = point => wallBvh.closestPointToPoint(point, hitScratch)?.distance ?? 0;
+    const wallDistance = (point, maxDistance = Infinity) => (
+        wallBvh.closestPointToPoint(point, hitScratch, 0, maxDistance)?.distance ?? 0
+    );
     for (let pass = 0; pass < passes; pass++) {
         const incidence = collectNodeIncidence(segments);
         const endpointKeys = collectSegmentEndpointKeyMap(incidence);
@@ -7572,35 +7604,54 @@ function maximizeCenterlineWallClearance(segments, geometry, wallBvh, {
             if (node.directions.length !== 2) continue;
             const point = currentNodePointFromIncidence(key, incidence);
             if (!point) continue;
+            const clearance = wallDistance(point);
             candidates.push({
                 key,
                 node,
                 point,
-                clearance: wallDistance(point),
+                clearance,
+                closestWallPoint: hitScratch.point.clone(),
                 deflection: centerlineNodeDeflectionDegrees(key, incidence.get(key), incidence, endpointKeys)
             });
         }
         candidates.sort((a, b) => a.clearance - b.clearance || b.deflection - a.deflection);
         const lockedKeys = new Set();
         let movedThisPass = 0;
+        const candidateScales = directionCount > 8 ? [1, 0.65, 0.4] : [1, 0.65];
         for (const entry of candidates) {
             if (lockedKeys.has(entry.key)) continue;
-            const current = currentNodePointFromIncidence(entry.key, incidence);
-            if (!current) continue;
-            const currentClearance = wallDistance(current);
+            // An applied patch locks every node it changes, so an unlocked
+            // candidate still has the point and clearance measured above.
+            const current = entry.point;
+            const currentClearance = entry.clearance;
             const tangent = nodeTangent(entry.node);
             if (!tangent) continue;
             const { u, v } = transverseBasis(tangent);
             const step = Math.max(0.22, Math.min(1.25, currentClearance * 0.32));
+            const neighbourKeys = neighbourKeysForNode(entry.key, incidence, endpointKeys);
+            const neighbourPoints = neighbourKeys
+                .map(key => currentNodePointFromIncidence(key, incidence))
+                .filter(Boolean);
+            if (neighbourPoints.length !== 2) continue;
             let best = null;
+            const choices = [];
             for (let directionIndex = 0; directionIndex < directionCount; directionIndex++) {
                 const angle = 2 * Math.PI * directionIndex / directionCount;
                 const direction = u.clone()
                     .multiplyScalar(Math.cos(angle))
                     .addScaledVector(v, Math.sin(angle))
                     .normalize();
-                for (const scale of [1, 0.65, 0.4]) {
+                for (const scale of candidateScales) {
                     const shift = direction.clone().multiplyScalar(step * scale);
+                    const candidatePoint = current.clone().add(shift);
+                    const clearanceUpperBound = candidatePoint.distanceTo(entry.closestWallPoint);
+                    if (clearanceUpperBound < currentClearance + 0.035 - 1e-9) continue;
+                    const clearance = wallDistance(
+                        candidatePoint,
+                        clearanceUpperBound + 1e-4
+                    );
+                    const gain = clearance - currentClearance;
+                    if (gain < 0.035) continue;
                     for (const neighbourScale of [0.62, 0.45]) {
                         const updates = buildOutlierPatchUpdates(
                             entry.key,
@@ -7609,28 +7660,17 @@ function maximizeCenterlineWallClearance(segments, geometry, wallBvh, {
                             incidence,
                             endpointKeys,
                             1,
-                            neighbourScale
+                            neighbourScale,
+                            neighbourKeys,
+                            neighbourPoints
                         );
-                        if (!updates || !nodePatchSegmentsStayValid(
-                            updates,
-                            incidence,
-                            endpointKeys,
-                            null,
-                            connectorLumenClearance,
-                            wallBvh
-                        )) {
-                            continue;
-                        }
-                        const candidatePoint = updates.get(entry.key);
-                        const clearance = wallDistance(candidatePoint);
-                        const gain = clearance - currentClearance;
-                        if (gain < 0.035) continue;
-                        const neighbourPoints = neighbourKeysForNode(entry.key, incidence, endpointKeys)
+                        if (!updates) continue;
+                        const updatedNeighbourPoints = neighbourKeys
                             .map(key => updates.get(key) || currentNodePointFromIncidence(key, incidence))
                             .filter(Boolean);
-                        if (neighbourPoints.length !== 2) continue;
-                        const first = neighbourPoints[0].clone().sub(candidatePoint).normalize();
-                        const second = neighbourPoints[1].clone().sub(candidatePoint).normalize();
+                        if (updatedNeighbourPoints.length !== 2) continue;
+                        const first = updatedNeighbourPoints[0].clone().sub(candidatePoint).normalize();
+                        const second = updatedNeighbourPoints[1].clone().sub(candidatePoint).normalize();
                         const deflection = 180 - THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(
                             first.dot(second),
                             -1,
@@ -7638,11 +7678,24 @@ function maximizeCenterlineWallClearance(segments, geometry, wallBvh, {
                         )));
                         if (deflection > Math.max(42, entry.deflection + 4)) continue;
                         const score = gain - Math.max(0, deflection - entry.deflection) * 0.006;
-                        if (!best || score > best.score) {
-                            best = { updates, shift: shift.length(), gain, score };
-                        }
+                        choices.push({ updates, shift: shift.length(), gain, score });
                     }
                 }
+            }
+            choices.sort((a, b) => b.score - a.score);
+            for (const choice of choices) {
+                if (!nodePatchSegmentsStayValid(
+                    choice.updates,
+                    incidence,
+                    endpointKeys,
+                    null,
+                    connectorLumenClearance,
+                    wallBvh
+                )) {
+                    continue;
+                }
+                best = choice;
+                break;
             }
             if (!best) continue;
             applyNodePatch(best.updates, incidence);
@@ -7667,6 +7720,150 @@ function maximizeCenterlineWallClearance(segments, geometry, wallBvh, {
         maxShift,
         averageClearanceGain: movedNodeCount ? clearanceGainSum / movedNodeCount : 0,
         maxClearanceGain
+    };
+}
+
+function correctCenterlineCenteringOutliers(segments, geometry, wallBvh, {
+    radialSamples = DEFAULT_CENTERLINE_REFINE_RADIAL_SAMPLES,
+    maxNormalizedOffset = 0.3,
+    maxOffset = 2.2,
+    maxCandidates = 24,
+    connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE
+} = {}) {
+    const centeringBefore = measureCenterlineCentering(segments, geometry, {
+        radialSamples,
+        sphereSamples: 0
+    });
+    const candidatesByKey = new Map();
+    for (const candidate of [
+        ...(centeringBefore.worstNormalizedOffsets || []),
+        ...(centeringBefore.worstOffsets || [])
+    ]) {
+        if (
+            candidate.degree > 2 ||
+            (candidate.normalizedOffset < maxNormalizedOffset && candidate.offset < maxOffset)
+        ) {
+            continue;
+        }
+        candidatesByKey.set(candidate.key, candidate);
+    }
+    const candidates = [...candidatesByKey.values()]
+        .sort((a, b) =>
+            Math.max(b.normalizedOffset / maxNormalizedOffset, b.offset / maxOffset) -
+            Math.max(a.normalizedOffset / maxNormalizedOffset, a.offset / maxOffset)
+        )
+        .slice(0, maxCandidates);
+    if (!candidates.length) {
+        return {
+            attemptedNodeCount: 0,
+            correctedNodeCount: 0,
+            averageShift: 0,
+            maxShift: 0,
+            centeringBefore,
+            centeringAfter: centeringBefore
+        };
+    }
+
+    const lumenBvh = geometry.boundsTree || (geometry.boundsTree = new MeshBVH(geometry));
+    let correctedNodeCount = 0;
+    let shiftSum = 0;
+    let maxShift = 0;
+    for (const entry of candidates) {
+        const incidence = collectNodeIncidence(segments);
+        const endpointKeys = collectSegmentEndpointKeyMap(incidence);
+        const incident = incidence.get(entry.key);
+        if (!incident || incident.length > 2) continue;
+        const node = collectRefinementNodes(segments).get(entry.key);
+        const current = currentNodePointFromIncidence(entry.key, incidence);
+        if (!node || !current) continue;
+        const before = nodeCenterShift(node, current, lumenBvh, {
+            radialSamples,
+            sphereSamples: 0
+        });
+        if (!before.pairCount) continue;
+        const beforeOffset = before.shift.length();
+        const beforeNormalized = beforeOffset / Math.max(0.5, before.meanRadius || node.radius || 1);
+        const beforeDeflection = centerlineNodeDeflectionDegrees(
+            entry.key,
+            incident,
+            incidence,
+            endpointKeys
+        );
+        let best = null;
+        for (const scale of [1, 0.82, 0.64, 0.46, 0.3]) {
+            const point = current.clone().addScaledVector(before.shift, scale);
+            if (nodeCandidateSegmentsValidityFailureReason(
+                entry.key,
+                point,
+                incidence,
+                null,
+                connectorLumenClearance,
+                wallBvh
+            )) {
+                continue;
+            }
+            const after = nodeCenterShift(node, point, lumenBvh, {
+                radialSamples,
+                sphereSamples: 0
+            });
+            if (!after.pairCount) continue;
+            const afterOffset = after.shift.length();
+            const afterNormalized = afterOffset / Math.max(0.5, after.meanRadius || node.radius || 1);
+            applyNodeCandidate(entry.key, point, incidence);
+            const afterDeflection = centerlineNodeDeflectionDegrees(
+                entry.key,
+                incidence.get(entry.key),
+                incidence,
+                collectSegmentEndpointKeyMap(incidence)
+            );
+            applyNodeCandidate(entry.key, current, incidence);
+            if (
+                afterOffset >= beforeOffset - 0.01 ||
+                afterNormalized >= beforeNormalized - 0.01 ||
+                afterDeflection > Math.max(42, beforeDeflection + 3)
+            ) {
+                continue;
+            }
+            if (!best || afterNormalized < best.normalizedOffset) {
+                best = { point, normalizedOffset: afterNormalized };
+            }
+        }
+        if (!best) continue;
+        const shift = best.point.distanceTo(current);
+        applyNodeCandidate(entry.key, best.point, incidence);
+        correctedNodeCount++;
+        shiftSum += shift;
+        maxShift = Math.max(maxShift, shift);
+    }
+
+    let centeringAfter = measureCenterlineCentering(segments, geometry, {
+        radialSamples,
+        sphereSamples: 0
+    });
+    const rolledBack = correctedNodeCount > 0 && (
+        centeringAfter.maxOffset > centeringBefore.maxOffset + 0.005 ||
+        centeringAfter.maxNormalizedOffset > centeringBefore.maxNormalizedOffset + 0.001 ||
+        centeringAfter.averageOffset > centeringBefore.averageOffset + 0.001 ||
+        centeringAfter.averageNormalizedOffset > centeringBefore.averageNormalizedOffset + 0.001
+    );
+    if (rolledBack) {
+        for (let index = 0; index < segments.length; index++) {
+            segments[index].start = originalSegments[index].start;
+            segments[index].end = originalSegments[index].end;
+        }
+        correctedNodeCount = 0;
+        shiftSum = 0;
+        maxShift = 0;
+        centeringAfter = centeringBefore;
+    }
+    return {
+        attemptedNodeCount: candidates.length,
+        correctedNodeCount,
+        averageShift: correctedNodeCount ? shiftSum / correctedNodeCount : 0,
+        maxShift,
+        rolledBack,
+        centeringBefore,
+        centeringAfter
     };
 }
 
@@ -7749,12 +7946,44 @@ function buildMedialSliceCenterline(geometry, {
             : 0;
     }
     const refinementMs = nowMs() - refinementStartedAt;
+    const clearanceStartedAt = nowMs();
     const clearanceMaximization = maximizeCenterlineWallClearance(
         allSegments,
         geometry,
         resolvedWallBvh,
-        { passes: 5 }
+        { passes: 1, directionCount: 16 }
     );
+    const clearancePolish = maximizeCenterlineWallClearance(
+        allSegments,
+        geometry,
+        resolvedWallBvh,
+        { passes: 4, directionCount: 8 }
+    );
+    const clearanceMovedNodeCount = clearanceMaximization.movedNodeCount + clearancePolish.movedNodeCount;
+    clearanceMaximization.passCount += clearancePolish.passCount;
+    clearanceMaximization.averageShift = clearanceMovedNodeCount
+        ? (
+            clearanceMaximization.averageShift * clearanceMaximization.movedNodeCount +
+            clearancePolish.averageShift * clearancePolish.movedNodeCount
+        ) / clearanceMovedNodeCount
+        : 0;
+    clearanceMaximization.averageClearanceGain = clearanceMovedNodeCount
+        ? (
+            clearanceMaximization.averageClearanceGain * clearanceMaximization.movedNodeCount +
+            clearancePolish.averageClearanceGain * clearancePolish.movedNodeCount
+        ) / clearanceMovedNodeCount
+        : 0;
+    clearanceMaximization.movedNodeCount = clearanceMovedNodeCount;
+    clearanceMaximization.maxShift = Math.max(
+        clearanceMaximization.maxShift,
+        clearancePolish.maxShift
+    );
+    clearanceMaximization.maxClearanceGain = Math.max(
+        clearanceMaximization.maxClearanceGain,
+        clearancePolish.maxClearanceGain
+    );
+    const clearanceMs = nowMs() - clearanceStartedAt;
+    const backtrackStartedAt = nowMs();
     const backtrackSimplification = simplifyCenterlineBacktracks(
         allSegments,
         resolvedWallBvh ? null : lumenField,
@@ -7769,12 +7998,14 @@ function buildMedialSliceCenterline(geometry, {
             allSegments.push(...resampled.segments);
         }
     }
+    const backtrackMs = nowMs() - backtrackStartedAt;
+    const simulationSmoothingStartedAt = nowMs();
     const simulationSmoothing = smoothCenterlineForSimulation(
         allSegments,
         geometry,
         resolvedWallBvh,
         {
-            passes: 4,
+            passes: 5,
             radialSamples: Math.max(12, Math.min(20, centerlineRefinementRadialSamples))
         }
     );
@@ -7785,12 +8016,14 @@ function buildMedialSliceCenterline(geometry, {
             allSegments.push(...resampled.segments);
         }
     }
+    const simulationSmoothingMs = nowMs() - simulationSmoothingStartedAt;
+    const finalBacktrackStartedAt = nowMs();
     const finalBacktrackSimplification = simplifyCenterlineBacktracks(
         allSegments,
         resolvedWallBvh ? null : lumenField,
         resolvedWallBvh,
         DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
-        { minDeflectionDegrees: 82, maxPasses: 12 }
+        { minDeflectionDegrees: 74, maxPasses: 12 }
     );
     if (finalBacktrackSimplification.collapsedNodeCount) {
         const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
@@ -7799,6 +8032,24 @@ function buildMedialSliceCenterline(geometry, {
             allSegments.push(...resampled.segments);
         }
     }
+    const finalBacktrackMs = nowMs() - finalBacktrackStartedAt;
+    const centeringCorrectionStartedAt = nowMs();
+    const centeringCorrection = correctCenterlineCenteringOutliers(
+        allSegments,
+        geometry,
+        resolvedWallBvh,
+        {
+            radialSamples: Math.max(12, Math.min(24, centerlineRefinementRadialSamples))
+        }
+    );
+    if (centeringCorrection.correctedNodeCount) {
+        const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        if (resampled.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampled.segments);
+        }
+    }
+    const centeringCorrectionMs = nowMs() - centeringCorrectionStartedAt;
     const cyclePruning = removeCenterlineCycles(allSegments);
     const components = segmentComponents(allSegments);
     const topology = measureCenterlineTopology(allSegments);
@@ -7827,7 +8078,18 @@ function buildMedialSliceCenterline(geometry, {
     const diagnostics = {
         source: 'medial-slice-teasar',
         algorithm: 'medial-slice-teasar',
-        timings: { extractionMs, treeMs, refinementMs, centeringMs, totalMs },
+        timings: {
+            extractionMs,
+            treeMs,
+            refinementMs,
+            clearanceMs,
+            backtrackMs,
+            simulationSmoothingMs,
+            finalBacktrackMs,
+            centeringCorrectionMs,
+            centeringMs,
+            totalMs
+        },
         axes: 'y-medial-skeleton',
         axisDiagnostics: [{
             axis: 'y',
@@ -7869,6 +8131,13 @@ function buildMedialSliceCenterline(geometry, {
         centerlineBacktrackPathLengthReduction:
             backtrackSimplification.pathLengthReduction + finalBacktrackSimplification.pathLengthReduction,
         centerlineSimulationSmoothing: simulationSmoothing,
+        centerlineCenteringCorrection: {
+            attemptedNodeCount: centeringCorrection.attemptedNodeCount,
+            correctedNodeCount: centeringCorrection.correctedNodeCount,
+            averageShift: centeringCorrection.averageShift,
+            maxShift: centeringCorrection.maxShift,
+            rolledBack: centeringCorrection.rolledBack || false
+        },
         centerlineInvalidSegmentCountBeforeReroute: invalidSegments.length,
         centerlineInvalidSegmentCountAfterReroute: invalidSegments.length,
         centerlineInvalidSegmentCountFinal: invalidSegments.length,

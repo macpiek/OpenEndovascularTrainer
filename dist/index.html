@@ -14,8 +14,8 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-DlSjWr-h.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-D4c2z5Lz.css">
+  <script type="module" crossorigin src="/assets/index-cXvmRU5Q.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CD-QFYaA.css">
 </head>
 <body>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -215,6 +215,16 @@
                 <label class="debug-toggle"><input id="showDebugSections" type="checkbox"> Przekroje</label>
                 <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox" checked> Centerline</label>
                 <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
+            </div>
+            <div class="browser-benchmark" aria-label="Browser benchmark">
+                <div class="browser-benchmark-actions">
+                    <button id="runBrowserBenchmarkSmoke" type="button">Start 5 s</button>
+                    <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
+                    <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>
+                </div>
+                <output id="browserBenchmarkStatus" class="browser-benchmark-status" aria-live="polite">Idle</output>
+                <textarea id="browserBenchmarkReport" class="browser-benchmark-report" rows="4"
+                    aria-label="Browser benchmark report" readonly>No report</textarea>
             </div>
             <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
         </div>

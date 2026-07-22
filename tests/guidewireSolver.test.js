@@ -207,6 +207,15 @@ assert.equal(withdrawalDiagnostics.breaches.length, 0, 'withdrawn guidewire shou
 assert.ok(withdrawalSegmentError < 0.06, 'withdrawal should preserve guidewire segment lengths');
 assert.ok(withdrawalMaxBend < 135, 'withdrawal should not create a sharp local fold');
 
+solver.reset();
+assert.equal(solver.progress, 0, 'reset should restore the guidewire insertion baseline');
+assert.equal(solver.contactPoints.length, 0, 'reset should clear cached contacts');
+assert.equal(solver.breachPoints.length, 0, 'reset should clear cached wall breaches');
+assert.ok(
+    wire.nodes.every(node => node.vx === 0 && node.vy === 0 && node.vz === 0),
+    'reset should clear guidewire velocity'
+);
+
 const earlyWire = new ElasticRod(nodeCount, segmentLength, { constraintIterations: 28 });
 const earlySolver = new GuidewireSolver({
     rod: earlyWire,

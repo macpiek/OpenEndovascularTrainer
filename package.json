@@ -6,12 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "collision:build": "node scripts/build-collision-asset.mjs",
+    "benchmark:collision": "node --expose-gc scripts/collision-benchmark.mjs",
+    "benchmark:browser:chrome": "node scripts/run-browser-acceptance.mjs",
+    "benchmark:browser:safari": "node scripts/run-safari-acceptance.mjs",
     "centerline:diagnostics": "node scripts/centerline-diagnostics.mjs",
     "preview": "vite preview",
     "video:studio": "remotion studio video/index.ts",
     "video:render": "remotion render video/index.ts EndovascularTrainerAd out/endovascular-trainer-ad.mp4 --codec=h264 --overwrite",
     "video:still": "remotion still video/index.ts EndovascularTrainerAd out/endovascular-trainer-frame.png --frame=210 --overwrite",
-    "test": "node --check src/simulator.js && node --check src/vesselGeometry.js && node --check src/vesselBroadPhase.js && node --check src/stlCenterline.js && node --check src/contrastFlowAgent.js && node --check src/aortaModel.js && node --check src/pigtailCatheter.js && node --check src/boneModel.js && node --check src/carmControls.js && node --check src/ui/ui.js && node --check src/ui/carmModel.js && node --check src/ui/carmPreview.js && node --check src/ui/operatingTable.js && node --check src/ui/patientMonitor.js && node --check src/physics/elasticRod.js && node --check src/physics/guidewireSolver.js && node tests/elasticRod.test.js && node tests/aortaPreprocess.test.js && node tests/guidewireSolver.test.js"
+    "test": "node --check scripts/run-browser-acceptance.mjs && node --check scripts/run-safari-acceptance.mjs && node --check src/simulator.js && node --check src/benchmark/browserBenchmarkScenario.js && node --check src/vesselGeometry.js && node --check src/vesselBroadPhase.js && node --check src/stlCenterline.js && node --check src/contrastFlowAgent.js && node --check src/aortaModel.js && node --check src/pigtailCatheter.js && node --check src/boneModel.js && node --check src/carmControls.js && node --check src/ui/ui.js && node --check src/ui/carmModel.js && node --check src/ui/carmPreview.js && node --check src/ui/operatingTable.js && node --check src/ui/patientMonitor.js && node --check src/physics/elasticRod.js && node --check src/physics/guidewireSolver.js && node --check src/physics/endovascularPhysicsWorld.js && node --check src/physics/collision/collisionAssetFormat.js && node --check src/physics/collision/packedLumenField.js && node --check src/physics/collision/vesselContactField.js && node tests/browserBenchmarkScenario.test.js && node tests/elasticRod.test.js && node tests/aortaPreprocess.test.js && node tests/vesselContactField.test.js && node tests/endovascularPhysicsWorld.test.js && node tests/aortaXpbdRegression.test.js && node tests/guidewireSolver.test.js"
   },
   "keywords": [],
   "author": "",
