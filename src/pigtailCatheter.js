@@ -5,14 +5,15 @@ import { PIGTAIL_CATHETER_RADIUS_MM, PIGTAIL_CATHETER_RENDER_RADIUS_MM } from '.
 const CATHETER_RADIUS = PIGTAIL_CATHETER_RADIUS_MM;
 const PIGTAIL_RADIUS = 7.2;
 const PIGTAIL_TURNS = 1.05;
+const PIGTAIL_ARC_LENGTH = PIGTAIL_RADIUS * PIGTAIL_TURNS * Math.PI * 2;
 const CATHETER_TYPE_PIGTAIL = 'pigtail';
 const CATHETER_TYPE_BERENSTEIN = 'berenstein';
 const BERENSTEIN_BEND_ANGLE = Math.PI / 4;
 const BERENSTEIN_STRAIGHT_EXIT_LENGTH = 8;
 const BERENSTEIN_BEND_LENGTH = 10;
 const BERENSTEIN_TIP_SHAPE_LENGTH = 48;
-const DISTAL_RELEASE_LENGTH = 48;
 const STRAIGHT_EXIT_LENGTH = 16;
+const DISTAL_RELEASE_LENGTH = STRAIGHT_EXIT_LENGTH + PIGTAIL_ARC_LENGTH;
 const MIN_GUIDE_SUPPORT = 18;
 const GUIDE_CAPTURE_TOLERANCE = 4;
 const FREE_NODE_SPACING = 3.2;
@@ -46,6 +47,9 @@ const GUIDEWIRE_SUPPORT_BLEND = 0.22;
 const GUIDEWIRE_MOVING_SUPPORT_BLEND = 0.42;
 const PIGTAIL_RELEASE_CURL_START = 0.42;
 const PIGTAIL_RELEASE_CURL_RATE = 0.82;
+const SHAPE_RECOVERY_RATE = 0.65;
+const SHAPE_RECAPTURE_RATE = 1.5;
+const SOLO_XPBD_BEND_COMPLIANCE = 5e-5;
 const GUIDEWIRE_IN_CATHETER_BLEND = 0.78;
 const GUIDEWIRE_REACTION_BLEND = 0.16;
 const GUIDEWIRE_CATHETER_MAX_CORRECTION = 1.2;
@@ -144,6 +148,11 @@ export class PigtailCatheter {
         this.physicsBody = null;
         this.physicsActiveCount = 0;
         this.physicsLumenStartNode = 0;
+        this._xpbdLayoutX = null;
+        this._xpbdLayoutY = null;
+        this._xpbdLayoutZ = null;
+        this._xpbdLayoutCount = 0;
+        this._guidewireRelease = 1;
         this.externalCollisionSolver = false;
         this._renderAxis = new TypedVector3();
         this._renderMidpoint = new TypedVector3();
@@ -158,12 +167,19 @@ export class PigtailCatheter {
         this._newNodeGuide = new TypedVector3();
         this._newNodePoint = new TypedVector3();
         this._centerlinePoints = [];
+        this._centerlineDistances = [];
         this._centerlinePointCount = 0;
         this._deploymentStateScratch = { pathEnd: 0, supportEnd: 0, freeLength: 0 };
         this._freeFrameScratch = {
             supportTip: new TypedVector3(),
             beforeTip: new TypedVector3(),
             beforePlane: new TypedVector3(),
+            tangent: new TypedVector3(),
+            normal: new TypedVector3()
+        };
+        this._guideReleaseFrameScratch = {
+            supportTip: new TypedVector3(),
+            beforeTip: new TypedVector3(),
             tangent: new TypedVector3(),
             normal: new TypedVector3()
         };
@@ -206,38 +222,84 @@ export class PigtailCatheter {
         this.freeRestDistanceCount = 0;
         this.freeLength = 0;
         this._physicsStepIndex = 0;
+        this.physicsActiveCount = 0;
+        this._xpbdLayoutCount = 0;
+        this._guidewireRelease = 1;
         this.updateMesh();
         return this;
     }
 
-    syncXpbdBody(body, { shapeCompliance = 2e-4 } = {}) {
+    syncXpbdBody(body, {
+        shapeCompliance = 2e-4,
+        targetSlewLimit = 1,
+        restLengthSlewLimit = 0.5,
+        bendChordSlewLimit = 1
+    } = {}) {
         const points = this.#buildCenterline();
         const count = Math.min(this._centerlinePointCount, body.count);
+        if (this.physicsBody !== body || !this._xpbdLayoutX || this._xpbdLayoutX.length !== body.count) {
+            this._xpbdLayoutX = new Float64Array(body.count);
+            this._xpbdLayoutY = new Float64Array(body.count);
+            this._xpbdLayoutZ = new Float64Array(body.count);
+            this._xpbdLayoutCount = 0;
+            this.physicsActiveCount = 0;
+        }
         this.physicsBody = body;
         if (count < 2) {
             for (let index = 0; index < this.physicsActiveCount; index++) body.clearRestShapeTarget(index);
             body.setActiveRange(0, 1);
             body.setCollisionRange(0, -1);
             this.physicsActiveCount = 0;
+            this._xpbdLayoutCount = 0;
             return 0;
         }
 
         const previousCount = this.physicsActiveCount;
-        body.setActiveRange(0, count - 1);
-        for (let index = 0; index < count; index++) {
-            const point = points[index];
-            if (index >= previousCount) body.setNodePosition(index, point.x, point.y, point.z);
-            body.setRestShapeTarget(index, point.x, point.y, point.z, shapeCompliance);
-            body.nodeRadius[index] = CATHETER_RADIUS;
-            if (index > 0) {
-                const previous = points[index - 1];
-                body.restLength[index - 1] = Math.max(0.5, point.distanceTo(previous));
+        let insertedIndex = -1;
+        let topologyChanged = false;
+        if (
+            previousCount > 0 &&
+            this._xpbdLayoutCount === previousCount &&
+            count === previousCount + 1
+        ) {
+            insertedIndex = this.freeNodes.length >= 2
+                ? count - 1
+                : this.#xpbdInsertedPointIndex(points, count, previousCount);
+            for (let index = count - 1; index > insertedIndex; index--) {
+                this.#copyXpbdNodeState(body, index, index - 1);
             }
-            if (index > 0 && index < count - 1) {
-                body.restBendChord[index] = points[index - 1].distanceTo(points[index + 1]);
+            this.#initializeInsertedXpbdNode(body, points, insertedIndex, count, shapeCompliance);
+            topologyChanged = true;
+        } else if (
+            count > 1 &&
+            this._xpbdLayoutCount === previousCount &&
+            count === previousCount - 1
+        ) {
+            const removedIndex = this.freeNodes.length >= 2
+                ? previousCount - 1
+                : this.#xpbdRemovedPointIndex(points, count, previousCount);
+            for (let index = removedIndex; index < count; index++) {
+                this.#copyXpbdNodeState(body, index, index + 1);
+            }
+            topologyChanged = true;
+        }
+        body.setActiveRange(0, count - 1);
+        if (topologyChanged) {
+            for (let index = 0; index < count - 1; index++) {
+                body.restLength[index] = Math.max(0.5, magnitude3(
+                    body.x[index + 1] - body.x[index],
+                    body.y[index + 1] - body.y[index],
+                    body.z[index + 1] - body.z[index]
+                ));
+            }
+            for (let index = 1; index < count - 1; index++) {
+                body.restBendChord[index] = magnitude3(
+                    body.x[index + 1] - body.x[index - 1],
+                    body.y[index + 1] - body.y[index - 1],
+                    body.z[index + 1] - body.z[index - 1]
+                );
             }
         }
-        for (let index = count; index < previousCount; index++) body.clearRestShapeTarget(index);
         let collisionStart = count - 1;
         const sheath = this.vessel?.sheath;
         if (sheath) {
@@ -260,9 +322,244 @@ export class PigtailCatheter {
                 }
             }
         }
+        const soloXpbd = this.externalCollisionSolver &&
+            this.guidewireInserted <= MIN_GUIDE_SUPPORT;
+        for (let index = 0; index < count; index++) {
+            const point = points[index];
+            const insertedDistance = this._centerlineDistances[index] ?? Infinity;
+            const guideSupported = this.guidewireInserted > MIN_GUIDE_SUPPORT &&
+                insertedDistance <= this.guidewireInserted + GUIDE_CAPTURE_TOLERANCE;
+            const newlyActivated = index === insertedIndex || (
+                insertedIndex < 0 && index >= previousCount
+            );
+            if (newlyActivated && index !== insertedIndex) {
+                if (previousCount > 0 && index > 0) {
+                    const targetPrevious = points[index - 1];
+                    let directionX = point.x - targetPrevious.x;
+                    let directionY = point.y - targetPrevious.y;
+                    let directionZ = point.z - targetPrevious.z;
+                    let targetLength = magnitude3(directionX, directionY, directionZ);
+                    if (targetLength < 1e-6 && index > 1) {
+                        directionX = body.x[index - 1] - body.x[index - 2];
+                        directionY = body.y[index - 1] - body.y[index - 2];
+                        directionZ = body.z[index - 1] - body.z[index - 2];
+                        targetLength = magnitude3(directionX, directionY, directionZ);
+                    }
+                    const restLength = Math.max(0.5, point.distanceTo(targetPrevious));
+                    const inverseDirectionLength = 1 / Math.max(1e-6, targetLength);
+                    body.setNodePosition(
+                        index,
+                        body.x[index - 1] + directionX * inverseDirectionLength * restLength,
+                        body.y[index - 1] + directionY * inverseDirectionLength * restLength,
+                        body.z[index - 1] + directionZ * inverseDirectionLength * restLength
+                    );
+                } else {
+                    body.setNodePosition(index, point.x, point.y, point.z);
+                }
+            }
+            let targetX = point.x;
+            let targetY = point.y;
+            let targetZ = point.z;
+            if (previousCount > 0 && newlyActivated) {
+                targetX = body.x[index];
+                targetY = body.y[index];
+                targetZ = body.z[index];
+            } else if (
+                previousCount > 0 &&
+                body.restShapeEnabled[index] &&
+                Number.isFinite(targetSlewLimit) &&
+                targetSlewLimit > 0
+            ) {
+                const dx = point.x - body.restShapeX[index];
+                const dy = point.y - body.restShapeY[index];
+                const dz = point.z - body.restShapeZ[index];
+                const distance = magnitude3(dx, dy, dz);
+                if (distance > targetSlewLimit) {
+                    const scale = targetSlewLimit / distance;
+                    targetX = body.restShapeX[index] + dx * scale;
+                    targetY = body.restShapeY[index] + dy * scale;
+                    targetZ = body.restShapeZ[index] + dz * scale;
+                }
+            }
+            if (index > collisionStart && !guideSupported) {
+                body.clearRestShapeTarget(index);
+            }
+            else body.setRestShapeTarget(index, targetX, targetY, targetZ, shapeCompliance);
+            body.nodeRadius[index] = CATHETER_RADIUS;
+            body.bendComplianceByNode[index] = soloXpbd
+                ? Math.min(body.bendCompliance, SOLO_XPBD_BEND_COMPLIANCE)
+                : body.bendCompliance;
+            if (index > 0) {
+                const previous = points[index - 1];
+                const desiredLength = Math.max(0.5, point.distanceTo(previous));
+                if (previousCount > 0 && restLengthSlewLimit > 0) {
+                    body.restLength[index - 1] += clamp(
+                        desiredLength - body.restLength[index - 1],
+                        -restLengthSlewLimit,
+                        restLengthSlewLimit
+                    );
+                } else {
+                    body.restLength[index - 1] = desiredLength;
+                }
+            }
+            if (index > 0 && index < count - 1) {
+                const desiredChord = soloXpbd
+                    ? points[index - 1].distanceTo(point) + point.distanceTo(points[index + 1])
+                    : points[index - 1].distanceTo(points[index + 1]);
+                if (previousCount > 0 && bendChordSlewLimit > 0) {
+                    body.restBendChord[index] += clamp(
+                        desiredChord - body.restBendChord[index],
+                        -bendChordSlewLimit,
+                        bendChordSlewLimit
+                    );
+                } else {
+                    body.restBendChord[index] = desiredChord;
+                }
+            }
+        }
+        for (let index = count; index < previousCount; index++) body.clearRestShapeTarget(index);
         body.setCollisionRange(collisionStart, count - 2);
         this.physicsActiveCount = count;
+        for (let index = 0; index < count; index++) {
+            this._xpbdLayoutX[index] = points[index].x;
+            this._xpbdLayoutY[index] = points[index].y;
+            this._xpbdLayoutZ[index] = points[index].z;
+        }
+        this._xpbdLayoutCount = count;
         return count;
+    }
+
+    #xpbdInsertedPointIndex(points, count, previousCount) {
+        let bestIndex = count - 1;
+        let bestScore = Infinity;
+        for (let inserted = 0; inserted < count; inserted++) {
+            let score = 0;
+            for (let oldIndex = 0; oldIndex < previousCount; oldIndex++) {
+                const nextIndex = oldIndex < inserted ? oldIndex : oldIndex + 1;
+                const point = points[nextIndex];
+                const dx = point.x - this._xpbdLayoutX[oldIndex];
+                const dy = point.y - this._xpbdLayoutY[oldIndex];
+                const dz = point.z - this._xpbdLayoutZ[oldIndex];
+                score += dx * dx + dy * dy + dz * dz;
+            }
+            if (score < bestScore) {
+                bestScore = score;
+                bestIndex = inserted;
+            }
+        }
+        return bestIndex;
+    }
+
+    #xpbdRemovedPointIndex(points, count, previousCount) {
+        let bestIndex = previousCount - 1;
+        let bestScore = Infinity;
+        for (let removed = 0; removed < previousCount; removed++) {
+            let score = 0;
+            for (let nextIndex = 0; nextIndex < count; nextIndex++) {
+                const oldIndex = nextIndex < removed ? nextIndex : nextIndex + 1;
+                const point = points[nextIndex];
+                const dx = point.x - this._xpbdLayoutX[oldIndex];
+                const dy = point.y - this._xpbdLayoutY[oldIndex];
+                const dz = point.z - this._xpbdLayoutZ[oldIndex];
+                score += dx * dx + dy * dy + dz * dz;
+            }
+            if (score < bestScore) {
+                bestScore = score;
+                bestIndex = removed;
+            }
+        }
+        return bestIndex;
+    }
+
+    #copyXpbdNodeState(body, target, source) {
+        body.x[target] = body.x[source];
+        body.y[target] = body.y[source];
+        body.z[target] = body.z[source];
+        body.previousX[target] = body.previousX[source];
+        body.previousY[target] = body.previousY[source];
+        body.previousZ[target] = body.previousZ[source];
+        body.velocityX[target] = body.velocityX[source];
+        body.velocityY[target] = body.velocityY[source];
+        body.velocityZ[target] = body.velocityZ[source];
+        body.inverseMass[target] = body.inverseMass[source];
+        body.nodeRadius[target] = body.nodeRadius[source];
+        body.pinned[target] = body.pinned[source];
+        body.bendComplianceByNode[target] = body.bendComplianceByNode[source];
+        body.restShapeEnabled[target] = body.restShapeEnabled[source];
+        body.restShapeX[target] = body.restShapeX[source];
+        body.restShapeY[target] = body.restShapeY[source];
+        body.restShapeZ[target] = body.restShapeZ[source];
+        body.restShapeCompliance[target] = body.restShapeCompliance[source];
+    }
+
+    #initializeInsertedXpbdNode(body, points, index, count, shapeCompliance) {
+        if (index > 0 && index + 1 < count) {
+            const point = points[index];
+            const leftPoint = points[index - 1];
+            const rightPoint = points[index + 1];
+            const leftDistance = point.distanceTo(leftPoint);
+            const rightDistance = point.distanceTo(rightPoint);
+            const t = leftDistance / Math.max(1e-6, leftDistance + rightDistance);
+            body.x[index] = body.x[index - 1] + (body.x[index + 1] - body.x[index - 1]) * t;
+            body.y[index] = body.y[index - 1] + (body.y[index + 1] - body.y[index - 1]) * t;
+            body.z[index] = body.z[index - 1] + (body.z[index + 1] - body.z[index - 1]) * t;
+            body.previousX[index] = body.previousX[index - 1] +
+                (body.previousX[index + 1] - body.previousX[index - 1]) * t;
+            body.previousY[index] = body.previousY[index - 1] +
+                (body.previousY[index + 1] - body.previousY[index - 1]) * t;
+            body.previousZ[index] = body.previousZ[index - 1] +
+                (body.previousZ[index + 1] - body.previousZ[index - 1]) * t;
+            body.velocityX[index] = body.velocityX[index - 1] +
+                (body.velocityX[index + 1] - body.velocityX[index - 1]) * t;
+            body.velocityY[index] = body.velocityY[index - 1] +
+                (body.velocityY[index + 1] - body.velocityY[index - 1]) * t;
+            body.velocityZ[index] = body.velocityZ[index - 1] +
+                (body.velocityZ[index + 1] - body.velocityZ[index - 1]) * t;
+        } else if (index > 0) {
+            const point = points[index];
+            const previous = points[index - 1];
+            const extrapolatePhysicalTangent = this.externalCollisionSolver &&
+                (
+                    this.guidewireInserted <= MIN_GUIDE_SUPPORT ||
+                    (this._centerlineDistances[index] ?? Infinity) > this.guidewireInserted
+                ) &&
+                index > 1;
+            let directionX = extrapolatePhysicalTangent
+                ? body.x[index - 1] - body.x[index - 2]
+                : point.x - previous.x;
+            let directionY = extrapolatePhysicalTangent
+                ? body.y[index - 1] - body.y[index - 2]
+                : point.y - previous.y;
+            let directionZ = extrapolatePhysicalTangent
+                ? body.z[index - 1] - body.z[index - 2]
+                : point.z - previous.z;
+            let directionLength = magnitude3(directionX, directionY, directionZ);
+            if (directionLength < 1e-6 && index > 1) {
+                directionX = body.x[index - 1] - body.x[index - 2];
+                directionY = body.y[index - 1] - body.y[index - 2];
+                directionZ = body.z[index - 1] - body.z[index - 2];
+                directionLength = magnitude3(directionX, directionY, directionZ);
+            }
+            const restLength = Math.max(0.5, point.distanceTo(previous));
+            const scale = restLength / Math.max(1e-6, directionLength);
+            body.x[index] = body.x[index - 1] + directionX * scale;
+            body.y[index] = body.y[index - 1] + directionY * scale;
+            body.z[index] = body.z[index - 1] + directionZ * scale;
+            body.previousX[index] = body.x[index];
+            body.previousY[index] = body.y[index];
+            body.previousZ[index] = body.z[index];
+            body.velocityX[index] = 0;
+            body.velocityY[index] = 0;
+            body.velocityZ[index] = 0;
+        } else {
+            body.setNodePosition(index, points[index].x, points[index].y, points[index].z);
+        }
+        body.restShapeEnabled[index] = 1;
+        body.restShapeX[index] = body.x[index];
+        body.restShapeY[index] = body.y[index];
+        body.restShapeZ[index] = body.z[index];
+        body.restShapeCompliance[index] = shapeCompliance;
+        body.shapeLambda[index] = 0;
     }
 
     setCollisionGeometry(collision) {
@@ -305,11 +602,13 @@ export class PigtailCatheter {
 
     stepPhysics(dt = 1 / 60, { collisions = true } = {}) {
         const state = this.#deploymentState();
+        this.#updateGuidewireRelease(dt);
         const stepIndex = this._physicsStepIndex++;
-        if (!this.externalCollisionSolver || (stepIndex & 3) === 0) {
-            this.#relaxSupportedPath(state.pathEnd);
+        if (!this.externalCollisionSolver || (stepIndex & 3) === 0) this.#relaxSupportedPath(state.pathEnd);
+        if (this.externalCollisionSolver) {
+            this.#updateExternalShapeTargets(state, dt);
+            return;
         }
-        if (this.externalCollisionSolver && (stepIndex & 1) === 1) return;
         if (state.freeLength < 2 || state.supportEnd <= 0) {
             this.#clearFreeNodes();
             this.freeRestDistanceCount = 0;
@@ -377,6 +676,34 @@ export class PigtailCatheter {
             node.vel.subVectors(node.pos, node.previousPos).multiplyScalar(invDt * FREE_DAMPING);
         }
         this.freeNodes[0].vel.set(0, 0, 0);
+    }
+
+    #updateExternalShapeTargets(state, dt) {
+        if (state.freeLength < 2 || state.supportEnd <= 0) {
+            this.#clearFreeNodes();
+            this.freeRestDistanceCount = 0;
+            this.freeLength = 0;
+            return;
+        }
+        const frame = this.#freeFrame(state.supportEnd);
+        this.#syncFreeNodes(state, frame);
+        if (this.freeNodes.length < 2) return;
+        this.freeNodes[0].pos.copy(frame.supportTip);
+        this.freeNodes[0].vel.set(0, 0, 0);
+        const baseDistance = this.freeNodes[0].distance ?? state.supportEnd;
+        for (let index = 1; index < this.freeNodes.length; index++) {
+            const node = this.freeNodes[index];
+            node.curl = Math.min(1, (node.curl ?? 1) + PIGTAIL_RELEASE_CURL_RATE * dt);
+            const relativeDistance = Math.max(0, (node.distance ?? baseDistance) - baseDistance);
+            node.pos.copy(this.#freeShapeTarget(
+                relativeDistance,
+                frame,
+                state.freeLength,
+                1,
+                node.shapeTarget
+            ));
+            node.vel.set(0, 0, 0);
+        }
     }
 
     constrainGuidewire(dt = 1 / 60, { reactionScale = 1 } = {}) {
@@ -472,7 +799,9 @@ export class PigtailCatheter {
             const externalSamples = clamp(Math.ceil(externalLength / 6), 2, 24);
             for (let i = 0; i <= externalSamples; i++) {
                 const s = -externalLength + externalLength * i / externalSamples;
-                this.#sampleCatheterPath(s, this.#centerlinePoint(this._centerlinePointCount++));
+                const index = this._centerlinePointCount++;
+                this.#sampleCatheterPath(s, this.#centerlinePoint(index));
+                this._centerlineDistances[index] = s;
             }
             this.physicsLumenStartNode = externalSamples;
         }
@@ -482,15 +811,19 @@ export class PigtailCatheter {
         const shaftStartIndex = this._centerlinePointCount ? 1 : 0;
         for (let i = shaftStartIndex; i <= shaftSamples; i++) {
             const s = shaftSamples > 0 ? shaftEnd * i / shaftSamples : 0;
-            this.#sampleCatheterPath(s, this.#centerlinePoint(this._centerlinePointCount++));
+            const index = this._centerlinePointCount++;
+            this.#sampleCatheterPath(s, this.#centerlinePoint(index));
+            this._centerlineDistances[index] = s;
         }
 
         if (state.freeLength < 2) {
             if (state.pathEnd > shaftEnd + 0.5) {
+                const index = this._centerlinePointCount++;
                 this.#sampleCatheterPath(
                     state.pathEnd,
-                    this.#centerlinePoint(this._centerlinePointCount++)
+                    this.#centerlinePoint(index)
                 );
+                this._centerlineDistances[index] = state.pathEnd;
             }
             return points;
         }
@@ -498,7 +831,9 @@ export class PigtailCatheter {
         const frame = this.#freeFrame(state.supportEnd);
         this.#syncFreeNodes(state, frame);
         for (let i = 1; i < this.freeNodes.length; i++) {
-            this.#centerlinePoint(this._centerlinePointCount++).copy(this.freeNodes[i].pos);
+            const index = this._centerlinePointCount++;
+            this.#centerlinePoint(index).copy(this.freeNodes[i].pos);
+            this._centerlineDistances[index] = this.freeNodes[i].distance ?? state.supportEnd;
         }
         return points;
     }
@@ -839,21 +1174,18 @@ export class PigtailCatheter {
         }
 
         const local = distance - proximalFreeLength;
-        const unsupportedCurlLength = Math.max(0, deployLength - STRAIGHT_EXIT_LENGTH);
-        const curlProgress = smoothstep(0, DISTAL_RELEASE_LENGTH - STRAIGHT_EXIT_LENGTH, unsupportedCurlLength) * curlScale;
-        const leadLength = Math.min(deployLength, STRAIGHT_EXIT_LENGTH + unsupportedCurlLength * 0.18);
-        if (local <= leadLength || curlProgress <= 0.001) {
+        const leadLength = Math.min(deployLength, STRAIGHT_EXIT_LENGTH);
+        const curvatureScale = clamp(curlScale, 0, 1);
+        if (local <= leadLength || curvatureScale <= 0.001) {
             return out.copy(frame.supportTip).addScaledVector(frame.tangent, distance);
         }
 
-        const loopLength = Math.max(1e-4, deployLength - leadLength);
-        const u = clamp((local - leadLength) / loopLength, 0, 1);
-        const theta = PIGTAIL_TURNS * Math.PI * 2 * curlProgress * u;
-        const taper = 1 - u;
-        const radius = PIGTAIL_RADIUS * curlProgress * (0.72 + taper * 0.28);
+        const arcDistance = Math.min(local - leadLength, PIGTAIL_ARC_LENGTH);
+        const radius = PIGTAIL_RADIUS / curvatureScale;
+        const theta = Math.min(PIGTAIL_TURNS * Math.PI * 2, arcDistance / radius);
         return out.copy(frame.supportTip)
             .addScaledVector(frame.tangent, proximalFreeLength + leadLength + Math.sin(theta) * radius)
-            .addScaledVector(frame.normal, -PIGTAIL_RADIUS * curlProgress + Math.cos(theta) * radius);
+            .addScaledVector(frame.normal, (Math.cos(theta) - 1) * radius);
     }
 
     #berensteinRestPoint(distance, frame, freeLength, curlScale = 1, out = new TypedVector3()) {
@@ -1101,18 +1433,102 @@ export class PigtailCatheter {
     }
 
     #freeShapeTarget(distance, frame, freeLength, curlScale = 1, out = new TypedVector3()) {
-        const target = this.#freeRestPoint(distance, frame, freeLength, curlScale, out);
         const absoluteDistance = this.#sheathSupportEnd() + distance;
-        if (this.guidewireInserted > MIN_GUIDE_SUPPORT && absoluteDistance <= this.guidewireInserted + GUIDE_CAPTURE_TOLERANCE) {
-            const support = 1 - smoothstep(
-                this.guidewireInserted - GUIDEWIRE_RECAPTURE_WINDOW,
-                this.guidewireInserted + GUIDE_CAPTURE_TOLERANCE,
-                absoluteDistance
+        if (this.guidewireInserted > MIN_GUIDE_SUPPORT) {
+            if (absoluteDistance <= this.guidewireInserted) {
+                return out.copy(this.#sampleGuidewire(absoluteDistance, this._shapeNormal));
+            }
+            const unsupportedLength = Math.max(0, this.progress - this.guidewireInserted);
+            const releasedDistance = Math.min(
+                unsupportedLength,
+                absoluteDistance - this.guidewireInserted
             );
-            const guidePoint = this.#sampleGuidewire(absoluteDistance, this._shapeNormal);
-            target.lerp(guidePoint, 0.97 * support);
+            const releaseFrame = this.#guideReleaseFrame(frame);
+            return this.#releasedDistalRestPoint(
+                releasedDistance,
+                releaseFrame,
+                unsupportedLength,
+                curlScale,
+                out
+            );
         }
+        const target = this.#freeRestPoint(distance, frame, freeLength, curlScale, out);
         return this.externalCollisionSolver ? target : this.#projectInsideVesselDetailed(target).point;
+    }
+
+    #guideReleaseFrame(fallbackFrame) {
+        const frame = this._guideReleaseFrameScratch;
+        this.#sampleGuidewire(this.guidewireInserted, frame.supportTip);
+        this.#sampleGuidewire(
+            Math.max(this.#sheathSupportEnd(), this.guidewireInserted - 10),
+            frame.beforeTip
+        );
+        frame.tangent.subVectors(frame.supportTip, frame.beforeTip);
+        if (frame.tangent.lengthSq() < 1e-6) frame.tangent.copy(fallbackFrame.tangent);
+        frame.tangent.normalize();
+        frame.normal.copy(fallbackFrame.normal)
+            .addScaledVector(frame.tangent, -fallbackFrame.normal.dot(frame.tangent));
+        if (frame.normal.lengthSq() < 1e-6) frame.normal.copy(fallbackFrame.normal);
+        frame.normal.normalize();
+        return frame;
+    }
+
+    #updateGuidewireRelease(dt) {
+        if (this.guidewireInserted <= MIN_GUIDE_SUPPORT) {
+            this._guidewireRelease = 1;
+            return;
+        }
+        const unsupportedLength = Math.max(0, this.progress - this.guidewireInserted);
+        const releaseLength = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_STRAIGHT_EXIT_LENGTH + BERENSTEIN_BEND_LENGTH
+            : PIGTAIL_ARC_LENGTH;
+        const target = smoothstep(0, releaseLength, unsupportedLength);
+        const rate = target >= this._guidewireRelease
+            ? SHAPE_RECOVERY_RATE
+            : SHAPE_RECAPTURE_RATE;
+        this._guidewireRelease += clamp(
+            target - this._guidewireRelease,
+            -rate * dt,
+            rate * dt
+        );
+    }
+
+    #releasedDistalRestPoint(distance, frame, unsupportedLength, curlScale, out) {
+        if (this.type === CATHETER_TYPE_BERENSTEIN) {
+            const bendLength = Math.min(unsupportedLength, BERENSTEIN_BEND_LENGTH);
+            const straightLength = Math.max(0, unsupportedLength - bendLength);
+            if (distance <= straightLength || bendLength <= 1e-4) {
+                return out.copy(frame.supportTip).addScaledVector(frame.tangent, distance);
+            }
+            const releaseScale = this._guidewireRelease * clamp(curlScale, 0, 1);
+            const targetAngle = BERENSTEIN_BEND_ANGLE * releaseScale;
+            if (targetAngle <= 1e-4) {
+                return out.copy(frame.supportTip).addScaledVector(frame.tangent, distance);
+            }
+            const radius = BERENSTEIN_BEND_LENGTH / targetAngle;
+            const arcDistance = Math.min(distance - straightLength, bendLength);
+            const angle = arcDistance / radius;
+            const bendNormal = this.#berensteinBendNormal(frame, this._shapeNormal);
+            return out.copy(frame.supportTip)
+                .addScaledVector(frame.tangent, straightLength + Math.sin(angle) * radius)
+                .addScaledVector(bendNormal, (1 - Math.cos(angle)) * radius);
+        }
+
+        const arcLength = Math.min(unsupportedLength, PIGTAIL_ARC_LENGTH);
+        const straightLength = Math.max(0, unsupportedLength - arcLength);
+        if (distance <= straightLength || arcLength <= 1e-4) {
+            return out.copy(frame.supportTip).addScaledVector(frame.tangent, distance);
+        }
+        const releaseScale = this._guidewireRelease * clamp(curlScale, 0, 1);
+        if (releaseScale <= 1e-4) {
+            return out.copy(frame.supportTip).addScaledVector(frame.tangent, distance);
+        }
+        const radius = PIGTAIL_RADIUS / releaseScale;
+        const arcDistance = Math.min(distance - straightLength, arcLength);
+        const theta = Math.min(PIGTAIL_TURNS * Math.PI * 2, arcDistance / radius);
+        return out.copy(frame.supportTip)
+            .addScaledVector(frame.tangent, straightLength + Math.sin(theta) * radius)
+            .addScaledVector(frame.normal, (Math.cos(theta) - 1) * radius);
     }
 
     #shaftStraighteningWeight(node, freeLength) {

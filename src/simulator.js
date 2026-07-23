@@ -10,7 +10,7 @@ import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
 import { initUI } from './ui/ui.js?v=20260721benchmarkreset4';
 import { createBoneModel } from './boneModel.js?v=20260618loading1';
 import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
-import { PigtailCatheter } from './pigtailCatheter.js?v=20260721containment6';
+import { PigtailCatheter } from './pigtailCatheter.js?v=20260723catheterstability1';
 import { createAortaModel } from './aortaModel.js?v=20260721collisionasset8';
 import { createBroadPhaseDebugGroup } from './vesselBroadPhase.js';
 import {

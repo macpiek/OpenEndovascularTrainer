@@ -84,8 +84,8 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         mass: 1.4,
         stretchCompliance: 1e-7,
         bendCompliance: 4e-4,
-        maxBendAngle: 120,
-        foldLimitStrength: 0.75,
+        maxBendAngle: 60,
+        foldLimitStrength: 1,
         wallFriction: 0.12,
         lumenFriction: 0.04
     }),
@@ -663,6 +663,12 @@ export class EndovascularPhysicsWorld {
 
         phaseStart = now();
         for (let index = 0; index < this.bodies.length; index++) this.#updateVelocityAndFriction(this.bodies[index]);
+        for (let index = 0; index < this.containments.length; index++) {
+            this.#stabilizeContainmentVelocity(this.containments[index]);
+        }
+        for (let index = 0; index < this.toolContacts.length; index++) {
+            this.#stabilizeToolContactVelocity(this.toolContacts[index]);
+        }
         recordTiming(this.timings.velocity, now() - phaseStart);
 
         this.stepCount++;
@@ -1252,7 +1258,10 @@ export class EndovascularPhysicsWorld {
             const nextWeight = body.inverseMass[next];
             const totalWeight = previousWeight + nextWeight;
             if (totalWeight < EPSILON) continue;
-            const correction = deficit * body.foldLimitStrength;
+            const correction = Math.min(
+                deficit * body.foldLimitStrength,
+                Math.min(incomingLength, outgoingLength) * 0.35
+            );
             const previousScale = correction * previousWeight / totalWeight;
             const nextScale = correction * nextWeight / totalWeight;
             body.x[previous] -= chordX * previousScale;
@@ -1850,6 +1859,141 @@ export class EndovascularPhysicsWorld {
             body.velocityX.fill(0);
             body.velocityY.fill(0);
             body.velocityZ.fill(0);
+        }
+    }
+
+    #stabilizeContainmentVelocity(constraint) {
+        if (!constraint.enabled) return;
+        const inner = constraint.innerBody;
+        const outer = constraint.outerBody;
+        const allowedRadius = Math.max(0, constraint.innerRadius - inner.radius);
+        const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
+        const innerEnd = clamp(constraint.endNode, innerStart, inner.activeEnd);
+        const outerStart = clamp(constraint.outerStartNode, outer.activeStart, outer.activeEnd);
+        const outerEnd = Math.min(outer.activeEnd, outer.segmentCount);
+        for (let innerIndex = innerStart; innerIndex <= innerEnd; innerIndex++) {
+            const segment = constraint.closestSegment[innerIndex];
+            if (segment < outerStart || segment >= outerEnd) continue;
+            const ax = outer.x[segment];
+            const ay = outer.y[segment];
+            const az = outer.z[segment];
+            const dx = outer.x[segment + 1] - ax;
+            const dy = outer.y[segment + 1] - ay;
+            const dz = outer.z[segment + 1] - az;
+            const lengthSq = dx * dx + dy * dy + dz * dz;
+            const t = clamp(
+                ((inner.x[innerIndex] - ax) * dx +
+                    (inner.y[innerIndex] - ay) * dy +
+                    (inner.z[innerIndex] - az) * dz) /
+                    Math.max(EPSILON, lengthSq),
+                0,
+                1
+            );
+            const radialX = inner.x[innerIndex] - (ax + dx * t);
+            const radialY = inner.y[innerIndex] - (ay + dy * t);
+            const radialZ = inner.z[innerIndex] - (az + dz * t);
+            const distance = magnitude3(radialX, radialY, radialZ);
+            if (
+                distance < EPSILON ||
+                (distance < allowedRadius - 0.01 && constraint.lambdas[innerIndex] <= EPSILON)
+            ) {
+                continue;
+            }
+            const nx = radialX / distance;
+            const ny = radialY / distance;
+            const nz = radialZ / distance;
+            const w0 = 1 - t;
+            const w1 = t;
+            const relativeX = inner.velocityX[innerIndex] -
+                outer.velocityX[segment] * w0 - outer.velocityX[segment + 1] * w1;
+            const relativeY = inner.velocityY[innerIndex] -
+                outer.velocityY[segment] * w0 - outer.velocityY[segment + 1] * w1;
+            const relativeZ = inner.velocityZ[innerIndex] -
+                outer.velocityZ[segment] * w0 - outer.velocityZ[segment + 1] * w1;
+            const outwardVelocity = relativeX * nx + relativeY * ny + relativeZ * nz;
+            if (outwardVelocity <= 0) continue;
+            const innerWeight = inner.inverseMass[innerIndex];
+            const outerWeight0 = outer.inverseMass[segment] * w0 * w0;
+            const outerWeight1 = outer.inverseMass[segment + 1] * w1 * w1;
+            const denominator = innerWeight + outerWeight0 + outerWeight1;
+            if (denominator < EPSILON) continue;
+            const impulse = outwardVelocity / denominator;
+            inner.velocityX[innerIndex] -= nx * impulse * innerWeight;
+            inner.velocityY[innerIndex] -= ny * impulse * innerWeight;
+            inner.velocityZ[innerIndex] -= nz * impulse * innerWeight;
+            outer.velocityX[segment] += nx * impulse * outer.inverseMass[segment] * w0;
+            outer.velocityY[segment] += ny * impulse * outer.inverseMass[segment] * w0;
+            outer.velocityZ[segment] += nz * impulse * outer.inverseMass[segment] * w0;
+            outer.velocityX[segment + 1] += nx * impulse * outer.inverseMass[segment + 1] * w1;
+            outer.velocityY[segment + 1] += ny * impulse * outer.inverseMass[segment + 1] * w1;
+            outer.velocityZ[segment + 1] += nz * impulse * outer.inverseMass[segment + 1] * w1;
+        }
+    }
+
+    #stabilizeToolContactVelocity(constraint) {
+        if (!constraint.enabled) return;
+        const a = constraint.bodyA;
+        const b = constraint.bodyB;
+        const startA = clamp(constraint.startSegmentA, a.activeStart, a.segmentCount - 1);
+        const endA = clamp(constraint.endSegmentA, startA, Math.min(a.activeEnd - 1, a.segmentCount - 1));
+        const startB = clamp(constraint.startSegmentB, b.activeStart, b.segmentCount - 1);
+        const endB = clamp(constraint.endSegmentB, startB, Math.min(b.activeEnd - 1, b.segmentCount - 1));
+        for (let ia = startA; ia <= endA; ia++) {
+            for (let ib = startB; ib <= endB; ib++) {
+                const lambdaIndex = ia * b.segmentCount + ib;
+                if (constraint.lambdas[lambdaIndex] <= EPSILON) continue;
+                this.#closestSegmentParameters(a, ia, b, ib, this._segmentParameters);
+                const s = this._segmentParameters.s;
+                const t = this._segmentParameters.t;
+                const aw0 = 1 - s;
+                const aw1 = s;
+                const bw0 = 1 - t;
+                const bw1 = t;
+                const ax = a.x[ia] * aw0 + a.x[ia + 1] * aw1;
+                const ay = a.y[ia] * aw0 + a.y[ia + 1] * aw1;
+                const az = a.z[ia] * aw0 + a.z[ia + 1] * aw1;
+                const bx = b.x[ib] * bw0 + b.x[ib + 1] * bw1;
+                const by = b.y[ib] * bw0 + b.y[ib + 1] * bw1;
+                const bz = b.z[ib] * bw0 + b.z[ib + 1] * bw1;
+                const dx = ax - bx;
+                const dy = ay - by;
+                const dz = az - bz;
+                const distance = magnitude3(dx, dy, dz);
+                if (distance < EPSILON) continue;
+                const nx = dx / distance;
+                const ny = dy / distance;
+                const nz = dz / distance;
+                const relativeX =
+                    a.velocityX[ia] * aw0 + a.velocityX[ia + 1] * aw1 -
+                    b.velocityX[ib] * bw0 - b.velocityX[ib + 1] * bw1;
+                const relativeY =
+                    a.velocityY[ia] * aw0 + a.velocityY[ia + 1] * aw1 -
+                    b.velocityY[ib] * bw0 - b.velocityY[ib + 1] * bw1;
+                const relativeZ =
+                    a.velocityZ[ia] * aw0 + a.velocityZ[ia + 1] * aw1 -
+                    b.velocityZ[ib] * bw0 - b.velocityZ[ib + 1] * bw1;
+                const closingVelocity = relativeX * nx + relativeY * ny + relativeZ * nz;
+                if (closingVelocity >= 0) continue;
+                const wa0 = a.inverseMass[ia] * aw0 * aw0;
+                const wa1 = a.inverseMass[ia + 1] * aw1 * aw1;
+                const wb0 = b.inverseMass[ib] * bw0 * bw0;
+                const wb1 = b.inverseMass[ib + 1] * bw1 * bw1;
+                const denominator = wa0 + wa1 + wb0 + wb1;
+                if (denominator < EPSILON) continue;
+                const impulse = -closingVelocity / denominator;
+                a.velocityX[ia] += nx * impulse * a.inverseMass[ia] * aw0;
+                a.velocityY[ia] += ny * impulse * a.inverseMass[ia] * aw0;
+                a.velocityZ[ia] += nz * impulse * a.inverseMass[ia] * aw0;
+                a.velocityX[ia + 1] += nx * impulse * a.inverseMass[ia + 1] * aw1;
+                a.velocityY[ia + 1] += ny * impulse * a.inverseMass[ia + 1] * aw1;
+                a.velocityZ[ia + 1] += nz * impulse * a.inverseMass[ia + 1] * aw1;
+                b.velocityX[ib] -= nx * impulse * b.inverseMass[ib] * bw0;
+                b.velocityY[ib] -= ny * impulse * b.inverseMass[ib] * bw0;
+                b.velocityZ[ib] -= nz * impulse * b.inverseMass[ib] * bw0;
+                b.velocityX[ib + 1] -= nx * impulse * b.inverseMass[ib + 1] * bw1;
+                b.velocityY[ib + 1] -= ny * impulse * b.inverseMass[ib + 1] * bw1;
+                b.velocityZ[ib + 1] -= nz * impulse * b.inverseMass[ib + 1] * bw1;
+            }
         }
     }
 

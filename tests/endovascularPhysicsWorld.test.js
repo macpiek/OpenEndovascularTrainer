@@ -713,8 +713,9 @@ assert.ok(catheterModel.freeNodes.every(node =>
 ), 'a catheter inserted without a guidewire should remain finite');
 assert.ok(maximumPointBendDegrees(catheterModel.freeNodes, index => catheterModel.freeNodes[index].pos) <= 74,
     'an unsupported catheter should not develop an acute local fold');
-assert.ok(catheterModel.freeNodes.at(-1).pos.x > catheterVessel.sheath.end.x + 15,
-    'an unsupported catheter tip should progress distally instead of bunching at the sheath exit');
+const unsupportedDistalReach = Math.max(...catheterModel.freeNodes.map(node => node.pos.x));
+assert.ok(unsupportedDistalReach > catheterVessel.sheath.end.x + 20,
+    `an unsupported catheter should progress distally instead of bunching at the sheath exit (${unsupportedDistalReach} mm)`);
 
 catheterModel.reset();
 alignInteractionGuidewire(80);
@@ -742,6 +743,419 @@ assert.ok(supportedLateralOffset < 1,
 assert.ok(releasedLateralOffset > supportedLateralOffset + 3,
     'the preformed catheter tip should recover after the guidewire is withdrawn');
 catheterModel.dispose();
+
+const insertionGuidewireLength = 500;
+const insertionGuidewireSpacing = 2;
+let insertionGuidewireInserted = 199;
+const insertionSheathLength = Math.hypot(
+    catheterVessel.sheath.end.x - catheterVessel.sheath.start.x,
+    catheterVessel.sheath.end.y - catheterVessel.sheath.start.y,
+    catheterVessel.sheath.end.z - catheterVessel.sheath.start.z
+);
+const insertionGuidewire = new ElasticRod(
+    insertionGuidewireLength / insertionGuidewireSpacing + 1,
+    insertionGuidewireSpacing
+);
+for (let index = 0; index < insertionGuidewire.nodes.length; index++) {
+    const node = insertionGuidewire.nodes[index];
+    node.x = index * insertionGuidewireSpacing - insertionGuidewireLength +
+        insertionGuidewireInserted - insertionSheathLength;
+    node.y = 0;
+    node.z = 0;
+    node.vx = 0;
+    node.vy = 0;
+    node.vz = 0;
+}
+const insertionCatheter = new PigtailCatheter({
+    wire: insertionGuidewire,
+    segmentLength: insertionGuidewireSpacing,
+    guidewireLength: insertionGuidewireLength,
+    tailProgressRef: () => insertionGuidewireInserted,
+    vessel: catheterVessel,
+    maxLength: insertionGuidewireLength
+});
+insertionCatheter.setExternalCollisionSolver(true);
+const insertionWorld = new EndovascularPhysicsWorld();
+const insertionWireBody = insertionWorld.createRod(
+    'insertion-guidewire',
+    insertionGuidewire.nodes.length,
+    insertionGuidewireSpacing,
+    DEFAULT_TOOL_PROFILES.guidewire
+);
+for (let index = 0; index < insertionWireBody.count; index++) {
+    const node = insertionGuidewire.nodes[index];
+    insertionWireBody.setNodePosition(index, node.x, node.y, node.z);
+    insertionWireBody.setPinned(index, true);
+}
+insertionWireBody.setActiveRange(
+    Math.max(0, Math.ceil(
+        (insertionGuidewireLength - insertionGuidewireInserted) / insertionGuidewireSpacing
+    ) - 1),
+    insertionWireBody.count - 1
+);
+const insertionCatheterBody = insertionWorld.createRod('insertion-catheter', 320, 4, {
+    ...DEFAULT_TOOL_PROFILES.catheter,
+    bendCompliance: 2e-4,
+    shapeCompliance: 2e-4
+});
+const insertionContainment = insertionWorld.addContainment(
+    insertionWireBody,
+    insertionCatheterBody,
+    {
+        innerRadius: DEFAULT_TOOL_PROFILES.catheter.innerRadius,
+        openProximal: true,
+        openDistal: true,
+        searchWindow: 8,
+        enabled: false
+    }
+);
+const insertionExternalContact = insertionWorld.addToolContact(
+    insertionWireBody,
+    insertionCatheterBody,
+    {
+        friction: 0.08,
+        openDistalB: true,
+        enabled: false
+    }
+);
+let previousInsertionTip = null;
+let maximumInsertionTipStep = 0;
+let maximumInsertionTipStepAt = -1;
+let maximumInsertionSpeed = 0;
+let maximumInsertionBend = 0;
+let maximumInsertionBendStep = -1;
+let maximumInsertionBendNode = -1;
+let maximumInsertionBendProgress = 0;
+let maximumInsertionBendActiveEnd = -1;
+let previousInsertionActiveCount = 0;
+let lastInsertionCountChangeStep = -1;
+for (let step = 0; step < 600; step++) {
+    insertionCatheter.advance(1, 1 / 120, insertionGuidewireInserted);
+    insertionCatheter.stepPhysics(1 / 120, { collisions: false });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody, {
+        shapeCompliance: 2e-4
+    });
+    if (activeCount !== previousInsertionActiveCount) {
+        previousInsertionActiveCount = activeCount;
+        lastInsertionCountChangeStep = step;
+    }
+    insertionContainment.outerStartNode = insertionCatheter.physicsLumenStartNode;
+    const firstContainedNode = Math.max(0, Math.ceil(
+        (insertionGuidewireLength - insertionGuidewireInserted) / insertionGuidewireSpacing
+    ));
+    insertionContainment.enabled = activeCount >= 2;
+    insertionContainment.startNode = firstContainedNode;
+    const lastContainedNode = Math.min(
+        insertionWireBody.count - 1,
+        Math.floor(
+            (insertionGuidewireLength - insertionGuidewireInserted + insertionCatheter.progress) /
+            insertionGuidewireSpacing
+        )
+    );
+    insertionContainment.endNode = lastContainedNode;
+    const catheterEndSegment = Math.max(0, activeCount - 2);
+    const firstExternalSegment = Math.max(0, Math.min(
+        insertionWireBody.segmentCount - 1,
+        lastContainedNode
+    ));
+    insertionExternalContact.enabled =
+        insertionCatheter.progress > 4 &&
+        activeCount >= 2 &&
+        insertionGuidewireInserted > insertionCatheter.progress + 0.5 &&
+        firstExternalSegment <= insertionWireBody.activeEnd - 1;
+    insertionExternalContact.startSegmentA = firstExternalSegment;
+    insertionExternalContact.endSegmentA = Math.min(
+        insertionWireBody.activeEnd - 1,
+        firstExternalSegment + 16
+    );
+    insertionExternalContact.startSegmentB = Math.max(0, catheterEndSegment - 8);
+    insertionExternalContact.endSegmentB = catheterEndSegment;
+    insertionWorld.stepFixed();
+
+    const tipIndex = insertionCatheterBody.activeEnd;
+    const tip = [
+        insertionCatheterBody.x[tipIndex],
+        insertionCatheterBody.y[tipIndex],
+        insertionCatheterBody.z[tipIndex]
+    ];
+    if (previousInsertionTip) {
+        const tipStep = Math.hypot(
+            tip[0] - previousInsertionTip[0],
+            tip[1] - previousInsertionTip[1],
+            tip[2] - previousInsertionTip[2]
+        );
+        if (tipStep > maximumInsertionTipStep) {
+            maximumInsertionTipStep = tipStep;
+            maximumInsertionTipStepAt = step;
+        }
+    }
+    previousInsertionTip = tip;
+    for (let index = insertionCatheterBody.activeStart; index <= tipIndex; index++) {
+        maximumInsertionSpeed = Math.max(
+            maximumInsertionSpeed,
+            Math.hypot(
+                insertionCatheterBody.velocityX[index],
+                insertionCatheterBody.velocityY[index],
+                insertionCatheterBody.velocityZ[index]
+            )
+        );
+    }
+    const insertionBend = insertionWorld.getStats().bodies
+        .find(body => body.id === 'insertion-catheter').maxBendAngleDegrees;
+    if (insertionBend > maximumInsertionBend) {
+        maximumInsertionBend = insertionBend;
+        maximumInsertionBendStep = step;
+        maximumInsertionBendProgress = insertionCatheter.progress;
+        maximumInsertionBendActiveEnd = tipIndex;
+        for (let index = insertionCatheterBody.activeStart + 1; index < tipIndex; index++) {
+            const ax = insertionCatheterBody.x[index] - insertionCatheterBody.x[index - 1];
+            const ay = insertionCatheterBody.y[index] - insertionCatheterBody.y[index - 1];
+            const az = insertionCatheterBody.z[index] - insertionCatheterBody.z[index - 1];
+            const bx = insertionCatheterBody.x[index + 1] - insertionCatheterBody.x[index];
+            const by = insertionCatheterBody.y[index + 1] - insertionCatheterBody.y[index];
+            const bz = insertionCatheterBody.z[index + 1] - insertionCatheterBody.z[index];
+            const angle = Math.acos(Math.max(-1, Math.min(1,
+                (ax * bx + ay * by + az * bz) /
+                Math.max(1e-9, Math.hypot(ax, ay, az) * Math.hypot(bx, by, bz))
+            ))) * 180 / Math.PI;
+            if (Math.abs(angle - insertionBend) < 1e-4) maximumInsertionBendNode = index;
+        }
+    }
+}
+assert.ok(maximumInsertionTipStep <= 4.5,
+    `catheter insertion should not teleport its tip (${maximumInsertionTipStep} mm at step ${maximumInsertionTipStepAt})`);
+assert.ok(maximumInsertionSpeed <= 500,
+    `catheter insertion should not create an impulse spike (${maximumInsertionSpeed} mm/s)`);
+assert.ok(maximumInsertionBend <= 90,
+    `catheter insertion should not create a transient fold (${maximumInsertionBend} degrees at step ${maximumInsertionBendStep}, node ${maximumInsertionBendNode}/${maximumInsertionBendActiveEnd}, progress ${maximumInsertionBendProgress}, last topology step ${lastInsertionCountChangeStep})`);
+
+let previousGuidewireWithdrawalTip = [
+    insertionCatheterBody.x[insertionCatheterBody.activeEnd],
+    insertionCatheterBody.y[insertionCatheterBody.activeEnd],
+    insertionCatheterBody.z[insertionCatheterBody.activeEnd]
+];
+let maximumGuidewireWithdrawalTipStep = 0;
+let maximumGuidewireWithdrawalSpeed = 0;
+let maximumGuidewireWithdrawalBend = 0;
+for (let step = 0; step < 360; step++) {
+    insertionGuidewireInserted = 199 - 119 * (step + 1) / 360;
+    for (let index = 0; index < insertionGuidewire.nodes.length; index++) {
+        const x = index * insertionGuidewireSpacing - insertionGuidewireLength +
+            insertionGuidewireInserted - insertionSheathLength;
+        const node = insertionGuidewire.nodes[index];
+        node.x = x;
+        node.y = 0;
+        node.z = 0;
+        node.vx = 0;
+        node.vy = 0;
+        node.vz = 0;
+        insertionWireBody.setNodePosition(index, x, 0, 0);
+    }
+    insertionWireBody.setActiveRange(
+        Math.max(0, Math.ceil(
+            (insertionGuidewireLength - insertionGuidewireInserted) /
+            insertionGuidewireSpacing
+        ) - 1),
+        insertionWireBody.count - 1
+    );
+    insertionCatheter.advance(0, 1 / 120, insertionGuidewireInserted);
+    insertionCatheter.stepPhysics(1 / 120, { collisions: false });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody, {
+        shapeCompliance: 2e-4
+    });
+    const firstContainedNode = Math.max(0, Math.ceil(
+        (insertionGuidewireLength - insertionGuidewireInserted) / insertionGuidewireSpacing
+    ));
+    insertionContainment.enabled = activeCount >= 2;
+    insertionContainment.startNode = firstContainedNode;
+    insertionContainment.endNode = Math.min(
+        insertionWireBody.count - 1,
+        Math.floor(
+            (insertionGuidewireLength - insertionGuidewireInserted + insertionCatheter.progress) /
+            insertionGuidewireSpacing
+        )
+    );
+    insertionExternalContact.enabled = false;
+    insertionWorld.stepFixed();
+
+    const tipIndex = insertionCatheterBody.activeEnd;
+    const tip = [
+        insertionCatheterBody.x[tipIndex],
+        insertionCatheterBody.y[tipIndex],
+        insertionCatheterBody.z[tipIndex]
+    ];
+    maximumGuidewireWithdrawalTipStep = Math.max(
+        maximumGuidewireWithdrawalTipStep,
+        Math.hypot(
+            tip[0] - previousGuidewireWithdrawalTip[0],
+            tip[1] - previousGuidewireWithdrawalTip[1],
+            tip[2] - previousGuidewireWithdrawalTip[2]
+        )
+    );
+    previousGuidewireWithdrawalTip = tip;
+    for (let index = insertionCatheterBody.activeStart; index <= tipIndex; index++) {
+        maximumGuidewireWithdrawalSpeed = Math.max(
+            maximumGuidewireWithdrawalSpeed,
+            Math.hypot(
+                insertionCatheterBody.velocityX[index],
+                insertionCatheterBody.velocityY[index],
+                insertionCatheterBody.velocityZ[index]
+            )
+        );
+    }
+    maximumGuidewireWithdrawalBend = Math.max(
+        maximumGuidewireWithdrawalBend,
+        insertionWorld.getStats().bodies.find(body => body.id === 'insertion-catheter')
+            .maxBendAngleDegrees
+    );
+}
+assert.ok(maximumGuidewireWithdrawalTipStep <= 4.5,
+    `guidewire withdrawal should not teleport the catheter tip (${maximumGuidewireWithdrawalTipStep} mm)`);
+assert.ok(maximumGuidewireWithdrawalSpeed <= 500,
+    `guidewire withdrawal should not create a catheter impulse (${maximumGuidewireWithdrawalSpeed} mm/s)`);
+assert.ok(maximumGuidewireWithdrawalBend <= 90,
+    `guidewire withdrawal should not fold the catheter (${maximumGuidewireWithdrawalBend} degrees)`);
+
+let previousCatheterWithdrawalTip = previousGuidewireWithdrawalTip;
+let maximumCatheterWithdrawalTipStep = 0;
+let maximumCatheterWithdrawalSpeed = 0;
+let maximumCatheterWithdrawalBend = 0;
+for (let step = 0; step < 360; step++) {
+    insertionCatheter.advance(-1, 1 / 120, insertionGuidewireInserted);
+    insertionCatheter.stepPhysics(1 / 120, { collisions: false });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody, {
+        shapeCompliance: 2e-4
+    });
+    insertionContainment.enabled = activeCount >= 2;
+    insertionContainment.endNode = Math.min(
+        insertionWireBody.count - 1,
+        Math.floor(
+            (insertionGuidewireLength - insertionGuidewireInserted + insertionCatheter.progress) /
+            insertionGuidewireSpacing
+        )
+    );
+    insertionWorld.stepFixed();
+
+    const tipIndex = insertionCatheterBody.activeEnd;
+    const tip = [
+        insertionCatheterBody.x[tipIndex],
+        insertionCatheterBody.y[tipIndex],
+        insertionCatheterBody.z[tipIndex]
+    ];
+    maximumCatheterWithdrawalTipStep = Math.max(
+        maximumCatheterWithdrawalTipStep,
+        Math.hypot(
+            tip[0] - previousCatheterWithdrawalTip[0],
+            tip[1] - previousCatheterWithdrawalTip[1],
+            tip[2] - previousCatheterWithdrawalTip[2]
+        )
+    );
+    previousCatheterWithdrawalTip = tip;
+    for (let index = insertionCatheterBody.activeStart; index <= tipIndex; index++) {
+        maximumCatheterWithdrawalSpeed = Math.max(
+            maximumCatheterWithdrawalSpeed,
+            Math.hypot(
+                insertionCatheterBody.velocityX[index],
+                insertionCatheterBody.velocityY[index],
+                insertionCatheterBody.velocityZ[index]
+            )
+        );
+    }
+    maximumCatheterWithdrawalBend = Math.max(
+        maximumCatheterWithdrawalBend,
+        insertionWorld.getStats().bodies.find(body => body.id === 'insertion-catheter')
+            .maxBendAngleDegrees
+    );
+}
+assert.ok(maximumCatheterWithdrawalTipStep <= 4.5,
+    `catheter withdrawal should not teleport its tip (${maximumCatheterWithdrawalTipStep} mm)`);
+assert.ok(maximumCatheterWithdrawalSpeed <= 500,
+    `catheter withdrawal should not create an impulse (${maximumCatheterWithdrawalSpeed} mm/s)`);
+assert.ok(maximumCatheterWithdrawalBend <= 90,
+    `catheter withdrawal should not create a fold (${maximumCatheterWithdrawalBend} degrees)`);
+insertionCatheter.dispose();
+
+const soloCatheterWire = new ElasticRod(
+    insertionGuidewireLength / insertionGuidewireSpacing + 1,
+    insertionGuidewireSpacing
+);
+for (let index = 0; index < soloCatheterWire.nodes.length; index++) {
+    const node = soloCatheterWire.nodes[index];
+    node.x = index * insertionGuidewireSpacing - insertionGuidewireLength - insertionSheathLength;
+    node.y = 0;
+    node.z = 0;
+    node.vx = 0;
+    node.vy = 0;
+    node.vz = 0;
+}
+const soloCatheter = new PigtailCatheter({
+    wire: soloCatheterWire,
+    segmentLength: insertionGuidewireSpacing,
+    guidewireLength: insertionGuidewireLength,
+    tailProgressRef: () => 0,
+    vessel: catheterVessel,
+    maxLength: insertionGuidewireLength
+});
+soloCatheter.setExternalCollisionSolver(true);
+soloCatheter.setType('berenstein');
+const soloWorld = new EndovascularPhysicsWorld();
+const soloCatheterBody = soloWorld.createRod('solo-catheter', 320, 4, {
+    ...DEFAULT_TOOL_PROFILES.catheter,
+    bendCompliance: 2e-4,
+    shapeCompliance: 2e-4
+});
+let previousSoloTip = null;
+let maximumSoloTipStep = 0;
+let maximumSoloSpeed = 0;
+let maximumSoloBend = 0;
+for (let step = 0; step < 360; step++) {
+    soloCatheter.advance(1, 1 / 120, 0);
+    soloCatheter.stepPhysics(1 / 120, { collisions: false });
+    soloCatheter.syncXpbdBody(soloCatheterBody, { shapeCompliance: 2e-4 });
+    soloWorld.stepFixed();
+
+    const tipIndex = soloCatheterBody.activeEnd;
+    const tip = [
+        soloCatheterBody.x[tipIndex],
+        soloCatheterBody.y[tipIndex],
+        soloCatheterBody.z[tipIndex]
+    ];
+    if (previousSoloTip) {
+        maximumSoloTipStep = Math.max(
+            maximumSoloTipStep,
+            Math.hypot(
+                tip[0] - previousSoloTip[0],
+                tip[1] - previousSoloTip[1],
+                tip[2] - previousSoloTip[2]
+            )
+        );
+    }
+    previousSoloTip = tip;
+    for (let index = soloCatheterBody.activeStart; index <= tipIndex; index++) {
+        maximumSoloSpeed = Math.max(
+            maximumSoloSpeed,
+            Math.hypot(
+                soloCatheterBody.velocityX[index],
+                soloCatheterBody.velocityY[index],
+                soloCatheterBody.velocityZ[index]
+            )
+        );
+    }
+    maximumSoloBend = Math.max(
+        maximumSoloBend,
+        soloWorld.getStats().bodies.find(body => body.id === 'solo-catheter')
+            .maxBendAngleDegrees
+    );
+}
+assert.ok(soloCatheter.progress > 150,
+    'a catheter without a guidewire should continue advancing');
+assert.ok(maximumSoloTipStep <= 4.5,
+    `solo catheter insertion should not teleport its tip (${maximumSoloTipStep} mm)`);
+assert.ok(maximumSoloSpeed <= 500,
+    `solo catheter insertion should not create an impulse spike (${maximumSoloSpeed} mm/s)`);
+assert.ok(maximumSoloBend <= 45,
+    `solo catheter insertion should not create a transient fold (${maximumSoloBend} degrees)`);
+soloCatheter.dispose();
 
 const stabilityWorld = new EndovascularPhysicsWorld({ contactField: cylinderField(6) });
 const stableRod = stabilityWorld.createRod('stability', 32, 0.5, {
