@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Endovascular Trainer</title>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.5/build/index.module.js",
+        "three/examples/jsm/utils/BufferGeometryUtils.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
+        "three/examples/jsm/loaders/OBJLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js",
+        "three/examples/jsm/loaders/STLLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js"
+    }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-cXvmRU5Q.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CD-QFYaA.css">
+</head>
+<body>
+<div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
+    <div class="loading-panel">
+        <div class="loading-aorta" aria-hidden="true">
+            <div class="loading-aorta-figure">
+                <img src="/assets/aorta-loading-BqRI3-By.png?v=20260619stl2" alt="">
+                <span class="loading-aorta-contrast"></span>
+            </div>
+        </div>
+        <div class="loading-copy">
+            <div class="loading-title">Endovascular Trainer</div>
+            <div id="loadingMessage" class="loading-message">Loading simulator</div>
+        </div>
+    </div>
+</div>
+<canvas id="sim"></canvas>
+<div id="view-mode-switch">
+    <button id="modeToggle" class="mode-toggle fluoro-active" type="button" aria-label="Current view: fluoroscopy" aria-pressed="false">
+        <span class="mode-toggle-thumb" aria-hidden="true"></span>
+        <span class="mode-toggle-option mode-toggle-fluoro">Fluoro</span>
+        <span class="mode-toggle-option mode-toggle-debug">Debug</span>
+    </button>
+    <div id="perfStats">FPS: 0 | Mem: N/A</div>
+    <div class="control-readout-strip">
+        <div class="control-readout" id="insertedLength">Wire 0 cm</div>
+        <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
+        <div class="control-readout" id="currentDose">Contrast 0 ml</div>
+        <div id="xrayTechnique" class="xray-technique">
+            <span id="currentKV">72 kV</span>
+            <span id="currentMA">3.0 mA</span>
+        </div>
+    </div>
+</div>
+<div id="bottom-control-panel" aria-hidden="true"></div>
+<div id="controls">
+    <div class="control-tabs" role="tablist" aria-label="Simulator controls">
+        <button class="control-tab active" type="button" data-control-tab="toolSelection" role="tab" aria-selected="true">Tool selection</button>
+        <button class="control-tab" type="button" data-control-tab="wire" role="tab" aria-selected="false">Wire</button>
+        <button class="control-tab" type="button" data-control-tab="injection" role="tab" aria-selected="false">Injection</button>
+        <button class="control-tab" type="button" data-control-tab="imaging" role="tab" aria-selected="false">Imaging</button>
+        <button class="control-tab" type="button" data-control-tab="debug" role="tab" aria-selected="false">Debug</button>
+    </div>
+
+    <div class="control-tab-panels">
+        <div class="control-tab-panel active" data-control-panel="toolSelection" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
+                <div class="section-content tool-selection-grid">
+                    <label class="parameter-label tool-select-label">Catheter
+                        <select id="catheterType">
+                            <option value="pigtail">Pigtail</option>
+                            <option value="berenstein" selected>Berenstein</option>
+                        </select>
+                        <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                    </label>
+                    <label class="parameter-label tool-select-label">Guidewire
+                        <select id="guidewireType">
+                            <option value="glidewire" selected>Glidewire</option>
+                        </select>
+                        <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="wire" role="tabpanel">
+            <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
+                <div class="guidewire-resistance-header">
+                    <span id="guidewireResistanceReason">Opór na prowadniku</span>
+                    <span id="guidewireResistanceValue">0%</span>
+                </div>
+                <div class="guidewire-resistance-meter">
+                    <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Bending stiffness
+                        <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Smoothing iterations
+                        <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Friction</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Static friction
+                        <input id="staticFriction" type="range" min="0" max="1" step="0.001" value="0.006">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Kinetic friction
+                        <input id="kineticFriction" type="range" min="0" max="1" step="0.001" value="0.002">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="imaging" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
+                <div class="section-content imaging-grid">
+                    <button id="autoExposureToggle" class="imaging-toggle" type="button">Auto exposure: Off</button>
+                    <label class="parameter-label">Persistence
+                        <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.3">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Pulse fluoro
+                        <select id="pulseRate">
+                            <option value="7.5">7.5 fps</option>
+                            <option value="15" selected>15 fps</option>
+                            <option value="30">30 fps</option>
+                        </select>
+                    </label>
+                    <label class="parameter-label">Noise level
+                        <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.1">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Thickness scatter
+                        <input id="scatterStrength" type="range" min="0" max="1" step="0.01" value="0.45">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Collimation
+                        <input id="collimation" type="range" min="0" max="0.45" step="0.01" value="0.08">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Brightness
+                        <input id="imageBrightness" type="range" min="-0.35" max="0.35" step="0.01" value="0.18">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Image contrast
+                        <input id="imageContrast" type="range" min="0.25" max="3" step="0.01" value="1.33">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Edge enhancement
+                        <input id="edgeEnhancement" type="range" min="0" max="2" step="0.05" value="0.1">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Bone visibility
+                        <input id="boneVisibility" type="range" min="0" max="1" step="0.01" value="0.62">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Contrast opacity
+                        <input id="opacityScale" type="range" min="0" max="100" step="1" value="100">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Contrast gain
+                        <input id="gain" type="range" min="0" max="5" step="0.1" value="5">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="injection" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Injection</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Volume (ml)
+                        <input id="injVolume" type="range" min="0" max="200" step="0.5" value="100">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Rate (ml/s)
+                        <input id="injRate" type="range" min="0" max="100" step="0.1" value="50">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Duration (ms)
+                        <input id="injDuration" type="range" min="0" max="5000" step="100" value="2000">
+                        <span></span>
+                    </label>
+                    <div class="control-actions">
+                        <button id="injectContrast">Inject</button>
+                        <button id="stopInjection" disabled>Stop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
+            <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
+            <div id="toolDiameters" class="tool-diameters" aria-label="Tool diameters">
+                <div><span>Guidewire</span><strong id="guidewireDiameter">0.035&quot; · 0.889 mm</strong></div>
+                <div><span>Sheath</span><strong id="sheathDiameter">6F · 2.000 mm</strong></div>
+                <div><span>Pigtail</span><strong id="catheterDiameter">5F · 1.667 mm</strong></div>
+            </div>
+            <div class="debug-layer-controls" aria-label="Debug layers">
+                <label class="debug-toggle"><input id="showDebugStlModel" type="checkbox" checked> Model STL</label>
+                <label class="debug-toggle"><input id="showDebugLumenCast" type="checkbox"> Odlew światła</label>
+                <label class="debug-toggle"><input id="showDebugSections" type="checkbox"> Przekroje</label>
+                <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox" checked> Centerline</label>
+                <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
+            </div>
+            <div class="browser-benchmark" aria-label="Browser benchmark">
+                <div class="browser-benchmark-actions">
+                    <button id="runBrowserBenchmarkSmoke" type="button">Start 5 s</button>
+                    <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
+                    <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>
+                </div>
+                <output id="browserBenchmarkStatus" class="browser-benchmark-status" aria-live="polite">Idle</output>
+                <textarea id="browserBenchmarkReport" class="browser-benchmark-report" rows="4"
+                    aria-label="Browser benchmark report" readonly>No report</textarea>
+            </div>
+            <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
+        </div>
+    </div>
+</div>
+
+<div id="monitor" class="patient-monitor">
+    <div class="monitor-header">
+        <div>
+            <div class="monitor-title">MONITOR</div>
+            <div class="monitor-subtitle">ADULT | ANGIO</div>
+        </div>
+        <div class="monitor-status">
+            <span id="monitorRhythm">SINUS</span>
+            <span id="monitorClock">00:00</span>
+        </div>
+    </div>
+
+    <div class="monitor-trace monitor-trace-ecg" id="hrBox">
+        <canvas id="ecgCanvas" width="270" height="58"></canvas>
+        <div class="trace-label">
+            <span>ECG II</span>
+            <span>1 mV</span>
+        </div>
+        <div class="monitor-value value-hr">
+            <span class="value-label">HR</span>
+            <span id="hrValue" class="value-number">0</span>
+            <span class="value-unit">bpm</span>
+        </div>
+    </div>
+
+    <div class="monitor-trace monitor-trace-bp" id="bpBox">
+        <canvas id="bpCanvas" width="270" height="58"></canvas>
+        <div class="trace-label">
+            <span>ART</span>
+            <span>mmHg</span>
+        </div>
+        <div class="monitor-value value-bp">
+            <span class="value-label">BP</span>
+            <span id="bpValue" class="value-number value-number-wide">0/0</span>
+            <span class="value-unit">mmHg</span>
+        </div>
+    </div>
+
+    <div class="monitor-metrics">
+        <div class="monitor-metric metric-spo2">
+            <span class="metric-label">SpO2</span>
+            <span class="metric-readout"><span id="spo2Value">98</span><small>%</small></span>
+        </div>
+        <div class="monitor-metric metric-map">
+            <span class="metric-label">MAP</span>
+            <span class="metric-readout"><span id="mapValue">93</span><small>mmHg</small></span>
+        </div>
+        <div class="monitor-metric metric-rr">
+            <span class="metric-label">RR</span>
+            <span class="metric-readout"><span id="rrValue">14</span><small>/min</small></span>
+        </div>
+    </div>
+</div>
+
+<div id="carm-preview"></div>
+<aside id="control-help-panel" aria-label="Opis sterowania">
+    <div class="control-help-title">Sterowanie</div>
+    <div class="control-help-grid">
+        <section class="control-help-section">
+            <h2>Prowadnik</h2>
+            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>Cewnik</h2>
+            <p><kbd>D</kbd> wsuń, <kbd>A</kbd> wycofaj, <kbd>Q</kbd>/<kbd>E</kbd> obróć.</p>
+        </section>
+    </div>
+</aside>
+<div id="carm-controls">
+    <div class="carm-panel-title">C-arm / table</div>
+    <div class="carm-controls-body">
+            <div class="carm-readouts">
+                <div class="carm-readout"><span class="plane-icon plane-transverse"></span><span id="carmYawReadout">AP 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-sagittal"></span><span id="carmPitchReadout">CRA 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-roll"></span><span id="carmRollReadout">Roll 0°</span></div>
+            </div>
+            <div class="carm-joystick-grid">
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Angle</div>
+                    <div class="angle-control-layout">
+                        <button id="carmLao30" class="angle-preset-button" title="Hold to move to LAO 30 degrees">LAO 30</button>
+                        <div class="angle-joystick-stack">
+                            <div id="angleJoystick" class="joystick">
+                                <div id="angleJoystickHandle" class="joystick-handle"></div>
+                            </div>
+                            <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
+                        </div>
+                        <button id="carmRao30" class="angle-preset-button" title="Hold to move to RAO 30 degrees">RAO 30</button>
+                    </div>
+                    <div class="roll-control">
+                        <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
+                        <button id="carmAngleReset" title="Reset C-arm angles">0</button>
+                        <button id="carmRollRight" title="Rotate detector clockwise">↻</button>
+                    </div>
+                </div>
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Position</div>
+                    <div id="positionJoystick" class="joystick">
+                        <div id="positionJoystickHandle" class="joystick-handle"></div>
+                    </div>
+                    <div id="carmZButtons">
+                        <button id="carmZUp" title="Move C-arm up">↑</button>
+                        <button id="carmZDown" title="Move C-arm down">↓</button>
+                    </div>
+                    <div class="joystick-caption">Table plane · height</div>
+                </div>
+            </div>
+            <input id="carmX" type="hidden" min="-200" max="200" step="1" value="0">
+            <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
+            <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
+            <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
+    </div>
+</div>
+
+
+</body>
+</html>

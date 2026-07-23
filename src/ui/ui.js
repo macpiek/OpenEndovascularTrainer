@@ -1,4 +1,4 @@
-import { PatientMonitor } from './patientMonitor.js?v=20260614carmaxis3';
+import { PatientMonitor } from './patientMonitor.js?v=20260721performance1';
 import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js?v=20260620rollpreview1';
 import { setupCArmControls } from '../carmControls.js?v=20260620rollpreview1';
 import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
@@ -26,6 +26,9 @@ export function initUI(options) {
     onStartInjection,
     onStopInjection,
     onModeChange,
+    onDebugLayerChange,
+    onStartBrowserBenchmark,
+    onStopBrowserBenchmark,
   } = options;
 
   // Patient monitor
@@ -45,7 +48,7 @@ export function initUI(options) {
 
   // C-arm UI preview + controls
   const cArmPreview = initCArmPreview();
-  setupCArmControls(
+  const cArmControls = setupCArmControls(
     camera,
     vessel,
     cameraRadius,
@@ -64,6 +67,11 @@ export function initUI(options) {
   const smoothIterSlider = document.getElementById('smoothIterations');
   const modeToggle = document.getElementById('modeToggle');
   const voxelRenderToggle = document.getElementById('renderVoxels');
+  const debugStlModelToggle = document.getElementById('showDebugStlModel');
+  const debugLumenCastToggle = document.getElementById('showDebugLumenCast');
+  const debugSectionsToggle = document.getElementById('showDebugSections');
+  const debugCenterlineToggle = document.getElementById('showDebugCenterline');
+  const debugCapsulesToggle = document.getElementById('showDebugCapsules');
   const injectButton = document.getElementById('injectContrast');
   const stopInjectButton = document.getElementById('stopInjection');
   const injRateSlider = document.getElementById('injRate');
@@ -87,6 +95,10 @@ export function initUI(options) {
   const catheterWithdrawButton = document.getElementById('catheterWithdraw');
   const catheterRotateLeftButton = document.getElementById('catheterRotateLeft');
   const catheterRotateRightButton = document.getElementById('catheterRotateRight');
+  const catheterTypeSelect = document.getElementById('catheterType');
+  const guidewireTypeSelect = document.getElementById('guidewireType');
+  const catheterTypeStatusEl = document.getElementById('catheterTypeStatus');
+  const guidewireTypeStatusEl = document.getElementById('guidewireTypeStatus');
   const doseDisplayEl = document.getElementById('currentDose');
   const currentKVEl = document.getElementById('currentKV');
   const currentMAEl = document.getElementById('currentMA');
@@ -99,6 +111,11 @@ export function initUI(options) {
   const sheathDiameterEl = document.getElementById('sheathDiameter');
   const catheterDiameterEl = document.getElementById('catheterDiameter');
   const perfStatsEl = document.getElementById('perfStats');
+  const runBrowserBenchmarkSmokeButton = document.getElementById('runBrowserBenchmarkSmoke');
+  const runBrowserBenchmarkFullButton = document.getElementById('runBrowserBenchmarkFull');
+  const stopBrowserBenchmarkButton = document.getElementById('stopBrowserBenchmark');
+  const browserBenchmarkStatusEl = document.getElementById('browserBenchmarkStatus');
+  const browserBenchmarkReportEl = document.getElementById('browserBenchmarkReport');
 
   // Initial UI state
   if (guidewireDiameterEl) {
@@ -114,6 +131,109 @@ export function initUI(options) {
   if (voxelRenderToggle) {
     voxelGroup.visible = voxelRenderToggle.checked;
   }
+  const debugLayerState = {
+    stlModel: debugStlModelToggle?.checked ?? true,
+    lumenCast: debugLumenCastToggle?.checked ?? false,
+    sections: debugSectionsToggle?.checked ?? false,
+    centerline: debugCenterlineToggle?.checked ?? true,
+    capsules: debugCapsulesToggle?.checked ?? false
+  };
+
+  function emitDebugLayerChange() {
+    if (typeof onDebugLayerChange === 'function') {
+      onDebugLayerChange({ ...debugLayerState });
+    }
+  }
+
+  debugStlModelToggle?.addEventListener('change', e => {
+    debugLayerState.stlModel = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugLumenCastToggle?.addEventListener('change', e => {
+    debugLayerState.lumenCast = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugSectionsToggle?.addEventListener('change', e => {
+    debugLayerState.sections = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugCenterlineToggle?.addEventListener('change', e => {
+    debugLayerState.centerline = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugCapsulesToggle?.addEventListener('change', e => {
+    debugLayerState.capsules = e.target.checked;
+    emitDebugLayerChange();
+  });
+  emitDebugLayerChange();
+
+  let insertedLengthCm = 0;
+  let catheterLengthCm = 0;
+  let insertedLengthTenths = -1;
+  let catheterLengthTenths = -1;
+  let doseTenths = -1;
+  let roundedKv = -1;
+  let maTenths = -1;
+  let insertedLengthDisplay = '';
+  let catheterLengthDisplay = '';
+  let doseDisplay = '';
+  let kvDisplay = '';
+  let maDisplay = '';
+  let resistanceVisible = null;
+  let resistanceStrong = null;
+  let resistancePercent = -1;
+  let resistanceReason = '';
+  let selectedCatheterType = catheterTypeSelect?.value || 'pigtail';
+  let selectedGuidewireType = guidewireTypeSelect?.value || 'glidewire';
+  const TOOL_SELECTION_UNLOCK_EPSILON_CM = 0.05;
+
+  function updateSelectLock(select, statusEl, locked, insertedCm) {
+    if (select) {
+      if (select.disabled !== locked) select.disabled = locked;
+      const title = locked ? 'Withdraw to 0 cm before changing selection' : '';
+      if (select.title !== title) select.title = title;
+    }
+    if (statusEl) {
+      const text = locked ? `${insertedCm.toFixed(1)} cm inserted` : 'Ready';
+      if (statusEl.textContent !== text) statusEl.textContent = text;
+      if (statusEl.classList.contains('locked') !== locked) {
+        statusEl.classList.toggle('locked', locked);
+      }
+    }
+  }
+
+  function updateToolSelectionLocks() {
+    updateSelectLock(
+      guidewireTypeSelect,
+      guidewireTypeStatusEl,
+      insertedLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM,
+      insertedLengthCm
+    );
+    updateSelectLock(
+      catheterTypeSelect,
+      catheterTypeStatusEl,
+      catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM,
+      catheterLengthCm
+    );
+  }
+
+  catheterTypeSelect?.addEventListener('change', e => {
+    selectedCatheterType = e.target.value;
+  });
+  guidewireTypeSelect?.addEventListener('change', e => {
+    selectedGuidewireType = e.target.value;
+  });
+  updateToolSelectionLocks();
+
+  runBrowserBenchmarkSmokeButton?.addEventListener('click', () => {
+    if (typeof onStartBrowserBenchmark === 'function') onStartBrowserBenchmark(5000);
+  });
+  runBrowserBenchmarkFullButton?.addEventListener('click', () => {
+    if (typeof onStartBrowserBenchmark === 'function') onStartBrowserBenchmark(600000);
+  });
+  stopBrowserBenchmarkButton?.addEventListener('click', () => {
+    if (typeof onStopBrowserBenchmark === 'function') onStopBrowserBenchmark();
+  });
 
   const controlTabs = Array.from(document.querySelectorAll('[data-control-tab]'));
   const controlPanels = Array.from(document.querySelectorAll('[data-control-panel]'));
@@ -419,36 +539,83 @@ export function initUI(options) {
 
   // Helpers to let simulator update UI
   function updateInsertedLength(cm) {
-    if (insertedLengthEl) insertedLengthEl.textContent = 'Wire ' + cm.toFixed(1) + ' cm';
+    insertedLengthCm = Math.max(0, cm);
+    const nextTenths = Math.round(insertedLengthCm * 10);
+    if (nextTenths === insertedLengthTenths) return;
+    insertedLengthTenths = nextTenths;
+    const display = (nextTenths / 10).toFixed(1);
+    insertedLengthDisplay = display;
+    if (insertedLengthEl) insertedLengthEl.textContent = `Wire ${display} cm`;
+    updateToolSelectionLocks();
   }
   function updateCatheterLength(cm) {
-    if (catheterLengthEl) catheterLengthEl.textContent = 'Catheter ' + cm.toFixed(1) + ' cm';
+    catheterLengthCm = Math.max(0, cm);
+    const nextTenths = Math.round(catheterLengthCm * 10);
+    if (nextTenths === catheterLengthTenths) return;
+    catheterLengthTenths = nextTenths;
+    const display = (nextTenths / 10).toFixed(1);
+    catheterLengthDisplay = display;
+    if (catheterLengthEl) catheterLengthEl.textContent = `Catheter ${display} cm`;
+    updateToolSelectionLocks();
   }
   function updateDose(ml) {
-    if (doseDisplayEl) doseDisplayEl.textContent = ml.toFixed(1) + ' ml';
+    const nextTenths = Math.round(ml * 10);
+    if (nextTenths === doseTenths) return;
+    doseTenths = nextTenths;
+    const display = (nextTenths / 10).toFixed(1);
+    doseDisplay = display;
+    if (doseDisplayEl) doseDisplayEl.textContent = `Contrast ${display} ml`;
   }
   function updateXrayTechnique(kv, ma) {
-    if (currentKVEl) currentKVEl.textContent = `${Math.round(kv)} kV`;
-    if (currentMAEl) currentMAEl.textContent = `${ma.toFixed(1)} mA`;
+    const nextRoundedKv = Math.round(kv);
+    const nextMaTenths = Math.round(ma * 10);
+    if (currentKVEl && nextRoundedKv !== roundedKv) {
+      kvDisplay = `${nextRoundedKv} kV`;
+      currentKVEl.textContent = kvDisplay;
+    }
+    if (currentMAEl && nextMaTenths !== maTenths) {
+      maDisplay = `${(nextMaTenths / 10).toFixed(1)} mA`;
+      currentMAEl.textContent = maDisplay;
+    }
+    roundedKv = nextRoundedKv;
+    maTenths = nextMaTenths;
   }
   function updateGuidewireResistance(level, reason = '') {
     if (!guidewireResistanceEl) return;
     if (level < 0.35) {
-      guidewireResistanceEl.classList.add('hidden');
-      guidewireResistanceEl.classList.remove('strong');
-      if (guidewireResistanceReasonEl) guidewireResistanceReasonEl.textContent = 'Opór na prowadniku';
-      if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = '0%';
-      if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = '0%';
+      if (resistanceVisible !== false) {
+        guidewireResistanceEl.classList.add('hidden');
+        guidewireResistanceEl.classList.remove('strong');
+        if (guidewireResistanceReasonEl) guidewireResistanceReasonEl.textContent = 'Opór na prowadniku';
+        if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = '0%';
+        if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = '0%';
+        resistanceVisible = false;
+        resistanceStrong = false;
+        resistancePercent = 0;
+        resistanceReason = '';
+      }
       return;
     }
     const percent = Math.round(Math.max(0, Math.min(1, level)) * 100);
-    guidewireResistanceEl.classList.remove('hidden');
-    guidewireResistanceEl.classList.toggle('strong', level > 0.72);
-    if (guidewireResistanceReasonEl) {
-      guidewireResistanceReasonEl.textContent = reason || 'Opór na prowadniku - cofnij lekko lub zmień kierunek.';
+    const strong = level > 0.72;
+    const displayReason = reason || 'Opór na prowadniku - cofnij lekko lub zmień kierunek.';
+    if (resistanceVisible !== true) {
+      guidewireResistanceEl.classList.remove('hidden');
+      resistanceVisible = true;
     }
-    if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = `${percent}%`;
-    if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = `${percent}%`;
+    if (resistanceStrong !== strong) {
+      guidewireResistanceEl.classList.toggle('strong', strong);
+      resistanceStrong = strong;
+    }
+    if (guidewireResistanceReasonEl && resistanceReason !== displayReason) {
+      guidewireResistanceReasonEl.textContent = displayReason;
+      resistanceReason = displayReason;
+    }
+    if (resistancePercent !== percent) {
+      if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = `${percent}%`;
+      if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = `${percent}%`;
+      resistancePercent = percent;
+    }
   }
   function formatDebugDistance(value) {
     if (!Number.isFinite(value)) return '--';
@@ -458,6 +625,24 @@ export function initUI(options) {
     if (!Number.isFinite(value)) return '--';
     return value < 10 ? value.toFixed(2) : value.toFixed(1);
   }
+  function formatGuidewirePerformance(perf) {
+    if (!perf) return '';
+    const penetrationText = Number.isFinite(perf.settledPenetration)
+      ? ` | pen ${formatDebugDistance(perf.settledPenetration)}` +
+        `/${formatDebugDistance(perf.maximumPenetration)} mm`
+      : '';
+    return `\nXPBD: adv ${formatDebugMs(perf.advanceMs)} ` +
+      `/ solve ${formatDebugMs(perf.solveMs)} ` +
+      `/ narrow ${formatDebugMs(perf.projectMs)} ` +
+      `/ dbg ${formatDebugMs(perf.diagnosticMs)} ms | ` +
+      `q ${perf.pointContactCount}+${perf.diagnosticPointContactCount} | ` +
+      `segS ${perf.segmentSampleCount}` +
+      `${Number.isFinite(perf.activeBranchCount) ? ` | br ${perf.activeBranchCount}` : ''}` +
+      penetrationText +
+      `${perf.foldGuarded ? ' | fold' : ''}` +
+      `${perf.stabilityRepaired ? ' | repair' : ''}` +
+      `${perf.withdrawalRelaxed ? ' | withdraw' : ''}`;
+  }
   function updateGuidewireDiagnostics(metrics = null) {
     if (!guidewireDiagnosticsEl) return;
     guidewireDiagnosticsEl.classList.remove('warn', 'breach');
@@ -465,8 +650,9 @@ export function initUI(options) {
       guidewireDiagnosticsEl.textContent = 'GW STL: debug off';
       return;
     }
+    const perfText = formatGuidewirePerformance(metrics.performance);
     if (!metrics.checkedCount || !Number.isFinite(metrics.minSignedDistance)) {
-      guidewireDiagnosticsEl.textContent = 'GW STL: no lumen samples';
+      guidewireDiagnosticsEl.textContent = `GW STL: no lumen samples${perfText}`;
       return;
     }
 
@@ -475,18 +661,6 @@ export function initUI(options) {
       'warn',
       metrics.outsideCount === 0 && metrics.clearanceViolationCount > 0
     );
-    const perf = metrics.performance;
-    const perfText = perf
-      ? `\nGW perf: adv ${formatDebugMs(perf.advanceMs)} ` +
-        `/ solve ${formatDebugMs(perf.solveMs)} ` +
-        `/ proj ${formatDebugMs(perf.projectMs)} ` +
-        `/ dbg ${formatDebugMs(perf.diagnosticMs)} ms | ` +
-        `q ${perf.pointContactCount}+${perf.diagnosticPointContactCount} | ` +
-        `segS ${perf.segmentSampleCount}` +
-        `${perf.foldGuarded ? ' | fold' : ''}` +
-        `${perf.stabilityRepaired ? ' | repair' : ''}` +
-        `${perf.withdrawalRelaxed ? ' | withdraw' : ''}`
-      : '';
     guidewireDiagnosticsEl.textContent =
       `GW STL: min ${formatDebugDistance(metrics.minSignedDistance)} mm ` +
       `/ clr ${formatDebugDistance(metrics.clearance)} | ` +
@@ -496,19 +670,69 @@ export function initUI(options) {
       perfText;
   }
   function setInjectButtonDisabled(disabled) {
-    if (injectButton) injectButton.disabled = !!disabled;
+    if (injectButton && injectButton.disabled !== !!disabled) injectButton.disabled = !!disabled;
   }
   function setStopInjectionDisabled(disabled) {
-    if (stopInjectButton) stopInjectButton.disabled = !!disabled;
+    if (stopInjectButton && stopInjectButton.disabled !== !!disabled) stopInjectButton.disabled = !!disabled;
   }
+  let perfElapsed = 0;
+  let perfFrames = 0;
   function updatePerfStats(dtSeconds) {
     if (!perfStatsEl) return;
-    const fps = (1 / dtSeconds).toFixed(1);
+    perfElapsed += dtSeconds;
+    perfFrames++;
+    if (perfElapsed < 0.25) return;
+    const fps = (perfFrames / Math.max(1e-6, perfElapsed)).toFixed(1);
     let mem = 'N/A';
     if (performance.memory) {
       mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
     }
     perfStatsEl.textContent = `FPS: ${fps} | Mem: ${mem}`;
+    perfElapsed = 0;
+    perfFrames = 0;
+  }
+  function updateBrowserBenchmarkStatus(status, report = null) {
+    const running = !!status?.running;
+    if (runBrowserBenchmarkSmokeButton) runBrowserBenchmarkSmokeButton.disabled = running;
+    if (runBrowserBenchmarkFullButton) runBrowserBenchmarkFullButton.disabled = running;
+    if (stopBrowserBenchmarkButton) stopBrowserBenchmarkButton.disabled = !running;
+    if (!browserBenchmarkStatusEl) return;
+
+    browserBenchmarkStatusEl.classList.remove('passed', 'failed');
+    if (running) {
+      if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = 'Running';
+      if (status.warmingUp) {
+        browserBenchmarkStatusEl.textContent = 'Warming up';
+        return;
+      }
+      const elapsedSeconds = Math.floor(status.elapsedMs / 1000);
+      const durationSeconds = Math.round(status.durationMs / 1000);
+      browserBenchmarkStatusEl.textContent =
+        `Running ${elapsedSeconds}/${durationSeconds} s · cycle ${status.cycleIndex + 1}`;
+      return;
+    }
+    if (!report?.frameCount) {
+      browserBenchmarkStatusEl.textContent = 'Idle';
+      if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = 'No report';
+      return;
+    }
+
+    const acceptance = report.browserAcceptance;
+    const fullRun = status.durationMs >= 600000 && status.elapsedMs >= 600000;
+    const passed = fullRun && !!acceptance?.passed;
+    browserBenchmarkStatusEl.classList.add(passed ? 'passed' : 'failed');
+    browserBenchmarkStatusEl.textContent =
+      `${fullRun ? (passed ? 'PASS' : 'FAIL') : 'Smoke'} · ` +
+      `${report.averageFps.toFixed(1)} FPS · 1% ${report.onePercentLowFps.toFixed(1)} · ` +
+      `pen ${report.physicsEnvelope.maxPostStepPenetrationMm.toFixed(3)} mm`;
+    if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = JSON.stringify(report);
+  }
+
+  function setAutomatedBenchmarkMode(enabled) {
+    const active = enabled === true;
+    if (active) cArmControls?.reset?.();
+    cArmControls?.setLocked?.(active);
+    document.body.classList.toggle('automated-benchmark-running', active);
   }
 
   return {
@@ -516,7 +740,10 @@ export function initUI(options) {
     getAdvance: () => advance,
     getCatheterAdvance: () => catheterAdvance,
     getCatheterRotation: () => catheterRotation,
+    getSelectedCatheterType: () => selectedCatheterType,
+    getSelectedGuidewireType: () => selectedGuidewireType,
     getFluoroscopy: () => fluoroscopy,
+    getDebugLayerState: () => ({ ...debugLayerState }),
     updateInsertedLength,
     updateCatheterLength,
     updateDose,
@@ -526,5 +753,8 @@ export function initUI(options) {
     setInjectButtonDisabled,
     setStopInjectionDisabled,
     updatePerfStats,
+    updateBrowserBenchmarkStatus,
+    setAutomatedBenchmarkMode,
+    getCArmRevision: () => cArmControls?.getRevision?.() ?? 0,
   };
 }

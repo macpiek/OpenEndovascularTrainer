@@ -1,1 +1,3 @@
 node_modules
+out/centerline-diagnostics
+out/collision-asset-report.json

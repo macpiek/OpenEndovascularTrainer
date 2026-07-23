@@ -151,11 +151,10 @@ float corticalEdgeAt(vec2 uv) {
     return saturate(max(depthEdge * 0.34, max(transportEdge * 0.38, corticalShellEdge * 0.42)));
 }
 
-float attenuationAt(vec2 uv) {
+float attenuationAt(vec2 uv, vec4 bonePaths, float corticalEdge) {
     float boneVisibility = pow(saturate(boneOpacity), 0.55);
-    vec4 bonePaths = boneLayerPathsAt(uv);
     float corticalAbsorption = pow(saturate(bonePaths.y * 1.6), 0.96) * 0.84;
-    float edgeAbsorption = corticalEdgeAt(uv) * 0.16;
+    float edgeAbsorption = corticalEdge * 0.16;
     float cancellousAbsorption = pow(saturate(bonePaths.z), 0.82) * bonePaths.w * 0.34;
     float layeredAbsorption = pow(saturate(bonePaths.x), 0.72) * 0.66;
     float softBoneAbsorption = smoothstep(0.01, 0.72, bonePaths.x) * 0.48;
@@ -188,9 +187,9 @@ float patientBodyField(vec2 uv) {
     return saturate(max(lowerBody, trunk * 0.72));
 }
 
-float scatterFieldAt(vec2 uv, float attenuation) {
+float scatterFieldAt(vec2 uv, float attenuation, float bonePath) {
     float tissuePath = patientBodyField(uv);
-    float projectedPath = saturate(thicknessPathAt(uv) * 0.55 + bonePathAt(uv) * 0.26 + tissuePath * 0.22);
+    float projectedPath = saturate(thicknessPathAt(uv) * 0.55 + bonePath * 0.26 + tissuePath * 0.22);
     return saturate(scatterStrength * (projectedPath * 0.72 + attenuation * 0.08));
 }
 
@@ -230,24 +229,20 @@ float edgeFactor(vec2 uv) {
 void main() {
     vec4 tex = texture2D(uTexture, vUv);
     if (fluoroscopy) {
-        float centerAttenuation = attenuationAt(vUv);
-        float localScatter = scatterFieldAt(vUv, centerAttenuation);
+        vec4 centerBonePaths = boneLayerPathsAt(vUv);
+        float centerCorticalEdge = corticalEdgeAt(vUv);
+        float centerAttenuation = attenuationAt(vUv, centerBonePaths, centerCorticalEdge);
+        float localScatter = scatterFieldAt(vUv, centerAttenuation, centerBonePaths.x);
         float exposureLift = autoExposureEnabled ? autoExposureLevel : 0.0;
-        vec2 edgeSampleOffset = 1.35 / resolution;
-        float neighborAttenuation = (
-            attenuationAt(vUv + vec2(edgeSampleOffset.x, 0.0)) +
-            attenuationAt(vUv - vec2(edgeSampleOffset.x, 0.0)) +
-            attenuationAt(vUv + vec2(0.0, edgeSampleOffset.y)) +
-            attenuationAt(vUv - vec2(0.0, edgeSampleOffset.y))
-        ) * 0.25;
 
         // C-arm images are usually edge-enhanced after acquisition. Sharpen
-        // attenuation before transmission so radiopaque borders get the expected
-        // dark/bright overshoot instead of an alpha-only outline.
+        // attenuation before transmission. Screen-space derivatives preserve
+        // local radiopaque borders without four full neighboring attenuation
+        // evaluations per detector pixel.
         float scatterSoftenedEdge = mix(0.34, 0.16, localScatter);
         float sharpenedAttenuation = max(
             0.0,
-            centerAttenuation + (centerAttenuation - neighborAttenuation) * edgeStrength * scatterSoftenedEdge
+            centerAttenuation + fwidth(centerAttenuation) * edgeStrength * scatterSoftenedEdge
         );
 
         float transmission = exp(-sharpenedAttenuation);
