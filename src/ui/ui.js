@@ -1,7 +1,8 @@
-import { PatientMonitor } from './patientMonitor.js?v=20260721performance1';
-import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js?v=20260620rollpreview1';
-import { setupCArmControls } from '../carmControls.js?v=20260620rollpreview1';
-import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
+import { PatientMonitor } from './patientMonitor.js';
+import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js';
+import { setupCArmControls } from '../carmControls.js';
+import { AutomaticWithdrawalController } from './automaticWithdrawalController.js';
+import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
 import {
   GUIDEWIRE_DIAMETER_IN,
   GUIDEWIRE_DIAMETER_MM,
@@ -91,6 +92,8 @@ export function initUI(options) {
   const contrastGainSlider = document.getElementById('gain');
   const insertedLengthEl = document.getElementById('insertedLength');
   const catheterLengthEl = document.getElementById('catheterLength');
+  const guidewireAutoWithdrawButton = document.getElementById('guidewireAutoWithdraw');
+  const catheterAutoWithdrawButton = document.getElementById('catheterAutoWithdraw');
   const catheterAdvanceButton = document.getElementById('catheterAdvance');
   const catheterWithdrawButton = document.getElementById('catheterWithdraw');
   const catheterRotateLeftButton = document.getElementById('catheterRotateLeft');
@@ -186,6 +189,30 @@ export function initUI(options) {
   let selectedCatheterType = catheterTypeSelect?.value || 'pigtail';
   let selectedGuidewireType = guidewireTypeSelect?.value || 'glidewire';
   const TOOL_SELECTION_UNLOCK_EPSILON_CM = 0.05;
+  const guidewireAutoWithdraw = new AutomaticWithdrawalController({
+    emptyThresholdCm: TOOL_SELECTION_UNLOCK_EPSILON_CM
+  });
+  const catheterAutoWithdraw = new AutomaticWithdrawalController({
+    emptyThresholdCm: TOOL_SELECTION_UNLOCK_EPSILON_CM
+  });
+
+  function updateAutoWithdrawButton(button, controller) {
+    if (!button) return;
+    button.disabled = controller.disabled;
+    button.classList.toggle('active', controller.active);
+    button.setAttribute('aria-pressed', String(controller.active));
+    button.textContent = controller.active ? 'Zatrzymaj' : 'Wysuń';
+  }
+
+  function stopGuidewireAutoWithdraw() {
+    guidewireAutoWithdraw.cancel();
+    updateAutoWithdrawButton(guidewireAutoWithdrawButton, guidewireAutoWithdraw);
+  }
+
+  function stopCatheterAutoWithdraw() {
+    catheterAutoWithdraw.cancel();
+    updateAutoWithdrawButton(catheterAutoWithdrawButton, catheterAutoWithdraw);
+  }
 
   function updateSelectLock(select, statusEl, locked, insertedCm) {
     if (select) {
@@ -215,6 +242,14 @@ export function initUI(options) {
       catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM,
       catheterLengthCm
     );
+    updateAutoWithdrawButton(
+      guidewireAutoWithdrawButton,
+      guidewireAutoWithdraw
+    );
+    updateAutoWithdrawButton(
+      catheterAutoWithdrawButton,
+      catheterAutoWithdraw
+    );
   }
 
   catheterTypeSelect?.addEventListener('change', e => {
@@ -222,6 +257,14 @@ export function initUI(options) {
   });
   guidewireTypeSelect?.addEventListener('change', e => {
     selectedGuidewireType = e.target.value;
+  });
+  guidewireAutoWithdrawButton?.addEventListener('click', () => {
+    guidewireAutoWithdraw.toggle();
+    updateAutoWithdrawButton(guidewireAutoWithdrawButton, guidewireAutoWithdraw);
+  });
+  catheterAutoWithdrawButton?.addEventListener('click', () => {
+    catheterAutoWithdraw.toggle();
+    updateAutoWithdrawButton(catheterAutoWithdrawButton, catheterAutoWithdraw);
   });
   updateToolSelectionLocks();
 
@@ -443,6 +486,7 @@ export function initUI(options) {
   let catheterAdvance = 0;
   let catheterRotation = 0;
   const setCatheterAdvance = value => {
+    if (value !== 0) stopCatheterAutoWithdraw();
     catheterAdvance = value;
   };
   const stopCatheterAdvance = () => {
@@ -475,15 +519,19 @@ export function initUI(options) {
 
   document.addEventListener('keydown', e => {
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+      stopGuidewireAutoWithdraw();
       advance = 1; e.preventDefault();
     }
     if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+      stopGuidewireAutoWithdraw();
       advance = -1; e.preventDefault();
     }
     if (e.code === 'KeyD') {
+      stopCatheterAutoWithdraw();
       catheterAdvance = 1; e.preventDefault();
     }
     if (e.code === 'KeyA') {
+      stopCatheterAutoWithdraw();
       catheterAdvance = -1; e.preventDefault();
     }
     if (e.code === 'KeyE') {
@@ -540,6 +588,7 @@ export function initUI(options) {
   // Helpers to let simulator update UI
   function updateInsertedLength(cm) {
     insertedLengthCm = Math.max(0, cm);
+    guidewireAutoWithdraw.updateLength(insertedLengthCm);
     const nextTenths = Math.round(insertedLengthCm * 10);
     if (nextTenths === insertedLengthTenths) return;
     insertedLengthTenths = nextTenths;
@@ -550,6 +599,7 @@ export function initUI(options) {
   }
   function updateCatheterLength(cm) {
     catheterLengthCm = Math.max(0, cm);
+    catheterAutoWithdraw.updateLength(catheterLengthCm);
     const nextTenths = Math.round(catheterLengthCm * 10);
     if (nextTenths === catheterLengthTenths) return;
     catheterLengthTenths = nextTenths;
@@ -737,8 +787,8 @@ export function initUI(options) {
 
   return {
     monitor,
-    getAdvance: () => advance,
-    getCatheterAdvance: () => catheterAdvance,
+    getAdvance: () => guidewireAutoWithdraw.active ? guidewireAutoWithdraw.command : advance,
+    getCatheterAdvance: () => catheterAutoWithdraw.active ? catheterAutoWithdraw.command : catheterAdvance,
     getCatheterRotation: () => catheterRotation,
     getSelectedCatheterType: () => selectedCatheterType,
     getSelectedGuidewireType: () => selectedGuidewireType,

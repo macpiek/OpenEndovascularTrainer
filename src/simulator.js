@@ -1,18 +1,20 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
-import { ElasticRod } from './physics/elasticRod.js?v=20260615rigidguidewire1';
-import { GuidewireSolver } from './physics/guidewireSolver.js?v=20260721benchmarkreset2';
+import { ElasticRod } from './physics/elasticRod.js';
+import { GuidewireSolver } from './physics/guidewireSolver.js';
+import { applyGuidewireMaterialProfile } from './physics/guidewireMaterialProfile.js';
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
-} from './physics/endovascularPhysicsWorld.js?v=20260721containment11';
-import { generateVessel } from './vesselGeometry.js?v=20260614guidewirestable1';
-import { initUI } from './ui/ui.js?v=20260721benchmarkreset4';
-import { createBoneModel } from './boneModel.js?v=20260618loading1';
-import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js?v=20260614guidewirestable1';
-import { PigtailCatheter } from './pigtailCatheter.js?v=20260723catheterstability1';
-import { createAortaModel } from './aortaModel.js?v=20260721collisionasset8';
+} from './physics/endovascularPhysicsWorld.js';
+import { generateVessel } from './vesselGeometry.js';
+import { initUI } from './ui/ui.js';
+import { createBoneModel } from './boneModel.js';
+import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js';
+import { PigtailCatheter } from './pigtailCatheter.js';
+import { createAortaModel } from './aortaModel.js';
 import { createBroadPhaseDebugGroup } from './vesselBroadPhase.js';
+import { createSmoothTubeGeometry } from './smoothTubeGeometry.js';
 import {
     GUIDEWIRE_RADIUS_MM,
     GUIDEWIRE_RENDER_RADIUS_MM,
@@ -21,14 +23,14 @@ import {
 } from './toolDimensions.js';
 import { vertexShader as blendVS, fragmentShader as blendFS } from './shaders/blendShader.js';
 import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './shaders/thicknessShader.js';
-import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js?v=20260623imagingdefaults1';
+import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js';
 import {
     BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
     BROWSER_BENCHMARK_SCENARIO_CYCLE_MS,
     browserBenchmarkCatheterType,
     createBrowserBenchmarkCommands,
     sampleBrowserBenchmarkCommands
-} from './benchmark/browserBenchmarkScenario.js?v=20260721fullcycle2';
+} from './benchmark/browserBenchmarkScenario.js';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const STL_MODEL_DEBUG_COLOR = 0x4f8dff;
@@ -42,8 +44,9 @@ const WALL_WORST_POINT_COLOR = 0xff55ff;
 const CONTACT_MARKER_LIMIT = 420;
 const CONTACT_MARKER_UPDATE_INTERVAL = 1 / 10;
 const GUIDEWIRE_DIAGNOSTIC_CONTACT_BAND = 1.85;
-const GUIDEWIRE_SEGMENT_RADIAL_SEGMENTS = 32;
-const GUIDEWIRE_SEGMENT_OVERLAP_MM = GUIDEWIRE_RENDER_RADIUS_MM * 1.35;
+const GUIDEWIRE_TUBE_RADIAL_SEGMENTS = 12;
+const GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT = 3;
+const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const requestedPhysicsMode = new URLSearchParams(window.location.search).get('physics');
 const PHYSICS_MODE = requestedPhysicsMode === 'legacy' ? 'legacy' : 'xpbd-contact-v1';
@@ -106,12 +109,12 @@ setLoadingMessage('Preparing renderer');
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-const FLUORO_TARGET_SCALE = 0.64;
+const FLUORO_TARGET_SCALE = 0.85;
 const fluoroscopyTargetWidth = () => Math.max(1, Math.round(window.innerWidth * FLUORO_TARGET_SCALE));
 const fluoroscopyTargetHeight = () => Math.max(1, Math.round(window.innerHeight * FLUORO_TARGET_SCALE));
 const initialFluoroTargetWidth = fluoroscopyTargetWidth();
 const initialFluoroTargetHeight = fluoroscopyTargetHeight();
-const DEVICE_MASK_TARGET_SAMPLES = renderer.capabilities.isWebGL2 ? 2 : 0;
+const DEVICE_MASK_TARGET_SAMPLES = renderer.capabilities.isWebGL2 ? 4 : 0;
 const deviceMaskTargetOptions = { samples: DEVICE_MASK_TARGET_SAMPLES };
 
 // Primary 3D scene (wire, vessels, bones)
@@ -125,8 +128,8 @@ const contrastScene = new THREE.Scene();
 const offscreenTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
 const metalTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
-const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
-const sheathTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
+const sheathTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const boneTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
     type: THREE.HalfFloatType
 });
@@ -319,6 +322,15 @@ const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerH
 camera.position.set(0, 80, cameraRadius);
 scene.add(camera);
 
+// Keep the vascular simulation in its native coordinate space and move only
+// its render layer so tools, contrast and debug overlays stay aligned with the
+// vessel while the whole assembly sits lower relative to the skeleton.
+const VASCULAR_MODEL_ALIGNMENT_Y_MM = -15;
+function alignVascularRenderObject(object) {
+    object.position.y += VASCULAR_MODEL_ALIGNMENT_Y_MM;
+    return object;
+}
+
 let vesselGroup;
 const { group: skeletonModel, material: boneMaterial } = createBoneModel({
     onLoaded: () => {
@@ -334,7 +346,7 @@ const { group: skeletonModel, material: boneMaterial } = createBoneModel({
 // Lightweight centerline metadata; the visible vessel and collision surface are
 // loaded from the STL aorta model.
 const { vessel } = generateVessel(140, 0);
-vesselGroup = new THREE.Group();
+vesselGroup = alignVascularRenderObject(new THREE.Group());
 let vesselCollisionTarget = vessel;
 let pigtailCatheter = null;
 let guidewireSolver = null;
@@ -482,6 +494,7 @@ function createSheathEntryDebugMarker(collision, sheath) {
 vesselGroup.add(createSheathMesh(vessel.sheath));
 const sheathFluoroMesh = createSheathFluoroMesh(vessel.sheath);
 sheathFluoroMesh.visible = true;
+alignVascularRenderObject(sheathFluoroMesh);
 scene.add(sheathFluoroMesh);
 const lumenDebugGroup = new THREE.Group();
 lumenDebugGroup.visible = false;
@@ -553,7 +566,7 @@ scene.add(skeletonModel);
 // slower wall layer, axial dispersion, reflux from the sheath, and downstream
 // washout through the vessel graph.
 const contrastAgent = new FlowContrastAgent(vessel, 3.5);
-const voxelGroup = new THREE.Group();
+const voxelGroup = alignVascularRenderObject(new THREE.Group());
 scene.add(voxelGroup);
 let contrastMesh = null;
 let contrastMeshCount = 0;
@@ -564,10 +577,6 @@ const segmentLength = 5;
 const nodeCount = 201;
 const guidewireLength = segmentLength * (nodeCount - 1);
 const GUIDEWIRE_ADVANCE_RATE = 44;
-const GUIDEWIRE_BODY_BENDING_STIFFNESS = 32;
-const GUIDEWIRE_TIP_BENDING_STIFFNESS = 8;
-const GUIDEWIRE_TIP_FLEX_LENGTH = 105;
-const GUIDEWIRE_TIP_SOFT_LENGTH = 24;
 
 // Initialize wire nodes along the sheath axis, tail outside the body
 const wire = new ElasticRod(nodeCount, segmentLength, {
@@ -700,26 +709,10 @@ guidewireSolver = new GuidewireSolver({
     finalProjectionPasses: 2
 });
 
-function smoothRange(start, end, value) {
-    const t = Math.max(0, Math.min(1, (value - start) / Math.max(1e-6, end - start)));
-    return t * t * (3 - 2 * t);
-}
-
-function applyGuidewireStiffnessProfile() {
-    const lastIndex = wire.nodes.length - 1;
-    for (let i = 0; i < wire.nodes.length; i++) {
-        const distanceFromTip = (lastIndex - i) * segmentLength;
-        const bodyBlend = smoothRange(GUIDEWIRE_TIP_SOFT_LENGTH, GUIDEWIRE_TIP_FLEX_LENGTH, distanceFromTip);
-        wire.nodes[i].bendingStiffness =
-            GUIDEWIRE_TIP_BENDING_STIFFNESS * (1 - bodyBlend) +
-            GUIDEWIRE_BODY_BENDING_STIFFNESS * bodyBlend;
-    }
-}
-
 // The proximal guidewire and the part inside the introducer sheath are
 // constrained by the sheath lumen. Once a node exits the sheath tip it becomes
 // free and is governed by rod stiffness and vessel-wall collision.
-applyGuidewireStiffnessProfile();
+applyGuidewireMaterialProfile(wire, { segmentLength });
 guidewireSolver.initialize();
 tailProgress = guidewireSolver.progress;
 
@@ -818,28 +811,14 @@ const ui = initUI({
     onStopBrowserBenchmark: () => stopBrowserBenchmarkScenario('ui'),
 });
 const { monitor } = ui;
-const wireSegmentGeometry = new THREE.CylinderGeometry(
-    GUIDEWIRE_RENDER_RADIUS_MM,
-    GUIDEWIRE_RENDER_RADIUS_MM,
-    1,
-    GUIDEWIRE_SEGMENT_RADIAL_SEGMENTS,
-    1,
-    false
-);
-const wireMesh = new THREE.InstancedMesh(wireSegmentGeometry, wireMaterial, nodeCount - 1);
-wireMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+const wireMesh = new THREE.Mesh(new THREE.BufferGeometry(), wireMaterial);
 wireMesh.frustumCulled = false;
 wireMesh.renderOrder = 7; // draw above translucent debug anatomy
-wireMesh.count = 0;
 const wireGroup = new THREE.Group();
 wireGroup.add(wireMesh);
+alignVascularRenderObject(wireGroup);
 scene.add(wireGroup);
-const wireSegmentMatrix = new THREE.Matrix4();
-const wireSegmentQuaternion = new THREE.Quaternion();
-const wireSegmentAxis = new THREE.Vector3();
-const wireSegmentMidpoint = new THREE.Vector3();
-const wireSegmentScale = new THREE.Vector3(1, 1, 1);
-const wireSegmentUp = new THREE.Vector3(0, 1, 0);
+const wireRenderPoints = Array.from({ length: nodeCount }, () => new THREE.Vector3());
 const contactMarkerMatrix = new THREE.Matrix4();
 
 const contactMarkerGeometry = new THREE.SphereGeometry(1.35, 12, 8);
@@ -861,6 +840,7 @@ wallContactMarkers.count = 0;
 wallContactMarkers.visible = true;
 wallContactMarkers.frustumCulled = false;
 wallContactMarkers.renderOrder = 6;
+alignVascularRenderObject(wallContactMarkers);
 scene.add(wallContactMarkers);
 
 wallBreachMarkers = new THREE.InstancedMesh(
@@ -880,6 +860,7 @@ wallBreachMarkers.count = 0;
 wallBreachMarkers.visible = true;
 wallBreachMarkers.frustumCulled = false;
 wallBreachMarkers.renderOrder = 7;
+alignVascularRenderObject(wallBreachMarkers);
 scene.add(wallBreachMarkers);
 
 wallWorstPointMarker = new THREE.Mesh(
@@ -897,6 +878,7 @@ wallWorstPointMarker.visible = false;
 wallWorstPointMarker.frustumCulled = false;
 wallWorstPointMarker.renderOrder = 8;
 wallWorstPointMarker.userData.hasPoint = false;
+alignVascularRenderObject(wallWorstPointMarker);
 scene.add(wallWorstPointMarker);
 
 function createDynamicDebugLines(color) {
@@ -925,12 +907,24 @@ xpbdContactNormalLines = createDynamicDebugLines(0x28ffd7);
 xpbdActiveBranchLines = createDynamicDebugLines(0xff4fd8);
 xpbdContactDebugGroup.add(xpbdContactNormalLines, xpbdActiveBranchLines);
 xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
+alignVascularRenderObject(xpbdContactDebugGroup);
 scene.add(xpbdContactDebugGroup);
 
-const GUIDE_WIRE_ADVANCE_OPTIONS = { routeAssist: PHYSICS_MODE === 'legacy' };
-const XPBD_WIRE_SYNC_OPTIONS = { resetVelocity: true };
+const GUIDE_WIRE_ADVANCE_OPTIONS = {
+    routeAssist: PHYSICS_MODE === 'legacy',
+    // In XPBD the sheath displacement is the physical proximal boundary
+    // condition. Length and bend constraints must transmit that displacement
+    // through the free rod; copying every node along the previous path would
+    // make insertion and withdrawal replay the same geometry.
+    boundaryDriven: PHYSICS_MODE === 'xpbd-contact-v1'
+};
+// Preserve the velocity produced by the previous XPBD step. With boundary
+// driven feeding this is genuine rod state, not duplicated kinematic motion.
+const XPBD_WIRE_SYNC_OPTIONS = { resetVelocity: PHYSICS_MODE !== 'xpbd-contact-v1' };
 const XPBD_CATHETER_STEP_OPTIONS = { collisions: false };
-const XPBD_CATHETER_SYNC_OPTIONS = { shapeCompliance: 2e-4 };
+const XPBD_CATHETER_SYNC_OPTIONS = {
+    shapeCompliance: DEFAULT_TOOL_PROFILES.catheter.shapeCompliance
+};
 
 pigtailCatheter = new PigtailCatheter({
     wire,
@@ -943,6 +937,7 @@ pigtailCatheter.setExternalCollisionSolver(PHYSICS_MODE === 'xpbd-contact-v1');
 if (vesselCollisionTarget !== vessel) {
     pigtailCatheter.setCollisionGeometry(vesselCollisionTarget);
 }
+alignVascularRenderObject(pigtailCatheter.mesh);
 scene.add(pigtailCatheter.mesh);
 
 endovascularWorld = new EndovascularPhysicsWorld({
@@ -959,9 +954,7 @@ xpbdWireBody = endovascularWorld.createRod('guidewire', nodeCount, segmentLength
 });
 xpbdWireBody.syncFromElasticRod(wire);
 xpbdCatheterBody = endovascularWorld.createRod('catheter', 320, 4, {
-    ...DEFAULT_TOOL_PROFILES.catheter,
-    bendCompliance: 2e-4,
-    shapeCompliance: 2e-4
+    ...DEFAULT_TOOL_PROFILES.catheter
 });
 pigtailCatheter.syncXpbdBody(xpbdCatheterBody, XPBD_CATHETER_SYNC_OPTIONS);
 endovascularWorld.addSheath({
@@ -974,8 +967,13 @@ xpbdContainment = endovascularWorld.addContainment(xpbdWireBody, xpbdCatheterBod
     innerRadius: PIGTAIL_CATHETER_INNER_RADIUS_MM,
     openProximal: true,
     openDistal: true,
-    searchWindow: 8,
+    searchWindow: 2,
     outerStartNode: pigtailCatheter.physicsLumenStartNode,
+    innerResponse: 0,
+    outerResponse: 1,
+    finalProjection: 'outer',
+    outerFollowsInnerCenterline: true,
+    containedLength: 0,
     enabled: false
 });
 xpbdExternalToolContact = endovascularWorld.addToolContact(xpbdWireBody, xpbdCatheterBody, {
@@ -1663,32 +1661,18 @@ function advanceTailInput(advance, dt) {
 }
 
 function updateWireMesh() {
-    let segmentIndex = 0;
-    // Keep the full physical guidewire visible, including the external tail
-    // before it enters the introducer sheath.
-    for (let i = 0; i < wire.nodes.length - 1; i++) {
-        const a = wire.nodes[i];
-        const b = wire.nodes[i + 1];
-        wireSegmentAxis.set(b.x - a.x, b.y - a.y, b.z - a.z);
-        const length = wireSegmentAxis.length();
-        if (length < 1e-6) continue;
-
-        wireSegmentAxis.multiplyScalar(1 / length);
-        wireSegmentMidpoint.set(
-            (a.x + b.x) * 0.5,
-            (a.y + b.y) * 0.5,
-            (a.z + b.z) * 0.5
-        );
-        wireSegmentQuaternion.setFromUnitVectors(wireSegmentUp, wireSegmentAxis);
-        wireSegmentScale.set(1, length + GUIDEWIRE_SEGMENT_OVERLAP_MM, 1);
-        wireSegmentMatrix.compose(wireSegmentMidpoint, wireSegmentQuaternion, wireSegmentScale);
-        wireMesh.setMatrixAt(segmentIndex, wireSegmentMatrix);
-        segmentIndex++;
+    for (let index = 0; index < wire.nodes.length; index++) {
+        const node = wire.nodes[index];
+        wireRenderPoints[index].set(node.x, node.y, node.z);
     }
-
-    wireMesh.count = segmentIndex;
-    wireMesh.instanceMatrix.needsUpdate = true;
-    wireGroup.visible = segmentIndex > 0;
+    const previousGeometry = wireMesh.geometry;
+    wireMesh.geometry = createSmoothTubeGeometry(wireRenderPoints, {
+        radius: GUIDEWIRE_RENDER_RADIUS_MM,
+        samplesPerSegment: GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT,
+        radialSegments: GUIDEWIRE_TUBE_RADIAL_SEGMENTS
+    });
+    previousGeometry.dispose();
+    wireGroup.visible = wire.nodes.length > 1;
 }
 
 function updateXpbdContactDebug() {
@@ -1791,7 +1775,7 @@ function sampleGuidewireContactMarkers() {
     if (lumenDiagnostics.worstPoint) {
         wallWorstPointMarker.position.set(
             lumenDiagnostics.worstPoint.x,
-            lumenDiagnostics.worstPoint.y,
+            lumenDiagnostics.worstPoint.y + VASCULAR_MODEL_ALIGNMENT_Y_MM,
             lumenDiagnostics.worstPoint.z
         );
         wallWorstPointMarker.userData.hasPoint = true;
@@ -1840,6 +1824,7 @@ let lastFluoroPulseTime = -Infinity;
 let autoExposureLevel = 0;
 const autoExposureBeamDirection = new THREE.Vector3();
 let contactMarkerAccumulator = CONTACT_MARKER_UPDATE_INTERVAL;
+let guidewireMeshAccumulator = GUIDEWIRE_MESH_UPDATE_INTERVAL;
 let pigtailMeshAccumulator = PIGTAIL_MESH_UPDATE_INTERVAL;
 let browserBenchmarkUiAccumulator = Infinity;
 
@@ -1894,9 +1879,10 @@ function stepSimulation(dt = fixedDt) {
     pigtailCatheter.advance(catheterAdvance, dt, inserted);
     pigtailCatheter.rotate(catheterRotation, dt);
     if (PHYSICS_MODE === 'xpbd-contact-v1') {
-        // The legacy rod supplies the kinematic input pose every substep. Its
-        // stored velocity has already been integrated there, so carrying it
-        // into XPBD would apply the same motion twice when input is released.
+        // The shared ElasticRod storage carries the previous XPBD pose and
+        // velocity. GuidewireSolver only moves the sheath-constrained boundary
+        // in this mode; XPBD transmits that displacement through the elastic
+        // body and finds the new contact-constrained equilibrium.
         xpbdWireBody.syncFromElasticRod(wire, XPBD_WIRE_SYNC_OPTIONS);
         xpbdWireBody.setActiveRange(
             Math.min(xpbdWireBody.count - 2, Math.max(0, guidewireSolver.firstInsertedNodeIndex() - 1)),
@@ -1923,17 +1909,22 @@ function stepSimulation(dt = fixedDt) {
             lastContainedNode >= firstContainedNode;
         xpbdContainment.startNode = firstContainedNode;
         xpbdContainment.endNode = Math.max(firstContainedNode, lastContainedNode);
+        xpbdContainment.innerArcOffset =
+            firstContainedNode * segmentLength - guidewireLength + inserted;
+        xpbdContainment.containedLength = Math.min(pigtailCatheter.progress, inserted);
+        xpbdWireBody.nodeRadius.fill(GUIDEWIRE_RADIUS_MM);
 
         const catheterEndSegment = Math.max(0, catheterNodeCount - 2);
         const firstExternalSegment = Math.max(0, Math.min(
             xpbdWireBody.segmentCount - 1,
             lastContainedNode
         ));
-        xpbdExternalToolContact.enabled =
-            pigtailCatheter.progress > 4 &&
-            catheterNodeCount >= 2 &&
-            inserted > pigtailCatheter.progress + 0.5 &&
-            firstExternalSegment <= xpbdWireBody.activeEnd - 1;
+        // The shared-lumen constraint already carries the catheter up to its
+        // open distal tip. Treating the emerging guidewire as an external
+        // colliding rod adds a spurious side impact at that opening and sends
+        // an impulse down the free guidewire. The open tip must let it exit
+        // without a capsule-like collision.
+        xpbdExternalToolContact.enabled = false;
         xpbdExternalToolContact.startSegmentA = firstExternalSegment;
         xpbdExternalToolContact.endSegmentA = Math.min(
             xpbdWireBody.activeEnd - 1,
@@ -2079,7 +2070,11 @@ function animate(time) {
     if (simulationAccumulator >= fixedDt) simulationAccumulator %= fixedDt;
     const frameSimulationEndedAt = performance.now();
 
-    updateWireMesh();
+    guidewireMeshAccumulator += dt;
+    if (guidewireMeshAccumulator >= GUIDEWIRE_MESH_UPDATE_INTERVAL) {
+        guidewireMeshAccumulator = 0;
+        updateWireMesh();
+    }
     contactMarkerAccumulator += dt;
     if (contactMarkerAccumulator >= CONTACT_MARKER_UPDATE_INTERVAL) {
         contactMarkerAccumulator = 0;

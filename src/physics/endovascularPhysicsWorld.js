@@ -14,7 +14,7 @@ const CONTACT_SIGNED_GAP = 1;
 const CONTACT_PENETRATION = 3;
 const CONTACT_BRANCH_ID = 4;
 const CONTACT_SEGMENT_T = 5;
-const MAX_WALL_CORRECTION_PASSES = 5;
+const MAX_WALL_CORRECTION_PASSES = 16;
 const WALL_SETTLING_CLEARANCE = 0.01;
 
 function clamp(value, min, max) {
@@ -71,9 +71,12 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         mass: 1,
         stretchCompliance: 2e-7,
         bendCompliance: 2e-5,
+        minBendComplianceScale: 0.001953125,
         maxBendAngle: 135,
-        foldLimitStrength: 0.7,
-        wallFriction: 0.08
+        foldLimitStrength: 1,
+        wallFriction: 0.006,
+        linearDamping: 0.98,
+        bendDamping: 0.06
     }),
     catheter: Object.freeze({
         id: 'catheter',
@@ -83,11 +86,16 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         radius: PIGTAIL_CATHETER_RADIUS_MM,
         mass: 1.4,
         stretchCompliance: 1e-7,
-        bendCompliance: 4e-4,
-        maxBendAngle: 60,
+        bendCompliance: 1e-5,
+        shapeCompliance: 1e-4,
+        maxBendAngle: 35,
         foldLimitStrength: 1,
-        wallFriction: 0.12,
-        lumenFriction: 0.04
+        wallFriction: 0.06,
+        lumenFriction: 0.04,
+        linearDamping: 0.9,
+        bendDamping: 0.68,
+        maxSpeed: 40,
+        postStabilizationPasses: 4
     }),
     sheath: Object.freeze({
         id: 'sheath',
@@ -109,6 +117,7 @@ export class EndovascularRodBody {
         this.mass = profile.mass ?? 1;
         this.stretchCompliance = profile.stretchCompliance ?? 2e-7;
         this.bendCompliance = profile.bendCompliance ?? 1e-3;
+        this.minBendComplianceScale = profile.minBendComplianceScale ?? 0.125;
         this.shapeCompliance = profile.shapeCompliance ?? 5e-5;
         this.maxBendAngle = profile.maxBendAngle ?? 135;
         this.foldLimitStrength = profile.foldLimitStrength ?? 0.7;
@@ -116,6 +125,12 @@ export class EndovascularRodBody {
         this.wallFriction = profile.wallFriction ?? 0.08;
         this.lumenFriction = profile.lumenFriction ?? 0.04;
         this.linearDamping = profile.linearDamping ?? 0.98;
+        this.bendDamping = clamp(profile.bendDamping ?? 0, 0, 1);
+        this.maxSpeed = profile.maxSpeed ?? Infinity;
+        this.postStabilizationPasses = Math.max(
+            0,
+            Math.floor(profile.postStabilizationPasses ?? 0)
+        );
         this.sleepVelocity = profile.sleepVelocity ?? 0.015;
         this.sleepFrames = profile.sleepFrames ?? 120;
         this.activeStart = 0;
@@ -162,6 +177,7 @@ export class EndovascularRodBody {
         this.lengthSolution = new Float32Array(this.segmentCount);
         this.bendLambda = new Float32Array(count);
         this.bendComplianceByNode = new Float32Array(count);
+        this.maxBendAngleByNode = new Float32Array(count);
         this.controlLambda = new Float32Array(count);
         this.shapeLambda = new Float32Array(count);
         this.wallLambda = new Float32Array(this.segmentCount);
@@ -191,6 +207,7 @@ export class EndovascularRodBody {
         this.inverseMass.fill(1 / Math.max(EPSILON, this.mass));
         this.restLength.fill(segmentLength);
         this.bendComplianceByNode.fill(this.bendCompliance);
+        this.maxBendAngleByNode.fill(this.maxBendAngle);
         for (let index = 0; index < count; index++) this.x[index] = index * segmentLength;
         this.captureRestConfiguration();
         this.copyCurrentToPrevious();
@@ -374,8 +391,13 @@ export class EndovascularRodBody {
             this.pinned[index] = storage.pinned[index];
             this.bendComplianceByNode[index] = clamp(
                 this.bendCompliance * 32 / Math.max(0.1, storage.bendingStiffness[index]),
-                this.bendCompliance * 0.125,
+                this.bendCompliance * this.minBendComplianceScale,
                 this.bendCompliance * 8
+            );
+            this.maxBendAngleByNode[index] = clamp(
+                storage.bendAngleLimit?.[index] ?? this.maxBendAngle,
+                1,
+                179
             );
         }
         if (!preservePrevious) this.copyCurrentToPrevious();
@@ -448,6 +470,7 @@ export class EndovascularPhysicsWorld {
 
     createRod(id, count, segmentLength, profile = {}) {
         const body = new EndovascularRodBody(id, count, segmentLength, profile);
+        body.contactField = this.contactField;
         this.bodies.push(body);
         return body;
     }
@@ -491,7 +514,13 @@ export class EndovascularPhysicsWorld {
         searchWindow = 10,
         outerStartNode = outerBody.activeStart,
         startNode = innerBody.activeStart,
-        endNode = innerBody.activeEnd
+        endNode = innerBody.activeEnd,
+        innerResponse = 1,
+        outerResponse = 1,
+        finalProjection = 'inner',
+        outerFollowsInnerCenterline = false,
+        innerArcOffset = 0,
+        containedLength = Infinity
     } = {}) {
         const constraint = {
             innerBody,
@@ -506,12 +535,22 @@ export class EndovascularPhysicsWorld {
             outerStartNode,
             startNode,
             endNode,
+            innerResponse: clamp(innerResponse, 0, 1),
+            outerResponse: clamp(outerResponse, 0, 1),
+            finalProjection,
+            outerFollowsInnerCenterline,
+            innerArcOffset,
+            containedLength,
             lambdas: new Float32Array(innerBody.count),
             closestSegment: new Int32Array(innerBody.count),
             _lastEnabled: enabled,
             _lastOuterStartNode: outerStartNode,
             _lastStartNode: startNode,
-            _lastEndNode: endNode
+            _lastEndNode: endNode,
+            _lastInnerActiveStart: innerBody.activeStart,
+            _lastInnerActiveEnd: innerBody.activeEnd,
+            _lastOuterActiveStart: outerBody.activeStart,
+            _lastOuterActiveEnd: outerBody.activeEnd
         };
         constraint.closestSegment.fill(-1);
         this.containments.push(constraint);
@@ -577,6 +616,7 @@ export class EndovascularPhysicsWorld {
         let phaseStart = now();
         for (let index = 0; index < this.bodies.length; index++) {
             const body = this.bodies[index];
+            body.contactField = this.contactField;
             body.lengthLambda.fill(0);
             body.bendLambda.fill(0);
             body.controlLambda.fill(0);
@@ -602,6 +642,11 @@ export class EndovascularPhysicsWorld {
             }
             for (let index = 0; index < this.bodies.length; index++) this.#solveBending(this.bodies[index]);
             for (let index = 0; index < this.bodies.length; index++) this.#solveRestShape(this.bodies[index]);
+            // Shape memory is deliberately solved after the first control
+            // projection, but an unsupported catheter tip must not receive the
+            // entire shape correction as a single-frame impulse. Rebalance the
+            // compliant controls before the wall gets the final say.
+            for (let index = 0; index < this.bodies.length; index++) this.#solveControls(this.bodies[index]);
             for (let index = 0; index < this.containments.length; index++) this.#solveContainment(this.containments[index]);
             for (let index = 0; index < this.toolContacts.length; index++) this.#solveToolContact(this.toolContacts[index]);
             for (let index = 0; index < this.bodies.length; index++) this.#solveWallContacts(this.bodies[index]);
@@ -647,6 +692,37 @@ export class EndovascularPhysicsWorld {
                 }
             }
         }
+        // Later wall and fold corrections can separate the two centerlines.
+        // Finish with exactly one radial projection of the body selected by
+        // the material coupling. Repeating structural projections here caused
+        // the catheter to collapse at its open distal transition.
+        const finalContainmentPasses = this.containments.some(constraint =>
+            constraint.enabled &&
+            constraint.finalProjection !== 'none' &&
+            !constraint.outerFollowsInnerCenterline
+        ) ? 2 : 1;
+        for (let pass = 0; pass < finalContainmentPasses; pass++) {
+            for (let index = 0; index < this.containments.length; index++) {
+                const constraint = this.containments[index];
+                if (!constraint.enabled || constraint.finalProjection === 'none') continue;
+                this.#solveContainment(constraint, {
+                    innerOnly: constraint.finalProjection !== 'outer',
+                    outerOnly: constraint.finalProjection === 'outer',
+                    applyFriction: false
+                });
+            }
+        }
+        for (let index = 0; index < this.bodies.length; index++) {
+            const body = this.bodies[index];
+            for (let pass = 0; pass < body.postStabilizationPasses; pass++) {
+                this.#solveControls(body);
+                this.#solveFoldLimits(body);
+                this.#solveLengthsGlobal(body);
+                this.#prepareWallContacts(body);
+                this.#solveWallContacts(body);
+            }
+            this.#solveFoldLimits(body);
+        }
         recordTiming(this.timings.constraints, now() - phaseStart);
 
         const transientMaxPenetration = this.maxPenetration;
@@ -663,11 +739,17 @@ export class EndovascularPhysicsWorld {
 
         phaseStart = now();
         for (let index = 0; index < this.bodies.length; index++) this.#updateVelocityAndFriction(this.bodies[index]);
+        for (let index = 0; index < this.bodies.length; index++) {
+            this.#stabilizeBendingVelocity(this.bodies[index]);
+        }
         for (let index = 0; index < this.containments.length; index++) {
             this.#stabilizeContainmentVelocity(this.containments[index]);
         }
         for (let index = 0; index < this.toolContacts.length; index++) {
             this.#stabilizeToolContactVelocity(this.toolContacts[index]);
+        }
+        for (let index = 0; index < this.bodies.length; index++) {
+            this.#limitVelocity(this.bodies[index]);
         }
         recordTiming(this.timings.velocity, now() - phaseStart);
 
@@ -714,6 +796,10 @@ export class EndovascularPhysicsWorld {
             containment._lastOuterStartNode = containment.outerStartNode;
             containment._lastStartNode = containment.startNode;
             containment._lastEndNode = containment.endNode;
+            containment._lastInnerActiveStart = containment.innerBody.activeStart;
+            containment._lastInnerActiveEnd = containment.innerBody.activeEnd;
+            containment._lastOuterActiveStart = containment.outerBody.activeStart;
+            containment._lastOuterActiveEnd = containment.outerBody.activeEnd;
         }
         for (const contact of this.toolContacts) {
             contact.lambdas.fill(0);
@@ -1216,9 +1302,9 @@ export class EndovascularPhysicsWorld {
         if (body.sleeping || body.count < 3 || body.foldLimitStrength <= 0) return;
         const start = Math.max(1, body.activeStart + 1);
         const end = Math.min(body.count - 1, body.activeEnd);
-        const limit = clamp(body.maxBendAngle, 1, 179) * Math.PI / 180;
-        const minDot = Math.cos(limit);
         for (let index = start; index < end; index++) {
+            const limit = clamp(body.maxBendAngleByNode[index], 1, 179) * Math.PI / 180;
+            const minDot = Math.cos(limit);
             const previous = index - 1;
             const next = index + 1;
             const incomingX = body.x[index] - body.x[previous];
@@ -1234,6 +1320,28 @@ export class EndovascularPhysicsWorld {
                 incomingX * outgoingX + incomingY * outgoingY + incomingZ * outgoingZ
             ) / (incomingLength * outgoingLength);
             if (dot >= minDot) continue;
+            const wallConstrained = (
+                (previous > 0 && body.wallActive[previous - 1]) ||
+                body.wallActive[previous] ||
+                body.wallActive[index]
+            );
+            if (wallConstrained && body.inverseMass[index] > 0) {
+                // Expanding the neighbouring endpoints can push them back
+                // through the vessel wall and make the next contact pass snap
+                // the rod in the opposite direction. At a wall, smooth the
+                // hinge by moving its centre toward the local chord instead.
+                const centerStrength = Math.min(0.72, body.foldLimitStrength * 0.62);
+                body.x[index] += (
+                    (body.x[previous] + body.x[next]) * 0.5 - body.x[index]
+                ) * centerStrength;
+                body.y[index] += (
+                    (body.y[previous] + body.y[next]) * 0.5 - body.y[index]
+                ) * centerStrength;
+                body.z[index] += (
+                    (body.z[previous] + body.z[next]) * 0.5 - body.z[index]
+                ) * centerStrength;
+                continue;
+            }
 
             let chordX = body.x[next] - body.x[previous];
             let chordY = body.y[next] - body.y[previous];
@@ -1301,21 +1409,37 @@ export class EndovascularPhysicsWorld {
         }
     }
 
-    #solveContainment(constraint) {
+    #solveContainment(constraint, {
+        innerOnly = false,
+        outerOnly = false,
+        applyFriction = true
+    } = {}) {
         if (
             constraint.enabled !== constraint._lastEnabled ||
             constraint.outerStartNode !== constraint._lastOuterStartNode ||
             constraint.startNode !== constraint._lastStartNode ||
-            constraint.endNode !== constraint._lastEndNode
+            constraint.endNode !== constraint._lastEndNode ||
+            constraint.innerBody.activeStart !== constraint._lastInnerActiveStart ||
+            constraint.innerBody.activeEnd !== constraint._lastInnerActiveEnd ||
+            constraint.outerBody.activeStart !== constraint._lastOuterActiveStart ||
+            constraint.outerBody.activeEnd !== constraint._lastOuterActiveEnd
         ) {
             constraint.lambdas.fill(0);
             constraint.closestSegment.fill(-1);
             constraint._lastEnabled = constraint.enabled;
             constraint._lastOuterStartNode = constraint.outerStartNode;
             constraint._lastStartNode = constraint.startNode;
+            constraint._lastInnerActiveStart = constraint.innerBody.activeStart;
+            constraint._lastInnerActiveEnd = constraint.innerBody.activeEnd;
+            constraint._lastOuterActiveStart = constraint.outerBody.activeStart;
+            constraint._lastOuterActiveEnd = constraint.outerBody.activeEnd;
         }
         constraint._lastEndNode = constraint.endNode;
         if (!constraint.enabled) return;
+        if (constraint.outerFollowsInnerCenterline) {
+            this.#projectOuterAlongInnerCenterline(constraint);
+            return;
+        }
         const inner = constraint.innerBody;
         const outer = constraint.outerBody;
         const allowedRadius = Math.max(0, constraint.innerRadius - inner.radius);
@@ -1327,6 +1451,7 @@ export class EndovascularPhysicsWorld {
         const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
         const innerEnd = clamp(constraint.endNode, innerStart, inner.activeEnd);
         let expected = outerStart;
+        let previousBestSegment = outerStart;
         let innerArcLength = 0;
         let outerArcEnd = outer.restLength[outerStart];
         for (let innerIndex = innerStart; innerIndex <= innerEnd; innerIndex++) {
@@ -1335,16 +1460,12 @@ export class EndovascularPhysicsWorld {
                 expected++;
                 outerArcEnd += outer.restLength[expected];
             }
-            let searchStart = Math.max(outerStart, expected - constraint.searchWindow);
+            let searchStart = Math.max(
+                outerStart,
+                previousBestSegment,
+                expected - constraint.searchWindow
+            );
             let searchEnd = Math.min(outerEnd - 1, expected + constraint.searchWindow);
-            const cached = constraint.closestSegment[innerIndex];
-            if (cached >= outerStart && cached < outerEnd) {
-                const searchCenter = Math.abs(cached - expected) <= constraint.searchWindow
-                    ? cached
-                    : expected;
-                searchStart = Math.max(outerStart, searchCenter - 1);
-                searchEnd = Math.min(outerEnd - 1, searchCenter + 1);
-            }
             let bestDistanceSq = Infinity;
             let bestSegment = -1;
             let bestT = 0;
@@ -1382,6 +1503,7 @@ export class EndovascularPhysicsWorld {
                 }
             }
             if (bestSegment < 0) continue;
+            previousBestSegment = bestSegment;
             constraint.closestSegment[innerIndex] = bestSegment;
             if (constraint.openProximal && bestSegment === outerStart && bestT <= 1e-5) {
                 const dx = outer.x[outerStart + 1] - outer.x[outerStart];
@@ -1411,11 +1533,17 @@ export class EndovascularPhysicsWorld {
             const radialX = (inner.x[innerIndex] - bestX) / distance;
             const radialY = (inner.y[innerIndex] - bestY) / distance;
             const radialZ = (inner.z[innerIndex] - bestZ) / distance;
-            const innerWeight = inner.inverseMass[innerIndex];
+            const innerResponse = outerOnly
+                ? 0
+                : innerOnly ? 1 : constraint.innerResponse;
+            const outerResponse = innerOnly ? 0 : constraint.outerResponse;
+            const innerWeight = inner.inverseMass[innerIndex] * innerResponse;
             const w0Factor = 1 - bestT;
             const w1Factor = bestT;
-            const outerWeight0 = outer.inverseMass[bestSegment] * w0Factor * w0Factor;
-            const outerWeight1 = outer.inverseMass[bestSegment + 1] * w1Factor * w1Factor;
+            const outerWeight0 =
+                outer.inverseMass[bestSegment] * outerResponse * w0Factor * w0Factor;
+            const outerWeight1 =
+                outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor * w1Factor;
             const denominator = innerWeight + outerWeight0 + outerWeight1 + alpha;
             if (denominator < EPSILON) continue;
             const c = allowedRadius - distance;
@@ -1424,12 +1552,18 @@ export class EndovascularPhysicsWorld {
             inner.x[innerIndex] -= radialX * deltaLambda * innerWeight;
             inner.y[innerIndex] -= radialY * deltaLambda * innerWeight;
             inner.z[innerIndex] -= radialZ * deltaLambda * innerWeight;
-            outer.x[bestSegment] += radialX * deltaLambda * outer.inverseMass[bestSegment] * w0Factor;
-            outer.y[bestSegment] += radialY * deltaLambda * outer.inverseMass[bestSegment] * w0Factor;
-            outer.z[bestSegment] += radialZ * deltaLambda * outer.inverseMass[bestSegment] * w0Factor;
-            outer.x[bestSegment + 1] += radialX * deltaLambda * outer.inverseMass[bestSegment + 1] * w1Factor;
-            outer.y[bestSegment + 1] += radialY * deltaLambda * outer.inverseMass[bestSegment + 1] * w1Factor;
-            outer.z[bestSegment + 1] += radialZ * deltaLambda * outer.inverseMass[bestSegment + 1] * w1Factor;
+            outer.x[bestSegment] +=
+                radialX * deltaLambda * outer.inverseMass[bestSegment] * outerResponse * w0Factor;
+            outer.y[bestSegment] +=
+                radialY * deltaLambda * outer.inverseMass[bestSegment] * outerResponse * w0Factor;
+            outer.z[bestSegment] +=
+                radialZ * deltaLambda * outer.inverseMass[bestSegment] * outerResponse * w0Factor;
+            outer.x[bestSegment + 1] +=
+                radialX * deltaLambda * outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor;
+            outer.y[bestSegment + 1] +=
+                radialY * deltaLambda * outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor;
+            outer.z[bestSegment + 1] +=
+                radialZ * deltaLambda * outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor;
 
             const relativeX =
                 inner.x[innerIndex] - inner.previousX[innerIndex] -
@@ -1451,7 +1585,7 @@ export class EndovascularPhysicsWorld {
             const frictionWeight = innerWeight + outerWeight0 + outerWeight1;
             if (
                 tangentLength > EPSILON && frictionWeight > EPSILON &&
-                constraint.friction > 0
+                applyFriction && constraint.friction > 0
             ) {
                 tangentX /= tangentLength;
                 tangentY /= tangentLength;
@@ -1463,13 +1597,61 @@ export class EndovascularPhysicsWorld {
                 inner.x[innerIndex] += tangentX * tangentLambda * innerWeight;
                 inner.y[innerIndex] += tangentY * tangentLambda * innerWeight;
                 inner.z[innerIndex] += tangentZ * tangentLambda * innerWeight;
-                outer.x[bestSegment] -= tangentX * tangentLambda * outer.inverseMass[bestSegment] * w0Factor;
-                outer.y[bestSegment] -= tangentY * tangentLambda * outer.inverseMass[bestSegment] * w0Factor;
-                outer.z[bestSegment] -= tangentZ * tangentLambda * outer.inverseMass[bestSegment] * w0Factor;
-                outer.x[bestSegment + 1] -= tangentX * tangentLambda * outer.inverseMass[bestSegment + 1] * w1Factor;
-                outer.y[bestSegment + 1] -= tangentY * tangentLambda * outer.inverseMass[bestSegment + 1] * w1Factor;
-                outer.z[bestSegment + 1] -= tangentZ * tangentLambda * outer.inverseMass[bestSegment + 1] * w1Factor;
+                outer.x[bestSegment] -= tangentX * tangentLambda *
+                    outer.inverseMass[bestSegment] * outerResponse * w0Factor;
+                outer.y[bestSegment] -= tangentY * tangentLambda *
+                    outer.inverseMass[bestSegment] * outerResponse * w0Factor;
+                outer.z[bestSegment] -= tangentZ * tangentLambda *
+                    outer.inverseMass[bestSegment] * outerResponse * w0Factor;
+                outer.x[bestSegment + 1] -= tangentX * tangentLambda *
+                    outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor;
+                outer.y[bestSegment + 1] -= tangentY * tangentLambda *
+                    outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor;
+                outer.z[bestSegment + 1] -= tangentZ * tangentLambda *
+                    outer.inverseMass[bestSegment + 1] * outerResponse * w1Factor;
             }
+        }
+    }
+
+    #projectOuterAlongInnerCenterline(constraint) {
+        const inner = constraint.innerBody;
+        const outer = constraint.outerBody;
+        const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
+        const outerStart = clamp(constraint.outerStartNode, outer.activeStart, outer.activeEnd);
+        if (innerStart >= inner.activeEnd || outerStart > outer.activeEnd) return;
+
+        let innerSegment = innerStart;
+        let innerSegmentArc = Math.max(0, constraint.innerArcOffset);
+        if (innerStart > inner.activeStart) {
+            innerSegment = innerStart - 1;
+            innerSegmentArc -= inner.restLength[innerSegment];
+        }
+        let outerArc = 0;
+        const containedLength = Math.max(0, constraint.containedLength);
+        for (let outerIndex = outerStart; outerIndex <= outer.activeEnd; outerIndex++) {
+            if (outerArc > containedLength + 1e-5) break;
+            while (
+                innerSegment < inner.activeEnd - 1 &&
+                innerSegmentArc + inner.restLength[innerSegment] < outerArc
+            ) {
+                innerSegmentArc += inner.restLength[innerSegment];
+                innerSegment++;
+            }
+            const segmentLength = Math.max(EPSILON, inner.restLength[innerSegment]);
+            const t = clamp((outerArc - innerSegmentArc) / segmentLength, 0, 1);
+            const targetX =
+                inner.x[innerSegment] +
+                (inner.x[innerSegment + 1] - inner.x[innerSegment]) * t;
+            const targetY =
+                inner.y[innerSegment] +
+                (inner.y[innerSegment + 1] - inner.y[innerSegment]) * t;
+            const targetZ =
+                inner.z[innerSegment] +
+                (inner.z[innerSegment + 1] - inner.z[innerSegment]) * t;
+            outer.x[outerIndex] = targetX;
+            outer.y[outerIndex] = targetY;
+            outer.z[outerIndex] = targetZ;
+            if (outerIndex < outer.activeEnd) outerArc += outer.restLength[outerIndex];
         }
     }
 
@@ -1739,7 +1921,7 @@ export class EndovascularPhysicsWorld {
             if (penetration <= 0.02) continue;
 
             const nominalLength = Math.max(0.5, body.segmentLength);
-            const span = clamp(Math.ceil(penetration / (nominalLength * 0.002)), 4, 96);
+            const span = clamp(Math.ceil(penetration / (nominalLength * 0.02)), 4, 32);
             const contactNode = index + t;
             const firstNode = Math.max(body.activeStart, Math.floor(contactNode - span));
             const lastNode = Math.min(body.activeEnd, Math.ceil(contactNode + span));
@@ -1778,7 +1960,7 @@ export class EndovascularPhysicsWorld {
                 const dy = correctionY[next] - correctionY[segment];
                 const dz = correctionZ[next] - correctionZ[segment];
                 const distanceSq = dx * dx + dy * dy + dz * dz;
-                const limit = Math.max(1e-5, body.restLength[segment] * 0.002);
+                const limit = Math.max(1e-5, body.restLength[segment] * 0.02);
                 if (distanceSq <= limit * limit) continue;
                 const distance = Math.sqrt(distanceSq);
                 const w0 = body.inverseMass[segment];
@@ -1803,6 +1985,44 @@ export class EndovascularPhysicsWorld {
             body.x[node] += correctionX[node];
             body.y[node] += correctionY[node];
             body.z[node] += correctionZ[node];
+        }
+
+        // A capsule contact exactly at the free distal endpoint cannot be
+        // resolved by translating the whole stiff shaft. Finish that one
+        // degree of freedom directly; the following substep redistributes the
+        // tiny length change through the deliberately soft terminal section.
+        const terminalSegment = Math.min(end - 1, body.activeEnd - 1);
+        if (
+            terminalSegment >= start &&
+            body.wallActive[terminalSegment] &&
+            body.wallT[terminalSegment] > 0.75 &&
+            body.inverseMass[terminalSegment + 1] > 0
+        ) {
+            const t = body.wallT[terminalSegment];
+            const px = body.x[terminalSegment] +
+                (body.x[terminalSegment + 1] - body.x[terminalSegment]) * t;
+            const py = body.y[terminalSegment] +
+                (body.y[terminalSegment + 1] - body.y[terminalSegment]) * t;
+            const pz = body.z[terminalSegment] +
+                (body.z[terminalSegment + 1] - body.z[terminalSegment]) * t;
+            const nx = body.wallNormalX[terminalSegment];
+            const ny = body.wallNormalY[terminalSegment];
+            const nz = body.wallNormalZ[terminalSegment];
+            const radius = Math.max(
+                body.nodeRadius[terminalSegment],
+                body.nodeRadius[terminalSegment + 1]
+            );
+            const penetration = Math.max(0, WALL_SETTLING_CLEARANCE + radius - (
+                (px - body.wallX[terminalSegment]) * nx +
+                (py - body.wallY[terminalSegment]) * ny +
+                (pz - body.wallZ[terminalSegment]) * nz
+            ));
+            if (penetration > 0) {
+                const correction = penetration / t;
+                body.x[terminalSegment + 1] += nx * correction;
+                body.y[terminalSegment + 1] += ny * correction;
+                body.z[terminalSegment + 1] += nz * correction;
+            }
         }
     }
 
@@ -1831,16 +2051,25 @@ export class EndovascularPhysicsWorld {
                 nz += body.wallNormalZ[index];
             }
             const normalLength = magnitude3(nx, ny, nz);
-            if (frictionBudget > 0 && normalLength > EPSILON) {
+            if (normalLength > EPSILON) {
                 nx /= normalLength;
                 ny /= normalLength;
                 nz /= normalLength;
-                const normalMotion = dx * nx + dy * ny + dz * nz;
+                let normalMotion = dx * nx + dy * ny + dz * nz;
+                // Position projection must not turn into a new outward
+                // velocity on the next frame. Remove only the component that
+                // points back through the wall; inward release remains free.
+                if (normalMotion < 0) {
+                    dx -= nx * normalMotion;
+                    dy -= ny * normalMotion;
+                    dz -= nz * normalMotion;
+                    normalMotion = 0;
+                }
                 const tangentX = dx - nx * normalMotion;
                 const tangentY = dy - ny * normalMotion;
                 const tangentZ = dz - nz * normalMotion;
                 const tangentLength = magnitude3(tangentX, tangentY, tangentZ);
-                if (tangentLength > EPSILON) {
+                if (frictionBudget > 0 && tangentLength > EPSILON) {
                     const reduction = Math.min(tangentLength, frictionBudget) / tangentLength;
                     dx -= tangentX * reduction;
                     dy -= tangentY * reduction;
@@ -1862,8 +2091,24 @@ export class EndovascularPhysicsWorld {
         }
     }
 
+    #limitVelocity(body) {
+        if (!Number.isFinite(body.maxSpeed) || body.maxSpeed <= 0) return;
+        for (let index = body.activeStart; index <= body.activeEnd; index++) {
+            const speed = magnitude3(
+                body.velocityX[index],
+                body.velocityY[index],
+                body.velocityZ[index]
+            );
+            if (speed <= body.maxSpeed || speed < EPSILON) continue;
+            const scale = body.maxSpeed / speed;
+            body.velocityX[index] *= scale;
+            body.velocityY[index] *= scale;
+            body.velocityZ[index] *= scale;
+        }
+    }
+
     #stabilizeContainmentVelocity(constraint) {
-        if (!constraint.enabled) return;
+        if (!constraint.enabled || constraint.outerFollowsInnerCenterline) return;
         const inner = constraint.innerBody;
         const outer = constraint.outerBody;
         const allowedRadius = Math.max(0, constraint.innerRadius - inner.radius);
@@ -1912,21 +2157,56 @@ export class EndovascularPhysicsWorld {
                 outer.velocityZ[segment] * w0 - outer.velocityZ[segment + 1] * w1;
             const outwardVelocity = relativeX * nx + relativeY * ny + relativeZ * nz;
             if (outwardVelocity <= 0) continue;
-            const innerWeight = inner.inverseMass[innerIndex];
-            const outerWeight0 = outer.inverseMass[segment] * w0 * w0;
-            const outerWeight1 = outer.inverseMass[segment + 1] * w1 * w1;
+            const innerWeight = inner.inverseMass[innerIndex] * constraint.innerResponse;
+            const outerWeight0 =
+                outer.inverseMass[segment] * constraint.outerResponse * w0 * w0;
+            const outerWeight1 =
+                outer.inverseMass[segment + 1] * constraint.outerResponse * w1 * w1;
             const denominator = innerWeight + outerWeight0 + outerWeight1;
             if (denominator < EPSILON) continue;
             const impulse = outwardVelocity / denominator;
             inner.velocityX[innerIndex] -= nx * impulse * innerWeight;
             inner.velocityY[innerIndex] -= ny * impulse * innerWeight;
             inner.velocityZ[innerIndex] -= nz * impulse * innerWeight;
-            outer.velocityX[segment] += nx * impulse * outer.inverseMass[segment] * w0;
-            outer.velocityY[segment] += ny * impulse * outer.inverseMass[segment] * w0;
-            outer.velocityZ[segment] += nz * impulse * outer.inverseMass[segment] * w0;
-            outer.velocityX[segment + 1] += nx * impulse * outer.inverseMass[segment + 1] * w1;
-            outer.velocityY[segment + 1] += ny * impulse * outer.inverseMass[segment + 1] * w1;
-            outer.velocityZ[segment + 1] += nz * impulse * outer.inverseMass[segment + 1] * w1;
+            outer.velocityX[segment] +=
+                nx * impulse * outer.inverseMass[segment] * constraint.outerResponse * w0;
+            outer.velocityY[segment] +=
+                ny * impulse * outer.inverseMass[segment] * constraint.outerResponse * w0;
+            outer.velocityZ[segment] +=
+                nz * impulse * outer.inverseMass[segment] * constraint.outerResponse * w0;
+            outer.velocityX[segment + 1] +=
+                nx * impulse * outer.inverseMass[segment + 1] * constraint.outerResponse * w1;
+            outer.velocityY[segment + 1] +=
+                ny * impulse * outer.inverseMass[segment + 1] * constraint.outerResponse * w1;
+            outer.velocityZ[segment + 1] +=
+                nz * impulse * outer.inverseMass[segment + 1] * constraint.outerResponse * w1;
+        }
+    }
+
+    #stabilizeBendingVelocity(body) {
+        if (body.sleeping || body.bendDamping <= 0 || body.count < 3) return;
+        const start = Math.max(1, body.activeStart + 1);
+        const end = Math.min(body.count - 1, body.activeEnd);
+        for (let index = start; index < end; index++) {
+            if (body.inverseMass[index] <= 0) continue;
+            const tangentX = body.x[index + 1] - body.x[index - 1];
+            const tangentY = body.y[index + 1] - body.y[index - 1];
+            const tangentZ = body.z[index + 1] - body.z[index - 1];
+            const tangentLength = magnitude3(tangentX, tangentY, tangentZ);
+            if (tangentLength < EPSILON) continue;
+            const tx = tangentX / tangentLength;
+            const ty = tangentY / tangentLength;
+            const tz = tangentZ / tangentLength;
+            const averageX = (body.velocityX[index - 1] + body.velocityX[index + 1]) * 0.5;
+            const averageY = (body.velocityY[index - 1] + body.velocityY[index + 1]) * 0.5;
+            const averageZ = (body.velocityZ[index - 1] + body.velocityZ[index + 1]) * 0.5;
+            const relativeX = body.velocityX[index] - averageX;
+            const relativeY = body.velocityY[index] - averageY;
+            const relativeZ = body.velocityZ[index] - averageZ;
+            const axial = relativeX * tx + relativeY * ty + relativeZ * tz;
+            body.velocityX[index] -= (relativeX - tx * axial) * body.bendDamping;
+            body.velocityY[index] -= (relativeY - ty * axial) * body.bendDamping;
+            body.velocityZ[index] -= (relativeZ - tz * axial) * body.bendDamping;
         }
     }
 

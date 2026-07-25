@@ -110,6 +110,7 @@ function createPerformanceStats() {
         segmentSampleCount: 0,
         solveIterations: 0,
         moving: false,
+        boundaryDrivenFeed: false,
         forceRelax: false,
         foldGuarded: false,
         stabilityRepaired: false,
@@ -130,6 +131,7 @@ function resetPerformanceStats(stats) {
     stats.segmentSampleCount = 0;
     stats.solveIterations = 0;
     stats.moving = false;
+    stats.boundaryDrivenFeed = false;
     stats.forceRelax = false;
     stats.foldGuarded = false;
     stats.stabilityRepaired = false;
@@ -423,7 +425,12 @@ export class GuidewireSolver {
         }
     }
 
-    advance(command, dt, collisionTarget = null, { routeAssist = true } = {}) {
+    advance(
+        command,
+        dt,
+        collisionTarget = null,
+        { routeAssist = true, boundaryDriven = false } = {}
+    ) {
         resetPerformanceStats(this.performanceStats);
         const perfStart = nowMs();
         const previous = snapshotNodePositions(this.rod.nodes, this._advancePreviousPositions);
@@ -450,13 +457,15 @@ export class GuidewireSolver {
         const feedSpeed = delta / Math.max(dt, 1e-6);
 
         this.constrainSheath(feedSpeed);
-        if (Math.abs(delta) > 1e-6) {
+        if (Math.abs(delta) > 1e-6 && !boundaryDriven) {
             this.#convectMaterial(delta, previous, dt, collisionTarget, routeAssist);
         }
 
         this.previousPositions = previous;
         this.performanceStats.advanceMs += nowMs() - perfStart;
         this.performanceStats.moving = Math.abs(delta) > 1e-6;
+        this.performanceStats.boundaryDrivenFeed =
+            boundaryDriven && Math.abs(delta) > 1e-6;
         return delta;
     }
 

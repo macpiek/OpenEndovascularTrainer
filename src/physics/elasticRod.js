@@ -57,7 +57,7 @@ const DEFAULT_MESH_COLLISION_PASSES = 2;
 const VOLUME_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 const MESH_COLLIDER_SEGMENT_SAMPLES = [0.25, 0.5, 0.75];
 
-function createNodeStorage(count, mass, bendingStiffness) {
+function createNodeStorage(count, mass, bendingStiffness, bendAngleLimit) {
     const storage = {
         x: new Float64Array(count),
         y: new Float64Array(count),
@@ -73,10 +73,12 @@ function createNodeStorage(count, mass, bendingStiffness) {
         kz: new Float64Array(count),
         mass: new Float64Array(count),
         bendingStiffness: new Float64Array(count),
+        bendAngleLimit: new Float64Array(count),
         pinned: new Uint8Array(count)
     };
     storage.mass.fill(mass);
     storage.bendingStiffness.fill(bendingStiffness);
+    storage.bendAngleLimit.fill(bendAngleLimit);
     return storage;
 }
 
@@ -119,6 +121,9 @@ class RodNodeView {
     get bendingStiffness() { return this._storage.bendingStiffness[this.index]; }
     set bendingStiffness(value) { this._storage.bendingStiffness[this.index] = value; }
 
+    get bendAngleLimit() { return this._storage.bendAngleLimit[this.index]; }
+    set bendAngleLimit(value) { this._storage.bendAngleLimit[this.index] = value; }
+
     get kx() { return this._storage.kx[this.index]; }
     set kx(value) { this._storage.kx[this.index] = value; }
 
@@ -145,7 +150,7 @@ export class ElasticRod {
         logger = null,
     } = {}) {
         this.segmentLength = segmentLength;
-        this.nodeStorage = createNodeStorage(count, mass, bendingStiffness);
+        this.nodeStorage = createNodeStorage(count, mass, bendingStiffness, bendAngleLimit);
         this.nodes = Array.from({ length: count }, (_, index) => new RodNodeView(this.nodeStorage, index));
         this.nodes.nodeStorage = this.nodeStorage;
         this.smoothingIterations = smoothingIterations;

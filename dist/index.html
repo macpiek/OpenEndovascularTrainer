@@ -14,8 +14,8 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-cXvmRU5Q.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CD-QFYaA.css">
+  <script type="module" crossorigin src="/assets/index-CrIgkdLs.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DDTWGW1a.css">
 </head>
 <body>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -65,19 +65,41 @@
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
                 <div class="section-content tool-selection-grid">
-                    <label class="parameter-label tool-select-label">Catheter
-                        <select id="catheterType">
-                            <option value="pigtail">Pigtail</option>
-                            <option value="berenstein" selected>Berenstein</option>
-                        </select>
+                    <div class="parameter-label tool-select-label">
+                        <label for="catheterType">Catheter</label>
+                        <div class="tool-select-input-row">
+                            <select id="catheterType">
+                                <option value="pigtail">Pigtail</option>
+                                <option value="berenstein" selected>Berenstein</option>
+                            </select>
+                            <button
+                                id="catheterAutoWithdraw"
+                                class="tool-auto-withdraw"
+                                type="button"
+                                aria-label="Automatycznie wycofaj cewnik"
+                                aria-pressed="false"
+                                disabled
+                            >Wysuń</button>
+                        </div>
                         <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
-                    </label>
-                    <label class="parameter-label tool-select-label">Guidewire
-                        <select id="guidewireType">
-                            <option value="glidewire" selected>Glidewire</option>
-                        </select>
+                    </div>
+                    <div class="parameter-label tool-select-label">
+                        <label for="guidewireType">Guidewire</label>
+                        <div class="tool-select-input-row">
+                            <select id="guidewireType">
+                                <option value="glidewire" selected>Glidewire</option>
+                            </select>
+                            <button
+                                id="guidewireAutoWithdraw"
+                                class="tool-auto-withdraw"
+                                type="button"
+                                aria-label="Automatycznie wycofaj prowadnik"
+                                aria-pressed="false"
+                                disabled
+                            >Wysuń</button>
+                        </div>
                         <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
-                    </label>
+                    </div>
                 </div>
             </div>
         </div>
