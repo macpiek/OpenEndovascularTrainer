@@ -410,7 +410,14 @@ canvas {
     gap: 5px;
 }
 
+.tool-select-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+}
+
 .tool-select-label select {
+    width: 100%;
     min-height: 30px;
     box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.28);
@@ -425,6 +432,36 @@ canvas {
     border-color: rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.48);
+    cursor: not-allowed;
+}
+
+.tool-auto-withdraw {
+    min-width: 76px;
+    min-height: 30px;
+    padding: 4px 10px;
+    border: 1px solid rgba(115, 180, 255, 0.62);
+    border-radius: 4px;
+    background: rgba(25, 101, 181, 0.28);
+    color: #eaf4ff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tool-auto-withdraw:hover:not(:disabled) {
+    background: rgba(42, 132, 224, 0.42);
+}
+
+.tool-auto-withdraw.active {
+    border-color: rgba(255, 190, 74, 0.85);
+    background: rgba(184, 112, 20, 0.42);
+    color: #fff0c9;
+}
+
+.tool-auto-withdraw:disabled {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.34);
     cursor: not-allowed;
 }
 

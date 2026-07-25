@@ -195,6 +195,97 @@ function bendField(centerlineRadius = 20, lumenRadius = 4) {
     });
 }
 
+function aorticArchState(
+    x,
+    y,
+    z,
+    {
+        straightEnd = 30,
+        archRadius = 25,
+        lumenRadius = 12
+    } = {}
+) {
+    const archCenterY = archRadius;
+    const archEndX = straightEnd + archRadius;
+    const candidates = [];
+
+    candidates.push({
+        x: Math.min(x, straightEnd),
+        y: 0,
+        progress: Math.min(x, straightEnd),
+        tangentX: 1,
+        tangentY: 0
+    });
+
+    const rawAngle = Math.atan2(y - archCenterY, x - straightEnd);
+    const angle = Math.max(-Math.PI * 0.5, Math.min(0, rawAngle));
+    candidates.push({
+        x: straightEnd + Math.cos(angle) * archRadius,
+        y: archCenterY + Math.sin(angle) * archRadius,
+        progress: straightEnd + (angle + Math.PI * 0.5) * archRadius,
+        tangentX: -Math.sin(angle),
+        tangentY: Math.cos(angle)
+    });
+
+    candidates.push({
+        x: archEndX,
+        y: Math.max(archCenterY, y),
+        progress: straightEnd + Math.PI * 0.5 * archRadius +
+            Math.max(0, y - archCenterY),
+        tangentX: 0,
+        tangentY: 1
+    });
+
+    let closest = candidates[0];
+    let closestDistanceSq = Infinity;
+    for (const candidate of candidates) {
+        const dx = candidate.x - x;
+        const dy = candidate.y - y;
+        const distanceSq = dx * dx + dy * dy + z * z;
+        if (distanceSq >= closestDistanceSq) continue;
+        closest = candidate;
+        closestDistanceSq = distanceSq;
+    }
+
+    const dx = closest.x - x;
+    const dy = closest.y - y;
+    const dz = -z;
+    const radial = Math.hypot(dx, dy, dz);
+    const inverse = radial > EPSILON ? 1 / radial : 0;
+    return {
+        distance: lumenRadius - radial,
+        inwardX: radial > EPSILON ? dx * inverse : 0,
+        inwardY: radial > EPSILON ? dy * inverse : 0,
+        inwardZ: radial > EPSILON ? dz * inverse : 1,
+        branchId: 0,
+        progress: closest.progress,
+        radial,
+        tangentX: closest.tangentX,
+        tangentY: closest.tangentY,
+        tangentZ: 0
+    };
+}
+
+function aorticArchField(options = {}) {
+    const field = new AnalyticContactField((x, y, z) =>
+        aorticArchState(x, y, z, options)
+    );
+    let tangentQueryCount = 0;
+    field.getCenterlineTangent = (x, y, z) => {
+        const state = aorticArchState(x, y, z, options);
+        const noiseRadians = (options.tangentNoiseDegrees ?? 0) * Math.PI / 180;
+        const noiseSign = (tangentQueryCount++ & 1) === 0 ? -1 : 1;
+        const cosine = Math.cos(noiseRadians * noiseSign);
+        const sine = Math.sin(noiseRadians * noiseSign);
+        return {
+            x: state.tangentX * cosine - state.tangentY * sine,
+            y: state.tangentX * sine + state.tangentY * cosine,
+            z: state.tangentZ
+        };
+    };
+    return field;
+}
+
 function bifurcationField(radius = 3) {
     return new AnalyticContactField((x, y, z) => {
         const trunk = radialState(radius, x, y, z, 0);
@@ -642,10 +733,21 @@ const undampedVelocityWave = alternatingVelocityAfterStep(0);
 const dampedVelocityWave = alternatingVelocityAfterStep(DEFAULT_TOOL_PROFILES.guidewire.bendDamping);
 assert.ok(dampedVelocityWave < undampedVelocityWave * 0.9,
     'guidewire bend damping should suppress local transverse waves during insertion');
-assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendCompliance <= 8e-5,
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendCompliance <= 1.5e-5,
     'the catheter shaft should use a load-bearing bending profile');
-assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendDamping >= 0.3,
+assert.ok(
+    DEFAULT_TOOL_PROFILES.catheter.shapeCompliance >= 8e-5 &&
+    DEFAULT_TOOL_PROFILES.catheter.shapeCompliance <= 2e-4,
+    'the preformed tip should recover its shape without overpowering the vessel wall'
+);
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendDamping >= 0.6,
     'the catheter shaft should damp visible high-frequency flexing');
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.wallFriction <= 0.08,
+    'the catheter should slide against the wall without stick-slip jumping');
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.maxSpeed <= 40,
+    'the catheter should reject non-physical solver velocity spikes');
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.postStabilizationPasses >= 4,
+    'the catheter should receive final bend polishing after wall projection');
 
 const foldWorld = new EndovascularPhysicsWorld();
 const foldedRod = foldWorld.createRod('fold-limit', 5, 1, {
@@ -958,7 +1060,13 @@ const insertionCatheter = new PigtailCatheter({
     maxLength: insertionGuidewireLength
 });
 insertionCatheter.setExternalCollisionSolver(true);
-const insertionWorld = new EndovascularPhysicsWorld();
+// A narrow aortic-lumen surrogate forces the deployed pigtail to share space
+// with the wall, reproducing the former wall-versus-shape-memory oscillation.
+const insertionWorld = new EndovascularPhysicsWorld({
+    contactField: cylinderField(14.5),
+    iterations: 6,
+    penetrationIterations: 8
+});
 const insertionWireBody = insertionWorld.createRod(
     'insertion-guidewire',
     insertionGuidewire.nodes.length,
@@ -977,9 +1085,7 @@ insertionWireBody.setActiveRange(
     insertionWireBody.count - 1
 );
 const insertionCatheterBody = insertionWorld.createRod('insertion-catheter', 320, 4, {
-    ...DEFAULT_TOOL_PROFILES.catheter,
-    bendCompliance: 2e-4,
-    shapeCompliance: 2e-4
+    ...DEFAULT_TOOL_PROFILES.catheter
 });
 const insertionContainment = insertionWorld.addContainment(
     insertionWireBody,
@@ -988,7 +1094,11 @@ const insertionContainment = insertionWorld.addContainment(
         innerRadius: DEFAULT_TOOL_PROFILES.catheter.innerRadius,
         openProximal: true,
         openDistal: true,
-        searchWindow: 8,
+        searchWindow: 2,
+        innerResponse: 0,
+        outerResponse: 1,
+        finalProjection: 'outer',
+        outerFollowsInnerCenterline: true,
         enabled: false
     }
 );
@@ -1015,17 +1125,15 @@ let lastInsertionCountChangeStep = -1;
 for (let step = 0; step < 600; step++) {
     insertionCatheter.advance(1, 1 / 120, insertionGuidewireInserted);
     insertionCatheter.stepPhysics(1 / 120, { collisions: false });
-    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody, {
-        shapeCompliance: 2e-4
-    });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody);
     if (activeCount !== previousInsertionActiveCount) {
         previousInsertionActiveCount = activeCount;
         lastInsertionCountChangeStep = step;
     }
-    insertionContainment.outerStartNode = insertionCatheter.physicsLumenStartNode;
     const firstContainedNode = Math.max(0, Math.ceil(
         (insertionGuidewireLength - insertionGuidewireInserted) / insertionGuidewireSpacing
     ));
+    insertionContainment.outerStartNode = insertionCatheter.physicsLumenStartNode;
     insertionContainment.enabled = activeCount >= 2;
     insertionContainment.startNode = firstContainedNode;
     const lastContainedNode = Math.min(
@@ -1036,6 +1144,13 @@ for (let step = 0; step < 600; step++) {
         )
     );
     insertionContainment.endNode = lastContainedNode;
+    insertionContainment.innerArcOffset =
+        firstContainedNode * insertionGuidewireSpacing -
+        insertionGuidewireLength + insertionGuidewireInserted;
+    insertionContainment.containedLength = Math.min(
+        insertionCatheter.progress,
+        insertionGuidewireInserted
+    );
     const catheterEndSegment = Math.max(0, activeCount - 2);
     const firstExternalSegment = Math.max(0, Math.min(
         insertionWireBody.segmentCount - 1,
@@ -1105,11 +1220,14 @@ for (let step = 0; step < 600; step++) {
         }
     }
 }
+console.log('catheter insertion max tip step mm', maximumInsertionTipStep.toFixed(4));
+console.log('catheter insertion max speed mm/s', maximumInsertionSpeed.toFixed(2));
+console.log('catheter insertion max bend degrees', maximumInsertionBend.toFixed(2));
 assert.ok(maximumInsertionTipStep <= 4.5,
     `catheter insertion should not teleport its tip (${maximumInsertionTipStep} mm at step ${maximumInsertionTipStepAt})`);
-assert.ok(maximumInsertionSpeed <= 500,
+assert.ok(maximumInsertionSpeed <= 45,
     `catheter insertion should not create an impulse spike (${maximumInsertionSpeed} mm/s)`);
-assert.ok(maximumInsertionBend <= 90,
+assert.ok(maximumInsertionBend <= 45,
     `catheter insertion should not create a transient fold (${maximumInsertionBend} degrees at step ${maximumInsertionBendStep}, node ${maximumInsertionBendNode}/${maximumInsertionBendActiveEnd}, progress ${maximumInsertionBendProgress}, last topology step ${lastInsertionCountChangeStep})`);
 
 let previousGuidewireWithdrawalTip = [
@@ -1143,12 +1261,11 @@ for (let step = 0; step < 360; step++) {
     );
     insertionCatheter.advance(0, 1 / 120, insertionGuidewireInserted);
     insertionCatheter.stepPhysics(1 / 120, { collisions: false });
-    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody, {
-        shapeCompliance: 2e-4
-    });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody);
     const firstContainedNode = Math.max(0, Math.ceil(
         (insertionGuidewireLength - insertionGuidewireInserted) / insertionGuidewireSpacing
     ));
+    insertionContainment.outerStartNode = insertionCatheter.physicsLumenStartNode;
     insertionContainment.enabled = activeCount >= 2;
     insertionContainment.startNode = firstContainedNode;
     insertionContainment.endNode = Math.min(
@@ -1157,6 +1274,13 @@ for (let step = 0; step < 360; step++) {
             (insertionGuidewireLength - insertionGuidewireInserted + insertionCatheter.progress) /
             insertionGuidewireSpacing
         )
+    );
+    insertionContainment.innerArcOffset =
+        firstContainedNode * insertionGuidewireSpacing -
+        insertionGuidewireLength + insertionGuidewireInserted;
+    insertionContainment.containedLength = Math.min(
+        insertionCatheter.progress,
+        insertionGuidewireInserted
     );
     insertionExternalContact.enabled = false;
     insertionWorld.stepFixed();
@@ -1167,13 +1291,14 @@ for (let step = 0; step < 360; step++) {
         insertionCatheterBody.y[tipIndex],
         insertionCatheterBody.z[tipIndex]
     ];
+    const guidewireWithdrawalTipStep = Math.hypot(
+        tip[0] - previousGuidewireWithdrawalTip[0],
+        tip[1] - previousGuidewireWithdrawalTip[1],
+        tip[2] - previousGuidewireWithdrawalTip[2]
+    );
     maximumGuidewireWithdrawalTipStep = Math.max(
         maximumGuidewireWithdrawalTipStep,
-        Math.hypot(
-            tip[0] - previousGuidewireWithdrawalTip[0],
-            tip[1] - previousGuidewireWithdrawalTip[1],
-            tip[2] - previousGuidewireWithdrawalTip[2]
-        )
+        guidewireWithdrawalTipStep
     );
     previousGuidewireWithdrawalTip = tip;
     for (let index = insertionCatheterBody.activeStart; index <= tipIndex; index++) {
@@ -1192,30 +1317,30 @@ for (let step = 0; step < 360; step++) {
             .maxBendAngleDegrees
     );
 }
-assert.ok(maximumGuidewireWithdrawalTipStep <= 4.5,
+console.log('guidewire withdrawal max tip step mm', maximumGuidewireWithdrawalTipStep.toFixed(4));
+console.log('guidewire withdrawal max speed mm/s', maximumGuidewireWithdrawalSpeed.toFixed(2));
+console.log('guidewire withdrawal max bend degrees', maximumGuidewireWithdrawalBend.toFixed(2));
+assert.ok(maximumGuidewireWithdrawalTipStep <= 2.2,
     `guidewire withdrawal should not teleport the catheter tip (${maximumGuidewireWithdrawalTipStep} mm)`);
-assert.ok(maximumGuidewireWithdrawalSpeed <= 500,
+assert.ok(maximumGuidewireWithdrawalSpeed <= 45,
     `guidewire withdrawal should not create a catheter impulse (${maximumGuidewireWithdrawalSpeed} mm/s)`);
-assert.ok(maximumGuidewireWithdrawalBend <= 90,
+assert.ok(maximumGuidewireWithdrawalBend <= 45,
     `guidewire withdrawal should not fold the catheter (${maximumGuidewireWithdrawalBend} degrees)`);
 
-let previousCatheterWithdrawalTip = previousGuidewireWithdrawalTip;
-let maximumCatheterWithdrawalTipStep = 0;
-let maximumCatheterWithdrawalSpeed = 0;
-let maximumCatheterWithdrawalBend = 0;
-for (let step = 0; step < 360; step++) {
-    insertionCatheter.advance(-1, 1 / 120, insertionGuidewireInserted);
+let previousSettledTip = previousGuidewireWithdrawalTip;
+let maximumSettledTipStep = 0;
+let maximumSettledSpeed = 0;
+let maximumSettledBend = 0;
+let maximumSettledPenetration = 0;
+for (let step = 0; step < 240; step++) {
+    insertionCatheter.advance(0, 1 / 120, insertionGuidewireInserted);
     insertionCatheter.stepPhysics(1 / 120, { collisions: false });
-    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody, {
-        shapeCompliance: 2e-4
-    });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody);
+    insertionContainment.outerStartNode = insertionCatheter.physicsLumenStartNode;
     insertionContainment.enabled = activeCount >= 2;
-    insertionContainment.endNode = Math.min(
-        insertionWireBody.count - 1,
-        Math.floor(
-            (insertionGuidewireLength - insertionGuidewireInserted + insertionCatheter.progress) /
-            insertionGuidewireSpacing
-        )
+    insertionContainment.containedLength = Math.min(
+        insertionCatheter.progress,
+        insertionGuidewireInserted
     );
     insertionWorld.stepFixed();
 
@@ -1225,13 +1350,111 @@ for (let step = 0; step < 360; step++) {
         insertionCatheterBody.y[tipIndex],
         insertionCatheterBody.z[tipIndex]
     ];
+    if (step >= 180) {
+        const settledTipStep = Math.hypot(
+            tip[0] - previousSettledTip[0],
+            tip[1] - previousSettledTip[1],
+            tip[2] - previousSettledTip[2]
+        );
+        maximumSettledTipStep = Math.max(maximumSettledTipStep, settledTipStep);
+        for (let index = insertionCatheterBody.activeStart; index <= tipIndex; index++) {
+            maximumSettledSpeed = Math.max(
+                maximumSettledSpeed,
+                Math.hypot(
+                    insertionCatheterBody.velocityX[index],
+                    insertionCatheterBody.velocityY[index],
+                    insertionCatheterBody.velocityZ[index]
+                )
+            );
+        }
+        const stats = insertionWorld.getStats();
+        maximumSettledBend = Math.max(
+            maximumSettledBend,
+            stats.bodies.find(body => body.id === 'insertion-catheter').maxBendAngleDegrees
+        );
+        maximumSettledPenetration = Math.max(
+            maximumSettledPenetration,
+            stats.settledMaxPenetration
+        );
+    }
+    previousSettledTip = tip;
+}
+previousGuidewireWithdrawalTip = previousSettledTip;
+console.log('settled pigtail max tip step mm', maximumSettledTipStep.toFixed(4));
+console.log('settled pigtail max speed mm/s', maximumSettledSpeed.toFixed(2));
+console.log('settled pigtail max bend degrees', maximumSettledBend.toFixed(2));
+console.log('settled pigtail max penetration mm', maximumSettledPenetration.toFixed(4));
+assert.ok(maximumSettledTipStep <= 0.4,
+    `a deployed pigtail should not jump in the lumen (${maximumSettledTipStep} mm per step)`);
+assert.ok(maximumSettledSpeed <= 45,
+    `a deployed pigtail should damp residual motion (${maximumSettledSpeed} mm/s)`);
+assert.ok(maximumSettledBend <= 45,
+    `a deployed pigtail should retain a smooth loop (${maximumSettledBend} degrees)`);
+assert.ok(maximumSettledPenetration <= 0.05,
+    `a deployed pigtail should remain inside the lumen (${maximumSettledPenetration} mm)`);
+
+let releasedCatheterLateralOffset = 0;
+let releasedDistalShapeTargets = 0;
+let releasedDistalStrongShapeTargets = 0;
+for (let index = insertionCatheterBody.activeStart; index <= insertionCatheterBody.activeEnd; index++) {
+    releasedCatheterLateralOffset = Math.max(
+        releasedCatheterLateralOffset,
+        Math.hypot(insertionCatheterBody.y[index], insertionCatheterBody.z[index])
+    );
+    if (index > insertionCatheterBody.activeEnd - 20 && insertionCatheterBody.restShapeEnabled[index]) {
+        releasedDistalShapeTargets++;
+        if (insertionCatheterBody.restShapeCompliance[index] <= 2e-4) {
+            releasedDistalStrongShapeTargets++;
+        }
+    }
+}
+assert.ok(releasedCatheterLateralOffset > 8,
+    `the released XPBD pigtail should recover a visible loop (${releasedCatheterLateralOffset} mm lateral reach)`);
+assert.ok(releasedDistalShapeTargets >= 8,
+    `the released distal pigtail should retain shape-memory targets (${releasedDistalShapeTargets} targets)`);
+assert.ok(releasedDistalStrongShapeTargets >= 6,
+    `the released distal pigtail should keep a distinct elastic shape memory (${releasedDistalStrongShapeTargets} strong targets)`);
+
+let previousCatheterWithdrawalTip = previousGuidewireWithdrawalTip;
+let maximumCatheterWithdrawalTipStep = 0;
+let maximumCatheterWithdrawalSpeed = 0;
+let maximumCatheterWithdrawalBend = 0;
+for (let step = 0; step < 360; step++) {
+    insertionCatheter.advance(-1, 1 / 120, insertionGuidewireInserted);
+    insertionCatheter.stepPhysics(1 / 120, { collisions: false });
+    const activeCount = insertionCatheter.syncXpbdBody(insertionCatheterBody);
+    insertionContainment.outerStartNode = insertionCatheter.physicsLumenStartNode;
+    insertionContainment.enabled = activeCount >= 2;
+    insertionContainment.endNode = Math.min(
+        insertionWireBody.count - 1,
+        Math.floor(
+            (insertionGuidewireLength - insertionGuidewireInserted + insertionCatheter.progress) /
+            insertionGuidewireSpacing
+        )
+    );
+    insertionContainment.innerArcOffset =
+        insertionContainment.startNode * insertionGuidewireSpacing -
+        insertionGuidewireLength + insertionGuidewireInserted;
+    insertionContainment.containedLength = Math.min(
+        insertionCatheter.progress,
+        insertionGuidewireInserted
+    );
+    insertionWorld.stepFixed();
+
+    const tipIndex = insertionCatheterBody.activeEnd;
+    const tip = [
+        insertionCatheterBody.x[tipIndex],
+        insertionCatheterBody.y[tipIndex],
+        insertionCatheterBody.z[tipIndex]
+    ];
+    const catheterWithdrawalTipStep = Math.hypot(
+        tip[0] - previousCatheterWithdrawalTip[0],
+        tip[1] - previousCatheterWithdrawalTip[1],
+        tip[2] - previousCatheterWithdrawalTip[2]
+    );
     maximumCatheterWithdrawalTipStep = Math.max(
         maximumCatheterWithdrawalTipStep,
-        Math.hypot(
-            tip[0] - previousCatheterWithdrawalTip[0],
-            tip[1] - previousCatheterWithdrawalTip[1],
-            tip[2] - previousCatheterWithdrawalTip[2]
-        )
+        catheterWithdrawalTipStep
     );
     previousCatheterWithdrawalTip = tip;
     for (let index = insertionCatheterBody.activeStart; index <= tipIndex; index++) {
@@ -1250,11 +1473,14 @@ for (let step = 0; step < 360; step++) {
             .maxBendAngleDegrees
     );
 }
-assert.ok(maximumCatheterWithdrawalTipStep <= 4.5,
+console.log('catheter withdrawal max tip step mm', maximumCatheterWithdrawalTipStep.toFixed(4));
+console.log('catheter withdrawal max speed mm/s', maximumCatheterWithdrawalSpeed.toFixed(2));
+console.log('catheter withdrawal max bend degrees', maximumCatheterWithdrawalBend.toFixed(2));
+assert.ok(maximumCatheterWithdrawalTipStep <= 1.2,
     `catheter withdrawal should not teleport its tip (${maximumCatheterWithdrawalTipStep} mm)`);
-assert.ok(maximumCatheterWithdrawalSpeed <= 500,
+assert.ok(maximumCatheterWithdrawalSpeed <= 45,
     `catheter withdrawal should not create an impulse (${maximumCatheterWithdrawalSpeed} mm/s)`);
-assert.ok(maximumCatheterWithdrawalBend <= 90,
+assert.ok(maximumCatheterWithdrawalBend <= 45,
     `catheter withdrawal should not create a fold (${maximumCatheterWithdrawalBend} degrees)`);
 insertionCatheter.dispose();
 
@@ -1280,21 +1506,33 @@ const soloCatheter = new PigtailCatheter({
     maxLength: insertionGuidewireLength
 });
 soloCatheter.setExternalCollisionSolver(true);
-soloCatheter.setType('berenstein');
-const soloWorld = new EndovascularPhysicsWorld();
+const soloArchOptions = {
+    straightEnd: 30,
+    archRadius: 25,
+    lumenRadius: 12,
+    tangentNoiseDegrees: 32
+};
+const soloWorld = new EndovascularPhysicsWorld({
+    contactField: aorticArchField(soloArchOptions),
+    iterations: 6,
+    penetrationIterations: 8
+});
 const soloCatheterBody = soloWorld.createRod('solo-catheter', 320, 4, {
-    ...DEFAULT_TOOL_PROFILES.catheter,
-    bendCompliance: 2e-4,
-    shapeCompliance: 2e-4
+    ...DEFAULT_TOOL_PROFILES.catheter
 });
 let previousSoloTip = null;
 let maximumSoloTipStep = 0;
+let maximumSoloTipStepAt = -1;
+let maximumSoloDeployedTipStep = 0;
 let maximumSoloSpeed = 0;
-let maximumSoloBend = 0;
-for (let step = 0; step < 360; step++) {
+let maximumSoloShaftBend = 0;
+let maximumSoloShaftBendAt = -1;
+let maximumSoloShaftBendNode = -1;
+let maximumSoloShaftBendTipIndex = -1;
+for (let step = 0; step < 420; step++) {
     soloCatheter.advance(1, 1 / 120, 0);
     soloCatheter.stepPhysics(1 / 120, { collisions: false });
-    soloCatheter.syncXpbdBody(soloCatheterBody, { shapeCompliance: 2e-4 });
+    soloCatheter.syncXpbdBody(soloCatheterBody);
     soloWorld.stepFixed();
 
     const tipIndex = soloCatheterBody.activeEnd;
@@ -1304,14 +1542,21 @@ for (let step = 0; step < 360; step++) {
         soloCatheterBody.z[tipIndex]
     ];
     if (previousSoloTip) {
-        maximumSoloTipStep = Math.max(
-            maximumSoloTipStep,
-            Math.hypot(
-                tip[0] - previousSoloTip[0],
-                tip[1] - previousSoloTip[1],
-                tip[2] - previousSoloTip[2]
-            )
+        const soloTipStep = Math.hypot(
+            tip[0] - previousSoloTip[0],
+            tip[1] - previousSoloTip[1],
+            tip[2] - previousSoloTip[2]
         );
+        if (soloTipStep > maximumSoloTipStep) {
+            maximumSoloTipStep = soloTipStep;
+            maximumSoloTipStepAt = step;
+        }
+        if (soloCatheter.progress >= 20) {
+            maximumSoloDeployedTipStep = Math.max(
+                maximumSoloDeployedTipStep,
+                soloTipStep
+            );
+        }
     }
     previousSoloTip = tip;
     for (let index = soloCatheterBody.activeStart; index <= tipIndex; index++) {
@@ -1324,21 +1569,708 @@ for (let step = 0; step < 360; step++) {
             )
         );
     }
-    maximumSoloBend = Math.max(
-        maximumSoloBend,
-        soloWorld.getStats().bodies.find(body => body.id === 'solo-catheter')
-            .maxBendAngleDegrees
+    const soloShaftBendEnd = Math.max(
+        soloCatheterBody.activeStart + 1,
+        tipIndex - 20
+    );
+    for (
+        let index = soloCatheterBody.activeStart + 1;
+        index < soloShaftBendEnd;
+        index++
+    ) {
+        const ax = soloCatheterBody.x[index] - soloCatheterBody.x[index - 1];
+        const ay = soloCatheterBody.y[index] - soloCatheterBody.y[index - 1];
+        const az = soloCatheterBody.z[index] - soloCatheterBody.z[index - 1];
+        const bx = soloCatheterBody.x[index + 1] - soloCatheterBody.x[index];
+        const by = soloCatheterBody.y[index + 1] - soloCatheterBody.y[index];
+        const bz = soloCatheterBody.z[index + 1] - soloCatheterBody.z[index];
+        const soloShaftBend = Math.acos(Math.max(-1, Math.min(1,
+            (ax * bx + ay * by + az * bz) /
+            Math.max(EPSILON, Math.hypot(ax, ay, az) * Math.hypot(bx, by, bz))
+        ))) * 180 / Math.PI;
+        if (soloShaftBend > maximumSoloShaftBend) {
+            maximumSoloShaftBend = soloShaftBend;
+            maximumSoloShaftBendAt = step;
+            maximumSoloShaftBendNode = index;
+            maximumSoloShaftBendTipIndex = tipIndex;
+        }
+    }
+}
+const soloShaftEnd = Math.max(
+    soloCatheterBody.activeStart,
+    soloCatheterBody.activeEnd - 16
+);
+let soloShaftRouteProgress = -Infinity;
+let maximumSoloShaftBacktrack = 0;
+let maximumSoloShaftRadial = 0;
+let maximumSoloDistalRadial = 0;
+let previousSoloShaftProgress = -Infinity;
+for (
+    let index = soloCatheterBody.activeStart;
+    index <= soloShaftEnd;
+    index++
+) {
+    const route = aorticArchState(
+        soloCatheterBody.x[index],
+        soloCatheterBody.y[index],
+        soloCatheterBody.z[index],
+        soloArchOptions
+    );
+    soloShaftRouteProgress = Math.max(soloShaftRouteProgress, route.progress);
+    maximumSoloShaftRadial = Math.max(maximumSoloShaftRadial, route.radial);
+    if (Number.isFinite(previousSoloShaftProgress)) {
+        maximumSoloShaftBacktrack = Math.max(
+            maximumSoloShaftBacktrack,
+            previousSoloShaftProgress - route.progress
+        );
+    }
+    previousSoloShaftProgress = route.progress;
+}
+for (
+    let index = soloShaftEnd + 1;
+    index <= soloCatheterBody.activeEnd;
+    index++
+) {
+    const route = aorticArchState(
+        soloCatheterBody.x[index],
+        soloCatheterBody.y[index],
+        soloCatheterBody.z[index],
+        soloArchOptions
+    );
+    maximumSoloDistalRadial = Math.max(maximumSoloDistalRadial, route.radial);
+}
+const soloPoseTargetCheckEnd = Math.max(
+    soloCatheter.physicsLumenStartNode,
+    soloCatheterBody.activeEnd - 22
+);
+let maximumSoloShaftRestCurvature = 0;
+for (
+    let index = Math.max(
+        soloCatheterBody.collisionStartSegment + 2,
+        soloCatheter.physicsLumenStartNode + 1
+    );
+    index <= soloPoseTargetCheckEnd;
+    index++
+) {
+    maximumSoloShaftRestCurvature = Math.max(
+        maximumSoloShaftRestCurvature,
+        soloCatheterBody.restLength[index - 1] +
+            soloCatheterBody.restLength[index] -
+            soloCatheterBody.restBendChord[index]
     );
 }
+console.log('solo pigtail arch route progress mm', soloShaftRouteProgress.toFixed(2));
+console.log('solo pigtail shaft max backtrack mm', maximumSoloShaftBacktrack.toFixed(2));
+console.log('solo pigtail shaft max radial mm', maximumSoloShaftRadial.toFixed(2));
+console.log('solo pigtail max tip step mm', maximumSoloTipStep.toFixed(4));
+console.log('solo pigtail max tip step at', maximumSoloTipStepAt);
+console.log('solo pigtail deployed max tip step mm',
+    maximumSoloDeployedTipStep.toFixed(4));
+console.log('solo pigtail max speed mm/s', maximumSoloSpeed.toFixed(2));
+console.log('solo pigtail max shaft bend degrees', maximumSoloShaftBend.toFixed(2));
+console.log(
+    'solo pigtail max shaft bend detail',
+    maximumSoloShaftBendAt,
+    maximumSoloShaftBendNode,
+    maximumSoloShaftBendTipIndex
+);
+console.log('solo pigtail distal radial recovery mm', maximumSoloDistalRadial.toFixed(2));
 assert.ok(soloCatheter.progress > 150,
-    'a catheter without a guidewire should continue advancing');
+    'a pigtail without a guidewire should continue advancing');
+assert.ok(soloShaftRouteProgress > 90,
+    `the unsupported pigtail shaft should advance through the aortic arch instead of coiling (${soloShaftRouteProgress} mm)`);
+assert.ok(maximumSoloShaftBacktrack <= 5,
+    `the unsupported pigtail shaft should not double back into a coil (${maximumSoloShaftBacktrack} mm)`);
+assert.ok(maximumSoloShaftRadial <= soloArchOptions.lumenRadius,
+    `the unsupported pigtail shaft should remain inside the aortic lumen (${maximumSoloShaftRadial} mm)`);
+assert.ok(maximumSoloShaftRestCurvature <= 0.5,
+    `the unsupported shaft should retain a straight structural rest shape (${maximumSoloShaftRestCurvature} mm chord deficit)`);
 assert.ok(maximumSoloTipStep <= 4.5,
-    `solo catheter insertion should not teleport its tip (${maximumSoloTipStep} mm)`);
-assert.ok(maximumSoloSpeed <= 500,
-    `solo catheter insertion should not create an impulse spike (${maximumSoloSpeed} mm/s)`);
-assert.ok(maximumSoloBend <= 45,
-    `solo catheter insertion should not create a transient fold (${maximumSoloBend} degrees)`);
+    `solo pigtail insertion should not teleport its tip (${maximumSoloTipStep} mm)`);
+assert.ok(maximumSoloDeployedTipStep <= 1.5,
+    `a deployed unsupported pigtail should advance continuously without visible jumps (${maximumSoloDeployedTipStep} mm)`);
+assert.ok(maximumSoloSpeed <= 45,
+    `solo pigtail insertion should not create an impulse spike (${maximumSoloSpeed} mm/s)`);
+assert.ok(maximumSoloShaftBend <= 40,
+    `solo pigtail insertion should not create a transient shaft fold (${maximumSoloShaftBend} degrees)`);
+assert.ok(maximumSoloDistalRadial >= 4,
+    `the distal pigtail should retain a visible shape tendency (${maximumSoloDistalRadial} mm radial recovery)`);
+soloCatheter.updateMesh();
+assert.equal(soloCatheter.tipMarker.visible, true,
+    'the pigtail should show a marker at the start of its distal profile');
+assert.equal(soloCatheter.tipMarker.userData.catheterType, 'pigtail');
+assert.ok(
+    soloCatheter.tipMarker.userData.tipLengthMm > 60 &&
+    soloCatheter.tipMarker.userData.tipLengthMm < 65,
+    `the pigtail profile marker should sit about 63.5 mm from the tip (${soloCatheter.tipMarker.userData.tipLengthMm} mm)`
+);
+assert.ok(
+    Number.isFinite(soloCatheter.tipMarker.position.x) &&
+    Number.isFinite(soloCatheter.tipMarker.position.y) &&
+    Number.isFinite(soloCatheter.tipMarker.position.z),
+    'the pigtail profile marker should have a finite physical position'
+);
+const soloPigtailShaftBendCompliance =
+    soloCatheterBody.bendComplianceByNode[Math.max(
+        soloCatheterBody.activeStart,
+        soloCatheterBody.activeEnd - 20
+    )];
+const soloPigtailTipBendCompliance =
+    soloCatheterBody.bendComplianceByNode[soloCatheterBody.activeEnd];
+const soloPigtailArcBendCompliance =
+    soloCatheterBody.bendComplianceByNode[Math.max(
+        soloCatheterBody.activeStart,
+        soloCatheterBody.activeEnd - 8
+    )];
+assert.ok(
+    Math.abs(
+        soloPigtailArcBendCompliance -
+        soloPigtailTipBendCompliance
+    ) <= 1e-9,
+    'the complete preformed Pigtail arc should use the controlled distal bend material'
+);
 soloCatheter.dispose();
+
+const soloBerensteinWire = new ElasticRod(
+    insertionGuidewireLength / insertionGuidewireSpacing + 1,
+    insertionGuidewireSpacing
+);
+for (let index = 0; index < soloBerensteinWire.nodes.length; index++) {
+    const node = soloBerensteinWire.nodes[index];
+    node.x = index * insertionGuidewireSpacing - insertionGuidewireLength - insertionSheathLength;
+    node.y = 0;
+    node.z = 0;
+    node.vx = 0;
+    node.vy = 0;
+    node.vz = 0;
+}
+const soloBerenstein = new PigtailCatheter({
+    wire: soloBerensteinWire,
+    segmentLength: insertionGuidewireSpacing,
+    guidewireLength: insertionGuidewireLength,
+    tailProgressRef: () => 0,
+    vessel: catheterVessel,
+    maxLength: insertionGuidewireLength
+});
+soloBerenstein.setType('berenstein');
+soloBerenstein.setExternalCollisionSolver(true);
+const soloBerensteinWorld = new EndovascularPhysicsWorld({
+    contactField: aorticArchField(soloArchOptions),
+    iterations: 6,
+    penetrationIterations: 8
+});
+const soloBerensteinBody = soloBerensteinWorld.createRod(
+    'solo-berenstein',
+    320,
+    4,
+    { ...DEFAULT_TOOL_PROFILES.catheter }
+);
+let previousSoloBerensteinTip = null;
+let maximumSoloBerensteinTipStep = 0;
+let maximumSoloBerensteinShaftBend = 0;
+let maximumSoloBerensteinSegmentError = 0;
+for (let step = 0; step < 420; step++) {
+    soloBerenstein.advance(1, 1 / 120, 0);
+    soloBerenstein.stepPhysics(1 / 120, { collisions: false });
+    soloBerenstein.syncXpbdBody(soloBerensteinBody);
+    soloBerensteinWorld.stepFixed();
+
+    const tipIndex = soloBerensteinBody.activeEnd;
+    const tip = [
+        soloBerensteinBody.x[tipIndex],
+        soloBerensteinBody.y[tipIndex],
+        soloBerensteinBody.z[tipIndex]
+    ];
+    if (previousSoloBerensteinTip) {
+        maximumSoloBerensteinTipStep = Math.max(
+            maximumSoloBerensteinTipStep,
+            Math.hypot(
+                tip[0] - previousSoloBerensteinTip[0],
+                tip[1] - previousSoloBerensteinTip[1],
+                tip[2] - previousSoloBerensteinTip[2]
+            )
+        );
+    }
+    previousSoloBerensteinTip = tip;
+    for (
+        let index = soloBerensteinBody.activeStart;
+        index < tipIndex;
+        index++
+    ) {
+        const length = Math.hypot(
+            soloBerensteinBody.x[index + 1] - soloBerensteinBody.x[index],
+            soloBerensteinBody.y[index + 1] - soloBerensteinBody.y[index],
+            soloBerensteinBody.z[index + 1] - soloBerensteinBody.z[index]
+        );
+        const segmentError = Math.abs(
+            length - soloBerensteinBody.restLength[index]
+        );
+        maximumSoloBerensteinSegmentError = Math.max(
+            maximumSoloBerensteinSegmentError,
+            segmentError
+        );
+    }
+    const shaftBendEnd = Math.max(
+        soloBerensteinBody.activeStart + 1,
+        // Exclude only the intentionally angled 18 mm distal profile.
+        tipIndex - 5
+    );
+    for (
+        let index = soloBerensteinBody.activeStart + 1;
+        index < shaftBendEnd;
+        index++
+    ) {
+        const ax = soloBerensteinBody.x[index] - soloBerensteinBody.x[index - 1];
+        const ay = soloBerensteinBody.y[index] - soloBerensteinBody.y[index - 1];
+        const az = soloBerensteinBody.z[index] - soloBerensteinBody.z[index - 1];
+        const bx = soloBerensteinBody.x[index + 1] - soloBerensteinBody.x[index];
+        const by = soloBerensteinBody.y[index + 1] - soloBerensteinBody.y[index];
+        const bz = soloBerensteinBody.z[index + 1] - soloBerensteinBody.z[index];
+        const bendDegrees = Math.acos(Math.max(-1, Math.min(1,
+                (ax * bx + ay * by + az * bz) /
+                Math.max(EPSILON, Math.hypot(ax, ay, az) * Math.hypot(bx, by, bz))
+            ))) * 180 / Math.PI;
+        maximumSoloBerensteinShaftBend = Math.max(
+            maximumSoloBerensteinShaftBend,
+            bendDegrees
+        );
+    }
+}
+const soloBerensteinShaftEnd = Math.max(
+    soloBerensteinBody.activeStart,
+    soloBerensteinBody.activeEnd - 5
+);
+let soloBerensteinRouteProgress = -Infinity;
+let maximumSoloBerensteinBacktrack = 0;
+let maximumSoloBerensteinRadial = 0;
+let previousSoloBerensteinProgress = -Infinity;
+for (
+    let index = soloBerensteinBody.activeStart;
+    index <= soloBerensteinShaftEnd;
+    index++
+) {
+    const route = aorticArchState(
+        soloBerensteinBody.x[index],
+        soloBerensteinBody.y[index],
+        soloBerensteinBody.z[index],
+        soloArchOptions
+    );
+    soloBerensteinRouteProgress = Math.max(
+        soloBerensteinRouteProgress,
+        route.progress
+    );
+    maximumSoloBerensteinRadial = Math.max(
+        maximumSoloBerensteinRadial,
+        route.radial
+    );
+    if (Number.isFinite(previousSoloBerensteinProgress)) {
+        maximumSoloBerensteinBacktrack = Math.max(
+            maximumSoloBerensteinBacktrack,
+            previousSoloBerensteinProgress - route.progress
+        );
+    }
+    previousSoloBerensteinProgress = route.progress;
+}
+console.log('solo berenstein arch route progress mm', soloBerensteinRouteProgress.toFixed(2));
+console.log('solo berenstein shaft max backtrack mm', maximumSoloBerensteinBacktrack.toFixed(2));
+console.log('solo berenstein shaft max radial mm', maximumSoloBerensteinRadial.toFixed(2));
+console.log('solo berenstein max tip step mm', maximumSoloBerensteinTipStep.toFixed(4));
+console.log('solo berenstein max shaft bend degrees', maximumSoloBerensteinShaftBend.toFixed(2));
+console.log('solo berenstein max segment error mm',
+    maximumSoloBerensteinSegmentError.toFixed(3));
+assert.ok(soloBerensteinRouteProgress > 70,
+    `the unsupported Berenstein shaft should advance through the aortic arch (${soloBerensteinRouteProgress} mm)`);
+assert.ok(maximumSoloBerensteinBacktrack <= 4,
+    `the unsupported Berenstein shaft should not double back (${maximumSoloBerensteinBacktrack} mm)`);
+assert.ok(maximumSoloBerensteinRadial <= soloArchOptions.lumenRadius,
+    `the unsupported Berenstein shaft should remain inside the aortic lumen (${maximumSoloBerensteinRadial} mm)`);
+assert.ok(maximumSoloBerensteinTipStep <= 4.5,
+    `solo Berenstein insertion should not teleport its tip (${maximumSoloBerensteinTipStep} mm)`);
+assert.ok(maximumSoloBerensteinShaftBend <= 25,
+    `solo Berenstein insertion should not create a transient shaft fold (${maximumSoloBerensteinShaftBend} degrees)`);
+assert.ok(maximumSoloBerensteinSegmentError <= 1.2,
+    `solo Berenstein insertion should retain segment length (${maximumSoloBerensteinSegmentError} mm error)`);
+const soloBerensteinShaftBendCompliance =
+    soloBerensteinBody.bendComplianceByNode[Math.max(
+        soloBerensteinBody.activeStart,
+        soloBerensteinBody.activeEnd - 8
+    )];
+const soloBerensteinTipBendCompliance =
+    soloBerensteinBody.bendComplianceByNode[soloBerensteinBody.activeEnd];
+assert.ok(
+    Math.abs(
+        soloPigtailShaftBendCompliance -
+        soloBerensteinShaftBendCompliance
+    ) <= 1e-9,
+    'the Pigtail and Berenstein shafts should have equal bend stiffness'
+);
+assert.ok(
+    Math.abs(
+        soloPigtailTipBendCompliance -
+        soloBerensteinTipBendCompliance
+    ) <= 1e-9,
+    'the Pigtail and Berenstein distal sections should have equal bend stiffness'
+);
+soloBerenstein.updateMesh();
+assert.equal(soloBerenstein.tipMarker.visible, true,
+    'the Berenstein should show a marker at the start of its distal profile');
+assert.equal(soloBerenstein.tipMarker.userData.catheterType, 'berenstein');
+assert.equal(soloBerenstein.tipMarker.userData.tipLengthMm, 18,
+    'the Berenstein profile marker should sit 18 mm from the tip');
+assert.ok(
+    Number.isFinite(soloBerenstein.tipMarker.position.x) &&
+    Number.isFinite(soloBerenstein.tipMarker.position.y) &&
+    Number.isFinite(soloBerenstein.tipMarker.position.z),
+    'the Berenstein profile marker should have a finite physical position'
+);
+const soloBerensteinTipBeforeRotation = [
+    soloBerensteinBody.x[soloBerensteinBody.activeEnd],
+    soloBerensteinBody.y[soloBerensteinBody.activeEnd],
+    soloBerensteinBody.z[soloBerensteinBody.activeEnd]
+];
+const soloBerensteinProfileBaseIndex = soloBerensteinBody.activeEnd - 5;
+const soloBerensteinProfileBaseDirection = [
+    soloBerensteinBody.x[soloBerensteinProfileBaseIndex] -
+        soloBerensteinBody.x[soloBerensteinProfileBaseIndex - 1],
+    soloBerensteinBody.y[soloBerensteinProfileBaseIndex] -
+        soloBerensteinBody.y[soloBerensteinProfileBaseIndex - 1],
+    soloBerensteinBody.z[soloBerensteinProfileBaseIndex] -
+        soloBerensteinBody.z[soloBerensteinProfileBaseIndex - 1]
+];
+const soloBerensteinTipDirection = [
+    soloBerensteinBody.x[soloBerensteinBody.activeEnd] -
+        soloBerensteinBody.x[soloBerensteinBody.activeEnd - 1],
+    soloBerensteinBody.y[soloBerensteinBody.activeEnd] -
+        soloBerensteinBody.y[soloBerensteinBody.activeEnd - 1],
+    soloBerensteinBody.z[soloBerensteinBody.activeEnd] -
+        soloBerensteinBody.z[soloBerensteinBody.activeEnd - 1]
+];
+const soloBerensteinProfileBaseBeforeRotation = [
+    soloBerensteinBody.x[soloBerensteinProfileBaseIndex],
+    soloBerensteinBody.y[soloBerensteinProfileBaseIndex],
+    soloBerensteinBody.z[soloBerensteinProfileBaseIndex]
+];
+const soloBerensteinAxisBeforeRotationLength =
+    Math.hypot(...soloBerensteinProfileBaseDirection);
+const soloBerensteinAxisBeforeRotation =
+    soloBerensteinProfileBaseDirection.map(
+        value => value / soloBerensteinAxisBeforeRotationLength
+    );
+const soloBerensteinTipOffsetBeforeRotation = [
+    soloBerensteinTipBeforeRotation[0] -
+        soloBerensteinProfileBaseBeforeRotation[0],
+    soloBerensteinTipBeforeRotation[1] -
+        soloBerensteinProfileBaseBeforeRotation[1],
+    soloBerensteinTipBeforeRotation[2] -
+        soloBerensteinProfileBaseBeforeRotation[2]
+];
+const soloBerensteinTipAxialBeforeRotation =
+    soloBerensteinTipOffsetBeforeRotation[0] * soloBerensteinAxisBeforeRotation[0] +
+    soloBerensteinTipOffsetBeforeRotation[1] * soloBerensteinAxisBeforeRotation[1] +
+    soloBerensteinTipOffsetBeforeRotation[2] * soloBerensteinAxisBeforeRotation[2];
+const soloBerensteinTipRadialBeforeRotation = Math.hypot(
+    soloBerensteinTipOffsetBeforeRotation[0] -
+        soloBerensteinAxisBeforeRotation[0] * soloBerensteinTipAxialBeforeRotation,
+    soloBerensteinTipOffsetBeforeRotation[1] -
+        soloBerensteinAxisBeforeRotation[1] * soloBerensteinTipAxialBeforeRotation,
+    soloBerensteinTipOffsetBeforeRotation[2] -
+        soloBerensteinAxisBeforeRotation[2] * soloBerensteinTipAxialBeforeRotation
+);
+const soloBerensteinProfileBend = Math.acos(Math.max(-1, Math.min(1,
+    (
+        soloBerensteinProfileBaseDirection[0] * soloBerensteinTipDirection[0] +
+        soloBerensteinProfileBaseDirection[1] * soloBerensteinTipDirection[1] +
+        soloBerensteinProfileBaseDirection[2] * soloBerensteinTipDirection[2]
+    ) / (
+        Math.hypot(...soloBerensteinProfileBaseDirection) *
+        Math.hypot(...soloBerensteinTipDirection)
+    )
+))) * 180 / Math.PI;
+console.log('solo berenstein distal profile bend degrees',
+    soloBerensteinProfileBend.toFixed(2));
+let maximumSoloBerensteinTipRotationTravel = 0;
+let maximumSoloBerensteinTipRotationStep = 0;
+let minimumSoloBerensteinBendDuringRotation = soloBerensteinProfileBend;
+let maximumSoloBerensteinBendDuringRotation = soloBerensteinProfileBend;
+let previousSoloBerensteinRotatingTip = soloBerensteinTipBeforeRotation;
+for (let step = 0; step < 80; step++) {
+    soloBerenstein.rotate(1, 1 / 120);
+    soloBerenstein.stepPhysics(1 / 120, { collisions: false });
+    soloBerenstein.syncXpbdBody(soloBerensteinBody);
+    soloBerensteinWorld.stepFixed();
+    const rotatingTip = [
+        soloBerensteinBody.x[soloBerensteinBody.activeEnd],
+        soloBerensteinBody.y[soloBerensteinBody.activeEnd],
+        soloBerensteinBody.z[soloBerensteinBody.activeEnd]
+    ];
+    maximumSoloBerensteinTipRotationTravel = Math.max(
+        maximumSoloBerensteinTipRotationTravel,
+        Math.hypot(
+            rotatingTip[0] - soloBerensteinTipBeforeRotation[0],
+            rotatingTip[1] - soloBerensteinTipBeforeRotation[1],
+            rotatingTip[2] - soloBerensteinTipBeforeRotation[2]
+        )
+    );
+    maximumSoloBerensteinTipRotationStep = Math.max(
+        maximumSoloBerensteinTipRotationStep,
+        Math.hypot(
+            rotatingTip[0] - previousSoloBerensteinRotatingTip[0],
+            rotatingTip[1] - previousSoloBerensteinRotatingTip[1],
+            rotatingTip[2] - previousSoloBerensteinRotatingTip[2]
+        )
+    );
+    const rotatingProfileBaseDirection = [
+        soloBerensteinBody.x[soloBerensteinProfileBaseIndex] -
+            soloBerensteinBody.x[soloBerensteinProfileBaseIndex - 1],
+        soloBerensteinBody.y[soloBerensteinProfileBaseIndex] -
+            soloBerensteinBody.y[soloBerensteinProfileBaseIndex - 1],
+        soloBerensteinBody.z[soloBerensteinProfileBaseIndex] -
+            soloBerensteinBody.z[soloBerensteinProfileBaseIndex - 1]
+    ];
+    const rotatingTipDirection = [
+        soloBerensteinBody.x[soloBerensteinBody.activeEnd] -
+            soloBerensteinBody.x[soloBerensteinBody.activeEnd - 1],
+        soloBerensteinBody.y[soloBerensteinBody.activeEnd] -
+            soloBerensteinBody.y[soloBerensteinBody.activeEnd - 1],
+        soloBerensteinBody.z[soloBerensteinBody.activeEnd] -
+            soloBerensteinBody.z[soloBerensteinBody.activeEnd - 1]
+    ];
+    const rotatingProfileBend = Math.acos(Math.max(-1, Math.min(1,
+        (
+            rotatingProfileBaseDirection[0] * rotatingTipDirection[0] +
+            rotatingProfileBaseDirection[1] * rotatingTipDirection[1] +
+            rotatingProfileBaseDirection[2] * rotatingTipDirection[2]
+        ) / (
+            Math.hypot(...rotatingProfileBaseDirection) *
+            Math.hypot(...rotatingTipDirection)
+        )
+    ))) * 180 / Math.PI;
+    minimumSoloBerensteinBendDuringRotation = Math.min(
+        minimumSoloBerensteinBendDuringRotation,
+        rotatingProfileBend
+    );
+    maximumSoloBerensteinBendDuringRotation = Math.max(
+        maximumSoloBerensteinBendDuringRotation,
+        rotatingProfileBend
+    );
+    previousSoloBerensteinRotatingTip = rotatingTip;
+}
+const soloBerensteinTipRotationTravel = Math.hypot(
+    soloBerensteinBody.x[soloBerensteinBody.activeEnd] -
+        soloBerensteinTipBeforeRotation[0],
+    soloBerensteinBody.y[soloBerensteinBody.activeEnd] -
+        soloBerensteinTipBeforeRotation[1],
+    soloBerensteinBody.z[soloBerensteinBody.activeEnd] -
+        soloBerensteinTipBeforeRotation[2]
+);
+const soloBerensteinProfileBaseAfterRotation = [
+    soloBerensteinBody.x[soloBerensteinProfileBaseIndex],
+    soloBerensteinBody.y[soloBerensteinProfileBaseIndex],
+    soloBerensteinBody.z[soloBerensteinProfileBaseIndex]
+];
+const soloBerensteinProfileBaseDirectionAfterRotation = [
+    soloBerensteinBody.x[soloBerensteinProfileBaseIndex] -
+        soloBerensteinBody.x[soloBerensteinProfileBaseIndex - 1],
+    soloBerensteinBody.y[soloBerensteinProfileBaseIndex] -
+        soloBerensteinBody.y[soloBerensteinProfileBaseIndex - 1],
+    soloBerensteinBody.z[soloBerensteinProfileBaseIndex] -
+        soloBerensteinBody.z[soloBerensteinProfileBaseIndex - 1]
+];
+const soloBerensteinTipDirectionAfterRotation = [
+    soloBerensteinBody.x[soloBerensteinBody.activeEnd] -
+        soloBerensteinBody.x[soloBerensteinBody.activeEnd - 1],
+    soloBerensteinBody.y[soloBerensteinBody.activeEnd] -
+        soloBerensteinBody.y[soloBerensteinBody.activeEnd - 1],
+    soloBerensteinBody.z[soloBerensteinBody.activeEnd] -
+        soloBerensteinBody.z[soloBerensteinBody.activeEnd - 1]
+];
+const soloBerensteinProfileBendAfterRotation = Math.acos(Math.max(-1, Math.min(1,
+    (
+        soloBerensteinProfileBaseDirectionAfterRotation[0] *
+            soloBerensteinTipDirectionAfterRotation[0] +
+        soloBerensteinProfileBaseDirectionAfterRotation[1] *
+            soloBerensteinTipDirectionAfterRotation[1] +
+        soloBerensteinProfileBaseDirectionAfterRotation[2] *
+            soloBerensteinTipDirectionAfterRotation[2]
+    ) / (
+        Math.hypot(...soloBerensteinProfileBaseDirectionAfterRotation) *
+        Math.hypot(...soloBerensteinTipDirectionAfterRotation)
+    )
+))) * 180 / Math.PI;
+const soloBerensteinTipOffsetAfterRotation = [
+    soloBerensteinBody.x[soloBerensteinBody.activeEnd] -
+        soloBerensteinProfileBaseAfterRotation[0],
+    soloBerensteinBody.y[soloBerensteinBody.activeEnd] -
+        soloBerensteinProfileBaseAfterRotation[1],
+    soloBerensteinBody.z[soloBerensteinBody.activeEnd] -
+        soloBerensteinProfileBaseAfterRotation[2]
+];
+const soloBerensteinAxisAfterRotationLength =
+    Math.hypot(...soloBerensteinProfileBaseDirectionAfterRotation);
+const soloBerensteinAxisAfterRotation =
+    soloBerensteinProfileBaseDirectionAfterRotation.map(
+        value => value / soloBerensteinAxisAfterRotationLength
+    );
+const soloBerensteinTipAxialAfterRotation =
+    soloBerensteinTipOffsetAfterRotation[0] * soloBerensteinAxisAfterRotation[0] +
+    soloBerensteinTipOffsetAfterRotation[1] * soloBerensteinAxisAfterRotation[1] +
+    soloBerensteinTipOffsetAfterRotation[2] * soloBerensteinAxisAfterRotation[2];
+const soloBerensteinTipRadialAfterRotation = Math.hypot(
+    soloBerensteinTipOffsetAfterRotation[0] -
+        soloBerensteinAxisAfterRotation[0] * soloBerensteinTipAxialAfterRotation,
+    soloBerensteinTipOffsetAfterRotation[1] -
+        soloBerensteinAxisAfterRotation[1] * soloBerensteinTipAxialAfterRotation,
+    soloBerensteinTipOffsetAfterRotation[2] -
+        soloBerensteinAxisAfterRotation[2] * soloBerensteinTipAxialAfterRotation
+);
+console.log('solo berenstein tip rotation travel mm',
+    soloBerensteinTipRotationTravel.toFixed(3));
+console.log('solo berenstein max tip rotation travel mm',
+    maximumSoloBerensteinTipRotationTravel.toFixed(3));
+console.log('solo berenstein max tip rotation step mm',
+    maximumSoloBerensteinTipRotationStep.toFixed(3));
+console.log('solo berenstein bend after rotation degrees',
+    soloBerensteinProfileBendAfterRotation.toFixed(2));
+console.log('solo berenstein bend range during rotation degrees',
+    minimumSoloBerensteinBendDuringRotation.toFixed(2),
+    maximumSoloBerensteinBendDuringRotation.toFixed(2));
+console.log('solo berenstein radial after rotation mm',
+    soloBerensteinTipRadialAfterRotation.toFixed(3));
+console.log('solo berenstein radial before rotation mm',
+    soloBerensteinTipRadialBeforeRotation.toFixed(3));
+assert.ok(soloBerensteinProfileBend >= 10,
+    `the Berenstein must retain an angled distal profile that can visibly rotate (${soloBerensteinProfileBend} degrees)`);
+assert.ok(maximumSoloBerensteinTipRotationTravel >= 2,
+    `Berenstein rotation should move its physical angled tip around the shaft axis (${maximumSoloBerensteinTipRotationTravel} mm)`);
+assert.ok(maximumSoloBerensteinTipRotationStep <= 0.75,
+    `Berenstein rotation should remain continuous instead of jumping (${maximumSoloBerensteinTipRotationStep} mm)`);
+assert.ok(
+    minimumSoloBerensteinBendDuringRotation >=
+        soloBerensteinProfileBend * 0.85,
+    `Berenstein rotation must preserve the angled tip instead of straightening it (${minimumSoloBerensteinBendDuringRotation} vs ${soloBerensteinProfileBend} degrees)`
+);
+assert.ok(
+    soloBerensteinTipRadialAfterRotation >=
+        soloBerensteinTipRadialBeforeRotation * 0.8,
+    `Berenstein rotation must retain its radial tip offset (${soloBerensteinTipRadialAfterRotation} vs ${soloBerensteinTipRadialBeforeRotation} mm)`
+);
+soloBerenstein.dispose();
+
+function releasedBerensteinDirectionAfterSplintedRotation(rotationCommand) {
+    const wireLength = 160;
+    const wireSpacing = 2;
+    let guidewireInserted = 96;
+    const wire = new ElasticRod(wireLength / wireSpacing + 1, wireSpacing);
+    const alignWire = () => {
+        for (let index = 0; index < wire.nodes.length; index++) {
+            const node = wire.nodes[index];
+            node.x = index * wireSpacing - wireLength +
+                guidewireInserted - insertionSheathLength;
+            node.y = 0;
+            node.z = 0;
+            node.vx = 0;
+            node.vy = 0;
+            node.vz = 0;
+        }
+    };
+    alignWire();
+    const catheter = new PigtailCatheter({
+        wire,
+        segmentLength: wireSpacing,
+        guidewireLength: wireLength,
+        tailProgressRef: () => guidewireInserted,
+        vessel: catheterVessel,
+        maxLength: wireLength
+    });
+    catheter.setType('berenstein');
+    catheter.setExternalCollisionSolver(true);
+    const world = new EndovascularPhysicsWorld({
+        contactField: cylinderField(40),
+        iterations: 6,
+        penetrationIterations: 8
+    });
+    const body = world.createRod(
+        'splinted-berenstein',
+        160,
+        4,
+        { ...DEFAULT_TOOL_PROFILES.catheter }
+    );
+    const step = (advanceCommand = 0) => {
+        catheter.advance(
+            advanceCommand,
+            1 / 120,
+            guidewireInserted
+        );
+        catheter.stepPhysics(1 / 120, { collisions: false });
+        catheter.syncXpbdBody(body);
+        world.stepFixed();
+    };
+
+    for (let frame = 0; frame < 180; frame++) step(1);
+    for (let frame = 0; frame < 80; frame++) {
+        catheter.rotate(rotationCommand, 1 / 120);
+        step();
+    }
+    catheter.rotate(0, 1 / 120);
+    for (let frame = 0; frame < 144; frame++) {
+        guidewireInserted = 96 * (1 - (frame + 1) / 144);
+        alignWire();
+        step();
+    }
+    for (let frame = 0; frame < 120; frame++) step();
+
+    const tipIndex = body.activeEnd;
+    const baseIndex = Math.max(body.activeStart + 1, tipIndex - 5);
+    const axisX = body.x[baseIndex] - body.x[baseIndex - 1];
+    const axisY = body.y[baseIndex] - body.y[baseIndex - 1];
+    const axisZ = body.z[baseIndex] - body.z[baseIndex - 1];
+    const axisLength = Math.hypot(axisX, axisY, axisZ);
+    const unitAxis = [
+        axisX / axisLength,
+        axisY / axisLength,
+        axisZ / axisLength
+    ];
+    const tipOffset = [
+        body.x[tipIndex] - body.x[baseIndex],
+        body.y[tipIndex] - body.y[baseIndex],
+        body.z[tipIndex] - body.z[baseIndex]
+    ];
+    const axial =
+        tipOffset[0] * unitAxis[0] +
+        tipOffset[1] * unitAxis[1] +
+        tipOffset[2] * unitAxis[2];
+    const radial = [
+        tipOffset[0] - unitAxis[0] * axial,
+        tipOffset[1] - unitAxis[1] * axial,
+        tipOffset[2] - unitAxis[2] * axial
+    ];
+    const radialLength = Math.hypot(...radial);
+    catheter.dispose();
+    return {
+        radialLength,
+        direction: radial.map(value => value / Math.max(1e-6, radialLength))
+    };
+}
+
+const unrotatedSplintedBerenstein =
+    releasedBerensteinDirectionAfterSplintedRotation(0);
+const rotatedSplintedBerenstein =
+    releasedBerensteinDirectionAfterSplintedRotation(1);
+const splintedRotationDirectionDot =
+    unrotatedSplintedBerenstein.direction[0] *
+        rotatedSplintedBerenstein.direction[0] +
+    unrotatedSplintedBerenstein.direction[1] *
+        rotatedSplintedBerenstein.direction[1] +
+    unrotatedSplintedBerenstein.direction[2] *
+        rotatedSplintedBerenstein.direction[2];
+console.log('splinted berenstein released rotation direction dot',
+    splintedRotationDirectionDot.toFixed(3));
+assert.ok(unrotatedSplintedBerenstein.radialLength >= 2,
+    'the Berenstein tip should recover after its guidewire is withdrawn');
+assert.ok(rotatedSplintedBerenstein.radialLength >= 2,
+    'a rotated Berenstein should retain its curved tip after guidewire withdrawal');
+assert.ok(splintedRotationDirectionDot <= 0.5,
+    `Q/E torque applied over a guidewire must orient the released Berenstein tip (${splintedRotationDirectionDot})`);
 
 const stabilityWorld = new EndovascularPhysicsWorld({ contactField: cylinderField(6) });
 const stableRod = stabilityWorld.createRod('stability', 32, 0.5, {

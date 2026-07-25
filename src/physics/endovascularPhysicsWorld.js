@@ -86,14 +86,16 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         radius: PIGTAIL_CATHETER_RADIUS_MM,
         mass: 1.4,
         stretchCompliance: 1e-7,
-        bendCompliance: 8e-5,
-        shapeCompliance: 2e-4,
-        maxBendAngle: 45,
+        bendCompliance: 1e-5,
+        shapeCompliance: 1e-4,
+        maxBendAngle: 35,
         foldLimitStrength: 1,
-        wallFriction: 0.12,
+        wallFriction: 0.06,
         lumenFriction: 0.04,
-        linearDamping: 0.96,
-        bendDamping: 0.32
+        linearDamping: 0.9,
+        bendDamping: 0.68,
+        maxSpeed: 40,
+        postStabilizationPasses: 4
     }),
     sheath: Object.freeze({
         id: 'sheath',
@@ -124,6 +126,11 @@ export class EndovascularRodBody {
         this.lumenFriction = profile.lumenFriction ?? 0.04;
         this.linearDamping = profile.linearDamping ?? 0.98;
         this.bendDamping = clamp(profile.bendDamping ?? 0, 0, 1);
+        this.maxSpeed = profile.maxSpeed ?? Infinity;
+        this.postStabilizationPasses = Math.max(
+            0,
+            Math.floor(profile.postStabilizationPasses ?? 0)
+        );
         this.sleepVelocity = profile.sleepVelocity ?? 0.015;
         this.sleepFrames = profile.sleepFrames ?? 120;
         this.activeStart = 0;
@@ -463,6 +470,7 @@ export class EndovascularPhysicsWorld {
 
     createRod(id, count, segmentLength, profile = {}) {
         const body = new EndovascularRodBody(id, count, segmentLength, profile);
+        body.contactField = this.contactField;
         this.bodies.push(body);
         return body;
     }
@@ -608,6 +616,7 @@ export class EndovascularPhysicsWorld {
         let phaseStart = now();
         for (let index = 0; index < this.bodies.length; index++) {
             const body = this.bodies[index];
+            body.contactField = this.contactField;
             body.lengthLambda.fill(0);
             body.bendLambda.fill(0);
             body.controlLambda.fill(0);
@@ -633,6 +642,11 @@ export class EndovascularPhysicsWorld {
             }
             for (let index = 0; index < this.bodies.length; index++) this.#solveBending(this.bodies[index]);
             for (let index = 0; index < this.bodies.length; index++) this.#solveRestShape(this.bodies[index]);
+            // Shape memory is deliberately solved after the first control
+            // projection, but an unsupported catheter tip must not receive the
+            // entire shape correction as a single-frame impulse. Rebalance the
+            // compliant controls before the wall gets the final say.
+            for (let index = 0; index < this.bodies.length; index++) this.#solveControls(this.bodies[index]);
             for (let index = 0; index < this.containments.length; index++) this.#solveContainment(this.containments[index]);
             for (let index = 0; index < this.toolContacts.length; index++) this.#solveToolContact(this.toolContacts[index]);
             for (let index = 0; index < this.bodies.length; index++) this.#solveWallContacts(this.bodies[index]);
@@ -698,6 +712,17 @@ export class EndovascularPhysicsWorld {
                 });
             }
         }
+        for (let index = 0; index < this.bodies.length; index++) {
+            const body = this.bodies[index];
+            for (let pass = 0; pass < body.postStabilizationPasses; pass++) {
+                this.#solveControls(body);
+                this.#solveFoldLimits(body);
+                this.#solveLengthsGlobal(body);
+                this.#prepareWallContacts(body);
+                this.#solveWallContacts(body);
+            }
+            this.#solveFoldLimits(body);
+        }
         recordTiming(this.timings.constraints, now() - phaseStart);
 
         const transientMaxPenetration = this.maxPenetration;
@@ -722,6 +747,9 @@ export class EndovascularPhysicsWorld {
         }
         for (let index = 0; index < this.toolContacts.length; index++) {
             this.#stabilizeToolContactVelocity(this.toolContacts[index]);
+        }
+        for (let index = 0; index < this.bodies.length; index++) {
+            this.#limitVelocity(this.bodies[index]);
         }
         recordTiming(this.timings.velocity, now() - phaseStart);
 
@@ -1292,6 +1320,28 @@ export class EndovascularPhysicsWorld {
                 incomingX * outgoingX + incomingY * outgoingY + incomingZ * outgoingZ
             ) / (incomingLength * outgoingLength);
             if (dot >= minDot) continue;
+            const wallConstrained = (
+                (previous > 0 && body.wallActive[previous - 1]) ||
+                body.wallActive[previous] ||
+                body.wallActive[index]
+            );
+            if (wallConstrained && body.inverseMass[index] > 0) {
+                // Expanding the neighbouring endpoints can push them back
+                // through the vessel wall and make the next contact pass snap
+                // the rod in the opposite direction. At a wall, smooth the
+                // hinge by moving its centre toward the local chord instead.
+                const centerStrength = Math.min(0.72, body.foldLimitStrength * 0.62);
+                body.x[index] += (
+                    (body.x[previous] + body.x[next]) * 0.5 - body.x[index]
+                ) * centerStrength;
+                body.y[index] += (
+                    (body.y[previous] + body.y[next]) * 0.5 - body.y[index]
+                ) * centerStrength;
+                body.z[index] += (
+                    (body.z[previous] + body.z[next]) * 0.5 - body.z[index]
+                ) * centerStrength;
+                continue;
+            }
 
             let chordX = body.x[next] - body.x[previous];
             let chordY = body.y[next] - body.y[previous];
@@ -2038,6 +2088,22 @@ export class EndovascularPhysicsWorld {
             body.velocityX.fill(0);
             body.velocityY.fill(0);
             body.velocityZ.fill(0);
+        }
+    }
+
+    #limitVelocity(body) {
+        if (!Number.isFinite(body.maxSpeed) || body.maxSpeed <= 0) return;
+        for (let index = body.activeStart; index <= body.activeEnd; index++) {
+            const speed = magnitude3(
+                body.velocityX[index],
+                body.velocityY[index],
+                body.velocityZ[index]
+            );
+            if (speed <= body.maxSpeed || speed < EPSILON) continue;
+            const scale = body.maxSpeed / speed;
+            body.velocityX[index] *= scale;
+            body.velocityY[index] *= scale;
+            body.velocityZ[index] *= scale;
         }
     }
 

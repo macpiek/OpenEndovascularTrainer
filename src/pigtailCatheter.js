@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { clamp, smoothstep } from './mathUtils.js';
 import { PIGTAIL_CATHETER_RADIUS_MM, PIGTAIL_CATHETER_RENDER_RADIUS_MM } from './toolDimensions.js';
+import { createSmoothTubeGeometry } from './smoothTubeGeometry.js';
 
 const CATHETER_RADIUS = PIGTAIL_CATHETER_RADIUS_MM;
 const PIGTAIL_RADIUS = 7.2;
@@ -11,19 +12,20 @@ const CATHETER_TYPE_BERENSTEIN = 'berenstein';
 const BERENSTEIN_BEND_ANGLE = Math.PI / 4;
 const BERENSTEIN_STRAIGHT_EXIT_LENGTH = 8;
 const BERENSTEIN_BEND_LENGTH = 10;
-const BERENSTEIN_TIP_SHAPE_LENGTH = 48;
+const BERENSTEIN_TIP_SHAPE_LENGTH =
+    BERENSTEIN_STRAIGHT_EXIT_LENGTH + BERENSTEIN_BEND_LENGTH;
 const STRAIGHT_EXIT_LENGTH = 16;
 const DISTAL_RELEASE_LENGTH = STRAIGHT_EXIT_LENGTH + PIGTAIL_ARC_LENGTH;
 const MIN_GUIDE_SUPPORT = 18;
 const GUIDE_CAPTURE_TOLERANCE = 4;
 const FREE_NODE_SPACING = 3.2;
-const FREE_SHAPE_STIFFNESS = 76;
-const FREE_SHAPE_POSITION_BLEND = 0.105;
+const FREE_SHAPE_STIFFNESS = 150;
+const FREE_SHAPE_POSITION_BLEND = 0.24;
 const FREE_ANCHOR_STIFFNESS = 0.96;
 const FREE_DAMPING = 0.88;
 const FREE_CONSTRAINT_ITERATIONS = 18;
 const FREE_XPBD_TARGET_ITERATIONS = 4;
-const FREE_BEND_SMOOTHING = 0.085;
+const FREE_BEND_SMOOTHING = 0.04;
 const FREE_WALL_FRICTION = 0.08;
 const FREE_SHAFT_STRAIGHTENING = 0.22;
 const FREE_LONG_SPAN_STRAIGHTENING = 0.075;
@@ -46,10 +48,32 @@ const GUIDEWIRE_RECAPTURE_WINDOW = 7;
 const GUIDEWIRE_SUPPORT_BLEND = 0.22;
 const GUIDEWIRE_MOVING_SUPPORT_BLEND = 0.42;
 const PIGTAIL_RELEASE_CURL_START = 0.42;
-const PIGTAIL_RELEASE_CURL_RATE = 0.82;
-const SHAPE_RECOVERY_RATE = 0.65;
-const SHAPE_RECAPTURE_RATE = 1.5;
-const SOLO_XPBD_BEND_COMPLIANCE = 5e-5;
+const PIGTAIL_RELEASE_CURL_RATE = 2.4;
+const SHAPE_RECOVERY_RATE = 2.6;
+const SHAPE_RECAPTURE_RATE = 3.2;
+const SOLO_XPBD_BEND_COMPLIANCE = 6e-7;
+const SOLO_XPBD_SHAFT_MAX_BEND_ANGLE = 10;
+const XPBD_SOFT_TIP_BEND_COMPLIANCE = 5e-6;
+const BERENSTEIN_XPBD_SOFT_TIP_MAX_BEND_ANGLE = 20;
+const XPBD_SHAPE_TARGET_SLEW_LIMIT = 1;
+const XPBD_SHAPE_ACTIVATION_LENGTH = 10;
+const XPBD_MIN_SHAPE_WEIGHT = 0.025;
+const XPBD_SOFT_TIP_LENGTH = PIGTAIL_ARC_LENGTH;
+const XPBD_SOFT_TIP_TRANSITION_LENGTH = 8;
+const BERENSTEIN_XPBD_SOFT_TIP_LENGTH = 24;
+const BERENSTEIN_XPBD_SOFT_TIP_TRANSITION_LENGTH = 12;
+const PIGTAIL_XPBD_TARGET_MAX_OFFSET = 0.35;
+const BERENSTEIN_XPBD_TARGET_MAX_OFFSET = 0.6;
+const BERENSTEIN_XPBD_ROTATION_SHAPE_COMPLIANCE = 5e-6;
+const XPBD_FREE_PATH_COMPLIANCE = 4e-6;
+const XPBD_CONTACT_DRIVE_COMPLIANCE = 1e-4;
+const XPBD_TIP_DRIVE_COMPLIANCE = 7.5e-6;
+const XPBD_CENTERLINE_DIRECTION_BLEND = 0.24;
+const XPBD_DIRECTION_SPATIAL_BLEND = 0.3;
+const XPBD_DIRECTION_TEMPORAL_BLEND = 0.14;
+const XPBD_RELEASE_STABILITY_LENGTH = 20;
+const PIGTAIL_XPBD_POST_STABILIZATION_PASSES = 8;
+const BERENSTEIN_XPBD_POST_STABILIZATION_PASSES = 4;
 const GUIDEWIRE_IN_CATHETER_BLEND = 0.78;
 const GUIDEWIRE_REACTION_BLEND = 0.16;
 const GUIDEWIRE_CATHETER_MAX_CORRECTION = 1.2;
@@ -58,6 +82,8 @@ const CATHETER_ADVANCE_SPEED = 52;
 const CATHETER_WITHDRAW_SPEED = 32;
 const ROTATION_SPEED = Math.PI * 0.9;
 const CONTACT_CLEARANCE = CATHETER_RADIUS * 0.72;
+const TIP_MARKER_LENGTH = 2.4;
+const TIP_MARKER_RADIUS = PIGTAIL_CATHETER_RENDER_RADIUS_MM * 1.35;
 
 class TypedVector3 extends THREE.Vector3 {
     constructor(x = 0, y = 0, z = 0) {
@@ -112,7 +138,10 @@ export class PigtailCatheter {
         this.previousGuidewireInserted = 0;
         this.guidewireDelta = 0;
         this.motionCommand = 0;
+        this.rotationCommand = 0;
         this.rotation = 0;
+        this._pendingXpbdRotation = 0;
+        this._xpbdBerensteinTwisted = false;
         this.type = CATHETER_TYPE_PIGTAIL;
         this.pathSpacing = 4;
         this.pathSamples = [];
@@ -134,14 +163,33 @@ export class PigtailCatheter {
             transparent: true,
             opacity: 1
         });
+        this.tipMarkerMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            depthTest: false,
+            transparent: true,
+            opacity: 1
+        });
         this.maxRenderSegments = 320;
-        this.mesh = new THREE.InstancedMesh(
-            new THREE.CylinderGeometry(PIGTAIL_CATHETER_RENDER_RADIUS_MM, PIGTAIL_CATHETER_RENDER_RADIUS_MM, 1, 10, 1, false),
-            this.material,
-            this.maxRenderSegments
+        this.shaftMesh = new THREE.Mesh(
+            new THREE.BufferGeometry(),
+            this.material
         );
-        this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-        this.mesh.count = 0;
+        this.tipMarker = new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                TIP_MARKER_RADIUS,
+                TIP_MARKER_RADIUS,
+                TIP_MARKER_LENGTH,
+                16,
+                1,
+                false
+            ),
+            this.tipMarkerMaterial
+        );
+        this.tipMarker.frustumCulled = false;
+        this.tipMarker.renderOrder = 8;
+        this.tipMarker.visible = false;
+        this.mesh = new THREE.Group();
+        this.mesh.add(this.shaftMesh, this.tipMarker);
         this.mesh.frustumCulled = false;
         this.mesh.renderOrder = 7;
         this.mesh.visible = false;
@@ -151,15 +199,19 @@ export class PigtailCatheter {
         this._xpbdLayoutX = null;
         this._xpbdLayoutY = null;
         this._xpbdLayoutZ = null;
+        this._xpbdDriveX = null;
+        this._xpbdDriveY = null;
+        this._xpbdDriveZ = null;
+        this._xpbdDriveInitialized = null;
         this._xpbdLayoutCount = 0;
+        this._xpbdProgress = 0;
+        this._xpbdYieldsToWall = false;
         this._guidewireRelease = 1;
         this.externalCollisionSolver = false;
-        this._renderAxis = new TypedVector3();
-        this._renderMidpoint = new TypedVector3();
-        this._renderUp = new TypedVector3(0, 1, 0);
-        this._renderQuaternion = new THREE.Quaternion();
-        this._renderScale = new TypedVector3(1, 1, 1);
-        this._renderMatrix = new THREE.Matrix4();
+        this._renderPoints = [];
+        this._tipMarkerPosition = new TypedVector3();
+        this._tipMarkerTangent = new TypedVector3();
+        this._tipMarkerUp = new TypedVector3(0, 1, 0);
         this._shapeNormal = new TypedVector3();
         this._pathTarget = new TypedVector3();
         this._newNodeRest = new TypedVector3();
@@ -186,37 +238,56 @@ export class PigtailCatheter {
         this._planePreviousTangent = new TypedVector3();
         this._planeCurvature = new TypedVector3();
         this._planeHelper = new TypedVector3();
+        this._xpbdDriveDirection = new TypedVector3();
+        this._xpbdSoloTipTarget = new TypedVector3();
+        this._xpbdSoloTipTargetActive = false;
+        this._xpbdSoloTipControlIndex = -1;
     }
 
     setType(type) {
         const nextType = this.#normalizeType(type);
         if (this.type === nextType) return;
+        this.#releaseUnsupportedXpbdTip();
         this.type = nextType;
         this.#clearFreeNodes();
         this.freeRestDistanceCount = 0;
         this.freeLength = 0;
         this._physicsStepIndex = 0;
+        this.rotationCommand = 0;
+        this._pendingXpbdRotation = 0;
+        this._xpbdBerensteinTwisted = false;
         this.physicsLumenStartNode = 0;
+        this._xpbdProgress = this.progress;
+        this._xpbdYieldsToWall = false;
+        this._xpbdDriveInitialized?.fill(0);
         this.updateMesh();
     }
 
     dispose() {
-        this.mesh.geometry?.dispose?.();
+        this.#releaseUnsupportedXpbdTip();
+        this.shaftMesh.geometry?.dispose?.();
+        this.tipMarker.geometry?.dispose?.();
         this.material.dispose();
+        this.tipMarkerMaterial.dispose();
     }
 
     setExternalCollisionSolver(enabled = true) {
+        if (!enabled) this.#releaseUnsupportedXpbdTip();
         this.externalCollisionSolver = !!enabled;
         return this;
     }
 
     reset() {
+        this.#releaseUnsupportedXpbdTip();
         this.progress = 0;
         this.guidewireInserted = 0;
         this.previousGuidewireInserted = 0;
         this.guidewireDelta = 0;
         this.motionCommand = 0;
+        this.rotationCommand = 0;
         this.rotation = 0;
+        this._pendingXpbdRotation = 0;
+        this._xpbdBerensteinTwisted = false;
         this.pathSamples.length = 0;
         this.#clearFreeNodes();
         this.freeRestDistanceCount = 0;
@@ -224,6 +295,9 @@ export class PigtailCatheter {
         this._physicsStepIndex = 0;
         this.physicsActiveCount = 0;
         this._xpbdLayoutCount = 0;
+        this._xpbdProgress = 0;
+        this._xpbdYieldsToWall = false;
+        this._xpbdDriveInitialized?.fill(0);
         this._guidewireRelease = 1;
         this.updateMesh();
         return this;
@@ -231,30 +305,52 @@ export class PigtailCatheter {
 
     syncXpbdBody(body, {
         shapeCompliance = body.shapeCompliance,
-        targetSlewLimit = 1,
+        targetSlewLimit = XPBD_SHAPE_TARGET_SLEW_LIMIT,
         restLengthSlewLimit = 0.5,
         bendChordSlewLimit = 1
     } = {}) {
         const points = this.#buildCenterline();
         const count = Math.min(this._centerlinePointCount, body.count);
+        let progressDelta = this.progress - this._xpbdProgress;
         if (this.physicsBody !== body || !this._xpbdLayoutX || this._xpbdLayoutX.length !== body.count) {
+            if (this.physicsBody && this.physicsBody !== body) {
+                this.#releaseUnsupportedXpbdTip(this.physicsBody);
+            }
             this._xpbdLayoutX = new Float64Array(body.count);
             this._xpbdLayoutY = new Float64Array(body.count);
             this._xpbdLayoutZ = new Float64Array(body.count);
+            this._xpbdDriveX = new Float32Array(body.count);
+            this._xpbdDriveY = new Float32Array(body.count);
+            this._xpbdDriveZ = new Float32Array(body.count);
+            this._xpbdDriveInitialized = new Uint8Array(body.count);
             this._xpbdLayoutCount = 0;
             this.physicsActiveCount = 0;
+            this._xpbdProgress = this.progress;
+            progressDelta = 0;
+            this._xpbdYieldsToWall = false;
         }
         this.physicsBody = body;
+        body.postStabilizationPasses =
+            this.type === CATHETER_TYPE_PIGTAIL
+                ? PIGTAIL_XPBD_POST_STABILIZATION_PASSES
+                : BERENSTEIN_XPBD_POST_STABILIZATION_PASSES;
         if (count < 2) {
             for (let index = 0; index < this.physicsActiveCount; index++) body.clearRestShapeTarget(index);
             body.setActiveRange(0, 1);
             body.setCollisionRange(0, -1);
             this.physicsActiveCount = 0;
             this._xpbdLayoutCount = 0;
+            this._xpbdProgress = this.progress;
+            this._xpbdYieldsToWall = false;
+            this._xpbdDriveInitialized?.fill(0);
+            this._pendingXpbdRotation = 0;
+            this.#releaseUnsupportedXpbdTip(body);
             return 0;
         }
 
         const previousCount = this.physicsActiveCount;
+        const soloXpbd = this.externalCollisionSolver &&
+            this.guidewireInserted <= MIN_GUIDE_SUPPORT;
         let insertedIndex = -1;
         let topologyChanged = false;
         if (
@@ -262,29 +358,56 @@ export class PigtailCatheter {
             this._xpbdLayoutCount === previousCount &&
             count === previousCount + 1
         ) {
-            insertedIndex = this.freeNodes.length >= 2
-                ? count - 1
-                : this.#xpbdInsertedPointIndex(points, count, previousCount);
+            insertedIndex = soloXpbd && this.freeNodes.length >= 2
+                ? this.#xpbdUnsupportedEntryIndex(count)
+                : this.freeNodes.length >= 2
+                    ? count - 1
+                    : this.#xpbdInsertedPointIndex(points, count, previousCount);
             for (let index = count - 1; index > insertedIndex; index--) {
                 this.#copyXpbdNodeState(body, index, index - 1);
             }
             this.#initializeInsertedXpbdNode(body, points, insertedIndex, count, shapeCompliance);
+            const stabilizeUnsupportedEntry =
+                this.type === CATHETER_TYPE_BERENSTEIN ||
+                this.progress >= DISTAL_RELEASE_LENGTH;
+            if (
+                soloXpbd &&
+                stabilizeUnsupportedEntry &&
+                insertedIndex + 1 < count
+            ) {
+                this.#initializeUnsupportedEntryPair(
+                    body,
+                    points,
+                    insertedIndex,
+                    shapeCompliance
+                );
+            }
             topologyChanged = true;
         } else if (
             count > 1 &&
             this._xpbdLayoutCount === previousCount &&
             count === previousCount - 1
         ) {
-            const removedIndex = this.freeNodes.length >= 2
-                ? previousCount - 1
-                : this.#xpbdRemovedPointIndex(points, count, previousCount);
+            const removedIndex = soloXpbd && this.freeNodes.length >= 2
+                ? this.#xpbdUnsupportedEntryIndex(count)
+                : this.freeNodes.length >= 2
+                    ? previousCount - 1
+                    : this.#xpbdRemovedPointIndex(points, count, previousCount);
             for (let index = removedIndex; index < count; index++) {
                 this.#copyXpbdNodeState(body, index, index + 1);
             }
             topologyChanged = true;
         }
         body.setActiveRange(0, count - 1);
+        if (
+            topologyChanged ||
+            Math.abs(this.motionCommand) > 0 ||
+            Math.abs(this.guidewireDelta) > 1e-5
+        ) {
+            body.wake();
+        }
         if (topologyChanged) {
+            if (soloXpbd) this.#resetXpbdWallContacts(body);
             for (let index = 0; index < count - 1; index++) {
                 body.restLength[index] = Math.max(0.5, magnitude3(
                     body.x[index + 1] - body.x[index],
@@ -322,13 +445,42 @@ export class PigtailCatheter {
                 }
             }
         }
-        const soloXpbd = this.externalCollisionSolver &&
-            this.guidewireInserted <= MIN_GUIDE_SUPPORT;
+        this.#applyPendingBerensteinRotation(body, count);
+        if (soloXpbd && previousCount > 0 && progressDelta > 0) {
+            this.#advanceUnsupportedXpbdBody(
+                body,
+                collisionStart,
+                count,
+                Math.min(1, progressDelta)
+            );
+        }
+        let bodyTouchesWall = false;
+        for (
+            let segment = Math.max(0, collisionStart);
+            segment < Math.min(body.segmentCount, count - 1);
+            segment++
+        ) {
+            if (!body.wallActive[segment]) continue;
+            bodyTouchesWall = true;
+            break;
+        }
+        const enteredWallYield = bodyTouchesWall && !this._xpbdYieldsToWall;
+        if (bodyTouchesWall) this._xpbdYieldsToWall = true;
         for (let index = 0; index < count; index++) {
             const point = points[index];
             const insertedDistance = this._centerlineDistances[index] ?? Infinity;
-            const guideSupported = this.guidewireInserted > MIN_GUIDE_SUPPORT &&
-                insertedDistance <= this.guidewireInserted + GUIDE_CAPTURE_TOLERANCE;
+            const shapeWeight = this.#xpbdShapeMemoryWeight(insertedDistance);
+            const softTipWeight = this.#xpbdSoftTipWeight(insertedDistance);
+            const guideReleaseStability = this.guidewireInserted > MIN_GUIDE_SUPPORT
+                ? 1 - smoothstep(
+                    this.guidewireInserted + GUIDE_CAPTURE_TOLERANCE,
+                    this.guidewireInserted + XPBD_RELEASE_STABILITY_LENGTH,
+                    insertedDistance
+                )
+                : 0;
+            const yieldsToWall = this._xpbdYieldsToWall;
+            const stabilizeFixedPath = this.externalCollisionSolver && index <= collisionStart;
+            const stabilizeFreeShaft = this.externalCollisionSolver && index > collisionStart;
             const newlyActivated = index === insertedIndex || (
                 insertedIndex < 0 && index >= previousCount
             );
@@ -357,38 +509,163 @@ export class PigtailCatheter {
                     body.setNodePosition(index, point.x, point.y, point.z);
                 }
             }
-            let targetX = point.x;
-            let targetY = point.y;
-            let targetZ = point.z;
-            if (previousCount > 0 && newlyActivated) {
-                targetX = body.x[index];
-                targetY = body.y[index];
-                targetZ = body.z[index];
-            } else if (
-                previousCount > 0 &&
-                body.restShapeEnabled[index] &&
-                Number.isFinite(targetSlewLimit) &&
-                targetSlewLimit > 0
+            const hasShapeMemory = shapeWeight > XPBD_MIN_SHAPE_WEIGHT;
+            if (
+                stabilizeFixedPath ||
+                hasShapeMemory ||
+                (
+                    stabilizeFreeShaft &&
+                    (!yieldsToWall || soloXpbd)
+                )
             ) {
-                const dx = point.x - body.restShapeX[index];
-                const dy = point.y - body.restShapeY[index];
-                const dz = point.z - body.restShapeZ[index];
-                const distance = magnitude3(dx, dy, dz);
-                if (distance > targetSlewLimit) {
-                    const scale = targetSlewLimit / distance;
-                    targetX = body.restShapeX[index] + dx * scale;
-                    targetY = body.restShapeY[index] + dy * scale;
-                    targetZ = body.restShapeZ[index] + dz * scale;
+                const targetWasEnabled = body.restShapeEnabled[index] === 1;
+                const holdBerensteinTwist =
+                    this.type === CATHETER_TYPE_BERENSTEIN &&
+                    this._xpbdBerensteinTwisted &&
+                    hasShapeMemory &&
+                    !stabilizeFixedPath &&
+                    targetWasEnabled;
+                let targetX = (
+                    holdBerensteinTwist ||
+                    (yieldsToWall && !stabilizeFixedPath && targetWasEnabled)
+                )
+                    ? body.restShapeX[index]
+                    : point.x;
+                let targetY = (
+                    holdBerensteinTwist ||
+                    (yieldsToWall && !stabilizeFixedPath && targetWasEnabled)
+                )
+                    ? body.restShapeY[index]
+                    : point.y;
+                let targetZ = (
+                    holdBerensteinTwist ||
+                    (yieldsToWall && !stabilizeFixedPath && targetWasEnabled)
+                )
+                    ? body.restShapeZ[index]
+                    : point.z;
+                if (
+                    previousCount > 0 &&
+                    !stabilizeFixedPath &&
+                    (newlyActivated || !targetWasEnabled || enteredWallYield)
+                ) {
+                    // Shape memory must engage from the physical pose. Snapping a
+                    // newly released node directly to its ideal world-space
+                    // target creates the wall-versus-target impulse seen as
+                    // chaotic pigtail jumping.
+                    targetX = body.x[index];
+                    targetY = body.y[index];
+                    targetZ = body.z[index];
+                } else if (
+                    (
+                        !holdBerensteinTwist &&
+                        (
+                            !yieldsToWall ||
+                            stabilizeFixedPath ||
+                            (
+                                hasShapeMemory &&
+                                (
+                                    soloXpbd ||
+                                    (
+                                        this.type === CATHETER_TYPE_BERENSTEIN &&
+                                        Math.abs(this.rotationCommand) > 0
+                                    )
+                                ) &&
+                                softTipWeight > XPBD_MIN_SHAPE_WEIGHT
+                            )
+                        )
+                    ) &&
+                    previousCount > 0 &&
+                    targetWasEnabled &&
+                    Number.isFinite(targetSlewLimit) &&
+                    targetSlewLimit > 0
+                ) {
+                    const dx = point.x - body.restShapeX[index];
+                    const dy = point.y - body.restShapeY[index];
+                    const dz = point.z - body.restShapeZ[index];
+                    const distance = magnitude3(dx, dy, dz);
+                    const weightedSlewLimit = hasShapeMemory
+                        ? targetSlewLimit *
+                            (0.35 + shapeWeight * 0.65) *
+                            (yieldsToWall ? 0.3 : 1)
+                        : Math.max(1, targetSlewLimit);
+                    if (distance > weightedSlewLimit) {
+                        const scale = weightedSlewLimit / distance;
+                        targetX = body.restShapeX[index] + dx * scale;
+                        targetY = body.restShapeY[index] + dy * scale;
+                        targetZ = body.restShapeZ[index] + dz * scale;
+                    }
                 }
-            }
-            if (index > collisionStart && !guideSupported) {
+                if (
+                    soloXpbd &&
+                    yieldsToWall &&
+                    !stabilizeFixedPath
+                ) {
+                    const dx = targetX - body.x[index];
+                    const dy = targetY - body.y[index];
+                    const dz = targetZ - body.z[index];
+                    const distance = magnitude3(dx, dy, dz);
+                    const maximumTargetOffset =
+                        this.type === CATHETER_TYPE_BERENSTEIN
+                            ? BERENSTEIN_XPBD_TARGET_MAX_OFFSET
+                            : PIGTAIL_XPBD_TARGET_MAX_OFFSET;
+                    if (distance > maximumTargetOffset) {
+                        const scale = maximumTargetOffset / distance;
+                        targetX = body.x[index] + dx * scale;
+                        targetY = body.y[index] + dy * scale;
+                        targetZ = body.z[index] + dz * scale;
+                    }
+                }
+                let effectiveShapeCompliance;
+                if (!yieldsToWall || stabilizeFixedPath) {
+                    effectiveShapeCompliance = XPBD_FREE_PATH_COMPLIANCE;
+                } else if (hasShapeMemory) {
+                    effectiveShapeCompliance = shapeCompliance / Math.max(0.25, shapeWeight);
+                } else {
+                    effectiveShapeCompliance = XPBD_CONTACT_DRIVE_COMPLIANCE;
+                }
+                if (holdBerensteinTwist) {
+                    effectiveShapeCompliance = Math.min(
+                        effectiveShapeCompliance,
+                        BERENSTEIN_XPBD_ROTATION_SHAPE_COMPLIANCE
+                    );
+                }
+                effectiveShapeCompliance = XPBD_FREE_PATH_COMPLIANCE +
+                    (effectiveShapeCompliance - XPBD_FREE_PATH_COMPLIANCE) *
+                    (1 - guideReleaseStability);
+                body.setRestShapeTarget(
+                    index,
+                    targetX,
+                    targetY,
+                    targetZ,
+                    effectiveShapeCompliance
+                );
+            } else {
                 body.clearRestShapeTarget(index);
             }
-            else body.setRestShapeTarget(index, targetX, targetY, targetZ, shapeCompliance);
             body.nodeRadius[index] = CATHETER_RADIUS;
-            body.bendComplianceByNode[index] = soloXpbd
-                ? Math.min(body.bendCompliance, SOLO_XPBD_BEND_COMPLIANCE)
-                : body.bendCompliance;
+            const unsupportedStiffness = 1 - smoothstep(
+                0,
+                MIN_GUIDE_SUPPORT,
+                this.guidewireInserted
+            );
+            const shaftBendCompliance = body.bendCompliance +
+                (
+                    Math.min(body.bendCompliance, SOLO_XPBD_BEND_COMPLIANCE) -
+                    body.bendCompliance
+                ) * unsupportedStiffness;
+            body.bendComplianceByNode[index] = shaftBendCompliance +
+                (XPBD_SOFT_TIP_BEND_COMPLIANCE - shaftBendCompliance) *
+                softTipWeight;
+            const shaftMaxBendAngle = body.maxBendAngle +
+                (
+                    Math.min(body.maxBendAngle, SOLO_XPBD_SHAFT_MAX_BEND_ANGLE) -
+                    body.maxBendAngle
+                ) * unsupportedStiffness;
+            const softTipMaxBendAngle = this.type === CATHETER_TYPE_BERENSTEIN
+                ? BERENSTEIN_XPBD_SOFT_TIP_MAX_BEND_ANGLE
+                : body.maxBendAngle;
+            body.maxBendAngleByNode[index] = shaftMaxBendAngle +
+                (softTipMaxBendAngle - shaftMaxBendAngle) * softTipWeight;
             if (index > 0) {
                 const previous = points[index - 1];
                 const desiredLength = Math.max(0.5, point.distanceTo(previous));
@@ -403,9 +680,23 @@ export class PigtailCatheter {
                 }
             }
             if (index > 0 && index < count - 1) {
-                const desiredChord = soloXpbd
-                    ? points[index - 1].distanceTo(point) + point.distanceTo(points[index + 1])
-                    : points[index - 1].distanceTo(points[index + 1]);
+                const curvedChord = points[index - 1].distanceTo(points[index + 1]);
+                const straightChord =
+                    points[index - 1].distanceTo(point) + point.distanceTo(points[index + 1]);
+                // The unsupported shaft stays straight and stiff, while the
+                // distal preformed section retains its natural curvature.
+                const settleAgainstWall = yieldsToWall &&
+                    previousCount > 0 &&
+                    softTipWeight > XPBD_MIN_SHAPE_WEIGHT;
+                const desiredChord = settleAgainstWall
+                    ? magnitude3(
+                        body.x[index + 1] - body.x[index - 1],
+                        body.y[index + 1] - body.y[index - 1],
+                        body.z[index + 1] - body.z[index - 1]
+                    )
+                    : soloXpbd
+                        ? straightChord + (curvedChord - straightChord) * shapeWeight
+                        : curvedChord;
                 if (previousCount > 0 && bendChordSlewLimit > 0) {
                     body.restBendChord[index] += clamp(
                         desiredChord - body.restBendChord[index],
@@ -418,6 +709,7 @@ export class PigtailCatheter {
             }
         }
         for (let index = count; index < previousCount; index++) body.clearRestShapeTarget(index);
+        this.#stabilizeUnsupportedXpbdTip(body, count, soloXpbd, progressDelta);
         body.setCollisionRange(collisionStart, count - 2);
         this.physicsActiveCount = count;
         for (let index = 0; index < count; index++) {
@@ -426,7 +718,518 @@ export class PigtailCatheter {
             this._xpbdLayoutZ[index] = points[index].z;
         }
         this._xpbdLayoutCount = count;
+        this._xpbdProgress = this.progress;
         return count;
+    }
+
+    #applyPendingBerensteinRotation(body, count) {
+        const angle = this._pendingXpbdRotation;
+        this._pendingXpbdRotation = 0;
+        if (
+            this.type !== CATHETER_TYPE_BERENSTEIN ||
+            Math.abs(angle) < 1e-6 ||
+            count < 4
+        ) {
+            return;
+        }
+
+        const shapeStart = Math.max(
+            this.#sheathSupportEnd(),
+            this.guidewireInserted,
+            this.progress - BERENSTEIN_TIP_SHAPE_LENGTH
+        );
+        let baseIndex = Math.max(1, count - 1);
+        for (let index = 1; index < count; index++) {
+            if ((this._centerlineDistances[index] ?? -Infinity) < shapeStart) continue;
+            baseIndex = index;
+            break;
+        }
+        if (baseIndex >= count - 1) return;
+
+        const tangentStart = Math.max(0, baseIndex - 2);
+        const tangentEnd = Math.min(count - 1, baseIndex + 1);
+        let axisX = body.x[tangentEnd] - body.x[tangentStart];
+        let axisY = body.y[tangentEnd] - body.y[tangentStart];
+        let axisZ = body.z[tangentEnd] - body.z[tangentStart];
+        const axisLength = magnitude3(axisX, axisY, axisZ);
+        if (axisLength < 1e-6) return;
+        axisX /= axisLength;
+        axisY /= axisLength;
+        axisZ /= axisLength;
+        // Switch from the cumulative material-frame angle to physically
+        // rotated XPBD state only when a released distal segment really
+        // exists. Marking the catheter as twisted while the guidewire still
+        // splints the complete Berenstein tip discards Q/E torque before that
+        // tip is exposed.
+        this._xpbdBerensteinTwisted = true;
+        const cosine = Math.cos(angle);
+        const sine = Math.sin(angle);
+        const oneMinusCosine = 1 - cosine;
+        const anchorX = body.x[baseIndex];
+        const anchorY = body.y[baseIndex];
+        const anchorZ = body.z[baseIndex];
+        const previousAnchorX = body.previousX[baseIndex];
+        const previousAnchorY = body.previousY[baseIndex];
+        const previousAnchorZ = body.previousZ[baseIndex];
+        const targetAnchorX = body.restShapeEnabled[baseIndex]
+            ? body.restShapeX[baseIndex]
+            : anchorX;
+        const targetAnchorY = body.restShapeEnabled[baseIndex]
+            ? body.restShapeY[baseIndex]
+            : anchorY;
+        const targetAnchorZ = body.restShapeEnabled[baseIndex]
+            ? body.restShapeZ[baseIndex]
+            : anchorZ;
+        if (this._xpbdSoloTipTargetActive) {
+            const controlRelativeX = this._xpbdSoloTipTarget.x - anchorX;
+            const controlRelativeY = this._xpbdSoloTipTarget.y - anchorY;
+            const controlRelativeZ = this._xpbdSoloTipTarget.z - anchorZ;
+            const controlDot =
+                controlRelativeX * axisX +
+                controlRelativeY * axisY +
+                controlRelativeZ * axisZ;
+            this._xpbdSoloTipTarget.set(
+                anchorX +
+                    controlRelativeX * cosine +
+                    (axisY * controlRelativeZ - axisZ * controlRelativeY) * sine +
+                    axisX * controlDot * oneMinusCosine,
+                anchorY +
+                    controlRelativeY * cosine +
+                    (axisZ * controlRelativeX - axisX * controlRelativeZ) * sine +
+                    axisY * controlDot * oneMinusCosine,
+                anchorZ +
+                    controlRelativeZ * cosine +
+                    (axisX * controlRelativeY - axisY * controlRelativeX) * sine +
+                    axisZ * controlDot * oneMinusCosine
+            );
+        }
+        for (let index = baseIndex + 1; index < count; index++) {
+            const relativeX = body.x[index] - anchorX;
+            const relativeY = body.y[index] - anchorY;
+            const relativeZ = body.z[index] - anchorZ;
+            const dot =
+                relativeX * axisX + relativeY * axisY + relativeZ * axisZ;
+            body.x[index] =
+                anchorX +
+                relativeX * cosine +
+                (axisY * relativeZ - axisZ * relativeY) * sine +
+                axisX * dot * oneMinusCosine;
+            body.y[index] =
+                anchorY +
+                relativeY * cosine +
+                (axisZ * relativeX - axisX * relativeZ) * sine +
+                axisY * dot * oneMinusCosine;
+            body.z[index] =
+                anchorZ +
+                relativeZ * cosine +
+                (axisX * relativeY - axisY * relativeX) * sine +
+                axisZ * dot * oneMinusCosine;
+
+            const previousRelativeX = body.previousX[index] - previousAnchorX;
+            const previousRelativeY = body.previousY[index] - previousAnchorY;
+            const previousRelativeZ = body.previousZ[index] - previousAnchorZ;
+            const previousDot =
+                previousRelativeX * axisX +
+                previousRelativeY * axisY +
+                previousRelativeZ * axisZ;
+            body.previousX[index] =
+                previousAnchorX +
+                previousRelativeX * cosine +
+                (axisY * previousRelativeZ - axisZ * previousRelativeY) * sine +
+                axisX * previousDot * oneMinusCosine;
+            body.previousY[index] =
+                previousAnchorY +
+                previousRelativeY * cosine +
+                (axisZ * previousRelativeX - axisX * previousRelativeZ) * sine +
+                axisY * previousDot * oneMinusCosine;
+            body.previousZ[index] =
+                previousAnchorZ +
+                previousRelativeZ * cosine +
+                (axisX * previousRelativeY - axisY * previousRelativeX) * sine +
+                axisZ * previousDot * oneMinusCosine;
+
+            if (body.restShapeEnabled[index]) {
+                const targetRelativeX =
+                    body.restShapeX[index] - targetAnchorX;
+                const targetRelativeY =
+                    body.restShapeY[index] - targetAnchorY;
+                const targetRelativeZ =
+                    body.restShapeZ[index] - targetAnchorZ;
+                const targetDot =
+                    targetRelativeX * axisX +
+                    targetRelativeY * axisY +
+                    targetRelativeZ * axisZ;
+                body.restShapeX[index] =
+                    targetAnchorX +
+                    targetRelativeX * cosine +
+                    (axisY * targetRelativeZ - axisZ * targetRelativeY) * sine +
+                    axisX * targetDot * oneMinusCosine;
+                body.restShapeY[index] =
+                    targetAnchorY +
+                    targetRelativeY * cosine +
+                    (axisZ * targetRelativeX - axisX * targetRelativeZ) * sine +
+                    axisY * targetDot * oneMinusCosine;
+                body.restShapeZ[index] =
+                    targetAnchorZ +
+                    targetRelativeZ * cosine +
+                    (axisX * targetRelativeY - axisY * targetRelativeX) * sine +
+                    axisZ * targetDot * oneMinusCosine;
+            }
+
+            const velocityX = body.velocityX[index];
+            const velocityY = body.velocityY[index];
+            const velocityZ = body.velocityZ[index];
+            const velocityDot =
+                velocityX * axisX + velocityY * axisY + velocityZ * axisZ;
+            body.velocityX[index] =
+                velocityX * cosine +
+                (axisY * velocityZ - axisZ * velocityY) * sine +
+                axisX * velocityDot * oneMinusCosine;
+            body.velocityY[index] =
+                velocityY * cosine +
+                (axisZ * velocityX - axisX * velocityZ) * sine +
+                axisY * velocityDot * oneMinusCosine;
+            body.velocityZ[index] =
+                velocityZ * cosine +
+                (axisX * velocityY - axisY * velocityX) * sine +
+                axisZ * velocityDot * oneMinusCosine;
+            body.shapeLambda[index] = 0;
+            body.controlLambda[index] = 0;
+        }
+        body.wake();
+    }
+
+    #releaseUnsupportedXpbdTip(body = this.physicsBody) {
+        if (body && this._xpbdSoloTipControlIndex >= 0) {
+            body.clearControlTarget(this._xpbdSoloTipControlIndex);
+            body.setPinned(this._xpbdSoloTipControlIndex, false);
+        }
+        this._xpbdSoloTipTargetActive = false;
+        this._xpbdSoloTipControlIndex = -1;
+    }
+
+    #stabilizeUnsupportedXpbdTip(body, count, soloXpbd, progressDelta) {
+        const tipIndex = count - 1;
+        const controlIndex = tipIndex;
+        if (
+            this._xpbdSoloTipControlIndex >= 0 &&
+            this._xpbdSoloTipControlIndex !== controlIndex
+        ) {
+            body.clearControlTarget(this._xpbdSoloTipControlIndex);
+            body.setPinned(this._xpbdSoloTipControlIndex, false);
+        }
+        if (!soloXpbd) {
+            if (this._xpbdSoloTipControlIndex >= 0) {
+                body.clearControlTarget(this._xpbdSoloTipControlIndex);
+                body.setPinned(this._xpbdSoloTipControlIndex, false);
+            }
+            this._xpbdSoloTipTargetActive = false;
+            this._xpbdSoloTipControlIndex = -1;
+            return;
+        }
+        if (!this._xpbdSoloTipTargetActive) {
+            this._xpbdSoloTipTarget.set(
+                body.x[controlIndex],
+                body.y[controlIndex],
+                body.z[controlIndex]
+            );
+            this._xpbdSoloTipTargetActive = true;
+        }
+        if (progressDelta > 0 && controlIndex > 0) {
+            const direction = this.#xpbdInsertionDirection(
+                body,
+                controlIndex,
+                body.x[controlIndex] - body.x[controlIndex - 1],
+                body.y[controlIndex] - body.y[controlIndex - 1],
+                body.z[controlIndex] - body.z[controlIndex - 1]
+            );
+            const directionLength = direction.length() || 1;
+            this._xpbdSoloTipTarget.addScaledVector(
+                direction,
+                Math.min(0.75, progressDelta) / directionLength
+            );
+        }
+        const dx = this._xpbdSoloTipTarget.x - body.x[controlIndex];
+        const dy = this._xpbdSoloTipTarget.y - body.y[controlIndex];
+        const dz = this._xpbdSoloTipTarget.z - body.z[controlIndex];
+        const distance = magnitude3(dx, dy, dz);
+        if (distance > 0.6) {
+            const scale = 0.6 / distance;
+            this._xpbdSoloTipTarget.set(
+                body.x[controlIndex] + dx * scale,
+                body.y[controlIndex] + dy * scale,
+                body.z[controlIndex] + dz * scale
+            );
+        }
+        // The bend constraints on the preceding soft section already recover
+        // the distal profile. Applying a second world-space shape spring to
+        // the same endpoint makes it fight the insertion control and flip
+        // across the lumen.
+        body.clearRestShapeTarget(controlIndex);
+        body.setPinned(controlIndex, false);
+        body.setControlTarget(
+            controlIndex,
+            this._xpbdSoloTipTarget.x,
+            this._xpbdSoloTipTarget.y,
+            this._xpbdSoloTipTarget.z,
+            XPBD_TIP_DRIVE_COMPLIANCE
+        );
+        this._xpbdSoloTipControlIndex = controlIndex;
+    }
+
+    #resetXpbdWallContacts(body) {
+        body.wallLambda.fill(0);
+        body.wallActive.fill(0);
+        body.wallT.fill(0);
+        body.wallX.fill(0);
+        body.wallY.fill(0);
+        body.wallZ.fill(0);
+        body.wallNormalX.fill(0);
+        body.wallNormalY.fill(0);
+        body.wallNormalZ.fill(0);
+        body.wallBranchId.fill(-1);
+        body.wallGap.fill(Infinity);
+        body.wallQueryStartX.fill(0);
+        body.wallQueryStartY.fill(0);
+        body.wallQueryStartZ.fill(0);
+        body.wallQueryEndX.fill(0);
+        body.wallQueryEndY.fill(0);
+        body.wallQueryEndZ.fill(0);
+    }
+
+    #xpbdUnsupportedEntryIndex(count) {
+        const supportEnd = this.#sheathSupportEnd();
+        for (let index = 1; index < count; index++) {
+            if ((this._centerlineDistances[index] ?? -Infinity) >= supportEnd - 0.25) {
+                return index;
+            }
+        }
+        return Math.max(1, count - 1);
+    }
+
+    #initializeUnsupportedEntryPair(body, points, insertedIndex, shapeCompliance) {
+        const entry = points[insertedIndex];
+        const distal = points[insertedIndex + 1];
+        body.setNodePosition(insertedIndex, entry.x, entry.y, entry.z);
+        body.setNodePosition(insertedIndex + 1, distal.x, distal.y, distal.z);
+        body.clearRestShapeTarget(insertedIndex);
+        body.setRestShapeTarget(
+            insertedIndex + 1,
+            distal.x,
+            distal.y,
+            distal.z,
+            shapeCompliance
+        );
+        this._xpbdDriveInitialized[insertedIndex] = 0;
+        this._xpbdDriveInitialized[insertedIndex + 1] = 0;
+    }
+
+    #advanceUnsupportedXpbdBody(body, collisionStart, count, distance) {
+        const start = Math.max(1, collisionStart + 1);
+        const curvedTipLength = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_STRAIGHT_EXIT_LENGTH + BERENSTEIN_BEND_LENGTH
+            : PIGTAIL_ARC_LENGTH;
+        const tipShapeStart = Math.max(
+            this.#sheathSupportEnd(),
+            this.progress - curvedTipLength
+        );
+        let tipBaseIndex = count;
+        for (let index = start; index < count; index++) {
+            if ((this._centerlineDistances[index] ?? Infinity) < tipShapeStart) continue;
+            tipBaseIndex = index;
+            break;
+        }
+        const tipTangentStart = Math.max(start, tipBaseIndex - 2);
+        const tipTangentEnd = Math.min(count - 1, tipBaseIndex + 1);
+        let tipDirectionX = body.x[tipTangentEnd] - body.x[tipTangentStart];
+        let tipDirectionY = body.y[tipTangentEnd] - body.y[tipTangentStart];
+        let tipDirectionZ = body.z[tipTangentEnd] - body.z[tipTangentStart];
+        const centerlineTipDirection = this.#xpbdInsertionDirection(
+            body,
+            tipBaseIndex,
+            tipDirectionX,
+            tipDirectionY,
+            tipDirectionZ
+        );
+        tipDirectionX = centerlineTipDirection.x;
+        tipDirectionY = centerlineTipDirection.y;
+        tipDirectionZ = centerlineTipDirection.z;
+        const tipDirectionLength = magnitude3(
+            tipDirectionX,
+            tipDirectionY,
+            tipDirectionZ
+        ) || 1;
+        for (let index = count - 1; index >= start; index--) {
+            const previous = index - 1;
+            let directionX;
+            let directionY;
+            let directionZ;
+            let directionLength;
+            if (index >= tipBaseIndex) {
+                directionX = tipDirectionX;
+                directionY = tipDirectionY;
+                directionZ = tipDirectionZ;
+                directionLength = tipDirectionLength;
+            } else if (index + 1 < count) {
+                directionX = body.x[index + 1] - body.x[previous];
+                directionY = body.y[index + 1] - body.y[previous];
+                directionZ = body.z[index + 1] - body.z[previous];
+                const centerlineDirection = this.#xpbdInsertionDirection(
+                    body,
+                    index,
+                    directionX,
+                    directionY,
+                    directionZ
+                );
+                directionX = centerlineDirection.x;
+                directionY = centerlineDirection.y;
+                directionZ = centerlineDirection.z;
+                directionLength = magnitude3(directionX, directionY, directionZ);
+            } else {
+                directionX = body.x[index] - body.x[previous];
+                directionY = body.y[index] - body.y[previous];
+                directionZ = body.z[index] - body.z[previous];
+                directionLength = magnitude3(directionX, directionY, directionZ);
+            }
+            if (directionLength < 1e-6) continue;
+            const scale = distance / directionLength;
+            const dx = directionX * scale;
+            const dy = directionY * scale;
+            const dz = directionZ * scale;
+            if (!body.restShapeEnabled[index]) continue;
+            body.restShapeX[index] += dx;
+            body.restShapeY[index] += dy;
+            body.restShapeZ[index] += dz;
+        }
+    }
+
+    #xpbdInsertionDirection(body, index, fallbackX, fallbackY, fallbackZ) {
+        const direction = this._xpbdDriveDirection;
+        const driveIndex = Math.max(0, Math.min(body.count - 1, index));
+        let fallbackLength = magnitude3(fallbackX, fallbackY, fallbackZ);
+        if (fallbackLength < 1e-6) {
+            if (this._xpbdDriveInitialized?.[driveIndex]) {
+                fallbackX = this._xpbdDriveX[driveIndex];
+                fallbackY = this._xpbdDriveY[driveIndex];
+                fallbackZ = this._xpbdDriveZ[driveIndex];
+                fallbackLength = 1;
+            } else {
+                fallbackX = 1;
+                fallbackY = 0;
+                fallbackZ = 0;
+                fallbackLength = 1;
+            }
+        }
+        fallbackX /= fallbackLength;
+        fallbackY /= fallbackLength;
+        fallbackZ /= fallbackLength;
+        direction.set(fallbackX, fallbackY, fallbackZ);
+        let hasCenterlineDirection = false;
+        const field = body.contactField;
+        if (typeof field?.getCenterlineTangent === 'function') {
+            const tangent = field.getCenterlineTangent(
+                body.x[driveIndex],
+                body.y[driveIndex],
+                body.z[driveIndex]
+            );
+            if (
+                tangent &&
+                Number.isFinite(tangent.x) &&
+                Number.isFinite(tangent.y) &&
+                Number.isFinite(tangent.z)
+            ) {
+                direction.set(tangent.x, tangent.y, tangent.z);
+                hasCenterlineDirection = direction.lengthSq() >= 1e-8;
+            }
+        } else if (field?.centerline && field.centerlineStride >= 6) {
+            const centerline = field.centerline;
+            const stride = field.centerlineStride;
+            const segmentCount = Math.floor(centerline.length / stride);
+            let branchId = -1;
+            for (let offset = 0; offset <= 2 && branchId < 0; offset++) {
+                const right = Math.min(body.segmentCount - 1, driveIndex + offset);
+                const left = Math.max(0, driveIndex - 1 - offset);
+                if (body.wallActive[right] && body.wallBranchId[right] >= 0) {
+                    branchId = body.wallBranchId[right];
+                } else if (body.wallActive[left] && body.wallBranchId[left] >= 0) {
+                    branchId = body.wallBranchId[left];
+                }
+            }
+            if (branchId < 0) {
+                const segment = Math.max(0, Math.min(body.segmentCount - 1, driveIndex - 1));
+                branchId = body.wallBranchId[segment];
+            }
+            if (branchId >= 0 && branchId < segmentCount) {
+                const centerlineOffset = branchId * stride;
+                direction.set(
+                    centerline[centerlineOffset + 3] - centerline[centerlineOffset],
+                    centerline[centerlineOffset + 4] - centerline[centerlineOffset + 1],
+                    centerline[centerlineOffset + 5] - centerline[centerlineOffset + 2]
+                );
+                hasCenterlineDirection = direction.lengthSq() >= 1e-8;
+            }
+        }
+        if (hasCenterlineDirection) {
+            direction.normalize();
+            if (
+                direction.x * fallbackX +
+                direction.y * fallbackY +
+                direction.z * fallbackZ < 0
+            ) {
+                direction.multiplyScalar(-1);
+            }
+            direction.set(
+                fallbackX + (direction.x - fallbackX) * XPBD_CENTERLINE_DIRECTION_BLEND,
+                fallbackY + (direction.y - fallbackY) * XPBD_CENTERLINE_DIRECTION_BLEND,
+                fallbackZ + (direction.z - fallbackZ) * XPBD_CENTERLINE_DIRECTION_BLEND
+            ).normalize();
+        } else {
+            direction.set(fallbackX, fallbackY, fallbackZ);
+        }
+        const previousIndex = driveIndex - 1;
+        if (previousIndex >= 0 && this._xpbdDriveInitialized?.[previousIndex]) {
+            let previousX = this._xpbdDriveX[previousIndex];
+            let previousY = this._xpbdDriveY[previousIndex];
+            let previousZ = this._xpbdDriveZ[previousIndex];
+            if (
+                direction.x * previousX +
+                direction.y * previousY +
+                direction.z * previousZ < 0
+            ) {
+                previousX *= -1;
+                previousY *= -1;
+                previousZ *= -1;
+            }
+            direction.set(
+                direction.x + (previousX - direction.x) * XPBD_DIRECTION_SPATIAL_BLEND,
+                direction.y + (previousY - direction.y) * XPBD_DIRECTION_SPATIAL_BLEND,
+                direction.z + (previousZ - direction.z) * XPBD_DIRECTION_SPATIAL_BLEND
+            ).normalize();
+        }
+        if (this._xpbdDriveInitialized?.[driveIndex]) {
+            let storedX = this._xpbdDriveX[driveIndex];
+            let storedY = this._xpbdDriveY[driveIndex];
+            let storedZ = this._xpbdDriveZ[driveIndex];
+            if (
+                direction.x * storedX +
+                direction.y * storedY +
+                direction.z * storedZ < 0
+            ) {
+                storedX *= -1;
+                storedY *= -1;
+                storedZ *= -1;
+            }
+            direction.set(
+                storedX + (direction.x - storedX) * XPBD_DIRECTION_TEMPORAL_BLEND,
+                storedY + (direction.y - storedY) * XPBD_DIRECTION_TEMPORAL_BLEND,
+                storedZ + (direction.z - storedZ) * XPBD_DIRECTION_TEMPORAL_BLEND
+            ).normalize();
+        }
+        this._xpbdDriveX[driveIndex] = direction.x;
+        this._xpbdDriveY[driveIndex] = direction.y;
+        this._xpbdDriveZ[driveIndex] = direction.z;
+        this._xpbdDriveInitialized[driveIndex] = 1;
+        return direction;
     }
 
     #xpbdInsertedPointIndex(points, count, previousCount) {
@@ -490,6 +1293,10 @@ export class PigtailCatheter {
         body.restShapeY[target] = body.restShapeY[source];
         body.restShapeZ[target] = body.restShapeZ[source];
         body.restShapeCompliance[target] = body.restShapeCompliance[source];
+        this._xpbdDriveX[target] = this._xpbdDriveX[source];
+        this._xpbdDriveY[target] = this._xpbdDriveY[source];
+        this._xpbdDriveZ[target] = this._xpbdDriveZ[source];
+        this._xpbdDriveInitialized[target] = this._xpbdDriveInitialized[source];
     }
 
     #initializeInsertedXpbdNode(body, points, index, count, shapeCompliance) {
@@ -554,12 +1361,13 @@ export class PigtailCatheter {
         } else {
             body.setNodePosition(index, points[index].x, points[index].y, points[index].z);
         }
-        body.restShapeEnabled[index] = 1;
+        body.restShapeEnabled[index] = 0;
         body.restShapeX[index] = body.x[index];
         body.restShapeY[index] = body.y[index];
         body.restShapeZ[index] = body.z[index];
         body.restShapeCompliance[index] = shapeCompliance;
         body.shapeLambda[index] = 0;
+        this._xpbdDriveInitialized[index] = 0;
     }
 
     setCollisionGeometry(collision) {
@@ -596,8 +1404,16 @@ export class PigtailCatheter {
     }
 
     rotate(command, dt) {
+        this.rotationCommand = command;
         if (!command) return;
-        this.rotation += command * ROTATION_SPEED * dt;
+        const rotationDelta = command * ROTATION_SPEED * dt;
+        this.rotation += rotationDelta;
+        if (
+            this.type === CATHETER_TYPE_BERENSTEIN &&
+            this.externalCollisionSolver
+        ) {
+            this._pendingXpbdRotation += rotationDelta;
+        }
     }
 
     stepPhysics(dt = 1 / 60, { collisions = true } = {}) {
@@ -756,33 +1572,68 @@ export class PigtailCatheter {
         const points = body ? null : this.#buildCenterline();
         const pointCount = body ? this.physicsActiveCount : this._centerlinePointCount;
         if (pointCount < 2) {
-            this.mesh.count = 0;
             this.mesh.visible = false;
+            this.tipMarker.visible = false;
             return;
         }
 
-        const segmentCount = Math.min(pointCount - 1, this.maxRenderSegments);
-        let rendered = 0;
-        for (let index = 0; index < segmentCount; index++) {
-            const ax = body ? body.x[index] : points[index].x;
-            const ay = body ? body.y[index] : points[index].y;
-            const az = body ? body.z[index] : points[index].z;
-            const bx = body ? body.x[index + 1] : points[index + 1].x;
-            const by = body ? body.y[index + 1] : points[index + 1].y;
-            const bz = body ? body.z[index + 1] : points[index + 1].z;
-            this._renderAxis.set(bx - ax, by - ay, bz - az);
-            const length = this._renderAxis.length();
-            if (length < 1e-6) continue;
-            this._renderAxis.multiplyScalar(1 / length);
-            this._renderMidpoint.set((ax + bx) * 0.5, (ay + by) * 0.5, (az + bz) * 0.5);
-            this._renderQuaternion.setFromUnitVectors(this._renderUp, this._renderAxis);
-            this._renderScale.set(1, length + PIGTAIL_CATHETER_RENDER_RADIUS_MM * 0.65, 1);
-            this._renderMatrix.compose(this._renderMidpoint, this._renderQuaternion, this._renderScale);
-            this.mesh.setMatrixAt(rendered++, this._renderMatrix);
+        const renderPointCount = Math.min(pointCount, this.maxRenderSegments + 1);
+        this._renderPoints.length = renderPointCount;
+        for (let index = 0; index < renderPointCount; index++) {
+            let renderPoint = this._renderPoints[index];
+            if (!renderPoint) {
+                renderPoint = new THREE.Vector3();
+                this._renderPoints[index] = renderPoint;
+            }
+            renderPoint.set(
+                body ? body.x[index] : points[index].x,
+                body ? body.y[index] : points[index].y,
+                body ? body.z[index] : points[index].z
+            );
         }
-        this.mesh.count = rendered;
-        this.mesh.instanceMatrix.needsUpdate = true;
-        this.mesh.visible = rendered > 0;
+        const previousGeometry = this.shaftMesh.geometry;
+        this.shaftMesh.geometry = createSmoothTubeGeometry(this._renderPoints, {
+            radius: PIGTAIL_CATHETER_RENDER_RADIUS_MM,
+            samplesPerSegment: 3,
+            radialSegments: 14
+        });
+        previousGeometry.dispose();
+        this.#updateTipMarker(renderPointCount);
+        this.mesh.visible = true;
+    }
+
+    #updateTipMarker(pointCount) {
+        const markerDistance = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_TIP_SHAPE_LENGTH
+            : DISTAL_RELEASE_LENGTH;
+        let traversed = 0;
+        for (let index = pointCount - 1; index > 0; index--) {
+            const distal = this._renderPoints[index];
+            const proximal = this._renderPoints[index - 1];
+            const segmentLength = distal.distanceTo(proximal);
+            if (segmentLength < 1e-6) continue;
+            if (traversed + segmentLength < markerDistance) {
+                traversed += segmentLength;
+                continue;
+            }
+            const t = clamp(
+                (markerDistance - traversed) / segmentLength,
+                0,
+                1
+            );
+            this._tipMarkerPosition.copy(distal).lerp(proximal, t);
+            this._tipMarkerTangent.subVectors(distal, proximal).normalize();
+            this.tipMarker.position.copy(this._tipMarkerPosition);
+            this.tipMarker.quaternion.setFromUnitVectors(
+                this._tipMarkerUp,
+                this._tipMarkerTangent
+            );
+            this.tipMarker.userData.tipLengthMm = markerDistance;
+            this.tipMarker.userData.catheterType = this.type;
+            this.tipMarker.visible = true;
+            return;
+        }
+        this.tipMarker.visible = false;
     }
 
     #buildCenterline() {
@@ -873,7 +1724,13 @@ export class PigtailCatheter {
         if (tangent.lengthSq() < 1e-5) tangent.set(0, 1, 0);
         tangent.normalize();
         const normal = this.#catheterPlaneNormal(tangent, beforeTip, beforePlane, frame.normal);
-        normal.applyAxisAngle(tangent, this.rotation).normalize();
+        const shapeRotation =
+            this.type === CATHETER_TYPE_BERENSTEIN &&
+            this.externalCollisionSolver &&
+            this._xpbdBerensteinTwisted
+                ? 0
+                : this.rotation;
+        normal.applyAxisAngle(tangent, shapeRotation).normalize();
         return frame;
     }
 
@@ -1189,7 +2046,7 @@ export class PigtailCatheter {
     }
 
     #berensteinRestPoint(distance, frame, freeLength, curlScale = 1, out = new TypedVector3()) {
-        const deployLength = Math.min(freeLength, DISTAL_RELEASE_LENGTH);
+        const deployLength = Math.min(freeLength, BERENSTEIN_TIP_SHAPE_LENGTH);
         const proximalFreeLength = Math.max(0, freeLength - deployLength);
         if (distance <= proximalFreeLength) {
             return out.copy(frame.supportTip).addScaledVector(frame.tangent, distance);
@@ -1290,11 +2147,12 @@ export class PigtailCatheter {
                 this.freeNodes[i].shapeTarget
             );
             const distalWeight = smoothstep(0, Math.max(FREE_NODE_SPACING, freeLength), relativeDistance);
-            const shapeWeight = this.type === CATHETER_TYPE_BERENSTEIN
-                ? this.#distalTipShapeWeight(relativeDistance, freeLength)
-                : 0;
-            const blend = FREE_SHAPE_POSITION_BLEND * (0.45 + distalWeight * 0.55) * (1 + shapeWeight * 1.2);
-            const amount = clamp(blend, 0, 0.42);
+            const shapeWeight = this.#distalTipShapeWeight(relativeDistance, freeLength);
+            const shapeBoost = this.type === CATHETER_TYPE_PIGTAIL ? 2.4 : 1.2;
+            const blend = FREE_SHAPE_POSITION_BLEND *
+                (0.45 + distalWeight * 0.55) *
+                (1 + shapeWeight * shapeBoost);
+            const amount = clamp(blend, 0, 0.68);
             const positionValues = this.freeNodes[i].pos._values;
             const targetValues = target._values;
             positionValues[0] += (targetValues[0] - positionValues[0]) * amount;
@@ -1306,7 +2164,10 @@ export class PigtailCatheter {
     #solveFreeStraightening(freeLength) {
         if (this.freeNodes.length < 4) return;
         const baseDistance = this.freeNodes[0]?.distance ?? 0;
-        const shapeStart = Math.max(0, freeLength - Math.min(freeLength, DISTAL_RELEASE_LENGTH));
+        const shapeStart = Math.max(
+            0,
+            freeLength - this.#distalShapeLength(freeLength)
+        );
         const weightStart = Math.max(0, shapeStart - 10);
         const weightSpan = Math.max(1e-8, shapeStart + 8 - weightStart);
 
@@ -1541,6 +2402,45 @@ export class PigtailCatheter {
     #distalTipShapeWeight(relativeDistance, freeLength) {
         const shapeStart = Math.max(0, freeLength - this.#distalShapeLength(freeLength));
         return smoothstep(shapeStart - 2, shapeStart + 10, relativeDistance);
+    }
+
+    #xpbdShapeMemoryWeight(insertedDistance) {
+        if (!Number.isFinite(insertedDistance) || insertedDistance <= 0) return 0;
+        const curvedTipLength = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_STRAIGHT_EXIT_LENGTH + BERENSTEIN_BEND_LENGTH
+            : PIGTAIL_ARC_LENGTH;
+        const distalStart = Math.max(this.#sheathSupportEnd(), this.progress - curvedTipLength);
+        const distalWeight = smoothstep(
+            distalStart - 2,
+            distalStart + XPBD_SHAPE_ACTIVATION_LENGTH,
+            insertedDistance
+        );
+        if (this.guidewireInserted <= MIN_GUIDE_SUPPORT) return distalWeight;
+        const releaseWeight = smoothstep(
+            this.guidewireInserted + 0.5,
+            this.guidewireInserted + XPBD_SHAPE_ACTIVATION_LENGTH,
+            insertedDistance
+        );
+        return distalWeight * releaseWeight;
+    }
+
+    #xpbdSoftTipWeight(insertedDistance) {
+        if (!Number.isFinite(insertedDistance) || insertedDistance <= 0) return 0;
+        const softTipLength = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_XPBD_SOFT_TIP_LENGTH
+            : XPBD_SOFT_TIP_LENGTH;
+        const transitionLength = this.type === CATHETER_TYPE_BERENSTEIN
+            ? BERENSTEIN_XPBD_SOFT_TIP_TRANSITION_LENGTH
+            : XPBD_SOFT_TIP_TRANSITION_LENGTH;
+        const softTipStart = Math.max(
+            this.#sheathSupportEnd(),
+            this.progress - softTipLength
+        );
+        return smoothstep(
+            softTipStart,
+            softTipStart + transitionLength,
+            insertedDistance
+        );
     }
 
     #distalShapeLength(freeLength) {
