@@ -14,6 +14,30 @@ function setVector(target, x, y, z) {
     target.z = z;
 }
 
+function distanceToRodSegments(pointBody, pointIndex, rod, startSegment = 0, endSegment = rod.segmentCount - 1) {
+    let best = Infinity;
+    for (let segment = startSegment; segment <= endSegment; segment++) {
+        const ax = rod.x[segment];
+        const ay = rod.y[segment];
+        const az = rod.z[segment];
+        const dx = rod.x[segment + 1] - ax;
+        const dy = rod.y[segment + 1] - ay;
+        const dz = rod.z[segment + 1] - az;
+        const lengthSq = dx * dx + dy * dy + dz * dz;
+        const t = Math.max(0, Math.min(1, (
+            (pointBody.x[pointIndex] - ax) * dx +
+            (pointBody.y[pointIndex] - ay) * dy +
+            (pointBody.z[pointIndex] - az) * dz
+        ) / Math.max(EPSILON, lengthSq)));
+        best = Math.min(best, Math.hypot(
+            pointBody.x[pointIndex] - (ax + dx * t),
+            pointBody.y[pointIndex] - (ay + dy * t),
+            pointBody.z[pointIndex] - (az + dz * t)
+        ));
+    }
+    return best;
+}
+
 function createContactResult() {
     return {
         inside: false,
@@ -501,6 +525,128 @@ assert.ok(Math.abs(denseWire.x[5] - 5) < 0.05,
 assert.ok(Math.hypot(denseWire.y[5], denseWire.z[5]) <= containmentClearance + 0.01,
     'arc-length containment should enforce radial clearance without axial folding');
 
+const movingContainmentWorld = new EndovascularPhysicsWorld();
+const movingCatheter = movingContainmentWorld.createRod(
+    'moving-catheter', 14, 1, DEFAULT_TOOL_PROFILES.catheter
+);
+const movingWire = movingContainmentWorld.createRod(
+    'moving-wire', 14, 1, DEFAULT_TOOL_PROFILES.guidewire
+);
+seedStraightRod(movingCatheter, 0, 1, 0, 0);
+seedStraightRod(movingWire, 0, 1, 0, 0);
+for (let index = 0; index < movingCatheter.count; index++) movingCatheter.setPinned(index, true);
+const movingContainment = movingContainmentWorld.addContainment(movingWire, movingCatheter, {
+    innerRadius: DEFAULT_TOOL_PROFILES.catheter.innerRadius,
+    openProximal: false,
+    openDistal: false,
+    searchWindow: movingCatheter.segmentCount
+});
+let maximumMovingContainmentEscape = 0;
+for (let step = 0; step < 48; step++) {
+    movingContainment.startNode = step < 16 ? 0 : step < 32 ? 2 : 1;
+    movingContainment.endNode = step < 24 ? 11 : 13;
+    for (let index = 0; index < movingCatheter.count; index++) {
+        movingCatheter.setNodePosition(
+            index,
+            index,
+            Math.sin(index * 0.32 + step * 0.11) * 0.65,
+            Math.cos(index * 0.21 - step * 0.07) * 0.35
+        );
+    }
+    for (let index = movingContainment.startNode; index <= movingContainment.endNode; index++) {
+        movingWire.forceY[index] += (index & 1 ? -1 : 1) * 180;
+        movingWire.forceZ[index] += Math.sin(step * 0.3 + index) * 120;
+    }
+    movingContainmentWorld.stepFixed();
+    for (let index = movingContainment.startNode; index <= movingContainment.endNode; index++) {
+        maximumMovingContainmentEscape = Math.max(
+            maximumMovingContainmentEscape,
+            distanceToRodSegments(movingWire, index, movingCatheter) - containmentClearance
+        );
+    }
+}
+assert.ok(maximumMovingContainmentEscape <= 1e-4,
+    `a guidewire must finish every moving-catheter step inside the lumen (${maximumMovingContainmentEscape} mm escape)`);
+const movingContainmentLengthError = movingContainmentWorld.getStats().bodies
+    .find(body => body.id === 'moving-wire').maxLengthError;
+assert.ok(movingContainmentLengthError <= 0.02,
+    `containment must not stretch the guidewire (${movingContainmentLengthError * 100}% segment error)`);
+
+const supportedContainmentWorld = new EndovascularPhysicsWorld();
+const supportingWire = supportedContainmentWorld.createRod(
+    'supporting-wire', 18, 1, DEFAULT_TOOL_PROFILES.guidewire
+);
+const supportedCatheter = supportedContainmentWorld.createRod(
+    'supported-catheter', 18, 1, DEFAULT_TOOL_PROFILES.catheter
+);
+seedStraightRod(supportingWire, 0, 1, 0, 0);
+seedStraightRod(supportedCatheter, 0, 1, 0.7, 0);
+for (let index = 0; index < supportingWire.count; index++) supportingWire.setPinned(index, true);
+supportedContainmentWorld.addContainment(supportingWire, supportedCatheter, {
+    innerRadius: DEFAULT_TOOL_PROFILES.catheter.innerRadius,
+    openProximal: false,
+    openDistal: false,
+    searchWindow: 2,
+    innerResponse: 0,
+    outerResponse: 1,
+    finalProjection: 'outer',
+    outerFollowsInnerCenterline: true,
+    innerArcOffset: 0,
+    containedLength: supportingWire.segmentCount
+});
+let maximumSupportedEscape = 0;
+for (let step = 0; step < 48; step++) {
+    for (let index = 0; index < supportedCatheter.count; index++) {
+        supportedCatheter.forceY[index] += 90 * Math.sin(step * 0.17 + index * 0.31);
+        supportedCatheter.forceZ[index] += 70 * Math.cos(step * 0.13 - index * 0.27);
+    }
+    supportedContainmentWorld.stepFixed();
+    for (let index = 0; index < supportingWire.count; index++) {
+        maximumSupportedEscape = Math.max(
+            maximumSupportedEscape,
+            distanceToRodSegments(supportingWire, index, supportedCatheter) - containmentClearance
+        );
+    }
+}
+assert.ok(maximumSupportedEscape <= 0.01,
+    `a catheter advancing around a stiff guidewire must retain the wire in its lumen (${maximumSupportedEscape} mm escape)`);
+const supportedWireLengthError = supportedContainmentWorld.getStats().bodies
+    .find(body => body.id === 'supporting-wire').maxLengthError;
+assert.ok(supportedWireLengthError <= 1e-6,
+    'catheter containment must not stretch its supporting guidewire');
+
+function alternatingVelocityAfterStep(bendDamping) {
+    const world = new EndovascularPhysicsWorld();
+    const body = world.createRod('velocity-wave', 15, 1, {
+        radius: 0.1,
+        mass: 1,
+        stretchCompliance: 1,
+        bendCompliance: 1,
+        foldLimitStrength: 0,
+        linearDamping: 1,
+        bendDamping,
+        sleepFrames: 1000
+    });
+    seedStraightRod(body, 0, 1, 0, 0);
+    for (let index = 1; index < body.count - 1; index++) {
+        body.velocityY[index] = index & 1 ? 18 : -18;
+    }
+    world.stepFixed();
+    let energy = 0;
+    for (let index = 1; index < body.count - 1; index++) {
+        energy += body.velocityY[index] * body.velocityY[index];
+    }
+    return Math.sqrt(energy / (body.count - 2));
+}
+const undampedVelocityWave = alternatingVelocityAfterStep(0);
+const dampedVelocityWave = alternatingVelocityAfterStep(DEFAULT_TOOL_PROFILES.guidewire.bendDamping);
+assert.ok(dampedVelocityWave < undampedVelocityWave * 0.9,
+    'guidewire bend damping should suppress local transverse waves during insertion');
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendCompliance <= 8e-5,
+    'the catheter shaft should use a load-bearing bending profile');
+assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendDamping >= 0.3,
+    'the catheter shaft should damp visible high-frequency flexing');
+
 const foldWorld = new EndovascularPhysicsWorld();
 const foldedRod = foldWorld.createRod('fold-limit', 5, 1, {
     ...DEFAULT_TOOL_PROFILES.guidewire,
@@ -574,6 +720,43 @@ syncedRod.syncFromElasticRod({ nodeStorage: elasticStorage, nodes: new Array(3) 
 assert.equal(syncedRod.previousX[2], 2, 'kinematic sync should retain the prior pose for swept collision');
 assert.equal(syncedRod.x[2], 2.25, 'kinematic sync should install the new input pose');
 assert.equal(syncedRod.velocityX[2], 0, 'kinematic sync should not integrate the source pose twice');
+
+const profiledRod = syncWorld.createRod(
+    'profiled-guidewire',
+    5,
+    1,
+    DEFAULT_TOOL_PROFILES.guidewire
+);
+const profiledStorage = {
+    x: new Float32Array([0, 1, 2, 3, 4]),
+    y: new Float32Array(5),
+    z: new Float32Array(5),
+    vx: new Float32Array(5),
+    vy: new Float32Array(5),
+    vz: new Float32Array(5),
+    pinned: new Uint8Array(5),
+    mass: new Float32Array([1, 1, 1, 1, 1]),
+    bendingStiffness: new Float32Array([16384, 16384, 16384, 64, 64]),
+    bendAngleLimit: new Float32Array([18, 18, 18, 135, 135])
+};
+profiledRod.syncFromElasticRod(
+    { nodeStorage: profiledStorage, nodes: new Array(5) },
+    { resetVelocity: false }
+);
+assert.ok(
+    profiledRod.bendComplianceByNode[3] >= profiledRod.bendComplianceByNode[1] * 255,
+    'the distal guidewire tip should be much more flexible than the load-bearing shaft'
+);
+assert.equal(
+    profiledRod.maxBendAngleByNode[1],
+    18,
+    'the stiff guidewire shaft should reject tight local coils'
+);
+assert.equal(
+    profiledRod.maxBendAngleByNode[3],
+    135,
+    'the final 20 mm should retain the permissive soft-tip bend limit'
+);
 
 const toolWorld = new EndovascularPhysicsWorld();
 const toolA = toolWorld.createRod('tool-a', 3, 2, { radius: 0.5, stretchCompliance: 0 });

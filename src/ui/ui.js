@@ -1,7 +1,7 @@
-import { PatientMonitor } from './patientMonitor.js?v=20260721performance1';
-import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js?v=20260620rollpreview1';
-import { setupCArmControls } from '../carmControls.js?v=20260620rollpreview1';
-import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js?v=20260614carmaxis3';
+import { PatientMonitor } from './patientMonitor.js';
+import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js';
+import { setupCArmControls } from '../carmControls.js';
+import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
 import {
   GUIDEWIRE_DIAMETER_IN,
   GUIDEWIRE_DIAMETER_MM,

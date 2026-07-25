@@ -3,6 +3,18 @@ import * as THREE from 'three';
 import { generateVessel } from '../src/vesselGeometry.js';
 import { ElasticRod } from '../src/physics/elasticRod.js';
 import { GuidewireSolver } from '../src/physics/guidewireSolver.js';
+import {
+    GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES,
+    GUIDEWIRE_BODY_BENDING_STIFFNESS,
+    GUIDEWIRE_SOFT_TIP_LENGTH_MM,
+    GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES,
+    GUIDEWIRE_TIP_BENDING_STIFFNESS,
+    applyGuidewireMaterialProfile
+} from '../src/physics/guidewireMaterialProfile.js';
+import {
+    DEFAULT_TOOL_PROFILES,
+    EndovascularPhysicsWorld
+} from '../src/physics/endovascularPhysicsWorld.js';
 
 function buildProceduralSampler(vessel) {
     const origin = new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z);
@@ -71,6 +83,31 @@ const segmentLength = 5;
 const nodeCount = 201;
 const guidewireLength = segmentLength * (nodeCount - 1);
 const wire = new ElasticRod(nodeCount, segmentLength, { constraintIterations: 28 });
+applyGuidewireMaterialProfile(wire, { segmentLength });
+const materialFirstSoftIndex = wire.nodes.findIndex((_, index) => {
+    return (wire.nodes.length - 1 - index) * segmentLength < GUIDEWIRE_SOFT_TIP_LENGTH_MM;
+});
+assert.equal(
+    materialFirstSoftIndex,
+    wire.nodes.length - GUIDEWIRE_SOFT_TIP_LENGTH_MM / segmentLength,
+    'the soft guidewire material should occupy exactly the final 20 mm'
+);
+assert.ok(
+    wire.nodes.slice(0, materialFirstSoftIndex).every(
+        node =>
+            node.bendingStiffness === GUIDEWIRE_BODY_BENDING_STIFFNESS &&
+            node.bendAngleLimit === GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES
+    ),
+    'the entire guidewire shaft before the final 20 mm should use the stiff material'
+);
+assert.ok(
+    wire.nodes.slice(materialFirstSoftIndex).every(
+        node =>
+            node.bendingStiffness === GUIDEWIRE_TIP_BENDING_STIFFNESS &&
+            node.bendAngleLimit === GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES
+    ),
+    'only nodes inside the final 20 mm should use the soft-tip material'
+);
 const solver = new GuidewireSolver({
     rod: wire,
     segmentLength,
@@ -355,6 +392,134 @@ assert.ok(
 assert.ok(
     slidingWire.nodes[slidingIndex].y > slidingBeforeY,
     'feed convection near the STL wall should preserve tangential sliding'
+);
+
+const boundaryWire = new ElasticRod(slidingNodeCount, slidingSegmentLength, {
+    constraintIterations: 8
+});
+applyGuidewireMaterialProfile(boundaryWire, { segmentLength: slidingSegmentLength });
+const boundarySolver = new GuidewireSolver({
+    rod: boundaryWire,
+    segmentLength: slidingSegmentLength,
+    guidewireLength: slidingGuidewireLength,
+    sheath: slidingSheath,
+    advanceRate: 1,
+    minInsert: 0,
+    maxInsert: 24,
+    straightening: 0,
+    routeBlend: 0,
+    relaxationIterations: 1,
+    lengthIterations: 1
+});
+boundarySolver.initialize();
+boundarySolver.advance(1, 18);
+const firstBoundaryFreeIndex = boundaryWire.nodes.findIndex((_, index) => {
+    return boundarySolver.insertedCoordinate(index) > boundarySolver.sheathLength;
+});
+const boundaryBend = Math.PI / 6;
+for (let index = firstBoundaryFreeIndex; index < boundaryWire.nodes.length; index++) {
+    const local = index - firstBoundaryFreeIndex + 1;
+    boundaryWire.nodes[index].x = Math.sin(boundaryBend) * local * slidingSegmentLength;
+    boundaryWire.nodes[index].y = slidingSheath.end.y +
+        Math.cos(boundaryBend) * local * slidingSegmentLength;
+    boundaryWire.nodes[index].z = 0;
+}
+const boundaryInitialPose = boundaryWire.nodes.map(node => ({
+    x: node.x,
+    y: node.y,
+    z: node.z
+}));
+const boundaryBendIndex = firstBoundaryFreeIndex - 1;
+const boundaryInitialBend = boundaryWire.bendAngleAt(boundaryBendIndex);
+const boundaryProbeIndex = firstBoundaryFreeIndex + 5;
+const boundaryProbeBefore = {
+    x: boundaryWire.nodes[boundaryProbeIndex].x,
+    y: boundaryWire.nodes[boundaryProbeIndex].y,
+    z: boundaryWire.nodes[boundaryProbeIndex].z
+};
+boundarySolver.advance(1, 0.5, null, {
+    routeAssist: false,
+    boundaryDriven: true
+});
+const boundaryProbeAfter = boundaryWire.nodes[boundaryProbeIndex];
+assert.ok(
+    Math.hypot(
+        boundaryProbeAfter.x - boundaryProbeBefore.x,
+        boundaryProbeAfter.y - boundaryProbeBefore.y,
+        boundaryProbeAfter.z - boundaryProbeBefore.z
+    ) < 1e-9,
+    'boundary-driven feed should leave free material nodes for XPBD to move instead of replaying the old path'
+);
+assert.equal(
+    boundarySolver.getPerformanceStats().boundaryDrivenFeed,
+    true,
+    'boundary-driven feed should be visible in solver diagnostics'
+);
+
+const boundaryWorld = new EndovascularPhysicsWorld({
+    fixedDt: 1 / 120,
+    iterations: 8,
+    penetrationIterations: 8
+});
+const boundaryBody = boundaryWorld.createRod(
+    'boundary-driven-guidewire',
+    slidingNodeCount,
+    slidingSegmentLength,
+    {
+        ...DEFAULT_TOOL_PROFILES.guidewire,
+        sleepFrames: 1000
+    }
+);
+boundaryBody.syncFromElasticRod(boundaryWire, { resetVelocity: false });
+boundaryBody.setActiveRange(
+    Math.max(0, boundarySolver.firstInsertedNodeIndex() - 1),
+    boundaryBody.count - 1
+);
+for (let step = 0; step < 240; step++) {
+    boundarySolver.advance(1, 1 / 120, null, {
+        routeAssist: false,
+        boundaryDriven: true
+    });
+    boundaryBody.syncFromElasticRod(boundaryWire, { resetVelocity: false });
+    boundaryBody.setActiveRange(
+        Math.max(0, boundarySolver.firstInsertedNodeIndex() - 1),
+        boundaryBody.count - 1
+    );
+    boundaryWorld.stepFixed();
+    boundaryBody.syncToElasticRod(boundaryWire);
+}
+for (let step = 0; step < 300; step++) {
+    boundarySolver.advance(-1, 1 / 120, null, {
+        routeAssist: false,
+        boundaryDriven: true
+    });
+    boundaryBody.syncFromElasticRod(boundaryWire, { resetVelocity: false });
+    boundaryBody.setActiveRange(
+        Math.max(0, boundarySolver.firstInsertedNodeIndex() - 1),
+        boundaryBody.count - 1
+    );
+    boundaryWorld.stepFixed();
+    boundaryBody.syncToElasticRod(boundaryWire);
+}
+const boundaryCycleBend = boundaryWire.bendAngleAt(boundaryBendIndex);
+const boundaryCyclePathChange = maxNodeDrift(boundaryInitialPose, boundaryWire.nodes);
+console.log('boundary-driven path change', boundaryCyclePathChange.toFixed(4));
+console.log('boundary-driven bend', boundaryInitialBend.toFixed(2), '->', boundaryCycleBend.toFixed(2));
+console.log(
+    'boundary-driven max segment error',
+    maxSegmentLengthError(boundaryWire, slidingSegmentLength).toFixed(5)
+);
+assert.ok(
+    boundaryCyclePathChange > 0.25,
+    'changing axial load should produce a new guidewire equilibrium instead of replaying the insertion path'
+);
+assert.ok(
+    boundaryCycleBend < boundaryInitialBend * 0.75,
+    'the straight-rest XPBD rod should release stored curvature through an insertion-withdrawal cycle'
+);
+assert.ok(
+    maxSegmentLengthError(boundaryWire, slidingSegmentLength) < 0.02,
+    'boundary-driven stress redistribution should preserve the rigid guidewire length'
 );
 
 const retractingWire = new ElasticRod(slidingNodeCount, slidingSegmentLength, { constraintIterations: 8 });

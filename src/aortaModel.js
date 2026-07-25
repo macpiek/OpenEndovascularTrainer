@@ -7,7 +7,7 @@ import {
     transformAortaGeometry
 } from './aortaTransform.js';
 import { decodeCollisionAsset } from './physics/collision/collisionAssetFormat.js';
-import { createContactResult, VesselContactField } from './physics/collision/vesselContactField.js?v=20260721contactband7';
+import { createContactResult, VesselContactField } from './physics/collision/vesselContactField.js';
 import { GUIDEWIRE_RADIUS_MM } from './toolDimensions.js';
 
 function bufferHash(buffer) {

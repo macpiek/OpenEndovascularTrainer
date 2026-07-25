@@ -230,7 +230,7 @@ export class PigtailCatheter {
     }
 
     syncXpbdBody(body, {
-        shapeCompliance = 2e-4,
+        shapeCompliance = body.shapeCompliance,
         targetSlewLimit = 1,
         restLengthSlewLimit = 0.5,
         bendChordSlewLimit = 1
