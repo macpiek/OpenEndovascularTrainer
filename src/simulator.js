@@ -1,8 +1,10 @@
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { ElasticRod } from './physics/elasticRod.js';
 import { GuidewireSolver } from './physics/guidewireSolver.js';
 import { applyGuidewireMaterialProfile } from './physics/guidewireMaterialProfile.js';
+import { GuidewireResistanceEstimator } from './physics/guidewireResistance.js';
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
@@ -10,11 +12,21 @@ import {
 import { generateVessel } from './vesselGeometry.js';
 import { initUI } from './ui/ui.js';
 import { createBoneModel } from './boneModel.js';
-import { FlowContrastAgent, updateFlowContrastMesh } from './contrastFlowAgent.js';
+import { ContrastVolumeRenderer } from './contrast/contrastVolumeRenderer.js';
+import { HybridContrastSystem } from './contrast/hybridContrastSystem.js';
 import { PigtailCatheter } from './pigtailCatheter.js';
 import { createAortaModel } from './aortaModel.js';
+import { createAortoiliacDebugLabelGroup } from './anatomyDebugLabels.js';
 import { createBroadPhaseDebugGroup } from './vesselBroadPhase.js';
 import { createSmoothTubeGeometry } from './smoothTubeGeometry.js';
+import {
+    DsaRoadmapState,
+    scoreProjectedContrastRgba
+} from './imaging/dsaRoadmapState.js';
+import {
+    dsaArchiveDimensions,
+    dsaScoreDimensions
+} from './imaging/dsaCaptureSizing.js';
 import {
     GUIDEWIRE_RADIUS_MM,
     GUIDEWIRE_RENDER_RADIUS_MM,
@@ -31,6 +43,18 @@ import {
     createBrowserBenchmarkCommands,
     sampleBrowserBenchmarkCommands
 } from './benchmark/browserBenchmarkScenario.js';
+import {
+    ARCH_BOLUS_CATHETER_TARGET_MM,
+    ARCH_BOLUS_GUIDEWIRE_TARGET_MM,
+    createCatheterAortaSetupState,
+    ILIAC_BUG_CATHETER_TARGET_MM,
+    ILIAC_BUG_GUIDEWIRE_TARGET_MM,
+    RETROGRADE_GAP_CATHETER_TARGET_MM,
+    RETROGRADE_GAP_GUIDEWIRE_TARGET_MM,
+    sampleCatheterAortaSetup,
+    startCatheterAortaSetup,
+    stopCatheterAortaSetup
+} from './benchmark/catheterAortaSetup.js';
 
 const LUMEN_DEBUG_COLOR = 0x29ffd4;
 const STL_MODEL_DEBUG_COLOR = 0x4f8dff;
@@ -109,11 +133,27 @@ setLoadingMessage('Preparing renderer');
 const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
+const anatomyLabelRenderer = new CSS2DRenderer();
+anatomyLabelRenderer.setSize(window.innerWidth, window.innerHeight);
+anatomyLabelRenderer.domElement.className = 'anatomy-label-layer';
+anatomyLabelRenderer.domElement.setAttribute('aria-hidden', 'true');
+anatomyLabelRenderer.domElement.style.display = 'none';
+document.body.appendChild(anatomyLabelRenderer.domElement);
 const FLUORO_TARGET_SCALE = 0.85;
 const fluoroscopyTargetWidth = () => Math.max(1, Math.round(window.innerWidth * FLUORO_TARGET_SCALE));
 const fluoroscopyTargetHeight = () => Math.max(1, Math.round(window.innerHeight * FLUORO_TARGET_SCALE));
 const initialFluoroTargetWidth = fluoroscopyTargetWidth();
 const initialFluoroTargetHeight = fluoroscopyTargetHeight();
+const DSA_SCORE_MAX_DIMENSION = 256;
+const initialDsaArchiveDimensions = dsaArchiveDimensions(
+    initialFluoroTargetWidth,
+    initialFluoroTargetHeight
+);
+const initialDsaScoreDimensions = dsaScoreDimensions(
+    initialFluoroTargetWidth,
+    initialFluoroTargetHeight,
+    DSA_SCORE_MAX_DIMENSION
+);
 const DEVICE_MASK_TARGET_SAMPLES = renderer.capabilities.isWebGL2 ? 4 : 0;
 const deviceMaskTargetOptions = { samples: DEVICE_MASK_TARGET_SAMPLES };
 
@@ -138,8 +178,29 @@ const accumulateTarget2 = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, 
 const frontDepthTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
 const backDepthTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
 const thicknessTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const dsaMaskTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const roadmapTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const dsaFrameCaptureTarget = new THREE.WebGLRenderTarget(
+    initialDsaArchiveDimensions.width,
+    initialDsaArchiveDimensions.height
+);
+const dsaContrastScoreTarget = new THREE.WebGLRenderTarget(
+    initialDsaScoreDimensions.width,
+    initialDsaScoreDimensions.height
+);
+let dsaFrameReadback = new Uint8Array(
+    initialDsaArchiveDimensions.width *
+    initialDsaArchiveDimensions.height * 4
+);
+let dsaContrastScoreReadback = new Uint8Array(
+    initialDsaScoreDimensions.width *
+    initialDsaScoreDimensions.height * 4
+);
+const dsaSequenceFrameTextures = new Map();
+const dsaSequencePreviewUrls = new Map();
 let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
+const dsaRoadmapState = new DsaRoadmapState();
 const anatomyCameraWorld = new Float64Array(16);
 const anatomyProjectionMatrix = new Float64Array(16);
 let anatomyProjectionValid = false;
@@ -291,8 +352,16 @@ const displayMaterial = new THREE.ShaderMaterial({
         catheterTexture: { value: catheterTarget.texture },
         sheathTexture: { value: sheathTarget.texture },
         boneTexture: { value: boneTarget.texture },
+        dsaMaskTexture: { value: dsaMaskTarget.texture },
+        roadmapTexture: { value: roadmapTarget.texture },
+        cineTexture: { value: roadmapTarget.texture },
         gray: { value: new THREE.Color(0xEBEBEB) },
         fluoroscopy: { value: false },
+        dsaEnabled: { value: false },
+        dsaMaskValid: { value: false },
+        roadmapEnabled: { value: false },
+        roadmapValid: { value: false },
+        cineEnabled: { value: false },
         time: { value: 0 },
         noiseLevel: { value: 0.1 },
         imageBrightness: { value: 0.18 },
@@ -306,7 +375,10 @@ const displayMaterial = new THREE.ShaderMaterial({
         resolution: { value: new THREE.Vector2(initialFluoroTargetWidth, initialFluoroTargetHeight) },
         edgeStrength: { value: 0.1 },
         contrastOpacity: { value: 1.0 },
-        contrastGain: { value: 5.0 }
+        contrastGain: { value: 5.0 },
+        dsaGain: { value: 2.2 },
+        roadmapOpacity: { value: 0.72 },
+        roadmapBackgroundVisibility: { value: 1.0 }
 
     },
     vertexShader: displayVS,
@@ -521,6 +593,18 @@ createAortaModel(vessel, {
             segments: [vessel.sheath]
         };
         if (endovascularWorld) endovascularWorld.contactField = collision.contactField;
+        contrastSystem = new HybridContrastSystem({
+            centerlineSegments: collision.centerlineBroadPhase.segments,
+            contactField: collision.contactField,
+            sheath: vessel.sheath,
+            catheter: pigtailCatheter,
+            hemodynamics: contrastHemodynamics
+        });
+        if (contrastHydraulicParameters) {
+            contrastSystem.setInjectionHydraulicParameters(
+                contrastHydraulicParameters
+            );
+        }
         lumenDebugGroup.clear();
         lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry, {
             debugLayer: 'stlModel',
@@ -538,11 +622,19 @@ createAortaModel(vessel, {
             }));
         }
         lumenDebugGroup.add(createStlPreprocessDebug(collision.preprocessing));
-        lumenDebugGroup.add(createBroadPhaseDebugGroup(collision.centerlineBroadPhase));
+        lumenDebugGroup.add(createBroadPhaseDebugGroup(collision.centerlineBroadPhase, {
+            flowEdges: contrastSystem.flowNetwork.edges
+        }));
+        lumenDebugGroup.add(
+            createAortoiliacDebugLabelGroup(contrastSystem.flowNetwork)
+        );
         lumenDebugGroup.add(createSheathEntryDebugMarker(collision, vessel.sheath));
         applyDebugLayerVisibility();
         guidewireSolver?.requestSettle?.(90);
         pigtailCatheter?.setCollisionGeometry(collision);
+        contrastVolumeRenderer = new ContrastVolumeRenderer(contrastSystem);
+        contrastVolumeRenderer.setDebugMode(!fluoroscopy);
+        voxelGroup.add(contrastVolumeRenderer.group);
         completeLoadingMilestone(
             'aorta',
             loadingMilestones.has('skeleton') ? 'Loading skeleton model' : 'Rendering first frame'
@@ -562,15 +654,16 @@ skeletonModel.position.set(
 skeletonModel.renderOrder = -1; // ensure bones draw before vessel geometry
 scene.add(skeletonModel);
 
-// Contrast agent simulation: a centreline flow model with fast core stream,
-// slower wall layer, axial dispersion, reflux from the sheath, and downstream
-// washout through the vessel graph.
-const contrastAgent = new FlowContrastAgent(vessel, 3.5);
 const voxelGroup = alignVascularRenderObject(new THREE.Group());
 scene.add(voxelGroup);
-let contrastMesh = null;
-let contrastMeshCount = 0;
+let contrastSystem = null;
+let contrastVolumeRenderer = null;
 let contrastRenderAccumulator = 0;
+const contrastHemodynamics = {
+    cardiacOutputMlPerMin: 5000,
+    heartRateBpm: 72
+};
+let contrastHydraulicParameters = null;
 
 // Guidewire physical model (discrete elastic rod)
 const segmentLength = 5;
@@ -716,14 +809,9 @@ applyGuidewireMaterialProfile(wire, { segmentLength });
 guidewireSolver.initialize();
 tailProgress = guidewireSolver.progress;
 
-// Injection state (managed by UI callbacks)
-let injecting = false;
-let injectTime = 0;
-let injectDuration = 2; // seconds
-let injectRate = 2; // ml per second
-let injectVolume = 10; // total ml
-let remainingVolume = 0;
-let totalDose = 0;
+let displayedContrastDoseMl = 0;
+const guidewireResistanceEstimator = new GuidewireResistanceEstimator();
+let lastGuidewireAdvanceCommand = 0;
 
 // Renderable guidewire: white so the fluoroscopy shader can invert it to black.
 const wireMaterial = new THREE.MeshBasicMaterial({
@@ -770,24 +858,25 @@ const ui = initUI({
     displayMaterial,
     blendMaterial,
     wireMaterial,
-    onStartInjection: ({ rate, duration, volume }) => {
-        if (!injecting) {
-            injecting = true;
-            injectTime = 0;
-            injectRate = rate;
-            injectDuration = duration;
-            injectVolume = volume;
-            remainingVolume = injectVolume;
+    onStartInjection: ({ source, rate, volume }) => {
+        if (!contrastSystem) {
+            ui.setInjectionSourceStatus(false, 'Flow model is still loading');
+            return;
         }
+        const result = contrastSystem.startInjection({
+            source,
+            rateMlPerSec: rate,
+            volumeMl: volume
+        });
+        if (!result.ok) ui.setInjectionSourceStatus(false, result.reason);
     },
     onStopInjection: () => {
-        if (injecting) {
-            injecting = false;
-            remainingVolume = 0;
-        }
+        contrastSystem?.stopInjection();
     },
     onModeChange: (f) => {
         fluoroscopy = f;
+        anatomyLabelRenderer.domElement.style.display =
+            fluoroscopy ? 'none' : 'block';
         vesselGroup.visible = !fluoroscopy;
         sheathFluoroMesh.visible = fluoroscopy;
         lumenDebugGroup.visible = !fluoroscopy;
@@ -799,6 +888,7 @@ const ui = initUI({
         }
         skeletonModel.visible = fluoroscopy;
         displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
+        contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
     },
     onDebugLayerChange: layers => {
         Object.assign(debugLayerVisibility, layers);
@@ -807,10 +897,229 @@ const ui = initUI({
             xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
         }
     },
+    onContrastHemodynamicsChange: parameters => {
+        Object.assign(contrastHemodynamics, parameters);
+        contrastSystem?.setHemodynamics(parameters);
+    },
+    onContrastInjectionParametersChange: parameters => {
+        contrastHydraulicParameters = parameters;
+        contrastSystem?.setInjectionHydraulicParameters(parameters);
+    },
+    onPrepareCatheterAorta: () => prepareCatheterAortaScenario(),
+    onReproduceIliacContrastBug: () => prepareCatheterAortaScenario({
+        reproduceIliacBug: true
+    }),
+    onReproduceRetrogradeGap: () => prepareCatheterAortaScenario({
+        reproduceRetrogradeGap: true
+    }),
+    onReproduceArchBolus: () => prepareCatheterAortaScenario({
+        reproduceArchBolus: true
+    }),
     onStartBrowserBenchmark: durationMs => startBrowserBenchmarkScenario({ durationMs }),
     onStopBrowserBenchmark: () => stopBrowserBenchmarkScenario('ui'),
+    onRequestDsaMask: () => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.requestMaskCapture({
+            contrastVisible: contrastSystem?.hasVisibleContrast?.() === true
+        });
+        syncDsaRoadmapState();
+        return result;
+    },
+    onToggleDsa: () => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.toggleDsa();
+        syncDsaRoadmapState();
+        return result;
+    },
+    onCaptureRoadmap: () => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.requestRoadmapCapture({
+            contrastVisible: contrastSystem?.hasVisibleContrast?.() === true
+        });
+        syncDsaRoadmapState();
+        return result;
+    },
+    onToggleRoadmap: () => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.toggleRoadmap();
+        syncDsaRoadmapState();
+        return result;
+    },
+    onClearRoadmap: () => {
+        dsaRoadmapState.clearRoadmap();
+        syncDsaRoadmapState();
+    },
+    onStartDsaRecording: () => startDsaSequenceRecording(),
+    onStopDsaRecording: () => finishDsaSequenceRecording(),
+    onSelectDsaSequence: sequenceId => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.selectSequence(sequenceId);
+        syncDsaRoadmapState();
+        return result;
+    },
+    onSelectDsaFrame: (sequenceId, frameIndex) => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.selectRoadmapFrame(
+            sequenceId,
+            frameIndex
+        );
+        syncDsaRoadmapState();
+        return result;
+    },
+    onUseBestDsaFrame: sequenceId => {
+        dsaRoadmapState.stopCine();
+        const result = dsaRoadmapState.useBestFrame(sequenceId);
+        syncDsaRoadmapState();
+        return result;
+    },
+    onToggleDsaCine: sequenceId => {
+        const result = dsaRoadmapState.toggleCine(sequenceId, {
+            nowMs: performance.now()
+        });
+        syncDsaRoadmapState();
+        return result;
+    },
+    onStopDsaCine: () => {
+        const result = dsaRoadmapState.stopCine();
+        syncDsaRoadmapState();
+        return result;
+    },
 });
 const { monitor } = ui;
+
+function dsaFrameTextureKey(sequenceId, frameIndex) {
+    return `${sequenceId}:${frameIndex}`;
+}
+
+function pruneDsaFrameTextures(snapshot) {
+    const retainedKeys = new Set(
+        snapshot.sequences.flatMap(sequence =>
+            sequence.frames.map(frame => frame.storageKey)
+        )
+    );
+    for (const [storageKey, texture] of dsaSequenceFrameTextures) {
+        if (retainedKeys.has(storageKey)) continue;
+        texture.dispose();
+        dsaSequenceFrameTextures.delete(storageKey);
+    }
+    const retainedSequenceIds = new Set(
+        snapshot.sequences.map(sequence => sequence.id)
+    );
+    for (const sequenceId of dsaSequencePreviewUrls.keys()) {
+        if (!retainedSequenceIds.has(sequenceId)) {
+            dsaSequencePreviewUrls.delete(sequenceId);
+        }
+    }
+}
+
+function selectedDsaFrameTexture(snapshot) {
+    if (
+        snapshot.selectedSequenceId === null ||
+        snapshot.selectedFrameIndex === null
+    ) return null;
+    return dsaSequenceFrameTextures.get(
+        dsaFrameTextureKey(
+            snapshot.selectedSequenceId,
+            snapshot.selectedFrameIndex
+        )
+    ) || null;
+}
+
+function cineDsaFrameTexture(snapshot) {
+    if (
+        snapshot.cineSequenceId === null ||
+        snapshot.cineFrameIndex === null
+    ) return null;
+    return dsaSequenceFrameTextures.get(
+        dsaFrameTextureKey(
+            snapshot.cineSequenceId,
+            snapshot.cineFrameIndex
+        )
+    ) || null;
+}
+
+function createDsaPreviewDataUrl(texture, maxWidth = 176, maxHeight = 118) {
+    const source = texture?.image;
+    if (!source?.data || !source.width || !source.height) return '';
+    const scale = Math.min(
+        1,
+        maxWidth / source.width,
+        maxHeight / source.height
+    );
+    const width = Math.max(1, Math.round(source.width * scale));
+    const height = Math.max(1, Math.round(source.height * scale));
+    const previewCanvas = document.createElement('canvas');
+    previewCanvas.width = width;
+    previewCanvas.height = height;
+    const context = previewCanvas.getContext('2d', { alpha: false });
+    if (!context) return '';
+    const image = context.createImageData(width, height);
+    for (let y = 0; y < height; y++) {
+        const sourceY = source.height - 1 - Math.min(
+            source.height - 1,
+            Math.floor((y + 0.5) * source.height / height)
+        );
+        for (let x = 0; x < width; x++) {
+            const sourceX = Math.min(
+                source.width - 1,
+                Math.floor((x + 0.5) * source.width / width)
+            );
+            const luma = source.data[sourceX + sourceY * source.width];
+            const offset = (x + y * width) * 4;
+            image.data[offset] = luma;
+            image.data[offset + 1] = luma;
+            image.data[offset + 2] = luma;
+            image.data[offset + 3] = 255;
+        }
+    }
+    context.putImageData(image, 0, 0);
+    return previewCanvas.toDataURL('image/jpeg', 0.82);
+}
+
+function syncDsaRoadmapState() {
+    const snapshot = dsaRoadmapState.getSnapshot();
+    pruneDsaFrameTextures(snapshot);
+    const cineTexture = cineDsaFrameTexture(snapshot);
+    displayMaterial.uniforms.roadmapTexture.value =
+        selectedDsaFrameTexture(snapshot) || roadmapTarget.texture;
+    displayMaterial.uniforms.cineTexture.value =
+        cineTexture || roadmapTarget.texture;
+    displayMaterial.uniforms.dsaEnabled.value = snapshot.dsaEnabled;
+    displayMaterial.uniforms.dsaMaskValid.value = snapshot.maskValid;
+    displayMaterial.uniforms.roadmapEnabled.value = snapshot.roadmapEnabled;
+    displayMaterial.uniforms.roadmapValid.value = snapshot.roadmapValid;
+    displayMaterial.uniforms.cineEnabled.value = cineTexture !== null;
+    ui.updateDsaRoadmapState({
+        ...snapshot,
+        sequences: snapshot.sequences.map(sequence => ({
+            ...sequence,
+            previewUrl: dsaSequencePreviewUrls.get(sequence.id)?.url || '',
+            previewKey:
+                dsaSequencePreviewUrls.get(sequence.id)?.storageKey || ''
+        }))
+    });
+    return snapshot;
+}
+
+function startDsaSequenceRecording() {
+    const result = dsaRoadmapState.startSequenceRecording({
+        revision: ui.getCArmRevision(),
+        contrastVisible: contrastSystem?.hasVisibleContrast?.() === true,
+        startedAtMs: performance.now()
+    });
+    syncDsaRoadmapState();
+    return result;
+}
+
+function finishDsaSequenceRecording() {
+    const result = dsaRoadmapState.finishSequenceRecording({
+        endedAtMs: performance.now()
+    });
+    syncDsaRoadmapState();
+    return result;
+}
+
+syncDsaRoadmapState();
 const wireMesh = new THREE.Mesh(new THREE.BufferGeometry(), wireMaterial);
 wireMesh.frustumCulled = false;
 wireMesh.renderOrder = 7; // draw above translucent debug anatomy
@@ -1055,6 +1364,9 @@ const browserBenchmarkScenario = {
     stopReason: null,
     automated: false
 };
+const catheterAortaSetup = createCatheterAortaSetupState();
+const catheterAortaSetupCommands = createBrowserBenchmarkCommands();
+let catheterAortaSetupStatusBucket = -1;
 const AUTOMATED_BENCHMARK_BLOCKED_EVENTS = [
     'pointerdown',
     'mousedown',
@@ -1562,6 +1874,8 @@ function stopBrowserBenchmarkScenario(reason = 'manual') {
 function resetBrowserBenchmarkSimulation({ resetAccumulator = true } = {}) {
     guidewireSolver.reset();
     tailProgress = guidewireSolver.progress;
+    guidewireResistanceEstimator.reset();
+    lastGuidewireAdvanceCommand = 0;
     pigtailCatheter.reset();
     xpbdWireBody.syncFromElasticRod(wire);
     pigtailCatheter.syncXpbdBody(xpbdCatheterBody);
@@ -1569,6 +1883,83 @@ function resetBrowserBenchmarkSimulation({ resetAccumulator = true } = {}) {
     xpbdExternalToolContact.enabled = false;
     endovascularWorld.resetSimulationState();
     if (resetAccumulator) simulationAccumulator = 0;
+}
+
+function getCatheterAortaSetupStatus() {
+    return {
+        running: catheterAortaSetup.running,
+        phase: catheterAortaSetup.phase,
+        guidewireProgressCm: guidewireSolver.progress / 10,
+        guidewireTargetCm: catheterAortaSetup.guidewireTargetMm / 10,
+        finalGuidewireTargetCm:
+            (catheterAortaSetup.finalGuidewireTargetMm ??
+                catheterAortaSetup.guidewireTargetMm) / 10,
+        catheterProgressCm: pigtailCatheter.progress / 10,
+        catheterTargetCm: catheterAortaSetup.catheterTargetMm / 10
+    };
+}
+
+function prepareCatheterAortaScenario({
+    reproduceIliacBug = false,
+    reproduceRetrogradeGap = false,
+    reproduceArchBolus = false
+} = {}) {
+    stopBrowserBenchmarkScenario('catheter-aorta-setup');
+    resetBrowserBenchmarkSimulation();
+    startCatheterAortaSetup(
+        catheterAortaSetup,
+        reproduceArchBolus
+            ? {
+                guidewireTargetMm:
+                    ARCH_BOLUS_GUIDEWIRE_TARGET_MM,
+                catheterTargetMm:
+                    ARCH_BOLUS_CATHETER_TARGET_MM
+            }
+            : reproduceIliacBug
+            ? {
+                catheterTargetMm: ILIAC_BUG_CATHETER_TARGET_MM,
+                finalGuidewireTargetMm:
+                    ILIAC_BUG_GUIDEWIRE_TARGET_MM
+            }
+            : reproduceRetrogradeGap
+            ? {
+                catheterTargetMm:
+                    RETROGRADE_GAP_CATHETER_TARGET_MM,
+                finalGuidewireTargetMm:
+                    RETROGRADE_GAP_GUIDEWIRE_TARGET_MM
+            }
+            : undefined
+    );
+    catheterAortaSetupStatusBucket = -1;
+    const status = getCatheterAortaSetupStatus();
+    ui.updateCatheterAortaSetupStatus?.(status);
+    return status;
+}
+
+function sampleCatheterAortaScenario() {
+    if (!catheterAortaSetup.running) return null;
+    const previousPhase = catheterAortaSetup.phase;
+    const commands = sampleCatheterAortaSetup(
+        catheterAortaSetup,
+        {
+            guidewireProgressMm: guidewireSolver.progress,
+            catheterProgressMm: pigtailCatheter.progress
+        },
+        catheterAortaSetupCommands
+    );
+    const activeProgress = catheterAortaSetup.phase === 'catheter'
+        ? pigtailCatheter.progress
+        : guidewireSolver.progress;
+    const statusBucket = Math.floor(activeProgress / 10);
+    if (
+        catheterAortaSetup.phase !== previousPhase ||
+        statusBucket !== catheterAortaSetupStatusBucket ||
+        !catheterAortaSetup.running
+    ) {
+        catheterAortaSetupStatusBucket = statusBucket;
+        ui.updateCatheterAortaSetupStatus?.(getCatheterAortaSetupStatus());
+    }
+    return commands;
 }
 
 function startBrowserBenchmarkScenario({
@@ -1582,6 +1973,8 @@ function startBrowserBenchmarkScenario({
     if (!endovascularWorld.contactField) {
         throw new Error('Browser benchmark requires the precompiled vessel contact field');
     }
+    stopCatheterAortaSetup(catheterAortaSetup);
+    ui.updateCatheterAortaSetupStatus?.(getCatheterAortaSetupStatus());
     resetBrowserBenchmarkSimulation();
     resetBrowserBenchmark();
     browserBenchmarkScenario.durationMs = nextDuration;
@@ -1650,13 +2043,59 @@ globalThis.__OET_BENCHMARK__ = {
     startScenario: startBrowserBenchmarkScenario,
     stopScenario: stopBrowserBenchmarkScenario,
     getScenarioStatus: getBrowserBenchmarkScenarioStatus,
-    getLastScenarioReport: () => lastBrowserBenchmarkScenarioReport
+    getLastScenarioReport: () => lastBrowserBenchmarkScenarioReport,
+    getContrastDebugSnapshot: () => {
+        const metrics = contrastSystem?.getMetrics?.() || null;
+        const ports = pigtailCatheter.getInjectionPorts([]).map(port => ({
+            kind: port.kind,
+            position: port.position.toArray(),
+            direction: port.direction.toArray(),
+            valid: port.valid !== false
+        }));
+        const network = contrastSystem?.flowNetwork;
+        const bifurcation = network?.edges.find(edge =>
+            edge.end.y < -275 &&
+            edge.end.y > -305 &&
+            edge.radiusEnd > 6 &&
+            edge.childEdgeIndices.length === 2 &&
+            edge.childEdgeIndices.every(
+                childIndex => network.edges[childIndex].radiusStart > 6
+            )
+        );
+        const stockConcentrationMgPerMm3 =
+            contrastSystem?.medium?.iodineMgPerMl / 1000 || 0.3;
+        const iliacs = bifurcation?.childEdgeIndices.map(edgeIndex => {
+            const edge = network.edges[edgeIndex];
+            return {
+                edgeIndex,
+                meanFlowMlPerSec: edge.meanFlowMm3PerS / 1000,
+                entryStockFraction:
+                    edge.massMg[0] /
+                    Math.max(1e-9, edge.volumes[0]) /
+                    stockConcentrationMgPerMm3,
+                totalIodineMassMg: edge.massMg.reduce(
+                    (sum, mass) => sum + mass,
+                    0
+                )
+            };
+        }) || [];
+        return {
+            guidewireProgressMm: guidewireSolver.progress,
+            catheterProgressMm: pigtailCatheter.progress,
+            catheterType: pigtailCatheter.type,
+            ports,
+            metrics,
+            aortoiliacParentEdgeIndex: bifurcation?.index ?? -1,
+            iliacs
+        };
+    }
 };
 
 function advanceTailInput(advance, dt) {
     const collisionTarget = PHYSICS_MODE === 'legacy' ? vesselCollisionTarget : null;
     const delta = guidewireSolver.advance(advance, dt, collisionTarget, GUIDE_WIRE_ADVANCE_OPTIONS);
     tailProgress = guidewireSolver.progress;
+    lastGuidewireAdvanceCommand = advance;
     return delta;
 }
 
@@ -1805,16 +2244,12 @@ function updateGuidewireResistance() {
         ui.updateGuidewireResistance(0, '');
         return;
     }
-    let normalLambda = 0;
-    let activeContacts = 0;
-    for (let index = 0; index < xpbdWireBody.wallLambda.length; index++) {
-        if (!xpbdWireBody.wallActive[index]) continue;
-        normalLambda += xpbdWireBody.wallLambda[index];
-        activeContacts++;
-    }
-    const averageLambda = activeContacts ? normalLambda / activeContacts : 0;
-    const level = Math.max(0, Math.min(1, averageLambda / 0.08));
-    ui.updateGuidewireResistance(level, activeContacts ? 'Opór kontaktu prowadnika ze ścianą' : '');
+    const resistance = guidewireResistanceEstimator.update(xpbdWireBody, {
+        dt: fixedDt,
+        command: lastGuidewireAdvanceCommand,
+        atMaximumInsertion: tailProgress >= maxInsert - 1e-6
+    });
+    ui.updateGuidewireResistance(resistance.level, resistance.reason);
 }
 
 const fixedDt = PHYSICS_MODE === 'xpbd-contact-v1' ? 1 / 120 : 1 / 60;
@@ -1827,6 +2262,8 @@ let contactMarkerAccumulator = CONTACT_MARKER_UPDATE_INTERVAL;
 let guidewireMeshAccumulator = GUIDEWIRE_MESH_UPDATE_INTERVAL;
 let pigtailMeshAccumulator = PIGTAIL_MESH_UPDATE_INTERVAL;
 let browserBenchmarkUiAccumulator = Infinity;
+let injectionUiAccumulator = Infinity;
+let contrastDiagnosticsAccumulator = Infinity;
 
 function updateAutoExposure(dt) {
     const uniforms = displayMaterial.uniforms;
@@ -1869,13 +2306,14 @@ function updateXrayTechniqueReadout() {
 
 function stepSimulation(dt = fixedDt) {
     // Advance input, integrate rod physics, collisions, and update medical monitors
-    const benchmarkCommands = sampleBrowserBenchmarkScenario(dt);
-    const advance = benchmarkCommands?.guidewireAdvance ?? ui.getAdvance();
-    const catheterAdvance = benchmarkCommands?.catheterAdvance ?? ui.getCatheterAdvance();
-    const catheterRotation = benchmarkCommands?.catheterRotation ?? ui.getCatheterRotation();
+    const automatedCommands =
+        sampleCatheterAortaScenario() || sampleBrowserBenchmarkScenario(dt);
+    const advance = automatedCommands?.guidewireAdvance ?? ui.getAdvance();
+    const catheterAdvance = automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance();
+    const catheterRotation = automatedCommands?.catheterRotation ?? ui.getCatheterRotation();
     advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
-    pigtailCatheter.setType(benchmarkCommands?.catheterType ?? ui.getSelectedCatheterType());
+    pigtailCatheter.setType(automatedCommands?.catheterType ?? ui.getSelectedCatheterType());
     pigtailCatheter.advance(catheterAdvance, dt, inserted);
     pigtailCatheter.rotate(catheterRotation, dt);
     if (PHYSICS_MODE === 'xpbd-contact-v1') {
@@ -1963,19 +2401,15 @@ function stepSimulation(dt = fixedDt) {
     ui.updateInsertedLength(inserted / 10);
     ui.updateCatheterLength(pigtailCatheter.progress / 10);
 
-    if (injecting) {
-        const amt = Math.min(injectRate * dt, remainingVolume);
-        contrastAgent.injectThroughSheath(amt, injectRate);
-        totalDose += amt;
-        ui.updateDose(totalDose);
-        injectTime += dt;
-        remainingVolume -= amt;
-        if (injectTime >= injectDuration || remainingVolume <= 0) {
-            injecting = false;
-            ui.setStopInjectionDisabled(true);
+    if (contrastSystem) {
+        contrastSystem.update(dt);
+        if (
+            Math.abs(contrastSystem.totalDeliveredVolumeMl - displayedContrastDoseMl) >= 0.01
+        ) {
+            displayedContrastDoseMl = contrastSystem.totalDeliveredVolumeMl;
+            ui.updateDose(displayedContrastDoseMl);
         }
     }
-    contrastAgent.update(dt);
     monitor.update(dt);
 }
 
@@ -2053,6 +2487,197 @@ function updateStaticAnatomyProjection() {
     renderer.setRenderTarget(null);
 }
 
+function renderDisplayCapture(target, {
+    dsaEnabled = false,
+    dsaMaskValid = false
+} = {}) {
+    const uniforms = displayMaterial.uniforms;
+    const previousDsaEnabled = uniforms.dsaEnabled.value;
+    const previousDsaMaskValid = uniforms.dsaMaskValid.value;
+    const previousRoadmapEnabled = uniforms.roadmapEnabled.value;
+    const previousRoadmapValid = uniforms.roadmapValid.value;
+    const previousCineEnabled = uniforms.cineEnabled.value;
+    const previousDsaMaskTexture = uniforms.dsaMaskTexture.value;
+    const previousRoadmapTexture = uniforms.roadmapTexture.value;
+    const previousResolutionX = uniforms.resolution.value.x;
+    const previousResolutionY = uniforms.resolution.value.y;
+
+    uniforms.dsaEnabled.value = dsaEnabled;
+    uniforms.dsaMaskValid.value = dsaMaskValid;
+    uniforms.roadmapEnabled.value = false;
+    uniforms.roadmapValid.value = false;
+    uniforms.cineEnabled.value = false;
+    uniforms.resolution.value.set(target.width, target.height);
+
+    // Never bind a render target as a sampler while writing into it.
+    if (target === dsaMaskTarget) {
+        uniforms.dsaMaskTexture.value = roadmapTarget.texture;
+    }
+    if (target === roadmapTarget) {
+        uniforms.roadmapTexture.value = dsaMaskTarget.texture;
+    }
+
+    renderer.setRenderTarget(target);
+    renderer.clear();
+    renderer.render(displayScene, postCamera);
+
+    uniforms.dsaEnabled.value = previousDsaEnabled;
+    uniforms.dsaMaskValid.value = previousDsaMaskValid;
+    uniforms.roadmapEnabled.value = previousRoadmapEnabled;
+    uniforms.roadmapValid.value = previousRoadmapValid;
+    uniforms.cineEnabled.value = previousCineEnabled;
+    uniforms.dsaMaskTexture.value = previousDsaMaskTexture;
+    uniforms.roadmapTexture.value = previousRoadmapTexture;
+    uniforms.resolution.value.set(previousResolutionX, previousResolutionY);
+}
+
+function createArchivedDsaFrame() {
+    const width = dsaFrameCaptureTarget.width;
+    const height = dsaFrameCaptureTarget.height;
+    const requiredLength = width * height * 4;
+    if (dsaFrameReadback.length !== requiredLength) {
+        dsaFrameReadback = new Uint8Array(requiredLength);
+    }
+    renderer.readRenderTargetPixels(
+        dsaFrameCaptureTarget,
+        0,
+        0,
+        width,
+        height,
+        dsaFrameReadback
+    );
+    const redChannel = new Uint8Array(width * height);
+    for (let index = 0; index < redChannel.length; index++) {
+        redChannel[index] = dsaFrameReadback[index * 4];
+    }
+    const textureFormat = renderer.capabilities.isWebGL2
+        ? THREE.RedFormat
+        : THREE.LuminanceFormat;
+    const texture = new THREE.DataTexture(
+        redChannel,
+        width,
+        height,
+        textureFormat,
+        THREE.UnsignedByteType
+    );
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.generateMipmaps = false;
+    texture.flipY = false;
+    texture.colorSpace = THREE.NoColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+}
+
+function projectedContrastScore() {
+    renderer.setRenderTarget(dsaContrastScoreTarget);
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear();
+    renderer.render(contrastScene, camera);
+    renderer.setClearColor(0x000000, 1);
+    const width = dsaContrastScoreTarget.width;
+    const height = dsaContrastScoreTarget.height;
+    const requiredLength = width * height * 4;
+    if (dsaContrastScoreReadback.length !== requiredLength) {
+        dsaContrastScoreReadback = new Uint8Array(requiredLength);
+    }
+    renderer.readRenderTargetPixels(
+        dsaContrastScoreTarget,
+        0,
+        0,
+        width,
+        height,
+        dsaContrastScoreReadback
+    );
+    return scoreProjectedContrastRgba(
+        dsaContrastScoreReadback,
+        width,
+        height,
+        {
+            collimation:
+                displayMaterial.uniforms.collimation.value
+        }
+    );
+}
+
+function captureDsaSequenceFrame() {
+    const contrastScore = projectedContrastScore();
+    renderDisplayCapture(dsaFrameCaptureTarget, {
+        dsaEnabled: true,
+        dsaMaskValid: true
+    });
+    const archivedTexture = createArchivedDsaFrame();
+    const appended = dsaRoadmapState.appendRecordingFrame({
+        contrastScore,
+        capturedAtMs: performance.now()
+    });
+    if (!appended.ok) {
+        archivedTexture.dispose();
+        return appended;
+    }
+    archivedTexture.name = `dsa-sequence-${appended.storageKey}`;
+    dsaSequenceFrameTextures.set(appended.storageKey, archivedTexture);
+    if (appended.isBest) {
+        dsaSequencePreviewUrls.set(appended.sequenceId, {
+            storageKey: appended.storageKey,
+            url: createDsaPreviewDataUrl(archivedTexture)
+        });
+    }
+    if (appended.shouldStop) {
+        dsaRoadmapState.finishSequenceRecording({
+            endedAtMs: performance.now()
+        });
+    }
+    return appended;
+}
+
+function processDsaRoadmapCapture() {
+    const revision = ui.getCArmRevision();
+    const nowMs = performance.now();
+    let snapshot = dsaRoadmapState.getSnapshot();
+    const contrastVisible = contrastSystem?.hasVisibleContrast?.() === true;
+    let maskCapturedThisPulse = false;
+
+    if (
+        snapshot.maskCapturePending &&
+        dsaRoadmapState.isMaskCaptureReady({ nowMs })
+    ) {
+        renderDisplayCapture(dsaMaskTarget, {
+            dsaEnabled: false,
+            dsaMaskValid: false
+        });
+        dsaRoadmapState.markMaskCaptured(revision, { nowMs });
+        maskCapturedThisPulse = true;
+        snapshot = syncDsaRoadmapState();
+    }
+
+    if (snapshot.roadmapCapturePending) {
+        if (!contrastVisible) {
+            dsaRoadmapState.failRoadmapCapture(
+                'Contrast is no longer visible · inject before capturing roadmap'
+            );
+        } else {
+            renderDisplayCapture(roadmapTarget, {
+                dsaEnabled: true,
+                dsaMaskValid: true
+            });
+            dsaRoadmapState.markRoadmapCaptured(revision);
+        }
+        snapshot = syncDsaRoadmapState();
+    }
+
+    if (
+        snapshot.recording &&
+        snapshot.maskValid &&
+        !maskCapturedThisPulse
+    ) {
+        captureDsaSequenceFrame();
+        syncDsaRoadmapState();
+    }
+}
+
 function animate(time) {
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
     const frameCpuStartedAt = performance.now();
@@ -2085,22 +2710,19 @@ function animate(time) {
         pigtailMeshAccumulator = 0;
         pigtailCatheter.updateMesh();
     }
-    const contrastShouldRender = injecting || contrastAgent.hasVisibleContrast() || contrastMeshCount > 0;
+    const contrastShouldRender = !!contrastSystem && (
+        contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()
+    );
     if (contrastShouldRender) {
         contrastRenderAccumulator += dt;
-        const contrastRenderInterval = injecting ? 1 / 30 : 1 / 24;
-        if (!contrastMesh || contrastRenderAccumulator >= contrastRenderInterval) {
+        const contrastRenderInterval = contrastSystem.isInjecting ? 1 / 30 : 1 / 24;
+        if (contrastRenderAccumulator >= contrastRenderInterval) {
             contrastRenderAccumulator = 0;
-            const contrastRender = updateFlowContrastMesh(contrastAgent, 0.01, !fluoroscopy, contrastMesh, 6000);
-            contrastMeshCount = contrastRender.count;
-            if (contrastRender.mesh && contrastRender.mesh !== contrastMesh) {
-                if (contrastMesh) voxelGroup.remove(contrastMesh);
-                contrastMesh = contrastRender.mesh;
-                voxelGroup.add(contrastMesh);
-            }
+            contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
+            contrastVolumeRenderer?.update();
         }
-    } else if (contrastMesh) {
-        contrastMesh.visible = false;
+    } else if (contrastVolumeRenderer) {
+        contrastVolumeRenderer.group.visible = false;
     }
 
     if (fluoroscopy && voxelGroup.parent !== contrastScene) {
@@ -2110,16 +2732,55 @@ function animate(time) {
         contrastScene.remove(voxelGroup);
         scene.add(voxelGroup);
     }
-    const contrastActive = contrastMeshCount > 0 || injecting || contrastAgent.hasVisibleContrast();
-
     vesselGroup.visible = !fluoroscopy;
     sheathFluoroMesh.visible = fluoroscopy;
     if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
     if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
     if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
     skeletonModel.visible = fluoroscopy;
-    ui.setInjectButtonDisabled(contrastActive);
-    ui.setStopInjectionDisabled(!injecting);
+    injectionUiAccumulator += dt;
+    if (injectionUiAccumulator >= 0.1) {
+        injectionUiAccumulator = 0;
+        const injectionSourceStatus = contrastSystem
+            ? contrastSystem.getSourceStatus(ui.getInjectionSource())
+            : { valid: false, label: '', reason: 'Loading flow model' };
+        ui.setInjectButtonDisabled(!injectionSourceStatus.valid || !!contrastSystem?.isInjecting);
+        ui.setStopInjectionDisabled(!contrastSystem?.isInjecting);
+        ui.setInjectionSourceStatus(
+            injectionSourceStatus.valid,
+            contrastSystem?.isInjecting
+                ? `Injecting via ${injectionSourceStatus.label}`
+                : injectionSourceStatus.reason || `${injectionSourceStatus.label} ready`
+        );
+        const injectionRequest = ui.getInjectionRequest();
+        const injectionPreview = contrastSystem
+            ? contrastSystem.isInjecting
+                ? {
+                    valid: true,
+                    source: contrastSystem.injection.source,
+                    ...contrastSystem.injection.hydraulics
+                }
+                : contrastSystem.getInjectionPreview(injectionRequest)
+            : {
+                valid: false,
+                reason: 'Flow model is still loading'
+            };
+        ui.updateInjectionHydraulics(injectionPreview);
+    }
+    contrastDiagnosticsAccumulator += dt;
+    if (contrastDiagnosticsAccumulator >= 0.25) {
+        contrastDiagnosticsAccumulator = 0;
+        ui.updateContrastDiagnostics(contrastSystem?.getMetrics?.() || null);
+    }
+    if (
+        dsaRoadmapState.invalidateForGeometryRevision(
+            ui.getCArmRevision()
+        )
+    ) {
+        syncDsaRoadmapState();
+    }
+    const cineAdvance = dsaRoadmapState.advanceCine({ nowMs: time });
+    if (cineAdvance.changed) syncDsaRoadmapState();
     browserBenchmarkUiAccumulator += dt;
     if (browserBenchmarkUiAccumulator >= 0.25) {
         browserBenchmarkUiAccumulator = 0;
@@ -2209,6 +2870,8 @@ function animate(time) {
         displayMaterial.uniforms.sheathTexture.value = sheathTarget.texture;
         displayMaterial.uniforms.boneTexture.value = boneTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
+        processDsaRoadmapCapture();
+        renderer.setRenderTarget(null);
         renderer.render(displayScene, postCamera);
         completeFirstLoadedFrame();
 
@@ -2221,6 +2884,7 @@ function animate(time) {
         updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
+        anatomyLabelRenderer.render(scene, camera);
         completeFirstLoadedFrame();
     }
 
@@ -2238,6 +2902,7 @@ window.addEventListener('resize', () => {
     const targetWidth = Math.max(1, Math.round(w * FLUORO_TARGET_SCALE));
     const targetHeight = Math.max(1, Math.round(h * FLUORO_TARGET_SCALE));
     renderer.setSize(w, h);
+    anatomyLabelRenderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     offscreenTarget.setSize(targetWidth, targetHeight);
@@ -2251,6 +2916,34 @@ window.addEventListener('resize', () => {
     frontDepthTarget.setSize(targetWidth, targetHeight);
     backDepthTarget.setSize(targetWidth, targetHeight);
     thicknessTarget.setSize(targetWidth, targetHeight);
+    dsaMaskTarget.setSize(targetWidth, targetHeight);
+    roadmapTarget.setSize(targetWidth, targetHeight);
+    const archiveDimensions = dsaArchiveDimensions(
+        targetWidth,
+        targetHeight
+    );
+    dsaFrameCaptureTarget.setSize(
+        archiveDimensions.width,
+        archiveDimensions.height
+    );
+    dsaFrameReadback = new Uint8Array(
+        archiveDimensions.width * archiveDimensions.height * 4
+    );
+    const scoreDimensions = dsaScoreDimensions(
+        targetWidth,
+        targetHeight,
+        DSA_SCORE_MAX_DIMENSION
+    );
+    const scoreWidth = scoreDimensions.width;
+    const scoreHeight = scoreDimensions.height;
+    dsaContrastScoreTarget.setSize(scoreWidth, scoreHeight);
+    dsaContrastScoreReadback = new Uint8Array(
+        scoreWidth * scoreHeight * 4
+    );
+    dsaRoadmapState.invalidate(
+        'Detector resized · saved roadmap retained · hold R for a new DSA view'
+    );
+    syncDsaRoadmapState();
     anatomyProjectionValid = false;
     displayMaterial.uniforms.resolution.value.set(targetWidth, targetHeight);
 });

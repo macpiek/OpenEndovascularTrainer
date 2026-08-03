@@ -41,8 +41,15 @@ const VOLUME_RESCUE_EDGE_LIMIT = 3;
 const CENTERLINE_COLOR = 0xfff36a;
 const CENTERLINE_NODE_COLOR = 0xffffff;
 const CENTERLINE_BRANCH_NODE_COLOR = 0xff4fd8;
+const CENTERLINE_FLOW_ARROW_COLOR = 0xff6b35;
 const CENTERLINE_NODE_RADIUS = 1.05;
 const CENTERLINE_BRANCH_NODE_RADIUS = 1.75;
+const CENTERLINE_FLOW_ARROW_SPACING = 14;
+const CENTERLINE_FLOW_ARROW_OFFSET = 7;
+const CENTERLINE_FLOW_ARROW_SHAFT_LENGTH = 3.8;
+const CENTERLINE_FLOW_ARROW_HEAD_LENGTH = 3;
+const CENTERLINE_FLOW_ARROW_HEAD_RADIUS = 0.95;
+const CENTERLINE_FLOW_ARROW_LIMIT = 1600;
 const CAPSULE_COLOR = 0x39a6ff;
 const CAPSULE_EDGE_COLOR = 0x8fd8ff;
 
@@ -1831,8 +1838,181 @@ function createCenterlineNodeMesh(nodes, {
     return mesh;
 }
 
+export function buildCenterlineFlowArrowSamples(flowEdges, {
+    spacing = CENTERLINE_FLOW_ARROW_SPACING,
+    offset = CENTERLINE_FLOW_ARROW_OFFSET,
+    maxArrows = CENTERLINE_FLOW_ARROW_LIMIT
+} = {}) {
+    if (!Array.isArray(flowEdges) || !flowEdges.length) return [];
+
+    const safeSpacing = Number.isFinite(spacing) && spacing > 0
+        ? spacing
+        : CENTERLINE_FLOW_ARROW_SPACING;
+    const safeOffset = Number.isFinite(offset)
+        ? THREE.MathUtils.euclideanModulo(offset, safeSpacing)
+        : CENTERLINE_FLOW_ARROW_OFFSET;
+    const safeLimit = Number.isFinite(maxArrows) && maxArrows >= 0
+        ? Math.floor(maxArrows)
+        : CENTERLINE_FLOW_ARROW_LIMIT;
+    if (safeLimit === 0) return [];
+
+    const edgeByIndex = new Map();
+    for (let arrayIndex = 0; arrayIndex < flowEdges.length; arrayIndex++) {
+        const edge = flowEdges[arrayIndex];
+        edgeByIndex.set(Number.isInteger(edge?.index) ? edge.index : arrayIndex, edge);
+    }
+
+    const startDistanceByIndex = new Map();
+    const resolving = new Set();
+    const edgeLength = edge => {
+        if (Number.isFinite(edge?.length) && edge.length > 1e-8) return edge.length;
+        return toVector3(edge?.start).distanceTo(toVector3(edge?.end));
+    };
+    const distanceToEdgeStart = (edge, edgeIndex) => {
+        if (startDistanceByIndex.has(edgeIndex)) return startDistanceByIndex.get(edgeIndex);
+        if (resolving.has(edgeIndex)) return 0;
+        resolving.add(edgeIndex);
+        const parentIndex = Number.isInteger(edge?.parentEdgeIndex)
+            ? edge.parentEdgeIndex
+            : -1;
+        const parent = parentIndex >= 0 ? edgeByIndex.get(parentIndex) : null;
+        const startDistance = parent
+            ? distanceToEdgeStart(parent, parentIndex) + edgeLength(parent)
+            : 0;
+        resolving.delete(edgeIndex);
+        startDistanceByIndex.set(edgeIndex, startDistance);
+        return startDistance;
+    };
+
+    const samples = [];
+    for (let arrayIndex = 0; arrayIndex < flowEdges.length; arrayIndex++) {
+        const edge = flowEdges[arrayIndex];
+        if (!edge?.start || !edge?.end) continue;
+        const edgeIndex = Number.isInteger(edge.index) ? edge.index : arrayIndex;
+        const start = toVector3(edge.start);
+        const end = toVector3(edge.end);
+        const axis = end.clone().sub(start);
+        const length = axis.length();
+        if (length <= 1e-8) continue;
+        axis.multiplyScalar(1 / length);
+
+        const startDistance = distanceToEdgeStart(edge, edgeIndex);
+        const endDistance = startDistance + length;
+        let ordinal = Math.floor((startDistance - safeOffset) / safeSpacing) + 1;
+        let targetDistance = safeOffset + ordinal * safeSpacing;
+        while (targetDistance <= endDistance + 1e-8) {
+            const t = THREE.MathUtils.clamp(
+                (targetDistance - startDistance) / length,
+                0,
+                1
+            );
+            samples.push({
+                edgeIndex,
+                t,
+                distanceFromHeart: targetDistance,
+                position: start.clone().lerp(end, t),
+                direction: axis.clone()
+            });
+            if (samples.length >= safeLimit) return samples;
+            ordinal++;
+            targetDistance = safeOffset + ordinal * safeSpacing;
+        }
+    }
+    return samples;
+}
+
+export function createCenterlineFlowArrowGroup(flowEdges, options = {}) {
+    const samples = buildCenterlineFlowArrowSamples(flowEdges, options);
+    const group = new THREE.Group();
+    group.userData.debugLayer = 'centerline';
+    group.userData.flowDirection = 'heart-to-periphery';
+    group.userData.flowArrowCount = samples.length;
+    if (!samples.length) return group;
+
+    const shaftLength = Number.isFinite(options.shaftLength) && options.shaftLength > 0
+        ? options.shaftLength
+        : CENTERLINE_FLOW_ARROW_SHAFT_LENGTH;
+    const headLength = Number.isFinite(options.headLength) && options.headLength > 0
+        ? options.headLength
+        : CENTERLINE_FLOW_ARROW_HEAD_LENGTH;
+    const headRadius = Number.isFinite(options.headRadius) && options.headRadius > 0
+        ? options.headRadius
+        : CENTERLINE_FLOW_ARROW_HEAD_RADIUS;
+    const color = options.color ?? CENTERLINE_FLOW_ARROW_COLOR;
+    const shaftPositions = new Float32Array(samples.length * 6);
+    const headGeometry = new THREE.ConeGeometry(headRadius, headLength, 8, 1, false);
+    const arrowMaterial = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.96,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false
+    });
+    const heads = new THREE.InstancedMesh(
+        headGeometry,
+        arrowMaterial,
+        samples.length
+    );
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    const headCenter = new THREE.Vector3();
+    const shaftStart = new THREE.Vector3();
+    const shaftEnd = new THREE.Vector3();
+    const unitScale = new THREE.Vector3(1, 1, 1);
+    const up = new THREE.Vector3(0, 1, 0);
+
+    for (let index = 0; index < samples.length; index++) {
+        const { position, direction } = samples[index];
+        quaternion.setFromUnitVectors(up, direction);
+        headCenter.copy(position).addScaledVector(direction, -headLength * 0.5);
+        matrix.compose(headCenter, quaternion, unitScale);
+        heads.setMatrixAt(index, matrix);
+
+        shaftEnd.copy(position).addScaledVector(direction, -headLength);
+        shaftStart.copy(shaftEnd).addScaledVector(direction, -shaftLength);
+        const offsetIndex = index * 6;
+        shaftPositions[offsetIndex] = shaftStart.x;
+        shaftPositions[offsetIndex + 1] = shaftStart.y;
+        shaftPositions[offsetIndex + 2] = shaftStart.z;
+        shaftPositions[offsetIndex + 3] = shaftEnd.x;
+        shaftPositions[offsetIndex + 4] = shaftEnd.y;
+        shaftPositions[offsetIndex + 5] = shaftEnd.z;
+    }
+
+    heads.frustumCulled = false;
+    heads.instanceMatrix.needsUpdate = true;
+    heads.renderOrder = 9.89;
+    heads.userData.debugLayer = 'centerline';
+    heads.userData.flowDirection = 'heart-to-periphery';
+    group.add(heads);
+
+    const shaftGeometry = new THREE.BufferGeometry();
+    shaftGeometry.setAttribute('position', new THREE.BufferAttribute(shaftPositions, 3));
+    const shafts = new THREE.LineSegments(
+        shaftGeometry,
+        new THREE.LineBasicMaterial({
+            color,
+            transparent: true,
+            opacity: 0.92,
+            depthTest: false,
+            depthWrite: false,
+            toneMapped: false
+        })
+    );
+    shafts.frustumCulled = false;
+    shafts.renderOrder = 9.87;
+    shafts.userData.debugLayer = 'centerline';
+    shafts.userData.flowDirection = 'heart-to-periphery';
+    group.add(shafts);
+
+    return group;
+}
+
 export function createBroadPhaseDebugGroup(broadPhase, {
-    maxCapsules = DEFAULT_MAX_DEBUG_CAPSULES
+    maxCapsules = DEFAULT_MAX_DEBUG_CAPSULES,
+    flowEdges = null,
+    flowArrowOptions = {}
 } = {}) {
     const group = new THREE.Group();
     if (!broadPhase?.segments?.length) return group;
@@ -1885,6 +2065,9 @@ export function createBroadPhaseDebugGroup(broadPhase, {
     });
     if (branchNodeMesh) group.add(branchNodeMesh);
 
+    const flowArrowGroup = createCenterlineFlowArrowGroup(flowEdges, flowArrowOptions);
+    if (flowArrowGroup.userData.flowArrowCount > 0) group.add(flowArrowGroup);
+
     const capsuleStep = Number.isFinite(maxCapsules) && maxCapsules > 0
         ? Math.max(1, Math.ceil(broadPhase.segments.length / maxCapsules))
         : 1;
@@ -1936,5 +2119,7 @@ export function createBroadPhaseDebugGroup(broadPhase, {
     group.userData.displayedSegmentCount = shownSegments.length;
     group.userData.centerlineNodeCount = centerlineNodes.length;
     group.userData.centerlineBranchNodeCount = branchNodes.length;
+    group.userData.centerlineFlowArrowCount = flowArrowGroup.userData.flowArrowCount;
+    group.userData.centerlineFlowDirection = flowArrowGroup.userData.flowDirection;
     return group;
 }

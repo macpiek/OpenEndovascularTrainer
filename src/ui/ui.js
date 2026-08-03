@@ -28,8 +28,27 @@ export function initUI(options) {
     onStopInjection,
     onModeChange,
     onDebugLayerChange,
+    onContrastHemodynamicsChange,
+    onContrastInjectionParametersChange,
+    onInjectionRequestChange,
+    onPrepareCatheterAorta,
+    onReproduceIliacContrastBug,
+    onReproduceRetrogradeGap,
+    onReproduceArchBolus,
     onStartBrowserBenchmark,
     onStopBrowserBenchmark,
+    onRequestDsaMask,
+    onToggleDsa,
+    onCaptureRoadmap,
+    onToggleRoadmap,
+    onClearRoadmap,
+    onStartDsaRecording,
+    onStopDsaRecording,
+    onSelectDsaSequence,
+    onSelectDsaFrame,
+    onUseBestDsaFrame,
+    onToggleDsaCine,
+    onStopDsaCine,
   } = options;
 
   // Patient monitor
@@ -73,11 +92,33 @@ export function initUI(options) {
   const debugSectionsToggle = document.getElementById('showDebugSections');
   const debugCenterlineToggle = document.getElementById('showDebugCenterline');
   const debugCapsulesToggle = document.getElementById('showDebugCapsules');
+  const cardiacOutputSlider = document.getElementById('cardiacOutput');
+  const contrastHeartRateSlider = document.getElementById('contrastHeartRate');
   const injectButton = document.getElementById('injectContrast');
   const stopInjectButton = document.getElementById('stopInjection');
   const injRateSlider = document.getElementById('injRate');
-  const injDurationSlider = document.getElementById('injDuration');
+  const injDurationOutput = document.getElementById('injDuration');
   const injVolumeSlider = document.getElementById('injVolume');
+  const injectionVolumePresetButtons = Array.from(
+    document.querySelectorAll('[data-injection-volume]')
+  );
+  const injSourceSelect = document.getElementById('injSource');
+  const injectionSourceStatusEl = document.getElementById('injectionSourceStatus');
+  const injectionHydraulicSummaryEl = document.getElementById('injectionHydraulicSummary');
+  const injActualRateOutput = document.getElementById('injActualRate');
+  const injPressureOutput = document.getElementById('injPressure');
+  const injPressureWarningOutput = document.getElementById('injPressureWarning');
+  const injectorPressureLimitSlider = document.getElementById('injectorPressureLimit');
+  const contrastViscositySlider = document.getElementById('contrastViscosity');
+  const sheathHydraulicLengthSlider = document.getElementById('sheathHydraulicLength');
+  const sheathInnerDiameterSlider = document.getElementById('sheathInnerDiameter');
+  const sheathPressureRatingSlider = document.getElementById('sheathPressureRating');
+  const berensteinHydraulicLengthSlider = document.getElementById('berensteinHydraulicLength');
+  const berensteinInnerDiameterSlider = document.getElementById('berensteinInnerDiameter');
+  const berensteinPressureRatingSlider = document.getElementById('berensteinPressureRating');
+  const pigtailHydraulicLengthSlider = document.getElementById('pigtailHydraulicLength');
+  const pigtailInnerDiameterSlider = document.getElementById('pigtailInnerDiameter');
+  const pigtailPressureRatingSlider = document.getElementById('pigtailPressureRating');
   const autoExposureToggle = document.getElementById('autoExposureToggle');
   const persistenceSlider = document.getElementById('persistence');
   const pulseRateSlider = document.getElementById('pulseRate');
@@ -90,6 +131,26 @@ export function initUI(options) {
   const boneVisibilitySlider = document.getElementById('boneVisibility');
   const contrastOpacitySlider = document.getElementById('opacityScale');
   const contrastGainSlider = document.getElementById('gain');
+  const acquireDsaMaskButton = document.getElementById('acquireDsaMask');
+  const toggleDsaButton = document.getElementById('toggleDsa');
+  const recordDsaSequenceButton = document.getElementById('recordDsaSequence');
+  const captureRoadmapButton = document.getElementById('captureRoadmap');
+  const toggleRoadmapButton = document.getElementById('toggleRoadmap');
+  const clearRoadmapButton = document.getElementById('clearRoadmap');
+  const dsaSequenceSelect = document.getElementById('dsaSequenceSelect');
+  const dsaFrameSelect = document.getElementById('dsaFrameSelect');
+  const useBestDsaFrameButton = document.getElementById('useBestDsaFrame');
+  const dsaFrameInfoEl = document.getElementById('dsaFrameInfo');
+  const dsaSequenceGalleryEl = document.getElementById('dsaSequenceGallery');
+  const dsaCineControlsEl = document.getElementById('dsaCineControls');
+  const dsaCineStatusEl = document.getElementById('dsaCineStatus');
+  const dsaCinePlayPauseButton = document.getElementById('dsaCinePlayPause');
+  const dsaCineStopButton = document.getElementById('dsaCineStop');
+  const roadmapOpacitySlider = document.getElementById('roadmapOpacity');
+  const roadmapBackgroundSlider = document.getElementById('roadmapBackground');
+  const dsaGainSlider = document.getElementById('dsaGain');
+  const dsaRoadmapStatusEl = document.getElementById('dsaRoadmapStatus');
+  const imagingModeBadgeEl = document.getElementById('imagingModeBadge');
   const insertedLengthEl = document.getElementById('insertedLength');
   const catheterLengthEl = document.getElementById('catheterLength');
   const guidewireAutoWithdrawButton = document.getElementById('guidewireAutoWithdraw');
@@ -110,10 +171,16 @@ export function initUI(options) {
   const guidewireResistanceValueEl = document.getElementById('guidewireResistanceValue');
   const guidewireResistanceFillEl = document.getElementById('guidewireResistanceFill');
   const guidewireDiagnosticsEl = document.getElementById('guidewireDiagnostics');
+  const contrastDiagnosticsEl = document.getElementById('contrastDiagnostics');
   const guidewireDiameterEl = document.getElementById('guidewireDiameter');
   const sheathDiameterEl = document.getElementById('sheathDiameter');
   const catheterDiameterEl = document.getElementById('catheterDiameter');
   const perfStatsEl = document.getElementById('perfStats');
+  const prepareCatheterAortaButton = document.getElementById('prepareCatheterAorta');
+  const reproduceIliacContrastBugButton = document.getElementById('reproduceIliacContrastBug');
+  const reproduceRetrogradeGapButton = document.getElementById('reproduceRetrogradeGap');
+  const reproduceArchBolusButton = document.getElementById('reproduceArchBolus');
+  const catheterAortaSetupStatusEl = document.getElementById('catheterAortaSetupStatus');
   const runBrowserBenchmarkSmokeButton = document.getElementById('runBrowserBenchmarkSmoke');
   const runBrowserBenchmarkFullButton = document.getElementById('runBrowserBenchmarkFull');
   const stopBrowserBenchmarkButton = document.getElementById('stopBrowserBenchmark');
@@ -182,7 +249,7 @@ export function initUI(options) {
   let doseDisplay = '';
   let kvDisplay = '';
   let maDisplay = '';
-  let resistanceVisible = null;
+  let resistanceModerate = null;
   let resistanceStrong = null;
   let resistancePercent = -1;
   let resistanceReason = '';
@@ -268,6 +335,18 @@ export function initUI(options) {
   });
   updateToolSelectionLocks();
 
+  prepareCatheterAortaButton?.addEventListener('click', () => {
+    if (typeof onPrepareCatheterAorta === 'function') onPrepareCatheterAorta();
+  });
+  reproduceIliacContrastBugButton?.addEventListener('click', () => {
+    if (typeof onReproduceIliacContrastBug === 'function') onReproduceIliacContrastBug();
+  });
+  reproduceRetrogradeGapButton?.addEventListener('click', () => {
+    if (typeof onReproduceRetrogradeGap === 'function') onReproduceRetrogradeGap();
+  });
+  reproduceArchBolusButton?.addEventListener('click', () => {
+    if (typeof onReproduceArchBolus === 'function') onReproduceArchBolus();
+  });
   runBrowserBenchmarkSmokeButton?.addEventListener('click', () => {
     if (typeof onStartBrowserBenchmark === 'function') onStartBrowserBenchmark(5000);
   });
@@ -315,7 +394,8 @@ export function initUI(options) {
     contrastGainSlider,
     injVolumeSlider,
     injRateSlider,
-    injDurationSlider
+    cardiacOutputSlider,
+    contrastHeartRateSlider
   ].filter(Boolean);
   sliders.forEach(s => s.addEventListener('change', () => s.blur()));
 
@@ -333,6 +413,151 @@ export function initUI(options) {
     update();
     slider.addEventListener('input', update);
   });
+
+  const emitContrastHemodynamics = () => {
+    const cardiacOutputMlPerMin = parseFloat(cardiacOutputSlider?.value || '5000');
+    const heartRateBpm = parseFloat(contrastHeartRateSlider?.value || '72');
+    const cardiacOutputValue = cardiacOutputSlider?.nextElementSibling;
+    const heartRateValue = contrastHeartRateSlider?.nextElementSibling;
+    if (cardiacOutputValue) {
+      cardiacOutputValue.textContent = `${(cardiacOutputMlPerMin / 1000).toFixed(1)} l/min`;
+    }
+    if (heartRateValue) heartRateValue.textContent = `${Math.round(heartRateBpm)}/min`;
+    onContrastHemodynamicsChange?.({ cardiacOutputMlPerMin, heartRateBpm });
+  };
+  cardiacOutputSlider?.addEventListener('input', emitContrastHemodynamics);
+  contrastHeartRateSlider?.addEventListener('input', emitContrastHemodynamics);
+  emitContrastHemodynamics();
+
+  const hydraulicParameterControls = [
+    [injectorPressureLimitSlider, value => `${value.toFixed(0)} psi`],
+    [contrastViscositySlider, value => `${value.toFixed(1)} mPa·s`],
+    [sheathHydraulicLengthSlider, value => `${value.toFixed(0)} mm`],
+    [sheathInnerDiameterSlider, value => `${value.toFixed(2)} mm`],
+    [sheathPressureRatingSlider, value => `${value.toFixed(0)} psi`],
+    [berensteinHydraulicLengthSlider, value => `${value.toFixed(0)} mm`],
+    [berensteinInnerDiameterSlider, value => `${value.toFixed(2)} mm`],
+    [berensteinPressureRatingSlider, value => `${value.toFixed(0)} psi`],
+    [pigtailHydraulicLengthSlider, value => `${value.toFixed(0)} mm`],
+    [pigtailInnerDiameterSlider, value => `${value.toFixed(2)} mm`],
+    [pigtailPressureRatingSlider, value => `${value.toFixed(0)} psi`]
+  ];
+  const emitContrastInjectionParameters = () => {
+    for (const [control, format] of hydraulicParameterControls) {
+      const value = parseFloat(control?.value || '0');
+      const valueEl = control?.nextElementSibling;
+      if (valueEl) valueEl.textContent = format(value);
+    }
+    onContrastInjectionParametersChange?.({
+      maximumPressurePsi: parseFloat(
+        injectorPressureLimitSlider?.value || '1200'
+      ),
+      viscosityPaS: parseFloat(
+        contrastViscositySlider?.value || '6.3'
+      ) / 1000,
+      deviceProfiles: {
+        sheath: {
+          lengthMm: parseFloat(
+            sheathHydraulicLengthSlider?.value || '110'
+          ),
+          innerDiameterMm: parseFloat(
+            sheathInnerDiameterSlider?.value || '1.8'
+          ),
+          maximumPressurePsi: parseFloat(
+            sheathPressureRatingSlider?.value || '300'
+          )
+        },
+        berenstein: {
+          lengthMm: parseFloat(
+            berensteinHydraulicLengthSlider?.value || '1000'
+          ),
+          innerDiameterMm: parseFloat(
+            berensteinInnerDiameterSlider?.value || '0.97'
+          ),
+          maximumPressurePsi: parseFloat(
+            berensteinPressureRatingSlider?.value || '1050'
+          )
+        },
+        pigtail: {
+          lengthMm: parseFloat(
+            pigtailHydraulicLengthSlider?.value || '1000'
+          ),
+          innerDiameterMm: parseFloat(
+            pigtailInnerDiameterSlider?.value || '0.97'
+          ),
+          maximumPressurePsi: parseFloat(
+            pigtailPressureRatingSlider?.value || '1200'
+          )
+        }
+      }
+    });
+    onInjectionRequestChange?.({
+      source: injSourceSelect?.value || 'sheath',
+      rateMlPerSec: parseFloat(injRateSlider?.value || '0'),
+      volumeMl: parseFloat(injVolumeSlider?.value || '0')
+    });
+  };
+  for (const [control] of hydraulicParameterControls) {
+    control?.addEventListener('input', emitContrastInjectionParameters);
+  }
+  emitContrastInjectionParameters();
+
+  let lastInjectionHydraulicPreview = null;
+  const emitInjectionRequest = () => {
+    onInjectionRequestChange?.({
+      source: injSourceSelect?.value || 'sheath',
+      rateMlPerSec: parseFloat(injRateSlider?.value || '0'),
+      volumeMl: parseFloat(injVolumeSlider?.value || '0')
+    });
+  };
+  const updateInjectionDuration = () => {
+    if (!injDurationOutput) return;
+    const volume = parseFloat(injVolumeSlider?.value || '0');
+    const requestedRate = parseFloat(injRateSlider?.value || '0');
+    const source = injSourceSelect?.value || 'sheath';
+    const previewMatches =
+      lastInjectionHydraulicPreview?.valid &&
+      lastInjectionHydraulicPreview.source === source &&
+      Math.abs(
+        lastInjectionHydraulicPreview.requestedRateMlPerSec - requestedRate
+      ) < 1e-6;
+    const rate = previewMatches
+      ? lastInjectionHydraulicPreview.actualRateMlPerSec
+      : requestedRate;
+    const duration = rate > 0 ? volume / rate : 0;
+    injDurationOutput.value = `${duration.toFixed(2)} s`;
+    injDurationOutput.textContent = injDurationOutput.value;
+    emitInjectionRequest();
+  };
+  const updateInjectionVolumePresetState = () => {
+    const selectedVolume = parseFloat(injVolumeSlider?.value || '0');
+    for (const button of injectionVolumePresetButtons) {
+      const presetVolume = parseFloat(
+        button.dataset.injectionVolume || '0'
+      );
+      const active = Math.abs(selectedVolume - presetVolume) < 1e-6;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+  };
+  injVolumeSlider?.addEventListener('input', () => {
+    updateInjectionVolumePresetState();
+    updateInjectionDuration();
+  });
+  for (const button of injectionVolumePresetButtons) {
+    button.addEventListener('click', () => {
+      if (!injVolumeSlider) return;
+      injVolumeSlider.value = button.dataset.injectionVolume || '0';
+      injVolumeSlider.dispatchEvent(new Event('input', {
+        bubbles: true
+      }));
+    });
+  }
+  injRateSlider?.addEventListener('input', updateInjectionDuration);
+  injSourceSelect?.addEventListener('change', updateInjectionDuration);
+  updateInjectionVolumePresetState();
+  updateInjectionDuration();
+  if (injectButton) injectButton.disabled = true;
 
   // Toggle visibility of control sections
   document.querySelectorAll('.section-header').forEach(header => {
@@ -426,6 +651,106 @@ export function initUI(options) {
       displayMaterial.uniforms.contrastGain.value = parseFloat(e.target.value);
     });
   }
+  if (roadmapOpacitySlider && displayMaterial.uniforms.roadmapOpacity) {
+    displayMaterial.uniforms.roadmapOpacity.value =
+      parseFloat(roadmapOpacitySlider.value) / 100;
+    roadmapOpacitySlider.addEventListener('input', e => {
+      displayMaterial.uniforms.roadmapOpacity.value =
+        parseFloat(e.target.value) / 100;
+    });
+  }
+  if (
+    roadmapBackgroundSlider &&
+    displayMaterial.uniforms.roadmapBackgroundVisibility
+  ) {
+    displayMaterial.uniforms.roadmapBackgroundVisibility.value =
+      parseFloat(roadmapBackgroundSlider.value) / 100;
+    roadmapBackgroundSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.roadmapBackgroundVisibility.value =
+        parseFloat(e.target.value) / 100;
+    });
+  }
+  if (dsaGainSlider && displayMaterial.uniforms.dsaGain) {
+    displayMaterial.uniforms.dsaGain.value = parseFloat(dsaGainSlider.value);
+    dsaGainSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.dsaGain.value = parseFloat(e.target.value);
+    });
+  }
+  acquireDsaMaskButton?.addEventListener('click', () => {
+    onRequestDsaMask?.();
+    acquireDsaMaskButton.blur();
+  });
+  toggleDsaButton?.addEventListener('click', () => {
+    onToggleDsa?.();
+    toggleDsaButton.blur();
+  });
+  captureRoadmapButton?.addEventListener('click', () => {
+    onCaptureRoadmap?.();
+    captureRoadmapButton.blur();
+  });
+  toggleRoadmapButton?.addEventListener('click', () => {
+    onToggleRoadmap?.();
+    toggleRoadmapButton.blur();
+  });
+  clearRoadmapButton?.addEventListener('click', () => {
+    onClearRoadmap?.();
+    clearRoadmapButton.blur();
+  });
+  let dsaHoldActive = false;
+  const startDsaHold = () => {
+    if (dsaHoldActive) return;
+    dsaHoldActive = true;
+    onStartDsaRecording?.();
+  };
+  const stopDsaHold = () => {
+    if (!dsaHoldActive) return;
+    dsaHoldActive = false;
+    onStopDsaRecording?.();
+  };
+  recordDsaSequenceButton?.addEventListener('pointerdown', e => {
+    startDsaHold();
+    recordDsaSequenceButton.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  });
+  recordDsaSequenceButton?.addEventListener('pointerup', stopDsaHold);
+  recordDsaSequenceButton?.addEventListener('pointercancel', stopDsaHold);
+  recordDsaSequenceButton?.addEventListener('lostpointercapture', stopDsaHold);
+  dsaSequenceSelect?.addEventListener('change', e => {
+    if (e.target.value !== '') onSelectDsaSequence?.(Number(e.target.value));
+  });
+  dsaFrameSelect?.addEventListener('input', e => {
+    const sequenceId = Number(dsaSequenceSelect?.value);
+    if (Number.isFinite(sequenceId) && dsaSequenceSelect?.value !== '') {
+      onSelectDsaFrame?.(sequenceId, Number(e.target.value));
+    }
+  });
+  useBestDsaFrameButton?.addEventListener('click', () => {
+    const sequenceId = dsaSequenceSelect?.value === ''
+      ? undefined
+      : Number(dsaSequenceSelect.value);
+    onUseBestDsaFrame?.(sequenceId);
+    useBestDsaFrameButton.blur();
+  });
+  dsaSequenceGalleryEl?.addEventListener('click', event => {
+    const actionButton = event.target.closest('[data-dsa-gallery-action]');
+    if (!actionButton || !dsaSequenceGalleryEl.contains(actionButton)) return;
+    const sequenceId = Number(actionButton.dataset.sequenceId);
+    if (!Number.isFinite(sequenceId)) return;
+    if (actionButton.dataset.dsaGalleryAction === 'cine') {
+      onToggleDsaCine?.(sequenceId);
+    } else if (actionButton.dataset.dsaGalleryAction === 'roadmap') {
+      onSelectDsaSequence?.(sequenceId);
+    }
+    actionButton.blur();
+  });
+  dsaCinePlayPauseButton?.addEventListener('click', () => {
+    onToggleDsaCine?.();
+    dsaCinePlayPauseButton.blur();
+  });
+  dsaCineStopButton?.addEventListener('click', () => {
+    onStopDsaCine?.();
+    dsaCineStopButton.blur();
+  });
 
   // Physics controls
   if (bendSlider) {
@@ -540,14 +865,18 @@ export function initUI(options) {
     if (e.code === 'KeyQ') {
       catheterRotation = -1; e.preventDefault();
     }
-    if (e.code === 'KeyC' && fluoroscopy) {
+    if ((e.code === 'KeyI' || e.code === 'KeyC') && fluoroscopy) {
       // Trigger injection with current UI values
       if (typeof onStartInjection === 'function') {
         const rate = parseFloat(injRateSlider.value);
-        const duration = parseFloat(injDurationSlider.value) / 1000;
         const volume = parseFloat(injVolumeSlider.value);
-        onStartInjection({ rate, duration, volume });
+        const source = injSourceSelect?.value || 'sheath';
+        onStartInjection({ source, rate, volume });
       }
+      e.preventDefault();
+    }
+    if (e.code === 'KeyR' && fluoroscopy && !e.repeat) {
+      startDsaHold();
       e.preventDefault();
     }
   }, true);
@@ -561,11 +890,16 @@ export function initUI(options) {
     if (['KeyQ', 'KeyE'].includes(e.code)) {
       catheterRotation = 0; e.preventDefault();
     }
+    if (e.code === 'KeyR') {
+      stopDsaHold();
+      e.preventDefault();
+    }
   }, true);
   window.addEventListener('blur', () => {
     advance = 0;
     catheterAdvance = 0;
     catheterRotation = 0;
+    stopDsaHold();
   });
 
   // Injection buttons
@@ -573,9 +907,9 @@ export function initUI(options) {
     injectButton.addEventListener('click', () => {
       if (typeof onStartInjection === 'function') {
         const rate = parseFloat(injRateSlider.value);
-        const duration = parseFloat(injDurationSlider.value) / 1000;
         const volume = parseFloat(injVolumeSlider.value);
-        onStartInjection({ rate, duration, volume });
+        const source = injSourceSelect?.value || 'sheath';
+        onStartInjection({ source, rate, volume });
       }
     });
   }
@@ -632,26 +966,13 @@ export function initUI(options) {
   }
   function updateGuidewireResistance(level, reason = '') {
     if (!guidewireResistanceEl) return;
-    if (level < 0.35) {
-      if (resistanceVisible !== false) {
-        guidewireResistanceEl.classList.add('hidden');
-        guidewireResistanceEl.classList.remove('strong');
-        if (guidewireResistanceReasonEl) guidewireResistanceReasonEl.textContent = 'Opór na prowadniku';
-        if (guidewireResistanceValueEl) guidewireResistanceValueEl.textContent = '0%';
-        if (guidewireResistanceFillEl) guidewireResistanceFillEl.style.width = '0%';
-        resistanceVisible = false;
-        resistanceStrong = false;
-        resistancePercent = 0;
-        resistanceReason = '';
-      }
-      return;
-    }
     const percent = Math.round(Math.max(0, Math.min(1, level)) * 100);
+    const moderate = level >= 0.35;
     const strong = level > 0.72;
-    const displayReason = reason || 'Opór na prowadniku - cofnij lekko lub zmień kierunek.';
-    if (resistanceVisible !== true) {
-      guidewireResistanceEl.classList.remove('hidden');
-      resistanceVisible = true;
+    const displayReason = reason || 'Swobodne wsuwanie prowadnika';
+    if (resistanceModerate !== moderate) {
+      guidewireResistanceEl.classList.toggle('moderate', moderate);
+      resistanceModerate = moderate;
     }
     if (resistanceStrong !== strong) {
       guidewireResistanceEl.classList.toggle('strong', strong);
@@ -725,6 +1046,152 @@ export function initUI(options) {
   function setStopInjectionDisabled(disabled) {
     if (stopInjectButton && stopInjectButton.disabled !== !!disabled) stopInjectButton.disabled = !!disabled;
   }
+  function setInjectionSourceStatus(valid, message) {
+    if (!injectionSourceStatusEl) return;
+    injectionSourceStatusEl.textContent = message || (valid ? 'Ready' : 'Unavailable');
+    injectionSourceStatusEl.classList.toggle('locked', !valid);
+  }
+  function applyInjectionRateMaximum(preview) {
+    const physicalMaximum =
+      Number(preview?.maximumAchievableRateMlPerSec);
+    if (
+      !injRateSlider ||
+      !(Number.isFinite(physicalMaximum) && physicalMaximum > 0)
+    ) return false;
+    const minimum = parseFloat(injRateSlider.min || '0.5');
+    const step = Math.max(
+      1e-6,
+      parseFloat(injRateSlider.step || '0.1')
+    );
+    const stepText = String(injRateSlider.step || '0.1');
+    const decimalIndex = stepText.indexOf('.');
+    const decimalPlaces = decimalIndex >= 0
+      ? stepText.length - decimalIndex - 1
+      : 0;
+    const selectableMaximum = Math.max(
+      minimum,
+      Math.floor((physicalMaximum + 1e-9) / step) * step
+    );
+    const maximumText = selectableMaximum.toFixed(decimalPlaces);
+    const currentRateBeforeMaximumChange = parseFloat(
+      injRateSlider.value || '0'
+    );
+    if (injRateSlider.max !== maximumText) {
+      injRateSlider.max = maximumText;
+    }
+    if (
+      currentRateBeforeMaximumChange <= selectableMaximum + 1e-9
+    ) return false;
+    injRateSlider.value = maximumText;
+    const valueLabel = injRateSlider.nextElementSibling;
+    if (valueLabel) valueLabel.textContent = maximumText;
+    updateInjectionDuration();
+    return true;
+  }
+  function updateInjectionHydraulics(preview) {
+    lastInjectionHydraulicPreview = preview || null;
+    applyInjectionRateMaximum(preview);
+    const valid = !!preview?.valid;
+    injectionHydraulicSummaryEl?.classList.toggle(
+      'pressure-limited',
+      valid && preview.pressureLimited
+    );
+    if (!valid) {
+      if (injActualRateOutput) injActualRateOutput.textContent = '— ml/s';
+      if (injPressureOutput) injPressureOutput.textContent = '— psi';
+      if (injPressureWarningOutput) {
+        injPressureWarningOutput.textContent =
+          preview?.reason || 'Injection source unavailable';
+      }
+      return;
+    }
+    if (injActualRateOutput) {
+      injActualRateOutput.textContent =
+        `${preview.actualRateMlPerSec.toFixed(1)} ml/s`;
+    }
+    if (injPressureOutput) {
+      injPressureOutput.textContent = preview.pressureLimited
+        ? `${preview.appliedPressurePsi.toFixed(0)} / ` +
+          `${preview.requiredPressurePsi.toFixed(0)} psi`
+        : `${preview.appliedPressurePsi.toFixed(0)} psi`;
+    }
+    if (injPressureWarningOutput) {
+      injPressureWarningOutput.textContent = preview.pressureLimited
+        ? `Limited by ${preview.limitingComponent}: requested ` +
+          `${preview.requestedRateMlPerSec.toFixed(1)}, achievable ` +
+          `${preview.actualRateMlPerSec.toFixed(1)} ml/s at ` +
+          `${preview.pressureLimitPsi.toFixed(0)} psi`
+        : `${preview.deviceLabel}: requested rate is achievable · ` +
+          `max ${preview.maximumAchievableRateMlPerSec.toFixed(1)} ml/s · ` +
+          `${preview.outletCount} outlet${preview.outletCount === 1 ? '' : 's'}`;
+    }
+    if (injDurationOutput) {
+      const volume = parseFloat(injVolumeSlider?.value || '0');
+      const duration = volume / Math.max(
+        1e-9,
+        preview.actualRateMlPerSec
+      );
+      injDurationOutput.value = `${duration.toFixed(2)} s`;
+      injDurationOutput.textContent = injDurationOutput.value;
+    }
+  }
+  function updateContrastDiagnostics(metrics) {
+    if (!contrastDiagnosticsEl) return;
+    if (!metrics) {
+      contrastDiagnosticsEl.textContent = 'Contrast: model loading';
+      contrastDiagnosticsEl.classList.remove('warn');
+      return;
+    }
+    const balancePercent = Math.abs(metrics.relativeBalanceError) * 100;
+    const column = metrics.retrogradeColumn;
+    const flowSplit = metrics.continuousFlowSplit;
+    const hydraulics = metrics.injectionHydraulics;
+    const reverseFlow = flowSplit?.active
+      ? `${flowSplit.upstreamRateMlPerSec.toFixed(1)}↑/` +
+        `${flowSplit.downstreamRateMlPerSec.toFixed(1)}↓ ml/s · ` +
+        `${flowSplit.reversedEdgeCount} reversed · ` +
+        `min ${flowSplit.minimumSignedFlowMlPerSec.toFixed(1)} ml/s`
+      : 'off';
+    const injectionSource = metrics.lastSourceEdgeIndex >= 0
+      ? `${metrics.lastSourceEdgeIndex}` +
+        ` t${metrics.lastSourceT.toFixed(2)}` +
+        ` r${metrics.lastSourceRadiusMm.toFixed(1)}` +
+        ` d${metrics.lastSourceDistanceMm.toFixed(1)}` +
+        ` dir${metrics.lastDirectionAgainstFlow.toFixed(2)}` +
+        ` J${metrics.lastRetrogradeMomentumFluxRatio.toFixed(1)}` +
+        ` ${metrics.lastSourceSelectionMode}` +
+        ` Δ${metrics.sourceMappingChangeCount}`
+      : 'none';
+    const hydraulicText = hydraulics
+      ? `${hydraulics.requestedRateMlPerSec.toFixed(1)}→` +
+        `${hydraulics.actualRateMlPerSec.toFixed(1)} ml/s · ` +
+        `${hydraulics.appliedPressurePsi.toFixed(0)}/` +
+        `${hydraulics.pressureLimitPsi.toFixed(0)} psi · ` +
+        `${hydraulics.flowRegime}`
+      : 'idle';
+    const jetText = metrics.lastPhysicalJetSpeedMmPerSec > 0
+      ? `${(metrics.lastPhysicalJetSpeedMmPerSec / 1000).toFixed(1)}→` +
+        `${(metrics.lastResolvedJetSpeedMmPerSec / 1000).toFixed(1)} m/s · ` +
+        `mix ${metrics.lastJetMixingLengthMm.toFixed(1)} mm · ` +
+        `core ${(metrics.lastTargetedCoreFraction * 100).toFixed(0)}%`
+      : 'idle';
+    contrastDiagnosticsEl.classList.toggle(
+      'warn',
+      balancePercent > 0.5 || !!hydraulics?.pressureLimited
+    );
+    contrastDiagnosticsEl.textContent =
+      `Contrast: ${metrics.intravascularIodineMassMg.toFixed(1)} mg vascular · ` +
+      `${metrics.localIodineMassMg.toFixed(1)} mg local · ` +
+      `${metrics.outletIodineMassMg.toFixed(1)} mg out · ` +
+      `${metrics.activeParticleCount} parcels · ` +
+      `hyd ${hydraulicText} · ` +
+      `jet ${jetText} · ` +
+      `reverse ${reverseFlow} · ` +
+      `column ${(column.maximumContiguousFilledFraction * 100).toFixed(0)}% · ` +
+      `aorta ${column.totalAorticHandoffIodineMassMg.toFixed(1)} mg · ` +
+      `source ${injectionSource} · ` +
+      `balance ${balancePercent.toFixed(3)}%`;
+  }
   let perfElapsed = 0;
   let perfFrames = 0;
   function updatePerfStats(dtSeconds) {
@@ -778,11 +1245,275 @@ export function initUI(options) {
     if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = JSON.stringify(report);
   }
 
+  function updateCatheterAortaSetupStatus(status) {
+    const running = !!status?.running;
+    if (prepareCatheterAortaButton) prepareCatheterAortaButton.disabled = running;
+    if (reproduceIliacContrastBugButton) reproduceIliacContrastBugButton.disabled = running;
+    if (reproduceRetrogradeGapButton) reproduceRetrogradeGapButton.disabled = running;
+    if (reproduceArchBolusButton) reproduceArchBolusButton.disabled = running;
+    if (!catheterAortaSetupStatusEl) return;
+
+    if (status?.phase === 'guidewire') {
+      catheterAortaSetupStatusEl.textContent =
+        `Wsuwanie prowadnika do aorty · ${status.guidewireProgressCm.toFixed(1)}/${status.guidewireTargetCm.toFixed(1)} cm`;
+      return;
+    }
+    if (status?.phase === 'catheter') {
+      catheterAortaSetupStatusEl.textContent =
+        `Nasuwanie cewnika po prowadniku · ${status.catheterProgressCm.toFixed(1)}/${status.catheterTargetCm.toFixed(1)} cm`;
+      return;
+    }
+    if (status?.phase === 'guidewire-withdraw') {
+      catheterAortaSetupStatusEl.textContent =
+        `Wycofywanie prowadnika · ${status.guidewireProgressCm.toFixed(1)}/${status.finalGuidewireTargetCm.toFixed(1)} cm`;
+      return;
+    }
+    if (status?.phase === 'ready') {
+      catheterAortaSetupStatusEl.textContent =
+        `Cewnik ${status.catheterProgressCm.toFixed(1)} cm ustawiony · prowadnik ${status.guidewireProgressCm.toFixed(1)} cm pozostawiony`;
+      return;
+    }
+    catheterAortaSetupStatusEl.textContent = 'Gotowe do ustawienia';
+  }
+
   function setAutomatedBenchmarkMode(enabled) {
     const active = enabled === true;
     if (active) cArmControls?.reset?.();
     cArmControls?.setLocked?.(active);
     document.body.classList.toggle('automated-benchmark-running', active);
+  }
+
+  let dsaSequenceOptionSignature = '';
+  let dsaGallerySignature = '';
+
+  function updateDsaRoadmapState(state = {}) {
+    const maskPending = state.maskCapturePending === true;
+    const roadmapPending = state.roadmapCapturePending === true;
+    const maskValid = state.maskValid === true;
+    const dsaEnabled = state.dsaEnabled === true;
+    const roadmapValid = state.roadmapValid === true;
+    const roadmapEnabled = state.roadmapEnabled === true;
+    const recording = state.recording === true;
+    const preparingRecording = recording && maskPending;
+    const completedSequences = (state.sequences || []).filter(
+      sequence => sequence.complete && sequence.frames?.length
+    );
+    const cineSequence = completedSequences.find(
+      sequence => sequence.id === state.cineSequenceId
+    ) || null;
+    const cineActive = !!cineSequence && Number.isInteger(state.cineFrameIndex);
+
+    if (acquireDsaMaskButton) {
+      acquireDsaMaskButton.disabled = maskPending || roadmapPending || recording;
+      acquireDsaMaskButton.textContent = maskPending
+        ? 'Acquiring…'
+        : maskValid
+          ? 'Reacquire mask'
+          : 'Acquire mask';
+    }
+    if (toggleDsaButton) {
+      toggleDsaButton.disabled = !maskValid || maskPending || roadmapPending || recording;
+      toggleDsaButton.textContent = `DSA: ${dsaEnabled ? 'On' : 'Off'}`;
+      toggleDsaButton.classList.toggle('active', dsaEnabled);
+      toggleDsaButton.setAttribute('aria-pressed', String(dsaEnabled));
+    }
+    if (recordDsaSequenceButton) {
+      recordDsaSequenceButton.textContent = preparingRecording
+        ? 'Preparing C-arm… keep holding R'
+        : recording
+          ? 'Recording… release R'
+          : 'Hold R: Record';
+      recordDsaSequenceButton.classList.toggle('recording', recording);
+      recordDsaSequenceButton.classList.toggle('preparing', preparingRecording);
+      recordDsaSequenceButton.setAttribute('aria-pressed', String(recording));
+    }
+    if (captureRoadmapButton) {
+      captureRoadmapButton.disabled = !maskValid || maskPending || roadmapPending || recording;
+      captureRoadmapButton.textContent = roadmapPending
+        ? 'Capturing…'
+        : 'Use current DSA';
+    }
+    if (toggleRoadmapButton) {
+      toggleRoadmapButton.disabled = !roadmapValid || roadmapPending || recording;
+      toggleRoadmapButton.textContent =
+        `Roadmap: ${roadmapEnabled ? 'On' : 'Off'}`;
+      toggleRoadmapButton.classList.toggle('active', roadmapEnabled);
+      toggleRoadmapButton.setAttribute('aria-pressed', String(roadmapEnabled));
+    }
+    if (clearRoadmapButton) {
+      clearRoadmapButton.disabled = !roadmapValid || roadmapPending || recording;
+    }
+    const optionSignature = completedSequences
+      .map(sequence => `${sequence.id}:${sequence.frames.length}:${sequence.bestFrameIndex}`)
+      .join('|');
+    if (dsaSequenceSelect && optionSignature !== dsaSequenceOptionSignature) {
+      dsaSequenceOptionSignature = optionSignature;
+      dsaSequenceSelect.replaceChildren();
+      if (!completedSequences.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No saved sequence';
+        dsaSequenceSelect.append(option);
+      } else {
+        for (const sequence of completedSequences) {
+          const option = document.createElement('option');
+          option.value = String(sequence.id);
+          option.textContent =
+            `DSA ${sequence.id} · ${sequence.frames.length} frames`;
+          dsaSequenceSelect.append(option);
+        }
+      }
+    }
+    const selectedSequence = completedSequences.find(
+      sequence => sequence.id === state.selectedSequenceId
+    ) || completedSequences.at(-1) || null;
+    if (dsaSequenceSelect) {
+      dsaSequenceSelect.disabled = recording || !completedSequences.length;
+      dsaSequenceSelect.value = selectedSequence
+        ? String(selectedSequence.id)
+        : '';
+    }
+    const selectedFrameIndex = selectedSequence
+      ? state.selectedSequenceId === selectedSequence.id &&
+        Number.isInteger(state.selectedFrameIndex)
+          ? state.selectedFrameIndex
+          : selectedSequence.selectedFrameIndex ??
+            selectedSequence.bestFrameIndex ?? 0
+      : 0;
+    if (dsaFrameSelect) {
+      dsaFrameSelect.disabled = recording || !selectedSequence;
+      dsaFrameSelect.min = '0';
+      dsaFrameSelect.max = String(
+        Math.max(0, (selectedSequence?.frames.length || 1) - 1)
+      );
+      dsaFrameSelect.value = String(selectedFrameIndex);
+    }
+    if (useBestDsaFrameButton) {
+      useBestDsaFrameButton.disabled = recording || !selectedSequence;
+    }
+    if (dsaFrameInfoEl) {
+      const frame = selectedSequence?.frames[selectedFrameIndex];
+      const isBest = selectedSequence &&
+        selectedFrameIndex === selectedSequence.bestFrameIndex;
+      dsaFrameInfoEl.textContent = frame
+        ? `Frame ${selectedFrameIndex + 1}/${selectedSequence.frames.length} · contrast score ${(frame.contrastScore * 100).toFixed(2)}${isBest ? ' · best-filled' : ''}`
+        : recording
+          ? 'Recording DSA frames…'
+          : 'Hold R to record a sequence';
+    }
+    const gallerySignature = completedSequences
+      .map(sequence => [
+        sequence.id,
+        sequence.frames.length,
+        sequence.bestFrameIndex,
+        sequence.previewKey || '',
+        state.cineSequenceId === sequence.id ? state.cinePlaying : false,
+        state.selectedSequenceId === sequence.id
+      ].join(':'))
+      .join('|');
+    if (dsaSequenceGalleryEl && gallerySignature !== dsaGallerySignature) {
+      dsaGallerySignature = gallerySignature;
+      dsaSequenceGalleryEl.replaceChildren();
+      if (!completedSequences.length) {
+        const empty = document.createElement('div');
+        empty.className = 'dsa-gallery-empty';
+        empty.textContent = 'Recorded angiography will appear here';
+        dsaSequenceGalleryEl.append(empty);
+      } else {
+        for (const sequence of [...completedSequences].reverse()) {
+          const card = document.createElement('article');
+          card.className = 'dsa-gallery-card';
+          card.classList.toggle(
+            'cine-active',
+            state.cineSequenceId === sequence.id
+          );
+          card.classList.toggle(
+            'roadmap-selected',
+            state.selectedSequenceId === sequence.id
+          );
+
+          const preview = document.createElement('button');
+          preview.type = 'button';
+          preview.className = 'dsa-gallery-preview';
+          preview.dataset.dsaGalleryAction = 'cine';
+          preview.dataset.sequenceId = String(sequence.id);
+          preview.title = `Play DSA ${sequence.id} as cine`;
+          if (sequence.previewUrl) {
+            const image = document.createElement('img');
+            image.src = sequence.previewUrl;
+            image.alt = `Best-filled frame from DSA ${sequence.id}`;
+            preview.append(image);
+          } else {
+            preview.textContent = `DSA ${sequence.id}`;
+          }
+
+          const firstFrameTime = sequence.frames[0]?.capturedAtMs || 0;
+          const lastFrameTime = sequence.frames.at(-1)?.capturedAtMs || firstFrameTime;
+          const durationSeconds = Math.max(0, lastFrameTime - firstFrameTime) / 1000;
+          const meta = document.createElement('div');
+          meta.className = 'dsa-gallery-meta';
+          const name = document.createElement('strong');
+          name.textContent = `DSA ${sequence.id}`;
+          const details = document.createElement('span');
+          details.textContent = `${sequence.frames.length} fr · ${durationSeconds.toFixed(1)} s`;
+          meta.append(name, details);
+
+          const actions = document.createElement('div');
+          actions.className = 'dsa-gallery-actions';
+          const cineButton = document.createElement('button');
+          cineButton.type = 'button';
+          cineButton.dataset.dsaGalleryAction = 'cine';
+          cineButton.dataset.sequenceId = String(sequence.id);
+          cineButton.textContent =
+            state.cineSequenceId === sequence.id && state.cinePlaying
+              ? 'Pause cine'
+              : 'Play cine';
+          const roadmapButton = document.createElement('button');
+          roadmapButton.type = 'button';
+          roadmapButton.dataset.dsaGalleryAction = 'roadmap';
+          roadmapButton.dataset.sequenceId = String(sequence.id);
+          roadmapButton.textContent = 'Use roadmap';
+          actions.append(cineButton, roadmapButton);
+          card.append(preview, meta, actions);
+          dsaSequenceGalleryEl.append(card);
+        }
+      }
+    }
+    if (dsaCineControlsEl) dsaCineControlsEl.hidden = !cineActive;
+    if (dsaCineStatusEl) {
+      dsaCineStatusEl.textContent = cineActive
+        ? `CINE DSA ${cineSequence.id} · ${state.cineFrameIndex + 1}/${cineSequence.frames.length}`
+        : 'CINE';
+    }
+    if (dsaCinePlayPauseButton) {
+      dsaCinePlayPauseButton.textContent = state.cinePlaying ? 'Pause' : 'Play';
+    }
+    if (dsaCineStopButton) dsaCineStopButton.disabled = !cineActive;
+    if (dsaRoadmapStatusEl) {
+      dsaRoadmapStatusEl.textContent = state.status || 'DSA ready';
+      dsaRoadmapStatusEl.classList.toggle(
+        'warn',
+        /wait|changed|failed|first|inject|unavailable|no dsa frame/i.test(state.status || '')
+      );
+    }
+    if (imagingModeBadgeEl) {
+      const activeLabel = cineActive
+        ? `CINE DSA ${cineSequence.id}`
+        : recording
+        ? 'DSA REC'
+        : dsaEnabled
+        ? 'DSA'
+        : roadmapEnabled
+          ? 'ROADMAP'
+          : '';
+      imagingModeBadgeEl.hidden = !activeLabel;
+      imagingModeBadgeEl.textContent = activeLabel;
+      imagingModeBadgeEl.classList.toggle(
+        'roadmap-active',
+        roadmapEnabled && !dsaEnabled && !recording && !cineActive
+      );
+      imagingModeBadgeEl.classList.toggle('cine-active', cineActive);
+    }
   }
 
   return {
@@ -792,6 +1523,12 @@ export function initUI(options) {
     getCatheterRotation: () => catheterRotation,
     getSelectedCatheterType: () => selectedCatheterType,
     getSelectedGuidewireType: () => selectedGuidewireType,
+    getInjectionSource: () => injSourceSelect?.value || 'sheath',
+    getInjectionRequest: () => ({
+      source: injSourceSelect?.value || 'sheath',
+      rateMlPerSec: parseFloat(injRateSlider?.value || '0'),
+      volumeMl: parseFloat(injVolumeSlider?.value || '0')
+    }),
     getFluoroscopy: () => fluoroscopy,
     getDebugLayerState: () => ({ ...debugLayerState }),
     updateInsertedLength,
@@ -802,8 +1539,13 @@ export function initUI(options) {
     updateGuidewireDiagnostics,
     setInjectButtonDisabled,
     setStopInjectionDisabled,
+    setInjectionSourceStatus,
+    updateInjectionHydraulics,
+    updateContrastDiagnostics,
     updatePerfStats,
+    updateCatheterAortaSetupStatus,
     updateBrowserBenchmarkStatus,
+    updateDsaRoadmapState,
     setAutomatedBenchmarkMode,
     getCArmRevision: () => cArmControls?.getRevision?.() ?? 0,
   };

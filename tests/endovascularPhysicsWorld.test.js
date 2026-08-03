@@ -733,6 +733,42 @@ const undampedVelocityWave = alternatingVelocityAfterStep(0);
 const dampedVelocityWave = alternatingVelocityAfterStep(DEFAULT_TOOL_PROFILES.guidewire.bendDamping);
 assert.ok(dampedVelocityWave < undampedVelocityWave * 0.9,
     'guidewire bend damping should suppress local transverse waves during insertion');
+assert.ok(DEFAULT_TOOL_PROFILES.guidewire.bendDamping >= 0.25,
+    'guidewire damping should suppress visible transverse waves at full insertion');
+assert.ok(DEFAULT_TOOL_PROFILES.guidewire.maxSpeed <= 45,
+    'guidewire should reject non-physical solver velocity spikes');
+
+const fullInsertionStabilityWorld = new EndovascularPhysicsWorld();
+const fullInsertionWire = fullInsertionStabilityWorld.createRod(
+    'fully-inserted-guidewire',
+    180,
+    1,
+    {
+        ...DEFAULT_TOOL_PROFILES.guidewire,
+        sleepFrames: 1000
+    }
+);
+seedStraightRod(fullInsertionWire, 0, 1, 0, 0);
+fullInsertionWire.setPinned(0, true);
+for (let index = 1; index < fullInsertionWire.count - 1; index++) {
+    fullInsertionWire.velocityY[index] = Math.sin(index * 1.7) * 18;
+    fullInsertionWire.velocityZ[index] = Math.cos(index * 1.3) * 18;
+}
+for (let step = 0; step < 240; step++) fullInsertionStabilityWorld.stepFixed();
+let settledGuidewireRmsSpeed = 0;
+for (let index = 1; index < fullInsertionWire.count; index++) {
+    settledGuidewireRmsSpeed +=
+        fullInsertionWire.velocityX[index] ** 2 +
+        fullInsertionWire.velocityY[index] ** 2 +
+        fullInsertionWire.velocityZ[index] ** 2;
+}
+settledGuidewireRmsSpeed = Math.sqrt(
+    settledGuidewireRmsSpeed / (fullInsertionWire.count - 1)
+);
+assert.ok(
+    settledGuidewireRmsSpeed < 0.5,
+    `a fully inserted guidewire should dissipate transverse oscillation (${settledGuidewireRmsSpeed} mm/s)`
+);
 assert.ok(DEFAULT_TOOL_PROFILES.catheter.bendCompliance <= 1.5e-5,
     'the catheter shaft should use a load-bearing bending profile');
 assert.ok(

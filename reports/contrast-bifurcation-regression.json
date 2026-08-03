@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "projection": "AP/LAO/RAO software reproduction of the production lumen shader",
+  "parentEdgeIndex": 1589,
+  "childEdgeIndices": [
+    1597,
+    1598
+  ],
+  "phases": [
+    {
+      "projection": "AP",
+      "name": "01-parent-front",
+      "concentrations": [
+        1,
+        0,
+        0
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-ap-01-parent-front.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.1188336610794067,
+      "childReferenceSignals": [
+        0,
+        0
+      ],
+      "nodeToStrongestReferenceRatio": 0.9125806020953482,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "AP",
+      "name": "02-early-split",
+      "concentrations": [
+        1,
+        0.35,
+        0.2
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-ap-02-early-split.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.1188336610794067,
+      "childReferenceSignals": [
+        0.047402653843164444,
+        0.02814963087439537
+      ],
+      "nodeToStrongestReferenceRatio": 0.9125806020953482,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "AP",
+      "name": "03-full-y",
+      "concentrations": [
+        1,
+        1,
+        1
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-ap-03-full-y.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.1188336610794067,
+      "childReferenceSignals": [
+        0.3869604468345642,
+        0.22979292273521423
+      ],
+      "nodeToStrongestReferenceRatio": 0.9125806020953482,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "AP",
+      "name": "04-washout",
+      "concentrations": [
+        0.2,
+        0.72,
+        0.64
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-ap-04-washout.png",
+      "nodeSignal": 0.5292998552322388,
+      "parentReferenceSignal": 0.04475334659218788,
+      "childReferenceSignals": [
+        0.20060031116008759,
+        0.11912465840578079
+      ],
+      "nodeToStrongestReferenceRatio": 2.6385794327598773,
+      "nodeToExpectedStrongestSignalRatio": 1.0000000580168584
+    },
+    {
+      "projection": "LAO 30",
+      "name": "01-parent-front",
+      "concentrations": [
+        1,
+        0,
+        0
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-lao-30-01-parent-front.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.120137095451355,
+      "childReferenceSignals": [
+        0,
+        0
+      ],
+      "nodeToStrongestReferenceRatio": 0.9115186883985564,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "LAO 30",
+      "name": "02-early-split",
+      "concentrations": [
+        1,
+        0.35,
+        0.2
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-lao-30-02-early-split.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.120137095451355,
+      "childReferenceSignals": [
+        0.04667814075946808,
+        0.04169848933815956
+      ],
+      "nodeToStrongestReferenceRatio": 0.9115186883985564,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "LAO 30",
+      "name": "03-full-y",
+      "concentrations": [
+        1,
+        1,
+        1
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-lao-30-03-full-y.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.120137095451355,
+      "childReferenceSignals": [
+        0.3810460567474365,
+        0.38483744859695435
+      ],
+      "nodeToStrongestReferenceRatio": 0.9115186883985564,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "LAO 30",
+      "name": "04-washout",
+      "concentrations": [
+        0.2,
+        0.72,
+        0.64
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-lao-30-04-washout.png",
+      "nodeSignal": 0.5292998552322388,
+      "parentReferenceSignal": 0.044805485755205154,
+      "childReferenceSignals": [
+        0.19753429293632507,
+        0.17646121978759766
+      ],
+      "nodeToStrongestReferenceRatio": 2.6795340057883412,
+      "nodeToExpectedStrongestSignalRatio": 1.0000000580168584
+    },
+    {
+      "projection": "RAO 30",
+      "name": "01-parent-front",
+      "concentrations": [
+        1,
+        0,
+        0
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-rao-30-01-parent-front.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.1197164058685303,
+      "childReferenceSignals": [
+        0,
+        0
+      ],
+      "nodeToStrongestReferenceRatio": 0.9118611558436609,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "RAO 30",
+      "name": "02-early-split",
+      "concentrations": [
+        1,
+        0.35,
+        0.2
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-rao-30-02-early-split.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.1197164058685303,
+      "childReferenceSignals": [
+        0.04855509474873543,
+        0.03426588326692581
+      ],
+      "nodeToStrongestReferenceRatio": 0.9118611558436609,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "RAO 30",
+      "name": "03-full-y",
+      "concentrations": [
+        1,
+        1,
+        1
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-rao-30-03-full-y.png",
+      "nodeSignal": 1.0210258960723877,
+      "parentReferenceSignal": 1.1197164058685303,
+      "childReferenceSignals": [
+        0.3963681161403656,
+        0.2797214984893799
+      ],
+      "nodeToStrongestReferenceRatio": 0.9118611558436609,
+      "nodeToExpectedStrongestSignalRatio": 1
+    },
+    {
+      "projection": "RAO 30",
+      "name": "04-washout",
+      "concentrations": [
+        0.2,
+        0.72,
+        0.64
+      ],
+      "outputPath": "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-bifurcation-regression-rao-30-04-washout.png",
+      "nodeSignal": 0.5292998552322388,
+      "parentReferenceSignal": 0.044788658618927,
+      "childReferenceSignals": [
+        0.2054772526025772,
+        0.1450076401233673
+      ],
+      "nodeToStrongestReferenceRatio": 2.5759535351389062,
+      "nodeToExpectedStrongestSignalRatio": 1.0000000580168584
+    }
+  ],
+  "sideOstiumClip": {
+    "nodeId": 401,
+    "parentEdgeIndex": 1051,
+    "clippedVertexCount": 453,
+    "minimumCoverage": 0,
+    "maximumOutsideDistanceMm": 3.065872360683447,
+    "nodeToReferenceRatios": [
+      0.9495597953851793,
+      0.9493622650825099,
+      0.9585423464372574
+    ],
+    "outputPaths": [
+      "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-side-ostium-regression-ap.png",
+      "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-side-ostium-regression-lao-30.png",
+      "/Users/macpiek/Desktop/Programowanie/OpenEndovascularTrainer/OpenEndovascularTrainer/reports/contrast-side-ostium-regression-rao-30.png"
+    ]
+  },
+  "acceptance": {
+    "minimumNormalizedNodeSignal": 1,
+    "maximumNormalizedNodeSignal": 1.0000000580168584,
+    "passed": true,
+    "aortoiliacCoverage": 1,
+    "clippedSideOstiumCount": 78,
+    "maximumSideOstiumNodeToReferenceRatio": 0.9585423464372574
+  }
+}

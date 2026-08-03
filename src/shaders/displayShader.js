@@ -21,8 +21,16 @@ uniform sampler2D metalTexture;
 uniform sampler2D catheterTexture;
 uniform sampler2D sheathTexture;
 uniform sampler2D boneTexture;
+uniform sampler2D dsaMaskTexture;
+uniform sampler2D roadmapTexture;
+uniform sampler2D cineTexture;
 uniform vec3 gray;
 uniform bool fluoroscopy;
+uniform bool dsaEnabled;
+uniform bool dsaMaskValid;
+uniform bool roadmapEnabled;
+uniform bool roadmapValid;
+uniform bool cineEnabled;
 uniform float time;
 uniform float noiseLevel;
 uniform float imageBrightness;
@@ -37,6 +45,9 @@ uniform vec2 resolution;
 uniform float edgeStrength;
 uniform float contrastOpacity;
 uniform float contrastGain;
+uniform float dsaGain;
+uniform float roadmapOpacity;
+uniform float roadmapBackgroundVisibility;
 varying vec2 vUv;
 
 float saturate(float value) {
@@ -275,7 +286,57 @@ void main() {
         luma = mix(luma, 0.50 + (luma - 0.50) * 0.68, localScatter * 0.22);
         luma = saturate(luma + exposureLift);
         luma = saturate((luma - 0.5) * max(0.0, imageContrast) + 0.5 + imageBrightness);
-        luma = mix(0.018, luma, collimatorMask(vUv));
+        float beamMask = collimatorMask(vUv);
+        luma = mix(0.018, luma, beamMask);
+
+        if (dsaEnabled && dsaMaskValid) {
+            // The mask stores the fully processed pre-contrast detector frame.
+            // Iodine reduces current detector brightness, so mask-current is
+            // the positive logarithmic-subtraction cue used by the DSA view.
+            float storedMaskLuma = texture2D(dsaMaskTexture, vUv).r /
+                max(0.001, gray.r * 0.992);
+            float subtraction = max(storedMaskLuma - luma - 0.004, 0.0);
+            float vesselSignal = saturate(subtraction * max(0.0, dsaGain) * 4.0);
+            float dsaLuma = mix(0.94, 0.025, vesselSignal);
+            luma = mix(0.018, dsaLuma, beamMask);
+        } else if (roadmapEnabled && roadmapValid) {
+            // A roadmap target stores a DSA frame (light background, dark
+            // opacified vessels). Convert its darkness to a fixed vessel mask
+            // and superimpose it on the current live fluoroscopy.
+            float storedRoadmapLuma = texture2D(roadmapTexture, vUv).r /
+                max(0.001, gray.r * 0.992);
+            // Reject subtraction noise before turning the saved DSA frame into
+            // a persistent vessel stencil. True iodine-filled vessels are much
+            // darker than the 2-3% detector mottle around the DSA background.
+            float roadmapDifference = max(0.0, 0.94 - storedRoadmapLuma);
+            float roadmapVessel = smoothstep(0.032, 0.34, roadmapDifference) * beamMask;
+            // Background visibility is independent from the vessel overlay.
+            // At 0% retain the bright subtraction field inside the beam; at
+            // 100% retain the full live fluoroscopic anatomy.
+            float neutralRoadmapBackground = mix(0.018, 0.94, beamMask);
+            float visibleRoadmapBackground = mix(
+                neutralRoadmapBackground,
+                luma,
+                saturate(roadmapBackgroundVisibility)
+            );
+            float roadmappedLuma = min(
+                visibleRoadmapBackground,
+                1.0 - roadmapVessel * 0.94
+            );
+            luma = mix(
+                visibleRoadmapBackground,
+                roadmappedLuma,
+                saturate(roadmapOpacity)
+            );
+        }
+
+        if (cineEnabled) {
+            // Archived DSA frames use the same native detector resolution as
+            // the live display. Reconstruct their stored grayscale directly,
+            // without another subtraction, denoise, or resize pass.
+            luma = texture2D(cineTexture, vUv).r /
+                max(0.001, gray.r * 0.992);
+        }
 
         // Phosphor/detector response is slightly warm-neutral, not mathematically
         // flat grayscale. Keep it subtle so it still reads as fluoroscopy.

@@ -7,6 +7,7 @@ import {
     GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES,
     GUIDEWIRE_BODY_BENDING_STIFFNESS,
     GUIDEWIRE_SOFT_TIP_LENGTH_MM,
+    GUIDEWIRE_TIP_CORE_LENGTH_MM,
     GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES,
     GUIDEWIRE_TIP_BENDING_STIFFNESS,
     applyGuidewireMaterialProfile
@@ -84,30 +85,41 @@ const nodeCount = 201;
 const guidewireLength = segmentLength * (nodeCount - 1);
 const wire = new ElasticRod(nodeCount, segmentLength, { constraintIterations: 28 });
 applyGuidewireMaterialProfile(wire, { segmentLength });
-const materialFirstSoftIndex = wire.nodes.findIndex((_, index) => {
-    return (wire.nodes.length - 1 - index) * segmentLength < GUIDEWIRE_SOFT_TIP_LENGTH_MM;
+const materialTransitionNodes = wire.nodes.filter((_, index) => {
+    const distanceFromTip = (wire.nodes.length - 1 - index) * segmentLength;
+    return distanceFromTip > GUIDEWIRE_TIP_CORE_LENGTH_MM &&
+        distanceFromTip < GUIDEWIRE_SOFT_TIP_LENGTH_MM;
 });
-assert.equal(
-    materialFirstSoftIndex,
-    wire.nodes.length - GUIDEWIRE_SOFT_TIP_LENGTH_MM / segmentLength,
-    'the soft guidewire material should occupy exactly the final 20 mm'
+assert.ok(
+    wire.nodes.every((node, index) => {
+        const distanceFromTip = (wire.nodes.length - 1 - index) * segmentLength;
+        return distanceFromTip < GUIDEWIRE_SOFT_TIP_LENGTH_MM ||
+            (
+                node.bendingStiffness === GUIDEWIRE_BODY_BENDING_STIFFNESS &&
+                node.bendAngleLimit === GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES
+            );
+    }),
+    'the guidewire shaft should retain its stiff load-bearing profile'
 );
 assert.ok(
-    wire.nodes.slice(0, materialFirstSoftIndex).every(
-        node =>
-            node.bendingStiffness === GUIDEWIRE_BODY_BENDING_STIFFNESS &&
-            node.bendAngleLimit === GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES
-    ),
-    'the entire guidewire shaft before the final 20 mm should use the stiff material'
+    wire.nodes.every((node, index) => {
+        const distanceFromTip = (wire.nodes.length - 1 - index) * segmentLength;
+        return distanceFromTip > GUIDEWIRE_TIP_CORE_LENGTH_MM ||
+            (
+                node.bendingStiffness === GUIDEWIRE_TIP_BENDING_STIFFNESS &&
+                node.bendAngleLimit === GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES
+            );
+    }),
+    'the atraumatic distal core should retain the soft-tip profile'
 );
-assert.ok(
-    wire.nodes.slice(materialFirstSoftIndex).every(
-        node =>
-            node.bendingStiffness === GUIDEWIRE_TIP_BENDING_STIFFNESS &&
-            node.bendAngleLimit === GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES
-    ),
-    'only nodes inside the final 20 mm should use the soft-tip material'
-);
+assert.ok(materialTransitionNodes.length >= 4, 'the tip should have a multi-node stiffness transition');
+for (let index = 1; index < materialTransitionNodes.length; index++) {
+    assert.ok(
+        materialTransitionNodes[index].bendingStiffness <=
+            materialTransitionNodes[index - 1].bendingStiffness,
+        'stiffness should decrease smoothly toward the distal tip'
+    );
+}
 const solver = new GuidewireSolver({
     rod: wire,
     segmentLength,

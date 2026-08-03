@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { clamp, smoothstep } from './mathUtils.js';
-import { PIGTAIL_CATHETER_RADIUS_MM, PIGTAIL_CATHETER_RENDER_RADIUS_MM } from './toolDimensions.js';
+import {
+    PIGTAIL_CATHETER_INNER_RADIUS_MM,
+    PIGTAIL_CATHETER_RADIUS_MM,
+    PIGTAIL_CATHETER_RENDER_RADIUS_MM
+} from './toolDimensions.js';
 import { createSmoothTubeGeometry } from './smoothTubeGeometry.js';
 
 const CATHETER_RADIUS = PIGTAIL_CATHETER_RADIUS_MM;
@@ -84,6 +88,9 @@ const ROTATION_SPEED = Math.PI * 0.9;
 const CONTACT_CLEARANCE = CATHETER_RADIUS * 0.72;
 const TIP_MARKER_LENGTH = 2.4;
 const TIP_MARKER_RADIUS = PIGTAIL_CATHETER_RENDER_RADIUS_MM * 1.35;
+const PIGTAIL_INJECTION_PORT_RADIUS_MM = 0.22;
+const PIGTAIL_INJECTION_PORT_OFFSETS_MM = Object.freeze([3, 6, 9, 12, 15, 18, 21, 24]);
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 class TypedVector3 extends THREE.Vector3 {
     constructor(x = 0, y = 0, z = 0) {
@@ -212,6 +219,23 @@ export class PigtailCatheter {
         this._tipMarkerPosition = new TypedVector3();
         this._tipMarkerTangent = new TypedVector3();
         this._tipMarkerUp = new TypedVector3(0, 1, 0);
+        this._injectionPortPool = Array.from(
+            { length: PIGTAIL_INJECTION_PORT_OFFSETS_MM.length },
+            () => ({
+                kind: 'pigtail-side',
+                position: new THREE.Vector3(),
+                direction: new THREE.Vector3(),
+                radiusMm: PIGTAIL_INJECTION_PORT_RADIUS_MM,
+                areaMm2: Math.PI * PIGTAIL_INJECTION_PORT_RADIUS_MM ** 2,
+                weight: 1,
+                valid: true
+            })
+        );
+        this._injectionPosition = new THREE.Vector3();
+        this._injectionTangent = new THREE.Vector3();
+        this._injectionNormal = new THREE.Vector3();
+        this._injectionBinormal = new THREE.Vector3();
+        this._injectionHelper = new THREE.Vector3();
         this._shapeNormal = new TypedVector3();
         this._pathTarget = new TypedVector3();
         this._newNodeRest = new TypedVector3();
@@ -1600,6 +1624,95 @@ export class PigtailCatheter {
         previousGeometry.dispose();
         this.#updateTipMarker(renderPointCount);
         this.mesh.visible = true;
+    }
+
+    getInjectionPorts(out = []) {
+        out.length = 0;
+        const body = this.physicsBody;
+        const points = body ? null : this.#buildCenterline();
+        const pointCount = body ? this.physicsActiveCount : this._centerlinePointCount;
+        if (pointCount < 2) return out;
+
+        if (this.type === CATHETER_TYPE_BERENSTEIN) {
+            const port = this._injectionPortPool[0];
+            if (!this.#sampleDistalCenterline(
+                0,
+                port.position,
+                port.direction,
+                body,
+                points,
+                pointCount
+            )) return out;
+            port.kind = 'berenstein-end';
+            port.radiusMm = PIGTAIL_CATHETER_INNER_RADIUS_MM;
+            port.areaMm2 = Math.PI * PIGTAIL_CATHETER_INNER_RADIUS_MM ** 2;
+            port.weight = port.areaMm2;
+            port.valid = true;
+            out.push(port);
+            return out;
+        }
+
+        for (let index = 0; index < PIGTAIL_INJECTION_PORT_OFFSETS_MM.length; index++) {
+            const port = this._injectionPortPool[index];
+            const sampled = this.#sampleDistalCenterline(
+                PIGTAIL_INJECTION_PORT_OFFSETS_MM[index],
+                port.position,
+                this._injectionTangent,
+                body,
+                points,
+                pointCount
+            );
+            if (!sampled) continue;
+            const tangent = this._injectionTangent;
+            this._injectionHelper.set(
+                Math.abs(tangent.y) < 0.86 ? 0 : 1,
+                Math.abs(tangent.y) < 0.86 ? 1 : 0,
+                0
+            );
+            this._injectionNormal.crossVectors(tangent, this._injectionHelper).normalize();
+            this._injectionBinormal.crossVectors(tangent, this._injectionNormal).normalize();
+            const angle = this.rotation + index * GOLDEN_ANGLE;
+            port.direction.copy(this._injectionNormal).multiplyScalar(Math.cos(angle))
+                .addScaledVector(this._injectionBinormal, Math.sin(angle))
+                .normalize();
+            port.kind = 'pigtail-side';
+            port.radiusMm = PIGTAIL_INJECTION_PORT_RADIUS_MM;
+            port.areaMm2 = Math.PI * PIGTAIL_INJECTION_PORT_RADIUS_MM ** 2;
+            port.weight = port.areaMm2;
+            port.valid = true;
+            out.push(port);
+        }
+        return out;
+    }
+
+    #sampleDistalCenterline(distanceFromTip, outPosition, outTangent, body, points, pointCount) {
+        let remaining = Math.max(0, distanceFromTip);
+        for (let index = pointCount - 1; index > 0; index--) {
+            const distalX = body ? body.x[index] : points[index].x;
+            const distalY = body ? body.y[index] : points[index].y;
+            const distalZ = body ? body.z[index] : points[index].z;
+            const proximalX = body ? body.x[index - 1] : points[index - 1].x;
+            const proximalY = body ? body.y[index - 1] : points[index - 1].y;
+            const proximalZ = body ? body.z[index - 1] : points[index - 1].z;
+            const dx = distalX - proximalX;
+            const dy = distalY - proximalY;
+            const dz = distalZ - proximalZ;
+            const segmentLength = Math.hypot(dx, dy, dz);
+            if (segmentLength < 1e-6) continue;
+            if (remaining > segmentLength) {
+                remaining -= segmentLength;
+                continue;
+            }
+            const fromDistal = remaining / segmentLength;
+            outPosition.set(
+                distalX - dx * fromDistal,
+                distalY - dy * fromDistal,
+                distalZ - dz * fromDistal
+            );
+            outTangent.set(dx / segmentLength, dy / segmentLength, dz / segmentLength);
+            return true;
+        }
+        return false;
     }
 
     #updateTipMarker(pointCount) {

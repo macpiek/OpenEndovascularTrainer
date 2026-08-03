@@ -13,7 +13,11 @@ Open Endovascular Trainer is a browser-based endovascular training prototype bui
 - Pigtail and Berenstein catheter shapes rendered with instanced segments instead of rebuilding `TubeGeometry` every frame.
 - Introducer sheath positioned in the iliac branch, with retraction limits that keep the wire inside the sheath.
 - Fluoroscopy rendering mode with persistence, pulse rate, noise, scatter, collimation, bone visibility, edge enhancement, brightness, contrast, and auto exposure controls.
-- Contrast injection model with adjustable volume, rate, and duration.
+- Hybrid contrast injection model with conservative pulsatile 1D transport on
+  the complete STL centerline tree and a local deterministic 3D plume at the
+  selected sheath or catheter outlet. A cell-resolved lumen mesh fills the
+  vessel cross-section continuously, while the unmixed outlet jet uses
+  volume-conserving directional streaks.
 - C-arm controls for LAO/RAO, CRA/CAU, roll, table-plane movement, height, readouts, and a miniature C-arm preview.
 - Patient monitor and procedure readouts for inserted length, pigtail length, contrast dose, kV, mA, FPS, and memory use.
 - Remotion composition for creating a short promotional video from the project assets.
@@ -46,17 +50,26 @@ The simulator starts in fluoroscopy mode.
 | Advance pigtail catheter | `D` or the `Advance` button |
 | Withdraw pigtail catheter | `A` or the `Withdraw` button |
 | Rotate pigtail catheter left/right | `Q` / `E` or the rotate buttons |
-| Inject contrast in fluoroscopy mode | `C` or the `Inject` button |
+| Inject contrast through the selected sheath/catheter source | `I`, `C`, or the `Inject` button |
 | Stop active injection | `Stop Injection` |
 | Toggle debug/fluoroscopy view | `Debug` / `Fluoroscopy` button |
 
-The control panels also expose runtime sliders for guidewire stiffness, smoothing, wall friction, injection parameters, image quality, contrast display, and C-arm position.
+The Injection panel exposes an explicit sheath/catheter source, volume, and
+rate. Duration is calculated from volume/rate. The other panels expose runtime
+sliders for guidewire stiffness, smoothing, wall friction, image quality,
+contrast display, and C-arm position.
+
+Use `npm run test:contrast` for the quantitative hybrid-model checks. The
+clinician review scenarios and acceptance scorecard are in
+[`reports/contrast-clinical-validation.md`](reports/contrast-clinical-validation.md).
 
 ## Vessel Geometry
 
 The vessel centerline metadata is generated deterministically. Branch length and angle offset use fixed defaults (140 units and 0 radians) and only change when explicitly provided to `generateVessel`. A short introducer sheath extends from the distal left branch with a 30 degree tilt against the vessel wall toward +Z.
 
-The visible vessel and tool-wall contacts are driven by the imported STL aorta and `res/Aorta_plain.collision.bin`. The procedural vessel data is kept for flow, controls, and tool path metadata.
+The visible vessel, tool-wall contacts, and contrast-flow tree are driven by
+the imported STL aorta and `res/Aorta_plain.collision.bin`. The procedural
+vessel data is retained only for control and tool-path metadata.
 
 The STL centerline is extracted offline as one acyclic medial tree. Each lumen cross-section is thinned to a topological medial axis, the resulting 3D graph is reduced with a clearance-weighted TEASAR pass, and every final edge is checked against the STL wall BVH. The centerline is used only for broad-phase lookup and branch identity; it never pulls a simulated tool toward the vessel axis.
 
@@ -70,6 +83,7 @@ npm run benchmark:collision # write legacy/XPBD timing reports to reports/
 npm run benchmark:browser:chrome # run the foreground Chrome acceptance workload
 npm run benchmark:browser:safari # run the same workload through Safari WebDriver
 npm run centerline:diagnostics # export centerline metrics and orthogonal projections
+npm run test:contrast # run hybrid contrast conservation/performance tests
 npm run preview      # preview the production build
 npm test             # run simulator syntax checks and regression tests
 npm run video:studio # open the Remotion studio
@@ -94,7 +108,7 @@ src/physics/collision/         Packed collision asset and VesselContactField
 src/physics/elasticRod.js      Legacy elastic rod physics model
 src/physics/guidewireSolver.js Guidewire path and collision solver
 src/pigtailCatheter.js      Pigtail catheter behavior and mesh generation
-src/contrastFlowAgent.js    Centerline contrast transport model
+src/contrast/               Hybrid 1D/3D contrast transport and volume renderer
 src/vesselGeometry.js       Vessel centerline, sheath, flow, and branch metadata
 src/aortaModel.js           STL loading and vessel collision setup
 src/aortaPreprocess.js      Offline/source lumen preprocessing helpers
