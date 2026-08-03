@@ -76,7 +76,8 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         foldLimitStrength: 1,
         wallFriction: 0.006,
         linearDamping: 0.98,
-        bendDamping: 0.06
+        bendDamping: 0.3,
+        maxSpeed: 45
     }),
     catheter: Object.freeze({
         id: 'catheter',

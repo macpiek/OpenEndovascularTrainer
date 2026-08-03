@@ -14,8 +14,8 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-CrIgkdLs.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DDTWGW1a.css">
+  <script type="module" crossorigin src="/assets/index-WASCBQJo.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CAEuX2er.css">
 </head>
 <body>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -39,6 +39,12 @@
         <span class="mode-toggle-option mode-toggle-fluoro">Fluoro</span>
         <span class="mode-toggle-option mode-toggle-debug">Debug</span>
     </button>
+    <div id="imagingModeBadge" class="imaging-mode-badge" role="status" aria-live="polite" hidden></div>
+    <div id="dsaCineControls" class="dsa-cine-controls" hidden>
+        <span id="dsaCineStatus">CINE</span>
+        <button id="dsaCinePlayPause" type="button">Pause</button>
+        <button id="dsaCineStop" type="button">Return to live</button>
+    </div>
     <div id="perfStats">FPS: 0 | Mem: N/A</div>
     <div class="control-readout-strip">
         <div class="control-readout" id="insertedLength">Wire 0 cm</div>
@@ -57,6 +63,7 @@
         <button class="control-tab" type="button" data-control-tab="wire" role="tab" aria-selected="false">Wire</button>
         <button class="control-tab" type="button" data-control-tab="injection" role="tab" aria-selected="false">Injection</button>
         <button class="control-tab" type="button" data-control-tab="imaging" role="tab" aria-selected="false">Imaging</button>
+        <button class="control-tab" type="button" data-control-tab="dsaRoadmap" role="tab" aria-selected="false">DSA / Roadmap</button>
         <button class="control-tab" type="button" data-control-tab="debug" role="tab" aria-selected="false">Debug</button>
     </div>
 
@@ -105,9 +112,9 @@
         </div>
 
         <div class="control-tab-panel" data-control-panel="wire" role="tabpanel">
-            <div id="guidewireResistanceStatus" class="guidewire-resistance hidden">
+            <div id="guidewireResistanceStatus" class="guidewire-resistance">
                 <div class="guidewire-resistance-header">
-                    <span id="guidewireResistanceReason">Opór na prowadniku</span>
+                    <span id="guidewireResistanceReason">Swobodne wsuwanie prowadnika</span>
                     <span id="guidewireResistanceValue">0%</span>
                 </div>
                 <div class="guidewire-resistance-meter">
@@ -200,24 +207,95 @@
             </div>
         </div>
 
+        <div class="control-tab-panel" data-control-panel="dsaRoadmap" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> DSA / Roadmap</div>
+                <div class="section-content">
+                    <div class="dsa-roadmap-panel">
+                        <div class="dsa-roadmap-actions">
+                            <button id="acquireDsaMask" type="button">Acquire mask</button>
+                            <button id="toggleDsa" type="button" aria-pressed="false" disabled>DSA: Off</button>
+                            <button id="recordDsaSequence" type="button" aria-keyshortcuts="R" title="Hold R: the C-arm prepares, acquires a new mask, then records DSA">Hold R: Record</button>
+                            <button id="captureRoadmap" type="button" disabled>Use current DSA</button>
+                            <button id="toggleRoadmap" type="button" aria-pressed="false" disabled>Roadmap: Off</button>
+                            <button id="clearRoadmap" type="button" disabled>Clear roadmap</button>
+                        </div>
+                        <div class="dsa-sequence-browser">
+                            <label>Saved angiography
+                                <select id="dsaSequenceSelect" disabled>
+                                    <option value="">No saved sequence</option>
+                                </select>
+                            </label>
+                            <label>Roadmap frame
+                                <input id="dsaFrameSelect" type="range" min="0" max="0" step="1" value="0" disabled>
+                            </label>
+                            <button id="useBestDsaFrame" type="button" disabled>Use best-filled frame</button>
+                            <output id="dsaFrameInfo">Hold R to record a sequence</output>
+                        </div>
+                        <div class="dsa-gallery-heading">
+                            <span>Recorded DSA gallery</span>
+                            <small>Select a study for cine or roadmap</small>
+                        </div>
+                        <div id="dsaSequenceGallery" class="dsa-sequence-gallery" aria-live="polite">
+                            <div class="dsa-gallery-empty">Recorded angiography will appear here</div>
+                        </div>
+                        <label class="parameter-label dsa-roadmap-opacity">Roadmap opacity
+                            <input id="roadmapOpacity" type="range" min="0" max="100" step="1" value="72">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-background">Roadmap background
+                            <input id="roadmapBackground" type="range" min="0" max="100" step="1" value="100">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-gain-control">DSA gain
+                            <input id="dsaGain" type="range" min="0.5" max="4" step="0.1" value="2.2">
+                            <span></span>
+                        </label>
+                        <div id="dsaRoadmapStatus" class="dsa-roadmap-status" role="status" aria-live="polite">
+                            Acquire a mask before injecting contrast
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="control-tab-panel" data-control-panel="injection" role="tabpanel">
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Injection</div>
                 <div class="section-content compact-grid">
-                    <label class="parameter-label">Volume (ml)
-                        <input id="injVolume" type="range" min="0" max="200" step="0.5" value="100">
+                    <label class="tool-select-label">Source
+                        <select id="injSource">
+                            <option value="sheath">Sheath</option>
+                            <option value="catheter">Catheter</option>
+                        </select>
+                        <span id="injectionSourceStatus" class="tool-select-status">Loading flow model</span>
+                    </label>
+                    <div class="parameter-label injection-volume-control">
+                        <label for="injVolume">Volume (ml)</label>
+                        <div class="injection-volume-slider-row">
+                            <input id="injVolume" type="range" min="0.5" max="200" step="0.5" value="10">
+                            <span></span>
+                        </div>
+                        <div class="injection-volume-presets" role="group" aria-label="Volume presets">
+                            <button type="button" data-injection-volume="10">10 ml</button>
+                            <button type="button" data-injection-volume="20">20 ml</button>
+                            <button type="button" data-injection-volume="100">100 ml</button>
+                        </div>
+                    </div>
+                    <label class="parameter-label">Requested rate (ml/s)
+                        <input id="injRate" type="range" min="0.5" max="100" step="0.1" value="15">
                         <span></span>
                     </label>
-                    <label class="parameter-label">Rate (ml/s)
-                        <input id="injRate" type="range" min="0" max="100" step="0.1" value="50">
-                        <span></span>
-                    </label>
-                    <label class="parameter-label">Duration (ms)
-                        <input id="injDuration" type="range" min="0" max="5000" step="100" value="2000">
-                        <span></span>
+                    <div id="injectionHydraulicSummary" class="injection-hydraulic-summary" aria-live="polite">
+                        <div><span>Actual rate</span><strong id="injActualRate">— ml/s</strong></div>
+                        <div><span>Pressure</span><strong id="injPressure">— psi</strong></div>
+                        <output id="injPressureWarning">Waiting for flow model</output>
+                    </div>
+                    <label class="parameter-label injection-duration-label">Calculated duration
+                        <output id="injDuration">2.00 s</output>
                     </label>
                     <div class="control-actions">
-                        <button id="injectContrast">Inject</button>
+                        <button id="injectContrast" aria-keyshortcuts="I C" title="Inject contrast (I or C)">Inject</button>
                         <button id="stopInjection" disabled>Stop</button>
                     </div>
                 </div>
@@ -226,6 +304,67 @@
 
         <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
             <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
+            <div id="contrastDiagnostics" class="contrast-diagnostics">Contrast: model loading</div>
+            <div class="debug-hemodynamics compact-grid" aria-label="Parametry hemodynamiczne kontrastu">
+                <label class="parameter-label">Rzut serca
+                    <input id="cardiacOutput" type="range" min="1500" max="9000" step="100" value="5000">
+                    <span>5.0 l/min</span>
+                </label>
+                <label class="parameter-label">Częstość rytmu
+                    <input id="contrastHeartRate" type="range" min="30" max="180" step="1" value="72">
+                    <span>72/min</span>
+                </label>
+            </div>
+            <details class="debug-injection-hydraulics" open>
+                <summary>Injection hydraulics</summary>
+                <div class="compact-grid" aria-label="Ilościowe parametry podawania kontrastu">
+                    <label class="parameter-label">Injector limit (psi)
+                        <input id="injectorPressureLimit" type="range" min="100" max="1200" step="25" value="1200">
+                        <span>1200 psi</span>
+                    </label>
+                    <label class="parameter-label">Viscosity (mPa·s)
+                        <input id="contrastViscosity" type="range" min="1" max="20" step="0.1" value="6.3">
+                        <span>6.3 mPa·s</span>
+                    </label>
+                    <label class="parameter-label">Sheath length (mm)
+                        <input id="sheathHydraulicLength" type="range" min="50" max="300" step="5" value="110">
+                        <span>110 mm</span>
+                    </label>
+                    <label class="parameter-label">Sheath ID (mm)
+                        <input id="sheathInnerDiameter" type="range" min="1" max="3" step="0.05" value="1.8">
+                        <span>1.80 mm</span>
+                    </label>
+                    <label class="parameter-label">Sheath rating (psi)
+                        <input id="sheathPressureRating" type="range" min="50" max="1200" step="25" value="300">
+                        <span>300 psi</span>
+                    </label>
+                    <label class="parameter-label">Berenstein length (mm)
+                        <input id="berensteinHydraulicLength" type="range" min="300" max="1500" step="25" value="1000">
+                        <span>1000 mm</span>
+                    </label>
+                    <label class="parameter-label">Berenstein ID (mm)
+                        <input id="berensteinInnerDiameter" type="range" min="0.5" max="1.5" step="0.01" value="0.97">
+                        <span>0.97 mm</span>
+                    </label>
+                    <label class="parameter-label">Berenstein rating (psi)
+                        <input id="berensteinPressureRating" type="range" min="100" max="1200" step="25" value="1050">
+                        <span>1050 psi</span>
+                    </label>
+                    <label class="parameter-label">Pigtail length (mm)
+                        <input id="pigtailHydraulicLength" type="range" min="300" max="1500" step="25" value="1000">
+                        <span>1000 mm</span>
+                    </label>
+                    <label class="parameter-label">Pigtail ID (mm)
+                        <input id="pigtailInnerDiameter" type="range" min="0.5" max="1.5" step="0.01" value="0.97">
+                        <span>0.97 mm</span>
+                    </label>
+                    <label class="parameter-label">Pigtail rating (psi)
+                        <input id="pigtailPressureRating" type="range" min="100" max="1200" step="25" value="1200">
+                        <span>1200 psi</span>
+                    </label>
+                </div>
+                <p class="hydraulic-profile-note">Training profiles — verify against the selected device IFU before clinical validation.</p>
+            </details>
             <div id="toolDiameters" class="tool-diameters" aria-label="Tool diameters">
                 <div><span>Guidewire</span><strong id="guidewireDiameter">0.035&quot; · 0.889 mm</strong></div>
                 <div><span>Sheath</span><strong id="sheathDiameter">6F · 2.000 mm</strong></div>
@@ -239,6 +378,15 @@
                 <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
             </div>
             <div class="browser-benchmark" aria-label="Browser benchmark">
+                <div class="browser-benchmark-actions">
+                    <button id="prepareCatheterAorta" type="button">Prowadnik + cewnik do aorty</button>
+                    <button id="reproduceIliacContrastBug" type="button">Odtwórz 22,3/24,1 cm</button>
+                    <button id="reproduceRetrogradeGap" type="button">Odtwórz 7,7/13,3 cm</button>
+                    <button id="reproduceArchBolus" type="button">Odtwórz łuk 55,9/58,3 cm</button>
+                </div>
+                <output id="catheterAortaSetupStatus" class="browser-benchmark-status" aria-live="polite">
+                    Gotowe do ustawienia
+                </output>
                 <div class="browser-benchmark-actions">
                     <button id="runBrowserBenchmarkSmoke" type="button">Start 5 s</button>
                     <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
@@ -318,6 +466,14 @@
         <section class="control-help-section">
             <h2>Cewnik</h2>
             <p><kbd>D</kbd> wsuń, <kbd>A</kbd> wycofaj, <kbd>Q</kbd>/<kbd>E</kbd> obróć.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>Kontrast</h2>
+            <p><kbd>I</kbd> wstrzyknij wybraną dawkę.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>DSA</h2>
+            <p>Przytrzymaj <kbd>R</kbd>. Po krótkim przygotowaniu ramię pobierze nową maskę, nagra DSA i automatycznie wybierze najlepszą klatkę roadmapy.</p>
         </section>
     </div>
 </aside>

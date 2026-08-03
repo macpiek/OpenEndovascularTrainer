@@ -163,6 +163,101 @@ canvas {
     background: #020303;
 }
 
+.anatomy-label-layer {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    font-family: Inter, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.anatomy-vessel-label-anchor {
+    --anatomy-label-color: #ffd166;
+    position: relative;
+    width: 0;
+    height: 0;
+    color: var(--anatomy-label-color);
+}
+
+.anatomy-vessel-label-leader {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--anatomy-leader-length);
+    height: 1px;
+    transform: rotate(var(--anatomy-leader-angle));
+    transform-origin: 0 50%;
+    background: linear-gradient(
+        90deg,
+        var(--anatomy-label-color),
+        color-mix(in srgb, var(--anatomy-label-color) 38%, transparent)
+    );
+    box-shadow: 0 0 5px color-mix(in srgb, var(--anatomy-label-color) 52%, transparent);
+}
+
+.anatomy-vessel-label-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 7px;
+    height: 7px;
+    box-sizing: border-box;
+    border: 1px solid rgba(3, 8, 10, 0.92);
+    border-radius: 50%;
+    background: var(--anatomy-label-color);
+    box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--anatomy-label-color) 28%, transparent),
+        0 0 8px color-mix(in srgb, var(--anatomy-label-color) 62%, transparent);
+    transform: translate(-50%, -50%);
+}
+
+.anatomy-vessel-label {
+    position: absolute;
+    left: calc(var(--anatomy-label-x) * 1px);
+    top: calc(var(--anatomy-label-y) * 1px);
+    display: block;
+    padding: 5px 8px 4px;
+    border: 1px solid color-mix(in srgb, var(--anatomy-label-color) 76%, white 8%);
+    border-radius: 3px;
+    background: rgba(3, 8, 10, 0.9);
+    box-shadow:
+        0 5px 14px rgba(0, 0, 0, 0.46),
+        inset 3px 0 0 var(--anatomy-label-color);
+    color: #f4fbfb;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: 0.045em;
+    text-shadow: 0 1px 2px #000;
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+}
+
+.anatomy-vessel-label-anchor--left {
+    --anatomy-label-color: #66d9ff;
+}
+
+.anatomy-vessel-label-anchor--right {
+    --anatomy-label-color: #ff866b;
+}
+
+.anatomy-vessel-label-anchor--right-internal {
+    --anatomy-label-color: #ff9b7f;
+}
+
+.anatomy-vessel-label-anchor--brachiocephalic {
+    --anatomy-label-color: #ffb45e;
+}
+
+.anatomy-vessel-label-anchor--left-carotid {
+    --anatomy-label-color: #79e6b3;
+}
+
+.anatomy-vessel-label-anchor--left-subclavian {
+    --anatomy-label-color: #b99cff;
+}
+
 #view-mode-switch {
     position: absolute;
     z-index: 12;
@@ -227,6 +322,83 @@ canvas {
     color: #ffffff;
 }
 
+.imaging-mode-badge {
+    flex: 0 0 auto;
+    min-width: 72px;
+    min-height: 34px;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    padding: 0 10px;
+    border: 1px solid rgba(117, 203, 255, 0.78);
+    border-radius: 4px;
+    background: rgba(15, 102, 166, 0.78);
+    color: #eaf8ff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    white-space: nowrap;
+}
+
+.imaging-mode-badge[hidden] {
+    display: none;
+}
+
+.imaging-mode-badge.roadmap-active {
+    border-color: rgba(255, 204, 92, 0.84);
+    background: rgba(159, 101, 20, 0.82);
+    color: #fff2c9;
+}
+
+.imaging-mode-badge.cine-active {
+    border-color: rgba(111, 232, 206, 0.9);
+    background: rgba(11, 111, 100, 0.88);
+    color: #e6fff9;
+}
+
+.dsa-cine-controls {
+    flex: 0 0 auto;
+    min-height: 34px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 4px 3px 9px;
+    border: 1px solid rgba(111, 232, 206, 0.64);
+    border-radius: 4px;
+    background: rgba(3, 42, 41, 0.86);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34);
+}
+
+.dsa-cine-controls[hidden] {
+    display: none;
+}
+
+#dsaCineStatus {
+    min-width: 112px;
+    color: #dffff8;
+    font: 800 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.dsa-cine-controls button {
+    min-height: 26px;
+    padding: 3px 8px;
+    border: 1px solid rgba(146, 239, 220, 0.42);
+    border-radius: 3px;
+    background: rgba(44, 143, 129, 0.24);
+    color: #edfffb;
+    font-size: 10px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.dsa-cine-controls button:hover {
+    background: rgba(44, 143, 129, 0.46);
+}
+
 #bottom-control-panel {
     position: absolute;
     z-index: 8;
@@ -246,10 +418,10 @@ canvas {
     position: absolute;
     z-index: 9;
     left: 20px;
-    right: auto;
+    right: 400px;
     bottom: 20px;
-    width: 560px;
-    max-width: calc(100vw - 440px);
+    width: auto;
+    max-width: none;
     height: 226px;
     box-sizing: border-box;
     display: grid;
@@ -482,6 +654,114 @@ canvas {
     gap: 7px;
 }
 
+.injection-volume-control {
+    display: grid;
+    gap: 4px;
+}
+
+.injection-volume-slider-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+}
+
+.injection-volume-slider-row input {
+    width: 100%;
+    min-width: 0;
+}
+
+.injection-volume-slider-row span {
+    min-width: 30px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.injection-volume-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.injection-volume-presets button {
+    min-height: 25px;
+    padding: 3px 6px;
+    border: 1px solid rgba(115, 180, 255, 0.48);
+    border-radius: 4px;
+    background: rgba(25, 101, 181, 0.2);
+    color: #eaf4ff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.injection-volume-presets button:hover {
+    background: rgba(42, 132, 224, 0.38);
+}
+
+.injection-volume-presets button.active {
+    border-color: rgba(137, 205, 255, 0.95);
+    background: rgba(42, 132, 224, 0.58);
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(215, 239, 255, 0.32);
+}
+
+.injection-duration-label output {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
+    box-sizing: border-box;
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #d9f0ff;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+.injection-hydraulic-summary {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px 10px;
+    padding: 7px 9px;
+    border: 1px solid rgba(85, 194, 255, 0.3);
+    border-radius: 4px;
+    background: rgba(22, 112, 166, 0.13);
+    font-variant-numeric: tabular-nums;
+}
+
+.injection-hydraulic-summary div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.injection-hydraulic-summary span {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.injection-hydraulic-summary strong {
+    color: #d9f4ff;
+}
+
+.injection-hydraulic-summary output {
+    grid-column: 1 / -1;
+    min-height: 14px;
+    color: #8fe1ae;
+    font-size: 10px;
+}
+
+.injection-hydraulic-summary.pressure-limited {
+    border-color: rgba(255, 190, 74, 0.8);
+    background: rgba(190, 112, 20, 0.18);
+}
+
+.injection-hydraulic-summary.pressure-limited output {
+    color: #ffe09a;
+}
+
 .guidewire-diagnostics {
     margin-top: 4px;
     padding: 4px 5px;
@@ -501,6 +781,56 @@ canvas {
     color: #ffe6a3;
 }
 
+.contrast-diagnostics {
+    margin-top: 4px;
+    padding: 4px 5px;
+    border-left: 3px solid #ff8c42;
+    background: rgba(255, 120, 35, 0.14);
+    color: #ffe0c2;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.contrast-diagnostics.warn {
+    border-left-color: #ff4d5f;
+    color: #ffd0d5;
+}
+
+.debug-hemodynamics {
+    margin-top: 6px;
+    padding: 6px;
+    border: 1px solid rgba(91, 194, 255, 0.24);
+    border-radius: 4px;
+    background: rgba(28, 112, 158, 0.12);
+}
+
+.debug-injection-hydraulics {
+    margin-top: 6px;
+    padding: 6px;
+    border: 1px solid rgba(255, 167, 76, 0.3);
+    border-radius: 4px;
+    background: rgba(147, 76, 20, 0.1);
+}
+
+.debug-injection-hydraulics summary {
+    cursor: pointer;
+    color: #ffd8ac;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.debug-injection-hydraulics .compact-grid {
+    margin-top: 7px;
+}
+
+.hydraulic-profile-note {
+    margin: 7px 2px 0;
+    color: rgba(255, 224, 190, 0.72);
+    font-size: 9px;
+    line-height: 1.3;
+}
+
 .guidewire-diagnostics.breach {
     border-left-color: #ff5d5d;
     background: rgba(255, 70, 70, 0.22);
@@ -518,9 +848,9 @@ canvas {
 .guidewire-resistance {
     margin: 6px 0 4px;
     padding: 5px 6px;
-    border-left: 3px solid #ffd24a;
-    background: rgba(255, 190, 56, 0.18);
-    color: #ffe6a3;
+    border-left: 3px solid #54d69b;
+    background: rgba(47, 182, 126, 0.16);
+    color: #bff5dc;
     font-weight: bold;
     line-height: 1.2;
 }
@@ -552,8 +882,18 @@ canvas {
 .guidewire-resistance-fill {
     width: 0%;
     height: 100%;
-    background: #ffd24a;
+    background: #54d69b;
     transition: width 90ms linear;
+}
+
+.guidewire-resistance.moderate {
+    border-left-color: #ffd24a;
+    background: rgba(255, 190, 56, 0.18);
+    color: #ffe6a3;
+}
+
+.guidewire-resistance.moderate .guidewire-resistance-fill {
+    background: #ffd24a;
 }
 
 .guidewire-resistance.strong {
@@ -601,6 +941,280 @@ canvas {
 .imaging-toggle.active {
     border-color: rgba(115, 180, 255, 0.86);
     background: rgba(40, 118, 255, 0.45);
+}
+
+.dsa-roadmap-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(180px, 1fr);
+    gap: 7px 10px;
+    align-items: end;
+    padding: 8px;
+    border: 1px solid rgba(96, 178, 242, 0.44);
+    border-radius: 4px;
+    background: rgba(17, 83, 130, 0.16);
+}
+
+.dsa-roadmap-heading {
+    grid-column: 1 / -1;
+    color: #dff5ff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.025em;
+}
+
+.dsa-roadmap-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.dsa-roadmap-actions button {
+    min-width: 0;
+    min-height: 29px;
+    padding: 4px 6px;
+    border: 1px solid rgba(115, 180, 255, 0.48);
+    border-radius: 4px;
+    background: rgba(25, 101, 181, 0.24);
+    color: #eaf4ff;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dsa-roadmap-actions button:hover:not(:disabled) {
+    background: rgba(42, 132, 224, 0.42);
+}
+
+.dsa-roadmap-actions button.active {
+    border-color: rgba(137, 205, 255, 0.95);
+    background: rgba(42, 132, 224, 0.62);
+    box-shadow: inset 0 0 0 1px rgba(215, 239, 255, 0.25);
+}
+
+#recordDsaSequence.recording {
+    border-color: rgba(255, 109, 109, 0.96);
+    background: rgba(188, 31, 43, 0.68);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 224, 224, 0.24),
+        0 0 10px rgba(255, 55, 76, 0.34);
+}
+
+#recordDsaSequence.recording.preparing {
+    border-color: rgba(255, 196, 92, 0.96);
+    background: rgba(151, 91, 17, 0.72);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 239, 205, 0.2),
+        0 0 10px rgba(255, 176, 55, 0.28);
+}
+
+.dsa-sequence-browser {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(150px, 0.85fr) minmax(210px, 1.4fr) auto;
+    gap: 6px 8px;
+    align-items: end;
+    padding: 7px;
+    border: 1px solid rgba(115, 180, 255, 0.26);
+    border-radius: 4px;
+    background: rgba(5, 37, 64, 0.32);
+}
+
+.dsa-sequence-browser label {
+    display: grid;
+    gap: 3px;
+    color: rgba(225, 244, 255, 0.78);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.dsa-sequence-browser select,
+.dsa-sequence-browser input,
+.dsa-sequence-browser button {
+    min-width: 0;
+}
+
+.dsa-sequence-browser select,
+.dsa-sequence-browser button {
+    height: 28px;
+    border: 1px solid rgba(115, 180, 255, 0.42);
+    border-radius: 4px;
+    background: rgba(25, 101, 181, 0.24);
+    color: #eaf4ff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.dsa-sequence-browser button:disabled,
+.dsa-sequence-browser select:disabled {
+    opacity: 0.42;
+}
+
+#dsaFrameInfo {
+    grid-column: 1 / -1;
+    min-height: 14px;
+    color: #a9dfff;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+}
+
+.dsa-gallery-heading {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    color: #dff5ff;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.dsa-gallery-heading small {
+    color: rgba(216, 242, 255, 0.58);
+    font-size: 8px;
+    font-weight: 600;
+}
+
+.dsa-sequence-gallery {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 7px;
+    min-height: 94px;
+    padding: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid rgba(115, 180, 255, 0.26);
+    border-radius: 4px;
+    background: rgba(3, 24, 39, 0.52);
+    scrollbar-width: thin;
+}
+
+.dsa-gallery-empty {
+    width: 100%;
+    min-height: 80px;
+    display: grid;
+    place-items: center;
+    color: rgba(213, 237, 249, 0.48);
+    font-size: 9px;
+    text-align: center;
+}
+
+.dsa-gallery-card {
+    flex: 0 0 152px;
+    display: grid;
+    grid-template-rows: 74px auto auto;
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid rgba(115, 180, 255, 0.3);
+    border-radius: 4px;
+    background: rgba(14, 58, 89, 0.42);
+}
+
+.dsa-gallery-card.cine-active {
+    border-color: rgba(111, 232, 206, 0.88);
+    box-shadow: inset 0 0 0 1px rgba(111, 232, 206, 0.22);
+}
+
+.dsa-gallery-card.roadmap-selected:not(.cine-active) {
+    border-color: rgba(255, 204, 92, 0.72);
+}
+
+.dsa-gallery-preview {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 3px;
+    background: #d9d9d5;
+    color: #203039;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.dsa-gallery-preview img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dsa-gallery-preview::after {
+    content: "▶ CINE";
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    background: rgba(2, 11, 14, 0.76);
+    color: #f4fffc;
+    font-size: 8px;
+    font-weight: 800;
+}
+
+.dsa-gallery-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    color: #dff5ff;
+    font-size: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.dsa-gallery-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.dsa-gallery-actions button {
+    min-width: 0;
+    min-height: 22px;
+    padding: 2px 4px;
+    border: 1px solid rgba(115, 180, 255, 0.38);
+    border-radius: 3px;
+    background: rgba(25, 101, 181, 0.22);
+    color: #eaf4ff;
+    font-size: 8px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.dsa-gallery-actions button:hover {
+    background: rgba(42, 132, 224, 0.42);
+}
+
+.dsa-roadmap-actions button:disabled {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.34);
+    cursor: not-allowed;
+}
+
+.dsa-roadmap-opacity,
+.dsa-roadmap-background {
+    min-width: 170px;
+}
+
+.dsa-roadmap-status {
+    grid-column: 1 / -1;
+    min-height: 28px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    padding: 5px 8px;
+    border-left: 3px solid #55bfff;
+    background: rgba(25, 125, 180, 0.16);
+    color: #d8f4ff;
+    font-size: 10px;
+    line-height: 1.25;
+}
+
+.dsa-roadmap-status.warn {
+    border-left-color: #f1b84d;
+    background: rgba(176, 111, 19, 0.18);
+    color: #fff0c4;
 }
 
 #carmZButtons {
