@@ -47,7 +47,11 @@ export function initUI(options) {
     onSelectDsaSequence,
     onSelectDsaFrame,
     onUseBestDsaFrame,
+    onBuildRoadmapRange,
+    onPreviewDsaRangeFrame,
     onToggleDsaCine,
+    onSeekDsaCineFrame,
+    onSetDsaCineSpeed,
     onStopDsaCine,
   } = options;
 
@@ -141,13 +145,22 @@ export function initUI(options) {
   const dsaFrameSelect = document.getElementById('dsaFrameSelect');
   const useBestDsaFrameButton = document.getElementById('useBestDsaFrame');
   const dsaFrameInfoEl = document.getElementById('dsaFrameInfo');
+  const dsaRangeSliderEl = document.getElementById('dsaRangeSlider');
+  const dsaRangeStartSlider = document.getElementById('dsaRangeStart');
+  const dsaRangeEndSlider = document.getElementById('dsaRangeEnd');
+  const buildRoadmapRangeButton = document.getElementById('buildRoadmapRange');
+  const dsaRangeInfoEl = document.getElementById('dsaRangeInfo');
   const dsaSequenceGalleryEl = document.getElementById('dsaSequenceGallery');
   const dsaCineControlsEl = document.getElementById('dsaCineControls');
   const dsaCineStatusEl = document.getElementById('dsaCineStatus');
+  const dsaCineFrameSlider = document.getElementById('dsaCineFrame');
+  const dsaCineSpeedSelect = document.getElementById('dsaCineSpeed');
   const dsaCinePlayPauseButton = document.getElementById('dsaCinePlayPause');
   const dsaCineStopButton = document.getElementById('dsaCineStop');
   const roadmapOpacitySlider = document.getElementById('roadmapOpacity');
   const roadmapBackgroundSlider = document.getElementById('roadmapBackground');
+  const roadmapEdgeEnhancementSlider = document.getElementById('roadmapEdgeEnhancement');
+  const roadmapEdgeDarknessSlider = document.getElementById('roadmapEdgeDarkness');
   const dsaGainSlider = document.getElementById('dsaGain');
   const dsaRoadmapStatusEl = document.getElementById('dsaRoadmapStatus');
   const imagingModeBadgeEl = document.getElementById('imagingModeBadge');
@@ -392,6 +405,8 @@ export function initUI(options) {
     boneVisibilitySlider,
     contrastOpacitySlider,
     contrastGainSlider,
+    roadmapEdgeEnhancementSlider,
+    roadmapEdgeDarknessSlider,
     injVolumeSlider,
     injRateSlider,
     cardiacOutputSlider,
@@ -670,6 +685,28 @@ export function initUI(options) {
         parseFloat(e.target.value) / 100;
     });
   }
+  if (
+    roadmapEdgeEnhancementSlider &&
+    displayMaterial.uniforms.roadmapEdgeEnhancement
+  ) {
+    displayMaterial.uniforms.roadmapEdgeEnhancement.value =
+      parseFloat(roadmapEdgeEnhancementSlider.value) / 100;
+    roadmapEdgeEnhancementSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.roadmapEdgeEnhancement.value =
+        parseFloat(e.target.value) / 100;
+    });
+  }
+  if (
+    roadmapEdgeDarknessSlider &&
+    displayMaterial.uniforms.roadmapEdgeDarkness
+  ) {
+    displayMaterial.uniforms.roadmapEdgeDarkness.value =
+      parseFloat(roadmapEdgeDarknessSlider.value) / 100;
+    roadmapEdgeDarknessSlider.addEventListener('input', e => {
+      displayMaterial.uniforms.roadmapEdgeDarkness.value =
+        parseFloat(e.target.value) / 100;
+    });
+  }
   if (dsaGainSlider && displayMaterial.uniforms.dsaGain) {
     displayMaterial.uniforms.dsaGain.value = parseFloat(dsaGainSlider.value);
     dsaGainSlider.addEventListener('input', e => {
@@ -731,6 +768,84 @@ export function initUI(options) {
     onUseBestDsaFrame?.(sequenceId);
     useBestDsaFrameButton.blur();
   });
+  let activeRoadmapRangeSignature = '';
+  const updateDsaRangeTrack = () => {
+    if (!dsaRangeSliderEl || !dsaRangeStartSlider || !dsaRangeEndSlider) return;
+    const minimum = Number(dsaRangeStartSlider.min || 0);
+    const maximum = Number(dsaRangeStartSlider.max || 0);
+    const span = Math.max(1, maximum - minimum);
+    const start = Math.min(
+      Number(dsaRangeStartSlider.value),
+      Number(dsaRangeEndSlider.value)
+    );
+    const end = Math.max(
+      Number(dsaRangeStartSlider.value),
+      Number(dsaRangeEndSlider.value)
+    );
+    dsaRangeSliderEl.style.setProperty(
+      '--range-start',
+      `${((start - minimum) / span) * 100}%`
+    );
+    dsaRangeSliderEl.style.setProperty(
+      '--range-end',
+      `${((end - minimum) / span) * 100}%`
+    );
+  };
+  const updateDsaRangeInfo = () => {
+    updateDsaRangeTrack();
+    if (!dsaRangeInfoEl) return;
+    if (
+      !dsaRangeStartSlider ||
+      !dsaRangeEndSlider ||
+      dsaRangeStartSlider.disabled
+    ) {
+      dsaRangeInfoEl.textContent = 'Select a saved angiography';
+      return;
+    }
+    const startIndex = Math.min(
+      Number(dsaRangeStartSlider.value),
+      Number(dsaRangeEndSlider.value)
+    );
+    const endIndex = Math.max(
+      Number(dsaRangeStartSlider.value),
+      Number(dsaRangeEndSlider.value)
+    );
+    const sequenceId = dsaSequenceSelect?.value || '';
+    const signature = `${sequenceId}:${startIndex}:${endIndex}`;
+    const prefix = signature === activeRoadmapRangeSignature
+      ? 'Active roadmap'
+      : 'Selected range';
+    dsaRangeInfoEl.textContent =
+      `${prefix}: frames ${startIndex + 1}–${endIndex + 1} · ${endIndex - startIndex + 1} frame${endIndex === startIndex ? '' : 's'}`;
+  };
+  const previewDsaRangeFrame = (slider, boundarySlider, isStart) => {
+    const value = Number(slider.value);
+    const boundary = Number(boundarySlider.value);
+    if (isStart && value > boundary) slider.value = boundarySlider.value;
+    if (!isStart && value < boundary) slider.value = boundarySlider.value;
+    updateDsaRangeInfo();
+    const sequenceId = Number(dsaSequenceSelect?.value);
+    if (Number.isFinite(sequenceId) && dsaSequenceSelect?.value !== '') {
+      onPreviewDsaRangeFrame?.(sequenceId, Number(slider.value));
+    }
+  };
+  dsaRangeStartSlider?.addEventListener('input', () => {
+    previewDsaRangeFrame(dsaRangeStartSlider, dsaRangeEndSlider, true);
+  });
+  dsaRangeEndSlider?.addEventListener('input', () => {
+    previewDsaRangeFrame(dsaRangeEndSlider, dsaRangeStartSlider, false);
+  });
+  buildRoadmapRangeButton?.addEventListener('click', () => {
+    const sequenceId = Number(dsaSequenceSelect?.value);
+    if (Number.isFinite(sequenceId) && dsaSequenceSelect?.value !== '') {
+      onBuildRoadmapRange?.(
+        sequenceId,
+        Number(dsaRangeStartSlider?.value || 0),
+        Number(dsaRangeEndSlider?.value || 0)
+      );
+    }
+    buildRoadmapRangeButton.blur();
+  });
   dsaSequenceGalleryEl?.addEventListener('click', event => {
     const actionButton = event.target.closest('[data-dsa-gallery-action]');
     if (!actionButton || !dsaSequenceGalleryEl.contains(actionButton)) return;
@@ -746,6 +861,12 @@ export function initUI(options) {
   dsaCinePlayPauseButton?.addEventListener('click', () => {
     onToggleDsaCine?.();
     dsaCinePlayPauseButton.blur();
+  });
+  dsaCineFrameSlider?.addEventListener('input', e => {
+    onSeekDsaCineFrame?.(Number(e.target.value));
+  });
+  dsaCineSpeedSelect?.addEventListener('change', e => {
+    onSetDsaCineSpeed?.(Number(e.target.value));
   });
   dsaCineStopButton?.addEventListener('click', () => {
     onStopDsaCine?.();
@@ -1285,6 +1406,8 @@ export function initUI(options) {
 
   let dsaSequenceOptionSignature = '';
   let dsaGallerySignature = '';
+  let dsaRangeSequenceSignature = '';
+  let previousActiveRoadmapRangeSignature = '';
 
   function updateDsaRoadmapState(state = {}) {
     const maskPending = state.maskCapturePending === true;
@@ -1401,6 +1524,51 @@ export function initUI(options) {
           ? 'Recording DSA frames…'
           : 'Hold R to record a sequence';
     }
+    const rangeSequenceSignature = selectedSequence
+      ? `${selectedSequence.id}:${selectedSequence.frames.length}`
+      : '';
+    if (rangeSequenceSignature !== dsaRangeSequenceSignature) {
+      dsaRangeSequenceSignature = rangeSequenceSignature;
+      const lastFrameIndex = Math.max(
+        0,
+        (selectedSequence?.frames.length || 1) - 1
+      );
+      for (const slider of [dsaRangeStartSlider, dsaRangeEndSlider]) {
+        if (!slider) continue;
+        slider.min = '0';
+        slider.max = String(lastFrameIndex);
+      }
+      if (dsaRangeStartSlider) dsaRangeStartSlider.value = '0';
+      if (dsaRangeEndSlider) dsaRangeEndSlider.value = String(lastFrameIndex);
+    }
+    const rangeControlsDisabled = recording || !selectedSequence;
+    if (dsaRangeStartSlider) dsaRangeStartSlider.disabled = rangeControlsDisabled;
+    if (dsaRangeEndSlider) dsaRangeEndSlider.disabled = rangeControlsDisabled;
+    dsaRangeSliderEl?.classList.toggle('disabled', rangeControlsDisabled);
+    if (buildRoadmapRangeButton) {
+      buildRoadmapRangeButton.disabled = rangeControlsDisabled;
+    }
+    const nextActiveRoadmapRangeSignature =
+      state.roadmapCompositeActive &&
+      selectedSequence?.id === state.selectedSequenceId &&
+      Number.isInteger(state.selectedRangeStartIndex) &&
+      Number.isInteger(state.selectedRangeEndIndex)
+        ? `${selectedSequence.id}:${state.selectedRangeStartIndex}:${state.selectedRangeEndIndex}`
+        : '';
+    if (
+      nextActiveRoadmapRangeSignature &&
+      nextActiveRoadmapRangeSignature !== previousActiveRoadmapRangeSignature
+    ) {
+      if (dsaRangeStartSlider) {
+        dsaRangeStartSlider.value = String(state.selectedRangeStartIndex);
+      }
+      if (dsaRangeEndSlider) {
+        dsaRangeEndSlider.value = String(state.selectedRangeEndIndex);
+      }
+    }
+    activeRoadmapRangeSignature = nextActiveRoadmapRangeSignature;
+    previousActiveRoadmapRangeSignature = nextActiveRoadmapRangeSignature;
+    updateDsaRangeInfo();
     const gallerySignature = completedSequences
       .map(sequence => [
         sequence.id,
@@ -1482,10 +1650,23 @@ export function initUI(options) {
     if (dsaCineControlsEl) dsaCineControlsEl.hidden = !cineActive;
     if (dsaCineStatusEl) {
       dsaCineStatusEl.textContent = cineActive
-        ? `CINE DSA ${cineSequence.id} · ${state.cineFrameIndex + 1}/${cineSequence.frames.length}`
+        ? `CINE DSA ${cineSequence.id} · ${state.cineFrameIndex + 1}/${cineSequence.frames.length} · ${state.cinePlaybackRate || 1}×`
         : 'CINE';
     }
+    if (dsaCineFrameSlider) {
+      dsaCineFrameSlider.disabled = !cineActive;
+      dsaCineFrameSlider.min = '0';
+      dsaCineFrameSlider.max = String(
+        Math.max(0, (cineSequence?.frames.length || 1) - 1)
+      );
+      dsaCineFrameSlider.value = String(state.cineFrameIndex || 0);
+    }
+    if (dsaCineSpeedSelect) {
+      dsaCineSpeedSelect.disabled = !cineActive;
+      dsaCineSpeedSelect.value = String(state.cinePlaybackRate || 1);
+    }
     if (dsaCinePlayPauseButton) {
+      dsaCinePlayPauseButton.disabled = !cineActive;
       dsaCinePlayPauseButton.textContent = state.cinePlaying ? 'Pause' : 'Play';
     }
     if (dsaCineStopButton) dsaCineStopButton.disabled = !cineActive;

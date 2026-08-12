@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260804controlwidth1">
+    <link rel="stylesheet" href="style.css?v=20260812dual-range1">
 </head>
 <body>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -30,6 +30,18 @@
     <div id="imagingModeBadge" class="imaging-mode-badge" role="status" aria-live="polite" hidden></div>
     <div id="dsaCineControls" class="dsa-cine-controls" hidden>
         <span id="dsaCineStatus">CINE</span>
+        <label class="dsa-cine-frame-control">Frame
+            <input id="dsaCineFrame" type="range" min="0" max="0" step="1" value="0">
+        </label>
+        <label class="dsa-cine-speed-control">Speed
+            <select id="dsaCineSpeed">
+                <option value="0.25">0.25×</option>
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1×</option>
+                <option value="1.5">1.5×</option>
+                <option value="2">2×</option>
+            </select>
+        </label>
         <button id="dsaCinePlayPause" type="button">Pause</button>
         <button id="dsaCineStop" type="button">Return to live</button>
     </div>
@@ -219,6 +231,17 @@
                             </label>
                             <button id="useBestDsaFrame" type="button" disabled>Use best-filled frame</button>
                             <output id="dsaFrameInfo">Hold R to record a sequence</output>
+                            <div class="dsa-roadmap-range">
+                                <div class="dsa-roadmap-range-selector">
+                                    <span>Roadmap frame range</span>
+                                    <div id="dsaRangeSlider" class="dsa-range-slider disabled">
+                                        <input id="dsaRangeStart" aria-label="Range start" type="range" min="0" max="0" step="1" value="0" disabled>
+                                        <input id="dsaRangeEnd" aria-label="Range end" type="range" min="0" max="0" step="1" value="0" disabled>
+                                    </div>
+                                </div>
+                                <button id="buildRoadmapRange" type="button" disabled>Build range roadmap</button>
+                                <output id="dsaRangeInfo">Select a saved angiography</output>
+                            </div>
                         </div>
                         <div class="dsa-gallery-heading">
                             <span>Recorded DSA gallery</span>
@@ -228,11 +251,19 @@
                             <div class="dsa-gallery-empty">Recorded angiography will appear here</div>
                         </div>
                         <label class="parameter-label dsa-roadmap-opacity">Roadmap opacity
-                            <input id="roadmapOpacity" type="range" min="0" max="100" step="1" value="72">
+                            <input id="roadmapOpacity" type="range" min="0" max="100" step="1" value="30">
                             <span></span>
                         </label>
                         <label class="parameter-label dsa-roadmap-background">Roadmap background
                             <input id="roadmapBackground" type="range" min="0" max="100" step="1" value="100">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-edge-enhancement">Roadmap edge enhancement
+                            <input id="roadmapEdgeEnhancement" type="range" min="0" max="100" step="1" value="45">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-edge-darkness">Roadmap edge darkness
+                            <input id="roadmapEdgeDarkness" type="range" min="0" max="100" step="1" value="25">
                             <span></span>
                         </label>
                         <label class="parameter-label dsa-gain-control">DSA gain
