@@ -169,11 +169,15 @@ export class DsaRoadmapState {
         this.sequences = [];
         this.selectedSequenceId = null;
         this.selectedFrameIndex = null;
+        this.selectedRangeStartIndex = null;
+        this.selectedRangeEndIndex = null;
+        this.roadmapCompositeActive = false;
         this.cinePlaying = false;
         this.cineSequenceId = null;
         this.cineFrameIndex = null;
         this.cinePlaybackStartedAtMs = null;
         this.cineElapsedMs = 0;
+        this.cinePlaybackRate = 1;
         this.nextSequenceId = 1;
         this._roadmapWasEnabledBeforeRecording = false;
         this.status = 'Hold R to record a DSA sequence';
@@ -278,6 +282,9 @@ export class DsaRoadmapState {
         this.dsaEnabled = false;
         this.selectedSequenceId = null;
         this.selectedFrameIndex = null;
+        this.selectedRangeStartIndex = null;
+        this.selectedRangeEndIndex = null;
+        this.roadmapCompositeActive = false;
         this.status = 'Current DSA frame selected as roadmap';
         return true;
     }
@@ -440,6 +447,9 @@ export class DsaRoadmapState {
         sequence.selectedFrameIndex = index;
         this.selectedSequenceId = sequence.id;
         this.selectedFrameIndex = index;
+        this.selectedRangeStartIndex = index;
+        this.selectedRangeEndIndex = index;
+        this.roadmapCompositeActive = false;
         this.roadmapValid = true;
         this.roadmapEnabled = true;
         this.dsaEnabled = false;
@@ -451,6 +461,48 @@ export class DsaRoadmapState {
             frameIndex: index,
             storageKey: frame.storageKey,
             automatic
+        });
+    }
+
+    selectRoadmapRange(sequenceId, startFrameIndex, endFrameIndex) {
+        const sequence = this._sequence(sequenceId);
+        if (!sequence?.complete || !sequence.frames.length) {
+            this.status = 'The selected DSA frame range is unavailable';
+            return captureResult(false, this.status);
+        }
+        const lastIndex = sequence.frames.length - 1;
+        const requestedStart = Math.round(Number(startFrameIndex));
+        const requestedEnd = Math.round(Number(endFrameIndex));
+        if (!Number.isFinite(requestedStart) || !Number.isFinite(requestedEnd)) {
+            this.status = 'Select a valid DSA frame range';
+            return captureResult(false, this.status);
+        }
+        const startIndex = Math.max(
+            0,
+            Math.min(lastIndex, Math.min(requestedStart, requestedEnd))
+        );
+        const endIndex = Math.max(
+            0,
+            Math.min(lastIndex, Math.max(requestedStart, requestedEnd))
+        );
+        this.selectedSequenceId = sequence.id;
+        this.selectedFrameIndex = null;
+        this.selectedRangeStartIndex = startIndex;
+        this.selectedRangeEndIndex = endIndex;
+        this.roadmapCompositeActive = true;
+        this.roadmapValid = true;
+        this.roadmapEnabled = true;
+        this.dsaEnabled = false;
+        const frameCount = endIndex - startIndex + 1;
+        this.status = `DSA ${sequence.id} · frames ${startIndex + 1}–${endIndex + 1} combined into roadmap`;
+        return captureResult(true, '', {
+            sequenceId: sequence.id,
+            startFrameIndex: startIndex,
+            endFrameIndex: endIndex,
+            frameCount,
+            storageKeys: sequence.frames
+                .slice(startIndex, endIndex + 1)
+                .map(frame => frame.storageKey)
         });
     }
 
@@ -485,7 +537,7 @@ export class DsaRoadmapState {
         }
         this.cineSequenceId = sequence.id;
         this.cinePlaying = true;
-        this.cinePlaybackStartedAtMs = nowMs - this.cineElapsedMs;
+        this.cinePlaybackStartedAtMs = nowMs;
         this.status = `Playing DSA ${sequence.id} as cine`;
         return captureResult(true, '', {
             sequenceId: sequence.id,
@@ -505,6 +557,40 @@ export class DsaRoadmapState {
             sequenceId: this.cineSequenceId,
             frameIndex: this.cineFrameIndex
         });
+    }
+
+    seekCineFrame(frameIndex, { nowMs = Date.now() } = {}) {
+        const sequence = this._sequence(this.cineSequenceId);
+        const index = Math.round(Number(frameIndex));
+        const frame = sequence?.frames[index];
+        if (!sequence?.complete || !frame) {
+            this.status = 'The selected cine frame is unavailable';
+            return captureResult(false, this.status);
+        }
+        const timing = this._cineTiming(sequence);
+        this.cineFrameIndex = index;
+        this.cineElapsedMs = timing.frameOffsetsMs[index] || 0;
+        if (this.cinePlaying) this.cinePlaybackStartedAtMs = nowMs;
+        this.status = `DSA ${sequence.id} cine · frame ${index + 1}/${sequence.frames.length}`;
+        return captureResult(true, '', {
+            sequenceId: sequence.id,
+            frameIndex: index,
+            durationMs: timing.durationMs
+        });
+    }
+
+    setCinePlaybackRate(playbackRate, { nowMs = Date.now() } = {}) {
+        const rate = Number(playbackRate);
+        if (!Number.isFinite(rate) || rate < 0.1 || rate > 4) {
+            return captureResult(false, 'Cine playback speed must be between 0.1× and 4×');
+        }
+        if (this.cinePlaying) this.advanceCine({ nowMs });
+        this.cinePlaybackRate = rate;
+        if (this.cinePlaying) this.cinePlaybackStartedAtMs = nowMs;
+        this.status = this.cineSequenceId === null
+            ? `Cine speed set to ${rate}×`
+            : `DSA ${this.cineSequenceId} cine · ${rate}×`;
+        return captureResult(true, '', { playbackRate: rate });
     }
 
     toggleCine(sequenceId = this.cineSequenceId, { nowMs = Date.now() } = {}) {
@@ -547,9 +633,14 @@ export class DsaRoadmapState {
         }
         const timing = this._cineTiming(sequence);
         const elapsed = timing.durationMs > 0
-            ? Math.max(0, nowMs - this.cinePlaybackStartedAtMs) % timing.durationMs
+            ? (
+                this.cineElapsedMs +
+                Math.max(0, nowMs - this.cinePlaybackStartedAtMs) *
+                    this.cinePlaybackRate
+            ) % timing.durationMs
             : 0;
         this.cineElapsedMs = elapsed;
+        this.cinePlaybackStartedAtMs = nowMs;
         let frameIndex = 0;
         for (let index = 1; index < timing.frameOffsetsMs.length; index++) {
             if (timing.frameOffsetsMs[index] > elapsed) break;
@@ -586,6 +677,9 @@ export class DsaRoadmapState {
         this.roadmapEnabled = false;
         this.selectedSequenceId = null;
         this.selectedFrameIndex = null;
+        this.selectedRangeStartIndex = null;
+        this.selectedRangeEndIndex = null;
+        this.roadmapCompositeActive = false;
         this.status = this.dsaEnabled
             ? 'DSA active · roadmap cleared'
             : this.sequences.some(sequence => sequence.complete)
@@ -629,6 +723,9 @@ export class DsaRoadmapState {
             this.roadmapEnabled = false;
             this.selectedSequenceId = null;
             this.selectedFrameIndex = null;
+            this.selectedRangeStartIndex = null;
+            this.selectedRangeEndIndex = null;
+            this.roadmapCompositeActive = false;
         }
         this.status = reason;
     }
@@ -648,9 +745,13 @@ export class DsaRoadmapState {
             recordingSequenceId: this.recordingSequenceId,
             selectedSequenceId: this.selectedSequenceId,
             selectedFrameIndex: this.selectedFrameIndex,
+            selectedRangeStartIndex: this.selectedRangeStartIndex,
+            selectedRangeEndIndex: this.selectedRangeEndIndex,
+            roadmapCompositeActive: this.roadmapCompositeActive,
             cinePlaying: this.cinePlaying,
             cineSequenceId: this.cineSequenceId,
             cineFrameIndex: this.cineFrameIndex,
+            cinePlaybackRate: this.cinePlaybackRate,
             maxSequences: this.maxSequences,
             maxFramesPerSequence: this.maxFramesPerSequence,
             sequences: this.sequences.map(cloneSequence),
@@ -717,6 +818,9 @@ export class DsaRoadmapState {
             if (removed.id === this.selectedSequenceId) {
                 this.selectedSequenceId = null;
                 this.selectedFrameIndex = null;
+                this.selectedRangeStartIndex = null;
+                this.selectedRangeEndIndex = null;
+                this.roadmapCompositeActive = false;
                 this.roadmapValid = false;
                 this.roadmapEnabled = false;
             }
