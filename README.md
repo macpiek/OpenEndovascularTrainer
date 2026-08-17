@@ -75,6 +75,10 @@ The STL centerline is extracted offline as one acyclic medial tree. Each lumen c
 
 ## Development Scripts
 
+Pełna dokumentacja architektury i indeks funkcji są dostępne jako statyczna
+strona w [`docs/index.html`](docs/index.html). Indeks można odświeżyć poleceniem
+`npm run docs:generate`; workflow aktualizuje go także automatycznie po merge.
+
 ```bash
 npm run dev          # start Vite development server
 npm run build        # build the browser app
