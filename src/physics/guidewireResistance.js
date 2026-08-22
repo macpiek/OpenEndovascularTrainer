@@ -4,12 +4,25 @@ function clamp01(value) {
     return Math.max(0, Math.min(1, value));
 }
 
-export function sampleGuidewireResistance(body) {
+export function sampleGuidewireResistance(body, out = null) {
     let activeContacts = 0;
     let normalReaction = 0;
     let axialReaction = 0;
 
-    for (let index = 0; index < body.wallLambda.length; index++) {
+    const firstCollisionSegment = Math.max(
+        body.activeStart ?? 0,
+        body.collisionStartSegment ?? 0
+    );
+    const lastCollisionSegment = Math.min(
+        (body.activeEnd ?? body.wallLambda.length) - 1,
+        body.collisionEndSegment ?? body.wallLambda.length - 1,
+        body.wallLambda.length - 1
+    );
+    for (
+        let index = firstCollisionSegment;
+        index <= lastCollisionSegment;
+        index++
+    ) {
         if (!body.wallActive[index]) continue;
         const lambda = Math.max(0, body.wallLambda[index]);
         if (lambda <= EPSILON) continue;
@@ -26,15 +39,21 @@ export function sampleGuidewireResistance(body) {
                 dz * body.wallNormalZ[index]) / length
         );
         normalReaction += lambda;
-        axialReaction += lambda * (normalProjection + body.wallFriction);
+        const slidingFriction = body.wallKineticFriction ?? body.wallFriction;
+        axialReaction += lambda * (normalProjection + slidingFriction);
         activeContacts++;
     }
 
-    // Lambdas are solver reactions, not calibrated forces. Combining their
-    // axial projection with total normal load makes the indicator respond to
-    // wedging and accumulated friction instead of contact count alone.
-    const level = clamp01(1 - Math.exp(-(axialReaction * 12 + normalReaction * 1.8)));
-    return { level, activeContacts, normalReaction, axialReaction };
+    // Lambdas are solver reactions, not calibrated forces. The handle should
+    // report the axial component needed to advance the wire, not total lateral
+    // support from a long wire resting against a curved vessel wall.
+    const level = clamp01(1 - Math.exp(-axialReaction * 12));
+    const result = out || {};
+    result.level = level;
+    result.activeContacts = activeContacts;
+    result.normalReaction = normalReaction;
+    result.axialReaction = axialReaction;
+    return result;
 }
 
 export class GuidewireResistanceEstimator {
@@ -42,6 +61,7 @@ export class GuidewireResistanceEstimator {
         this.attackSeconds = attackSeconds;
         this.releaseSeconds = releaseSeconds;
         this.level = 0;
+        this._sample = {};
     }
 
     reset() {
@@ -52,8 +72,8 @@ export class GuidewireResistanceEstimator {
         dt,
         command = 0,
         atMaximumInsertion = false
-    } = {}) {
-        const sample = sampleGuidewireResistance(body);
+    } = {}, out = null) {
+        const sample = sampleGuidewireResistance(body, this._sample);
         const requestedAdvanceAtLimit = command > 0 && atMaximumInsertion;
         const target = requestedAdvanceAtLimit ? 1 : sample.level;
         const timeConstant = target > this.level ? this.attackSeconds : this.releaseSeconds;
@@ -69,10 +89,12 @@ export class GuidewireResistanceEstimator {
             reason = 'Kontakt prowadnika ze ścianą naczynia';
         }
 
-        return {
-            ...sample,
-            level: clamp01(this.level),
-            reason
-        };
+        const result = out || {};
+        result.level = clamp01(this.level);
+        result.activeContacts = sample.activeContacts;
+        result.normalReaction = sample.normalReaction;
+        result.axialReaction = sample.axialReaction;
+        result.reason = reason;
+        return result;
     }
 }

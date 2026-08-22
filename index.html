@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260804controlwidth1">
+    <link rel="stylesheet" href="style.css?v=20260817guidewirestiffness1">
 </head>
 <body>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -62,11 +62,26 @@
                 <div class="section-content tool-selection-grid">
                     <div class="parameter-label tool-select-label">
                         <label for="catheterType">Catheter</label>
-                        <div class="tool-select-input-row">
-                            <select id="catheterType">
-                                <option value="pigtail">Pigtail</option>
-                                <option value="berenstein" selected>Berenstein</option>
-                            </select>
+                        <div class="tool-select-input-row catheter-select-row">
+                            <div class="catheter-type-picker">
+                                <span
+                                    class="catheter-tip-preview"
+                                    aria-hidden="true"
+                                >
+                                    <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+                                        <path
+                                            data-catheter-tip="berenstein"
+                                        />
+                                        <path
+                                            data-catheter-tip="pigtail"
+                                        />
+                                    </svg>
+                                </span>
+                                <select id="catheterType">
+                                    <option value="pigtail">Pigtail</option>
+                                    <option value="berenstein" selected>Berenstein</option>
+                                </select>
+                            </div>
                             <button
                                 id="catheterAutoWithdraw"
                                 class="tool-auto-withdraw"
@@ -77,13 +92,29 @@
                             >Wysuń</button>
                         </div>
                         <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                        <div class="catheter-manual-controls" role="group" aria-label="Sterowanie cewnikiem">
+                            <button id="catheterWithdraw" type="button" aria-label="Wycofaj cewnik — przytrzymaj">A&nbsp; wycofaj</button>
+                            <button id="catheterAdvance" type="button" aria-label="Wsuń cewnik — przytrzymaj">D&nbsp; wsuń</button>
+                            <button id="catheterRotateLeft" type="button" aria-label="Obróć cewnik w lewo — przytrzymaj">Q&nbsp; ↺</button>
+                            <button id="catheterRotateRight" type="button" aria-label="Obróć cewnik w prawo — przytrzymaj">E&nbsp; ↻</button>
+                        </div>
+                        <span class="tool-hint">Obrót końcówki widać po cofnięciu prowadnika za jej krzywiznę.</span>
                     </div>
                     <div class="parameter-label tool-select-label">
                         <label for="guidewireType">Guidewire</label>
-                        <div class="tool-select-input-row">
-                            <select id="guidewireType">
-                                <option value="glidewire" selected>Glidewire</option>
-                            </select>
+                        <div class="tool-select-input-row guidewire-select-row">
+                            <div class="tool-type-picker guidewire-type-picker">
+                                <span class="tool-tip-preview" aria-hidden="true">
+                                    <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+                                        <path data-guidewire-tip="glidewire" />
+                                        <path data-guidewire-tip="steel-j-035" />
+                                    </svg>
+                                </span>
+                                <select id="guidewireType">
+                                    <option value="glidewire" selected>Glidewire</option>
+                                    <option value="steel-j-035">Steel J-wire 0.035&quot;</option>
+                                </select>
+                            </div>
                             <button
                                 id="guidewireAutoWithdraw"
                                 class="tool-auto-withdraw"
@@ -94,6 +125,33 @@
                             >Wysuń</button>
                         </div>
                         <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
+                        <label class="guidewire-stiffness-control" for="stiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="stiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="4"
+                                    step="0.05"
+                                    value="1"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireStiffnessRange"
+                                >
+                                <output id="guidewireStiffnessValue" for="stiffness">1,00×</output>
+                            </span>
+                            <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękki</span>
+                                <span>standard</span>
+                                <span>sztywniejszy</span>
+                            </span>
+                        </label>
+                        <div class="guidewire-manual-controls" role="group" aria-label="Sterowanie obrotem prowadnika">
+                            <button id="guidewireRotateLeft" type="button" aria-label="Obróć prowadnik w lewo — przytrzymaj">Z&nbsp; ↺</button>
+                            <button id="guidewireRotateRight" type="button" aria-label="Obróć prowadnik w prawo — przytrzymaj">X&nbsp; ↻</button>
+                        </div>
+                        <span class="tool-hint">Obrót jest widoczny na asymetrycznej końcówce, np. Steel J-wire.</span>
                     </div>
                 </div>
             </div>
@@ -113,10 +171,6 @@
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
                 <div class="section-content compact-grid">
-                    <label class="parameter-label">Bending stiffness
-                        <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
-                        <span></span>
-                    </label>
                     <label class="parameter-label">Smoothing iterations
                         <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
                         <span></span>
@@ -376,7 +430,9 @@
                     Gotowe do ustawienia
                 </output>
                 <div class="browser-benchmark-actions">
-                    <button id="runBrowserBenchmarkSmoke" type="button">Start 5 s</button>
+                    <button id="runGuidewireBenchmark" type="button">Prowadnik 28 s</button>
+                    <button id="runGuidewireBenchmarkFull" type="button">Prowadnik 10 min</button>
+                    <button id="runBrowserBenchmarkSmoke" type="button">Start 35 s</button>
                     <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
                     <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>
                 </div>
@@ -449,7 +505,7 @@
     <div class="control-help-grid">
         <section class="control-help-section">
             <h2>Prowadnik</h2>
-            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj.</p>
+            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj, <kbd>Z</kbd>/<kbd>X</kbd> obróć.</p>
         </section>
         <section class="control-help-section">
             <h2>Cewnik</h2>

@@ -10,7 +10,13 @@ import {
     GUIDEWIRE_TIP_CORE_LENGTH_MM,
     GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES,
     GUIDEWIRE_TIP_BENDING_STIFFNESS,
-    applyGuidewireMaterialProfile
+    STEEL_J_GUIDEWIRE_BODY_BENDING_STIFFNESS,
+    STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM,
+    STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD,
+    applyGuidewireIntrinsicCurvatureProfile,
+    applyGuidewireMaterialProfile,
+    integrateSteelJGuidewireIntrinsicTurn,
+    sampleGuidewireRestCenterline
 } from '../src/physics/guidewireMaterialProfile.js';
 import {
     DEFAULT_TOOL_PROFILES,
@@ -120,6 +126,72 @@ for (let index = 1; index < materialTransitionNodes.length; index++) {
         'stiffness should decrease smoothly toward the distal tip'
     );
 }
+
+const steelJWire = new ElasticRod(nodeCount, segmentLength, {
+    constraintIterations: 28
+});
+applyGuidewireMaterialProfile(steelJWire, {
+    segmentLength,
+    type: 'steel-j-035'
+});
+assert.equal(
+    steelJWire.nodes[0].bendingStiffness,
+    STEEL_J_GUIDEWIRE_BODY_BENDING_STIFFNESS,
+    'Steel J-wire must use its stiffer stainless-steel shaft profile'
+);
+let integratedSteelJTurn = 0;
+for (let start = 0; start < STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM; start += 0.5) {
+    integratedSteelJTurn += integrateSteelJGuidewireIntrinsicTurn(
+        start + 0.25,
+        0.5
+    );
+}
+assert.ok(
+    Math.abs(integratedSteelJTurn - STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD) < 1e-9,
+    'Steel J-wire curvature profile must integrate to a 180 degree J tip'
+);
+const sampledSteelJTip = sampleGuidewireRestCenterline(
+    'steel-j-035',
+    STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM,
+    STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM
+);
+assert.ok(
+    Math.abs(sampledSteelJTip.turnAngle - STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD) < 1e-6,
+    'Steel J-wire preview and physics must share the same natural turn'
+);
+const intrinsicWorld = new EndovascularPhysicsWorld();
+const intrinsicBody = intrinsicWorld.createRod('steel-j-profile', 24, segmentLength, {
+    ...DEFAULT_TOOL_PROFILES.guidewire
+});
+applyGuidewireIntrinsicCurvatureProfile(intrinsicBody, {
+    type: 'steel-j-035',
+    axisZ: 1
+});
+const discreteSteelJTurn = Array.from(intrinsicBody.restDirectionTurnAngle)
+    .reduce((sum, turn) => sum + turn, 0);
+assert.ok(
+    Math.abs(discreteSteelJTurn - STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD) < 1e-6,
+    'discretized Steel J-wire hinges must preserve the full manufactured J turn'
+);
+applyGuidewireIntrinsicCurvatureProfile(intrinsicBody, {
+    type: 'steel-j-035',
+    axisX: 1,
+    axisZ: 0
+});
+assert.ok(
+    Array.from(intrinsicBody.intrinsicBendEnabled).every((enabled, index) =>
+        !enabled || Math.abs(intrinsicBody.restDirectionAxisX[index] - 1) < 1e-6
+    ),
+    'rotating the handle must rotate the material plane of every J-tip hinge'
+);
+applyGuidewireIntrinsicCurvatureProfile(intrinsicBody, {
+    type: 'glidewire',
+    axisZ: 1
+});
+assert.ok(
+    intrinsicBody.intrinsicBendEnabled.every(enabled => enabled === 0),
+    'switching back to Glidewire must remove every Steel J intrinsic target'
+);
 const solver = new GuidewireSolver({
     rod: wire,
     segmentLength,

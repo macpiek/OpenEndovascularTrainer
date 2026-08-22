@@ -1,5 +1,8 @@
 export const BROWSER_BENCHMARK_DEFAULT_DURATION_MS = 10 * 60 * 1000;
 export const BROWSER_BENCHMARK_SCENARIO_CYCLE_MS = 72 * 1000;
+export const GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS = 28 * 1000;
+export const BROWSER_BENCHMARK_MODE_COUPLED = 'coupled';
+export const BROWSER_BENCHMARK_MODE_GUIDEWIRE = 'guidewire-only';
 
 export function createBrowserBenchmarkCommands() {
     return {
@@ -37,5 +40,24 @@ export function sampleBrowserBenchmarkCommands(elapsedMs, out) {
     } else if (cyclePhase < 67000) {
         out.guidewireAdvance = -1;
     }
+    return out;
+}
+
+export function sampleGuidewireBrowserBenchmarkCommands(elapsedMs, out) {
+    const cyclePhase = Math.max(0, elapsedMs) %
+        GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS;
+    // Exercise both button-release boundaries in every smoke cycle. The idle
+    // windows are intentionally long enough to expose elastic recovery while
+    // the transport command is zero, without changing the 28 s runtime.
+    out.guidewireAdvance = cyclePhase < 12000
+        ? 1
+        : cyclePhase < 14000
+            ? 0
+            : cyclePhase < 26000
+                ? -1
+                : 0;
+    out.catheterAdvance = 0;
+    out.catheterRotation = 0;
+    out.catheterType = 'berenstein';
     return out;
 }

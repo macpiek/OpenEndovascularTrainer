@@ -2,7 +2,10 @@ import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js';
 import { setupCArmControls } from '../carmControls.js';
 import { AutomaticWithdrawalController } from './automaticWithdrawalController.js';
-import { setBendingStiffness, setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
+import { renderCatheterTipPreviews } from './catheterTipPreview.js';
+import { renderGuidewireTipPreviews } from './guidewireTipPreview.js';
+import { shouldStartInjectionFromKeydown } from './injectionShortcut.js';
+import { setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
 import {
   GUIDEWIRE_DIAMETER_IN,
   GUIDEWIRE_DIAMETER_MM,
@@ -16,6 +19,8 @@ import {
 // Expects options with references and callbacks to interact with the simulator.
 // Returns helpers to query UI-driven state and update UI readouts.
 export function initUI(options) {
+  renderCatheterTipPreviews();
+  renderGuidewireTipPreviews();
   const {
     camera,
     cameraRadius,
@@ -28,6 +33,8 @@ export function initUI(options) {
     onStopInjection,
     onModeChange,
     onDebugLayerChange,
+    onGuidewireStiffnessChange,
+    onGuidewireFrictionChange,
     onContrastHemodynamicsChange,
     onContrastInjectionParametersChange,
     onInjectionRequestChange,
@@ -82,6 +89,7 @@ export function initUI(options) {
 
   // UI elements
   const bendSlider = document.getElementById('stiffness');
+  const guidewireStiffnessValue = document.getElementById('guidewireStiffnessValue');
   const staticFricSlider = document.getElementById('staticFriction');
   const kineticFricSlider = document.getElementById('kineticFriction');
   const smoothIterSlider = document.getElementById('smoothIterations');
@@ -154,6 +162,8 @@ export function initUI(options) {
   const insertedLengthEl = document.getElementById('insertedLength');
   const catheterLengthEl = document.getElementById('catheterLength');
   const guidewireAutoWithdrawButton = document.getElementById('guidewireAutoWithdraw');
+  const guidewireRotateLeftButton = document.getElementById('guidewireRotateLeft');
+  const guidewireRotateRightButton = document.getElementById('guidewireRotateRight');
   const catheterAutoWithdrawButton = document.getElementById('catheterAutoWithdraw');
   const catheterAdvanceButton = document.getElementById('catheterAdvance');
   const catheterWithdrawButton = document.getElementById('catheterWithdraw');
@@ -181,6 +191,8 @@ export function initUI(options) {
   const reproduceRetrogradeGapButton = document.getElementById('reproduceRetrogradeGap');
   const reproduceArchBolusButton = document.getElementById('reproduceArchBolus');
   const catheterAortaSetupStatusEl = document.getElementById('catheterAortaSetupStatus');
+  const runGuidewireBenchmarkButton = document.getElementById('runGuidewireBenchmark');
+  const runGuidewireBenchmarkFullButton = document.getElementById('runGuidewireBenchmarkFull');
   const runBrowserBenchmarkSmokeButton = document.getElementById('runBrowserBenchmarkSmoke');
   const runBrowserBenchmarkFullButton = document.getElementById('runBrowserBenchmarkFull');
   const stopBrowserBenchmarkButton = document.getElementById('stopBrowserBenchmark');
@@ -240,7 +252,9 @@ export function initUI(options) {
   let insertedLengthCm = 0;
   let catheterLengthCm = 0;
   let insertedLengthTenths = -1;
+  let guidewireRotationDegrees = null;
   let catheterLengthTenths = -1;
+  let catheterRotationDegrees = null;
   let doseTenths = -1;
   let roundedKv = -1;
   let maTenths = -1;
@@ -347,11 +361,33 @@ export function initUI(options) {
   reproduceArchBolusButton?.addEventListener('click', () => {
     if (typeof onReproduceArchBolus === 'function') onReproduceArchBolus();
   });
+  runGuidewireBenchmarkButton?.addEventListener('click', () => {
+    if (typeof onStartBrowserBenchmark === 'function') {
+      onStartBrowserBenchmark({
+        durationMs: 28000,
+        skipWarmup: true,
+        mode: 'guidewire-only'
+      });
+    }
+  });
+  runGuidewireBenchmarkFullButton?.addEventListener('click', () => {
+    if (typeof onStartBrowserBenchmark === 'function') {
+      onStartBrowserBenchmark({
+        durationMs: 600000,
+        skipWarmup: true,
+        mode: 'guidewire-only'
+      });
+    }
+  });
   runBrowserBenchmarkSmokeButton?.addEventListener('click', () => {
-    if (typeof onStartBrowserBenchmark === 'function') onStartBrowserBenchmark(5000);
+    if (typeof onStartBrowserBenchmark === 'function') {
+      onStartBrowserBenchmark({ durationMs: 35000, skipWarmup: true });
+    }
   });
   runBrowserBenchmarkFullButton?.addEventListener('click', () => {
-    if (typeof onStartBrowserBenchmark === 'function') onStartBrowserBenchmark(600000);
+    if (typeof onStartBrowserBenchmark === 'function') {
+      onStartBrowserBenchmark({ durationMs: 600000 });
+    }
   });
   stopBrowserBenchmarkButton?.addEventListener('click', () => {
     if (typeof onStopBrowserBenchmark === 'function') onStopBrowserBenchmark();
@@ -407,9 +443,19 @@ export function initUI(options) {
 
   // Display current values next to each slider
   document.querySelectorAll('#controls input[type="range"], #carm-controls input[type="range"]').forEach(slider => {
-    const valueLabel = slider.nextElementSibling;
+    const explicitOutput = slider.id
+      ? document.querySelector(`output[for="${slider.id}"]`)
+      : null;
+    const valueLabel = explicitOutput || slider.nextElementSibling;
     if (!valueLabel) return;
-    const update = () => { valueLabel.textContent = slider.value; };
+    const update = () => {
+      const decimals = Number.parseInt(slider.dataset.valueDecimals, 10);
+      const numericValue = Number.parseFloat(slider.value);
+      const value = Number.isFinite(decimals) && Number.isFinite(numericValue)
+        ? numericValue.toFixed(decimals).replace('.', ',')
+        : slider.value;
+      valueLabel.textContent = `${value}${slider.dataset.valueSuffix || ''}`;
+    };
     update();
     slider.addEventListener('input', update);
   });
@@ -754,24 +800,35 @@ export function initUI(options) {
 
   // Physics controls
   if (bendSlider) {
-    let bendingStiffness = parseFloat(bendSlider.value);
-    setBendingStiffness(bendingStiffness);
+    let stiffnessScale = parseFloat(bendSlider.value);
+    const updateStiffnessValue = () => {
+      if (!guidewireStiffnessValue) return;
+      guidewireStiffnessValue.textContent =
+        `${stiffnessScale.toFixed(2).replace('.', ',')}×`;
+    };
+    updateStiffnessValue();
+    onGuidewireStiffnessChange?.({ stiffnessScale });
     bendSlider.addEventListener('input', e => {
-      bendingStiffness = parseFloat(e.target.value);
-      setBendingStiffness(bendingStiffness);
+      stiffnessScale = parseFloat(e.target.value);
+      updateStiffnessValue();
+      onGuidewireStiffnessChange?.({ stiffnessScale });
     });
   }
   if (staticFricSlider && kineticFricSlider) {
     let staticFriction = parseFloat(staticFricSlider.value);
     let kineticFriction = parseFloat(kineticFricSlider.value);
-    setWallFriction(staticFriction, kineticFriction);
+    const applyFriction = () => {
+      setWallFriction(staticFriction, kineticFriction);
+      onGuidewireFrictionChange?.({ staticFriction, kineticFriction });
+    };
+    applyFriction();
     staticFricSlider.addEventListener('input', e => {
       staticFriction = parseFloat(e.target.value);
-      setWallFriction(staticFriction, kineticFriction);
+      applyFriction();
     });
     kineticFricSlider.addEventListener('input', e => {
       kineticFriction = parseFloat(e.target.value);
-      setWallFriction(staticFriction, kineticFriction);
+      applyFriction();
     });
   }
   if (smoothIterSlider) {
@@ -808,6 +865,7 @@ export function initUI(options) {
 
   // Keyboard controls for guidewire advance and keyboard-triggered injection
   let advance = 0;
+  let guidewireRotation = 0;
   let catheterAdvance = 0;
   let catheterRotation = 0;
   const setCatheterAdvance = value => {
@@ -816,6 +874,12 @@ export function initUI(options) {
   };
   const stopCatheterAdvance = () => {
     catheterAdvance = 0;
+  };
+  const setGuidewireRotation = value => {
+    guidewireRotation = value;
+  };
+  const stopGuidewireRotation = () => {
+    guidewireRotation = 0;
   };
   const setCatheterRotation = value => {
     catheterRotation = value;
@@ -833,6 +897,7 @@ export function initUI(options) {
     });
     button.addEventListener('pointerup', onUp);
     button.addEventListener('pointercancel', onUp);
+    button.addEventListener('lostpointercapture', onUp);
     button.addEventListener('pointerleave', e => {
       if (e.buttons === 0) onUp();
     });
@@ -841,6 +906,8 @@ export function initUI(options) {
   wireHoldButton(catheterWithdrawButton, () => setCatheterAdvance(-1), stopCatheterAdvance);
   wireHoldButton(catheterRotateLeftButton, () => setCatheterRotation(-1), stopCatheterRotation);
   wireHoldButton(catheterRotateRightButton, () => setCatheterRotation(1), stopCatheterRotation);
+  wireHoldButton(guidewireRotateLeftButton, () => setGuidewireRotation(-1), stopGuidewireRotation);
+  wireHoldButton(guidewireRotateRightButton, () => setGuidewireRotation(1), stopGuidewireRotation);
 
   document.addEventListener('keydown', e => {
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
@@ -865,7 +932,13 @@ export function initUI(options) {
     if (e.code === 'KeyQ') {
       catheterRotation = -1; e.preventDefault();
     }
-    if ((e.code === 'KeyI' || e.code === 'KeyC') && fluoroscopy) {
+    if (e.code === 'KeyX') {
+      guidewireRotation = 1; e.preventDefault();
+    }
+    if (e.code === 'KeyZ') {
+      guidewireRotation = -1; e.preventDefault();
+    }
+    if (shouldStartInjectionFromKeydown(e, fluoroscopy)) {
       // Trigger injection with current UI values
       if (typeof onStartInjection === 'function') {
         const rate = parseFloat(injRateSlider.value);
@@ -890,6 +963,9 @@ export function initUI(options) {
     if (['KeyQ', 'KeyE'].includes(e.code)) {
       catheterRotation = 0; e.preventDefault();
     }
+    if (['KeyZ', 'KeyX'].includes(e.code)) {
+      guidewireRotation = 0; e.preventDefault();
+    }
     if (e.code === 'KeyR') {
       stopDsaHold();
       e.preventDefault();
@@ -897,6 +973,7 @@ export function initUI(options) {
   }, true);
   window.addEventListener('blur', () => {
     advance = 0;
+    guidewireRotation = 0;
     catheterAdvance = 0;
     catheterRotation = 0;
     stopDsaHold();
@@ -920,26 +997,48 @@ export function initUI(options) {
   }
 
   // Helpers to let simulator update UI
-  function updateInsertedLength(cm) {
+  function updateInsertedLength(cm, rotationRadians = 0) {
     insertedLengthCm = Math.max(0, cm);
     guidewireAutoWithdraw.updateLength(insertedLengthCm);
     const nextTenths = Math.round(insertedLengthCm * 10);
-    if (nextTenths === insertedLengthTenths) return;
+    const nextRotationDegrees = Math.round(
+      ((rotationRadians * 180 / Math.PI + 180) % 360 + 360) % 360 - 180
+    );
+    if (
+      nextTenths === insertedLengthTenths &&
+      nextRotationDegrees === guidewireRotationDegrees
+    ) return;
     insertedLengthTenths = nextTenths;
+    guidewireRotationDegrees = nextRotationDegrees;
     const display = (nextTenths / 10).toFixed(1);
     insertedLengthDisplay = display;
-    if (insertedLengthEl) insertedLengthEl.textContent = `Wire ${display} cm`;
+    if (insertedLengthEl) {
+      const sign = nextRotationDegrees > 0 ? '+' : '';
+      insertedLengthEl.textContent =
+        `Wire ${display} cm · ${sign}${nextRotationDegrees}°`;
+    }
     updateToolSelectionLocks();
   }
-  function updateCatheterLength(cm) {
+  function updateCatheterLength(cm, rotationRadians = 0) {
     catheterLengthCm = Math.max(0, cm);
     catheterAutoWithdraw.updateLength(catheterLengthCm);
     const nextTenths = Math.round(catheterLengthCm * 10);
-    if (nextTenths === catheterLengthTenths) return;
+    const nextRotationDegrees = Math.round(
+      ((rotationRadians * 180 / Math.PI + 180) % 360 + 360) % 360 - 180
+    );
+    if (
+      nextTenths === catheterLengthTenths &&
+      nextRotationDegrees === catheterRotationDegrees
+    ) return;
     catheterLengthTenths = nextTenths;
+    catheterRotationDegrees = nextRotationDegrees;
     const display = (nextTenths / 10).toFixed(1);
     catheterLengthDisplay = display;
-    if (catheterLengthEl) catheterLengthEl.textContent = `Catheter ${display} cm`;
+    if (catheterLengthEl) {
+      const sign = nextRotationDegrees > 0 ? '+' : '';
+      catheterLengthEl.textContent =
+        `Catheter ${display} cm · ${sign}${nextRotationDegrees}°`;
+    }
     updateToolSelectionLocks();
   }
   function updateDose(ml) {
@@ -1006,6 +1105,10 @@ export function initUI(options) {
       `/ solve ${formatDebugMs(perf.solveMs)} ` +
       `/ narrow ${formatDebugMs(perf.projectMs)} ` +
       `/ dbg ${formatDebugMs(perf.diagnosticMs)} ms | ` +
+      `P ${formatDebugMs(perf.constraintPrimaryMs)} ` +
+      `B ${formatDebugMs(perf.constraintBodyClosureMs)} ` +
+      `C ${formatDebugMs(perf.constraintCoupledClosureMs)} ` +
+      `M ${formatDebugMs(perf.constraintMovingClosureMs)} | ` +
       `q ${perf.pointContactCount}+${perf.diagnosticPointContactCount} | ` +
       `segS ${perf.segmentSampleCount}` +
       `${Number.isFinite(perf.activeBranchCount) ? ` | br ${perf.activeBranchCount}` : ''}` +
@@ -1210,6 +1313,8 @@ export function initUI(options) {
   }
   function updateBrowserBenchmarkStatus(status, report = null) {
     const running = !!status?.running;
+    if (runGuidewireBenchmarkButton) runGuidewireBenchmarkButton.disabled = running;
+    if (runGuidewireBenchmarkFullButton) runGuidewireBenchmarkFullButton.disabled = running;
     if (runBrowserBenchmarkSmokeButton) runBrowserBenchmarkSmokeButton.disabled = running;
     if (runBrowserBenchmarkFullButton) runBrowserBenchmarkFullButton.disabled = running;
     if (stopBrowserBenchmarkButton) stopBrowserBenchmarkButton.disabled = !running;
@@ -1224,8 +1329,9 @@ export function initUI(options) {
       }
       const elapsedSeconds = Math.floor(status.elapsedMs / 1000);
       const durationSeconds = Math.round(status.durationMs / 1000);
+      const modeLabel = status.mode === 'guidewire-only' ? 'prowadnik' : 'pełny';
       browserBenchmarkStatusEl.textContent =
-        `Running ${elapsedSeconds}/${durationSeconds} s · cycle ${status.cycleIndex + 1}`;
+        `Running ${modeLabel} ${elapsedSeconds}/${durationSeconds} s · cycle ${status.cycleIndex + 1}`;
       return;
     }
     if (!report?.frameCount) {
@@ -1516,19 +1622,30 @@ export function initUI(options) {
     }
   }
 
+  const injectionRequest = {
+    source: 'sheath',
+    rateMlPerSec: 0,
+    volumeMl: 0
+  };
+  const getInjectionRequest = () => {
+    injectionRequest.source = injSourceSelect?.value || 'sheath';
+    injectionRequest.rateMlPerSec = parseFloat(
+      injRateSlider?.value || '0'
+    );
+    injectionRequest.volumeMl = parseFloat(injVolumeSlider?.value || '0');
+    return injectionRequest;
+  };
+
   return {
     monitor,
     getAdvance: () => guidewireAutoWithdraw.active ? guidewireAutoWithdraw.command : advance,
+    getGuidewireRotation: () => guidewireRotation,
     getCatheterAdvance: () => catheterAutoWithdraw.active ? catheterAutoWithdraw.command : catheterAdvance,
     getCatheterRotation: () => catheterRotation,
     getSelectedCatheterType: () => selectedCatheterType,
     getSelectedGuidewireType: () => selectedGuidewireType,
     getInjectionSource: () => injSourceSelect?.value || 'sheath',
-    getInjectionRequest: () => ({
-      source: injSourceSelect?.value || 'sheath',
-      rateMlPerSec: parseFloat(injRateSlider?.value || '0'),
-      volumeMl: parseFloat(injVolumeSlider?.value || '0')
-    }),
+    getInjectionRequest,
     getFluoroscopy: () => fluoroscopy,
     getDebugLayerState: () => ({ ...debugLayerState }),
     updateInsertedLength,

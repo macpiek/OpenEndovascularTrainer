@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import {
     BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
     BROWSER_BENCHMARK_SCENARIO_CYCLE_MS,
+    GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS,
     browserBenchmarkCatheterType,
     createBrowserBenchmarkCommands,
-    sampleBrowserBenchmarkCommands
+    sampleBrowserBenchmarkCommands,
+    sampleGuidewireBrowserBenchmarkCommands
 } from '../src/benchmark/browserBenchmarkScenario.js';
 import {
     ARCH_BOLUS_CATHETER_TARGET_MM,
@@ -69,6 +71,33 @@ assert.equal(sampleBrowserBenchmarkCommands(72000, commands), commands, 'the hot
 assert.equal(commands.guidewireAdvance, 1);
 assert.equal(commands.catheterType, 'berenstein');
 assert.equal(browserBenchmarkCatheterType(144000), 'pigtail');
+
+const guidewireCommands = createBrowserBenchmarkCommands();
+const sampleGuidewire = elapsedMs => ({
+    ...sampleGuidewireBrowserBenchmarkCommands(elapsedMs, guidewireCommands)
+});
+assert.equal(GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS, 28000);
+assert.deepEqual(sampleGuidewire(0), {
+    guidewireAdvance: 1,
+    catheterAdvance: 0,
+    catheterRotation: 0,
+    catheterType: 'berenstein'
+});
+assert.deepEqual(sampleGuidewire(14000), {
+    guidewireAdvance: -1,
+    catheterAdvance: 0,
+    catheterRotation: 0,
+    catheterType: 'berenstein'
+});
+assert.equal(sampleGuidewire(12000).guidewireAdvance, 0,
+    'guidewire smoke cycle must exercise release after insertion');
+assert.equal(sampleGuidewire(13999).guidewireAdvance, 0);
+assert.equal(sampleGuidewire(25999).guidewireAdvance, -1);
+assert.equal(sampleGuidewire(26000).guidewireAdvance, 0,
+    'guidewire smoke cycle must exercise release after withdrawal');
+assert.equal(sampleGuidewireBrowserBenchmarkCommands(28000, guidewireCommands),
+    guidewireCommands, 'the guidewire-only hot sampler should reuse its output');
+assert.equal(guidewireCommands.guidewireAdvance, 1);
 
 const aortaSetup = createCatheterAortaSetupState();
 startCatheterAortaSetup(aortaSetup);

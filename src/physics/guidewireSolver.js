@@ -111,6 +111,8 @@ function createPerformanceStats() {
         solveIterations: 0,
         moving: false,
         boundaryDrivenFeed: false,
+        transportDeltaMm: 0,
+        transportSpeedMmPerSecond: 0,
         forceRelax: false,
         foldGuarded: false,
         stabilityRepaired: false,
@@ -132,6 +134,8 @@ function resetPerformanceStats(stats) {
     stats.solveIterations = 0;
     stats.moving = false;
     stats.boundaryDrivenFeed = false;
+    stats.transportDeltaMm = 0;
+    stats.transportSpeedMmPerSecond = 0;
     stats.forceRelax = false;
     stats.foldGuarded = false;
     stats.stabilityRepaired = false;
@@ -466,6 +470,8 @@ export class GuidewireSolver {
         this.performanceStats.moving = Math.abs(delta) > 1e-6;
         this.performanceStats.boundaryDrivenFeed =
             boundaryDriven && Math.abs(delta) > 1e-6;
+        this.performanceStats.transportDeltaMm = delta;
+        this.performanceStats.transportSpeedMmPerSecond = feedSpeed;
         return delta;
     }
 

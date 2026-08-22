@@ -19,6 +19,7 @@ uniform sampler2D contrastTexture;
 uniform sampler2D thicknessTexture;
 uniform sampler2D metalTexture;
 uniform sampler2D catheterTexture;
+uniform sampler2D catheterMarkerTexture;
 uniform sampler2D sheathTexture;
 uniform sampler2D boneTexture;
 uniform sampler2D dsaMaskTexture;
@@ -84,6 +85,11 @@ float metalAt(vec2 uv) {
 
 float catheterAt(vec2 uv) {
     float signal = sampleSignal(catheterTexture, uv);
+    return smoothstep(0.025, 0.48, signal);
+}
+
+float catheterMarkerAt(vec2 uv) {
+    float signal = sampleSignal(catheterMarkerTexture, uv);
     return smoothstep(0.025, 0.48, signal);
 }
 
@@ -175,12 +181,16 @@ float attenuationAt(vec2 uv, vec4 bonePaths, float corticalEdge) {
     float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
     float metal = metalAt(uv) * 5.25;
     float catheter = catheterAt(uv) * 0.28;
+    // A real marker band contains radiopaque material within the catheter
+    // wall. Add absorption at the same silhouette instead of faking it with a
+    // wider piece of geometry.
+    float catheterMarker = catheterMarkerAt(uv) * 1.25;
     float sheath = sheathAt(uv) * 0.42;
 
     // The accumulated visible frame creates detector persistence across the
     // full fluoroscopy image while current attenuation still leads the frame.
     float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
-    return max(0.0, bone + iodine + metal + catheter + sheath + temporalTrace);
+    return max(0.0, bone + iodine + metal + catheter + catheterMarker + sheath + temporalTrace);
 }
 
 float vignetteField(vec2 uv) {

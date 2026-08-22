@@ -49,7 +49,8 @@ function createConstantAsset(signedDistance = 2) {
             broadPhaseOffsets: new Uint32Array([0, 1]),
             broadPhaseIds: new Uint32Array([0]),
             sdfBrickKeys: new Uint32Array([0]),
-            sdfDistances: new Uint8Array(brickSize ** 3).fill(Math.round(Math.abs(signedDistance) / 0.02))
+            sdfDistances: new Uint8Array(brickSize ** 3).fill(Math.round(Math.abs(signedDistance) / 0.02)),
+            sdfInsideBits: new Uint8Array(1).fill(0xff)
         }
     };
 }
@@ -75,6 +76,40 @@ constantField.queryBatch(batchPositions, batchRadii, 2, batchOutput);
 assert.equal(batchOutput.count, 2);
 assert.equal(batchOutput.violations[0], 0);
 assert.equal(batchOutput.violations[1], 1);
+
+const capsuleX = new Float32Array([-0.5, -0.25]);
+const capsuleY = new Float32Array([-0.5, -0.25]);
+const capsuleZ = new Float32Array([-0.5, -0.25]);
+const capsuleRadii = new Float32Array([0.5, 0.5]);
+const ordinaryCapsule = constantField.queryCapsuleSoA(
+    capsuleX,
+    capsuleY,
+    capsuleZ,
+    capsuleRadii,
+    0,
+    createContactResult()
+);
+const certifiedInsideField = new VesselContactField(formatSource);
+const certifiedInsideCapsule = certifiedInsideField.queryCapsuleSoA(
+    capsuleX,
+    capsuleY,
+    capsuleZ,
+    capsuleRadii,
+    0,
+    createContactResult(),
+    ordinaryCapsule.branchId,
+    true
+);
+assert.deepEqual(
+    Array.from(certifiedInsideCapsule.values),
+    Array.from(ordinaryCapsule.values),
+    'an inside-clearance certificate must preserve the complete capsule result'
+);
+assert.deepEqual(
+    Array.from(certifiedInsideCapsule.inward.values),
+    Array.from(ordinaryCapsule.inward.values),
+    'the certified-inside fast path must preserve the wall normal'
+);
 
 const sourceBytes = fs.readFileSync('res/Aorta_plain.stl');
 const sourceHash = crypto.createHash('sha256').update(sourceBytes).digest('hex');

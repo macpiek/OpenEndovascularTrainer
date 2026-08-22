@@ -470,7 +470,7 @@ canvas {
 .control-readout-strip {
     display: grid;
     flex: 1 1 auto;
-    grid-template-columns: minmax(72px, 0.82fr) minmax(118px, 1.22fr) minmax(92px, 1fr) minmax(108px, 1.18fr);
+    grid-template-columns: minmax(105px, 1.05fr) minmax(135px, 1.3fr) minmax(86px, 0.85fr) minmax(100px, 1fr);
     gap: 4px;
     min-width: 0;
     min-height: 34px;
@@ -582,10 +582,121 @@ canvas {
     gap: 5px;
 }
 
+.guidewire-stiffness-control {
+    display: grid;
+    gap: 3px;
+    padding: 6px 8px 5px;
+    border: 1px solid rgba(115, 180, 255, 0.28);
+    border-radius: 4px;
+    background: rgba(16, 45, 74, 0.28);
+}
+
+.guidewire-stiffness-range {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.guidewire-stiffness-heading {
+    color: #eaf4ff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.guidewire-stiffness-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 6px;
+}
+
+#guidewireStiffnessValue {
+    min-width: 42px;
+    color: #8fc7ff;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.guidewire-stiffness-control input[type="range"] {
+    width: 100%;
+    margin: 1px 0 0;
+}
+
+.guidewire-stiffness-range {
+    color: rgba(225, 235, 243, 0.62);
+    font-size: 8px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.guidewire-stiffness-range span:nth-child(2) {
+    text-align: center;
+}
+
+.guidewire-stiffness-range span:last-child {
+    text-align: right;
+}
+
 .tool-select-input-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
+}
+
+.catheter-type-picker,
+.tool-type-picker {
+    display: grid;
+    grid-template-columns: 66px minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.catheter-tip-preview,
+.tool-tip-preview {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    height: 60px;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
+    background:
+        radial-gradient(circle at 70% 45%, rgba(115, 180, 255, 0.12), transparent 55%),
+        rgba(5, 6, 6, 0.72);
+}
+
+.catheter-tip-preview svg,
+.tool-tip-preview svg {
+    width: 62px;
+    height: 56px;
+    overflow: visible;
+}
+
+.catheter-tip-preview path,
+.tool-tip-preview path {
+    display: none;
+    fill: none;
+    stroke: rgba(240, 246, 255, 0.94);
+    stroke-width: 3.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 1.5px rgba(115, 180, 255, 0.75));
+}
+
+.catheter-type-picker:has(#catheterType option[value="berenstein"]:checked)
+    [data-catheter-tip="berenstein"],
+.catheter-type-picker:has(#catheterType option[value="pigtail"]:checked)
+    [data-catheter-tip="pigtail"] {
+    display: block;
+}
+
+.guidewire-type-picker:has(#guidewireType option[value="glidewire"]:checked)
+    [data-guidewire-tip="glidewire"],
+.guidewire-type-picker:has(#guidewireType option[value="steel-j-035"]:checked)
+    [data-guidewire-tip="steel-j-035"] {
+    display: block;
 }
 
 .tool-select-label select {
@@ -646,6 +757,42 @@ canvas {
 
 .tool-select-status.locked {
     color: #e5bd54;
+}
+
+.catheter-manual-controls,
+.guidewire-manual-controls {
+    display: grid;
+    gap: 4px;
+}
+
+.catheter-manual-controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.guidewire-manual-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.catheter-manual-controls button,
+.guidewire-manual-controls button {
+    min-width: 0;
+    min-height: 27px;
+    padding: 3px 5px;
+    border: 1px solid rgba(115, 180, 255, 0.48);
+    border-radius: 4px;
+    background: rgba(25, 101, 181, 0.2);
+    color: #eaf4ff;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: none;
+}
+
+.catheter-manual-controls button:hover,
+.catheter-manual-controls button:active,
+.guidewire-manual-controls button:hover,
+.guidewire-manual-controls button:active {
+    background: rgba(42, 132, 224, 0.48);
 }
 
 .control-actions {
