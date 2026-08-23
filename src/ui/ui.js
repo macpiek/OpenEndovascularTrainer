@@ -33,7 +33,10 @@ export function initUI(options) {
     onStopInjection,
     onModeChange,
     onDebugLayerChange,
+    onCatheterStiffnessChange,
+    onCatheterRelaxationChange,
     onGuidewireStiffnessChange,
+    onGuidewireRelaxationChange,
     onGuidewireFrictionChange,
     onContrastHemodynamicsChange,
     onContrastInjectionParametersChange,
@@ -88,8 +91,18 @@ export function initUI(options) {
   );
 
   // UI elements
-  const bendSlider = document.getElementById('stiffness');
+  const shaftStiffnessSlider = document.getElementById('stiffness');
   const guidewireStiffnessValue = document.getElementById('guidewireStiffnessValue');
+  const tipStiffnessSlider = document.getElementById('tipStiffness');
+  const guidewireTipStiffnessValue = document.getElementById('guidewireTipStiffnessValue');
+  const catheterShaftStiffnessSlider = document.getElementById('catheterShaftStiffness');
+  const catheterShaftStiffnessValue = document.getElementById('catheterShaftStiffnessValue');
+  const catheterTipStiffnessSlider = document.getElementById('catheterTipStiffness');
+  const catheterTipStiffnessValue = document.getElementById('catheterTipStiffnessValue');
+  const catheterRelaxationSlider = document.getElementById('catheterRelaxation');
+  const catheterRelaxationValue = document.getElementById('catheterRelaxationValue');
+  const guidewireRelaxationSlider = document.getElementById('guidewireRelaxation');
+  const guidewireRelaxationValue = document.getElementById('guidewireRelaxationValue');
   const staticFricSlider = document.getElementById('staticFriction');
   const kineticFricSlider = document.getElementById('kineticFriction');
   const smoothIterSlider = document.getElementById('smoothIterations');
@@ -413,7 +426,12 @@ export function initUI(options) {
 
   // Avoid sticky focus on sliders
   const sliders = [
-    bendSlider,
+    catheterShaftStiffnessSlider,
+    catheterTipStiffnessSlider,
+    catheterRelaxationSlider,
+    shaftStiffnessSlider,
+    tipStiffnessSlider,
+    guidewireRelaxationSlider,
     staticFricSlider,
     kineticFricSlider,
     smoothIterSlider,
@@ -799,19 +817,91 @@ export function initUI(options) {
   });
 
   // Physics controls
-  if (bendSlider) {
-    let stiffnessScale = parseFloat(bendSlider.value);
-    const updateStiffnessValue = () => {
-      if (!guidewireStiffnessValue) return;
-      guidewireStiffnessValue.textContent =
-        `${stiffnessScale.toFixed(2).replace('.', ',')}×`;
+  if (catheterShaftStiffnessSlider && catheterTipStiffnessSlider) {
+    let shaftStiffnessScale = parseFloat(catheterShaftStiffnessSlider.value);
+    let tipStiffnessScale = parseFloat(catheterTipStiffnessSlider.value);
+    const applyCatheterStiffness = () => {
+      if (catheterShaftStiffnessValue) {
+        catheterShaftStiffnessValue.textContent =
+          `${shaftStiffnessScale.toFixed(2).replace('.', ',')}×`;
+      }
+      if (catheterTipStiffnessValue) {
+        catheterTipStiffnessValue.textContent =
+          `${tipStiffnessScale.toFixed(2).replace('.', ',')}×`;
+      }
+      onCatheterStiffnessChange?.({
+        shaftStiffnessScale,
+        tipStiffnessScale
+      });
     };
-    updateStiffnessValue();
-    onGuidewireStiffnessChange?.({ stiffnessScale });
-    bendSlider.addEventListener('input', e => {
-      stiffnessScale = parseFloat(e.target.value);
-      updateStiffnessValue();
-      onGuidewireStiffnessChange?.({ stiffnessScale });
+    applyCatheterStiffness();
+    catheterShaftStiffnessSlider.addEventListener('input', event => {
+      shaftStiffnessScale = parseFloat(event.target.value);
+      applyCatheterStiffness();
+    });
+    catheterTipStiffnessSlider.addEventListener('input', event => {
+      tipStiffnessScale = parseFloat(event.target.value);
+      applyCatheterStiffness();
+    });
+  }
+  if (catheterRelaxationSlider) {
+    const applyCatheterRelaxationRate = value => {
+      const rate = parseFloat(value);
+      if (!Number.isFinite(rate)) return;
+      if (catheterRelaxationValue) {
+        catheterRelaxationValue.textContent =
+          `${rate.toFixed(2).replace('.', ',')}×`;
+      }
+      onCatheterRelaxationChange?.(rate);
+    };
+    applyCatheterRelaxationRate(catheterRelaxationSlider.value);
+    catheterRelaxationSlider.addEventListener('input', event => {
+      applyCatheterRelaxationRate(event.target.value);
+    });
+  }
+  if (shaftStiffnessSlider && tipStiffnessSlider) {
+    let shaftStiffnessScale = parseFloat(shaftStiffnessSlider.value);
+    let tipStiffnessScale = parseFloat(tipStiffnessSlider.value);
+    const updateStiffnessValues = () => {
+      if (guidewireStiffnessValue) {
+        guidewireStiffnessValue.textContent =
+          `${shaftStiffnessScale.toFixed(2).replace('.', ',')}×`;
+      }
+      if (guidewireTipStiffnessValue) {
+        guidewireTipStiffnessValue.textContent =
+          `${tipStiffnessScale.toFixed(2).replace('.', ',')}×`;
+      }
+    };
+    const applyStiffness = () => {
+      updateStiffnessValues();
+      onGuidewireStiffnessChange?.({
+        shaftStiffnessScale,
+        tipStiffnessScale
+      });
+    };
+    applyStiffness();
+    shaftStiffnessSlider.addEventListener('input', e => {
+      shaftStiffnessScale = parseFloat(e.target.value);
+      applyStiffness();
+    });
+    tipStiffnessSlider.addEventListener('input', e => {
+      tipStiffnessScale = parseFloat(e.target.value);
+      applyStiffness();
+    });
+  }
+  if (guidewireRelaxationSlider) {
+    const applyRelaxationRate = value => {
+      const rate = parseFloat(value);
+      if (!Number.isFinite(rate)) return;
+      if (guidewireRelaxationValue) {
+        guidewireRelaxationValue.textContent =
+          `${rate.toFixed(2).replace('.', ',')}×`;
+      }
+      onGuidewireRelaxationChange?.(rate);
+    };
+    applyRelaxationRate(guidewireRelaxationSlider.value);
+    guidewireRelaxationSlider.addEventListener('input', event => {
+      applyRelaxationRate(event.target.value);
     });
   }
   if (staticFricSlider && kineticFricSlider) {

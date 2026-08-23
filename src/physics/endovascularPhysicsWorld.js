@@ -334,6 +334,15 @@ export class EndovascularRodBody {
             1,
             Math.floor(profile.postStabilizationSettledPasses ?? 2)
         );
+        // Optional body-local constitutive sweeps. Unlike stiffness or
+        // damping, these change only how quickly the discrete solve converges
+        // toward its existing equilibrium. The simulator may enable them
+        // independently for each rod body.
+        this.relaxationPasses = Math.max(
+            0,
+            Math.floor(profile.relaxationPasses ?? 0)
+        );
+        this.lastRelaxationPasses = 0;
         this.lastPostStabilizationPasses = 0;
         this.lastPostStabilizationResidual = Infinity;
         this.postStabilizeShape = false;
@@ -1731,6 +1740,35 @@ export class EndovascularPhysicsWorld {
         }
         for (let index = 0; index < this.bodies.length; index++) {
             this.bodies[index].debugConstraintPhase?.('primary', this.bodies[index]);
+        }
+        // Let selected free rods converge more quickly without advancing
+        // physical time or modifying their constitutive parameters. This is a
+        // body-local pass by design: tool-tool/containment constraints are not
+        // solved here, so increasing one tool's relaxation cannot pull or
+        // numerically relax the other tool along with it.
+        for (let index = 0; index < this.bodies.length; index++) {
+            const body = this.bodies[index];
+            const relaxationPasses = Math.max(
+                0,
+                Math.floor(body.relaxationPasses ?? 0)
+            );
+            body.lastRelaxationPasses = 0;
+            for (let pass = 0; pass < relaxationPasses; pass++) {
+                if (body.sleeping) break;
+                this.#solveControls(body);
+                this.#solveLengths(body, (pass & 1) === 1);
+                this.#solveBending(body);
+                this.#solveCurvatureVariation(body);
+                this.#solveLongStraightness(body);
+                this.#solveRestShape(body);
+                this.#solveRestDirections(body);
+                this.#solveShapeClosure(body);
+                this.#solveControls(body);
+                this.#prepareWallContacts(body);
+                this.#solveWallContacts(body);
+                this.#solveFoldLimits(body);
+                body.lastRelaxationPasses = pass + 1;
+            }
         }
         let constraintSectionEnd = now();
         recordTiming(
@@ -8377,6 +8415,8 @@ export class EndovascularPhysicsWorld {
                 body.wallProjectionVelocityRetention,
             maximumReconstructedSpeed:
                 body.lastMaximumReconstructedSpeed,
+            relaxationPasses: body.relaxationPasses,
+            lastRelaxationPasses: body.lastRelaxationPasses,
             kineticEnergy,
             activeWallContacts,
             currentNormalLoad,

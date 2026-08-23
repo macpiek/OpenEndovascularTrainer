@@ -2,6 +2,11 @@ import {
     discretizeKirchhoffProfile,
     kirchhoffMaterialProfile
 } from './kirchhoffMaterialProfile.js';
+import {
+    GUIDEWIRE_TYPE_GLIDEWIRE,
+    GUIDEWIRE_TYPE_STEEL_J_035,
+    guidewireMaterialProfile
+} from './guidewireMaterialProfile.js';
 
 const CONSTITUTIVE_TOLERANCE = 1e-12;
 
@@ -17,6 +22,49 @@ function constitutiveValueChanged(current, next) {
 function resolveProfile(profileOrType) {
     if (profileOrType?.sample && profileOrType?.integrate) return profileOrType;
     return kirchhoffMaterialProfile(profileOrType);
+}
+
+function smoothstep01(value) {
+    const t = Math.max(0, Math.min(1, value));
+    return t * t * (3 - 2 * t);
+}
+
+function independentRigidityScaleAtDistance(
+    profile,
+    shaftStiffnessScale,
+    tipStiffnessScale
+) {
+    if (shaftStiffnessScale === tipStiffnessScale) return null;
+    let coreLength;
+    let transitionLength;
+    if (
+        profile.id !== GUIDEWIRE_TYPE_GLIDEWIRE &&
+        profile.id !== GUIDEWIRE_TYPE_STEEL_J_035
+    ) {
+        if (profile.id !== 'pigtail' && profile.id !== 'berenstein') {
+            throw new RangeError(
+                'Independent shaft and tip stiffness scales require a supported tool profile'
+            );
+        }
+        // The complete manufactured curve is the catheter tip. Blend its
+        // rigidity into the straight shaft over a short proximal transition,
+        // avoiding an artificial stiffness hinge at the preform boundary.
+        coreLength = profile.naturalTipLengthMm;
+        transitionLength = profile.id === 'pigtail' ? 8 : 6;
+    } else {
+        const guidewireProfile = guidewireMaterialProfile(profile.id);
+        coreLength = Math.max(0, guidewireProfile.tipCoreLength);
+        transitionLength = Math.max(0, guidewireProfile.tipTransitionLength);
+    }
+    return distanceFromTipMm => {
+        const progress = transitionLength > 0
+            ? smoothstep01((distanceFromTipMm - coreLength) / transitionLength)
+            : distanceFromTipMm > coreLength ? 1 : 0;
+        return tipStiffnessScale * Math.pow(
+            shaftStiffnessScale / tipStiffnessScale,
+            progress
+        );
+    };
 }
 
 function activeMaterialCoordinates(
@@ -94,12 +142,24 @@ export function applyKirchhoffMaterialProfile(
         materialCoordinates = body?.materialCoordinate,
         tipCoordinate = undefined,
         stiffnessScale = 1,
+        shaftStiffnessScale = stiffnessScale,
+        tipStiffnessScale = stiffnessScale,
         discretizationOut = undefined
     } = {}
 ) {
     assertBodyContract(body);
     if (!Number.isFinite(stiffnessScale) || stiffnessScale <= 0) {
         throw new RangeError('Kirchhoff stiffness scale must be finite and positive');
+    }
+    if (!Number.isFinite(shaftStiffnessScale) || shaftStiffnessScale <= 0) {
+        throw new RangeError(
+            'Kirchhoff shaft stiffness scale must be finite and positive'
+        );
+    }
+    if (!Number.isFinite(tipStiffnessScale) || tipStiffnessScale <= 0) {
+        throw new RangeError(
+            'Kirchhoff tip stiffness scale must be finite and positive'
+        );
     }
     if (
         !Number.isInteger(activeStart) ||
@@ -111,6 +171,14 @@ export function applyKirchhoffMaterialProfile(
         throw new RangeError('Active range must be a valid inclusive node range');
     }
     const profile = resolveProfile(profileOrType);
+    const rigidityScaleAtDistance = independentRigidityScaleAtDistance(
+        profile,
+        shaftStiffnessScale,
+        tipStiffnessScale
+    );
+    const uniformStiffnessScale = rigidityScaleAtDistance
+        ? 1
+        : shaftStiffnessScale;
     const discretizationScratch = discretizationOut ?? {};
     const coordinates = activeMaterialCoordinates(
         materialCoordinates,
@@ -156,7 +224,9 @@ export function applyKirchhoffMaterialProfile(
         cachedCoordinates !== null &&
         discretizationScratch._lastBody === body &&
         discretizationScratch._lastProfileId === profile.id &&
-        discretizationScratch._lastStiffnessScale === stiffnessScale &&
+        discretizationScratch._lastShaftStiffnessScale ===
+            shaftStiffnessScale &&
+        discretizationScratch._lastTipStiffnessScale === tipStiffnessScale &&
         discretizationScratch._lastActiveStart === activeStart &&
         discretizationScratch._lastActiveEnd === activeEnd &&
         discretizationScratch._lastTipCoordinate === resolvedTipCoordinate;
@@ -177,7 +247,11 @@ export function applyKirchhoffMaterialProfile(
     if (coordinates.length < 3) {
         const result = discretizationScratch._applicationResult ??= {};
         result.profileId = profile.id;
-        result.stiffnessScale = stiffnessScale;
+        result.stiffnessScale = shaftStiffnessScale === tipStiffnessScale
+            ? shaftStiffnessScale
+            : null;
+        result.shaftStiffnessScale = shaftStiffnessScale;
+        result.tipStiffnessScale = tipStiffnessScale;
         result.activeStart = activeStart;
         result.activeEnd = activeEnd;
         result.materialCoordinateChanges = materialCoordinateChanges;
@@ -191,7 +265,8 @@ export function applyKirchhoffMaterialProfile(
         profile,
         coordinates,
         resolvedTipCoordinate,
-        discretizationScratch
+        discretizationScratch,
+        { rigidityScaleAtDistance }
     );
     const changedJoints = discretizationScratch._changedJoints ??= [];
     changedJoints.length = 0;
@@ -201,15 +276,18 @@ export function applyKirchhoffMaterialProfile(
         localJoint++
     ) {
         const joint = activeStart + localJoint;
-        // Scaling EI and GJ by the same multiplier preserves the material
-        // profile, soft-tip taper and Poisson-ratio relationship. XPBD stores
-        // the inverse quantity, so compliance scales by 1 / stiffnessScale.
+        // Uniform scaling uses the existing fast path. With independent
+        // controls, the discretizer has already integrated the shaft/tip
+        // scale field across this joint's Voronoi cell.
         const bendCompliance1 =
-            discretization.bendCompliance1[localJoint] / stiffnessScale;
+            discretization.bendCompliance1[localJoint] /
+                uniformStiffnessScale;
         const bendCompliance2 =
-            discretization.bendCompliance2[localJoint] / stiffnessScale;
+            discretization.bendCompliance2[localJoint] /
+                uniformStiffnessScale;
         const twistCompliance =
-            discretization.twistCompliance[localJoint] / stiffnessScale;
+            discretization.twistCompliance[localJoint] /
+                uniformStiffnessScale;
         const changed =
             constitutiveValueChanged(
                 body.restRotation1[joint],
@@ -256,13 +334,18 @@ export function applyKirchhoffMaterialProfile(
     lastCoordinates.set(coordinates);
     discretizationScratch._lastBody = body;
     discretizationScratch._lastProfileId = profile.id;
-    discretizationScratch._lastStiffnessScale = stiffnessScale;
+    discretizationScratch._lastShaftStiffnessScale = shaftStiffnessScale;
+    discretizationScratch._lastTipStiffnessScale = tipStiffnessScale;
     discretizationScratch._lastActiveStart = activeStart;
     discretizationScratch._lastActiveEnd = activeEnd;
     discretizationScratch._lastTipCoordinate = resolvedTipCoordinate;
     const result = discretizationScratch._applicationResult ??= {};
     result.profileId = profile.id;
-    result.stiffnessScale = stiffnessScale;
+    result.stiffnessScale = shaftStiffnessScale === tipStiffnessScale
+        ? shaftStiffnessScale
+        : null;
+    result.shaftStiffnessScale = shaftStiffnessScale;
+    result.tipStiffnessScale = tipStiffnessScale;
     result.activeStart = activeStart;
     result.activeEnd = activeEnd;
     result.materialCoordinateChanges = materialCoordinateChanges;

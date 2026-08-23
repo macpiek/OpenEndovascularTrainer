@@ -8,10 +8,15 @@ import { PigtailCatheter } from '../src/pigtailCatheter.js';
 import { PIGTAIL_CATHETER_RENDER_RADIUS_MM } from '../src/toolDimensions.js';
 import { applyKirchhoffMaterialProfile } from '../src/physics/applyKirchhoffMaterialProfile.js';
 import { GUIDEWIRE_TYPE_GLIDEWIRE } from '../src/physics/guidewireMaterialProfile.js';
+import { PIGTAIL_NATURAL_ARC_LENGTH_MM } from '../src/physics/catheterMaterialProfile.js';
 
 const EPSILON = 1e-8;
 
-function pigtailLoopMetrics(body, catheter, naturalArcLength = 47.5) {
+function pigtailLoopMetrics(
+    body,
+    catheter,
+    naturalArcLength = PIGTAIL_NATURAL_ARC_LENGTH_MM
+) {
     let baseIndex = body.activeEnd;
     let materialLength = 0;
     while (baseIndex > body.activeStart && materialLength < naturalArcLength) {
@@ -2173,9 +2178,11 @@ assert.equal(
     'the radiopaque marker must preserve the catheter outer diameter'
 );
 assert.ok(
-    insertionCatheter.tipMarker.userData.tipLengthMm > 47 &&
-    insertionCatheter.tipMarker.userData.tipLengthMm < 48,
-    `the Pigtail marker should identify the 47.5 mm preformed arc (${insertionCatheter.tipMarker.userData.tipLengthMm} mm)`
+    Math.abs(
+        insertionCatheter.tipMarker.userData.tipLengthMm -
+            PIGTAIL_NATURAL_ARC_LENGTH_MM
+    ) < 1e-6,
+    `the Pigtail marker should identify the ${PIGTAIL_NATURAL_ARC_LENGTH_MM} mm preformed arc (${insertionCatheter.tipMarker.userData.tipLengthMm} mm)`
 );
 const releasedPigtailShaftBendCompliance =
     insertionCatheterBody.bendComplianceByNode[Math.max(
@@ -2685,9 +2692,11 @@ assert.equal(soloCatheter.tipMarker.visible, true,
     'the pigtail should show a marker at the start of its distal profile');
 assert.equal(soloCatheter.tipMarker.userData.catheterType, 'pigtail');
 assert.ok(
-    soloCatheter.tipMarker.userData.tipLengthMm > 47 &&
-    soloCatheter.tipMarker.userData.tipLengthMm < 48,
-    `the pigtail profile marker should identify the start of the 47.5 mm preformed arc (${soloCatheter.tipMarker.userData.tipLengthMm} mm)`
+    Math.abs(
+        soloCatheter.tipMarker.userData.tipLengthMm -
+            PIGTAIL_NATURAL_ARC_LENGTH_MM
+    ) < 1e-6,
+    `the pigtail profile marker should identify the start of the ${PIGTAIL_NATURAL_ARC_LENGTH_MM} mm preformed arc (${soloCatheter.tipMarker.userData.tipLengthMm} mm)`
 );
 assert.ok(
     Number.isFinite(soloCatheter.tipMarker.position.x) &&

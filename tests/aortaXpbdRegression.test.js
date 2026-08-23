@@ -18,6 +18,7 @@ import {
 import { ElasticRod } from '../src/physics/elasticRod.js';
 import { GuidewireSolver } from '../src/physics/guidewireSolver.js';
 import { applyGuidewireMaterialProfile } from '../src/physics/guidewireMaterialProfile.js';
+import { PIGTAIL_NATURAL_ARC_LENGTH_MM } from '../src/physics/catheterMaterialProfile.js';
 import { PigtailCatheter } from '../src/pigtailCatheter.js';
 import {
     GUIDEWIRE_RENDER_RADIUS_MM,
@@ -537,7 +538,7 @@ function renderedContainmentEscape(points, outer) {
 }
 
 function pigtailDistalRadialRecovery(body, catheter) {
-    const naturalArcLength = 47.5;
+    const naturalArcLength = PIGTAIL_NATURAL_ARC_LENGTH_MM;
     const bendStartDistance = Math.max(
         catheter.guidewireInserted,
         catheter.progress - naturalArcLength
@@ -572,7 +573,10 @@ function pigtailDistalRadialRecovery(body, catheter) {
     return maximumRadial;
 }
 
-function pigtailLoopMetrics(body, naturalArcLength = 47.5) {
+function pigtailLoopMetrics(
+    body,
+    naturalArcLength = PIGTAIL_NATURAL_ARC_LENGTH_MM
+) {
     let baseIndex = body.activeEnd;
     let materialLength = 0;
     while (baseIndex > body.activeStart && materialLength < naturalArcLength) {

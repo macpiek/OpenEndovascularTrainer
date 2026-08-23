@@ -85,6 +85,26 @@ function integrateScalar(sample, start, end) {
     return result * halfWidth;
 }
 
+function integrateScaledRigidity(
+    profile,
+    component,
+    scaleAtDistance,
+    start,
+    end,
+    sampleOut
+) {
+    return integrateScalar(distanceFromTipMm => {
+        profile.sample(distanceFromTipMm, sampleOut);
+        const scale = scaleAtDistance(distanceFromTipMm);
+        if (!Number.isFinite(scale) || scale <= 0) {
+            throw new RangeError(
+                `${profile.id} rigidity scale must be finite and positive`
+            );
+        }
+        return sampleOut[component] * scale;
+    }, start, end);
+}
+
 function zeroIntegral() {
     return 0;
 }
@@ -348,7 +368,8 @@ export function discretizeKirchhoffProfile(
     profileOrType,
     materialNodeCoordinates,
     tipCoordinate,
-    out = {}
+    out = {},
+    { rigidityScaleAtDistance = null } = {}
 ) {
     const profile = resolveProfile(profileOrType);
     if (
@@ -397,6 +418,7 @@ export function discretizeKirchhoffProfile(
     const bendCompliance2 = prepareDiscretizationArray(out, 'bendCompliance2', count);
     const twistCompliance = prepareDiscretizationArray(out, 'twistCompliance', count);
     const integrated = out._integrated ??= {};
+    const scaledRigiditySample = out._scaledRigiditySample ??= {};
 
     for (let joint = 1; joint < count - 1; joint++) {
         const proximalBoundaryCoordinate = joint === 1
@@ -410,6 +432,44 @@ export function discretizeKirchhoffProfile(
         const startS = Math.min(proximalS, distalS);
         const endS = Math.max(proximalS, distalS);
         profile.integrate(startS, endS, integrated);
+        if (typeof rigidityScaleAtDistance === 'function') {
+            integrated.EI1Integral = integrateScaledRigidity(
+                profile,
+                'EI1',
+                rigidityScaleAtDistance,
+                startS,
+                endS,
+                scaledRigiditySample
+            );
+            integrated.EI2Integral = integrateScaledRigidity(
+                profile,
+                'EI2',
+                rigidityScaleAtDistance,
+                startS,
+                endS,
+                scaledRigiditySample
+            );
+            integrated.GJIntegral = integrateScaledRigidity(
+                profile,
+                'GJ',
+                rigidityScaleAtDistance,
+                startS,
+                endS,
+                scaledRigiditySample
+            );
+            integrated.EI1Mean = integrated.lengthMm > 0
+                ? integrated.EI1Integral / integrated.lengthMm
+                : profile.sample(startS, scaledRigiditySample).EI1 *
+                    rigidityScaleAtDistance(startS);
+            integrated.EI2Mean = integrated.lengthMm > 0
+                ? integrated.EI2Integral / integrated.lengthMm
+                : profile.sample(startS, scaledRigiditySample).EI2 *
+                    rigidityScaleAtDistance(startS);
+            integrated.GJMean = integrated.lengthMm > 0
+                ? integrated.GJIntegral / integrated.lengthMm
+                : profile.sample(startS, scaledRigiditySample).GJ *
+                    rigidityScaleAtDistance(startS);
+        }
 
         cellStartS[joint] = startS;
         cellEndS[joint] = endS;

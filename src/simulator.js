@@ -12,6 +12,10 @@ import { applyKirchhoffMaterialProfile } from './physics/applyKirchhoffMaterialP
 import { applyProximalTwistBoundary } from './physics/kirchhoffOrientationBoundary.js';
 import { GuidewireResistanceEstimator } from './physics/guidewireResistance.js';
 import {
+    clampGuidewireRelaxationRate,
+    guidewireRelaxationPasses
+} from './physics/guidewireRelaxationRate.js';
+import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
 } from './physics/endovascularPhysicsWorld.js';
@@ -449,7 +453,18 @@ let xpbdCatheterBody = null;
 let xpbdContainment = null;
 let xpbdExternalToolContact = null;
 let xpbdPortalInnerDriven = true;
-let guidewireStiffnessScale = 1;
+let catheterShaftStiffnessScale = 25;
+let catheterTipStiffnessScale = 5;
+let catheterRelaxationRate = 30;
+let guidewireShaftStiffnessScale = 10;
+let guidewireTipStiffnessScale = 4.55;
+let guidewireRelaxationRate = 30;
+const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
+const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 25;
+const MAX_CATHETER_TIP_STIFFNESS_SCALE = 10;
+const MIN_GUIDEWIRE_STIFFNESS_SCALE = 0.25;
+const MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE = 25;
+const MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE = 10;
 let guidewireStaticWallFriction = DEFAULT_TOOL_PROFILES.guidewire.wallFriction;
 let guidewireKineticWallFriction = 0.002;
 let xpbdContactDebugGroup = null;
@@ -947,14 +962,51 @@ const ui = initUI({
             xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
         }
     },
-    onGuidewireStiffnessChange: ({ stiffnessScale }) => {
-        guidewireStiffnessScale = THREE.MathUtils.clamp(
-            Number.isFinite(stiffnessScale) ? stiffnessScale : 1,
-            0.25,
-            4
+    onCatheterStiffnessChange: ({
+        shaftStiffnessScale,
+        tipStiffnessScale
+    }) => {
+        catheterShaftStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(shaftStiffnessScale) ? shaftStiffnessScale : 1,
+            MIN_CATHETER_STIFFNESS_SCALE,
+            MAX_CATHETER_SHAFT_STIFFNESS_SCALE
+        );
+        catheterTipStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(tipStiffnessScale) ? tipStiffnessScale : 1,
+            MIN_CATHETER_STIFFNESS_SCALE,
+            MAX_CATHETER_TIP_STIFFNESS_SCALE
+        );
+        pigtailCatheter?.setStiffnessScales({
+            shaftStiffnessScale: catheterShaftStiffnessScale,
+            tipStiffnessScale: catheterTipStiffnessScale
+        });
+    },
+    onCatheterRelaxationChange: value => {
+        catheterRelaxationRate = clampGuidewireRelaxationRate(value);
+        xpbdCatheterBody?.wake();
+    },
+    onGuidewireStiffnessChange: ({
+        shaftStiffnessScale,
+        tipStiffnessScale
+    }) => {
+        guidewireShaftStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(shaftStiffnessScale)
+                ? shaftStiffnessScale
+                : 1,
+            MIN_GUIDEWIRE_STIFFNESS_SCALE,
+            MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE
+        );
+        guidewireTipStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(tipStiffnessScale) ? tipStiffnessScale : 1,
+            MIN_GUIDEWIRE_STIFFNESS_SCALE,
+            MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE
         );
         applyActiveGuidewireElasticProfile();
         if (xpbdWireBody) applyActiveGuidewireKirchhoffProfile();
+    },
+    onGuidewireRelaxationChange: value => {
+        guidewireRelaxationRate = clampGuidewireRelaxationRate(value);
+        xpbdWireBody?.wake();
     },
     onGuidewireFrictionChange: ({ staticFriction, kineticFriction }) => {
         guidewireStaticWallFriction = Math.max(0, staticFriction);
@@ -1314,6 +1366,10 @@ pigtailCatheter = new PigtailCatheter({
     tailProgressRef: () => guidewireSolver.progress,
     vessel
 });
+pigtailCatheter.setStiffnessScales({
+    shaftStiffnessScale: catheterShaftStiffnessScale,
+    tipStiffnessScale: catheterTipStiffnessScale
+});
 pigtailCatheter.setExternalCollisionSolver(PHYSICS_MODE === 'xpbd-contact-v1');
 if (vesselCollisionTarget !== vessel) {
     pigtailCatheter.setCollisionGeometry(vesselCollisionTarget);
@@ -1404,7 +1460,17 @@ globalThis.__OET_PHYSICS__ = {
     world: endovascularWorld,
     getStats: () => endovascularWorld.getStats(),
     getGuidewireType: () => activeGuidewireType,
-    getGuidewireStiffnessScale: () => guidewireStiffnessScale,
+    getGuidewireStiffnessScale: () => guidewireShaftStiffnessScale,
+    getGuidewireStiffnessScales: () => ({
+        shaft: guidewireShaftStiffnessScale,
+        tip: guidewireTipStiffnessScale
+    }),
+    getCatheterStiffnessScales: () => ({
+        shaft: catheterShaftStiffnessScale,
+        tip: catheterTipStiffnessScale
+    }),
+    getCatheterRelaxationRate: () => catheterRelaxationRate,
+    getGuidewireRelaxationRate: () => guidewireRelaxationRate,
     getGuidewireMotionDiagnostics: () => {
         const body = endovascularWorld.getStats().bodies.find(
             candidate => candidate.id === 'guidewire'
@@ -1426,7 +1492,11 @@ globalThis.__OET_PHYSICS__ = {
                 body?.maximumReconstructedSpeed ?? 0,
             wallProjectionVelocityRetention:
                 body?.wallProjectionVelocityRetention ?? 1,
-            stiffnessScale: guidewireStiffnessScale
+            stiffnessScale: guidewireShaftStiffnessScale,
+            shaftStiffnessScale: guidewireShaftStiffnessScale,
+            tipStiffnessScale: guidewireTipStiffnessScale,
+            relaxationRate: guidewireRelaxationRate,
+            relaxationPasses: body?.lastRelaxationPasses ?? 0
         };
     }
 };
@@ -1445,7 +1515,8 @@ function applyActiveGuidewireElasticProfile() {
     applyGuidewireMaterialProfile(wire, {
         segmentLength,
         type: activeGuidewireType,
-        stiffnessScale: guidewireStiffnessScale
+        shaftStiffnessScale: guidewireShaftStiffnessScale,
+        tipStiffnessScale: guidewireTipStiffnessScale
     });
 }
 
@@ -1455,7 +1526,8 @@ function applyActiveGuidewireKirchhoffProfile() {
         activeEnd: xpbdWireBody.count - 1,
         materialCoordinates: guidewireMaterialCoordinates,
         tipCoordinate: guidewireMaterialCoordinates[guidewireMaterialCoordinates.length - 1],
-        stiffnessScale: guidewireStiffnessScale
+        shaftStiffnessScale: guidewireShaftStiffnessScale,
+        tipStiffnessScale: guidewireTipStiffnessScale
     });
     applyGuidewireProximalOrientation();
 }
@@ -3049,6 +3121,17 @@ function stepSimulation(dt = fixedDt) {
         // retains its elastic recovery velocity.
         const guidewireIsToolCoupled = xpbdContainment.enabled ||
             xpbdExternalToolContact.enabled;
+        // Relaxation is a constitutive convergence rate, not a release-only
+        // effect. Apply the selected value during feed, withdrawal, rotation,
+        // catheter coupling and rest so the wire never changes solver mode
+        // when the operator releases a control.
+        xpbdWireBody.relaxationPasses =
+            guidewireRelaxationPasses(guidewireRelaxationRate);
+        // The catheter uses the same constitutive convergence control as the
+        // guidewire, but keeps an independent rate. Apply it in every solver
+        // state so feeding, withdrawal and rest share one physical model.
+        xpbdCatheterBody.relaxationPasses =
+            guidewireRelaxationPasses(catheterRelaxationRate);
         xpbdWireBody.projectionVelocityRetention = guidewireIsToolCoupled
             ? LEGACY_GUIDEWIRE_TOOL_COUPLED_PROJECTION_RETENTION
             : 1;

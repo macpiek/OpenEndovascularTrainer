@@ -299,6 +299,42 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
             body.kirchhoffBendCompliance1[joint] - baseCompliance[joint] / 4
         ) < 1e-15);
     }
+
+    applyGuidewireMaterialProfile(elasticRod, {
+        type: 'glidewire',
+        shaftStiffnessScale: 25,
+        tipStiffnessScale: 0.5
+    });
+    assert.ok(Math.abs(
+        elasticRod.nodeStorage.bendingStiffness[0] -
+        baseElasticStiffness[0] * 25
+    ) < 1e-9);
+    assert.ok(Math.abs(
+        elasticRod.nodeStorage.bendingStiffness.at(-1) -
+        baseElasticStiffness.at(-1) * 0.5
+    ) < 1e-9);
+
+    const independentlyScaled = applyKirchhoffMaterialProfile(
+        body,
+        'glidewire',
+        {
+            materialCoordinates: coordinates,
+            tipCoordinate: coordinates[coordinates.length - 1],
+            shaftStiffnessScale: 25,
+            tipStiffnessScale: 0.5
+        }
+    );
+    assert.equal(independentlyScaled.stiffnessScale, null);
+    assert.equal(independentlyScaled.shaftStiffnessScale, 25);
+    assert.equal(independentlyScaled.tipStiffnessScale, 0.5);
+    assert.deepEqual(body.restRotation1, baseRest);
+    assert.ok(Math.abs(
+        body.kirchhoffBendCompliance1[1] - baseCompliance[1] / 25
+    ) < 1e-15);
+    assert.ok(Math.abs(
+        body.kirchhoffBendCompliance1[body.segmentCount - 1] -
+        baseCompliance[body.segmentCount - 1] / 0.5
+    ) < 1e-15);
     assert.throws(
         () => applyKirchhoffMaterialProfile(body, 'glidewire', {
             materialCoordinates: coordinates,
@@ -306,6 +342,46 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
         }),
         /stiffness scale/
     );
+}
+
+// Catheters expose the same independent material controls. The preformed
+// distal zone uses the tip scale, the straight proximal material uses the
+// shaft scale, and neither control changes the manufactured rest curvature.
+for (const catheterType of ['pigtail', 'berenstein']) {
+    const body = createBody(`scaled-${catheterType}`, 33, {
+        ...DEFAULT_TOOL_PROFILES.catheter,
+        rodModel: 'kirchhoff'
+    });
+    const coordinates = Float64Array.from(
+        { length: body.count },
+        (_, index) => index * 5
+    );
+    applyKirchhoffMaterialProfile(body, catheterType, {
+        materialCoordinates: coordinates,
+        tipCoordinate: coordinates.at(-1)
+    });
+    const baseRest = Float64Array.from(body.restRotation1);
+    const baseCompliance = Float64Array.from(body.kirchhoffBendCompliance1);
+    const scaled = applyKirchhoffMaterialProfile(body, catheterType, {
+        materialCoordinates: coordinates,
+        tipCoordinate: coordinates.at(-1),
+        shaftStiffnessScale: 9,
+        tipStiffnessScale: 0.5
+    });
+    const shaftJoint = 1;
+    const tipJoint = body.segmentCount - 1;
+    assert.equal(scaled.stiffnessScale, null);
+    assert.equal(scaled.shaftStiffnessScale, 9);
+    assert.equal(scaled.tipStiffnessScale, 0.5);
+    assert.deepEqual(body.restRotation1, baseRest);
+    assert.ok(Math.abs(
+        body.kirchhoffBendCompliance1[shaftJoint] -
+            baseCompliance[shaftJoint] / 9
+    ) < 1e-15, `${catheterType} shaft scale was not applied`);
+    assert.ok(Math.abs(
+        body.kirchhoffBendCompliance1[tipJoint] -
+            baseCompliance[tipJoint] / 0.5
+    ) < 1e-15, `${catheterType} tip scale was not applied`);
 }
 
 console.log('Kirchhoff material application tests passed');

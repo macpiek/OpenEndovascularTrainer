@@ -19,6 +19,12 @@ import {
 
 const EXPECTED_TOTAL_TURN = PIGTAIL_NATURAL_TURNS * Math.PI * 2;
 
+assert.equal(
+    PIGTAIL_NATURAL_TURNS,
+    0.9,
+    'the short Pigtail preform should use a sub-circular distal arc'
+);
+
 const pigtailProfile = catheterMaterialProfile('pigtail');
 const berensteinProfile = catheterMaterialProfile('berenstein');
 assert.equal(
@@ -39,7 +45,7 @@ assert.notEqual(
 
 assert.ok(
     Math.abs(pigtailTotalIntrinsicTurn() - EXPECTED_TOTAL_TURN) < 1e-10,
-    'the smooth intrinsic-curvature profile must preserve the prescribed 1.05 turns'
+    'the smooth intrinsic-curvature profile must preserve the prescribed turn'
 );
 assert.ok(
     pigtailIntrinsicCurvature(PIGTAIL_NATURAL_ARC_LENGTH_MM) < 1e-12,

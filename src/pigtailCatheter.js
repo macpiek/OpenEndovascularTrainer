@@ -408,13 +408,45 @@ export class PigtailCatheter {
         this._xpbdPigtailTransportTangent = new TypedVector3();
         this._xpbdPigtailTransportAxis = new TypedVector3();
         this._xpbdPigtailRecovery = 0;
+        this.shaftStiffnessScale = 1;
+        this.tipStiffnessScale = 1;
         this._kirchhoffDiscretization = {};
         this._kirchhoffMaterialOptions = {
             activeStart: 0,
             activeEnd: 1,
             materialCoordinates: null,
             tipCoordinate: 0,
+            shaftStiffnessScale: 1,
+            tipStiffnessScale: 1,
             discretizationOut: this._kirchhoffDiscretization
+        };
+    }
+
+    setStiffnessScales({ shaftStiffnessScale = 1, tipStiffnessScale = 1 } = {}) {
+        if (!Number.isFinite(shaftStiffnessScale) || shaftStiffnessScale <= 0) {
+            throw new RangeError('Catheter shaft stiffness scale must be finite and positive');
+        }
+        if (!Number.isFinite(tipStiffnessScale) || tipStiffnessScale <= 0) {
+            throw new RangeError('Catheter tip stiffness scale must be finite and positive');
+        }
+        if (
+            this.shaftStiffnessScale === shaftStiffnessScale &&
+            this.tipStiffnessScale === tipStiffnessScale
+        ) return this;
+        this.shaftStiffnessScale = shaftStiffnessScale;
+        this.tipStiffnessScale = tipStiffnessScale;
+        this._kirchhoffMaterialOptions.shaftStiffnessScale =
+            shaftStiffnessScale;
+        this._kirchhoffMaterialOptions.tipStiffnessScale =
+            tipStiffnessScale;
+        this.physicsBody?.wake();
+        return this;
+    }
+
+    getStiffnessScales() {
+        return {
+            shaft: this.shaftStiffnessScale,
+            tip: this.tipStiffnessScale
         };
     }
 
@@ -496,6 +528,10 @@ export class PigtailCatheter {
             if (this.physicsBody && this.physicsBody !== body) {
                 this.#releaseXpbdProximalFeed(this.physicsBody);
             }
+            this._xpbdBaseWallProjectionVelocityRetention =
+                body.wallProjectionVelocityRetention;
+            this._xpbdBaseSweptContactPreserveTangentialMotion =
+                body.sweptContactPreserveTangentialMotion;
             this._xpbdLayoutX = new Float64Array(body.count);
             this._xpbdLayoutY = new Float64Array(body.count);
             this._xpbdLayoutZ = new Float64Array(body.count);
@@ -1250,6 +1286,17 @@ export class PigtailCatheter {
             body.activeStart,
             collisionStart
         );
+        if (soloXpbd) {
+            this.#applyStandaloneKirchhoffRuntime(body);
+        } else if (body.rodModel === 'kirchhoff') {
+            // The standalone policy is installed on the same reusable body.
+            // Restore its catheter-native wall transport as soon as a
+            // guidewire supports it so this change cannot alter coupling.
+            body.wallProjectionVelocityRetention =
+                this._xpbdBaseWallProjectionVelocityRetention ?? 1;
+            body.sweptContactPreserveTangentialMotion =
+                this._xpbdBaseSweptContactPreserveTangentialMotion ?? false;
+        }
         this.physicsActiveCount = count;
         for (let index = 0; index < count; index++) {
             this._xpbdLayoutX[index] = points[index].x;
@@ -1490,6 +1537,34 @@ export class PigtailCatheter {
             }
         }
         this._xpbdProximalFeedControlIndex = -1;
+    }
+
+    #applyStandaloneKirchhoffRuntime(body) {
+        if (body.rodModel !== 'kirchhoff') return;
+
+        // A catheter without guidewire support is the same kind of free,
+        // boundary-driven Kirchhoff rod as the guidewire. Keep its material
+        // profile (diameter, mass, stiffness and intrinsic distal curvature),
+        // but do not switch to a catheter-only solver schedule while feeding
+        // or after the operator releases the control.
+        body.postStabilizationPasses = 0;
+        body.finalStructuralClosurePasses = 8;
+        body.intrinsicClosureCorrectionScale = 0;
+        body.postStabilizeBending = false;
+        body.restTurnPolishMaxAngle = 0;
+        body.projectionVelocityRetention = 1;
+        body.distalProjectionVelocityRetention = 1;
+        body.distalProjectionVelocityRetentionStartNode = Infinity;
+        body.maxFrameDisplacement = Infinity;
+
+        // Match the guidewire's unilateral wall-contact transport: discard
+        // the normal displacement introduced by the projection while keeping
+        // physical tangential motion. Friction magnitude remains a catheter
+        // material property.
+        body.wallProjectionVelocityRetention = 0;
+        body.sweptContactPreserveTangentialMotion = true;
+        body.wallFrictionUsesCurrentLoad = false;
+        body.wallFrictionUsesSmoothedLoad = false;
     }
 
     #stabilizeUnsupportedXpbdEntry(body, count) {
@@ -2414,8 +2489,13 @@ export class PigtailCatheter {
         this.freeNodes[0].pos.copy(frame.supportTip);
         this.freeNodes[0].vel.set(0, 0, 0);
         const baseDistance = this.freeNodes[0].distance ?? state.supportEnd;
+        // A standalone catheter is boundary-driven just like the guidewire:
+        // XPBD owns its free material continuously, including while the
+        // operator is feeding or withdrawing it. The analytical preform is
+        // only a constitutive rest strain/visual target and must never replace
+        // the live rod pose during manipulation.
         const xpbdOwnsUnsupportedPose =
-            Math.abs(this.motionCommand) <= 1e-6 &&
+            this.guidewireInserted <= MIN_GUIDE_SUPPORT &&
             this.physicsBody && this.physicsActiveCount >= 2;
         for (let index = 1; index < this.freeNodes.length; index++) {
             const node = this.freeNodes[index];

@@ -202,13 +202,21 @@ export function applyGuidewireMaterialProfile(
     if (!Number.isFinite(stiffnessScale) || stiffnessScale <= 0) {
         throw new RangeError('Guidewire stiffness scale must be finite and positive');
     }
+    const shaftStiffnessScale = options.shaftStiffnessScale ?? stiffnessScale;
+    const tipStiffnessScale = options.tipStiffnessScale ?? stiffnessScale;
+    if (!Number.isFinite(shaftStiffnessScale) || shaftStiffnessScale <= 0) {
+        throw new RangeError('Guidewire shaft stiffness scale must be finite and positive');
+    }
+    if (!Number.isFinite(tipStiffnessScale) || tipStiffnessScale <= 0) {
+        throw new RangeError('Guidewire tip stiffness scale must be finite and positive');
+    }
     const segmentLength = options.segmentLength ?? rod.segmentLength;
     const bodyBendingStiffness = (
         options.bodyBendingStiffness ?? profile.bodyBendingStiffness
-    ) * stiffnessScale;
+    ) * shaftStiffnessScale;
     const tipBendingStiffness = (
         options.tipBendingStiffness ?? profile.tipBendingStiffness
-    ) * stiffnessScale;
+    ) * tipStiffnessScale;
     const tipCoreLength = options.tipCoreLength ?? profile.tipCoreLength;
     const tipTransitionLength = options.tipTransitionLength ??
         profile.tipTransitionLength;

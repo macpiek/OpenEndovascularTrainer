@@ -610,7 +610,12 @@ canvas {
     gap: 6px;
 }
 
-#guidewireStiffnessValue {
+#guidewireStiffnessValue,
+#guidewireTipStiffnessValue,
+#guidewireRelaxationValue,
+#catheterShaftStiffnessValue,
+#catheterTipStiffnessValue,
+#catheterRelaxationValue {
     min-width: 42px;
     color: #8fc7ff;
     text-align: right;

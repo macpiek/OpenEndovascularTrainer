@@ -1,7 +1,10 @@
 const TWO_PI = Math.PI * 2;
 
 export const PIGTAIL_NATURAL_RADIUS_MM = 7.2;
-export const PIGTAIL_NATURAL_TURNS = 1.05;
+// A short pigtail: the distal preform keeps its 7.2 mm loop radius but ends
+// before completing a full circle. This shortens the curved material without
+// changing its local manufactured curvature.
+export const PIGTAIL_NATURAL_TURNS = 0.9;
 export const PIGTAIL_NATURAL_ARC_LENGTH_MM =
     PIGTAIL_NATURAL_RADIUS_MM * PIGTAIL_NATURAL_TURNS * TWO_PI;
 export const PIGTAIL_CURVATURE_TRANSITION_MM = 4;
@@ -16,7 +19,7 @@ const PIGTAIL_TOTAL_TURN = PIGTAIL_NATURAL_TURNS * TWO_PI;
 const PIGTAIL_FULL_CURVATURE_LENGTH =
     PIGTAIL_NATURAL_ARC_LENGTH_MM - PIGTAIL_CURVATURE_TRANSITION_MM;
 // The quintic transition integrates to exactly half of its length. Scaling
-// the plateau curvature preserves the prescribed 1.05 total turns while the
+// the plateau curvature preserves the prescribed total turn while the
 // shaft-to-loop moment rises continuously instead of creating a hard hinge.
 const PIGTAIL_PEAK_CURVATURE = PIGTAIL_TOTAL_TURN / (
     PIGTAIL_NATURAL_ARC_LENGTH_MM - PIGTAIL_CURVATURE_TRANSITION_MM * 0.5
