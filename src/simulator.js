@@ -94,7 +94,7 @@ const GUIDEWIRE_TUBE_RADIAL_SEGMENTS = 12;
 const GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT = 3;
 const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
-const LEGACY_GUIDEWIRE_TOOL_COUPLED_PROJECTION_RETENTION = 0.005;
+const TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION = 0.005;
 const requestedPhysicsMode = new URLSearchParams(window.location.search).get('physics');
 const PHYSICS_MODE = requestedPhysicsMode === 'legacy' ? 'legacy' : 'xpbd-contact-v1';
 const XRAY_CAMERA_NEAR = 0.1;
@@ -1424,21 +1424,29 @@ endovascularWorld.addSheath({
 xpbdContainment = endovascularWorld.addContainment(xpbdWireBody, xpbdCatheterBody, {
     model: 'kirchhoff',
     innerRadius: PIGTAIL_CATHETER_INNER_RADIUS_MM,
+    friction: DEFAULT_TOOL_PROFILES.catheter.lumenFriction,
+    axialFriction:
+        DEFAULT_TOOL_PROFILES.catheter.lumenAxialFriction,
+    torsionalFriction:
+        DEFAULT_TOOL_PROFILES.catheter.lumenTorsionalFriction,
+    // Bound a single nonlinear contact update to the same sub-millimetre
+    // scale as vessel-wall contact. Repeated passes still reach the exact
+    // equilibrium, but cannot jump across it and seed a fold in one sweep.
+    lumenMaxCorrection: 0.4,
     openProximal: true,
     openDistal: true,
     searchWindow: 2,
     outerStartNode: pigtailCatheter.physicsLumenStartNode,
-    // The catheter shaft is the dominant member of the coupled pair. The
-    // guidewire is projected into its lumen. The wire cannot laterally pull
-    // the much stiffer catheter shaft or turn a proximal push into a distal
-    // oscillation.
+    // Both material rods participate in the same reciprocal contact reaction.
+    // Their independent Kirchhoff EI fields then determine the common
+    // equilibrium; neither device is turned into an immovable rail.
     innerResponse: 1,
-    outerResponse: 0,
-    // The distal opening is a unilateral guidewire constraint. A crossing
-    // wire is centered into the lumen without turning that projection into a
-    // lateral impulse on the catheter tip.
+    outerResponse: 1,
+    // The distal aperture uses the same reciprocal material response. This
+    // lets a sufficiently stiff guidewire open a preformed tip while keeping
+    // the crossing continuous and free to slide axially.
     portalInnerResponse: 1,
-    portalOuterResponse: 0,
+    portalOuterResponse: 1,
     portalCompliance: 1e-7,
     portalTransitionLength: 4,
     portalMaxCorrection: 0.15,
@@ -2994,7 +3002,6 @@ function stepSimulation(dt = fixedDt) {
             xpbdCatheterBody,
             XPBD_CATHETER_SYNC_OPTIONS
         );
-        xpbdContainment.outerStartNode = pigtailCatheter.physicsLumenStartNode;
         const firstContainedNode = Math.max(0, Math.ceil((guidewireLength - inserted) / segmentLength));
         const materialEndNode = Math.min(
             xpbdWireBody.count - 1,
@@ -3005,15 +3012,19 @@ function stepSimulation(dt = fixedDt) {
         // spatial capture below separately decides when it may be rendered as
         // fully inside the catheter.
         const lastContainedNode = materialEndNode;
-        xpbdContainment.enabled =
-            pigtailCatheter.progress > 0.5 &&
-            catheterNodeCount >= 2 &&
-            lastContainedNode >= firstContainedNode;
-        xpbdContainment.startNode = firstContainedNode;
-        xpbdContainment.endNode = Math.max(firstContainedNode, lastContainedNode);
-        xpbdContainment.innerArcOffset =
-            firstContainedNode * segmentLength - guidewireLength + inserted;
-        xpbdContainment.containedLength = Math.min(pigtailCatheter.progress, inserted);
+        endovascularWorld.updateContainmentWindow(xpbdContainment, {
+            enabled:
+                pigtailCatheter.progress > 0.5 &&
+                catheterNodeCount >= 2 &&
+                lastContainedNode >= firstContainedNode,
+            outerStartNode: pigtailCatheter.physicsLumenStartNode,
+            startNode: firstContainedNode,
+            endNode: Math.max(firstContainedNode, lastContainedNode),
+            innerArcOffset:
+                firstContainedNode * segmentLength - guidewireLength + inserted,
+            containedLength: Math.min(pigtailCatheter.progress, inserted),
+            enforceDistalPortal: true
+        });
         // The XPBD catheter body starts at the sheath outlet, while progress
         // is measured from the handle. Give the portal the actual material
         // tip-to-tip distance so it turns off after the catheter overtakes the
@@ -3023,7 +3034,6 @@ function stepSimulation(dt = fixedDt) {
             0,
             pigtailCatheter.progress - inserted
         );
-        xpbdContainment.enforceDistalPortal = true;
         if (xpbdContainment.model !== 'kirchhoff') {
             const relativePortalAdvance = guidewireProgressDelta - catheterProgressDelta;
             if (relativePortalAdvance > 1e-5) xpbdPortalInnerDriven = true;
@@ -3133,7 +3143,10 @@ function stepSimulation(dt = fixedDt) {
         xpbdCatheterBody.relaxationPasses =
             guidewireRelaxationPasses(catheterRelaxationRate);
         xpbdWireBody.projectionVelocityRetention = guidewireIsToolCoupled
-            ? LEGACY_GUIDEWIRE_TOOL_COUPLED_PROJECTION_RETENTION
+            ? TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION
+            : 1;
+        xpbdWireBody.toolProjectionVelocityRetention = guidewireIsToolCoupled
+            ? 0
             : 1;
         xpbdWireBody.distalProjectionVelocityRetention = 1;
         if (guidewireIsToolCoupled && xpbdContainment.model === 'kirchhoff') {

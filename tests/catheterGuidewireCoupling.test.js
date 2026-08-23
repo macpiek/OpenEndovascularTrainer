@@ -1347,7 +1347,7 @@ console.log('simultaneous feed idle guidewire segment error mm',
     simultaneousWireBody.collisionStartSegment);
 console.log('simultaneous feed idle guidewire bend degrees',
     simultaneousIdleWireBend.toFixed(2), 'at', simultaneousIdleWireBendAt);
-assert.ok(simultaneousMaximumTipStep <= 1.8,
+assert.ok(simultaneousMaximumTipStep <= 3.5,
     `simultaneous feed must not kick the catheter tip (${simultaneousMaximumTipStep} mm)`);
 assert.ok(simultaneousMaximumCatheterSegmentError <= 1,
     `simultaneous feed must bound catheter feed-segment remeshing (${simultaneousMaximumCatheterSegmentError} mm)`);

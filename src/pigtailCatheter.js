@@ -629,13 +629,22 @@ export class PigtailCatheter {
         // Contact and length projections should not become a fresh inertial
         // kick on the next frame. A catheter in blood and against a vessel is
         // strongly overdamped, especially after the operator releases feed.
-        body.projectionVelocityRetention = (
-            soloXpbd ||
-            hasLocallyUnsupportedShaft ||
-            hasReleasedPreform
-        )
+        // Iterative Kirchhoff/length/contact corrections move the rod toward
+        // its constrained equilibrium, but they are not inertial momentum.
+        // This was already handled for a released/unsupported catheter. Apply
+        // the same quasi-static reconstruction whenever the operator is idle
+        // while a guidewire supports the catheter; otherwise an equilibrated
+        // lumen pair slowly accumulates projection energy until it waves.
+        body.projectionVelocityRetention = soloXpbd
             ? (Math.abs(this.motionCommand) > 0 ? 1 : 0.005)
-            : 1;
+            : (
+                Math.abs(this.motionCommand) > 1e-6 ||
+                Math.abs(this.guidewireDelta) > 1e-5 ||
+                Math.abs(this.rotationCommand) > 1e-6 ||
+                Math.abs(this._pendingXpbdRotation) > 1e-6
+                    ? 1
+                    : 0.005
+            );
         let insertedIndex = -1;
         let topologyChanged = false;
         let topologyDelta = 0;
@@ -1190,7 +1199,12 @@ export class PigtailCatheter {
             const naturalBendCompliance = shaftBendCompliance +
                 (XPBD_SOFT_TIP_BEND_COMPLIANCE - shaftBendCompliance) *
                 softTipWeight;
-            const compositeSupport = this.guidewireInserted > MIN_GUIDE_SUPPORT
+            // A Kirchhoff catheter and guidewire remain two material rods.
+            // Their combined curvature emerges from their two EI fields and
+            // symmetric lumen contact; the legacy single-rod approximation
+            // must not pre-stiffen the catheter a second time.
+            const compositeSupport = body.rodModel !== 'kirchhoff' &&
+                this.guidewireInserted > MIN_GUIDE_SUPPORT
                 ? 1 - smoothstep(
                     this.guidewireInserted - XPBD_COMPOSITE_TAPER_LENGTH,
                     this.guidewireInserted,
@@ -1289,11 +1303,12 @@ export class PigtailCatheter {
         if (soloXpbd) {
             this.#applyStandaloneKirchhoffRuntime(body);
         } else if (body.rodModel === 'kirchhoff') {
-            // The standalone policy is installed on the same reusable body.
-            // Restore its catheter-native wall transport as soon as a
-            // guidewire supports it so this change cannot alter coupling.
-            body.wallProjectionVelocityRetention =
-                this._xpbdBaseWallProjectionVelocityRetention ?? 1;
+            // Vessel contact is the same unilateral, zero-restitution
+            // boundary with and without lumen support. Restoring the raw body
+            // default here used to make adding a guidewire turn wall
+            // projections into rebound velocity.
+            body.wallProjectionVelocityRetention = 0;
+            body.toolProjectionVelocityRetention = 0;
             body.sweptContactPreserveTangentialMotion =
                 this._xpbdBaseSweptContactPreserveTangentialMotion ?? false;
         }
@@ -1562,6 +1577,7 @@ export class PigtailCatheter {
         // physical tangential motion. Friction magnitude remains a catheter
         // material property.
         body.wallProjectionVelocityRetention = 0;
+        body.toolProjectionVelocityRetention = 1;
         body.sweptContactPreserveTangentialMotion = true;
         body.wallFrictionUsesCurrentLoad = false;
         body.wallFrictionUsesSmoothedLoad = false;

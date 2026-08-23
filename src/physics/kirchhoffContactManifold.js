@@ -273,6 +273,7 @@ export class KirchhoffContactManifold {
         normal,
         tangentU = null,
         frictionCoefficient,
+        twistFrictionCoefficient,
         effectiveTwistRadius,
         id: suppliedId = null
     }) {
@@ -290,6 +291,7 @@ export class KirchhoffContactManifold {
                 normal,
                 tangentU,
                 frictionCoefficient,
+                twistFrictionCoefficient,
                 effectiveTwistRadius
             });
         }
@@ -303,6 +305,10 @@ export class KirchhoffContactManifold {
             effectiveTwistRadius ?? 0,
             'effectiveTwistRadius'
         );
+        const twistFriction = nonNegative(
+            twistFrictionCoefficient ?? contactFriction,
+            'twistFrictionCoefficient'
+        );
         const contact = {
             _manifold: this,
             id,
@@ -315,6 +321,7 @@ export class KirchhoffContactManifold {
             tangentU: basis.tangentU,
             tangentV: basis.tangentV,
             frictionCoefficient: contactFriction,
+            twistFrictionCoefficient: twistFriction,
             effectiveTwistRadius: twistRadius,
             normalLambda: 0,
             tangentLambda: new Float64Array(2),
@@ -430,6 +437,7 @@ export class KirchhoffContactManifold {
         normal,
         tangentU,
         frictionCoefficient,
+        twistFrictionCoefficient,
         effectiveTwistRadius
     } = {}) {
         const contact = resolveContact(this._contacts, contactOrId);
@@ -439,6 +447,7 @@ export class KirchhoffContactManifold {
             normal,
             tangentU,
             frictionCoefficient,
+            twistFrictionCoefficient,
             effectiveTwistRadius
         });
     }
@@ -449,6 +458,7 @@ export class KirchhoffContactManifold {
         normal,
         tangentU,
         frictionCoefficient,
+        twistFrictionCoefficient,
         effectiveTwistRadius
     }) {
         const sameNormal = normal == null || (
@@ -470,11 +480,15 @@ export class KirchhoffContactManifold {
         );
         const sameFriction = frictionCoefficient === undefined ||
             frictionCoefficient === contact.frictionCoefficient;
+        const sameTwistFriction =
+            twistFrictionCoefficient === undefined ||
+            twistFrictionCoefficient ===
+                contact.twistFrictionCoefficient;
         const sameRadius = effectiveTwistRadius === undefined ||
             effectiveTwistRadius === contact.effectiveTwistRadius;
         if (
             sameNormal && sameTangent && sameIndices &&
-            sameFriction && sameRadius
+            sameFriction && sameTwistFriction && sameRadius
         ) {
             contact.lastSeenStep = this._step;
             return contact;
@@ -515,6 +529,12 @@ export class KirchhoffContactManifold {
             contact.frictionCoefficient = nonNegative(
                 frictionCoefficient,
                 'frictionCoefficient'
+            );
+        }
+        if (twistFrictionCoefficient !== undefined) {
+            contact.twistFrictionCoefficient = nonNegative(
+                twistFrictionCoefficient,
+                'twistFrictionCoefficient'
             );
         }
         if (effectiveTwistRadius !== undefined) {
@@ -636,7 +656,7 @@ export class KirchhoffContactManifold {
         const contact = resolveContact(this._contacts, contactOrId);
         finiteNumber(deltaTwistImpulse, 'deltaTwistImpulse');
         if (frictionCoefficient !== undefined) {
-            contact.frictionCoefficient = nonNegative(
+            contact.twistFrictionCoefficient = nonNegative(
                 frictionCoefficient,
                 'frictionCoefficient'
             );
@@ -650,7 +670,7 @@ export class KirchhoffContactManifold {
         const previous = contact.twistLambda;
         contact.twistLambda += deltaTwistImpulse;
         const projection = this.#projectTwistLambda(contact);
-        const limit = contact.frictionCoefficient *
+        const limit = contact.twistFrictionCoefficient *
             contact.effectiveTwistRadius * contact.normalLambda;
         const applied = contact.twistLambda - previous;
         const result = out ?? {};
@@ -672,7 +692,7 @@ export class KirchhoffContactManifold {
             throw new RangeError('Unknown Kirchhoff contact');
         }
         if (frictionCoefficient !== undefined) {
-            contact.frictionCoefficient = frictionCoefficient;
+            contact.twistFrictionCoefficient = frictionCoefficient;
         }
         if (effectiveRadius !== undefined) {
             contact.effectiveTwistRadius = effectiveRadius;
@@ -686,7 +706,7 @@ export class KirchhoffContactManifold {
         result.appliedOuter = -applied;
         result.inner = contact.innerTwistImpulse;
         result.outer = contact.outerTwistImpulse;
-        result.limit = contact.frictionCoefficient *
+        result.limit = contact.twistFrictionCoefficient *
             contact.effectiveTwistRadius * contact.normalLambda;
         result.clamped = projection;
         return result;
@@ -725,7 +745,7 @@ export class KirchhoffContactManifold {
     }
 
     #projectTwistLambda(contact) {
-        const limit = contact.frictionCoefficient *
+        const limit = contact.twistFrictionCoefficient *
             contact.effectiveTwistRadius * contact.normalLambda;
         const requested = contact.twistLambda;
         contact.twistLambda = Math.max(-limit, Math.min(limit, requested));

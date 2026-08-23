@@ -227,17 +227,41 @@ export function buildContainedGuidewireRenderPolyline({
         );
     };
 
+    // Rendering a coarse preformed catheter and its contained wire with one
+    // smooth spline can make the wire spline cut outside between two valid
+    // physical samples. Add interpolation samples on the catheter's actual
+    // piecewise-linear centerline. They are render-only and never feed back
+    // into either rod or prescribe a physical path.
+    const pushMappedSpan = (segment, startT, endT) => {
+        const clampedStart = clamp(startT, 0, 1);
+        const clampedEnd = clamp(endT, clampedStart, 1);
+        const dx = outerBody.x[segment + 1] - outerBody.x[segment];
+        const dy = outerBody.y[segment + 1] - outerBody.y[segment];
+        const dz = outerBody.z[segment + 1] - outerBody.z[segment];
+        const spanLength = Math.hypot(dx, dy, dz) *
+            (clampedEnd - clampedStart);
+        const subdivisions = Math.max(1, Math.ceil(spanLength / 0.5));
+        for (let step = 0; step <= subdivisions; step++) {
+            pushMappedPoint(
+                segment,
+                clampedStart + (clampedEnd - clampedStart) *
+                    step / subdivisions
+            );
+        }
+    };
+
     out.containedStartIndex = out.length;
-    pushMappedPoint(startSegment, containment.closestT[innerStart]);
-    for (let outerNode = startSegment + 1; outerNode <= endSegment; outerNode++) {
-        pushPoint(
-            out,
-            outerBody.x[outerNode],
-            outerBody.y[outerNode],
-            outerBody.z[outerNode]
+    for (let segment = startSegment; segment <= endSegment; segment++) {
+        pushMappedSpan(
+            segment,
+            segment === startSegment
+                ? containment.closestT[innerStart]
+                : 0,
+            segment === endSegment
+                ? containment.closestT[innerEnd]
+                : 1
         );
     }
-    pushMappedPoint(endSegment, containment.closestT[innerEnd]);
 
     // renderEndNode may deliberately trail the material boundary by one node
     // while the moving catheter captures that node spatially. It is therefore
@@ -245,16 +269,13 @@ export function buildContainedGuidewireRenderPolyline({
     // Only the material containment boundary can identify a real distal span.
     const hasExternalSpan = materialInnerEnd < guidewireNodes.length - 1;
     if (hasExternalSpan) {
-        for (
-            let outerNode = endSegment + 1;
-            outerNode <= outerBody.activeEnd;
-            outerNode++
-        ) {
-            pushPoint(
-                out,
-                outerBody.x[outerNode],
-                outerBody.y[outerNode],
-                outerBody.z[outerNode]
+        for (let segment = endSegment; segment < outerBody.activeEnd; segment++) {
+            pushMappedSpan(
+                segment,
+                segment === endSegment
+                    ? containment.closestT[innerEnd]
+                    : 0,
+                1
             );
         }
         out.containedEndIndex = out.length - 1;
@@ -270,7 +291,7 @@ export function buildContainedGuidewireRenderPolyline({
         let tangentZ = outerBody.z[outerTip] - outerBody.z[tangentStart];
         const tangentLength = Math.hypot(tangentX, tangentY, tangentZ);
         if (tangentLength > EPSILON) {
-            const guideLength = Math.min(0.5, tangentLength * 0.2);
+            const guideLength = Math.min(0.1, tangentLength * 0.05);
             tangentX /= tangentLength;
             tangentY /= tangentLength;
             tangentZ /= tangentLength;

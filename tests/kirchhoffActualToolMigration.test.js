@@ -10,7 +10,7 @@ import { PigtailCatheter } from '../src/pigtailCatheter.js';
 
 const DT = 1 / 120;
 
-function createDeployedCatheter(type) {
+function createDeployedCatheter(type, guidewireInserted = 0) {
     const guidewireLength = 200;
     const guidewireSpacing = 2;
     const wire = new ElasticRod(
@@ -19,7 +19,8 @@ function createDeployedCatheter(type) {
     );
     for (let index = 0; index < wire.nodes.length; index++) {
         const node = wire.nodes[index];
-        node.x = index * guidewireSpacing - guidewireLength - 20;
+        node.x = index * guidewireSpacing - guidewireLength - 20 +
+            guidewireInserted;
         node.y = 0;
         node.z = 0;
         node.vx = 0;
@@ -30,7 +31,7 @@ function createDeployedCatheter(type) {
         wire,
         segmentLength: guidewireSpacing,
         guidewireLength,
-        tailProgressRef: () => 0,
+        tailProgressRef: () => guidewireInserted,
         vessel: {
             sheath: {
                 start: { x: -20, y: 0, z: 0 },
@@ -48,11 +49,44 @@ function createDeployedCatheter(type) {
         rodModel: 'kirchhoff'
     });
     for (let step = 0; step < 210; step++) {
-        catheter.advance(1, DT, 0);
+        catheter.advance(1, DT, guidewireInserted);
         catheter.stepPhysics(DT, { collisions: false });
         catheter.syncXpbdBody(body);
     }
     return { body, catheter };
+}
+
+for (const type of ['pigtail', 'berenstein']) {
+    test(`${type} Kirchhoff material is independent of guidewire support`, () => {
+        const standalone = createDeployedCatheter(type, 0);
+        const supported = createDeployedCatheter(type, 140);
+        try {
+            const first = standalone.body.activeStart;
+            const last = standalone.body.activeEnd + 1;
+            assert.deepEqual(
+                [supported.body.activeStart, supported.body.activeEnd],
+                [standalone.body.activeStart, standalone.body.activeEnd]
+            );
+            for (const property of [
+                'restRotation1',
+                'restRotation2',
+                'restRotation3',
+                'kirchhoffBendCompliance1',
+                'kirchhoffBendCompliance2',
+                'kirchhoffTwistCompliance',
+                'maxBendAngleByNode'
+            ]) {
+                assert.deepEqual(
+                    Array.from(supported.body[property].slice(first, last)),
+                    Array.from(standalone.body[property].slice(first, last)),
+                    `${property} must not contain a hidden composite-beam override`
+                );
+            }
+        } finally {
+            standalone.catheter.dispose();
+            supported.catheter.dispose();
+        }
+    });
 }
 
 for (const type of ['pigtail', 'berenstein']) {

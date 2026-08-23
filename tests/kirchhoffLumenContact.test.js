@@ -131,6 +131,31 @@ approximatelyEqual(openCrossing.portal.radialDistance, 0);
 assert.equal(openCrossing.portal.contact, null);
 assert.equal(openCrossing.activeContacts.length, 0);
 
+// A rounded physical lip replaces the discontinuous cylinder/plane corner.
+// Its normal contains both an inward radial component and a forward axial
+// component, so a contacting wire slides out of the opening instead of being
+// snapped sideways or assigned an artificial exit direction.
+const roundedLip = evaluateKirchhoffLumenSegmentContact({
+    innerStart: [9.85, 0.85, 0],
+    innerEnd: [10.05, 0.85, 0],
+    outerStart: [0, 0, 0],
+    outerEnd: [10, 0, 0],
+    lumenRadius: 1,
+    innerRadius: 0.2,
+    innerMaterialSegmentId: 'wire-rounded-lip',
+    outerMaterialSegmentId: 'catheter-rounded-tip',
+    openDistal: true,
+    portalFilletRadius: 0.2
+});
+assert.equal(roundedLip.side, null);
+assert.ok(roundedLip.fillet?.active);
+assert.ok(roundedLip.fillet.normal[0] < 0,
+    'the inner correction must have a forward axial component');
+assert.ok(roundedLip.fillet.normal[1] > 0,
+    'the inner correction must also move radially toward the lumen axis');
+assert.equal(roundedLip.portal.valid, true);
+assert.deepEqual(roundedLip.activeContacts, [roundedLip.fillet]);
+
 // A crossing outside the aperture is a rim violation. It cannot be accepted
 // as an open-end exit, and it is corrected radially without prescribing the
 // direction of the free distal guidewire.

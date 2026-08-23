@@ -221,9 +221,12 @@ function contactRecord({
     innerSegmentIndex,
     outerSegmentIndex,
     activationDistance,
-    effectiveTwistRadius
+    effectiveTwistRadius,
+    gapOverride = null
 }) {
-    const gap = clearance - radialDistance;
+    const gap = Number.isFinite(gapOverride)
+        ? gapOverride
+        : clearance - radialDistance;
     const innerWeights = [1 - innerT, innerT];
     const outerWeights = [1 - outerT, outerT];
     const id = materialSegmentContactId(
@@ -299,6 +302,7 @@ export function evaluateKirchhoffLumenSegmentContact({
     innerSegmentIndex = -1,
     outerSegmentIndex = -1,
     openDistal = false,
+    portalFilletRadius = 0,
     quadrature = DEFAULT_LUMEN_QUADRATURE,
     activationDistance = 0,
     featurePrefix = 'lumen',
@@ -311,6 +315,10 @@ export function evaluateKirchhoffLumenSegmentContact({
     const lumen = nonNegative(lumenRadius, 'lumenRadius');
     const inner = nonNegative(innerRadius, 'innerRadius');
     const clearance = Math.max(0, lumen - inner);
+    const filletRadius = nonNegative(
+        portalFilletRadius,
+        'portalFilletRadius'
+    );
     nonNegative(activationDistance, 'activationDistance');
     if (typeof featurePrefix !== 'string' || featurePrefix.length === 0) {
         throw new TypeError('featurePrefix must be a non-empty string');
@@ -341,7 +349,10 @@ export function evaluateKirchhoffLumenSegmentContact({
             // The exact aperture/rim solve below owns the distal plane. Letting
             // the final side-wall quadrature point own it as well would count
             // the same normal reaction twice at an invalid crossing.
-            if (distalAxial >= -PORTAL_TOLERANCE) continue;
+            if (
+                distalAxial >=
+                    -Math.max(PORTAL_TOLERANCE, filletRadius)
+            ) continue;
         }
         const radialDistance = length(closest.offset);
         const normal = radialDistance > EPSILON
@@ -384,6 +395,69 @@ export function evaluateKirchhoffLumenSegmentContact({
         })
         : null;
 
+    let fillet = null;
+    if (openDistal && filletRadius > EPSILON) {
+        const majorRadius = clearance + filletRadius;
+        let worstFillet = null;
+        for (const innerT of sampleCoordinates) {
+            const point = addScaled(innerStart, innerEnd, innerT);
+            const offset = subtract(point, outerEnd);
+            const axial = dot(offset, axis);
+            if (axial < -filletRadius || axial > filletRadius) continue;
+            const radial = [
+                offset[0] - axis[0] * axial,
+                offset[1] - axis[1] * axial,
+                offset[2] - axis[2] * axial
+            ];
+            const radialDistance = length(radial);
+            if (radialDistance > majorRadius) continue;
+            const radialUnit = radialDistance > EPSILON
+                ? scaled(radial, 1 / radialDistance)
+                : perpendicularTo(axis);
+            const circleAxial = axial + filletRadius;
+            const circleRadial = radialDistance - majorRadius;
+            const circleDistance = Math.hypot(circleAxial, circleRadial);
+            if (circleDistance <= EPSILON) continue;
+            const gap = circleDistance - filletRadius;
+            if (worstFillet && gap >= worstFillet.gap) continue;
+            const gradientAxial = circleAxial / circleDistance;
+            const gradientRadial = circleRadial / circleDistance;
+            worstFillet = {
+                innerT,
+                radialDistance,
+                gap,
+                normal: [
+                    -(axis[0] * gradientAxial +
+                        radialUnit[0] * gradientRadial),
+                    -(axis[1] * gradientAxial +
+                        radialUnit[1] * gradientRadial),
+                    -(axis[2] * gradientAxial +
+                        radialUnit[2] * gradientRadial)
+                ]
+            };
+        }
+        fillet = worstFillet
+            ? contactRecord({
+                kind: 'distal-fillet',
+                feature: `${featurePrefix}:distal-fillet`,
+                innerMaterialSegmentId,
+                outerMaterialSegmentId,
+                innerT: worstFillet.innerT,
+                outerT: 1,
+                radialDistance: worstFillet.radialDistance,
+                clearance: filletRadius,
+                normal: worstFillet.normal,
+                tangentU: axis,
+                manifold,
+                innerSegmentIndex,
+                outerSegmentIndex,
+                activationDistance,
+                effectiveTwistRadius: worstFillet.radialDistance,
+                gapOverride: worstFillet.gap
+            })
+            : null;
+    }
+
     const innerStartFromPortal = subtract(innerStart, outerEnd);
     const innerEndFromPortal = subtract(innerEnd, outerEnd);
     const startAxial = dot(innerStartFromPortal, axis);
@@ -417,7 +491,8 @@ export function evaluateKirchhoffLumenSegmentContact({
         const normal = radialDistance > EPSILON
             ? scaled(radial, 1 / radialDistance)
             : perpendicularTo(axis);
-        const gap = clearance - radialDistance;
+        const portalClearance = clearance + filletRadius;
+        const gap = portalClearance - radialDistance;
         const rimContact = gap <= activationDistance
             ? contactRecord({
                 kind: 'distal-rim',
@@ -427,7 +502,7 @@ export function evaluateKirchhoffLumenSegmentContact({
                 innerT,
                 outerT: 1,
                 radialDistance,
-                clearance,
+                clearance: portalClearance,
                 normal,
                 tangentU: axis,
                 manifold,
@@ -451,6 +526,7 @@ export function evaluateKirchhoffLumenSegmentContact({
 
     const activeContacts = [];
     if (side?.active) activeContacts.push(side);
+    if (fillet?.active) activeContacts.push(fillet);
     if (portal.contact?.active) activeContacts.push(portal.contact);
     return {
         clearance,
@@ -463,6 +539,7 @@ export function evaluateKirchhoffLumenSegmentContact({
         ),
         samples,
         side,
+        fillet,
         portal,
         activeContacts
     };
