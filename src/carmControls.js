@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import {
+    getDetectorZoomMode
+} from './imaging/detectorZoomModes.js';
 
 // The perspective camera is placed at the X-ray source so that the rendered
 // image matches what a detector would capture. A virtual detector sits opposite
@@ -21,6 +24,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const carmYawReadout = document.getElementById('carmYawReadout');
     const carmPitchReadout = document.getElementById('carmPitchReadout');
     const carmRollReadout = document.getElementById('carmRollReadout');
+    const detectorZoomButtons = Array.from(
+        document.querySelectorAll('[data-detector-zoom]')
+    );
+    const detectorZoomStatus = document.getElementById('detectorZoomStatus');
+    const detectorZoomBadge = document.getElementById('detectorZoomBadge');
 
     const sliders = [
         carmXSlider,
@@ -37,6 +45,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let carmY = parseFloat(carmYSlider.value);
     let carmZ = parseFloat(carmZSlider.value);
     let detectorRadius = parseFloat(carmDetDistSlider.value);
+    let detectorZoomMode = getDetectorZoomMode('none');
+    let detectorZoomBadgeTimer = null;
     let locked = false;
     let revision = 0;
 
@@ -82,6 +92,39 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         if (carmYawReadout) carmYawReadout.textContent = formatYaw(toDegrees(carmYaw));
         if (carmPitchReadout) carmPitchReadout.textContent = formatPitch(toDegrees(carmPitch));
         if (carmRollReadout) carmRollReadout.textContent = `Roll ${toDegrees(carmRoll)}°`;
+    }
+
+    function updateDetectorZoomUi({ announce = false } = {}) {
+        for (const button of detectorZoomButtons) {
+            const active = button.dataset.detectorZoom === detectorZoomMode.id;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+        }
+        if (detectorZoomStatus) {
+            detectorZoomStatus.textContent =
+                `${detectorZoomMode.label} · ${detectorZoomMode.inputFieldCm} cm FOV · ` +
+                `${detectorZoomMode.zoomFactor.toFixed(2)}× · ` +
+                `dose ≈${detectorZoomMode.referenceDoseRateMultiplier.toFixed(1)}×`;
+        }
+        if (!detectorZoomBadge) return;
+        if (detectorZoomBadgeTimer !== null) {
+            window.clearTimeout(detectorZoomBadgeTimer);
+            detectorZoomBadgeTimer = null;
+        }
+        if (!announce) {
+            detectorZoomBadge.hidden = true;
+            return;
+        }
+        detectorZoomBadge.textContent = detectorZoomMode.id === 'none'
+            ? 'NO ZOOM · FULL FIELD'
+            : `${detectorZoomMode.label.toUpperCase()} · ` +
+                `${detectorZoomMode.inputFieldCm} cm · ` +
+                `${detectorZoomMode.zoomFactor.toFixed(2)}×`;
+        detectorZoomBadge.hidden = false;
+        detectorZoomBadgeTimer = window.setTimeout(() => {
+            detectorZoomBadge.hidden = true;
+            detectorZoomBadgeTimer = null;
+        }, 2200);
     }
 
     function updateCamera() {
@@ -140,6 +183,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     updateCamera();
+    updateDetectorZoomUi();
     carmXSlider.addEventListener('input', e => {
         if (locked) return;
         carmX = parseFloat(e.target.value);
@@ -160,6 +204,18 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         detectorRadius = parseFloat(e.target.value);
         updateCamera();
     });
+    for (const button of detectorZoomButtons) {
+        button.addEventListener('click', () => {
+            if (locked) return;
+            const nextMode = getDetectorZoomMode(button.dataset.detectorZoom);
+            if (nextMode.id === detectorZoomMode.id) return;
+            detectorZoomMode = nextMode;
+            camera.zoom = detectorZoomMode.zoomFactor;
+            camera.updateProjectionMatrix();
+            updateDetectorZoomUi({ announce: true });
+            updateCamera();
+        });
+    }
     const positionJoystick = document.getElementById('positionJoystick');
     const positionJoystickHandle = document.getElementById('positionJoystickHandle');
     const angleJoystick = document.getElementById('angleJoystick');
@@ -508,18 +564,24 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmY = initialY;
         carmZ = initialZ;
         detectorRadius = initialDetectorRadius;
+        detectorZoomMode = getDetectorZoomMode('none');
+        camera.zoom = detectorZoomMode.zoomFactor;
+        camera.updateProjectionMatrix();
         carmXSlider.value = String(Math.round(carmX));
         carmYSlider.value = String(Math.round(carmY));
         carmZSlider.value = String(Math.round(carmZ));
         carmDetDistSlider.value = String(Math.round(detectorRadius));
+        updateDetectorZoomUi();
         updateCamera();
     }
 
     return {
         reset,
         getRevision: () => revision,
+        getDetectorZoomMode: () => ({ ...detectorZoomMode }),
         setLocked(value) {
             locked = value === true;
+            for (const button of detectorZoomButtons) button.disabled = locked;
             if (locked) stopMotion();
         }
     };

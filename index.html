@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260817guidewirestiffness1">
+    <link rel="stylesheet" href="style.css?v=20260825genfixes2">
 </head>
-<body>
+<body class="system-initializing">
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
     <div class="loading-panel">
-        <div class="loading-aorta" aria-hidden="true">
-            <div class="loading-aorta-figure">
-                <img src="res/aorta-loading.png?v=20260619stl2" alt="">
-                <span class="loading-aorta-contrast"></span>
-            </div>
-        </div>
         <div class="loading-copy">
-            <div class="loading-title">Endovascular Trainer</div>
+            <div class="loading-kicker">Endovascular Trainer</div>
+            <div class="loading-title">
+                <span class="loading-status-light" aria-hidden="true"></span>
+                Initializing
+            </div>
             <div id="loadingMessage" class="loading-message">Loading simulator</div>
+            <div class="loading-steps" aria-hidden="true">
+                <span class="is-active"></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </div>
 </div>
@@ -27,6 +31,7 @@
         <span class="mode-toggle-option mode-toggle-fluoro">Fluoro</span>
         <span class="mode-toggle-option mode-toggle-debug">Debug</span>
     </button>
+    <div id="detectorZoomBadge" class="detector-zoom-badge" role="status" aria-live="polite" hidden></div>
     <div id="imagingModeBadge" class="imaging-mode-badge" role="status" aria-live="polite" hidden></div>
     <div id="dsaCineControls" class="dsa-cine-controls" hidden>
         <span id="dsaCineStatus">CINE</span>
@@ -53,6 +58,7 @@
         <div id="xrayTechnique" class="xray-technique">
             <span id="currentKV">72 kV</span>
             <span id="currentMA">3.0 mA</span>
+            <span id="currentDoseRate" title="Szacowana dawka wejściowa na sekundę">≈0.00 mGy/s</span>
         </div>
     </div>
 </div>
@@ -323,6 +329,26 @@
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
                 <div class="section-content imaging-grid">
+                    <div class="detector-zoom-control">
+                        <div class="detector-zoom-heading">
+                            <span>Detector zoom</span>
+                            <output id="detectorZoomStatus">No zoom · 1.00× · 100% field of view</output>
+                        </div>
+                        <div class="detector-zoom-options" role="group" aria-label="Detector zoom">
+                            <button type="button" class="active" data-detector-zoom="none" aria-pressed="true">
+                                <strong>No zoom</strong>
+                                <span>21 cm · full field</span>
+                            </button>
+                            <button type="button" data-detector-zoom="medium" aria-pressed="false">
+                                <strong>Zoom 1</strong>
+                                <span>15 cm · 1.40×</span>
+                            </button>
+                            <button type="button" data-detector-zoom="maximum" aria-pressed="false">
+                                <strong>Zoom 2</strong>
+                                <span>10 cm · 2.10×</span>
+                            </button>
+                        </div>
+                    </div>
                     <button id="autoExposureToggle" class="imaging-toggle" type="button">Auto exposure: Off</button>
                     <label class="parameter-label">Persistence
                         <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.3">
@@ -330,9 +356,11 @@
                     </label>
                     <label class="parameter-label">Pulse fluoro
                         <select id="pulseRate">
-                            <option value="7.5">7.5 fps</option>
-                            <option value="15" selected>15 fps</option>
-                            <option value="30">30 fps</option>
+                            <option value="4">4 p/s</option>
+                            <option value="7.5">7.5 p/s</option>
+                            <option value="10">10 p/s</option>
+                            <option value="15" selected>15 p/s</option>
+                            <option value="30">30 p/s</option>
                         </select>
                     </label>
                     <label class="parameter-label">Noise level
@@ -343,10 +371,47 @@
                         <input id="scatterStrength" type="range" min="0" max="1" step="0.01" value="0.45">
                         <span></span>
                     </label>
-                    <label class="parameter-label">Collimation
-                        <input id="collimation" type="range" min="0" max="0.45" step="0.01" value="0.08">
-                        <span></span>
-                    </label>
+                    <div class="collimator-control">
+                        <div class="collimator-control-heading">
+                            <span>Kolimatory</span>
+                            <output id="collimatorStatus">L 8% · P 8% · G 8% · D 8% · 0°</output>
+                        </div>
+                        <div class="collimator-control-body">
+                            <div class="collimator-preview">
+                                <svg viewBox="0 0 120 84" role="img" aria-label="Podgląd pola kolimatora">
+                                    <rect class="collimator-preview-detector" x="3" y="3" width="114" height="78" rx="3"></rect>
+                                    <polygon id="collimatorFieldPreview" points="12,10 108,10 108,74 12,74"></polygon>
+                                    <line class="collimator-preview-axis" x1="60" y1="7" x2="60" y2="77"></line>
+                                    <line class="collimator-preview-axis" x1="7" y1="42" x2="113" y2="42"></line>
+                                    <circle class="collimator-preview-center" cx="60" cy="42" r="2.2"></circle>
+                                </svg>
+                                <span>Boczne listwy: obrót −30°…+30° wokół środka</span>
+                            </div>
+                            <div class="collimator-control-grid">
+                                <label class="parameter-label">Lewa przesłona
+                                    <input id="collimationLeft" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie lewej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label">Prawa przesłona
+                                    <input id="collimationRight" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie prawej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label">Górna przesłona
+                                    <input id="collimationTop" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie górnej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label">Dolna przesłona
+                                    <input id="collimationBottom" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie dolnej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label collimator-rotation-control">Obrót wokół środka
+                                    <input id="sideCollimatorRotation" type="range" min="-30" max="30" step="1" value="0" aria-label="Obrót bocznych kolimatorów wokół środka detektora">
+                                    <span></span>
+                                </label>
+                                <button id="resetCollimator" type="button">Wyzeruj</button>
+                            </div>
+                        </div>
+                    </div>
                     <label class="parameter-label">Brightness
                         <input id="imageBrightness" type="range" min="-0.35" max="0.35" step="0.01" value="0.18">
                         <span></span>

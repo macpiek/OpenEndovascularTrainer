@@ -7,6 +7,11 @@ import { renderGuidewireTipPreviews } from './guidewireTipPreview.js';
 import { shouldStartInjectionFromKeydown } from './injectionShortcut.js';
 import { setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
 import {
+  DEFAULT_COLLIMATION,
+  createCollimatorFieldPolygon,
+  normalizeCollimatorSettings
+} from '../imaging/collimatorGeometry.js';
+import {
   GUIDEWIRE_DIAMETER_IN,
   GUIDEWIRE_DIAMETER_MM,
   INTRODUCER_SHEATH_DIAMETER_MM,
@@ -63,6 +68,7 @@ export function initUI(options) {
     onSeekDsaCineFrame,
     onSetDsaCineSpeed,
     onStopDsaCine,
+    onCollimatorChange,
   } = options;
 
   // Patient monitor
@@ -149,7 +155,14 @@ export function initUI(options) {
   const pulseRateSlider = document.getElementById('pulseRate');
   const noiseSlider = document.getElementById('noiseLevel');
   const scatterStrengthSlider = document.getElementById('scatterStrength');
-  const collimationSlider = document.getElementById('collimation');
+  const collimationLeftSlider = document.getElementById('collimationLeft');
+  const collimationRightSlider = document.getElementById('collimationRight');
+  const collimationTopSlider = document.getElementById('collimationTop');
+  const collimationBottomSlider = document.getElementById('collimationBottom');
+  const sideCollimatorRotationSlider = document.getElementById('sideCollimatorRotation');
+  const collimatorStatusEl = document.getElementById('collimatorStatus');
+  const collimatorFieldPreviewEl = document.getElementById('collimatorFieldPreview');
+  const resetCollimatorButton = document.getElementById('resetCollimator');
   const imageBrightnessSlider = document.getElementById('imageBrightness');
   const imageContrastSlider = document.getElementById('imageContrast');
   const edgeEnhancementSlider = document.getElementById('edgeEnhancement');
@@ -202,6 +215,7 @@ export function initUI(options) {
   const doseDisplayEl = document.getElementById('currentDose');
   const currentKVEl = document.getElementById('currentKV');
   const currentMAEl = document.getElementById('currentMA');
+  const currentDoseRateEl = document.getElementById('currentDoseRate');
   const guidewireResistanceEl = document.getElementById('guidewireResistanceStatus');
   const guidewireResistanceReasonEl = document.getElementById('guidewireResistanceReason');
   const guidewireResistanceValueEl = document.getElementById('guidewireResistanceValue');
@@ -284,11 +298,13 @@ export function initUI(options) {
   let doseTenths = -1;
   let roundedKv = -1;
   let maTenths = -1;
+  let doseRateThousandths = -1;
   let insertedLengthDisplay = '';
   let catheterLengthDisplay = '';
   let doseDisplay = '';
   let kvDisplay = '';
   let maDisplay = '';
+  let doseRateDisplay = '';
   let resistanceModerate = null;
   let resistanceStrong = null;
   let resistancePercent = -1;
@@ -452,7 +468,11 @@ export function initUI(options) {
     pulseRateSlider,
     noiseSlider,
     scatterStrengthSlider,
-    collimationSlider,
+    collimationLeftSlider,
+    collimationRightSlider,
+    collimationTopSlider,
+    collimationBottomSlider,
+    sideCollimatorRotationSlider,
     imageBrightnessSlider,
     imageContrastSlider,
     edgeEnhancementSlider,
@@ -682,10 +702,77 @@ export function initUI(options) {
       displayMaterial.uniforms.scatterStrength.value = parseFloat(e.target.value);
     });
   }
-  if (collimationSlider && displayMaterial.uniforms.collimation) {
-    displayMaterial.uniforms.collimation.value = parseFloat(collimationSlider.value);
-    collimationSlider.addEventListener('input', e => {
-      displayMaterial.uniforms.collimation.value = parseFloat(e.target.value);
+  if (
+    collimationLeftSlider &&
+    collimationRightSlider &&
+    collimationTopSlider &&
+    collimationBottomSlider &&
+    sideCollimatorRotationSlider &&
+    displayMaterial.uniforms.collimationLeft &&
+    displayMaterial.uniforms.collimationRight &&
+    displayMaterial.uniforms.collimationTop &&
+    displayMaterial.uniforms.collimationBottom &&
+    displayMaterial.uniforms.sideCollimatorRotationDegrees
+  ) {
+    const syncCollimatorControls = ({ notify = false } = {}) => {
+      const settings = normalizeCollimatorSettings({
+        collimationLeft: parseFloat(collimationLeftSlider.value),
+        collimationRight: parseFloat(collimationRightSlider.value),
+        collimationTop: parseFloat(collimationTopSlider.value),
+        collimationBottom: parseFloat(collimationBottomSlider.value),
+        sideCollimatorRotationDegrees: parseFloat(sideCollimatorRotationSlider.value)
+      });
+      displayMaterial.uniforms.collimationLeft.value = settings.left;
+      displayMaterial.uniforms.collimationRight.value = settings.right;
+      displayMaterial.uniforms.collimationTop.value = settings.top;
+      displayMaterial.uniforms.collimationBottom.value = settings.bottom;
+      displayMaterial.uniforms.sideCollimatorRotationDegrees.value = settings.sideRotationDegrees;
+      if (collimatorStatusEl) {
+        const signedAngle = settings.sideRotationDegrees > 0
+          ? `+${settings.sideRotationDegrees}`
+          : String(settings.sideRotationDegrees);
+        collimatorStatusEl.textContent =
+          `L ${Math.round(settings.left * 100)}% · ` +
+          `P ${Math.round(settings.right * 100)}% · ` +
+          `G ${Math.round(settings.top * 100)}% · ` +
+          `D ${Math.round(settings.bottom * 100)}% · ${signedAngle}°`;
+      }
+      if (collimatorFieldPreviewEl) {
+        const previewPoint = (x, y) => [
+          60 + x * 54,
+          42 - y * 36
+        ].map(value => value.toFixed(1)).join(',');
+        const points = createCollimatorFieldPolygon({
+          collimationLeft: settings.left,
+          collimationRight: settings.right,
+          collimationTop: settings.top,
+          collimationBottom: settings.bottom,
+          sideCollimatorRotationDegrees: settings.sideRotationDegrees
+        }).map(point => previewPoint(point.x, point.y));
+        collimatorFieldPreviewEl.setAttribute('points', points.join(' '));
+      }
+      if (notify && typeof onCollimatorChange === 'function') {
+        onCollimatorChange(settings);
+      }
+    };
+    syncCollimatorControls();
+    for (const slider of [
+      collimationLeftSlider,
+      collimationRightSlider,
+      collimationTopSlider,
+      collimationBottomSlider,
+      sideCollimatorRotationSlider
+    ]) {
+      slider.addEventListener('input', () => syncCollimatorControls({ notify: true }));
+    }
+    resetCollimatorButton?.addEventListener('click', () => {
+      collimationLeftSlider.value = String(DEFAULT_COLLIMATION);
+      collimationRightSlider.value = String(DEFAULT_COLLIMATION);
+      collimationTopSlider.value = String(DEFAULT_COLLIMATION);
+      collimationBottomSlider.value = String(DEFAULT_COLLIMATION);
+      sideCollimatorRotationSlider.value = '0';
+      syncCollimatorControls({ notify: true });
+      resetCollimatorButton.blur();
     });
   }
   if (imageBrightnessSlider && displayMaterial.uniforms.imageBrightness) {
@@ -1260,9 +1347,12 @@ export function initUI(options) {
     doseDisplay = display;
     if (doseDisplayEl) doseDisplayEl.textContent = `Contrast ${display} ml`;
   }
-  function updateXrayTechnique(kv, ma) {
+  function updateXrayTechnique(kv, ma, doseRateMgyPerSecond = 0) {
     const nextRoundedKv = Math.round(kv);
     const nextMaTenths = Math.round(ma * 10);
+    const nextDoseRateThousandths = Math.round(
+      Math.max(0, doseRateMgyPerSecond) * 1000
+    );
     if (currentKVEl && nextRoundedKv !== roundedKv) {
       kvDisplay = `${nextRoundedKv} kV`;
       currentKVEl.textContent = kvDisplay;
@@ -1271,8 +1361,19 @@ export function initUI(options) {
       maDisplay = `${(nextMaTenths / 10).toFixed(1)} mA`;
       currentMAEl.textContent = maDisplay;
     }
+    if (
+      currentDoseRateEl &&
+      nextDoseRateThousandths !== doseRateThousandths
+    ) {
+      const doseRate = nextDoseRateThousandths / 1000;
+      doseRateDisplay = `≈${doseRate < 0.1
+        ? doseRate.toFixed(3)
+        : doseRate.toFixed(2)} mGy/s`;
+      currentDoseRateEl.textContent = doseRateDisplay;
+    }
     roundedKv = nextRoundedKv;
     maTenths = nextMaTenths;
+    doseRateThousandths = nextDoseRateThousandths;
   }
   function updateGuidewireResistance(level, reason = '') {
     if (!guidewireResistanceEl) return;
@@ -1936,5 +2037,6 @@ export function initUI(options) {
     updateDsaRoadmapState,
     setAutomatedBenchmarkMode,
     getCArmRevision: () => cArmControls?.getRevision?.() ?? 0,
+    getDetectorZoomMode: () => cArmControls?.getDetectorZoomMode?.() ?? null,
   };
 }

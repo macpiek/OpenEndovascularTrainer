@@ -1,21 +1,27 @@
+import { DSA_NEUTRAL_RED } from './dsaDisplayParameters.js';
+import {
+    createCollimatorGeometry,
+    isDetectorPointInsideCollimator
+} from './collimatorGeometry.js';
+
 function captureResult(ok, reason = '', details = {}) {
     return { ok, reason, ...details };
 }
 
-const DSA_BACKGROUND_RED = 0.94 * (0xeb / 0xff) * 0.992 * 255;
 export const DEFAULT_DSA_PREPARATION_DELAY_MS = 650;
 
 /**
  * Scores the red/luma channel of a rendered DSA frame. The subtraction view
- * has a bright, nearly uniform field and dark iodine-filled vessels. Summing
- * thresholded darkness rewards both vessel coverage and iodine density while
- * ignoring detector noise and the collimated area outside the X-ray beam.
+ * has a neutral-gray zero-difference field and dark iodine-filled vessels.
+ * Summing thresholded darkness rewards both vessel coverage and iodine density
+ * while ignoring bright motion residuals, detector noise, and the collimated
+ * area outside the X-ray beam.
  */
 export function scoreDsaFrameRedChannel(
     redChannel,
     width,
     height,
-    { collimation = 0.08, sampleStep = 2 } = {}
+    options = {}
 ) {
     if (
         !redChannel ||
@@ -24,12 +30,9 @@ export function scoreDsaFrameRedChannel(
         redChannel.length < width * height
     ) return 0;
 
-    const step = Math.max(1, Math.round(sampleStep));
+    const step = Math.max(1, Math.round(options.sampleStep ?? 2));
     const aspect = width / Math.max(1, height);
-    const halfSize = Math.max(
-        0.08,
-        1 - Math.min(1, Math.max(0, collimation)) * 1.35
-    );
+    const collimatorGeometry = createCollimatorGeometry(options);
     let accumulatedSignal = 0;
     let occupiedSamples = 0;
     let sampleCount = 0;
@@ -38,22 +41,19 @@ export function scoreDsaFrameRedChannel(
         const centeredY = (y + 0.5) / height * 2 - 1;
         for (let x = Math.floor(step / 2); x < width; x += step) {
             const centeredX = (x + 0.5) / width * 2 - 1;
-            const squareX = aspect >= 1
-                ? centeredX * aspect
-                : centeredX;
-            const squareY = aspect >= 1
-                ? centeredY
-                : centeredY / Math.max(0.001, aspect);
-            if (
-                Math.abs(squareX) > halfSize * 0.985 ||
-                Math.abs(squareY) > halfSize * 0.985
-            ) continue;
+            if (!isDetectorPointInsideCollimator(
+                centeredX,
+                centeredY,
+                aspect,
+                collimatorGeometry,
+                0.985
+            )) continue;
 
             sampleCount++;
             const red = redChannel[x + y * width];
             const darkness = Math.max(
                 0,
-                (DSA_BACKGROUND_RED - red) / DSA_BACKGROUND_RED
+                (DSA_NEUTRAL_RED - red) / DSA_NEUTRAL_RED
             );
             if (darkness <= 0.03) continue;
             const vesselSignal = (darkness - 0.03) / 0.97;
@@ -78,7 +78,7 @@ export function scoreProjectedContrastRgba(
     rgba,
     width,
     height,
-    { collimation = 0.08, sampleStep = 1 } = {}
+    options = {}
 ) {
     if (
         !rgba ||
@@ -86,12 +86,9 @@ export function scoreProjectedContrastRgba(
         height <= 0 ||
         rgba.length < width * height * 4
     ) return 0;
-    const step = Math.max(1, Math.round(sampleStep));
+    const step = Math.max(1, Math.round(options.sampleStep ?? 1));
     const aspect = width / Math.max(1, height);
-    const halfSize = Math.max(
-        0.08,
-        1 - Math.min(1, Math.max(0, collimation)) * 1.35
-    );
+    const collimatorGeometry = createCollimatorGeometry(options);
     let projectedSignal = 0;
     let occupiedSamples = 0;
     let sampleCount = 0;
@@ -99,16 +96,13 @@ export function scoreProjectedContrastRgba(
         const centeredY = (y + 0.5) / height * 2 - 1;
         for (let x = Math.floor(step / 2); x < width; x += step) {
             const centeredX = (x + 0.5) / width * 2 - 1;
-            const squareX = aspect >= 1
-                ? centeredX * aspect
-                : centeredX;
-            const squareY = aspect >= 1
-                ? centeredY
-                : centeredY / Math.max(0.001, aspect);
-            if (
-                Math.abs(squareX) > halfSize * 0.985 ||
-                Math.abs(squareY) > halfSize * 0.985
-            ) continue;
+            if (!isDetectorPointInsideCollimator(
+                centeredX,
+                centeredY,
+                aspect,
+                collimatorGeometry,
+                0.985
+            )) continue;
             sampleCount++;
             const offset = (x + y * width) * 4;
             const opticalSignal = Math.max(
@@ -702,8 +696,8 @@ export class DsaRoadmapState {
         this.roadmapCapturePending = false;
         this.acquisitionRevision = null;
         this.status = this.roadmapValid
-            ? 'C-arm moved · roadmap retained · hold R for a new DSA view'
-            : 'C-arm moved · hold R to record DSA for this view';
+            ? 'C-arm view changed · roadmap retained · hold R for a new DSA view'
+            : 'C-arm view changed · hold R to record DSA for this view';
         return true;
     }
 
