@@ -29,6 +29,15 @@ export const DEFAULT_DEVICE_HYDRAULIC_PROFILES = Object.freeze({
         outletDischargeCoefficient: 0.82,
         maximumPressurePsi: 1050
     }),
+    sim1: Object.freeze({
+        id: 'sim1-5f-training',
+        label: '5F SIM 1',
+        lengthMm: 1000,
+        innerDiameterMm: 0.97,
+        roughnessMicrometer: 1.5,
+        outletDischargeCoefficient: 0.82,
+        maximumPressurePsi: 1050
+    }),
     pigtail: Object.freeze({
         id: 'pigtail-5f-training',
         label: '5F pigtail',

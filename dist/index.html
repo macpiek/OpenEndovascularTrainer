@@ -14,8 +14,8 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-WASCBQJo.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CAEuX2er.css">
+  <script type="module" crossorigin src="/assets/index-D80wESYQ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CmBaQOQP.css">
 </head>
 <body>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -42,6 +42,18 @@
     <div id="imagingModeBadge" class="imaging-mode-badge" role="status" aria-live="polite" hidden></div>
     <div id="dsaCineControls" class="dsa-cine-controls" hidden>
         <span id="dsaCineStatus">CINE</span>
+        <label class="dsa-cine-frame-control">Frame
+            <input id="dsaCineFrame" type="range" min="0" max="0" step="1" value="0">
+        </label>
+        <label class="dsa-cine-speed-control">Speed
+            <select id="dsaCineSpeed">
+                <option value="0.25">0.25×</option>
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1×</option>
+                <option value="1.5">1.5×</option>
+                <option value="2">2×</option>
+            </select>
+        </label>
         <button id="dsaCinePlayPause" type="button">Pause</button>
         <button id="dsaCineStop" type="button">Return to live</button>
     </div>
@@ -74,11 +86,30 @@
                 <div class="section-content tool-selection-grid">
                     <div class="parameter-label tool-select-label">
                         <label for="catheterType">Catheter</label>
-                        <div class="tool-select-input-row">
-                            <select id="catheterType">
-                                <option value="pigtail">Pigtail</option>
-                                <option value="berenstein" selected>Berenstein</option>
-                            </select>
+                        <div class="tool-select-input-row catheter-select-row">
+                            <div class="catheter-type-picker">
+                                <span
+                                    class="catheter-tip-preview"
+                                    aria-hidden="true"
+                                >
+                                    <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+                                        <path
+                                            data-catheter-tip="berenstein"
+                                        />
+                                        <path
+                                            data-catheter-tip="pigtail"
+                                        />
+                                        <path
+                                            data-catheter-tip="sim1"
+                                        />
+                                    </svg>
+                                </span>
+                                <select id="catheterType">
+                                    <option value="pigtail">Pigtail</option>
+                                    <option value="berenstein" selected>Berenstein</option>
+                                    <option value="sim1">SIM 1</option>
+                                </select>
+                            </div>
                             <button
                                 id="catheterAutoWithdraw"
                                 class="tool-auto-withdraw"
@@ -89,13 +120,95 @@
                             >Wysuń</button>
                         </div>
                         <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                        <label class="guidewire-stiffness-control" for="catheterShaftStiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność shaftu cewnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="catheterShaftStiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="25"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="catheterShaftStiffnessRange"
+                                >
+                                <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">25,00×</output>
+                            </span>
+                            <span id="catheterShaftStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękki</span>
+                                <span>standard</span>
+                                <span>ekstra sztywny</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="catheterTipStiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność końcówki cewnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="catheterTipStiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="5"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="catheterTipStiffnessRange"
+                                >
+                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">5,00×</output>
+                            </span>
+                            <span id="catheterTipStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękka</span>
+                                <span>standard</span>
+                                <span>sztywniejsza</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="catheterRelaxation">
+                            <span class="guidewire-stiffness-heading">Szybkość relaksacji cewnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="catheterRelaxation"
+                                    type="range"
+                                    min="1"
+                                    max="50"
+                                    step="0.5"
+                                    value="30"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="catheterRelaxationRange"
+                                >
+                                <output id="catheterRelaxationValue" for="catheterRelaxation">30,00×</output>
+                            </span>
+                            <span id="catheterRelaxationRange" class="guidewire-stiffness-range">
+                                <span>obecna</span>
+                                <span>szybsza</span>
+                                <span>najszybsza</span>
+                            </span>
+                        </label>
+                        <div class="catheter-manual-controls" role="group" aria-label="Sterowanie cewnikiem">
+                            <button id="catheterWithdraw" type="button" aria-label="Wycofaj cewnik — przytrzymaj">A&nbsp; wycofaj</button>
+                            <button id="catheterAdvance" type="button" aria-label="Wsuń cewnik — przytrzymaj">D&nbsp; wsuń</button>
+                            <button id="catheterRotateLeft" type="button" aria-label="Obróć cewnik w lewo — przytrzymaj">Q&nbsp; ↺</button>
+                            <button id="catheterRotateRight" type="button" aria-label="Obróć cewnik w prawo — przytrzymaj">E&nbsp; ↻</button>
+                        </div>
+                        <span class="tool-hint">Obrót końcówki widać po cofnięciu prowadnika za jej krzywiznę.</span>
                     </div>
                     <div class="parameter-label tool-select-label">
                         <label for="guidewireType">Guidewire</label>
-                        <div class="tool-select-input-row">
-                            <select id="guidewireType">
-                                <option value="glidewire" selected>Glidewire</option>
-                            </select>
+                        <div class="tool-select-input-row guidewire-select-row">
+                            <div class="tool-type-picker guidewire-type-picker">
+                                <span class="tool-tip-preview" aria-hidden="true">
+                                    <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+                                        <path data-guidewire-tip="glidewire" />
+                                        <path data-guidewire-tip="steel-j-035" />
+                                    </svg>
+                                </span>
+                                <select id="guidewireType">
+                                    <option value="glidewire" selected>Glidewire</option>
+                                    <option value="steel-j-035">Steel J-wire 0.035&quot;</option>
+                                </select>
+                            </div>
                             <button
                                 id="guidewireAutoWithdraw"
                                 class="tool-auto-withdraw"
@@ -106,6 +219,77 @@
                             >Wysuń</button>
                         </div>
                         <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
+                        <label class="guidewire-stiffness-control" for="stiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność shaftu prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="stiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="10"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireStiffnessRange"
+                                >
+                                <output id="guidewireStiffnessValue" for="stiffness">10,00×</output>
+                            </span>
+                            <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękki</span>
+                                <span>standard</span>
+                                <span>ekstra sztywny</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="tipStiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność końcówki prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="tipStiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="4.55"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireTipStiffnessRange"
+                                >
+                                <output id="guidewireTipStiffnessValue" for="tipStiffness">4,55×</output>
+                            </span>
+                            <span id="guidewireTipStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękka</span>
+                                <span>standard</span>
+                                <span>sztywniejsza</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="guidewireRelaxation">
+                            <span class="guidewire-stiffness-heading">Szybkość relaksacji prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="guidewireRelaxation"
+                                    type="range"
+                                    min="1"
+                                    max="50"
+                                    step="0.5"
+                                    value="30"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireRelaxationRange"
+                                >
+                                <output id="guidewireRelaxationValue" for="guidewireRelaxation">30,00×</output>
+                            </span>
+                            <span id="guidewireRelaxationRange" class="guidewire-stiffness-range">
+                                <span>obecna</span>
+                                <span>szybsza</span>
+                                <span>najszybsza</span>
+                            </span>
+                        </label>
+                        <div class="guidewire-manual-controls" role="group" aria-label="Sterowanie obrotem prowadnika">
+                            <button id="guidewireRotateLeft" type="button" aria-label="Obróć prowadnik w lewo — przytrzymaj">Z&nbsp; ↺</button>
+                            <button id="guidewireRotateRight" type="button" aria-label="Obróć prowadnik w prawo — przytrzymaj">X&nbsp; ↻</button>
+                        </div>
+                        <span class="tool-hint">Obrót jest widoczny na asymetrycznej końcówce, np. Steel J-wire.</span>
                     </div>
                 </div>
             </div>
@@ -125,10 +309,6 @@
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
                 <div class="section-content compact-grid">
-                    <label class="parameter-label">Bending stiffness
-                        <input id="stiffness" type="range" min="0" max="2" step="0.1" value="0.8">
-                        <span></span>
-                    </label>
                     <label class="parameter-label">Smoothing iterations
                         <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
                         <span></span>
@@ -231,6 +411,17 @@
                             </label>
                             <button id="useBestDsaFrame" type="button" disabled>Use best-filled frame</button>
                             <output id="dsaFrameInfo">Hold R to record a sequence</output>
+                            <div class="dsa-roadmap-range">
+                                <div class="dsa-roadmap-range-selector">
+                                    <span>Roadmap frame range</span>
+                                    <div id="dsaRangeSlider" class="dsa-range-slider disabled">
+                                        <input id="dsaRangeStart" aria-label="Range start" type="range" min="0" max="0" step="1" value="0" disabled>
+                                        <input id="dsaRangeEnd" aria-label="Range end" type="range" min="0" max="0" step="1" value="0" disabled>
+                                    </div>
+                                </div>
+                                <button id="buildRoadmapRange" type="button" disabled>Build range roadmap</button>
+                                <output id="dsaRangeInfo">Select a saved angiography</output>
+                            </div>
                         </div>
                         <div class="dsa-gallery-heading">
                             <span>Recorded DSA gallery</span>
@@ -240,11 +431,19 @@
                             <div class="dsa-gallery-empty">Recorded angiography will appear here</div>
                         </div>
                         <label class="parameter-label dsa-roadmap-opacity">Roadmap opacity
-                            <input id="roadmapOpacity" type="range" min="0" max="100" step="1" value="72">
+                            <input id="roadmapOpacity" type="range" min="0" max="100" step="1" value="30">
                             <span></span>
                         </label>
                         <label class="parameter-label dsa-roadmap-background">Roadmap background
                             <input id="roadmapBackground" type="range" min="0" max="100" step="1" value="100">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-edge-enhancement">Roadmap edge enhancement
+                            <input id="roadmapEdgeEnhancement" type="range" min="0" max="100" step="1" value="45">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-edge-darkness">Roadmap edge darkness
+                            <input id="roadmapEdgeDarkness" type="range" min="0" max="100" step="1" value="25">
                             <span></span>
                         </label>
                         <label class="parameter-label dsa-gain-control">DSA gain
@@ -388,7 +587,9 @@
                     Gotowe do ustawienia
                 </output>
                 <div class="browser-benchmark-actions">
-                    <button id="runBrowserBenchmarkSmoke" type="button">Start 5 s</button>
+                    <button id="runGuidewireBenchmark" type="button">Prowadnik 28 s</button>
+                    <button id="runGuidewireBenchmarkFull" type="button">Prowadnik 10 min</button>
+                    <button id="runBrowserBenchmarkSmoke" type="button">Start 35 s</button>
                     <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
                     <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>
                 </div>
@@ -461,7 +662,7 @@
     <div class="control-help-grid">
         <section class="control-help-section">
             <h2>Prowadnik</h2>
-            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj.</p>
+            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj, <kbd>Z</kbd>/<kbd>X</kbd> obróć.</p>
         </section>
         <section class="control-help-section">
             <h2>Cewnik</h2>

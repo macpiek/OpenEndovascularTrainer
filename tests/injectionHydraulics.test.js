@@ -412,7 +412,17 @@ const sheathPreview = system.getInjectionPreview({
     volumeMl: 30,
     rateMlPerSec: 29.1
 });
+const repeatedSheathPreview = system.getInjectionPreview({
+    source: CONTRAST_SOURCE_SHEATH,
+    volumeMl: 30,
+    rateMlPerSec: 29.1
+});
 assert.equal(sheathPreview.valid, true);
+assert.strictEqual(
+    repeatedSheathPreview,
+    sheathPreview,
+    'an unchanged preview should reuse the allocation-free hydraulic result cache'
+);
 assert.equal(sheathPreview.actualRateMlPerSec, 29.1);
 assert.ok(
     sheathPreview.maximumAchievableRateMlPerSec >
@@ -467,6 +477,11 @@ const editedPreview = system.getInjectionPreview({
     volumeMl: 30,
     rateMlPerSec: 29.1
 });
+assert.notStrictEqual(
+    editedPreview,
+    catheterPreview,
+    'editing hydraulic parameters must invalidate the preview cache'
+);
 assert.equal(editedPreview.injectorPressureLimitPsi, 600);
 assert.equal(editedPreview.viscosityPaS, 0.008);
 assert.equal(editedPreview.deviceProfile.innerDiameterMm, 1.1);

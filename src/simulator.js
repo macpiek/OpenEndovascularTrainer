@@ -3,22 +3,40 @@ import * as THREE from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { ElasticRod } from './physics/elasticRod.js';
 import { GuidewireSolver } from './physics/guidewireSolver.js';
-import { applyGuidewireMaterialProfile } from './physics/guidewireMaterialProfile.js';
+import {
+    applyGuidewireMaterialProfile,
+    GUIDEWIRE_TYPE_GLIDEWIRE,
+    normalizeGuidewireType
+} from './physics/guidewireMaterialProfile.js';
+import { applyKirchhoffMaterialProfile } from './physics/applyKirchhoffMaterialProfile.js';
+import { applyProximalTwistBoundary } from './physics/kirchhoffOrientationBoundary.js';
 import { GuidewireResistanceEstimator } from './physics/guidewireResistance.js';
+import {
+    clampGuidewireRelaxationRate,
+    guidewireRelaxationPasses
+} from './physics/guidewireRelaxationRate.js';
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
 } from './physics/endovascularPhysicsWorld.js';
+import {
+    buildContainedGuidewireRenderPolyline,
+    firstFreeGuidewireNodeAfterContainment,
+    spatiallyCapturedContainmentEnd
+} from './physics/catheterGuidewireCoupling.js';
 import { generateVessel } from './vesselGeometry.js';
 import { initUI } from './ui/ui.js';
 import { createBoneModel } from './boneModel.js';
 import { ContrastVolumeRenderer } from './contrast/contrastVolumeRenderer.js';
 import { HybridContrastSystem } from './contrast/hybridContrastSystem.js';
-import { PigtailCatheter } from './pigtailCatheter.js';
+import {
+    CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM,
+    PigtailCatheter
+} from './pigtailCatheter.js';
 import { createAortaModel } from './aortaModel.js';
 import { createAortoiliacDebugLabelGroup } from './anatomyDebugLabels.js';
 import { createBroadPhaseDebugGroup } from './vesselBroadPhase.js';
-import { createSmoothTubeGeometry } from './smoothTubeGeometry.js';
+import { updateSmoothTubeGeometry } from './smoothTubeGeometry.js';
 import {
     DsaRoadmapState,
     scoreProjectedContrastRgba
@@ -39,10 +57,14 @@ import { vertexShader as thicknessVS, fragmentShader as thicknessFS } from './sh
 import { vertexShader as displayVS, fragmentShader as displayFS } from './shaders/displayShader.js';
 import {
     BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
+    BROWSER_BENCHMARK_MODE_COUPLED,
+    BROWSER_BENCHMARK_MODE_GUIDEWIRE,
     BROWSER_BENCHMARK_SCENARIO_CYCLE_MS,
+    GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS,
     browserBenchmarkCatheterType,
     createBrowserBenchmarkCommands,
-    sampleBrowserBenchmarkCommands
+    sampleBrowserBenchmarkCommands,
+    sampleGuidewireBrowserBenchmarkCommands
 } from './benchmark/browserBenchmarkScenario.js';
 import {
     ARCH_BOLUS_CATHETER_TARGET_MM,
@@ -73,6 +95,7 @@ const GUIDEWIRE_TUBE_RADIAL_SEGMENTS = 12;
 const GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT = 3;
 const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
+const TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION = 0.005;
 const requestedPhysicsMode = new URLSearchParams(window.location.search).get('physics');
 const PHYSICS_MODE = requestedPhysicsMode === 'legacy' ? 'legacy' : 'xpbd-contact-v1';
 const XRAY_CAMERA_NEAR = 0.1;
@@ -170,6 +193,7 @@ const offscreenTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, in
 const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
 const metalTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
+const catheterMarkerTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const sheathTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const boneTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
     type: THREE.HalfFloatType
@@ -353,6 +377,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         thicknessTexture: { value: thicknessTarget.texture },
         metalTexture: { value: metalTarget.texture },
         catheterTexture: { value: catheterTarget.texture },
+        catheterMarkerTexture: { value: catheterMarkerTarget.texture },
         sheathTexture: { value: sheathTarget.texture },
         boneTexture: { value: boneTarget.texture },
         dsaMaskTexture: { value: dsaMaskTarget.texture },
@@ -432,6 +457,21 @@ let xpbdWireBody = null;
 let xpbdCatheterBody = null;
 let xpbdContainment = null;
 let xpbdExternalToolContact = null;
+let xpbdPortalInnerDriven = true;
+let catheterShaftStiffnessScale = 25;
+let catheterTipStiffnessScale = 5;
+let catheterRelaxationRate = 30;
+let guidewireShaftStiffnessScale = 10;
+let guidewireTipStiffnessScale = 4.55;
+let guidewireRelaxationRate = 30;
+const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
+const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
+const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
+const MIN_GUIDEWIRE_STIFFNESS_SCALE = 0.25;
+const MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE = 100;
+const MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE = 100;
+let guidewireStaticWallFriction = DEFAULT_TOOL_PROFILES.guidewire.wallFriction;
+let guidewireKineticWallFriction = 0.002;
 let xpbdContactDebugGroup = null;
 let xpbdContactNormalLines = null;
 let xpbdActiveBranchLines = null;
@@ -675,6 +715,25 @@ const segmentLength = 5;
 const nodeCount = 201;
 const guidewireLength = segmentLength * (nodeCount - 1);
 const GUIDEWIRE_ADVANCE_RATE = 44;
+const GUIDEWIRE_ROTATION_SPEED = Math.PI * 0.9;
+let activeGuidewireType = GUIDEWIRE_TYPE_GLIDEWIRE;
+let guidewireRotation = 0;
+const guidewireShaftAxis = new THREE.Vector3(
+    vessel.sheath.end.x - vessel.sheath.start.x,
+    vessel.sheath.end.y - vessel.sheath.start.y,
+    vessel.sheath.end.z - vessel.sheath.start.z
+).normalize();
+const guidewireIntrinsicReferenceAxis = new THREE.Vector3(0, 0, 1)
+    .addScaledVector(guidewireShaftAxis, -guidewireShaftAxis.z);
+if (guidewireIntrinsicReferenceAxis.lengthSq() < 1e-8) {
+    guidewireIntrinsicReferenceAxis.set(1, 0, 0)
+        .addScaledVector(guidewireShaftAxis, -guidewireShaftAxis.x);
+}
+guidewireIntrinsicReferenceAxis.normalize();
+const guidewireMaterialCoordinates = Float64Array.from(
+    { length: nodeCount },
+    (_, index) => index * segmentLength
+);
 
 // Initialize wire nodes along the sheath axis, tail outside the body
 const wire = new ElasticRod(nodeCount, segmentLength, {
@@ -810,12 +869,18 @@ guidewireSolver = new GuidewireSolver({
 // The proximal guidewire and the part inside the introducer sheath are
 // constrained by the sheath lumen. Once a node exits the sheath tip it becomes
 // free and is governed by rod stiffness and vessel-wall collision.
-applyGuidewireMaterialProfile(wire, { segmentLength });
+applyActiveGuidewireElasticProfile();
 guidewireSolver.initialize();
 tailProgress = guidewireSolver.progress;
 
 let displayedContrastDoseMl = 0;
 const guidewireResistanceEstimator = new GuidewireResistanceEstimator();
+const guidewireResistanceResult = {};
+const guidewireResistanceOptions = {
+    dt: 0,
+    command: 0,
+    atMaximumInsertion: false
+};
 let lastGuidewireAdvanceCommand = 0;
 
 // Renderable guidewire: white so the fluoroscopy shader can invert it to black.
@@ -902,6 +967,57 @@ const ui = initUI({
             xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
         }
     },
+    onCatheterStiffnessChange: ({
+        shaftStiffnessScale,
+        tipStiffnessScale
+    }) => {
+        catheterShaftStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(shaftStiffnessScale) ? shaftStiffnessScale : 1,
+            MIN_CATHETER_STIFFNESS_SCALE,
+            MAX_CATHETER_SHAFT_STIFFNESS_SCALE
+        );
+        catheterTipStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(tipStiffnessScale) ? tipStiffnessScale : 1,
+            MIN_CATHETER_STIFFNESS_SCALE,
+            MAX_CATHETER_TIP_STIFFNESS_SCALE
+        );
+        pigtailCatheter?.setStiffnessScales({
+            shaftStiffnessScale: catheterShaftStiffnessScale,
+            tipStiffnessScale: catheterTipStiffnessScale
+        });
+    },
+    onCatheterRelaxationChange: value => {
+        catheterRelaxationRate = clampGuidewireRelaxationRate(value);
+        xpbdCatheterBody?.wake();
+    },
+    onGuidewireStiffnessChange: ({
+        shaftStiffnessScale,
+        tipStiffnessScale
+    }) => {
+        guidewireShaftStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(shaftStiffnessScale)
+                ? shaftStiffnessScale
+                : 1,
+            MIN_GUIDEWIRE_STIFFNESS_SCALE,
+            MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE
+        );
+        guidewireTipStiffnessScale = THREE.MathUtils.clamp(
+            Number.isFinite(tipStiffnessScale) ? tipStiffnessScale : 1,
+            MIN_GUIDEWIRE_STIFFNESS_SCALE,
+            MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE
+        );
+        applyActiveGuidewireElasticProfile();
+        if (xpbdWireBody) applyActiveGuidewireKirchhoffProfile();
+    },
+    onGuidewireRelaxationChange: value => {
+        guidewireRelaxationRate = clampGuidewireRelaxationRate(value);
+        xpbdWireBody?.wake();
+    },
+    onGuidewireFrictionChange: ({ staticFriction, kineticFriction }) => {
+        guidewireStaticWallFriction = Math.max(0, staticFriction);
+        guidewireKineticWallFriction = Math.max(0, kineticFriction);
+        applyActiveGuidewireWallFriction();
+    },
     onContrastHemodynamicsChange: parameters => {
         Object.assign(contrastHemodynamics, parameters);
         contrastSystem?.setHemodynamics(parameters);
@@ -920,7 +1036,11 @@ const ui = initUI({
     onReproduceArchBolus: () => prepareCatheterAortaScenario({
         reproduceArchBolus: true
     }),
-    onStartBrowserBenchmark: durationMs => startBrowserBenchmarkScenario({ durationMs }),
+    onStartBrowserBenchmark: options => startBrowserBenchmarkScenario(
+        Number.isFinite(options)
+            ? { durationMs: options }
+            : options
+    ),
     onStopBrowserBenchmark: () => stopBrowserBenchmarkScenario('ui'),
     onRequestDsaMask: () => {
         dsaRoadmapState.stopCine();
@@ -1028,6 +1148,9 @@ const ui = initUI({
     },
 });
 const { monitor } = ui;
+globalThis.__OET_MONITOR__ = {
+    timingDiagnostics: () => monitor.timingDiagnostics()
+};
 
 function dsaFrameTextureKey(sequenceId, frameIndex) {
     return `${sequenceId}:${frameIndex}`;
@@ -1313,6 +1436,7 @@ wireGroup.add(wireMesh);
 alignVascularRenderObject(wireGroup);
 scene.add(wireGroup);
 const wireRenderPoints = Array.from({ length: nodeCount }, () => new THREE.Vector3());
+const wireRenderPolyline = [];
 const contactMarkerMatrix = new THREE.Matrix4();
 
 const contactMarkerGeometry = new THREE.SphereGeometry(1.35, 12, 8);
@@ -1427,12 +1551,25 @@ pigtailCatheter = new PigtailCatheter({
     tailProgressRef: () => guidewireSolver.progress,
     vessel
 });
+pigtailCatheter.setStiffnessScales({
+    shaftStiffnessScale: catheterShaftStiffnessScale,
+    tipStiffnessScale: catheterTipStiffnessScale
+});
 pigtailCatheter.setExternalCollisionSolver(PHYSICS_MODE === 'xpbd-contact-v1');
 if (vesselCollisionTarget !== vessel) {
     pigtailCatheter.setCollisionGeometry(vesselCollisionTarget);
 }
 alignVascularRenderObject(pigtailCatheter.mesh);
 scene.add(pigtailCatheter.mesh);
+
+const guidewireBoundaryFrame = {};
+const guidewireBoundaryOptions = {
+    twist: 0,
+    segment: 0,
+    preferredD1: guidewireIntrinsicReferenceAxis,
+    compliance: 0,
+    out: guidewireBoundaryFrame
+};
 
 endovascularWorld = new EndovascularPhysicsWorld({
     contactField: vesselCollisionTarget.contactField || null,
@@ -1444,29 +1581,64 @@ endovascularWorld = new EndovascularPhysicsWorld({
     contactActivation: 0.2
 });
 xpbdWireBody = endovascularWorld.createRod('guidewire', nodeCount, segmentLength, {
-    ...DEFAULT_TOOL_PROFILES.guidewire
+    ...DEFAULT_TOOL_PROFILES.guidewire,
+    rodModel: 'kirchhoff'
 });
+applyActiveGuidewireWallFriction();
 xpbdWireBody.syncFromElasticRod(wire);
+// createRod precedes the first live wire sync, so align the current material
+// frames once without deriving a manufactured rest shape from that pose.
+xpbdWireBody.captureKirchhoffRestConfiguration({ captureRestRotation: false });
+applyActiveGuidewireKirchhoffProfile();
 xpbdCatheterBody = endovascularWorld.createRod('catheter', 320, 4, {
-    ...DEFAULT_TOOL_PROFILES.catheter
+    ...DEFAULT_TOOL_PROFILES.catheter,
+    rodModel: 'kirchhoff'
 });
 pigtailCatheter.syncXpbdBody(xpbdCatheterBody, XPBD_CATHETER_SYNC_OPTIONS);
 endovascularWorld.addSheath({
     start: vessel.sheath.start,
     end: vessel.sheath.end,
     innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM,
+    // The visible proximal catheter is inside the straight loading
+    // hub/haemostatic valve. The same open radial lumen lets it slide axially
+    // while balancing the preformed tip's constitutive bending moment before
+    // that material exits the distal introducer opening.
+    proximalExtension: CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM,
     bodies: [xpbdWireBody, xpbdCatheterBody]
 });
 xpbdContainment = endovascularWorld.addContainment(xpbdWireBody, xpbdCatheterBody, {
+    model: 'kirchhoff',
     innerRadius: PIGTAIL_CATHETER_INNER_RADIUS_MM,
+    friction: DEFAULT_TOOL_PROFILES.catheter.lumenFriction,
+    axialFriction:
+        DEFAULT_TOOL_PROFILES.catheter.lumenAxialFriction,
+    torsionalFriction:
+        DEFAULT_TOOL_PROFILES.catheter.lumenTorsionalFriction,
+    // Bound a single nonlinear contact update to the same sub-millimetre
+    // scale as vessel-wall contact. Repeated passes still reach the exact
+    // equilibrium, but cannot jump across it and seed a fold in one sweep.
+    lumenMaxCorrection: 0.4,
     openProximal: true,
     openDistal: true,
     searchWindow: 2,
     outerStartNode: pigtailCatheter.physicsLumenStartNode,
-    innerResponse: 0,
+    // Both material rods participate in the same reciprocal contact reaction.
+    // Their independent Kirchhoff EI fields then determine the common
+    // equilibrium; neither device is turned into an immovable rail.
+    innerResponse: 1,
     outerResponse: 1,
-    finalProjection: 'outer',
-    outerFollowsInnerCenterline: true,
+    // The distal aperture uses the same reciprocal material response. This
+    // lets a sufficiently stiff guidewire open a preformed tip while keeping
+    // the crossing continuous and free to slide axially.
+    portalInnerResponse: 1,
+    portalOuterResponse: 1,
+    portalCompliance: 1e-7,
+    portalTransitionLength: 4,
+    portalMaxCorrection: 0.15,
+    finalProjection: 'inner',
+    outerFollowsInnerCenterline: false,
+    innerFollowsOuterCenterline: true,
+    enforceDistalPortal: true,
     containedLength: 0,
     enabled: false
 });
@@ -1479,8 +1651,94 @@ const browserBenchmarkBodies = [xpbdWireBody, xpbdCatheterBody];
 globalThis.__OET_PHYSICS__ = {
     mode: PHYSICS_MODE,
     world: endovascularWorld,
-    getStats: () => endovascularWorld.getStats()
+    getStats: () => endovascularWorld.getStats(),
+    getGuidewireType: () => activeGuidewireType,
+    getGuidewireStiffnessScale: () => guidewireShaftStiffnessScale,
+    getGuidewireStiffnessScales: () => ({
+        shaft: guidewireShaftStiffnessScale,
+        tip: guidewireTipStiffnessScale
+    }),
+    getCatheterStiffnessScales: () => ({
+        shaft: catheterShaftStiffnessScale,
+        tip: catheterTipStiffnessScale
+    }),
+    getCatheterRelaxationRate: () => catheterRelaxationRate,
+    getGuidewireRelaxationRate: () => guidewireRelaxationRate,
+    getGuidewireMotionDiagnostics: () => {
+        const body = endovascularWorld.getStats().bodies.find(
+            candidate => candidate.id === 'guidewire'
+        );
+        const transport = guidewireSolver.getPerformanceStats();
+        return {
+            boundaryTransportDeltaMm: transport.transportDeltaMm,
+            boundaryTransportSpeedMmPerSecond:
+                transport.transportSpeedMmPerSecond,
+            maximumMaterialSpeedMmPerSecond: body?.maxSpeed ?? 0,
+            materialVelocityLimitMmPerSecond: xpbdWireBody.maxSpeed,
+            maximumRawDisplacementSpeedMmPerSecond:
+                body?.maximumRawSpeed ?? 0,
+            maximumWallProjectionSpeedMmPerSecond:
+                body?.maximumWallProjectionSpeed ?? 0,
+            maximumRejectedWallProjectionSpeedMmPerSecond:
+                body?.maximumRejectedWallProjectionSpeed ?? 0,
+            maximumReconstructedSpeedMmPerSecond:
+                body?.maximumReconstructedSpeed ?? 0,
+            wallProjectionVelocityRetention:
+                body?.wallProjectionVelocityRetention ?? 1,
+            stiffnessScale: guidewireShaftStiffnessScale,
+            shaftStiffnessScale: guidewireShaftStiffnessScale,
+            tipStiffnessScale: guidewireTipStiffnessScale,
+            relaxationRate: guidewireRelaxationRate,
+            relaxationPasses: body?.lastRelaxationPasses ?? 0
+        };
+    }
 };
+
+function updateGuidewireType(type) {
+    const nextType = normalizeGuidewireType(type);
+    if (nextType === activeGuidewireType) return;
+    activeGuidewireType = nextType;
+    guidewireRotation = 0;
+    applyActiveGuidewireElasticProfile();
+    xpbdWireBody.syncFromElasticRod(wire);
+    applyActiveGuidewireKirchhoffProfile();
+}
+
+function applyActiveGuidewireElasticProfile() {
+    applyGuidewireMaterialProfile(wire, {
+        segmentLength,
+        type: activeGuidewireType,
+        shaftStiffnessScale: guidewireShaftStiffnessScale,
+        tipStiffnessScale: guidewireTipStiffnessScale
+    });
+}
+
+function applyActiveGuidewireKirchhoffProfile() {
+    applyKirchhoffMaterialProfile(xpbdWireBody, activeGuidewireType, {
+        activeStart: 0,
+        activeEnd: xpbdWireBody.count - 1,
+        materialCoordinates: guidewireMaterialCoordinates,
+        tipCoordinate: guidewireMaterialCoordinates[guidewireMaterialCoordinates.length - 1],
+        shaftStiffnessScale: guidewireShaftStiffnessScale,
+        tipStiffnessScale: guidewireTipStiffnessScale
+    });
+    applyGuidewireProximalOrientation();
+}
+
+function applyActiveGuidewireWallFriction() {
+    if (!xpbdWireBody) return;
+    xpbdWireBody.wallStaticFriction = guidewireStaticWallFriction;
+    xpbdWireBody.wallKineticFriction = guidewireKineticWallFriction;
+    // Retain the legacy scalar as a kinetic-friction alias for diagnostics and
+    // callers that have not yet migrated to the split Coulomb coefficients.
+    xpbdWireBody.wallFriction = guidewireKineticWallFriction;
+}
+
+function applyGuidewireProximalOrientation() {
+    guidewireBoundaryOptions.twist = guidewireRotation;
+    guidewireBoundaryOptions.segment = xpbdWireBody.activeStart;
+    applyProximalTwistBoundary(xpbdWireBody, guidewireBoundaryOptions);
+}
 
 const BROWSER_BENCHMARK_FRAME_CAPACITY = 40000;
 const BROWSER_BENCHMARK_CHOREOGRAPHY_WARMUP_MS = BROWSER_BENCHMARK_SCENARIO_CYCLE_MS * 2;
@@ -1514,6 +1772,10 @@ let browserFocusLossCount = 0;
 let browserFocusLossMs = 0;
 let browserFocusLostAt = 0;
 let browserBenchmarkStartedAt = performance.now();
+let browserBenchmarkExecutedStepsStart = 0;
+let browserBenchmarkIdleExecutedStepsStart = 0;
+let browserBenchmarkAcceptedTimeStart = 0;
+let browserBenchmarkAccumulatorStart = 0;
 const browserFrameCpu = {
     count: 0,
     simulationSumMs: 0,
@@ -1547,7 +1809,8 @@ const browserBenchmarkScenario = {
     completedAt: 0,
     simulationElapsedMs: 0,
     stopReason: null,
-    automated: false
+    automated: false,
+    mode: BROWSER_BENCHMARK_MODE_COUPLED
 };
 const catheterAortaSetup = createCatheterAortaSetupState();
 const catheterAortaSetupCommands = createBrowserBenchmarkCommands();
@@ -1575,6 +1838,8 @@ for (const eventName of AUTOMATED_BENCHMARK_BLOCKED_EVENTS) {
     });
 }
 const browserBenchmarkCommands = createBrowserBenchmarkCommands();
+let browserBenchmarkPreviousGuidewireCommand = 0;
+let browserBenchmarkPreviousGuidewireStepSpeed = 0;
 const browserBenchmarkPhysicsEnvelope = {
     steps: 0,
     maxPostStepPenetrationMm: 0,
@@ -1598,6 +1863,33 @@ const browserBenchmarkPhysicsEnvelope = {
     maxBendX: 0,
     maxBendY: 0,
     maxBendZ: 0,
+    maxGuidewireMaterialSpeedMmPerSecond: 0,
+    maxGuidewireMaterialSpeedStep: -1,
+    maxGuidewireMaterialSpeedNode: -1,
+    maxGuidewireMaterialSpeedX: 0,
+    maxGuidewireMaterialSpeedY: 0,
+    maxGuidewireMaterialSpeedZ: 0,
+    maxGuidewireMaterialSpeedNormalMmPerSecond: 0,
+    maxGuidewireMaterialSpeedTangentMmPerSecond: 0,
+    maxGuidewireMaterialSpeedAtWall: false,
+    maxGuidewireRawDisplacementSpeedMmPerSecond: 0,
+    maxGuidewireRawDisplacementSpeedStep: -1,
+    maxGuidewireWallProjectionSpeedMmPerSecond: 0,
+    maxGuidewireWallProjectionSpeedStep: -1,
+    maxGuidewireWallProjectionSpeedNode: -1,
+    maxGuidewireRejectedWallProjectionSpeedMmPerSecond: 0,
+    maxGuidewireRejectedWallProjectionSpeedStep: -1,
+    maxGuidewireReconstructedSpeedMmPerSecond: 0,
+    maxGuidewireReconstructedSpeedStep: -1,
+    maxGuidewireProjectionLeakSpeedMmPerSecond: 0,
+    maxGuidewireSpeedWhileAdvancingMmPerSecond: 0,
+    maxGuidewireSpeedWhileRetractingMmPerSecond: 0,
+    maxGuidewireSpeedWhileIdleMmPerSecond: 0,
+    guidewireReleaseEventCount: 0,
+    maxGuidewireSpeedBeforeReleaseMmPerSecond: 0,
+    maxGuidewireSpeedAfterReleaseMmPerSecond: 0,
+    maxGuidewireReleaseSpeedIncreaseMmPerSecond: 0,
+    maxGuidewireReleaseSpeedRatio: 0,
     finite: true
 };
 let lastBrowserBenchmarkScenarioReport = null;
@@ -1670,6 +1962,14 @@ function resetBrowserBenchmark() {
     browserFrameCpu.lastRenderMs = 0;
     browserFrameCpu.lastTotalMs = 0;
     resetBrowserHeap();
+    simulationPeakBacklog = simulationAccumulator;
+    simulationPeakBacklogScenarioMs = 0;
+    simulationPeakBacklogElapsedMs = 0;
+    simulationPeakBacklogGuidewireMm = guidewireSolver.progress;
+    browserBenchmarkExecutedStepsStart = simulationExecutedSteps;
+    browserBenchmarkIdleExecutedStepsStart = simulationIdleExecutedSteps;
+    browserBenchmarkAcceptedTimeStart = simulationAcceptedTime;
+    browserBenchmarkAccumulatorStart = simulationAccumulator;
     browserBenchmarkPhysicsEnvelope.steps = 0;
     browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationMm = 0;
     browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationStep = -1;
@@ -1688,6 +1988,35 @@ function resetBrowserBenchmark() {
     browserBenchmarkPhysicsEnvelope.maxBendX = 0;
     browserBenchmarkPhysicsEnvelope.maxBendY = 0;
     browserBenchmarkPhysicsEnvelope.maxBendZ = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedNode = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedX = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedY = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedZ = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedNormalMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedTangentMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireMaterialSpeedAtWall = false;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireRawDisplacementSpeedMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireRawDisplacementSpeedStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireWallProjectionSpeedMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireWallProjectionSpeedStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireWallProjectionSpeedNode = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireRejectedWallProjectionSpeedMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireRejectedWallProjectionSpeedStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireReconstructedSpeedMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireReconstructedSpeedStep = -1;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireProjectionLeakSpeedMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireSpeedWhileAdvancingMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireSpeedWhileRetractingMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireSpeedWhileIdleMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.guidewireReleaseEventCount = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireSpeedBeforeReleaseMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireSpeedAfterReleaseMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireReleaseSpeedIncreaseMmPerSecond = 0;
+    browserBenchmarkPhysicsEnvelope.maxGuidewireReleaseSpeedRatio = 0;
+    browserBenchmarkPreviousGuidewireCommand = 0;
+    browserBenchmarkPreviousGuidewireStepSpeed = 0;
     browserBenchmarkPhysicsEnvelope.finite = true;
     browserBenchmarkStartedAt = performance.now();
     endovascularWorld.resetPerformanceStats();
@@ -1755,6 +2084,91 @@ window.addEventListener('focus', () => {
 function recordBrowserPhysicsEnvelope() {
     const envelope = browserBenchmarkPhysicsEnvelope;
     envelope.steps++;
+    const guidewireBody = xpbdWireBody;
+    const guidewireStepSpeed =
+        guidewireBody.lastMaximumReconstructedSpeed;
+    if (lastGuidewireAdvanceCommand > 1e-6) {
+        envelope.maxGuidewireSpeedWhileAdvancingMmPerSecond = Math.max(
+            envelope.maxGuidewireSpeedWhileAdvancingMmPerSecond,
+            guidewireStepSpeed
+        );
+    } else if (lastGuidewireAdvanceCommand < -1e-6) {
+        envelope.maxGuidewireSpeedWhileRetractingMmPerSecond = Math.max(
+            envelope.maxGuidewireSpeedWhileRetractingMmPerSecond,
+            guidewireStepSpeed
+        );
+    } else {
+        envelope.maxGuidewireSpeedWhileIdleMmPerSecond = Math.max(
+            envelope.maxGuidewireSpeedWhileIdleMmPerSecond,
+            guidewireStepSpeed
+        );
+    }
+    if (
+        Math.abs(browserBenchmarkPreviousGuidewireCommand) > 1e-6 &&
+        Math.abs(lastGuidewireAdvanceCommand) <= 1e-6
+    ) {
+        envelope.guidewireReleaseEventCount++;
+        envelope.maxGuidewireSpeedBeforeReleaseMmPerSecond = Math.max(
+            envelope.maxGuidewireSpeedBeforeReleaseMmPerSecond,
+            browserBenchmarkPreviousGuidewireStepSpeed
+        );
+        envelope.maxGuidewireSpeedAfterReleaseMmPerSecond = Math.max(
+            envelope.maxGuidewireSpeedAfterReleaseMmPerSecond,
+            guidewireStepSpeed
+        );
+        envelope.maxGuidewireReleaseSpeedIncreaseMmPerSecond = Math.max(
+            envelope.maxGuidewireReleaseSpeedIncreaseMmPerSecond,
+            guidewireStepSpeed - browserBenchmarkPreviousGuidewireStepSpeed
+        );
+        envelope.maxGuidewireReleaseSpeedRatio = Math.max(
+            envelope.maxGuidewireReleaseSpeedRatio,
+            guidewireStepSpeed /
+                Math.max(1e-6, browserBenchmarkPreviousGuidewireStepSpeed)
+        );
+    }
+    browserBenchmarkPreviousGuidewireCommand =
+        lastGuidewireAdvanceCommand;
+    browserBenchmarkPreviousGuidewireStepSpeed = guidewireStepSpeed;
+    if (
+        guidewireBody.lastMaximumRawSpeed >
+        envelope.maxGuidewireRawDisplacementSpeedMmPerSecond
+    ) {
+        envelope.maxGuidewireRawDisplacementSpeedMmPerSecond =
+            guidewireBody.lastMaximumRawSpeed;
+        envelope.maxGuidewireRawDisplacementSpeedStep = envelope.steps;
+    }
+    if (
+        guidewireBody.lastMaximumWallProjectionSpeed >
+        envelope.maxGuidewireWallProjectionSpeedMmPerSecond
+    ) {
+        envelope.maxGuidewireWallProjectionSpeedMmPerSecond =
+            guidewireBody.lastMaximumWallProjectionSpeed;
+        envelope.maxGuidewireWallProjectionSpeedStep = envelope.steps;
+        envelope.maxGuidewireWallProjectionSpeedNode =
+            guidewireBody.lastMaximumWallProjectionNode;
+    }
+    if (
+        guidewireBody.lastMaximumReconstructedSpeed >
+        envelope.maxGuidewireReconstructedSpeedMmPerSecond
+    ) {
+        envelope.maxGuidewireReconstructedSpeedMmPerSecond =
+            guidewireBody.lastMaximumReconstructedSpeed;
+        envelope.maxGuidewireReconstructedSpeedStep = envelope.steps;
+    }
+    if (
+        guidewireBody.lastMaximumRejectedWallProjectionSpeed >
+        envelope.maxGuidewireRejectedWallProjectionSpeedMmPerSecond
+    ) {
+        envelope.maxGuidewireRejectedWallProjectionSpeedMmPerSecond =
+            guidewireBody.lastMaximumRejectedWallProjectionSpeed;
+        envelope.maxGuidewireRejectedWallProjectionSpeedStep =
+            envelope.steps;
+    }
+    envelope.maxGuidewireProjectionLeakSpeedMmPerSecond = Math.max(
+        envelope.maxGuidewireProjectionLeakSpeedMmPerSecond,
+        guidewireBody.lastMaximumWallProjectionSpeed *
+            guidewireBody.wallProjectionVelocityRetention
+    );
     if (endovascularWorld.settledMaxPenetration > envelope.maxPostStepPenetrationMm) {
         envelope.maxPostStepPenetrationMm = endovascularWorld.settledMaxPenetration;
         envelope.maxPostStepPenetrationStep = envelope.steps;
@@ -1771,12 +2185,27 @@ function recordBrowserPhysicsEnvelope() {
     }
     if (envelope.steps !== 1 && envelope.steps % 30 !== 0) return;
 
-    for (let bodyIndex = 0; bodyIndex < browserBenchmarkBodies.length; bodyIndex++) {
+    const bodyCount = browserBenchmarkScenario.mode ===
+        BROWSER_BENCHMARK_MODE_GUIDEWIRE
+        ? 1
+        : browserBenchmarkBodies.length;
+    for (let bodyIndex = 0; bodyIndex < bodyCount; bodyIndex++) {
         const body = browserBenchmarkBodies[bodyIndex];
         if (!body) continue;
         const start = body.activeStart;
         const end = Math.min(body.activeEnd, body.segmentCount);
+        let maximumMaterialSpeed = 0;
+        let maximumMaterialSpeedNode = -1;
         for (let index = start; index <= body.activeEnd; index++) {
+            const materialSpeed = Math.hypot(
+                body.velocityX[index],
+                body.velocityY[index],
+                body.velocityZ[index]
+            );
+            if (materialSpeed > maximumMaterialSpeed) {
+                maximumMaterialSpeed = materialSpeed;
+                maximumMaterialSpeedNode = index;
+            }
             envelope.finite = envelope.finite &&
                 Number.isFinite(body.x[index]) &&
                 Number.isFinite(body.y[index]) &&
@@ -1784,6 +2213,82 @@ function recordBrowserPhysicsEnvelope() {
                 Number.isFinite(body.velocityX[index]) &&
                 Number.isFinite(body.velocityY[index]) &&
                 Number.isFinite(body.velocityZ[index]);
+        }
+        if (body.id === 'guidewire') {
+            if (
+                maximumMaterialSpeed >
+                envelope.maxGuidewireMaterialSpeedMmPerSecond
+            ) {
+                envelope.maxGuidewireMaterialSpeedMmPerSecond =
+                    maximumMaterialSpeed;
+                envelope.maxGuidewireMaterialSpeedStep = envelope.steps;
+                envelope.maxGuidewireMaterialSpeedNode =
+                    maximumMaterialSpeedNode;
+                envelope.maxGuidewireMaterialSpeedX =
+                    body.x[maximumMaterialSpeedNode];
+                envelope.maxGuidewireMaterialSpeedY =
+                    body.y[maximumMaterialSpeedNode];
+                envelope.maxGuidewireMaterialSpeedZ =
+                    body.z[maximumMaterialSpeedNode];
+                let normalX = 0;
+                let normalY = 0;
+                let normalZ = 0;
+                let wallContacts = 0;
+                for (const segment of [
+                    maximumMaterialSpeedNode - 1,
+                    maximumMaterialSpeedNode
+                ]) {
+                    if (
+                        segment < 0 ||
+                        segment >= body.segmentCount ||
+                        !body.wallActive[segment]
+                    ) continue;
+                    normalX += body.wallNormalX[segment];
+                    normalY += body.wallNormalY[segment];
+                    normalZ += body.wallNormalZ[segment];
+                    wallContacts++;
+                }
+                const normalLength = Math.hypot(
+                    normalX,
+                    normalY,
+                    normalZ
+                );
+                const velocityX = body.velocityX[maximumMaterialSpeedNode];
+                const velocityY = body.velocityY[maximumMaterialSpeedNode];
+                const velocityZ = body.velocityZ[maximumMaterialSpeedNode];
+                const normalSpeed = normalLength > 1e-8
+                    ? (
+                        velocityX * normalX +
+                        velocityY * normalY +
+                        velocityZ * normalZ
+                    ) / normalLength
+                    : 0;
+                envelope.maxGuidewireMaterialSpeedNormalMmPerSecond =
+                    normalSpeed;
+                envelope.maxGuidewireMaterialSpeedTangentMmPerSecond =
+                    Math.sqrt(Math.max(
+                        0,
+                        maximumMaterialSpeed * maximumMaterialSpeed -
+                        normalSpeed * normalSpeed
+                    ));
+                envelope.maxGuidewireMaterialSpeedAtWall = wallContacts > 0;
+            }
+            if (lastGuidewireAdvanceCommand > 1e-6) {
+                envelope.maxGuidewireSpeedWhileAdvancingMmPerSecond = Math.max(
+                    envelope.maxGuidewireSpeedWhileAdvancingMmPerSecond,
+                    maximumMaterialSpeed
+                );
+            } else if (lastGuidewireAdvanceCommand < -1e-6) {
+                envelope.maxGuidewireSpeedWhileRetractingMmPerSecond = Math.max(
+                    envelope.maxGuidewireSpeedWhileRetractingMmPerSecond,
+                    maximumMaterialSpeed
+                );
+            } else {
+                envelope.maxGuidewireSpeedWhileIdleMmPerSecond = Math.max(
+                    envelope.maxGuidewireSpeedWhileIdleMmPerSecond,
+                    maximumMaterialSpeed
+                );
+            }
         }
         for (let index = start; index < end; index++) {
             const ax = body.x[index + 1] - body.x[index];
@@ -1942,12 +2447,15 @@ function getBrowserBenchmarkScenarioStatus() {
         progress: browserBenchmarkScenario.durationMs > 0
             ? Math.min(1, elapsedMs / browserBenchmarkScenario.durationMs)
             : 0,
-        cycleIndex: Math.floor(
-            browserBenchmarkScenario.simulationElapsedMs / BROWSER_BENCHMARK_SCENARIO_CYCLE_MS
-        ),
+        cycleIndex: Math.floor(browserBenchmarkScenario.simulationElapsedMs / (
+            browserBenchmarkScenario.mode === BROWSER_BENCHMARK_MODE_GUIDEWIRE
+                ? GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS
+                : BROWSER_BENCHMARK_SCENARIO_CYCLE_MS
+        )),
         catheterType: browserBenchmarkCatheterType(browserBenchmarkScenario.simulationElapsedMs),
         stopReason: browserBenchmarkScenario.stopReason,
-        automated: browserBenchmarkScenario.automated
+        automated: browserBenchmarkScenario.automated,
+        mode: browserBenchmarkScenario.mode
     };
 }
 
@@ -1989,6 +2497,41 @@ function getBrowserBenchmarkReport() {
     const runtimeAssetPass = (contactField?.runtimeBytes ?? Infinity) <= 32 * 1024 * 1024;
     const noVisibleGcPausePass = browserMaxFrameMs < 100 &&
         memoryStabilityPass && narrowPhaseAllocationPass;
+    const guidewireTransportSeparationPass =
+        scenario.mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE ||
+        browserBenchmarkPhysicsEnvelope
+            .maxGuidewireSpeedWhileAdvancingMmPerSecond > 45;
+    const guidewireReleaseContinuityPass =
+        scenario.mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE || (
+            browserBenchmarkPhysicsEnvelope.guidewireReleaseEventCount >= 2 &&
+            browserBenchmarkPhysicsEnvelope
+                .maxGuidewireReleaseSpeedIncreaseMmPerSecond <= 5 &&
+            browserBenchmarkPhysicsEnvelope.maxGuidewireReleaseSpeedRatio <= 1.25
+        );
+    const guidewireImpulsePass =
+        scenario.mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE || (
+            browserBenchmarkPhysicsEnvelope
+                .maxGuidewireProjectionLeakSpeedMmPerSecond <= 1e-6 &&
+            browserBenchmarkPhysicsEnvelope
+                .maxGuidewireReconstructedSpeedMmPerSecond <= 120
+        );
+    const benchmarkExecutedSteps = Math.max(
+        0,
+        simulationExecutedSteps - browserBenchmarkExecutedStepsStart
+    );
+    const benchmarkIdleExecutedSteps = Math.max(
+        0,
+        simulationIdleExecutedSteps - browserBenchmarkIdleExecutedStepsStart
+    );
+    const benchmarkAcceptedSeconds = Math.max(
+        0,
+        simulationAcceptedTime - browserBenchmarkAcceptedTimeStart
+    );
+    const accountedSeconds = benchmarkExecutedSteps * fixedDt +
+        simulationAccumulator - browserBenchmarkAccumulatorStart;
+    const accountingErrorSeconds =
+        benchmarkAcceptedSeconds - accountedSeconds;
+    const noDroppedStepsPass = Math.abs(accountingErrorSeconds) <= 1e-6;
     return {
         mode: PHYSICS_MODE,
         durationMs: performance.now() - browserBenchmarkStartedAt,
@@ -2003,6 +2546,34 @@ function getBrowserBenchmarkReport() {
         longFrame50Count: browserLongFrame50Count,
         longFrameEvents: getBrowserLongFrameEvents(),
         frameCpu: getBrowserFrameCpuStats(),
+        physicsScheduler: {
+            fixedDt,
+            maxStepsPerFrame: MAX_PHYSICS_STEPS_PER_FRAME,
+            maxIdleSteps: MAX_IDLE_PHYSICS_STEPS,
+            acceptedSeconds: benchmarkAcceptedSeconds,
+            accountedSeconds,
+            accountingErrorSeconds,
+            executedSteps: benchmarkExecutedSteps,
+            renderFrameExecutedSteps:
+                benchmarkExecutedSteps - benchmarkIdleExecutedSteps,
+            idleExecutedSteps: benchmarkIdleExecutedSteps,
+            startBacklogSeconds: browserBenchmarkAccumulatorStart,
+            backlogSeconds: simulationAccumulator,
+            backlogSteps: Math.floor(
+                (simulationAccumulator + 1e-9) / fixedDt
+            ),
+            peakBacklogSeconds: simulationPeakBacklog,
+            peakBacklogIncreaseSeconds: Math.max(
+                0,
+                simulationPeakBacklog - browserBenchmarkAccumulatorStart
+            ),
+            peakBacklogScenarioMs: simulationPeakBacklogScenarioMs,
+            peakBacklogElapsedMs: simulationPeakBacklogElapsedMs,
+            peakBacklogGuidewireMm: simulationPeakBacklogGuidewireMm,
+            droppedSteps: noDroppedStepsPass
+                ? 0
+                : Math.max(0, accountingErrorSeconds / fixedDt)
+        },
         physics,
         physicsEnvelope: { ...browserBenchmarkPhysicsEnvelope },
         contactField,
@@ -2033,10 +2604,17 @@ function getBrowserBenchmarkReport() {
             contactFieldPass,
             cameraStablePass,
             focusPass,
+            noDroppedStepsPass,
+            guidewireTransportSeparationPass,
+            guidewireReleaseContinuityPass,
+            guidewireImpulsePass,
             passed: durationPass && onePercentLowPass && noVisibleGcPausePass &&
                 physicsBudgetPass && narrowPhaseAllocationPass && memoryStabilityPass &&
                 runtimeAssetPass && penetrationPass && lengthPass && foldPass &&
-                finitePass && modePass && contactFieldPass && cameraStablePass && focusPass
+                finitePass && modePass && contactFieldPass && cameraStablePass &&
+                focusPass && noDroppedStepsPass &&
+                guidewireTransportSeparationPass &&
+                guidewireReleaseContinuityPass && guidewireImpulsePass
         }
     };
 }
@@ -2063,11 +2641,18 @@ function resetBrowserBenchmarkSimulation({ resetAccumulator = true } = {}) {
     lastGuidewireAdvanceCommand = 0;
     pigtailCatheter.reset();
     xpbdWireBody.syncFromElasticRod(wire);
+    guidewireRotation = 0;
+    applyActiveGuidewireKirchhoffProfile();
     pigtailCatheter.syncXpbdBody(xpbdCatheterBody);
     xpbdContainment.enabled = false;
+    xpbdContainment.enforceDistalPortal = true;
+    xpbdPortalInnerDriven = true;
     xpbdExternalToolContact.enabled = false;
     endovascularWorld.resetSimulationState();
-    if (resetAccumulator) simulationAccumulator = 0;
+    if (resetAccumulator) {
+        simulationAccumulator = 0;
+        simulationPeakBacklog = 0;
+    }
 }
 
 function getCatheterAortaSetupStatus() {
@@ -2149,7 +2734,9 @@ function sampleCatheterAortaScenario() {
 
 function startBrowserBenchmarkScenario({
     durationMs = BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
-    automated = false
+    automated = false,
+    skipWarmup = false,
+    mode = BROWSER_BENCHMARK_MODE_COUPLED
 } = {}) {
     const nextDuration = Number(durationMs);
     if (!Number.isFinite(nextDuration) || nextDuration <= 0) {
@@ -2158,21 +2745,29 @@ function startBrowserBenchmarkScenario({
     if (!endovascularWorld.contactField) {
         throw new Error('Browser benchmark requires the precompiled vessel contact field');
     }
+    if (
+        mode !== BROWSER_BENCHMARK_MODE_COUPLED &&
+        mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE
+    ) {
+        throw new RangeError(`Unknown browser benchmark mode: ${mode}`);
+    }
     stopCatheterAortaSetup(catheterAortaSetup);
     ui.updateCatheterAortaSetupStatus?.(getCatheterAortaSetupStatus());
     resetBrowserBenchmarkSimulation();
     resetBrowserBenchmark();
     browserBenchmarkScenario.durationMs = nextDuration;
-    browserBenchmarkScenario.warmupStartedAt = performance.now();
+    const startedAt = performance.now();
+    browserBenchmarkScenario.warmupStartedAt = startedAt;
     browserBenchmarkScenario.memorySettling = false;
-    browserBenchmarkScenario.startedAt = 0;
+    browserBenchmarkScenario.startedAt = skipWarmup ? startedAt : 0;
     browserBenchmarkScenario.completedAt = 0;
     browserBenchmarkScenario.simulationElapsedMs = 0;
     browserBenchmarkScenario.stopReason = null;
     browserBenchmarkScenario.automated = automated === true;
+    browserBenchmarkScenario.mode = mode;
     ui.setAutomatedBenchmarkMode?.(browserBenchmarkScenario.automated);
     browserBenchmarkScenario.running = true;
-    browserBenchmarkScenario.warmingUp = true;
+    browserBenchmarkScenario.warmingUp = !skipWarmup;
     lastBrowserBenchmarkScenarioReport = null;
     return getBrowserBenchmarkScenarioStatus();
 }
@@ -2183,7 +2778,7 @@ function sampleBrowserBenchmarkScenario(dt) {
     if (browserBenchmarkScenario.warmingUp) {
         const warmupElapsedMs = now - browserBenchmarkScenario.warmupStartedAt;
         if (warmupElapsedMs < BROWSER_BENCHMARK_CHOREOGRAPHY_WARMUP_MS) {
-            const commands = sampleBrowserBenchmarkCommands(
+            const commands = sampleActiveBrowserBenchmarkCommands(
                 browserBenchmarkScenario.simulationElapsedMs,
                 browserBenchmarkCommands
             );
@@ -2214,12 +2809,18 @@ function sampleBrowserBenchmarkScenario(dt) {
         stopBrowserBenchmarkScenario('duration');
         return null;
     }
-    const commands = sampleBrowserBenchmarkCommands(
+    const commands = sampleActiveBrowserBenchmarkCommands(
         browserBenchmarkScenario.simulationElapsedMs,
         browserBenchmarkCommands
     );
     browserBenchmarkScenario.simulationElapsedMs += dt * 1000;
     return commands;
+}
+
+function sampleActiveBrowserBenchmarkCommands(elapsedMs, out) {
+    return browserBenchmarkScenario.mode === BROWSER_BENCHMARK_MODE_GUIDEWIRE
+        ? sampleGuidewireBrowserBenchmarkCommands(elapsedMs, out)
+        : sampleBrowserBenchmarkCommands(elapsedMs, out);
 }
 
 globalThis.__OET_BENCHMARK__ = {
@@ -2285,18 +2886,37 @@ function advanceTailInput(advance, dt) {
 }
 
 function updateWireMesh() {
-    for (let index = 0; index < wire.nodes.length; index++) {
-        const node = wire.nodes[index];
-        wireRenderPoints[index].set(node.x, node.y, node.z);
+    const sourcePoints = PHYSICS_MODE === 'xpbd-contact-v1'
+        ? buildContainedGuidewireRenderPolyline({
+            guidewireNodes: wire.nodes,
+            outerBody: xpbdCatheterBody,
+            containment: xpbdContainment,
+            out: wireRenderPolyline
+        })
+        : wire.nodes;
+    while (wireRenderPoints.length < sourcePoints.length) {
+        wireRenderPoints.push(new THREE.Vector3());
+    }
+    for (let index = 0; index < sourcePoints.length; index++) {
+        const point = sourcePoints[index];
+        wireRenderPoints[index].set(point.x, point.y, point.z);
     }
     const previousGeometry = wireMesh.geometry;
-    wireMesh.geometry = createSmoothTubeGeometry(wireRenderPoints, {
-        radius: GUIDEWIRE_RENDER_RADIUS_MM,
-        samplesPerSegment: GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT,
-        radialSegments: GUIDEWIRE_TUBE_RADIAL_SEGMENTS
-    });
-    previousGeometry.dispose();
-    wireGroup.visible = wire.nodes.length > 1;
+    const nextGeometry = updateSmoothTubeGeometry(
+        previousGeometry,
+        wireRenderPoints,
+        {
+            radius: GUIDEWIRE_RENDER_RADIUS_MM,
+            pointCount: sourcePoints.length,
+            samplesPerSegment: GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT,
+            radialSegments: GUIDEWIRE_TUBE_RADIAL_SEGMENTS
+        }
+    );
+    if (nextGeometry !== previousGeometry) {
+        wireMesh.geometry = nextGeometry;
+        previousGeometry.dispose();
+    }
+    wireGroup.visible = sourcePoints.length > 1;
 }
 
 function updateXpbdContactDebug() {
@@ -2385,6 +3005,13 @@ function sampleGuidewireContactMarkers() {
             solveMs: xpbd.phases.total.lastMs,
             projectMs: xpbd.phases.narrowPhase.lastMs,
             diagnosticMs: 0,
+            constraintPrimaryMs: xpbd.phases.constraintPrimary.lastMs,
+            constraintBodyClosureMs:
+                xpbd.phases.constraintBodyClosure.lastMs,
+            constraintCoupledClosureMs:
+                xpbd.phases.constraintCoupledClosure.lastMs,
+            constraintMovingClosureMs:
+                xpbd.phases.constraintMovingClosure.lastMs,
             pointContactCount: xpbd.contacts,
             diagnosticPointContactCount: 0,
             segmentSampleCount: vesselCollisionTarget.contactField?.getStats?.().capsuleSamples || 0,
@@ -2429,17 +3056,40 @@ function updateGuidewireResistance() {
         ui.updateGuidewireResistance(0, '');
         return;
     }
-    const resistance = guidewireResistanceEstimator.update(xpbdWireBody, {
-        dt: fixedDt,
-        command: lastGuidewireAdvanceCommand,
-        atMaximumInsertion: tailProgress >= maxInsert - 1e-6
-    });
+    guidewireResistanceOptions.dt = fixedDt;
+    guidewireResistanceOptions.command = lastGuidewireAdvanceCommand;
+    guidewireResistanceOptions.atMaximumInsertion =
+        tailProgress >= maxInsert - 1e-6;
+    const resistance = guidewireResistanceEstimator.update(
+        xpbdWireBody,
+        guidewireResistanceOptions,
+        guidewireResistanceResult
+    );
     ui.updateGuidewireResistance(resistance.level, resistance.reason);
 }
 
 const fixedDt = PHYSICS_MODE === 'xpbd-contact-v1' ? 1 / 120 : 1 / 60;
-let lastRenderTime = performance.now();
+const MAX_PHYSICS_STEPS_PER_FRAME = 2;
+const MAX_IDLE_PHYSICS_STEPS = 6;
+const TARGET_RENDER_FRAME_MS = 1000 / 60;
+const PHYSICS_IDLE_GUARD_MS = 0.75;
+const PHYSICS_RENDER_RESERVE_MS = 3.5;
+// The renderer starts only after the asynchronous anatomy/contact assets are
+// ready. Time spent loading those assets is not elapsed simulation time: no
+// controls are available and no physical state has started advancing yet.
+// Establish the wall-clock origin on the first animation frame so startup
+// cannot manufacture minutes of physics backlog that then has to be replayed.
+let lastRenderTime = null;
 let simulationAccumulator = 0;
+let simulationPeakBacklog = 0;
+let simulationPeakBacklogScenarioMs = 0;
+let simulationPeakBacklogElapsedMs = 0;
+let simulationPeakBacklogGuidewireMm = 0;
+let simulationExecutedSteps = 0;
+let simulationIdleExecutedSteps = 0;
+let simulationAcceptedTime = 0;
+let simulationStepEstimateMs = 1;
+let simulationCatchupPending = false;
 let lastFluoroPulseTime = -Infinity;
 let autoExposureLevel = 0;
 const autoExposureBeamDirection = new THREE.Vector3();
@@ -2493,13 +3143,25 @@ function stepSimulation(dt = fixedDt) {
     // Advance input, integrate rod physics, collisions, and update medical monitors
     const automatedCommands =
         sampleCatheterAortaScenario() || sampleBrowserBenchmarkScenario(dt);
+    updateGuidewireType(ui.getSelectedGuidewireType());
     const advance = automatedCommands?.guidewireAdvance ?? ui.getAdvance();
+    const guidewireRotationCommand = ui.getGuidewireRotation();
+    if (guidewireRotationCommand !== 0) {
+        guidewireRotation += guidewireRotationCommand *
+            GUIDEWIRE_ROTATION_SPEED * dt;
+        guidewireRotation = Math.atan2(
+            Math.sin(guidewireRotation),
+            Math.cos(guidewireRotation)
+        );
+    }
     const catheterAdvance = automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance();
     const catheterRotation = automatedCommands?.catheterRotation ?? ui.getCatheterRotation();
-    advanceTailInput(advance, dt);
+    const guidewireProgressDelta = advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
     pigtailCatheter.setType(automatedCommands?.catheterType ?? ui.getSelectedCatheterType());
+    const catheterProgressBefore = pigtailCatheter.progress;
     pigtailCatheter.advance(catheterAdvance, dt, inserted);
+    const catheterProgressDelta = pigtailCatheter.progress - catheterProgressBefore;
     pigtailCatheter.rotate(catheterRotation, dt);
     if (PHYSICS_MODE === 'xpbd-contact-v1') {
         // The shared ElasticRod storage carries the previous XPBD pose and
@@ -2511,43 +3173,133 @@ function stepSimulation(dt = fixedDt) {
             Math.min(xpbdWireBody.count - 2, Math.max(0, guidewireSolver.firstInsertedNodeIndex() - 1)),
             xpbdWireBody.count - 1
         );
-        xpbdWireBody.setCollisionRange(
-            Math.max(0, guidewireSolver.firstLumenNodeIndex() - 1),
-            xpbdWireBody.segmentCount - 1
+        // Handle rotation is a torsional material-frame boundary. It does not
+        // rotate positions or the manufactured kappa_0 field in world space.
+        applyGuidewireProximalOrientation();
+        let wireWallCollisionStart = Math.max(
+            0,
+            guidewireSolver.firstLumenNodeIndex() - 1
         );
+        xpbdWireBody.setSheathMaterialEndNode(wireWallCollisionStart);
+        let wireWallCollisionEnd = xpbdWireBody.segmentCount - 1;
         pigtailCatheter.stepPhysics(dt, XPBD_CATHETER_STEP_OPTIONS);
         const catheterNodeCount = pigtailCatheter.syncXpbdBody(
             xpbdCatheterBody,
             XPBD_CATHETER_SYNC_OPTIONS
         );
-        xpbdContainment.outerStartNode = pigtailCatheter.physicsLumenStartNode;
         const firstContainedNode = Math.max(0, Math.ceil((guidewireLength - inserted) / segmentLength));
-        const lastContainedNode = Math.min(
+        const materialEndNode = Math.min(
             xpbdWireBody.count - 1,
             Math.floor((guidewireLength - inserted + pigtailCatheter.progress) / segmentLength)
         );
-        xpbdContainment.enabled =
-            pigtailCatheter.progress > 0.5 &&
-            catheterNodeCount >= 2 &&
-            lastContainedNode >= firstContainedNode;
-        xpbdContainment.startNode = firstContainedNode;
-        xpbdContainment.endNode = Math.max(firstContainedNode, lastContainedNode);
-        xpbdContainment.innerArcOffset =
-            firstContainedNode * segmentLength - guidewireLength + inserted;
-        xpbdContainment.containedLength = Math.min(pigtailCatheter.progress, inserted);
+        // Material overlap identifies the segment crossing the moving distal
+        // opening. The solver keeps that crossing under its portal constraint;
+        // spatial capture below separately decides when it may be rendered as
+        // fully inside the catheter.
+        const lastContainedNode = materialEndNode;
+        endovascularWorld.updateContainmentWindow(xpbdContainment, {
+            enabled:
+                pigtailCatheter.progress > 0.5 &&
+                catheterNodeCount >= 2 &&
+                lastContainedNode >= firstContainedNode,
+            outerStartNode: pigtailCatheter.physicsLumenStartNode,
+            startNode: firstContainedNode,
+            endNode: Math.max(firstContainedNode, lastContainedNode),
+            innerArcOffset:
+                firstContainedNode * segmentLength - guidewireLength + inserted,
+            containedLength: Math.min(pigtailCatheter.progress, inserted),
+            enforceDistalPortal: true
+        });
+        // The XPBD catheter body starts at the sheath outlet, while progress
+        // is measured from the handle. Give the portal the actual material
+        // tip-to-tip distance so it turns off after the catheter overtakes the
+        // guidewire instead of constraining an internal wire segment as if it
+        // still crossed the distal opening.
+        xpbdContainment.portalRetractionDistance = Math.max(
+            0,
+            pigtailCatheter.progress - inserted
+        );
+        if (xpbdContainment.model !== 'kirchhoff') {
+            const relativePortalAdvance = guidewireProgressDelta - catheterProgressDelta;
+            if (relativePortalAdvance > 1e-5) xpbdPortalInnerDriven = true;
+            else if (relativePortalAdvance < -1e-5) xpbdPortalInnerDriven = false;
+            // Legacy containment selected a command-dependent one-way owner.
+            // Kirchhoff contact instead uses its unilateral gradients and may
+            // not change mechanics when the same pose is reached by a
+            // different combination of handle commands.
+            xpbdContainment.portalInnerResponse = xpbdPortalInnerDriven ? 1 : 0;
+            xpbdContainment.portalOuterResponse = xpbdPortalInnerDriven ? 0 : 1;
+            xpbdContainment.limitDistalCorrection =
+                Math.abs(guidewireProgressDelta) > 1e-5 ||
+                Math.abs(catheterProgressDelta) > 1e-5;
+            xpbdContainment.preserveStationaryInnerLength =
+                Math.abs(catheterProgressDelta) > 1e-5 &&
+                Math.abs(advance) <= 1e-5;
+            xpbdContainment.reconcileMovingInnerStructure =
+                Math.abs(catheterProgressDelta) > 1e-5 &&
+                Math.abs(advance) > 1e-5;
+            xpbdContainment.outerResponse = xpbdContainment.preserveStationaryInnerLength
+                ? 0.2
+                : xpbdContainment.reconcileMovingInnerStructure
+                    ? 0.04
+                    : 0;
+        }
         xpbdWireBody.nodeRadius.fill(GUIDEWIRE_RADIUS_MM);
+        xpbdWireBody.maxFrameDisplacement =
+            xpbdContainment.model !== 'kirchhoff' &&
+            xpbdContainment.preserveStationaryInnerLength
+                ? 1.5
+                : Infinity;
+        xpbdWireBody.frameDisplacementStartNode = Math.max(
+            xpbdWireBody.activeStart,
+            xpbdContainment.endNode
+        );
+
+        // The catheter shields the contained guidewire from the vessel wall.
+        // Applying vessel contact to both concentric tools gives the wall two
+        // independent ways to move the same coupled span and makes containment
+        // fight a non-physical force through the catheter. Only the crossing
+        // segment and guidewire material distal to the catheter remain exposed.
+        if (xpbdContainment.enabled) {
+            // Material overlap still owns shielding/contact classification.
+            // Spatial capture only decides which nodes are solved as fully
+            // contained; treating the transition nodes as externally exposed
+            // makes them collide with both catheter and vessel at once.
+            // The catheter may only move the collision boundary distally. A
+            // short catheter initially ends proximal to the sheath outlet;
+            // replacing the sheath boundary with that material node would
+            // expose guidewire that is physically still inside the introducer.
+            const firstWallExposedSegment = Math.max(
+                wireWallCollisionStart,
+                materialEndNode
+            );
+            if (firstWallExposedSegment <= xpbdWireBody.activeEnd - 1) {
+                wireWallCollisionStart = firstWallExposedSegment;
+            } else {
+                wireWallCollisionStart = xpbdWireBody.activeEnd;
+                wireWallCollisionEnd = xpbdWireBody.activeEnd - 1;
+            }
+        }
+        // Commit the final mask once. Toggling through the unshielded range and
+        // back in one frame woke a stationary guidewire every step.
+        xpbdWireBody.setCollisionRange(
+            wireWallCollisionStart,
+            wireWallCollisionEnd
+        );
 
         const catheterEndSegment = Math.max(0, catheterNodeCount - 2);
         const firstExternalSegment = Math.max(0, Math.min(
             xpbdWireBody.segmentCount - 1,
-            lastContainedNode
+            materialEndNode + 1
         ));
-        // The shared-lumen constraint already carries the catheter up to its
-        // open distal tip. Treating the emerging guidewire as an external
-        // colliding rod adds a spurious side impact at that opening and sends
-        // an impulse down the free guidewire. The open tip must let it exit
-        // without a capsule-like collision.
-        xpbdExternalToolContact.enabled = false;
+        // The portal constraint owns the crossing segment. External capsule
+        // contact starts one segment farther distally, where the wire is fully
+        // outside the catheter, so the opening remains free of a false cap.
+        xpbdExternalToolContact.enabled =
+            pigtailCatheter.progress > 4 &&
+            catheterNodeCount >= 2 &&
+            inserted > pigtailCatheter.progress + 0.5 &&
+            firstExternalSegment <= xpbdWireBody.activeEnd - 1;
         xpbdExternalToolContact.startSegmentA = firstExternalSegment;
         xpbdExternalToolContact.endSegmentA = Math.min(
             xpbdWireBody.activeEnd - 1,
@@ -2555,7 +3307,67 @@ function stepSimulation(dt = fixedDt) {
         );
         xpbdExternalToolContact.startSegmentB = Math.max(0, catheterEndSegment - 8);
         xpbdExternalToolContact.endSegmentB = catheterEndSegment;
+
+        // Vessel-wall contact already removes forbidden normal motion and
+        // applies local Coulomb friction in the world solver. It must not
+        // globally freeze tangential sliding or Kirchhoff straightening.
+        // Keep the old suppression only in the material span currently being
+        // projected by tool-tool constraints; the unsupported distal shaft
+        // retains its elastic recovery velocity.
+        const guidewireIsToolCoupled = xpbdContainment.enabled ||
+            xpbdExternalToolContact.enabled;
+        // Relaxation is a constitutive convergence rate, not a release-only
+        // effect. Apply the selected value during feed, withdrawal, rotation,
+        // catheter coupling and rest so the wire never changes solver mode
+        // when the operator releases a control.
+        xpbdWireBody.relaxationPasses =
+            guidewireRelaxationPasses(guidewireRelaxationRate);
+        // The catheter uses the same constitutive convergence control as the
+        // guidewire, but keeps an independent rate. Apply it in every solver
+        // state so feeding, withdrawal and rest share one physical model.
+        xpbdCatheterBody.relaxationPasses =
+            guidewireRelaxationPasses(catheterRelaxationRate);
+        xpbdWireBody.projectionVelocityRetention = guidewireIsToolCoupled
+            ? TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION
+            : 1;
+        xpbdWireBody.toolProjectionVelocityRetention = guidewireIsToolCoupled
+            ? 0
+            : 1;
+        xpbdWireBody.distalProjectionVelocityRetention = 1;
+        if (guidewireIsToolCoupled && xpbdContainment.model === 'kirchhoff') {
+            // The broad external-contact candidate window extends several
+            // centimetres beyond the catheter tip. It must not numerically
+            // damp that entire free shaft: only the lumen-contained span is
+            // owned by the coupling projection. Real side/rim contact already
+            // contributes its own Coulomb friction.
+            const firstFreeNode = firstFreeGuidewireNodeAfterContainment({
+                activeStart: xpbdWireBody.activeStart,
+                activeEnd: xpbdWireBody.activeEnd,
+                containmentEndNode: xpbdContainment.endNode
+            });
+            xpbdWireBody.distalProjectionVelocityRetentionStartNode =
+                Math.max(xpbdWireBody.activeStart, firstFreeNode);
+        } else {
+            xpbdWireBody.distalProjectionVelocityRetentionStartNode = Infinity;
+        }
         endovascularWorld.stepFixed();
+        const spatialRenderEnd = spatiallyCapturedContainmentEnd({
+            innerBody: xpbdWireBody,
+            outerBody: xpbdCatheterBody,
+            firstContainedNode,
+            materialEndNode,
+            outerStartNode: xpbdContainment.outerStartNode,
+            outerInnerRadius: xpbdContainment.innerRadius,
+            closestSegment: xpbdContainment.closestSegment
+        });
+        xpbdContainment.renderEndNode = Math.min(
+            materialEndNode,
+            Math.max(
+                firstContainedNode,
+                materialEndNode - 1,
+                spatialRenderEnd
+            )
+        );
         if (browserBenchmarkScenario.running) recordBrowserPhysicsEnvelope();
         xpbdWireBody.syncToElasticRod(wire);
     } else {
@@ -2565,7 +3377,7 @@ function stepSimulation(dt = fixedDt) {
         pigtailCatheter.stepPhysics(dt);
     }
     const catheterActive = catheterAdvance !== 0 || catheterRotation !== 0;
-    const guidewireActive = advance !== 0;
+    const guidewireActive = advance !== 0 || guidewireRotationCommand !== 0;
     const guidewireInsideCatheter = pigtailCatheter.progress > 4 && inserted > 0;
     if (PHYSICS_MODE === 'legacy') {
         pigtailCatheter.constrainGuidewire(dt, {
@@ -2583,8 +3395,11 @@ function stepSimulation(dt = fixedDt) {
         }
     }
     updateGuidewireResistance();
-    ui.updateInsertedLength(inserted / 10);
-    ui.updateCatheterLength(pigtailCatheter.progress / 10);
+    ui.updateInsertedLength(inserted / 10, guidewireRotation);
+    ui.updateCatheterLength(
+        pigtailCatheter.progress / 10,
+        pigtailCatheter.rotation
+    );
 
     if (contrastSystem) {
         contrastSystem.update(dt);
@@ -2595,7 +3410,6 @@ function stepSimulation(dt = fixedDt) {
             ui.updateDose(displayedContrastDoseMl);
         }
     }
-    monitor.update(dt);
 }
 
 const renderHiddenObjects = [];
@@ -2853,22 +3667,108 @@ function processDsaRoadmapCapture() {
     }
 }
 
+function executeAccumulatedPhysicsStep(idle = false) {
+    const startedAt = performance.now();
+    stepSimulation(fixedDt);
+    simulationAccumulator -= fixedDt;
+    simulationExecutedSteps++;
+    if (idle) simulationIdleExecutedSteps++;
+    const duration = performance.now() - startedAt;
+    // A conservative decaying estimate keeps catch-up work inside the time
+    // actually offered by the browser. It affects scheduling only; every
+    // physical step still uses the same fixed dt and solver sequence.
+    simulationStepEstimateMs = Math.max(
+        duration,
+        simulationStepEstimateMs * 0.8
+    );
+}
+
+function runIdlePhysicsCatchup(deadline = null) {
+    simulationCatchupPending = false;
+    if (
+        document.visibilityState !== 'visible' ||
+        simulationAccumulator + 1e-9 < fixedDt
+    ) return;
+    const fallbackDeadline = lastRenderTime === null
+        ? performance.now()
+        : lastRenderTime + TARGET_RENDER_FRAME_MS;
+    let steps = 0;
+    while (
+        simulationAccumulator + 1e-9 >= fixedDt &&
+        steps < MAX_IDLE_PHYSICS_STEPS
+    ) {
+        const remainingMs = deadline
+            ? deadline.timeRemaining()
+            : fallbackDeadline - performance.now();
+        if (
+            remainingMs <=
+                simulationStepEstimateMs + PHYSICS_IDLE_GUARD_MS
+        ) break;
+        executeAccumulatedPhysicsStep(true);
+        steps++;
+    }
+}
+
+function scheduleIdlePhysicsCatchup() {
+    if (
+        simulationCatchupPending ||
+        simulationAccumulator + 1e-9 < fixedDt ||
+        document.visibilityState !== 'visible'
+    ) return;
+    simulationCatchupPending = true;
+    // requestIdleCallback is intentionally not used here. Chromium often
+    // withholds it while a continuously animated WebGL page is visible, so a
+    // single missed vsync could leave four 120 Hz steps pending while the next
+    // rAF was allowed to execute only two. A zero-delay task is guaranteed to
+    // run after the current render task; runIdlePhysicsCatchup still observes
+    // the same 60 Hz deadline and refuses work that does not fit.
+    window.setTimeout(() => runIdlePhysicsCatchup(null), 0);
+}
+
 function animate(time) {
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
     const frameCpuStartedAt = performance.now();
-    const frameMs = time - lastRenderTime;
-    const dt = Math.max(0, Math.min(0.1, frameMs / 1000));
+    const frameMs = lastRenderTime === null ? 0 : time - lastRenderTime;
+    const dt = Math.max(0, frameMs / 1000);
     lastRenderTime = time;
     recordBrowserFrame(frameMs);
+    simulationAcceptedTime += dt;
     simulationAccumulator += dt;
+    if (simulationAccumulator > simulationPeakBacklog) {
+        simulationPeakBacklog = simulationAccumulator;
+        if (
+            browserBenchmarkScenario.running &&
+            !browserBenchmarkScenario.warmingUp
+        ) {
+            simulationPeakBacklogScenarioMs =
+                browserBenchmarkScenario.simulationElapsedMs;
+            simulationPeakBacklogElapsedMs =
+                performance.now() - browserBenchmarkScenario.startedAt;
+            simulationPeakBacklogGuidewireMm = guidewireSolver.progress;
+        }
+    }
     let simulationSteps = 0;
-    while (simulationAccumulator + 1e-9 >= fixedDt && simulationSteps < 2) {
-        stepSimulation(fixedDt);
-        simulationAccumulator -= fixedDt;
+    while (
+        simulationAccumulator + 1e-9 >= fixedDt &&
+        simulationSteps < MAX_PHYSICS_STEPS_PER_FRAME
+    ) {
+        if (
+            simulationSteps > 0 &&
+            performance.now() - frameCpuStartedAt +
+                simulationStepEstimateMs + PHYSICS_RENDER_RESERVE_MS >=
+                TARGET_RENDER_FRAME_MS
+        ) break;
+        executeAccumulatedPhysicsStep(false);
         simulationSteps++;
     }
-    if (simulationAccumulator >= fixedDt) simulationAccumulator %= fixedDt;
+    scheduleIdlePhysicsCatchup();
     const frameSimulationEndedAt = performance.now();
+
+    // Physiology is cheap and owns a fixed-step clock derived from presented
+    // wall time. It must not inherit backlog from the much more expensive rod
+    // solver: otherwise the screen cursor eventually outruns the ECG/BP sample
+    // buffers and both traces disappear while their numeric readouts continue.
+    monitor.updatePresentation(dt);
 
     guidewireMeshAccumulator += dt;
     if (guidewireMeshAccumulator >= GUIDEWIRE_MESH_UPDATE_INTERVAL) {
@@ -2935,7 +3835,10 @@ function animate(time) {
                     source: contrastSystem.injection.source,
                     ...contrastSystem.injection.hydraulics
                 }
-                : contrastSystem.getInjectionPreview(injectionRequest)
+                : contrastSystem.getInjectionPreview(
+                    injectionRequest,
+                    injectionSourceStatus
+                )
             : {
                 valid: false,
                 reason: 'Flow model is still loading'
@@ -2954,8 +3857,10 @@ function animate(time) {
     ) {
         syncDsaRoadmapState();
     }
-    const cineAdvance = dsaRoadmapState.advanceCine({ nowMs: time });
-    if (cineAdvance.changed) syncDsaRoadmapState();
+    if (dsaRoadmapState.cinePlaying) {
+        const cineAdvance = dsaRoadmapState.advanceCine({ nowMs: time });
+        if (cineAdvance.changed) syncDsaRoadmapState();
+    }
     browserBenchmarkUiAccumulator += dt;
     if (browserBenchmarkUiAccumulator >= 0.25) {
         browserBenchmarkUiAccumulator = 0;
@@ -3013,6 +3918,15 @@ function animate(time) {
         renderOnlySceneObject(scene, camera, pigtailCatheter.mesh);
         renderer.setClearColor(0x000000, 1);
 
+        renderer.setRenderTarget(catheterMarkerTarget);
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        const catheterShaftVisible = pigtailCatheter.shaftMesh.visible;
+        pigtailCatheter.shaftMesh.visible = false;
+        renderOnlySceneObject(scene, camera, pigtailCatheter.mesh);
+        pigtailCatheter.shaftMesh.visible = catheterShaftVisible;
+        renderer.setClearColor(0x000000, 1);
+
         renderer.setRenderTarget(sheathTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
@@ -3042,6 +3956,7 @@ function animate(time) {
         displayMaterial.uniforms.thicknessTexture.value = thicknessTarget.texture;
         displayMaterial.uniforms.metalTexture.value = metalTarget.texture;
         displayMaterial.uniforms.catheterTexture.value = catheterTarget.texture;
+        displayMaterial.uniforms.catheterMarkerTexture.value = catheterMarkerTarget.texture;
         displayMaterial.uniforms.sheathTexture.value = sheathTarget.texture;
         displayMaterial.uniforms.boneTexture.value = boneTarget.texture;
         displayMaterial.uniforms.time.value = time * 0.001;
@@ -3070,6 +3985,15 @@ function animate(time) {
 }
 requestAnimationFrame(animate);
 
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        // Time spent while requestAnimationFrame is suspended is a deliberate
+        // application pause, not elapsed simulation time. Preserve any real
+        // pre-existing backlog and restart only the wall-clock reference.
+        lastRenderTime = performance.now();
+    }
+});
+
 window.addEventListener('resize', () => {
     // Keep all targets and shader uniforms in sync with the canvas size
     const w = window.innerWidth;
@@ -3084,6 +4008,7 @@ window.addEventListener('resize', () => {
     contrastTarget.setSize(targetWidth, targetHeight);
     metalTarget.setSize(targetWidth, targetHeight);
     catheterTarget.setSize(targetWidth, targetHeight);
+    catheterMarkerTarget.setSize(targetWidth, targetHeight);
     sheathTarget.setSize(targetWidth, targetHeight);
     boneTarget.setSize(targetWidth, targetHeight);
     accumulateTarget1.setSize(targetWidth, targetHeight);

@@ -114,6 +114,28 @@ export class HybridContrastSystem {
         this._sheathLength = this._sheathStart && this._sheathEnd
             ? this._sheathStart.distanceTo(this._sheathEnd)
             : 0;
+        const sheathAreaMm2 =
+            Math.PI * INTRODUCER_SHEATH_INNER_RADIUS_MM ** 2;
+        this._sheathPort = {
+            kind: 'sheath-end',
+            position: this._sheathEnd,
+            direction: this._sheathDirection,
+            radiusMm: INTRODUCER_SHEATH_INNER_RADIUS_MM,
+            areaMm2: sheathAreaMm2,
+            weight: sheathAreaMm2,
+            valid: false
+        };
+        this._hydraulicRevision = 0;
+        this._injectionPreviewCache = {
+            source: null,
+            volumeMl: NaN,
+            rateMlPerSec: NaN,
+            deviceKey: null,
+            hydraulicRevision: -1,
+            portCount: -1,
+            portValues: new Float64Array(8 * 6),
+            result: null
+        };
     }
 
     setCatheter(catheter) {
@@ -152,6 +174,7 @@ export class HybridContrastSystem {
         this.injectorHydraulics = nextInjector;
         this.medium.viscosityPaS = nextViscosity;
         this.deviceHydraulicProfiles = nextProfiles;
+        this._hydraulicRevision++;
         return this.getInjectionHydraulicParameters();
     }
 
@@ -171,6 +194,7 @@ export class HybridContrastSystem {
     _deviceKeyForSource(source) {
         if (source === CONTRAST_SOURCE_SHEATH) return 'sheath';
         if (source === CONTRAST_SOURCE_CATHETER) {
+            if (this.catheter?.type === 'sim1') return 'sim1';
             return this.catheter?.type === 'berenstein'
                 ? 'berenstein'
                 : 'pigtail';
@@ -213,8 +237,11 @@ export class HybridContrastSystem {
         source = CONTRAST_SOURCE_SHEATH,
         volumeMl = 0,
         rateMlPerSec
-    } = {}) {
-        const sourceStatus = this.getSourceStatus(source);
+    } = {}, providedSourceStatus = null) {
+        const sourceStatus =
+            providedSourceStatus?.source === source
+                ? providedSourceStatus
+                : this.getSourceStatus(source);
         const deviceKey = sourceStatus.deviceKey;
         if (!sourceStatus.valid) {
             const nominalPorts = NOMINAL_HYDRAULIC_PORTS[deviceKey];
@@ -238,23 +265,79 @@ export class HybridContrastSystem {
             };
         }
         try {
+            const ports = sourceStatus.ports;
+            const cache = this._injectionPreviewCache;
+            const requiredPortValueCount = ports.length * 6;
+            if (cache.portValues.length < requiredPortValueCount) {
+                cache.portValues = new Float64Array(
+                    Math.max(requiredPortValueCount, cache.portValues.length * 2)
+                );
+                cache.portCount = -1;
+            }
+            let cacheMatches =
+                cache.result !== null &&
+                cache.source === source &&
+                cache.volumeMl === volumeMl &&
+                cache.rateMlPerSec === rateMlPerSec &&
+                cache.deviceKey === deviceKey &&
+                cache.hydraulicRevision === this._hydraulicRevision &&
+                cache.portCount === ports.length;
+            for (let index = 0; index < ports.length; index++) {
+                const port = ports[index];
+                const offset = index * 6;
+                const radius = Number(port?.radiusMm);
+                const area = Number(port?.areaMm2);
+                const weight = Number(port?.weight);
+                const directionX = Number(
+                    port?.direction?.x ?? port?.direction?.[0] ?? 0
+                );
+                const directionY = Number(
+                    port?.direction?.y ?? port?.direction?.[1] ?? 0
+                );
+                const directionZ = Number(
+                    port?.direction?.z ?? port?.direction?.[2] ?? 0
+                );
+                if (
+                    cache.portValues[offset] !== radius ||
+                    cache.portValues[offset + 1] !== area ||
+                    cache.portValues[offset + 2] !== weight ||
+                    cache.portValues[offset + 3] !== directionX ||
+                    cache.portValues[offset + 4] !== directionY ||
+                    cache.portValues[offset + 5] !== directionZ
+                ) cacheMatches = false;
+                cache.portValues[offset] = radius;
+                cache.portValues[offset + 1] = area;
+                cache.portValues[offset + 2] = weight;
+                cache.portValues[offset + 3] = directionX;
+                cache.portValues[offset + 4] = directionY;
+                cache.portValues[offset + 5] = directionZ;
+            }
+            if (cacheMatches) return cache.result;
             const hydraulics = computeInjectionHydraulics({
                 requestedRateMlPerSec: rateMlPerSec,
-                ports: sourceStatus.ports,
+                ports,
                 deviceProfile: this.deviceHydraulicProfiles[deviceKey],
                 injector: this.injectorHydraulics,
                 medium: this.medium
             });
-            return {
+            const result = {
                 valid: true,
                 source,
                 deviceKey,
                 volumeMl,
                 durationSeconds: volumeMl > 0
                     ? volumeMl / hydraulics.actualRateMlPerSec
-                    : 0,
+                : 0,
                 ...hydraulics
             };
+            cache.source = source;
+            cache.volumeMl = volumeMl;
+            cache.rateMlPerSec = rateMlPerSec;
+            cache.deviceKey = deviceKey;
+            cache.hydraulicRevision = this._hydraulicRevision;
+            cache.portCount = ports.length;
+            cache.result = result;
+            return result;
         } catch (error) {
             return {
                 valid: false,
@@ -399,15 +482,8 @@ export class HybridContrastSystem {
         this._sourcePorts.length = 0;
         if (source === CONTRAST_SOURCE_SHEATH) {
             if (!this._sheathEnd) return this._sourcePorts;
-            const port = {
-                kind: 'sheath-end',
-                position: this._sheathEnd,
-                direction: this._sheathDirection,
-                radiusMm: INTRODUCER_SHEATH_INNER_RADIUS_MM,
-                areaMm2: Math.PI * INTRODUCER_SHEATH_INNER_RADIUS_MM ** 2,
-                weight: Math.PI * INTRODUCER_SHEATH_INNER_RADIUS_MM ** 2,
-                valid: this._isInsideVessel(this._sheathEnd)
-            };
+            const port = this._sheathPort;
+            port.valid = this._isInsideVessel(this._sheathEnd);
             if (port.valid) this._sourcePorts.push(port);
             return this._sourcePorts;
         }

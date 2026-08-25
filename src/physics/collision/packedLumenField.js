@@ -97,12 +97,20 @@ export class PackedLumenField {
                     !this.#sliceBoundsContain(interval[INTERVAL_UPPER], localX, localZ)
                 )
             ) continue;
-            const lower = this.#querySlice(interval[INTERVAL_LOWER], localX, localZ, this._lower);
+            const lower = this.#querySliceSignedDistance(
+                interval[INTERVAL_LOWER],
+                localX,
+                localZ
+            );
             const upper = interval[INTERVAL_UPPER] === interval[INTERVAL_LOWER]
                 ? lower
-                : this.#querySlice(interval[INTERVAL_UPPER], localX, localZ, this._upper);
+                : this.#querySliceSignedDistance(
+                    interval[INTERVAL_UPPER],
+                    localX,
+                    localZ
+                );
             const t = interval[INTERVAL_T];
-            if (lower[SLICE_SIGNED_DISTANCE] * (1 - t) + upper[SLICE_SIGNED_DISTANCE] * t >= 0) {
+            if (lower * (1 - t) + upper * t >= 0) {
                 return true;
             }
         }
@@ -325,13 +333,17 @@ export class PackedLumenField {
             let closestX = x;
             let closestZ = z;
             let closestDistanceSq = Infinity;
-            let previousIndex = pointEnd - 1;
+            const previousIndex = pointEnd - 1;
+            // Polygon edges are traversed in order. Carry the previous
+            // decoded endpoint instead of loading and dequantizing it again
+            // for every edge; the arithmetic and winding test stay exactly
+            // the same as the original point-pair formulation.
+            let bx = this.points[previousIndex * 2] * this.pointQuantization;
+            let bz = this.points[previousIndex * 2 + 1] * this.pointQuantization;
 
             for (let pointIndex = pointStart; pointIndex < pointEnd; pointIndex++) {
                 const ax = this.points[pointIndex * 2] * this.pointQuantization;
                 const az = this.points[pointIndex * 2 + 1] * this.pointQuantization;
-                const bx = this.points[previousIndex * 2] * this.pointQuantization;
-                const bz = this.points[previousIndex * 2 + 1] * this.pointQuantization;
                 if (
                     (az > z) !== (bz > z) &&
                     x < (bx - ax) * (z - az) / (bz - az + 1e-12) + ax
@@ -351,7 +363,8 @@ export class PackedLumenField {
                     closestX = candidateX;
                     closestZ = candidateZ;
                 }
-                previousIndex = pointIndex;
+                bx = ax;
+                bz = az;
             }
 
             const distance = Math.sqrt(closestDistanceSq);
@@ -385,6 +398,85 @@ export class PackedLumenField {
         out[SLICE_CLOSEST_Z] = bestClosestZ;
         out[SLICE_CONTOUR_INDEX] = bestContour;
         return out;
+    }
+
+    // Exact sign-only counterpart of #querySlice. Mixed SDF voxels call
+    // isInsideCoordinates very frequently, but that path only consumes the
+    // interpolated signed distance. Avoid constructing the closest point and
+    // inward normal that the full contact query needs; edge traversal,
+    // winding and distance arithmetic stay identical.
+    #querySliceSignedDistance(sliceIndex, x, z) {
+        let bestSignedDistance = -Infinity;
+        const contourStart = this.sliceContourOffsets[sliceIndex];
+        const contourEnd = this.sliceContourOffsets[sliceIndex + 1];
+
+        for (let contourIndex = contourStart; contourIndex < contourEnd; contourIndex++) {
+            const boundsOffset = contourIndex * 4;
+            let boundsDx = 0;
+            let boundsDz = 0;
+            if (x < this.contourBounds[boundsOffset]) {
+                boundsDx = this.contourBounds[boundsOffset] - x;
+            } else if (x > this.contourBounds[boundsOffset + 1]) {
+                boundsDx = x - this.contourBounds[boundsOffset + 1];
+            }
+            if (z < this.contourBounds[boundsOffset + 2]) {
+                boundsDz = this.contourBounds[boundsOffset + 2] - z;
+            } else if (z > this.contourBounds[boundsOffset + 3]) {
+                boundsDz = z - this.contourBounds[boundsOffset + 3];
+            }
+            if (
+                Number.isFinite(bestSignedDistance) &&
+                bestSignedDistance < 0 &&
+                -Math.sqrt(boundsDx * boundsDx + boundsDz * boundsDz) <=
+                    bestSignedDistance
+            ) continue;
+
+            const pointStart = this.contourPointOffsets[contourIndex];
+            const pointEnd = this.contourPointOffsets[contourIndex + 1];
+            if (pointEnd <= pointStart) continue;
+            let inside = false;
+            let closestDistanceSq = Infinity;
+            const previousIndex = pointEnd - 1;
+            let bx = this.points[previousIndex * 2] * this.pointQuantization;
+            let bz = this.points[previousIndex * 2 + 1] * this.pointQuantization;
+
+            for (let pointIndex = pointStart; pointIndex < pointEnd; pointIndex++) {
+                const ax = this.points[pointIndex * 2] * this.pointQuantization;
+                const az = this.points[pointIndex * 2 + 1] * this.pointQuantization;
+                if (
+                    (az > z) !== (bz > z) &&
+                    x < (bx - ax) * (z - az) / (bz - az + 1e-12) + ax
+                ) inside = !inside;
+
+                const dx = bx - ax;
+                const dz = bz - az;
+                const lengthSq = dx * dx + dz * dz || 1;
+                const edgeT = Math.max(
+                        0,
+                        Math.min(
+                            1,
+                            ((x - ax) * dx + (z - az) * dz) / lengthSq
+                        )
+                    );
+                const candidateX = ax + dx * edgeT;
+                const candidateZ = az + dz * edgeT;
+                const px = x - candidateX;
+                const pz = z - candidateZ;
+                const distanceSq = px * px + pz * pz;
+                if (distanceSq < closestDistanceSq) {
+                    closestDistanceSq = distanceSq;
+                }
+                bx = ax;
+                bz = az;
+            }
+
+            const distance = Math.sqrt(closestDistanceSq);
+            const signedDistance = inside ? distance : -distance;
+            if (signedDistance > bestSignedDistance) {
+                bestSignedDistance = signedDistance;
+            }
+        }
+        return bestSignedDistance;
     }
 }
 

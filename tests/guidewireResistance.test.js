@@ -14,7 +14,8 @@ function createBody({ lambda = 0, normal = [0, 1, 0], active = false } = {}) {
         wallNormalX: new Float32Array([normal[0]]),
         wallNormalY: new Float32Array([normal[1]]),
         wallNormalZ: new Float32Array([normal[2]]),
-        wallFriction: 0.006
+        wallFriction: 0.002,
+        wallKineticFriction: 0.002
     };
 }
 
@@ -33,10 +34,26 @@ const wedged = sampleGuidewireResistance(createBody({
     active: true
 }));
 assert.ok(grazing.level > 0, 'wall friction should create a small insertion resistance');
+assert.ok(grazing.level < 0.01,
+    'lateral support at a grazing contact must not look like high handle resistance');
 assert.ok(
     wedged.level > grazing.level * 2,
     'a guidewire directed into the wall should report more resistance than a grazing contact'
 );
+
+const shielded = createBody({
+    lambda: 0.12,
+    normal: [1, 0, 0],
+    active: true
+});
+shielded.activeStart = 0;
+shielded.activeEnd = 1;
+shielded.collisionStartSegment = 1;
+shielded.collisionEndSegment = 0;
+const shieldedResistance = sampleGuidewireResistance(shielded);
+assert.equal(shieldedResistance.level, 0,
+    'a guidewire segment shielded by the catheter must not report vessel resistance');
+assert.equal(shieldedResistance.activeContacts, 0);
 
 const estimator = new GuidewireResistanceEstimator();
 let result = estimator.update(createBody(), { dt: 1 / 120, command: 0 });
