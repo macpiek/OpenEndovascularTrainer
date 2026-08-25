@@ -30,10 +30,10 @@ const parameterSets = Object.freeze([
     }),
     Object.freeze({
         name: 'maximum',
-        catheterShaft: 25,
-        catheterTip: 10,
-        guidewireShaft: 25,
-        guidewireTip: 10,
+        catheterShaft: 100,
+        catheterTip: 100,
+        guidewireShaft: 100,
+        guidewireTip: 100,
         relaxationRate: 50
     })
 ]);
@@ -131,7 +131,7 @@ function exercisePair(catheterType, guidewireType, parameters) {
         `catheter fold ${catheterStats.maxBendAngleDegrees}`);
 }
 
-for (const catheterType of ['pigtail', 'berenstein']) {
+for (const catheterType of ['pigtail', 'berenstein', 'sim1']) {
     for (const guidewireType of ['glidewire', 'steel-j-035']) {
         for (const parameters of parameterSets) {
             test(

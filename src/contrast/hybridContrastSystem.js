@@ -194,6 +194,7 @@ export class HybridContrastSystem {
     _deviceKeyForSource(source) {
         if (source === CONTRAST_SOURCE_SHEATH) return 'sheath';
         if (source === CONTRAST_SOURCE_CATHETER) {
+            if (this.catheter?.type === 'sim1') return 'sim1';
             return this.catheter?.type === 'berenstein'
                 ? 'berenstein'
                 : 'pigtail';

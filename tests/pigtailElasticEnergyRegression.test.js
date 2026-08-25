@@ -10,7 +10,13 @@ import {
     pigtailIntrinsicCurvature,
     pigtailTotalIntrinsicTurn,
     sampleBerensteinRestCenterline,
-    samplePigtailRestCenterline
+    samplePigtailRestCenterline,
+    integrateSim1IntrinsicTurn,
+    sampleSim1RestCenterline,
+    SIM1_DISTAL_BEND_ANGLE_RAD,
+    SIM1_MAIN_BEND_ANGLE_RAD,
+    SIM1_TIP_SHAPE_LENGTH_MM,
+    SIM1_TOTAL_TURN_RAD
 } from '../src/physics/catheterMaterialProfile.js';
 import {
     DEFAULT_TOOL_PROFILES,
@@ -27,6 +33,7 @@ assert.equal(
 
 const pigtailProfile = catheterMaterialProfile('pigtail');
 const berensteinProfile = catheterMaterialProfile('berenstein');
+const sim1Profile = catheterMaterialProfile('sim1');
 assert.equal(
     pigtailProfile.integrateIntrinsicTurn,
     integratePigtailIntrinsicTurn,
@@ -36,6 +43,11 @@ assert.equal(
     berensteinProfile.integrateIntrinsicTurn,
     integrateBerensteinIntrinsicTurn,
     'Berenstein must enter the same rod solver through its material profile'
+);
+assert.equal(
+    sim1Profile.integrateIntrinsicTurn,
+    integrateSim1IntrinsicTurn,
+    'SIM 1 must enter the common rod solver through its material profile'
 );
 assert.notEqual(
     pigtailProfile.frameNormalSign,
@@ -109,6 +121,52 @@ assert.ok(
 assert.ok(
     Math.abs(distalTangentAngle - BERENSTEIN_NATURAL_BEND_ANGLE_RAD) < 1e-6,
     'the Berenstein straight distal tip must follow the terminal bend tangent'
+);
+
+for (const spacing of [1, 2.5, 4, 5.75]) {
+    let integratedTurn = 0;
+    for (let start = 0; start < SIM1_TIP_SHAPE_LENGTH_MM; start += spacing) {
+        const length = Math.min(spacing, SIM1_TIP_SHAPE_LENGTH_MM - start);
+        integratedTurn += integrateSim1IntrinsicTurn(
+            start + length * 0.5,
+            length
+        );
+    }
+    assert.ok(
+        Math.abs(integratedTurn - SIM1_TOTAL_TURN_RAD) < 1e-9,
+        `integrated SIM 1 turn must not depend on ${spacing} mm discretization`
+    );
+}
+const sim1MainBendEnd = sampleSim1RestCenterline(
+    SIM1_TIP_SHAPE_LENGTH_MM,
+    30
+);
+const sim1BridgeEnd = sampleSim1RestCenterline(
+    SIM1_TIP_SHAPE_LENGTH_MM,
+    50
+);
+const sim1Tip = sampleSim1RestCenterline(
+    SIM1_TIP_SHAPE_LENGTH_MM,
+    SIM1_TIP_SHAPE_LENGTH_MM
+);
+assert.ok(
+    Math.abs(sim1MainBendEnd.turnAngle - SIM1_MAIN_BEND_ANGLE_RAD) < 1e-6,
+    'SIM 1 must complete its broad 180-degree return before the bridge'
+);
+assert.ok(
+    Math.abs(sim1BridgeEnd.turnAngle - SIM1_MAIN_BEND_ANGLE_RAD) < 1e-6,
+    'SIM 1 bridge must remain straight between its two bends'
+);
+assert.ok(
+    Math.abs(sim1Tip.turnAngle - (
+        SIM1_MAIN_BEND_ANGLE_RAD + SIM1_DISTAL_BEND_ANGLE_RAD
+    )) < 1e-6,
+    'SIM 1 distal leg must open outward through the opposite 30-degree bend'
+);
+assert.ok(
+    sim1Tip.tangentDistance < sim1BridgeEnd.tangentDistance &&
+        sim1Tip.normalDistance > sim1BridgeEnd.normalDistance,
+    'SIM 1 terminal leg must descend and move outward like the reference shape'
 );
 
 // The Pigtail hinge owns one elastic bending energy. An impossible legacy

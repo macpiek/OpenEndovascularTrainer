@@ -6,11 +6,14 @@ const SVG_MARGIN = 5;
 const SAMPLE_SPACING_MM = 0.5;
 const PROXIMAL_SHAFT_LENGTH_MM = Object.freeze({
   pigtail: 16,
-  berenstein: 10
+  berenstein: 10,
+  sim1: 18
 });
 
 function previewType(type) {
-  return type === 'berenstein' ? 'berenstein' : 'pigtail';
+  if (type === 'berenstein') return 'berenstein';
+  if (type === 'sim1') return 'sim1';
+  return 'pigtail';
 }
 
 /**
@@ -60,7 +63,7 @@ export function buildCatheterTipPreviewPath(type) {
 }
 
 export function renderCatheterTipPreviews(root = document) {
-  for (const type of ['pigtail', 'berenstein']) {
+  for (const type of ['pigtail', 'berenstein', 'sim1']) {
     const path = root.querySelector(`[data-catheter-tip="${type}"]`);
     if (path) path.setAttribute('d', buildCatheterTipPreviewPath(type));
   }

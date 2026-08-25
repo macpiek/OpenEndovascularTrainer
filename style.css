@@ -693,7 +693,9 @@ canvas {
 .catheter-type-picker:has(#catheterType option[value="berenstein"]:checked)
     [data-catheter-tip="berenstein"],
 .catheter-type-picker:has(#catheterType option[value="pigtail"]:checked)
-    [data-catheter-tip="pigtail"] {
+    [data-catheter-tip="pigtail"],
+.catheter-type-picker:has(#catheterType option[value="sim1"]:checked)
+    [data-catheter-tip="sim1"] {
     display: block;
 }
 

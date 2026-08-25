@@ -4,10 +4,14 @@ import {
     catheterMaterialProfile,
     integrateBerensteinIntrinsicTurn,
     integratePigtailIntrinsicTurn,
+    integrateSim1IntrinsicTurn,
     PIGTAIL_NATURAL_ARC_LENGTH_MM,
     PIGTAIL_NATURAL_TURNS,
+    SIM1_TIP_SHAPE_LENGTH_MM,
+    SIM1_TOTAL_TURN_RAD,
     berensteinIntrinsicCurvature,
-    pigtailIntrinsicCurvature
+    pigtailIntrinsicCurvature,
+    sim1IntrinsicCurvature
 } from './catheterMaterialProfile.js';
 import {
     GUIDEWIRE_TYPE_GLIDEWIRE,
@@ -237,6 +241,7 @@ function guidewireRigiditySamplers(type) {
 
 const pigtailRigidity = catheterRigiditySamplers('pigtail');
 const berensteinRigidity = catheterRigiditySamplers('berenstein');
+const sim1Rigidity = catheterRigiditySamplers('sim1');
 const glidewireRigidity = guidewireRigiditySamplers(GUIDEWIRE_TYPE_GLIDEWIRE);
 const steelJRigidity = guidewireRigiditySamplers(GUIDEWIRE_TYPE_STEEL_J_035);
 
@@ -258,6 +263,16 @@ export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
         sampleEI1: berensteinRigidity.EI,
         sampleGJ: berensteinRigidity.GJ,
         integrateKappa01: exactLegacyIntegral(integrateBerensteinIntrinsicTurn),
+        integrateKappa02: zeroIntegral,
+        integrateTau0: zeroIntegral
+    }),
+    sim1: defineKirchhoffMaterialProfile({
+        id: 'sim1',
+        naturalTipLengthMm: SIM1_TIP_SHAPE_LENGTH_MM,
+        sampleKappa01: s => -sim1IntrinsicCurvature(s),
+        sampleEI1: sim1Rigidity.EI,
+        sampleGJ: sim1Rigidity.GJ,
+        integrateKappa01: exactLegacyIntegral(integrateSim1IntrinsicTurn, -1),
         integrateKappa02: zeroIntegral,
         integrateTau0: zeroIntegral
     }),
@@ -285,13 +300,15 @@ export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
 export const KIRCHHOFF_PROFILE_EXPECTED_TURNS = Object.freeze({
     pigtail: -PIGTAIL_NATURAL_TURNS * TWO_PI,
     berenstein: BERENSTEIN_NATURAL_BEND_ANGLE_RAD,
+    sim1: -SIM1_TOTAL_TURN_RAD,
     [GUIDEWIRE_TYPE_GLIDEWIRE]: 0,
     [GUIDEWIRE_TYPE_STEEL_J_035]: STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD
 });
 
 export function normalizeKirchhoffMaterialType(type) {
     if (type === 'bernstein') return 'berenstein';
-    if (type === 'pigtail' || type === 'berenstein') return type;
+    if (type === 'sim-1' || type === 'simmons-1') return 'sim1';
+    if (type === 'pigtail' || type === 'berenstein' || type === 'sim1') return type;
     if (type === GUIDEWIRE_TYPE_STEEL_J_035) return GUIDEWIRE_TYPE_STEEL_J_035;
     return GUIDEWIRE_TYPE_GLIDEWIRE;
 }

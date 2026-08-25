@@ -41,7 +41,11 @@ function independentRigidityScaleAtDistance(
         profile.id !== GUIDEWIRE_TYPE_GLIDEWIRE &&
         profile.id !== GUIDEWIRE_TYPE_STEEL_J_035
     ) {
-        if (profile.id !== 'pigtail' && profile.id !== 'berenstein') {
+        if (
+            profile.id !== 'pigtail' &&
+            profile.id !== 'berenstein' &&
+            profile.id !== 'sim1'
+        ) {
             throw new RangeError(
                 'Independent shaft and tip stiffness scales require a supported tool profile'
             );
@@ -50,7 +54,7 @@ function independentRigidityScaleAtDistance(
         // rigidity into the straight shaft over a short proximal transition,
         // avoiding an artificial stiffness hinge at the preform boundary.
         coreLength = profile.naturalTipLengthMm;
-        transitionLength = profile.id === 'pigtail' ? 8 : 6;
+        transitionLength = profile.id === 'berenstein' ? 6 : 8;
     } else {
         const guidewireProfile = guidewireMaterialProfile(profile.id);
         coreLength = Math.max(0, guidewireProfile.tipCoreLength);

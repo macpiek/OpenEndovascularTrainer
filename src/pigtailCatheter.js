@@ -8,10 +8,7 @@ import {
 import {
     BERENSTEIN_BEND_LENGTH_MM,
     BERENSTEIN_NATURAL_BEND_ANGLE_RAD,
-    BERENSTEIN_STRAIGHT_TIP_LENGTH_MM,
-    BERENSTEIN_TIP_SHAPE_LENGTH_MM,
     catheterMaterialProfile,
-    sampleBerensteinRestCenterline,
     PIGTAIL_NATURAL_ARC_LENGTH_MM,
     PIGTAIL_NATURAL_RADIUS_MM,
     PIGTAIL_NATURAL_TURNS
@@ -26,10 +23,9 @@ const PIGTAIL_TURNS = PIGTAIL_NATURAL_TURNS;
 const PIGTAIL_ARC_LENGTH = PIGTAIL_NATURAL_ARC_LENGTH_MM;
 const CATHETER_TYPE_PIGTAIL = 'pigtail';
 const CATHETER_TYPE_BERENSTEIN = 'berenstein';
+const CATHETER_TYPE_SIM1 = 'sim1';
 const BERENSTEIN_BEND_ANGLE = BERENSTEIN_NATURAL_BEND_ANGLE_RAD;
-const BERENSTEIN_STRAIGHT_EXIT_LENGTH = BERENSTEIN_STRAIGHT_TIP_LENGTH_MM;
 const BERENSTEIN_BEND_LENGTH = BERENSTEIN_BEND_LENGTH_MM;
-const BERENSTEIN_TIP_SHAPE_LENGTH = BERENSTEIN_TIP_SHAPE_LENGTH_MM;
 const STRAIGHT_EXIT_LENGTH = 16;
 const DISTAL_RELEASE_LENGTH = STRAIGHT_EXIT_LENGTH + PIGTAIL_ARC_LENGTH;
 const MIN_GUIDE_SUPPORT = 18;
@@ -614,9 +610,7 @@ export class PigtailCatheter {
         const previousCount = this.physicsActiveCount;
         const soloXpbd = this.externalCollisionSolver &&
             this.guidewireInserted <= MIN_GUIDE_SUPPORT;
-        const unsupportedShapeLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_TIP_SHAPE_LENGTH
-            : DISTAL_RELEASE_LENGTH;
+        const unsupportedShapeLength = this.#naturalShapeLength();
         const hasLocallyUnsupportedShaft =
             this.externalCollisionSolver &&
             this.progress > this.guidewireInserted +
@@ -851,9 +845,7 @@ export class PigtailCatheter {
             body.curvatureVariationStartNode,
             count - 1 - Math.ceil(
                 (
-                    this.type === CATHETER_TYPE_PIGTAIL
-                        ? PIGTAIL_ARC_LENGTH
-                        : BERENSTEIN_TIP_SHAPE_LENGTH
+                    catheterMaterialProfile(this.type).naturalArcLength
                 ) / body.segmentLength
             )
         );
@@ -998,7 +990,7 @@ export class PigtailCatheter {
             ) {
                 const targetWasEnabled = body.restShapeEnabled[index] === 1;
                 const holdBerensteinTwist =
-                    this.type === CATHETER_TYPE_BERENSTEIN &&
+                    this.type !== CATHETER_TYPE_PIGTAIL &&
                     this._xpbdDistalTwisted &&
                     hasShapeMemory &&
                     !stabilizeFixedPath &&
@@ -1098,7 +1090,7 @@ export class PigtailCatheter {
                                 (
                                     soloXpbd ||
                                     (
-                                        this.type === CATHETER_TYPE_BERENSTEIN &&
+                                        this.type !== CATHETER_TYPE_PIGTAIL &&
                                         Math.abs(this.rotationCommand) > 0
                                     )
                                 ) &&
@@ -1133,9 +1125,9 @@ export class PigtailCatheter {
                     const dz = targetZ - body.z[index];
                     const distance = magnitude3(dx, dy, dz);
                     const maximumTargetOffset =
-                        this.type === CATHETER_TYPE_BERENSTEIN
-                            ? BERENSTEIN_XPBD_TARGET_MAX_OFFSET
-                            : PIGTAIL_XPBD_TARGET_MAX_OFFSET;
+                        this.type === CATHETER_TYPE_PIGTAIL
+                            ? PIGTAIL_XPBD_TARGET_MAX_OFFSET
+                            : BERENSTEIN_XPBD_TARGET_MAX_OFFSET;
                     if (distance > maximumTargetOffset) {
                         const scale = maximumTargetOffset / distance;
                         targetX = body.x[index] + dx * scale;
@@ -1226,9 +1218,11 @@ export class PigtailCatheter {
                         SOLO_XPBD_SHAFT_MAX_BEND_ANGLE
                     ) - materialShaftFoldLimit
                 ) * unsupportedStiffness;
-            const softTipMaxBendAngle = this.type === CATHETER_TYPE_BERENSTEIN
-                ? BERENSTEIN_XPBD_SOFT_TIP_MAX_BEND_ANGLE
-                : PIGTAIL_XPBD_SOFT_TIP_MAX_BEND_ANGLE;
+            const softTipMaxBendAngle =
+                catheterMaterialProfile(this.type).softTipMaxBendAngleDegrees ??
+                (this.type === CATHETER_TYPE_BERENSTEIN
+                    ? BERENSTEIN_XPBD_SOFT_TIP_MAX_BEND_ANGLE
+                    : PIGTAIL_XPBD_SOFT_TIP_MAX_BEND_ANGLE);
             const naturalMaxBendAngle = shaftMaxBendAngle +
                 (softTipMaxBendAngle - shaftMaxBendAngle) * softTipWeight;
             body.maxBendAngleByNode[index] = naturalMaxBendAngle +
@@ -1373,9 +1367,8 @@ export class PigtailCatheter {
             return;
         }
 
-        const distalShapeLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_TIP_SHAPE_LENGTH
-            : PIGTAIL_ARC_LENGTH;
+        const distalShapeLength =
+            catheterMaterialProfile(this.type).naturalArcLength;
         const shapeStart = Math.max(
             this.#sheathSupportEnd(),
             this.guidewireInserted,
@@ -2645,7 +2638,7 @@ export class PigtailCatheter {
         const pointCount = body ? this.physicsActiveCount : this._centerlinePointCount;
         if (pointCount < 2) return out;
 
-        if (this.type === CATHETER_TYPE_BERENSTEIN) {
+        if (this.type !== CATHETER_TYPE_PIGTAIL) {
             const port = this._injectionPortPool[0];
             if (!this.#sampleDistalCenterline(
                 0,
@@ -2655,7 +2648,7 @@ export class PigtailCatheter {
                 points,
                 pointCount
             )) return out;
-            port.kind = 'berenstein-end';
+            port.kind = `${this.type}-end`;
             port.radiusMm = PIGTAIL_CATHETER_INNER_RADIUS_MM;
             port.areaMm2 = Math.PI * PIGTAIL_CATHETER_INNER_RADIUS_MM ** 2;
             port.weight = port.areaMm2;
@@ -2728,9 +2721,8 @@ export class PigtailCatheter {
     }
 
     #updateTipMarker(pointCount) {
-        const markerDistance = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_TIP_SHAPE_LENGTH
-            : PIGTAIL_ARC_LENGTH;
+        const markerDistance =
+            catheterMaterialProfile(this.type).naturalArcLength;
         let traversed = 0;
         for (let index = pointCount - 1; index > 0; index--) {
             const distal = this._renderPoints[index];
@@ -3172,8 +3164,14 @@ export class PigtailCatheter {
     }
 
     #freeRestPoint(distance, frame, freeLength, curlScale = 1, out = new TypedVector3()) {
-        if (this.type === CATHETER_TYPE_BERENSTEIN) {
-            return this.#berensteinRestPoint(distance, frame, freeLength, curlScale, out);
+        if (this.type !== CATHETER_TYPE_PIGTAIL) {
+            return this.#profileRestPoint(
+                distance,
+                frame,
+                freeLength,
+                curlScale,
+                out
+            );
         }
 
         const deployLength = Math.min(freeLength, DISTAL_RELEASE_LENGTH);
@@ -3197,20 +3195,24 @@ export class PigtailCatheter {
             .addScaledVector(frame.normal, (Math.cos(theta) - 1) * radius);
     }
 
-    #berensteinRestPoint(distance, frame, freeLength, curlScale = 1, out = new TypedVector3()) {
-        const rest = sampleBerensteinRestCenterline(
+    #profileRestPoint(distance, frame, freeLength, curlScale = 1, out = new TypedVector3()) {
+        const profile = catheterMaterialProfile(this.type);
+        const rest = profile.sampleRestCenterline(
             freeLength,
             distance,
             curlScale,
-            this._berensteinRestSample ??= {}
+            this._profileRestSample ??= {}
         );
-        const bendNormal = this.#berensteinBendNormal(frame, this._shapeNormal);
+        const bendNormal = this.#preformBendNormal(frame, this._shapeNormal);
         return out.copy(frame.supportTip)
             .addScaledVector(frame.tangent, rest.tangentDistance)
-            .addScaledVector(bendNormal, rest.normalDistance);
+            .addScaledVector(
+                bendNormal,
+                rest.normalDistance * profile.frameNormalSign
+            );
     }
 
-    #berensteinBendNormal(frame, normal = new TypedVector3()) {
+    #preformBendNormal(frame, normal = new TypedVector3()) {
         normal.copy(frame.normal);
         normal.z *= 0.18;
         normal.addScaledVector(frame.tangent, -normal.dot(frame.tangent));
@@ -3492,9 +3494,8 @@ export class PigtailCatheter {
             return;
         }
         const unsupportedLength = Math.max(0, this.progress - this.guidewireInserted);
-        const releaseLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_STRAIGHT_EXIT_LENGTH + BERENSTEIN_BEND_LENGTH
-            : PIGTAIL_ARC_LENGTH;
+        const releaseLength =
+            catheterMaterialProfile(this.type).naturalArcLength;
         const target = smoothstep(0, releaseLength, unsupportedLength);
         const rate = target >= this._guidewireRelease
             ? SHAPE_RECOVERY_RATE
@@ -3507,18 +3508,22 @@ export class PigtailCatheter {
     }
 
     #releasedDistalRestPoint(distance, frame, unsupportedLength, curlScale, out) {
-        if (this.type === CATHETER_TYPE_BERENSTEIN) {
+        if (this.type !== CATHETER_TYPE_PIGTAIL) {
             const releaseScale = this._guidewireRelease * clamp(curlScale, 0, 1);
-            const rest = sampleBerensteinRestCenterline(
+            const profile = catheterMaterialProfile(this.type);
+            const rest = profile.sampleRestCenterline(
                 unsupportedLength,
                 distance,
                 releaseScale,
-                this._berensteinReleaseSample ??= {}
+                this._profileReleaseSample ??= {}
             );
-            const bendNormal = this.#berensteinBendNormal(frame, this._shapeNormal);
+            const bendNormal = this.#preformBendNormal(frame, this._shapeNormal);
             return out.copy(frame.supportTip)
                 .addScaledVector(frame.tangent, rest.tangentDistance)
-                .addScaledVector(bendNormal, rest.normalDistance);
+                .addScaledVector(
+                    bendNormal,
+                    rest.normalDistance * profile.frameNormalSign
+                );
         }
 
         const arcLength = Math.min(unsupportedLength, PIGTAIL_ARC_LENGTH);
@@ -3552,9 +3557,8 @@ export class PigtailCatheter {
 
     #xpbdShapeMemoryWeight(insertedDistance) {
         if (!Number.isFinite(insertedDistance) || insertedDistance <= 0) return 0;
-        const curvedTipLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_STRAIGHT_EXIT_LENGTH + BERENSTEIN_BEND_LENGTH
-            : PIGTAIL_ARC_LENGTH;
+        const curvedTipLength =
+            catheterMaterialProfile(this.type).naturalArcLength;
         const distalStart = Math.max(this.#sheathSupportEnd(), this.progress - curvedTipLength);
         const distalWeight = smoothstep(
             distalStart - 2,
@@ -3572,12 +3576,16 @@ export class PigtailCatheter {
 
     #xpbdSoftTipWeight(insertedDistance) {
         if (!Number.isFinite(insertedDistance) || insertedDistance <= 0) return 0;
-        const softTipLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_XPBD_SOFT_TIP_LENGTH
-            : XPBD_SOFT_TIP_LENGTH;
-        const transitionLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_XPBD_SOFT_TIP_TRANSITION_LENGTH
-            : XPBD_SOFT_TIP_TRANSITION_LENGTH;
+        const profile = catheterMaterialProfile(this.type);
+        const softTipLength = this.type === CATHETER_TYPE_PIGTAIL
+            ? XPBD_SOFT_TIP_LENGTH
+            : Math.max(
+                BERENSTEIN_XPBD_SOFT_TIP_LENGTH,
+                profile.naturalArcLength
+            );
+        const transitionLength = this.type === CATHETER_TYPE_PIGTAIL
+            ? XPBD_SOFT_TIP_TRANSITION_LENGTH
+            : BERENSTEIN_XPBD_SOFT_TIP_TRANSITION_LENGTH;
         const softTipStart = Math.max(
             this.#sheathSupportEnd(),
             this.progress - softTipLength
@@ -3601,9 +3609,12 @@ export class PigtailCatheter {
         ) return null;
         const supportEnd = this.#sheathSupportEnd();
         const freeLength = Math.max(0, this.progress - supportEnd);
+        const profile = catheterMaterialProfile(this.type);
         const arcLength = this.type === CATHETER_TYPE_BERENSTEIN
             ? Math.min(freeLength, BERENSTEIN_BEND_LENGTH)
-            : Math.min(freeLength, PIGTAIL_ARC_LENGTH);
+            : this.type === CATHETER_TYPE_PIGTAIL
+                ? Math.min(freeLength, PIGTAIL_ARC_LENGTH)
+                : Math.min(freeLength, profile.naturalArcLength);
         if (arcLength <= 1e-4) return null;
         const arcStart = this.progress - arcLength;
         const overlap = Math.max(
@@ -3612,9 +3623,21 @@ export class PigtailCatheter {
                 Math.max(previousDistance, arcStart)
         );
         if (overlap <= 1e-4 || distance < arcStart - 0.5) return null;
-        const curvature = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_BEND_ANGLE / BERENSTEIN_BEND_LENGTH
-            : PIGTAIL_TURNS * Math.PI * 2 / PIGTAIL_ARC_LENGTH;
+        let curvature;
+        if (this.type === CATHETER_TYPE_BERENSTEIN) {
+            curvature = BERENSTEIN_BEND_ANGLE / BERENSTEIN_BEND_LENGTH;
+        } else if (this.type === CATHETER_TYPE_PIGTAIL) {
+            curvature = PIGTAIL_TURNS * Math.PI * 2 / PIGTAIL_ARC_LENGTH;
+        } else {
+            const voronoiLength = Math.max(
+                0.5,
+                nextDistance - previousDistance
+            );
+            curvature = Math.abs(profile.integrateIntrinsicTurn(
+                Math.max(0, this.progress - distance),
+                voronoiLength
+            )) / voronoiLength;
+        }
         const turnAngle = Math.min(
             Math.PI - 1e-3,
             curvature * overlap * 0.5
@@ -3629,10 +3652,14 @@ export class PigtailCatheter {
     }
 
     #distalShapeLength(freeLength) {
-        const naturalLength = this.type === CATHETER_TYPE_BERENSTEIN
-            ? BERENSTEIN_TIP_SHAPE_LENGTH
-            : DISTAL_RELEASE_LENGTH;
+        const naturalLength = this.#naturalShapeLength();
         return Math.min(freeLength, naturalLength);
+    }
+
+    #naturalShapeLength() {
+        return this.type === CATHETER_TYPE_PIGTAIL
+            ? DISTAL_RELEASE_LENGTH
+            : catheterMaterialProfile(this.type).naturalArcLength;
     }
 
     #unsupportedCatheterScale(distance) {
@@ -4005,6 +4032,11 @@ export class PigtailCatheter {
     }
 
     #normalizeType(type) {
+        if (
+            type === CATHETER_TYPE_SIM1 ||
+            type === 'sim-1' ||
+            type === 'simmons-1'
+        ) return CATHETER_TYPE_SIM1;
         return type === CATHETER_TYPE_BERENSTEIN || type === 'bernstein'
             ? CATHETER_TYPE_BERENSTEIN
             : CATHETER_TYPE_PIGTAIL;

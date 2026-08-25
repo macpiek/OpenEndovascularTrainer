@@ -175,4 +175,38 @@ globalThis.window = { devicePixelRatio: 2 };
     );
 }
 
+// A heavily loaded tool solver may execute only one physics step per 30 Hz
+// presented frame. The 60 Hz monitor must follow presentation time instead of
+// that unrelated backlog, keeping produced samples adjacent to the sweep
+// cursor even after many buffer windows have elapsed.
+{
+    const { monitor, ecgCanvas, bpCanvas } = createMonitor();
+    const frameDt = 1 / 30;
+    const frameCount = 30 * 30;
+    for (let frame = 0; frame < frameCount; frame++) {
+        ecgCanvas.context.paths.length = 0;
+        bpCanvas.context.paths.length = 0;
+        monitor.updatePresentation(frameDt);
+    }
+    const timing = monitor.timingDiagnostics();
+    assert.ok(
+        Math.abs(
+            timing.ecgContinuousCursor - timing.ecgPresentationCursor
+        ) <= monitor.ecgSampleRate / 60 + 1e-9,
+        'ECG presentation cursor outran wall-clock sample production'
+    );
+    assert.ok(
+        Math.abs(
+            timing.bpContinuousCursor - timing.bpPresentationCursor
+        ) <= monitor.bpSampleRate / 60 + 1e-9,
+        'BP presentation cursor outran wall-clock sample production'
+    );
+    assert.ok(longestPath(ecgCanvas.context).length > 100,
+        'ECG trace disappeared after sustained physics backlog');
+    assert.ok(longestPath(bpCanvas.context).length > 100,
+        'BP trace disappeared after sustained physics backlog');
+    assert.ok(timing.presentationAdvanceAccumulator < 1 / 60,
+        'monitor fixed-step accumulator did not remain bounded');
+}
+
 console.log('patient monitor timing tests passed');

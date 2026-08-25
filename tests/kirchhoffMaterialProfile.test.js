@@ -3,7 +3,9 @@ import {
     BERENSTEIN_NATURAL_BEND_ANGLE_RAD,
     BERENSTEIN_TIP_SHAPE_LENGTH_MM,
     PIGTAIL_NATURAL_ARC_LENGTH_MM,
-    PIGTAIL_NATURAL_TURNS
+    PIGTAIL_NATURAL_TURNS,
+    SIM1_TIP_SHAPE_LENGTH_MM,
+    SIM1_TOTAL_TURN_RAD
 } from '../src/physics/catheterMaterialProfile.js';
 import {
     GUIDEWIRE_BODY_BENDING_STIFFNESS,
@@ -36,6 +38,11 @@ const PROFILE_CASES = Object.freeze([
         id: 'berenstein',
         length: BERENSTEIN_TIP_SHAPE_LENGTH_MM,
         expectedTurn: BERENSTEIN_NATURAL_BEND_ANGLE_RAD
+    }),
+    Object.freeze({
+        id: 'sim1',
+        length: SIM1_TIP_SHAPE_LENGTH_MM,
+        expectedTurn: -SIM1_TOTAL_TURN_RAD
     }),
     Object.freeze({
         id: 'glidewire',
@@ -99,9 +106,14 @@ for (const { id, length, expectedTurn } of PROFILE_CASES) {
 
 const pigtailTip = sampleKirchhoffMaterial('pigtail', 0);
 const berensteinTip = sampleKirchhoffMaterial('berenstein', 0);
+const sim1Tip = sampleKirchhoffMaterial('sim1', 0);
 const steelJTip = sampleKirchhoffMaterial('steel-j-035', 0);
 assert.ok(pigtailTip.kappa01 < 0, 'Pigtail orientation sign belongs to kappa01');
 assert.equal(berensteinTip.kappa01, 0, 'Berenstein retains its straight distal 8 mm tip');
+assert.ok(
+    Math.abs(sim1Tip.kappa01) < 1e-12,
+    'SIM 1 retains its straight distal 8 mm tip'
+);
 assert.ok(steelJTip.kappa01 > 0, 'Steel J orientation sign belongs to kappa01');
 
 const glidewireTip = sampleKirchhoffMaterial('glidewire', 0);

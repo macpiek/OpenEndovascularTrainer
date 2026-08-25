@@ -56,7 +56,7 @@ function createDeployedCatheter(type, guidewireInserted = 0) {
     return { body, catheter };
 }
 
-for (const type of ['pigtail', 'berenstein']) {
+for (const type of ['pigtail', 'berenstein', 'sim1']) {
     test(`${type} Kirchhoff material is independent of guidewire support`, () => {
         const standalone = createDeployedCatheter(type, 0);
         const supported = createDeployedCatheter(type, 140);
@@ -89,7 +89,7 @@ for (const type of ['pigtail', 'berenstein']) {
     });
 }
 
-for (const type of ['pigtail', 'berenstein']) {
+for (const type of ['pigtail', 'berenstein', 'sim1']) {
     test(`${type} sync installs only its signed Kirchhoff material rest strain`, () => {
         const { body, catheter } = createDeployedCatheter(type);
         try {

@@ -460,11 +460,11 @@ let guidewireShaftStiffnessScale = 10;
 let guidewireTipStiffnessScale = 4.55;
 let guidewireRelaxationRate = 30;
 const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
-const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 25;
-const MAX_CATHETER_TIP_STIFFNESS_SCALE = 10;
+const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
+const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
 const MIN_GUIDEWIRE_STIFFNESS_SCALE = 0.25;
-const MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE = 25;
-const MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE = 10;
+const MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE = 100;
+const MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE = 100;
 let guidewireStaticWallFriction = DEFAULT_TOOL_PROFILES.guidewire.wallFriction;
 let guidewireKineticWallFriction = 0.002;
 let xpbdContactDebugGroup = null;
@@ -3225,7 +3225,6 @@ function stepSimulation(dt = fixedDt) {
             ui.updateDose(displayedContrastDoseMl);
         }
     }
-    monitor.advance(dt);
 }
 
 const renderHiddenObjects = [];
@@ -3590,10 +3589,11 @@ function animate(time) {
     scheduleIdlePhysicsCatchup();
     const frameSimulationEndedAt = performance.now();
 
-    // Physiology advances in the fixed simulation step above, preserving its
-    // numerical behavior. Only the screen sweep follows presented wall-clock
-    // frames, so physics catch-up cannot make the trace pause and jump.
-    monitor.render(dt);
+    // Physiology is cheap and owns a fixed-step clock derived from presented
+    // wall time. It must not inherit backlog from the much more expensive rod
+    // solver: otherwise the screen cursor eventually outruns the ECG/BP sample
+    // buffers and both traces disappear while their numeric readouts continue.
+    monitor.updatePresentation(dt);
 
     guidewireMeshAccumulator += dt;
     if (guidewireMeshAccumulator >= GUIDEWIRE_MESH_UPDATE_INTERVAL) {

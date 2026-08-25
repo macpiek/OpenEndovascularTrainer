@@ -14,6 +14,26 @@ export const BERENSTEIN_TIP_SHAPE_LENGTH_MM =
     BERENSTEIN_STRAIGHT_TIP_LENGTH_MM + BERENSTEIN_BEND_LENGTH_MM;
 export const BERENSTEIN_NATURAL_BEND_ANGLE_RAD = Math.PI / 4;
 export const BERENSTEIN_CURVATURE_TRANSITION_MM = 2;
+// SIM 1 is a planar reverse-curve catheter. From the straight shaft toward
+// the distal tip it first makes a broad 180-degree return, follows a short
+// descending bridge, and then opens the terminal leg by 30 degrees in the
+// opposite direction. Keeping both bends in one signed material-curvature
+// field makes the shape a true elastic rest state rather than a rendered or
+// world-space target.
+export const SIM1_DISTAL_STRAIGHT_LENGTH_MM = 8;
+export const SIM1_DISTAL_BEND_LENGTH_MM = 12;
+export const SIM1_BRIDGE_LENGTH_MM = 20;
+export const SIM1_MAIN_BEND_LENGTH_MM = 30;
+export const SIM1_TIP_SHAPE_LENGTH_MM =
+    SIM1_DISTAL_STRAIGHT_LENGTH_MM +
+    SIM1_DISTAL_BEND_LENGTH_MM +
+    SIM1_BRIDGE_LENGTH_MM +
+    SIM1_MAIN_BEND_LENGTH_MM;
+export const SIM1_MAIN_BEND_ANGLE_RAD = Math.PI;
+export const SIM1_DISTAL_BEND_ANGLE_RAD = -Math.PI / 6;
+export const SIM1_TOTAL_TURN_RAD =
+    SIM1_MAIN_BEND_ANGLE_RAD + SIM1_DISTAL_BEND_ANGLE_RAD;
+export const SIM1_CURVATURE_TRANSITION_MM = 3;
 
 const PIGTAIL_TOTAL_TURN = PIGTAIL_NATURAL_TURNS * TWO_PI;
 const PIGTAIL_FULL_CURVATURE_LENGTH =
@@ -266,6 +286,113 @@ export function sampleBerensteinRestCenterline(
     );
 }
 
+const SIM1_DISTAL_BEND_START = SIM1_DISTAL_STRAIGHT_LENGTH_MM;
+const SIM1_DISTAL_BEND_END =
+    SIM1_DISTAL_BEND_START + SIM1_DISTAL_BEND_LENGTH_MM;
+const SIM1_MAIN_BEND_START =
+    SIM1_DISTAL_BEND_END + SIM1_BRIDGE_LENGTH_MM;
+const SIM1_MAIN_BEND_END = SIM1_TIP_SHAPE_LENGTH_MM;
+
+function smoothBendCurvature(
+    distanceFromTipMm,
+    start,
+    end,
+    transitionLength,
+    totalTurn
+) {
+    if (distanceFromTipMm <= start || distanceFromTipMm >= end) return 0;
+    const length = end - start;
+    const transition = Math.min(transitionLength, length * 0.5);
+    const peak = totalTurn / Math.max(1e-9, length - transition);
+    if (distanceFromTipMm < start + transition) {
+        return peak * smootherstep01(
+            (distanceFromTipMm - start) / transition
+        );
+    }
+    if (distanceFromTipMm > end - transition) {
+        return peak * (1 - smootherstep01(
+            (distanceFromTipMm - (end - transition)) / transition
+        ));
+    }
+    return peak;
+}
+
+export function sim1IntrinsicCurvature(distanceFromTipMm) {
+    return smoothBendCurvature(
+        distanceFromTipMm,
+        SIM1_DISTAL_BEND_START,
+        SIM1_DISTAL_BEND_END,
+        SIM1_CURVATURE_TRANSITION_MM,
+        SIM1_DISTAL_BEND_ANGLE_RAD
+    ) + smoothBendCurvature(
+        distanceFromTipMm,
+        SIM1_MAIN_BEND_START,
+        SIM1_MAIN_BEND_END,
+        SIM1_CURVATURE_TRANSITION_MM,
+        SIM1_MAIN_BEND_ANGLE_RAD
+    );
+}
+
+function integrateSim1SmoothInterval(start, end) {
+    if (end <= start) return 0;
+    const midpoint = (start + end) * 0.5;
+    const halfWidth = (end - start) * 0.5;
+    let result = 0;
+    for (const [sample, weight] of GAUSS_SAMPLES) {
+        result += weight * sim1IntrinsicCurvature(
+            midpoint + sample * halfWidth
+        );
+    }
+    return result * halfWidth;
+}
+
+export function integrateSim1IntrinsicTurn(
+    centerDistanceFromTipMm,
+    voronoiLengthMm
+) {
+    const halfLength = Math.max(0, voronoiLengthMm) * 0.5;
+    const start = Math.max(0, centerDistanceFromTipMm - halfLength);
+    const end = Math.min(
+        SIM1_TIP_SHAPE_LENGTH_MM,
+        centerDistanceFromTipMm + halfLength
+    );
+    if (end <= start) return 0;
+    const boundaries = [
+        SIM1_DISTAL_BEND_START,
+        SIM1_DISTAL_BEND_START + SIM1_CURVATURE_TRANSITION_MM,
+        SIM1_DISTAL_BEND_END - SIM1_CURVATURE_TRANSITION_MM,
+        SIM1_DISTAL_BEND_END,
+        SIM1_MAIN_BEND_START,
+        SIM1_MAIN_BEND_START + SIM1_CURVATURE_TRANSITION_MM,
+        SIM1_MAIN_BEND_END - SIM1_CURVATURE_TRANSITION_MM,
+        SIM1_MAIN_BEND_END
+    ];
+    let turn = 0;
+    let intervalStart = start;
+    for (const boundary of boundaries) {
+        if (boundary <= intervalStart || boundary >= end) continue;
+        turn += integrateSim1SmoothInterval(intervalStart, boundary);
+        intervalStart = boundary;
+    }
+    return turn + integrateSim1SmoothInterval(intervalStart, end);
+}
+
+export function sampleSim1RestCenterline(
+    exposedLengthMm,
+    distanceFromBaseMm,
+    curvatureScale = 1,
+    out = {}
+) {
+    return samplePlanarIntrinsicRestCenterline(
+        exposedLengthMm,
+        distanceFromBaseMm,
+        SIM1_TIP_SHAPE_LENGTH_MM,
+        sim1IntrinsicCurvature,
+        curvatureScale,
+        out
+    );
+}
+
 /**
  * Constitutive data consumed by the common preformed-catheter rod solver.
  * Catheter types differ only by this material profile; frame transport,
@@ -291,10 +418,24 @@ export const CATHETER_MATERIAL_PROFILES = Object.freeze({
         shaftFoldLimitDegrees: 24,
         integrateIntrinsicTurn: integrateBerensteinIntrinsicTurn,
         sampleRestCenterline: sampleBerensteinRestCenterline
+    }),
+    sim1: Object.freeze({
+        id: 'sim1',
+        naturalArcLength: SIM1_TIP_SHAPE_LENGTH_MM,
+        frameNormalSign: -1,
+        intrinsicBendCompliance: 2e-5,
+        intrinsicBendMaxCorrection: 0.012,
+        shaftFoldLimitDegrees: 34,
+        softTipMaxBendAngleDegrees: 34,
+        integrateIntrinsicTurn: integrateSim1IntrinsicTurn,
+        sampleRestCenterline: sampleSim1RestCenterline
     })
 });
 
 export function catheterMaterialProfile(type) {
+    if (type === 'sim1' || type === 'sim-1' || type === 'simmons-1') {
+        return CATHETER_MATERIAL_PROFILES.sim1;
+    }
     return type === 'berenstein' || type === 'bernstein'
         ? CATHETER_MATERIAL_PROFILES.berenstein
         : CATHETER_MATERIAL_PROFILES.pigtail;

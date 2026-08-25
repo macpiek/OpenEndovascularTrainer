@@ -347,7 +347,7 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
 // Catheters expose the same independent material controls. The preformed
 // distal zone uses the tip scale, the straight proximal material uses the
 // shaft scale, and neither control changes the manufactured rest curvature.
-for (const catheterType of ['pigtail', 'berenstein']) {
+for (const catheterType of ['pigtail', 'berenstein', 'sim1']) {
     const body = createBody(`scaled-${catheterType}`, 33, {
         ...DEFAULT_TOOL_PROFILES.catheter,
         rodModel: 'kirchhoff'

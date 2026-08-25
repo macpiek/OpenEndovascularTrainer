@@ -1,5 +1,6 @@
 const MONITOR_DPR_LIMIT = 2;
 const MONITOR_READOUT_INTERVAL = 1 / 15;
+const MONITOR_ADVANCE_STEP = 1 / 60;
 const ECG_BASELINE = 0.58;
 const ECG_TRACE_GAIN = 0.29;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -41,6 +42,7 @@ export class PatientMonitor {
         this.presentationTime = 0;
         this.ecgPresentationCursor = 0;
         this.bpPresentationCursor = 0;
+        this.presentationAdvanceAccumulator = 0;
         this.lastReadouts = Object.create(null);
         this.lastClockSecond = -1;
         this.clockLabel = '00:00';
@@ -152,6 +154,26 @@ export class PatientMonitor {
         this.renderCount += 1;
     }
 
+    // Keep physiology and the screen sweep on one presentation-time clock.
+    // The fixed inner step preserves deterministic waveform generation, while
+    // decoupling it from the expensive tool solver prevents a physics backlog
+    // from letting the screen cursor run beyond every available sample.
+    updatePresentation(dt, fixedStep = MONITOR_ADVANCE_STEP) {
+        if (!Number.isFinite(dt) || dt < 0) return;
+        const step = Number.isFinite(fixedStep) && fixedStep > 0
+            ? fixedStep
+            : MONITOR_ADVANCE_STEP;
+        this.presentationAdvanceAccumulator += dt;
+        while (this.presentationAdvanceAccumulator + 1e-12 >= step) {
+            this.advance(step);
+            this.presentationAdvanceAccumulator -= step;
+        }
+        if (this.presentationAdvanceAccumulator < 0) {
+            this.presentationAdvanceAccumulator = 0;
+        }
+        this.render(dt);
+    }
+
     // Preserve the old public entry point for embedders. The simulator uses
     // advance() and render() separately so physics catch-up cannot produce
     // several invisible monitor draws between two presented frames.
@@ -182,6 +204,8 @@ export class PatientMonitor {
             bpPresentationFractionalPhase:
                 this.bpPresentationCursor - Math.floor(this.bpPresentationCursor),
             presentationTimeSeconds: this.presentationTime,
+            presentationAdvanceAccumulator:
+                this.presentationAdvanceAccumulator,
             sweepWindowSeconds: this.ecgBufferLength / this.ecgSampleRate,
             renderCount: this.renderCount
         };
