@@ -9,6 +9,16 @@ import {
     dsaScoreDimensions
 } from '../src/imaging/dsaCaptureSizing.js';
 import { composeDsaFrameRangeRedChannels } from '../src/imaging/dsaFrameComposite.js';
+import { DSA_NEUTRAL_RED } from '../src/imaging/dsaDisplayParameters.js';
+import {
+    MAX_COLLIMATION,
+    collimatedFieldReduction,
+    createCollimatorFieldPolygon,
+    createCollimatorGeometry,
+    isDetectorPointInsideCollimator,
+    normalizeCollimatorSettings,
+    sideCollimatorBoundaryXAtY
+} from '../src/imaging/collimatorGeometry.js';
 
 const state = new DsaRoadmapState({
     maxSequences: 3,
@@ -223,9 +233,12 @@ assert.equal(state.getSnapshot().sequences.length, 3);
 // blank one and ignores the dark field outside collimation.
 const width = 80;
 const height = 64;
-const blank = new Uint8Array(width * height).fill(219);
+const blank = new Uint8Array(width * height).fill(
+    Math.round(DSA_NEUTRAL_RED)
+);
 const smallVessel = blank.slice();
 const filledVessels = blank.slice();
+const brightMotionResidual = blank.slice();
 for (let y = 20; y < 44; y++) {
     for (let x = 34; x < 39; x++) {
         smallVessel[x + y * width] = 42;
@@ -234,10 +247,20 @@ for (let y = 20; y < 44; y++) {
         filledVessels[x + y * width] = 42;
     }
 }
+brightMotionResidual.fill(235, 30 * width, 34 * width);
 const blankScore = scoreDsaFrameRedChannel(blank, width, height);
 const smallScore = scoreDsaFrameRedChannel(smallVessel, width, height);
 const filledScore = scoreDsaFrameRedChannel(filledVessels, width, height);
+const brightResidualScore = scoreDsaFrameRedChannel(
+    brightMotionResidual,
+    width,
+    height
+);
 assert.ok(blankScore < 1e-6, `blank DSA score was ${blankScore}`);
+assert.ok(
+    brightResidualScore < 1e-6,
+    `bright motion residual scored as contrast: ${brightResidualScore}`
+);
 assert.ok(smallScore > blankScore);
 assert.ok(filledScore > smallScore * 3);
 
@@ -265,6 +288,264 @@ assert.equal(
 assert.ok(
     scoreProjectedContrastRgba(denseProjection, width, height) >
         scoreProjectedContrastRgba(sparseProjection, width, height) * 3
+);
+
+const legacyCollimator = createCollimatorGeometry({ collimation: 0.32 });
+assert.equal(legacyCollimator.left, 0.32);
+assert.equal(legacyCollimator.right, 0.32);
+assert.equal(legacyCollimator.top, 0.32);
+assert.equal(legacyCollimator.bottom, 0.32);
+assert.equal(legacyCollimator.sideRotationDegrees, 0);
+assert.deepEqual(
+    normalizeCollimatorSettings({
+        collimationLeft: -1,
+        collimationRight: 5,
+        collimationTop: 0.2,
+        collimationBottom: 0.4,
+        sideCollimatorRotationDegrees: 140
+    }),
+    {
+        left: 0,
+        right: MAX_COLLIMATION,
+        top: 0.2,
+        bottom: 0.4,
+        sideRotationDegrees: 30
+    }
+);
+assert.ok(
+    collimatedFieldReduction({
+        collimationLeft: 0.5,
+        collimationRight: 0.1,
+        collimationTop: 0.1,
+        collimationBottom: 0.1
+    }) > collimatedFieldReduction({
+        collimationLeft: 0.1,
+        collimationRight: 0.1,
+        collimationTop: 0.1,
+        collimationBottom: 0.1
+    })
+);
+
+const independentlyMovedLeft = createCollimatorGeometry({
+    collimationLeft: 0.5,
+    collimationRight: 0,
+    collimationTop: 0,
+    collimationBottom: 0
+});
+assert.ok(independentlyMovedLeft.leftBoundary > -0.4);
+assert.equal(independentlyMovedLeft.rightBoundary, 1);
+assert.equal(
+    isDetectorPointInsideCollimator(-0.8, 0, 1, independentlyMovedLeft),
+    false
+);
+assert.equal(
+    isDetectorPointInsideCollimator(0.8, 0, 1, independentlyMovedLeft),
+    true
+);
+const independentlyMovedTop = createCollimatorGeometry({
+    collimationLeft: 0,
+    collimationRight: 0,
+    collimationTop: 0.5,
+    collimationBottom: 0
+});
+assert.ok(independentlyMovedTop.topBoundary < 0.4);
+assert.equal(independentlyMovedTop.bottomBoundary, -1);
+assert.equal(
+    isDetectorPointInsideCollimator(0, 0.8, 1, independentlyMovedTop),
+    false
+);
+assert.equal(
+    isDetectorPointInsideCollimator(0, -0.8, 1, independentlyMovedTop),
+    true
+);
+
+// Detector magnification must not resize the monitor field or move the
+// displayed shutter mask. Only the anatomy behind that fixed viewport zooms.
+const fixedViewportCollimation = {
+    collimationLeft: 0.35,
+    collimationRight: 0,
+    collimationTop: 0,
+    collimationBottom: 0
+};
+const fixedViewportGeometry = createCollimatorGeometry(fixedViewportCollimation);
+const ignoredZoomGeometry = createCollimatorGeometry({
+    ...fixedViewportCollimation,
+    detectorZoomFactor: 2.1
+});
+assert.deepEqual(ignoredZoomGeometry, fixedViewportGeometry);
+assert.equal(
+    isDetectorPointInsideCollimator(-0.8, 0, 1, ignoredZoomGeometry),
+    false
+);
+assert.equal(
+    collimatedFieldReduction({
+        ...fixedViewportCollimation,
+        detectorZoomFactor: 2.1
+    }),
+    collimatedFieldReduction(fixedViewportCollimation)
+);
+
+// A narrow field between the side shutters keeps a vertical vessel, while
+// independently narrowing the top/bottom shutters removes most of it.
+const squareSize = 80;
+const verticalProjection = new Uint8Array(squareSize * squareSize * 4);
+for (let y = 4; y < squareSize - 4; y++) {
+    for (let x = 37; x < 43; x++) {
+        const offset = (x + y * squareSize) * 4;
+        verticalProjection[offset] = 180;
+        verticalProjection[offset + 1] = 180;
+        verticalProjection[offset + 2] = 180;
+    }
+}
+const horizontalFieldScore = scoreProjectedContrastRgba(
+    verticalProjection,
+    squareSize,
+    squareSize,
+    {
+        collimationLeft: 0.6,
+        collimationRight: 0.6,
+        collimationTop: 0,
+        collimationBottom: 0,
+        sideCollimatorRotationDegrees: 0
+    }
+);
+const verticalFieldScore = scoreProjectedContrastRgba(
+    verticalProjection,
+    squareSize,
+    squareSize,
+    {
+        collimationLeft: 0,
+        collimationRight: 0,
+        collimationTop: 0.6,
+        collimationBottom: 0.6,
+        sideCollimatorRotationDegrees: 0
+    }
+);
+assert.ok(horizontalFieldScore > verticalFieldScore * 3);
+
+// The side-shutter pair rotates rigidly around the detector center. The
+// perpendicular distance of each boundary from that center is retained, which
+// distinguishes rotation from a simple x += tan(angle) * y shear.
+const straightSideGeometry = createCollimatorGeometry({
+    collimationLeft: 0.6,
+    collimationRight: 0.6,
+    collimationTop: 0,
+    collimationBottom: 0,
+    sideCollimatorRotationDegrees: 0
+});
+const rotatedSideGeometry = createCollimatorGeometry({
+    collimationLeft: 0.6,
+    collimationRight: 0.6,
+    collimationTop: 0,
+    collimationBottom: 0,
+    sideCollimatorRotationDegrees: 30
+});
+const sampleY = 0.7;
+const rotatedCenterX = sideCollimatorBoundaryXAtY(
+    rotatedSideGeometry.centerX,
+    sampleY,
+    rotatedSideGeometry
+);
+assert.ok(
+    isDetectorPointInsideCollimator(
+        rotatedCenterX,
+        sampleY,
+        1,
+        rotatedSideGeometry
+    )
+);
+assert.equal(
+    isDetectorPointInsideCollimator(
+        rotatedCenterX,
+        sampleY,
+        1,
+        straightSideGeometry
+    ),
+    false
+);
+const rotatedRightBoundaryAtCenter = sideCollimatorBoundaryXAtY(
+    rotatedSideGeometry.rightBoundary,
+    0,
+    rotatedSideGeometry
+);
+assert.ok(rotatedRightBoundaryAtCenter > rotatedSideGeometry.rightBoundary);
+assert.equal(
+    isDetectorPointInsideCollimator(
+        rotatedRightBoundaryAtCenter - 0.005,
+        0,
+        1,
+        rotatedSideGeometry
+    ),
+    true,
+    'rotated boundary must retain its distance from the detector center'
+);
+assert.equal(
+    isDetectorPointInsideCollimator(
+        rotatedRightBoundaryAtCenter - 0.005,
+        0,
+        1,
+        straightSideGeometry
+    ),
+    false,
+    'rotation must not behave like a simple shear'
+);
+assert.ok(
+    createCollimatorFieldPolygon({
+        collimationLeft: 0.6,
+        collimationRight: 0.6,
+        collimationTop: 0,
+        collimationBottom: 0,
+        sideCollimatorRotationDegrees: 30
+    }).every(point => Number.isFinite(point.x) && Number.isFinite(point.y)),
+    'preview polygon must remain finite at maximum rotation'
+);
+const openRotatedSideGeometry = createCollimatorGeometry({
+    collimationLeft: 0,
+    collimationRight: 0,
+    collimationTop: 0,
+    collimationBottom: 0,
+    sideCollimatorRotationDegrees: 30
+});
+assert.equal(
+    isDetectorPointInsideCollimator(
+        0.85,
+        -0.4,
+        1,
+        openRotatedSideGeometry
+    ),
+    true,
+    'rotated shutters may expose the image only inside the detector aperture'
+);
+assert.equal(
+    isDetectorPointInsideCollimator(
+        0.95,
+        -0.4,
+        1,
+        openRotatedSideGeometry
+    ),
+    false,
+    'rotated shutters must never reveal image outside the detector aperture'
+);
+const verticallyCollimatedGeometry = createCollimatorGeometry({
+    collimationLeft: 0,
+    collimationRight: 0,
+    collimationTop: 0.5,
+    collimationBottom: 0.5,
+    sideCollimatorRotationDegrees: 30
+});
+assert.equal(
+    isDetectorPointInsideCollimator(
+        sideCollimatorBoundaryXAtY(
+            verticallyCollimatedGeometry.centerX,
+            sampleY,
+            verticallyCollimatedGeometry
+        ),
+        sampleY,
+        1,
+        verticallyCollimatedGeometry
+    ),
+    false,
+    'rotating side shutters must not rotate the top/bottom field limit'
 );
 
 console.log('DSA sequence and roadmap state tests passed');

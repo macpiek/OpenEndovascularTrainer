@@ -45,6 +45,15 @@ import {
     dsaArchiveDimensions,
     dsaScoreDimensions
 } from './imaging/dsaCaptureSizing.js';
+import {
+    DEFAULT_COLLIMATION,
+    collimatedFieldReduction
+} from './imaging/collimatorGeometry.js';
+import { applyDetectorZoomTechnique } from './imaging/detectorZoomModes.js';
+import {
+    DEFAULT_FLUORO_PULSE_WIDTH_MS,
+    estimateFluoroDoseRateMgyPerSecond
+} from './imaging/xrayDoseRate.js';
 import { composeDsaFrameRangeRedChannels } from './imaging/dsaFrameComposite.js';
 import {
     GUIDEWIRE_RADIUS_MM,
@@ -102,12 +111,30 @@ const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
 const loadingScreen = document.getElementById('loadingScreen');
 const loadingMessage = document.getElementById('loadingMessage');
+const loadingStepIndicators = Array.from(
+    document.querySelectorAll('.loading-steps span')
+);
 const loadingMilestones = new Set(['aorta', 'skeleton', 'firstFrame']);
 let loadingDismissed = false;
 let firstFrameFallbackTimer = null;
 
 function setLoadingMessage(message) {
     if (loadingMessage) loadingMessage.textContent = message;
+    const normalizedMessage = String(message || '').toLowerCase();
+    let activeStep = 0;
+    if (normalizedMessage.includes('anatomy')) activeStep = 1;
+    if (
+        normalizedMessage.includes('vessel') ||
+        normalizedMessage.includes('skeleton')
+    ) activeStep = 2;
+    if (
+        normalizedMessage.includes('first frame') ||
+        normalizedMessage.includes('ready')
+    ) activeStep = 3;
+    loadingStepIndicators.forEach((indicator, index) => {
+        indicator.classList.toggle('is-complete', index < activeStep);
+        indicator.classList.toggle('is-active', index === activeStep);
+    });
 }
 
 function loadingAssetsReady() {
@@ -118,6 +145,7 @@ function hideLoadingScreen() {
     if (loadingDismissed || !loadingScreen) return;
     loadingDismissed = true;
     setLoadingMessage('Ready');
+    document.body.classList.remove('system-initializing');
     loadingScreen.classList.add('is-hidden');
     loadingScreen.addEventListener('transitionend', () => loadingScreen.remove(), { once: true });
     setTimeout(() => loadingScreen.remove(), 900);
@@ -390,7 +418,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         roadmapEnabled: { value: false },
         roadmapValid: { value: false },
         cineEnabled: { value: false },
-        time: { value: 0 },
+        fluoroPulseIndex: { value: 0 },
         noiseLevel: { value: 0.1 },
         imageBrightness: { value: 0.18 },
         imageContrast: { value: 1.33 },
@@ -398,7 +426,13 @@ const displayMaterial = new THREE.ShaderMaterial({
         autoExposureLevel: { value: 0.0 },
         pulseRate: { value: 15.0 },
         scatterStrength: { value: 0.45 },
-        collimation: { value: 0.08 },
+        collimationLeft: { value: DEFAULT_COLLIMATION },
+        collimationRight: { value: DEFAULT_COLLIMATION },
+        collimationTop: { value: DEFAULT_COLLIMATION },
+        collimationBottom: { value: DEFAULT_COLLIMATION },
+        sideCollimatorRotationDegrees: { value: 0 },
+        detectorZoomNoiseScale: { value: 1 },
+        detectorZoomScatterScale: { value: 1 },
         boneOpacity: { value: 0.62 },
         resolution: { value: new THREE.Vector2(initialFluoroTargetWidth, initialFluoroTargetHeight) },
         edgeStrength: { value: 0.1 },
@@ -942,6 +976,12 @@ const ui = initUI({
     },
     onStopInjection: () => {
         contrastSystem?.stopInjection();
+    },
+    onCollimatorChange: () => {
+        dsaRoadmapState.invalidate(
+            'Collimator changed · roadmap retained · acquire a new DSA mask'
+        );
+        syncDsaRoadmapState();
     },
     onModeChange: (f) => {
         fluoroscopy = f;
@@ -3091,6 +3131,7 @@ let simulationAcceptedTime = 0;
 let simulationStepEstimateMs = 1;
 let simulationCatchupPending = false;
 let lastFluoroPulseTime = -Infinity;
+let fluoroPulseIndex = 0;
 let autoExposureLevel = 0;
 const autoExposureBeamDirection = new THREE.Vector3();
 let contactMarkerAccumulator = CONTACT_MARKER_UPDATE_INTERVAL;
@@ -3099,6 +3140,16 @@ let pigtailMeshAccumulator = PIGTAIL_MESH_UPDATE_INTERVAL;
 let browserBenchmarkUiAccumulator = Infinity;
 let injectionUiAccumulator = Infinity;
 let contrastDiagnosticsAccumulator = Infinity;
+
+function activeCollimatorSettings(uniforms = displayMaterial.uniforms) {
+    return {
+        collimationLeft: uniforms.collimationLeft.value,
+        collimationRight: uniforms.collimationRight.value,
+        collimationTop: uniforms.collimationTop.value,
+        collimationBottom: uniforms.collimationBottom.value,
+        sideCollimatorRotationDegrees: uniforms.sideCollimatorRotationDegrees.value
+    };
+}
 
 function updateAutoExposure(dt) {
     const uniforms = displayMaterial.uniforms;
@@ -3113,7 +3164,12 @@ function updateAutoExposure(dt) {
     const lateralPath = Math.abs(autoExposureBeamDirection.x);
     const cranialPath = Math.abs(autoExposureBeamDirection.y);
     const obliquityLoad = Math.max(0, lateralPath - 0.1);
-    const collimationAmount = THREE.MathUtils.clamp((uniforms.collimation.value || 0) / 0.45, 0, 1);
+    // The inset detector frame is a monitor-layout choice, not additional
+    // physical collimation. Keep AEC referenced to the full detector field.
+    const collimationAmount = collimatedFieldReduction({
+        ...activeCollimatorSettings(uniforms),
+        detectorApertureHalfExtent: 1
+    });
     const collimationExposureRelief = 1 - collimationAmount * 0.34;
     const uncollimatedTarget = 0.012 + obliquityLoad * 0.15 + cranialPath * 0.035;
     const target = THREE.MathUtils.clamp(
@@ -3127,16 +3183,34 @@ function updateAutoExposure(dt) {
 
 function updateXrayTechniqueReadout() {
     const uniforms = displayMaterial.uniforms;
-    const pulseRate = THREE.MathUtils.clamp(uniforms.pulseRate.value || 15, 7.5, 30);
+    const detectorZoomMode = ui.getDetectorZoomMode?.();
+    const pulseRate = THREE.MathUtils.clamp(uniforms.pulseRate.value || 15, 4, 30);
     const exposureRatio = uniforms.autoExposureEnabled.value
         ? THREE.MathUtils.clamp(autoExposureLevel / 0.18, 0, 1)
         : 0.25;
-    const kV = 70 + exposureRatio * 28;
+    const baseKv = 70 + exposureRatio * 28;
     const pulseLoad = Math.pow(pulseRate / 15, 0.72);
-    const collimationAmount = THREE.MathUtils.clamp((uniforms.collimation.value || 0) / 0.45, 0, 1);
+    const collimationAmount = collimatedFieldReduction({
+        ...activeCollimatorSettings(uniforms),
+        detectorApertureHalfExtent: 1
+    });
     const collimationDoseLoad = 1 - collimationAmount * 0.42;
-    const mA = (2.4 + exposureRatio * 7.2) * pulseLoad * collimationDoseLoad;
-    ui.updateXrayTechnique(kV, mA);
+    const baseMa = (2.4 + exposureRatio * 7.2) * pulseLoad * collimationDoseLoad;
+    const technique = applyDetectorZoomTechnique({
+        kv: baseKv,
+        ma: baseMa,
+        pulseWidthMs: DEFAULT_FLUORO_PULSE_WIDTH_MS
+    }, detectorZoomMode);
+    uniforms.detectorZoomNoiseScale.value = detectorZoomMode?.quantumNoiseScale ?? 1;
+    uniforms.detectorZoomScatterScale.value = detectorZoomMode?.scatterScale ?? 1;
+    const doseRateMgyPerSecond = estimateFluoroDoseRateMgyPerSecond({
+        kv: technique.kv,
+        ma: technique.ma,
+        pulseRate,
+        pulseWidthMs: technique.pulseWidthMs,
+        emitting: fluoroscopy
+    });
+    ui.updateXrayTechnique(technique.kv, technique.ma, doseRateMgyPerSecond);
 }
 
 function stepSimulation(dt = fixedDt) {
@@ -3581,10 +3655,7 @@ function projectedContrastScore() {
         dsaContrastScoreReadback,
         width,
         height,
-        {
-            collimation:
-                displayMaterial.uniforms.collimation.value
-        }
+        activeCollimatorSettings()
     );
 }
 
@@ -3886,6 +3957,8 @@ function animate(time) {
             return;
         }
         lastFluoroPulseTime = time;
+        fluoroPulseIndex += 1;
+        displayMaterial.uniforms.fluoroPulseIndex.value = fluoroPulseIndex;
 
         // Fluoroscopy path:
         // 1) render front/back depth for legacy thickness/scatter cues
@@ -3959,7 +4032,6 @@ function animate(time) {
         displayMaterial.uniforms.catheterMarkerTexture.value = catheterMarkerTarget.texture;
         displayMaterial.uniforms.sheathTexture.value = sheathTarget.texture;
         displayMaterial.uniforms.boneTexture.value = boneTarget.texture;
-        displayMaterial.uniforms.time.value = time * 0.001;
         processDsaRoadmapCapture();
         renderer.setRenderTarget(null);
         renderer.render(displayScene, postCamera);
