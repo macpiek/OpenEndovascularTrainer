@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "docs:generate": "node scripts/generate-code-docs.mjs",
+    "docs:check": "node scripts/generate-code-docs.mjs --check",
     "collision:build": "node scripts/build-collision-asset.mjs",
     "benchmark:collision": "node --expose-gc scripts/collision-benchmark.mjs",
     "benchmark:kirchhoff": "node scripts/kirchhoff-runtime-benchmark.mjs",

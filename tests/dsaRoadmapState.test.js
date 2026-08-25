@@ -8,6 +8,7 @@ import {
     dsaArchiveDimensions,
     dsaScoreDimensions
 } from '../src/imaging/dsaCaptureSizing.js';
+import { composeDsaFrameRangeRedChannels } from '../src/imaging/dsaFrameComposite.js';
 
 const state = new DsaRoadmapState({
     maxSequences: 3,
@@ -80,6 +81,24 @@ assert.equal(state.getSnapshot().selectedFrameIndex, 0);
 assert.equal(state.useBestFrame(firstRecording.sequenceId).ok, true);
 assert.equal(state.getSnapshot().selectedFrameIndex, 1);
 
+// A roadmap can also combine a continuous frame range. The state normalizes
+// reversed endpoints and exposes every source texture key to the renderer.
+const rangeRoadmap = state.selectRoadmapRange(
+    firstRecording.sequenceId,
+    2,
+    0
+);
+assert.equal(rangeRoadmap.ok, true);
+assert.equal(rangeRoadmap.startFrameIndex, 0);
+assert.equal(rangeRoadmap.endFrameIndex, 2);
+assert.equal(rangeRoadmap.frameCount, 3);
+assert.deepEqual(rangeRoadmap.storageKeys, ['1:0', '1:1', '1:2']);
+snapshot = state.getSnapshot();
+assert.equal(snapshot.roadmapCompositeActive, true);
+assert.equal(snapshot.selectedFrameIndex, null);
+assert.equal(snapshot.selectedRangeStartIndex, 0);
+assert.equal(snapshot.selectedRangeEndIndex, 2);
+
 // Archived cine uses the captured frame timing, can be paused/resumed, and
 // remains independent from the frame currently selected for roadmapping.
 assert.equal(
@@ -92,12 +111,38 @@ assert.equal(cineAdvance.changed, true);
 assert.equal(state.getSnapshot().cineFrameIndex, 1);
 assert.equal(state.pauseCine({ nowMs: 1018 }).ok, true);
 assert.equal(state.getSnapshot().cinePlaying, false);
+assert.equal(state.seekCineFrame(0, { nowMs: 1500 }).ok, true);
+assert.equal(state.getSnapshot().cineFrameIndex, 0);
+assert.equal(state.setCinePlaybackRate(2, { nowMs: 1500 }).ok, true);
+assert.equal(state.getSnapshot().cinePlaybackRate, 2);
 assert.equal(state.toggleCine(firstRecording.sequenceId, { nowMs: 2000 }).ok, true);
 assert.equal(state.getSnapshot().cinePlaying, true);
-state.advanceCine({ nowMs: 2010 });
+state.advanceCine({ nowMs: 2005 });
+assert.equal(state.getSnapshot().cineFrameIndex, 1);
+assert.equal(state.seekCineFrame(2, { nowMs: 2006 }).ok, true);
 assert.equal(state.getSnapshot().cineFrameIndex, 2);
+assert.equal(state.setCinePlaybackRate(0.5, { nowMs: 2006 }).ok, true);
+assert.equal(state.getSnapshot().cinePlaybackRate, 0.5);
 assert.equal(state.stopCine().ok, true);
 assert.equal(state.getSnapshot().cineSequenceId, null);
+
+// The range compositor keeps the darkest vessel signal from every selected
+// frame, producing the temporal union used by the roadmap texture.
+assert.deepEqual(
+    [...composeDsaFrameRangeRedChannels([
+        new Uint8Array([220, 40, 220, 220]),
+        new Uint8Array([220, 220, 35, 220]),
+        new Uint8Array([220, 220, 220, 28])
+    ])],
+    [220, 40, 35, 28]
+);
+assert.equal(
+    composeDsaFrameRangeRedChannels([
+        new Uint8Array([220, 40]),
+        new Uint8Array([220])
+    ]),
+    null
+);
 
 // Sequence frames retain the full detector buffer. Only the lightweight
 // contrast-scoring pass is allowed to downsample.

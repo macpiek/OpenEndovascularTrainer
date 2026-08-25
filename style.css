@@ -358,7 +358,10 @@ canvas {
 }
 
 .dsa-cine-controls {
-    flex: 0 0 auto;
+    position: absolute;
+    top: 42px;
+    left: 0;
+    width: min(610px, calc(100vw - 300px));
     min-height: 34px;
     box-sizing: border-box;
     display: flex;
@@ -376,11 +379,42 @@ canvas {
 }
 
 #dsaCineStatus {
-    min-width: 112px;
+    min-width: 126px;
     color: #dffff8;
     font: 800 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+}
+
+.dsa-cine-frame-control,
+.dsa-cine-speed-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    color: rgba(223, 255, 248, 0.78);
+    font-size: 9px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.dsa-cine-frame-control {
+    flex: 1 1 150px;
+}
+
+#dsaCineFrame {
+    min-width: 76px;
+    width: 100%;
+}
+
+#dsaCineSpeed {
+    min-height: 26px;
+    border: 1px solid rgba(146, 239, 220, 0.42);
+    border-radius: 3px;
+    background: rgba(7, 50, 47, 0.96);
+    color: #edfffb;
+    font-size: 10px;
+    font-weight: 750;
 }
 
 .dsa-cine-controls button {
@@ -1213,6 +1247,127 @@ canvas {
     font-variant-numeric: tabular-nums;
 }
 
+.dsa-roadmap-range {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(270px, 1fr) auto;
+    gap: 5px 8px;
+    align-items: end;
+    padding-top: 6px;
+    border-top: 1px solid rgba(115, 180, 255, 0.2);
+}
+
+.dsa-roadmap-range-selector {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    color: rgba(225, 244, 255, 0.78);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.dsa-range-slider {
+    --range-start: 0%;
+    --range-end: 100%;
+    position: relative;
+    height: 22px;
+}
+
+.dsa-range-slider::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    top: 9px;
+    right: 0;
+    left: 0;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(
+        to right,
+        rgba(220, 232, 240, 0.72) 0 var(--range-start),
+        #3d92ff var(--range-start) var(--range-end),
+        rgba(220, 232, 240, 0.72) var(--range-end) 100%
+    );
+    box-shadow: inset 0 0 0 1px rgba(0, 22, 42, 0.38);
+}
+
+.dsa-range-slider input[type="range"] {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    width: 100%;
+    height: 22px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    pointer-events: none;
+}
+
+.dsa-range-slider #dsaRangeEnd {
+    z-index: 3;
+}
+
+.dsa-range-slider input[type="range"]:focus {
+    z-index: 4;
+    outline: none;
+}
+
+.dsa-range-slider input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: transparent;
+}
+
+.dsa-range-slider input[type="range"]::-webkit-slider-thumb {
+    width: 15px;
+    height: 15px;
+    margin-top: -5.5px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid #d8edff;
+    border-radius: 50%;
+    background: #3186ef;
+    box-shadow: 0 0 0 1px rgba(0, 34, 71, 0.75);
+    cursor: ew-resize;
+    pointer-events: auto;
+}
+
+.dsa-range-slider input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: transparent;
+}
+
+.dsa-range-slider input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #d8edff;
+    border-radius: 50%;
+    background: #3186ef;
+    box-shadow: 0 0 0 1px rgba(0, 34, 71, 0.75);
+    cursor: ew-resize;
+    pointer-events: auto;
+}
+
+.dsa-range-slider.disabled {
+    opacity: 0.42;
+}
+
+.dsa-range-slider.disabled input[type="range"]::-webkit-slider-thumb {
+    cursor: not-allowed;
+}
+
+.dsa-roadmap-range button {
+    padding: 4px 10px;
+}
+
+#dsaRangeInfo {
+    grid-column: 1 / -1;
+    min-height: 14px;
+    color: #ffe5a3;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+}
+
 .dsa-gallery-heading {
     grid-column: 1 / -1;
     display: flex;
@@ -1347,7 +1502,9 @@ canvas {
 }
 
 .dsa-roadmap-opacity,
-.dsa-roadmap-background {
+.dsa-roadmap-background,
+.dsa-roadmap-edge-enhancement,
+.dsa-roadmap-edge-darkness {
     min-width: 170px;
 }
 

@@ -49,6 +49,8 @@ uniform float contrastGain;
 uniform float dsaGain;
 uniform float roadmapOpacity;
 uniform float roadmapBackgroundVisibility;
+uniform float roadmapEdgeEnhancement;
+uniform float roadmapEdgeDarkness;
 varying vec2 vUv;
 
 float saturate(float value) {
@@ -247,6 +249,29 @@ float edgeFactor(vec2 uv) {
     float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
     return length(vec2(gx, gy));
 }
+
+float roadmapVesselAt(vec2 uv) {
+    float storedRoadmapLuma = texture2D(roadmapTexture, uv).r /
+        max(0.001, gray.r * 0.992);
+    float roadmapDifference = max(0.0, 0.94 - storedRoadmapLuma);
+    return smoothstep(0.032, 0.34, roadmapDifference);
+}
+
+float roadmapEdgeAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float tl = roadmapVesselAt(uv + texel * vec2(-1.0, -1.0));
+    float t  = roadmapVesselAt(uv + texel * vec2(0.0, -1.0));
+    float tr = roadmapVesselAt(uv + texel * vec2(1.0, -1.0));
+    float l  = roadmapVesselAt(uv + texel * vec2(-1.0, 0.0));
+    float r  = roadmapVesselAt(uv + texel * vec2(1.0, 0.0));
+    float bl = roadmapVesselAt(uv + texel * vec2(-1.0, 1.0));
+    float b  = roadmapVesselAt(uv + texel * vec2(0.0, 1.0));
+    float br = roadmapVesselAt(uv + texel * vec2(1.0, 1.0));
+    float gx = -tl - 2.0 * l - bl + tr + 2.0 * r + br;
+    float gy = -tl - 2.0 * t - tr + bl + 2.0 * b + br;
+    return smoothstep(0.08, 1.4, length(vec2(gx, gy)));
+}
+
 void main() {
     vec4 tex = texture2D(uTexture, vUv);
     if (fluoroscopy) {
@@ -312,14 +337,13 @@ void main() {
         } else if (roadmapEnabled && roadmapValid) {
             // A roadmap target stores a DSA frame (light background, dark
             // opacified vessels). Convert its darkness to a fixed vessel mask
-            // and superimpose it on the current live fluoroscopy.
-            float storedRoadmapLuma = texture2D(roadmapTexture, vUv).r /
-                max(0.001, gray.r * 0.992);
+            // and use that mask to brighten the corresponding vessels in the
+            // current live fluoroscopy.
             // Reject subtraction noise before turning the saved DSA frame into
             // a persistent vessel stencil. True iodine-filled vessels are much
             // darker than the 2-3% detector mottle around the DSA background.
-            float roadmapDifference = max(0.0, 0.94 - storedRoadmapLuma);
-            float roadmapVessel = smoothstep(0.032, 0.34, roadmapDifference) * beamMask;
+            float roadmapVessel = roadmapVesselAt(vUv) * beamMask;
+            float roadmapEdge = roadmapEdgeAt(vUv) * beamMask;
             // Background visibility is independent from the vessel overlay.
             // At 0% retain the bright subtraction field inside the beam; at
             // 100% retain the full live fluoroscopic anatomy.
@@ -329,13 +353,25 @@ void main() {
                 luma,
                 saturate(roadmapBackgroundVisibility)
             );
-            float roadmappedLuma = min(
+            float roadmapLayer = mix(
                 visibleRoadmapBackground,
-                1.0 - roadmapVessel * 0.94
+                1.0,
+                roadmapVessel
+            );
+            // A Sobel contour sharpens the saved vessel mask. Its color can be
+            // pulled slightly below the live background to create a subtle,
+            // adjustable dark border around the bright roadmap vessel.
+            float roadmapEdgeTarget = visibleRoadmapBackground * (
+                1.0 - saturate(roadmapEdgeDarkness) * 0.7
+            );
+            roadmapLayer = mix(
+                roadmapLayer,
+                roadmapEdgeTarget,
+                roadmapEdge * saturate(roadmapEdgeEnhancement)
             );
             luma = mix(
                 visibleRoadmapBackground,
-                roadmappedLuma,
+                roadmapLayer,
                 saturate(roadmapOpacity)
             );
         }

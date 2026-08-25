@@ -45,6 +45,7 @@ import {
     dsaArchiveDimensions,
     dsaScoreDimensions
 } from './imaging/dsaCaptureSizing.js';
+import { composeDsaFrameRangeRedChannels } from './imaging/dsaFrameComposite.js';
 import {
     GUIDEWIRE_RADIUS_MM,
     GUIDEWIRE_RENDER_RADIUS_MM,
@@ -222,6 +223,8 @@ let dsaContrastScoreReadback = new Uint8Array(
 );
 const dsaSequenceFrameTextures = new Map();
 const dsaSequencePreviewUrls = new Map();
+let dsaCompositeRoadmapTexture = null;
+let dsaCompositeRoadmapKey = '';
 let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
 const dsaRoadmapState = new DsaRoadmapState();
@@ -402,8 +405,10 @@ const displayMaterial = new THREE.ShaderMaterial({
         contrastOpacity: { value: 1.0 },
         contrastGain: { value: 5.0 },
         dsaGain: { value: 2.2 },
-        roadmapOpacity: { value: 0.72 },
-        roadmapBackgroundVisibility: { value: 1.0 }
+        roadmapOpacity: { value: 0.3 },
+        roadmapBackgroundVisibility: { value: 1.0 },
+        roadmapEdgeEnhancement: { value: 0.45 },
+        roadmapEdgeDarkness: { value: 0.25 }
 
     },
     vertexShader: displayVS,
@@ -1066,6 +1071,7 @@ const ui = initUI({
         return result;
     },
     onClearRoadmap: () => {
+        clearCompositeRoadmapTexture();
         dsaRoadmapState.clearRoadmap();
         syncDsaRoadmapState();
     },
@@ -1074,6 +1080,7 @@ const ui = initUI({
     onSelectDsaSequence: sequenceId => {
         dsaRoadmapState.stopCine();
         const result = dsaRoadmapState.selectSequence(sequenceId);
+        if (result.ok) clearCompositeRoadmapTexture();
         syncDsaRoadmapState();
         return result;
     },
@@ -1083,17 +1090,52 @@ const ui = initUI({
             sequenceId,
             frameIndex
         );
+        if (result.ok) clearCompositeRoadmapTexture();
         syncDsaRoadmapState();
         return result;
     },
     onUseBestDsaFrame: sequenceId => {
         dsaRoadmapState.stopCine();
         const result = dsaRoadmapState.useBestFrame(sequenceId);
+        if (result.ok) clearCompositeRoadmapTexture();
+        syncDsaRoadmapState();
+        return result;
+    },
+    onBuildRoadmapRange: (sequenceId, startFrameIndex, endFrameIndex) => {
+        dsaRoadmapState.stopCine();
+        return buildDsaRangeRoadmap(
+            sequenceId,
+            startFrameIndex,
+            endFrameIndex
+        );
+    },
+    onPreviewDsaRangeFrame: (sequenceId, frameIndex) => {
+        const snapshot = dsaRoadmapState.getSnapshot();
+        if (snapshot.cineSequenceId !== Number(sequenceId)) {
+            return { ok: false, reason: '' };
+        }
+        const nowMs = performance.now();
+        if (snapshot.cinePlaying) dsaRoadmapState.pauseCine({ nowMs });
+        const result = dsaRoadmapState.seekCineFrame(frameIndex, { nowMs });
         syncDsaRoadmapState();
         return result;
     },
     onToggleDsaCine: sequenceId => {
         const result = dsaRoadmapState.toggleCine(sequenceId, {
+            nowMs: performance.now()
+        });
+        syncDsaRoadmapState();
+        return result;
+    },
+    onSeekDsaCineFrame: frameIndex => {
+        const result = dsaRoadmapState.seekCineFrame(frameIndex, {
+            nowMs: performance.now()
+        });
+        syncDsaRoadmapState();
+        return result;
+    },
+    onSetDsaCineSpeed: playbackRate => {
+        const result = dsaRoadmapState.setCinePlaybackRate(playbackRate, {
             nowMs: performance.now()
         });
         syncDsaRoadmapState();
@@ -1146,6 +1188,144 @@ function selectedDsaFrameTexture(snapshot) {
             snapshot.selectedFrameIndex
         )
     ) || null;
+}
+
+function clearCompositeRoadmapTexture() {
+    dsaCompositeRoadmapTexture?.dispose?.();
+    dsaCompositeRoadmapTexture = null;
+    dsaCompositeRoadmapKey = '';
+}
+
+function createDsaLumaTexture(redChannel, width, height, name = '') {
+    const textureFormat = renderer.capabilities.isWebGL2
+        ? THREE.RedFormat
+        : THREE.LuminanceFormat;
+    const texture = new THREE.DataTexture(
+        redChannel,
+        width,
+        height,
+        textureFormat,
+        THREE.UnsignedByteType
+    );
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.generateMipmaps = false;
+    texture.flipY = false;
+    texture.colorSpace = THREE.NoColorSpace;
+    texture.name = name;
+    texture.needsUpdate = true;
+    return texture;
+}
+
+function createDsaRangeCompositeTexture(storageKeys, name) {
+    const sourceTextures = storageKeys
+        .map(storageKey => dsaSequenceFrameTextures.get(storageKey))
+        .filter(Boolean);
+    if (sourceTextures.length !== storageKeys.length || !sourceTextures.length) {
+        return null;
+    }
+    const firstImage = sourceTextures[0].image;
+    if (!firstImage?.data || !firstImage.width || !firstImage.height) return null;
+    const redChannels = [];
+    for (let textureIndex = 0; textureIndex < sourceTextures.length; textureIndex++) {
+        const image = sourceTextures[textureIndex].image;
+        if (
+            !image?.data ||
+            image.width !== firstImage.width ||
+            image.height !== firstImage.height ||
+            image.data.length !== firstImage.data.length
+        ) return null;
+        redChannels.push(image.data);
+    }
+    const composite = composeDsaFrameRangeRedChannels(redChannels);
+    if (!composite) return null;
+    return createDsaLumaTexture(
+        composite,
+        firstImage.width,
+        firstImage.height,
+        name
+    );
+}
+
+function buildDsaRangeRoadmap(sequenceId, startFrameIndex, endFrameIndex) {
+    const snapshot = dsaRoadmapState.getSnapshot();
+    const sequence = snapshot.sequences.find(candidate =>
+        candidate.id === Number(sequenceId)
+    );
+    if (!sequence?.complete || !sequence.frames.length) {
+        const result = dsaRoadmapState.selectRoadmapRange(
+            sequenceId,
+            startFrameIndex,
+            endFrameIndex
+        );
+        syncDsaRoadmapState();
+        return result;
+    }
+    const requestedStart = Number(startFrameIndex);
+    const requestedEnd = Number(endFrameIndex);
+    if (!Number.isFinite(requestedStart) || !Number.isFinite(requestedEnd)) {
+        const result = dsaRoadmapState.selectRoadmapRange(
+            sequence.id,
+            startFrameIndex,
+            endFrameIndex
+        );
+        syncDsaRoadmapState();
+        return result;
+    }
+    const lastIndex = sequence.frames.length - 1;
+    const startIndex = Math.max(0, Math.min(
+        lastIndex,
+        Math.min(Math.round(requestedStart), Math.round(requestedEnd))
+    ));
+    const endIndex = Math.max(0, Math.min(
+        lastIndex,
+        Math.max(Math.round(requestedStart), Math.round(requestedEnd))
+    ));
+    const storageKeys = sequence.frames
+        .slice(startIndex, endIndex + 1)
+        .map(frame => frame.storageKey);
+    const compositeKey = `${sequence.id}:${startIndex}:${endIndex}`;
+    if (
+        dsaCompositeRoadmapTexture &&
+        dsaCompositeRoadmapKey === compositeKey
+    ) {
+        const result = dsaRoadmapState.selectRoadmapRange(
+            sequence.id,
+            startIndex,
+            endIndex
+        );
+        syncDsaRoadmapState();
+        return result;
+    }
+    const compositeTexture = createDsaRangeCompositeTexture(
+        storageKeys,
+        `dsa-roadmap-range-${compositeKey}`
+    );
+    if (!compositeTexture) {
+        console.warn('Unable to build DSA range roadmap texture', {
+            sequenceId: sequence.id,
+            startIndex,
+            endIndex
+        });
+        return { ok: false, reason: 'The selected DSA frame range is unavailable' };
+    }
+    const result = dsaRoadmapState.selectRoadmapRange(
+        sequence.id,
+        startIndex,
+        endIndex
+    );
+    if (!result.ok) {
+        compositeTexture.dispose();
+        syncDsaRoadmapState();
+        return result;
+    }
+    clearCompositeRoadmapTexture();
+    dsaCompositeRoadmapTexture = compositeTexture;
+    dsaCompositeRoadmapKey = compositeKey;
+    syncDsaRoadmapState();
+    return result;
 }
 
 function cineDsaFrameTexture(snapshot) {
@@ -1203,8 +1383,12 @@ function syncDsaRoadmapState() {
     const snapshot = dsaRoadmapState.getSnapshot();
     pruneDsaFrameTextures(snapshot);
     const cineTexture = cineDsaFrameTexture(snapshot);
+    const selectedRoadmapTexture = snapshot.roadmapCompositeActive &&
+        dsaCompositeRoadmapTexture
+        ? dsaCompositeRoadmapTexture
+        : selectedDsaFrameTexture(snapshot);
     displayMaterial.uniforms.roadmapTexture.value =
-        selectedDsaFrameTexture(snapshot) || roadmapTarget.texture;
+        selectedRoadmapTexture || roadmapTarget.texture;
     displayMaterial.uniforms.cineTexture.value =
         cineTexture || roadmapTarget.texture;
     displayMaterial.uniforms.dsaEnabled.value = snapshot.dsaEnabled;
@@ -1238,6 +1422,7 @@ function finishDsaSequenceRecording() {
     const result = dsaRoadmapState.finishSequenceRecording({
         endedAtMs: performance.now()
     });
+    if (result.ok) clearCompositeRoadmapTexture();
     syncDsaRoadmapState();
     return result;
 }
@@ -3364,25 +3549,12 @@ function createArchivedDsaFrame() {
     for (let index = 0; index < redChannel.length; index++) {
         redChannel[index] = dsaFrameReadback[index * 4];
     }
-    const textureFormat = renderer.capabilities.isWebGL2
-        ? THREE.RedFormat
-        : THREE.LuminanceFormat;
-    const texture = new THREE.DataTexture(
+    return createDsaLumaTexture(
         redChannel,
         width,
         height,
-        textureFormat,
-        THREE.UnsignedByteType
+        'dsa-archive-frame'
     );
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.generateMipmaps = false;
-    texture.flipY = false;
-    texture.colorSpace = THREE.NoColorSpace;
-    texture.needsUpdate = true;
-    return texture;
 }
 
 function projectedContrastScore() {
@@ -3440,9 +3612,10 @@ function captureDsaSequenceFrame() {
         });
     }
     if (appended.shouldStop) {
-        dsaRoadmapState.finishSequenceRecording({
+        const finished = dsaRoadmapState.finishSequenceRecording({
             endedAtMs: performance.now()
         });
+        if (finished.ok) clearCompositeRoadmapTexture();
     }
     return appended;
 }
@@ -3477,7 +3650,9 @@ function processDsaRoadmapCapture() {
                 dsaEnabled: true,
                 dsaMaskValid: true
             });
-            dsaRoadmapState.markRoadmapCaptured(revision);
+            if (dsaRoadmapState.markRoadmapCaptured(revision)) {
+                clearCompositeRoadmapTexture();
+            }
         }
         snapshot = syncDsaRoadmapState();
     }
