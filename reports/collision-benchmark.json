@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-22T20:32:51.839Z",
+  "environment": {
+    "platform": "darwin 25.2.0 arm64",
+    "model": "Apple M3",
+    "cpus": 8,
+    "memoryGb": 8,
+    "node": "v24.6.0"
+  },
+  "results": [
+    {
+      "mode": "legacy",
+      "scenarios": [
+        "full-insert",
+        "full-withdraw",
+        "stenosis",
+        "pigtail-deploy-rotate",
+        "berenstein-deploy-rotate"
+      ],
+      "steps": 2968,
+      "insertedMm": 1000,
+      "physicsMs": {
+        "average": 14.199404348045844,
+        "p95": 31.159084000002622,
+        "maximum": 119.31416700000045,
+        "samples": 2968
+      },
+      "narrowPhaseMs": {
+        "average": 11.597201067722134,
+        "p95": 25.761085000034655,
+        "maximum": 101.9165819999962,
+        "samples": 2968
+      },
+      "catheterPhysicsMs": {
+        "average": 10.37978524999985,
+        "p95": 21.21925000000192,
+        "maximum": 42.838416999999026,
+        "samples": 480
+      },
+      "contactQueries": 0,
+      "maxContactsPerStep": 0,
+      "maxPenetrationMm": 1.9951106582426297,
+      "maxSegmentErrorMm": 2.8954616482224083e-13,
+      "maxSegmentErrorPercent": 5.7909232964448165e-12,
+      "stabilityRepairs": 0,
+      "heapDeltaBytes": 1732072
+    },
+    {
+      "mode": "xpbd-contact-v1",
+      "scenarios": [
+        "full-insert",
+        "small-branch",
+        "stenosis",
+        "taper",
+        "wire-inside-catheter",
+        "external-wire-catheter",
+        "pigtail-deploy-rotate",
+        "berenstein-deploy-rotate",
+        "full-withdraw",
+        "sheath"
+      ],
+      "steps": 2400,
+      "physicsMs": {
+        "average": 0.25477013000001836,
+        "p95": 0.5090830000044662,
+        "maximum": 4.5089589999988675,
+        "samples": 2400
+      },
+      "narrowPhaseMs": {
+        "lastMs": 0.00020899999799439684,
+        "averageMs": 0.019067118181748922,
+        "p95Ms": 0.05770900100469589
+      },
+      "constraintMs": {
+        "lastMs": 0.034667000007175375,
+        "averageMs": 0.2323258738636386,
+        "p95Ms": 0.3699589967727661
+      },
+      "contactQueries": 13966,
+      "maxContactsPerStep": 7,
+      "maxPenetrationMm": 0.017733411110119057,
+      "maxTransientPenetrationMm": 0.1106780418870601,
+      "settledPenetrationMm": 0,
+      "maxSegmentErrorMm": 0.0000028307682571337978,
+      "maxSegmentErrorPercent": 0.17729064307683728,
+      "maxSegmentErrorAt": {
+        "step": 1920,
+        "phase": "berenstein-deploy-rotate",
+        "body": "guidewire",
+        "segment": 118,
+        "details": {
+          "currentLength": 2.504432266076921,
+          "restLength": 2.5,
+          "start": [
+            294.9245910644531,
+            -1.2027007341384888,
+            -0.5684770941734314
+          ],
+          "end": [
+            297.32855224609375,
+            -1.832898497581482,
+            -0.8783196210861206
+          ],
+          "targetStart": [
+            0,
+            0,
+            0
+          ],
+          "targetEnd": [
+            0,
+            0,
+            0
+          ],
+          "shapeEnabled": [
+            0,
+            0
+          ]
+        }
+      },
+      "maxBendAngleDegrees": 69.22341914654628,
+      "bodyStats": [
+        {
+          "id": "guidewire",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.000001132307302853519,
+          "maxBendAngleDegrees": 2.032187099676908
+        },
+        {
+          "id": "catheter",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 4.304595194071226e-7,
+          "maxBendAngleDegrees": 0.8228626481612314
+        }
+      ],
+      "finite": true,
+      "heapDeltaBytes": 304816,
+      "acceptance": {
+        "skipped": false,
+        "passed": true,
+        "checks": {
+          "physicsAverage": true,
+          "physicsP95": true,
+          "postStepPenetration": true,
+          "settledPenetration": true,
+          "segmentLength": true,
+          "noSharpFold": true,
+          "finite": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Endovascular Trainer</title>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.5/build/index.module.js",
+        "three/examples/jsm/utils/BufferGeometryUtils.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
+        "three/examples/jsm/loaders/OBJLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js",
+        "three/examples/jsm/loaders/STLLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js"
+    }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-VWesuIjg.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CfD5_H2i.css">
+</head>
+<body class="system-initializing">
+<div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
+    <div class="loading-panel">
+        <div class="loading-copy">
+            <div class="loading-kicker">Endovascular Trainer</div>
+            <div class="loading-title">
+                <span class="loading-status-light" aria-hidden="true"></span>
+                Initializing
+            </div>
+            <div id="loadingMessage" class="loading-message">Loading simulator</div>
+            <div class="loading-steps" aria-hidden="true">
+                <span class="is-active"></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+</div>
+<canvas id="sim"></canvas>
+<div id="view-mode-switch">
+    <button id="modeToggle" class="mode-toggle fluoro-active" type="button" aria-label="Current view: fluoroscopy" aria-pressed="false">
+        <span class="mode-toggle-thumb" aria-hidden="true"></span>
+        <span class="mode-toggle-option mode-toggle-fluoro">Fluoro</span>
+        <span class="mode-toggle-option mode-toggle-debug">Debug</span>
+    </button>
+    <div id="detectorZoomBadge" class="detector-zoom-badge" role="status" aria-live="polite" hidden></div>
+    <div id="imagingModeBadge" class="imaging-mode-badge" role="status" aria-live="polite" hidden></div>
+    <div id="dsaCineControls" class="dsa-cine-controls" hidden>
+        <span id="dsaCineStatus">CINE</span>
+        <label class="dsa-cine-frame-control">Frame
+            <input id="dsaCineFrame" type="range" min="0" max="0" step="1" value="0">
+        </label>
+        <label class="dsa-cine-speed-control">Speed
+            <select id="dsaCineSpeed">
+                <option value="0.25">0.25×</option>
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1×</option>
+                <option value="1.5">1.5×</option>
+                <option value="2">2×</option>
+            </select>
+        </label>
+        <button id="dsaCinePlayPause" type="button">Pause</button>
+        <button id="dsaCineStop" type="button">Return to live</button>
+    </div>
+    <div id="perfStats">FPS: 0 | Mem: N/A</div>
+    <div class="control-readout-strip">
+        <div class="control-readout" id="insertedLength">Wire 0 cm</div>
+        <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
+        <div class="control-readout" id="currentDose">Contrast 0 ml</div>
+        <div id="xrayTechnique" class="xray-technique">
+            <span id="currentKV">72 kV</span>
+            <span id="currentMA">3.0 mA</span>
+            <span id="currentDoseRate" title="Szacowana dawka wejściowa na sekundę">≈0.00 mGy/s</span>
+        </div>
+    </div>
+</div>
+<div id="bottom-control-panel" aria-hidden="true"></div>
+<div id="controls">
+    <div class="control-tabs" role="tablist" aria-label="Simulator controls">
+        <button class="control-tab active" type="button" data-control-tab="toolSelection" role="tab" aria-selected="true">Tool selection</button>
+        <button class="control-tab" type="button" data-control-tab="wire" role="tab" aria-selected="false">Wire</button>
+        <button class="control-tab" type="button" data-control-tab="injection" role="tab" aria-selected="false">Injection</button>
+        <button class="control-tab" type="button" data-control-tab="imaging" role="tab" aria-selected="false">Imaging</button>
+        <button class="control-tab" type="button" data-control-tab="dsaRoadmap" role="tab" aria-selected="false">DSA / Roadmap</button>
+        <button class="control-tab" type="button" data-control-tab="debug" role="tab" aria-selected="false">Debug</button>
+    </div>
+
+    <div class="control-tab-panels">
+        <div class="control-tab-panel active" data-control-panel="toolSelection" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
+                <div class="section-content tool-selection-grid">
+                    <div class="parameter-label tool-select-label">
+                        <label for="catheterType">Catheter</label>
+                        <div class="tool-select-input-row catheter-select-row">
+                            <div class="catheter-type-picker">
+                                <span
+                                    class="catheter-tip-preview"
+                                    aria-hidden="true"
+                                >
+                                    <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+                                        <path
+                                            data-catheter-tip="berenstein"
+                                        />
+                                        <path
+                                            data-catheter-tip="pigtail"
+                                        />
+                                        <path
+                                            data-catheter-tip="sim1"
+                                        />
+                                    </svg>
+                                </span>
+                                <select id="catheterType">
+                                    <option value="pigtail">Pigtail</option>
+                                    <option value="berenstein" selected>Berenstein</option>
+                                    <option value="sim1">SIM 1</option>
+                                </select>
+                            </div>
+                            <button
+                                id="catheterAutoWithdraw"
+                                class="tool-auto-withdraw"
+                                type="button"
+                                aria-label="Automatycznie wycofaj cewnik"
+                                aria-pressed="false"
+                                disabled
+                            >Wysuń</button>
+                        </div>
+                        <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                        <label class="guidewire-stiffness-control" for="catheterShaftStiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność shaftu cewnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="catheterShaftStiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="25"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="catheterShaftStiffnessRange"
+                                >
+                                <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">25,00×</output>
+                            </span>
+                            <span id="catheterShaftStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękki</span>
+                                <span>standard</span>
+                                <span>ekstra sztywny</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="catheterTipStiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność końcówki cewnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="catheterTipStiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="5"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="catheterTipStiffnessRange"
+                                >
+                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">5,00×</output>
+                            </span>
+                            <span id="catheterTipStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękka</span>
+                                <span>standard</span>
+                                <span>sztywniejsza</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="catheterRelaxation">
+                            <span class="guidewire-stiffness-heading">Szybkość relaksacji cewnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="catheterRelaxation"
+                                    type="range"
+                                    min="1"
+                                    max="50"
+                                    step="0.5"
+                                    value="30"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="catheterRelaxationRange"
+                                >
+                                <output id="catheterRelaxationValue" for="catheterRelaxation">30,00×</output>
+                            </span>
+                            <span id="catheterRelaxationRange" class="guidewire-stiffness-range">
+                                <span>obecna</span>
+                                <span>szybsza</span>
+                                <span>najszybsza</span>
+                            </span>
+                        </label>
+                        <div class="catheter-manual-controls" role="group" aria-label="Sterowanie cewnikiem">
+                            <button id="catheterWithdraw" type="button" aria-label="Wycofaj cewnik — przytrzymaj">A&nbsp; wycofaj</button>
+                            <button id="catheterAdvance" type="button" aria-label="Wsuń cewnik — przytrzymaj">D&nbsp; wsuń</button>
+                            <button id="catheterRotateLeft" type="button" aria-label="Obróć cewnik w lewo — przytrzymaj">Q&nbsp; ↺</button>
+                            <button id="catheterRotateRight" type="button" aria-label="Obróć cewnik w prawo — przytrzymaj">E&nbsp; ↻</button>
+                        </div>
+                        <span class="tool-hint">Obrót końcówki widać po cofnięciu prowadnika za jej krzywiznę.</span>
+                    </div>
+                    <div class="parameter-label tool-select-label">
+                        <label for="guidewireType">Guidewire</label>
+                        <div class="tool-select-input-row guidewire-select-row">
+                            <div class="tool-type-picker guidewire-type-picker">
+                                <span class="tool-tip-preview" aria-hidden="true">
+                                    <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
+                                        <path data-guidewire-tip="glidewire" />
+                                        <path data-guidewire-tip="steel-j-035" />
+                                    </svg>
+                                </span>
+                                <select id="guidewireType">
+                                    <option value="glidewire" selected>Glidewire</option>
+                                    <option value="steel-j-035">Steel J-wire 0.035&quot;</option>
+                                </select>
+                            </div>
+                            <button
+                                id="guidewireAutoWithdraw"
+                                class="tool-auto-withdraw"
+                                type="button"
+                                aria-label="Automatycznie wycofaj prowadnik"
+                                aria-pressed="false"
+                                disabled
+                            >Wysuń</button>
+                        </div>
+                        <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
+                        <label class="guidewire-stiffness-control" for="stiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność shaftu prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="stiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="10"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireStiffnessRange"
+                                >
+                                <output id="guidewireStiffnessValue" for="stiffness">10,00×</output>
+                            </span>
+                            <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękki</span>
+                                <span>standard</span>
+                                <span>ekstra sztywny</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="tipStiffness">
+                            <span class="guidewire-stiffness-heading">Sztywność końcówki prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="tipStiffness"
+                                    type="range"
+                                    min="0.25"
+                                    max="100"
+                                    step="0.05"
+                                    value="4.55"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireTipStiffnessRange"
+                                >
+                                <output id="guidewireTipStiffnessValue" for="tipStiffness">4,55×</output>
+                            </span>
+                            <span id="guidewireTipStiffnessRange" class="guidewire-stiffness-range">
+                                <span>bardziej miękka</span>
+                                <span>standard</span>
+                                <span>sztywniejsza</span>
+                            </span>
+                        </label>
+                        <label class="guidewire-stiffness-control" for="guidewireRelaxation">
+                            <span class="guidewire-stiffness-heading">Szybkość relaksacji prowadnika</span>
+                            <span class="guidewire-stiffness-input-row">
+                                <input
+                                    id="guidewireRelaxation"
+                                    type="range"
+                                    min="1"
+                                    max="50"
+                                    step="0.5"
+                                    value="30"
+                                    data-value-decimals="2"
+                                    data-value-suffix="×"
+                                    aria-describedby="guidewireRelaxationRange"
+                                >
+                                <output id="guidewireRelaxationValue" for="guidewireRelaxation">30,00×</output>
+                            </span>
+                            <span id="guidewireRelaxationRange" class="guidewire-stiffness-range">
+                                <span>obecna</span>
+                                <span>szybsza</span>
+                                <span>najszybsza</span>
+                            </span>
+                        </label>
+                        <div class="guidewire-manual-controls" role="group" aria-label="Sterowanie obrotem prowadnika">
+                            <button id="guidewireRotateLeft" type="button" aria-label="Obróć prowadnik w lewo — przytrzymaj">Z&nbsp; ↺</button>
+                            <button id="guidewireRotateRight" type="button" aria-label="Obróć prowadnik w prawo — przytrzymaj">X&nbsp; ↻</button>
+                        </div>
+                        <span class="tool-hint">Obrót jest widoczny na asymetrycznej końcówce, np. Steel J-wire.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="wire" role="tabpanel">
+            <div id="guidewireResistanceStatus" class="guidewire-resistance">
+                <div class="guidewire-resistance-header">
+                    <span id="guidewireResistanceReason">Swobodne wsuwanie prowadnika</span>
+                    <span id="guidewireResistanceValue">0%</span>
+                </div>
+                <div class="guidewire-resistance-meter">
+                    <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Smoothing iterations
+                        <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Friction</div>
+                <div class="section-content compact-grid">
+                    <label class="parameter-label">Static friction
+                        <input id="staticFriction" type="range" min="0" max="1" step="0.001" value="0.006">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Kinetic friction
+                        <input id="kineticFriction" type="range" min="0" max="1" step="0.001" value="0.002">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="imaging" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
+                <div class="section-content imaging-grid">
+                    <div class="detector-zoom-control">
+                        <div class="detector-zoom-heading">
+                            <span>Detector zoom</span>
+                            <output id="detectorZoomStatus">No zoom · 1.00× · 100% field of view</output>
+                        </div>
+                        <div class="detector-zoom-options" role="group" aria-label="Detector zoom">
+                            <button type="button" class="active" data-detector-zoom="none" aria-pressed="true">
+                                <strong>No zoom</strong>
+                                <span>21 cm · full field</span>
+                            </button>
+                            <button type="button" data-detector-zoom="medium" aria-pressed="false">
+                                <strong>Zoom 1</strong>
+                                <span>15 cm · 1.40×</span>
+                            </button>
+                            <button type="button" data-detector-zoom="maximum" aria-pressed="false">
+                                <strong>Zoom 2</strong>
+                                <span>10 cm · 2.10×</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button id="autoExposureToggle" class="imaging-toggle" type="button">Auto exposure: Off</button>
+                    <label class="parameter-label">Persistence
+                        <input id="persistence" type="range" min="0.25" max="0.99" step="0.01" value="0.3">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Pulse fluoro
+                        <select id="pulseRate">
+                            <option value="4">4 p/s</option>
+                            <option value="7.5">7.5 p/s</option>
+                            <option value="10">10 p/s</option>
+                            <option value="15" selected>15 p/s</option>
+                            <option value="30">30 p/s</option>
+                        </select>
+                    </label>
+                    <label class="parameter-label">Noise level
+                        <input id="noiseLevel" type="range" min="0" max="0.6" step="0.01" value="0.1">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Thickness scatter
+                        <input id="scatterStrength" type="range" min="0" max="1" step="0.01" value="0.45">
+                        <span></span>
+                    </label>
+                    <div class="collimator-control">
+                        <div class="collimator-control-heading">
+                            <span>Kolimatory</span>
+                            <output id="collimatorStatus">L 8% · P 8% · G 8% · D 8% · 0°</output>
+                        </div>
+                        <div class="collimator-control-body">
+                            <div class="collimator-preview">
+                                <svg viewBox="0 0 120 84" role="img" aria-label="Podgląd pola kolimatora">
+                                    <rect class="collimator-preview-detector" x="3" y="3" width="114" height="78" rx="3"></rect>
+                                    <polygon id="collimatorFieldPreview" points="12,10 108,10 108,74 12,74"></polygon>
+                                    <line class="collimator-preview-axis" x1="60" y1="7" x2="60" y2="77"></line>
+                                    <line class="collimator-preview-axis" x1="7" y1="42" x2="113" y2="42"></line>
+                                    <circle class="collimator-preview-center" cx="60" cy="42" r="2.2"></circle>
+                                </svg>
+                                <span>Boczne listwy: obrót −30°…+30° wokół środka</span>
+                            </div>
+                            <div class="collimator-control-grid">
+                                <label class="parameter-label">Lewa przesłona
+                                    <input id="collimationLeft" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie lewej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label">Prawa przesłona
+                                    <input id="collimationRight" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie prawej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label">Górna przesłona
+                                    <input id="collimationTop" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie górnej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label">Dolna przesłona
+                                    <input id="collimationBottom" type="range" min="0" max="0.68" step="0.01" value="0.08" aria-label="Położenie dolnej przesłony">
+                                    <span></span>
+                                </label>
+                                <label class="parameter-label collimator-rotation-control">Obrót wokół środka
+                                    <input id="sideCollimatorRotation" type="range" min="-30" max="30" step="1" value="0" aria-label="Obrót bocznych kolimatorów wokół środka detektora">
+                                    <span></span>
+                                </label>
+                                <button id="resetCollimator" type="button">Wyzeruj</button>
+                            </div>
+                        </div>
+                    </div>
+                    <label class="parameter-label">Brightness
+                        <input id="imageBrightness" type="range" min="-0.35" max="0.35" step="0.01" value="0.18">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Image contrast
+                        <input id="imageContrast" type="range" min="0.25" max="3" step="0.01" value="1.33">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Edge enhancement
+                        <input id="edgeEnhancement" type="range" min="0" max="2" step="0.05" value="0.1">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Bone visibility
+                        <input id="boneVisibility" type="range" min="0" max="1" step="0.01" value="0.62">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Contrast opacity
+                        <input id="opacityScale" type="range" min="0" max="100" step="1" value="100">
+                        <span></span>
+                    </label>
+                    <label class="parameter-label">Contrast gain
+                        <input id="gain" type="range" min="0" max="5" step="0.1" value="5">
+                        <span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="dsaRoadmap" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> DSA / Roadmap</div>
+                <div class="section-content">
+                    <div class="dsa-roadmap-panel">
+                        <div class="dsa-roadmap-actions">
+                            <button id="acquireDsaMask" type="button">Acquire mask</button>
+                            <button id="toggleDsa" type="button" aria-pressed="false" disabled>DSA: Off</button>
+                            <button id="recordDsaSequence" type="button" aria-keyshortcuts="R" title="Hold R: the C-arm prepares, acquires a new mask, then records DSA">Hold R: Record</button>
+                            <button id="captureRoadmap" type="button" disabled>Use current DSA</button>
+                            <button id="toggleRoadmap" type="button" aria-pressed="false" disabled>Roadmap: Off</button>
+                            <button id="clearRoadmap" type="button" disabled>Clear roadmap</button>
+                        </div>
+                        <div class="dsa-sequence-browser">
+                            <label>Saved angiography
+                                <select id="dsaSequenceSelect" disabled>
+                                    <option value="">No saved sequence</option>
+                                </select>
+                            </label>
+                            <label>Roadmap frame
+                                <input id="dsaFrameSelect" type="range" min="0" max="0" step="1" value="0" disabled>
+                            </label>
+                            <button id="useBestDsaFrame" type="button" disabled>Use best-filled frame</button>
+                            <output id="dsaFrameInfo">Hold R to record a sequence</output>
+                            <div class="dsa-roadmap-range">
+                                <div class="dsa-roadmap-range-selector">
+                                    <span>Roadmap frame range</span>
+                                    <div id="dsaRangeSlider" class="dsa-range-slider disabled">
+                                        <input id="dsaRangeStart" aria-label="Range start" type="range" min="0" max="0" step="1" value="0" disabled>
+                                        <input id="dsaRangeEnd" aria-label="Range end" type="range" min="0" max="0" step="1" value="0" disabled>
+                                    </div>
+                                </div>
+                                <button id="buildRoadmapRange" type="button" disabled>Build range roadmap</button>
+                                <output id="dsaRangeInfo">Select a saved angiography</output>
+                            </div>
+                        </div>
+                        <div class="dsa-gallery-heading">
+                            <span>Recorded DSA gallery</span>
+                            <small>Select a study for cine or roadmap</small>
+                        </div>
+                        <div id="dsaSequenceGallery" class="dsa-sequence-gallery" aria-live="polite">
+                            <div class="dsa-gallery-empty">Recorded angiography will appear here</div>
+                        </div>
+                        <label class="parameter-label dsa-roadmap-opacity">Roadmap opacity
+                            <input id="roadmapOpacity" type="range" min="0" max="100" step="1" value="30">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-background">Roadmap background
+                            <input id="roadmapBackground" type="range" min="0" max="100" step="1" value="100">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-edge-enhancement">Roadmap edge enhancement
+                            <input id="roadmapEdgeEnhancement" type="range" min="0" max="100" step="1" value="45">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-roadmap-edge-darkness">Roadmap edge darkness
+                            <input id="roadmapEdgeDarkness" type="range" min="0" max="100" step="1" value="25">
+                            <span></span>
+                        </label>
+                        <label class="parameter-label dsa-gain-control">DSA gain
+                            <input id="dsaGain" type="range" min="0.5" max="4" step="0.1" value="2.2">
+                            <span></span>
+                        </label>
+                        <div id="dsaRoadmapStatus" class="dsa-roadmap-status" role="status" aria-live="polite">
+                            Acquire a mask before injecting contrast
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="injection" role="tabpanel">
+            <div class="control-section">
+                <div class="section-header"><span class="collapse-triangle">▼</span> Injection</div>
+                <div class="section-content compact-grid">
+                    <label class="tool-select-label">Source
+                        <select id="injSource">
+                            <option value="sheath">Sheath</option>
+                            <option value="catheter">Catheter</option>
+                        </select>
+                        <span id="injectionSourceStatus" class="tool-select-status">Loading flow model</span>
+                    </label>
+                    <div class="parameter-label injection-volume-control">
+                        <label for="injVolume">Volume (ml)</label>
+                        <div class="injection-volume-slider-row">
+                            <input id="injVolume" type="range" min="0.5" max="200" step="0.5" value="10">
+                            <span></span>
+                        </div>
+                        <div class="injection-volume-presets" role="group" aria-label="Volume presets">
+                            <button type="button" data-injection-volume="10">10 ml</button>
+                            <button type="button" data-injection-volume="20">20 ml</button>
+                            <button type="button" data-injection-volume="100">100 ml</button>
+                        </div>
+                    </div>
+                    <label class="parameter-label">Requested rate (ml/s)
+                        <input id="injRate" type="range" min="0.5" max="100" step="0.1" value="15">
+                        <span></span>
+                    </label>
+                    <div id="injectionHydraulicSummary" class="injection-hydraulic-summary" aria-live="polite">
+                        <div><span>Actual rate</span><strong id="injActualRate">— ml/s</strong></div>
+                        <div><span>Pressure</span><strong id="injPressure">— psi</strong></div>
+                        <output id="injPressureWarning">Waiting for flow model</output>
+                    </div>
+                    <label class="parameter-label injection-duration-label">Calculated duration
+                        <output id="injDuration">2.00 s</output>
+                    </label>
+                    <div class="control-actions">
+                        <button id="injectContrast" aria-keyshortcuts="I C" title="Inject contrast (I or C)">Inject</button>
+                        <button id="stopInjection" disabled>Stop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
+            <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
+            <div id="contrastDiagnostics" class="contrast-diagnostics">Contrast: model loading</div>
+            <div class="debug-hemodynamics compact-grid" aria-label="Parametry hemodynamiczne kontrastu">
+                <label class="parameter-label">Rzut serca
+                    <input id="cardiacOutput" type="range" min="1500" max="9000" step="100" value="5000">
+                    <span>5.0 l/min</span>
+                </label>
+                <label class="parameter-label">Częstość rytmu
+                    <input id="contrastHeartRate" type="range" min="30" max="180" step="1" value="72">
+                    <span>72/min</span>
+                </label>
+            </div>
+            <details class="debug-injection-hydraulics" open>
+                <summary>Injection hydraulics</summary>
+                <div class="compact-grid" aria-label="Ilościowe parametry podawania kontrastu">
+                    <label class="parameter-label">Injector limit (psi)
+                        <input id="injectorPressureLimit" type="range" min="100" max="1200" step="25" value="1200">
+                        <span>1200 psi</span>
+                    </label>
+                    <label class="parameter-label">Viscosity (mPa·s)
+                        <input id="contrastViscosity" type="range" min="1" max="20" step="0.1" value="6.3">
+                        <span>6.3 mPa·s</span>
+                    </label>
+                    <label class="parameter-label">Sheath length (mm)
+                        <input id="sheathHydraulicLength" type="range" min="50" max="300" step="5" value="110">
+                        <span>110 mm</span>
+                    </label>
+                    <label class="parameter-label">Sheath ID (mm)
+                        <input id="sheathInnerDiameter" type="range" min="1" max="3" step="0.05" value="1.8">
+                        <span>1.80 mm</span>
+                    </label>
+                    <label class="parameter-label">Sheath rating (psi)
+                        <input id="sheathPressureRating" type="range" min="50" max="1200" step="25" value="300">
+                        <span>300 psi</span>
+                    </label>
+                    <label class="parameter-label">Berenstein length (mm)
+                        <input id="berensteinHydraulicLength" type="range" min="300" max="1500" step="25" value="1000">
+                        <span>1000 mm</span>
+                    </label>
+                    <label class="parameter-label">Berenstein ID (mm)
+                        <input id="berensteinInnerDiameter" type="range" min="0.5" max="1.5" step="0.01" value="0.97">
+                        <span>0.97 mm</span>
+                    </label>
+                    <label class="parameter-label">Berenstein rating (psi)
+                        <input id="berensteinPressureRating" type="range" min="100" max="1200" step="25" value="1050">
+                        <span>1050 psi</span>
+                    </label>
+                    <label class="parameter-label">Pigtail length (mm)
+                        <input id="pigtailHydraulicLength" type="range" min="300" max="1500" step="25" value="1000">
+                        <span>1000 mm</span>
+                    </label>
+                    <label class="parameter-label">Pigtail ID (mm)
+                        <input id="pigtailInnerDiameter" type="range" min="0.5" max="1.5" step="0.01" value="0.97">
+                        <span>0.97 mm</span>
+                    </label>
+                    <label class="parameter-label">Pigtail rating (psi)
+                        <input id="pigtailPressureRating" type="range" min="100" max="1200" step="25" value="1200">
+                        <span>1200 psi</span>
+                    </label>
+                </div>
+                <p class="hydraulic-profile-note">Training profiles — verify against the selected device IFU before clinical validation.</p>
+            </details>
+            <div id="toolDiameters" class="tool-diameters" aria-label="Tool diameters">
+                <div><span>Guidewire</span><strong id="guidewireDiameter">0.035&quot; · 0.889 mm</strong></div>
+                <div><span>Sheath</span><strong id="sheathDiameter">6F · 2.000 mm</strong></div>
+                <div><span>Pigtail</span><strong id="catheterDiameter">5F · 1.667 mm</strong></div>
+            </div>
+            <div class="debug-layer-controls" aria-label="Debug layers">
+                <label class="debug-toggle"><input id="showDebugStlModel" type="checkbox" checked> Model STL</label>
+                <label class="debug-toggle"><input id="showDebugLumenCast" type="checkbox"> Odlew światła</label>
+                <label class="debug-toggle"><input id="showDebugSections" type="checkbox"> Przekroje</label>
+                <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox" checked> Centerline</label>
+                <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
+            </div>
+            <div class="browser-benchmark" aria-label="Browser benchmark">
+                <div class="browser-benchmark-actions">
+                    <button id="prepareCatheterAorta" type="button">Prowadnik + cewnik do aorty</button>
+                    <button id="reproduceIliacContrastBug" type="button">Odtwórz 22,3/24,1 cm</button>
+                    <button id="reproduceRetrogradeGap" type="button">Odtwórz 7,7/13,3 cm</button>
+                    <button id="reproduceArchBolus" type="button">Odtwórz łuk 55,9/58,3 cm</button>
+                </div>
+                <output id="catheterAortaSetupStatus" class="browser-benchmark-status" aria-live="polite">
+                    Gotowe do ustawienia
+                </output>
+                <div class="browser-benchmark-actions">
+                    <button id="runGuidewireBenchmark" type="button">Prowadnik 28 s</button>
+                    <button id="runGuidewireBenchmarkFull" type="button">Prowadnik 10 min</button>
+                    <button id="runBrowserBenchmarkSmoke" type="button">Start 35 s</button>
+                    <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
+                    <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>
+                </div>
+                <output id="browserBenchmarkStatus" class="browser-benchmark-status" aria-live="polite">Idle</output>
+                <textarea id="browserBenchmarkReport" class="browser-benchmark-report" rows="4"
+                    aria-label="Browser benchmark report" readonly>No report</textarea>
+            </div>
+            <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
+        </div>
+    </div>
+</div>
+
+<div id="monitor" class="patient-monitor">
+    <div class="monitor-header">
+        <div>
+            <div class="monitor-title">MONITOR</div>
+            <div class="monitor-subtitle">ADULT | ANGIO</div>
+        </div>
+        <div class="monitor-status">
+            <span id="monitorRhythm">SINUS</span>
+            <span id="monitorClock">00:00</span>
+        </div>
+    </div>
+
+    <div class="monitor-trace monitor-trace-ecg" id="hrBox">
+        <canvas id="ecgCanvas" width="270" height="58"></canvas>
+        <div class="trace-label">
+            <span>ECG II</span>
+            <span>1 mV</span>
+        </div>
+        <div class="monitor-value value-hr">
+            <span class="value-label">HR</span>
+            <span id="hrValue" class="value-number">0</span>
+            <span class="value-unit">bpm</span>
+        </div>
+    </div>
+
+    <div class="monitor-trace monitor-trace-bp" id="bpBox">
+        <canvas id="bpCanvas" width="270" height="58"></canvas>
+        <div class="trace-label">
+            <span>ART</span>
+            <span>mmHg</span>
+        </div>
+        <div class="monitor-value value-bp">
+            <span class="value-label">BP</span>
+            <span id="bpValue" class="value-number value-number-wide">0/0</span>
+            <span class="value-unit">mmHg</span>
+        </div>
+    </div>
+
+    <div class="monitor-metrics">
+        <div class="monitor-metric metric-spo2">
+            <span class="metric-label">SpO2</span>
+            <span class="metric-readout"><span id="spo2Value">98</span><small>%</small></span>
+        </div>
+        <div class="monitor-metric metric-map">
+            <span class="metric-label">MAP</span>
+            <span class="metric-readout"><span id="mapValue">93</span><small>mmHg</small></span>
+        </div>
+        <div class="monitor-metric metric-rr">
+            <span class="metric-label">RR</span>
+            <span class="metric-readout"><span id="rrValue">14</span><small>/min</small></span>
+        </div>
+    </div>
+</div>
+
+<div id="carm-preview"></div>
+<aside id="control-help-panel" aria-label="Opis sterowania">
+    <div class="control-help-title">Sterowanie</div>
+    <div class="control-help-grid">
+        <section class="control-help-section">
+            <h2>Prowadnik</h2>
+            <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj, <kbd>Z</kbd>/<kbd>X</kbd> obróć.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>Cewnik</h2>
+            <p><kbd>D</kbd> wsuń, <kbd>A</kbd> wycofaj, <kbd>Q</kbd>/<kbd>E</kbd> obróć.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>Kontrast</h2>
+            <p><kbd>I</kbd> wstrzyknij wybraną dawkę.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>DSA</h2>
+            <p>Przytrzymaj <kbd>R</kbd>. Po krótkim przygotowaniu ramię pobierze nową maskę, nagra DSA i automatycznie wybierze najlepszą klatkę roadmapy.</p>
+        </section>
+    </div>
+</aside>
+<div id="carm-controls">
+    <div class="carm-panel-title">C-arm / table</div>
+    <div class="carm-controls-body">
+            <div class="carm-readouts">
+                <div class="carm-readout"><span class="plane-icon plane-transverse"></span><span id="carmYawReadout">AP 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-sagittal"></span><span id="carmPitchReadout">CRA 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-roll"></span><span id="carmRollReadout">Roll 0°</span></div>
+            </div>
+            <div class="carm-joystick-grid">
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Angle</div>
+                    <div class="angle-control-layout">
+                        <button id="carmLao30" class="angle-preset-button" title="Hold to move to LAO 30 degrees">LAO 30</button>
+                        <div class="angle-joystick-stack">
+                            <div id="angleJoystick" class="joystick">
+                                <div id="angleJoystickHandle" class="joystick-handle"></div>
+                            </div>
+                            <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
+                        </div>
+                        <button id="carmRao30" class="angle-preset-button" title="Hold to move to RAO 30 degrees">RAO 30</button>
+                    </div>
+                    <div class="roll-control">
+                        <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
+                        <button id="carmAngleReset" title="Reset C-arm angles">0</button>
+                        <button id="carmRollRight" title="Rotate detector clockwise">↻</button>
+                    </div>
+                </div>
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Position</div>
+                    <div id="positionJoystick" class="joystick">
+                        <div id="positionJoystickHandle" class="joystick-handle"></div>
+                    </div>
+                    <div id="carmZButtons">
+                        <button id="carmZUp" title="Move C-arm up">↑</button>
+                        <button id="carmZDown" title="Move C-arm down">↓</button>
+                    </div>
+                    <div class="joystick-caption">Table plane · height</div>
+                </div>
+            </div>
+            <input id="carmX" type="hidden" min="-200" max="200" step="1" value="0">
+            <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
+            <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
+            <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
+    </div>
+</div>
+
+
+</body>
+</html>

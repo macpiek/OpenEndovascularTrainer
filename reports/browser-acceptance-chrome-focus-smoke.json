@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-22T03:13:13.816Z",
+  "browser": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "platform": "MacIntel",
+    "viewport": {
+      "width": 1440,
+      "height": 813,
+      "devicePixelRatio": 2
+    },
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)"
+  },
+  "report": {
+    "mode": "xpbd-contact-v1",
+    "durationMs": 60025.700000047684,
+    "frameCount": 3582,
+    "averageFps": 59.68438258655654,
+    "onePercentLowFps": 47.49604034423828,
+    "p99FrameMs": 18.5,
+    "instantaneousP99Fps": 54.054054054054056,
+    "fpsWindowCount": 59,
+    "maxFrameMs": 266.8999999999942,
+    "longFrame33Count": 2,
+    "longFrame50Count": 2,
+    "longFrameEvents": [
+      {
+        "frameMs": 266.8999938964844,
+        "elapsedMs": 29396.80078125,
+        "simulationElapsedMs": 29108.333984375,
+        "heapBytes": 177543248
+      },
+      {
+        "frameMs": 81.0999984741211,
+        "elapsedMs": 29477.19921875,
+        "simulationElapsedMs": 29125,
+        "heapBytes": 176807200
+      }
+    ],
+    "frameCpu": {
+      "samples": 3582,
+      "simulationAverageMs": 2.793802346349894,
+      "updateAverageMs": 0.0336125075384467,
+      "renderAverageMs": 1.0879396986255827,
+      "totalAverageMs": 3.9153545525139233,
+      "maximumMs": 13.299999952316284
+    },
+    "physics": {
+      "mode": "xpbd-contact-v1",
+      "fixedDt": 0.008333333333333333,
+      "steps": 6970,
+      "lastSubsteps": 0,
+      "droppedTime": 0,
+      "contacts": 0,
+      "maxPenetration": 0.04064328083374169,
+      "settledMaxPenetration": 0,
+      "settledContact": {
+        "bodyId": null,
+        "segment": -1,
+        "t": 0.6666666666666666,
+        "x": -3.3860971927642822,
+        "y": -248.76932779947916,
+        "z": 2.0034780502319336
+      },
+      "phases": {
+        "total": {
+          "lastMs": 0.7999999523162842,
+          "averageMs": 1.207159253069797,
+          "p95Ms": 1.7999999523162842
+        },
+        "integrate": {
+          "lastMs": 0,
+          "averageMs": 0.009569583937974708,
+          "p95Ms": 0.09999990463256836
+        },
+        "narrowPhase": {
+          "lastMs": 0.20000004768371582,
+          "averageMs": 0.29266857871708263,
+          "p95Ms": 0.7000002861022949
+        },
+        "constraints": {
+          "lastMs": 0.5999999046325684,
+          "averageMs": 0.8962697272663308,
+          "p95Ms": 1
+        },
+        "velocity": {
+          "lastMs": 0,
+          "averageMs": 0.005911047421021646,
+          "p95Ms": 0
+        }
+      },
+      "bodies": [
+        {
+          "id": "guidewire",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.000009157424300454408,
+          "maxBendAngleDegrees": 16.37049843165618
+        },
+        {
+          "id": "catheter",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.0000035951826397410494,
+          "maxBendAngleDegrees": 0.008387049843054387
+        }
+      ]
+    },
+    "physicsEnvelope": {
+      "steps": 6970,
+      "maxPostStepPenetrationMm": 0.05637681634652947,
+      "maxPostStepPenetrationStep": 5326,
+      "maxPostStepPenetrationBodyId": "catheter",
+      "maxPostStepPenetrationSegment": 41,
+      "maxPostStepPenetrationT": 0.5,
+      "maxPostStepPenetrationX": -56.99993896484375,
+      "maxPostStepPenetrationY": -351.70867919921875,
+      "maxPostStepPenetrationZ": 3.6890865564346313,
+      "maxTransientPenetrationMm": 0.5677591412542861,
+      "maxTransientPenetrationStep": 2665,
+      "maxSegmentErrorPercent": 0.4509300836240938,
+      "maxSegmentErrorBodyId": "catheter",
+      "maxSegmentErrorNodeIndex": 51,
+      "maxSegmentErrorStep": 3120,
+      "maxBendAngleDegrees": 105.47563120371554,
+      "maxBendBodyId": "catheter",
+      "maxBendNodeIndex": 85,
+      "maxBendStep": 2370,
+      "maxBendX": 3.019345760345459,
+      "maxBendY": -240.2970733642578,
+      "maxBendZ": 12.67174243927002,
+      "finite": true
+    },
+    "contactField": {
+      "pointQueries": 2368517,
+      "capsuleQueries": 879919,
+      "capsuleSamples": 2345951,
+      "sweepQueries": 928,
+      "sweepSamples": 3382,
+      "batchQueries": 0,
+      "safeCoreHits": 188025,
+      "sdfHits": 2180492,
+      "bvhRefinements": 2878,
+      "signRefinements": 115345,
+      "signCacheHits": 100501,
+      "signCacheMisses": 14844,
+      "fallbackHits": 0,
+      "centerlineEstimateHits": 0,
+      "resultAllocations": 0,
+      "runtimeBytes": 33203496
+    },
+    "heapBytes": 178023689,
+    "heap": {
+      "supported": true,
+      "samples": 61,
+      "startBytes": 199571232,
+      "minimumBytes": 176434799,
+      "maximumBytes": 201525968,
+      "endBytes": 178023689,
+      "growthBytes": -21547543,
+      "rangeBytes": 25091169
+    },
+    "pageState": {
+      "visibilityState": "visible",
+      "hasFocus": true,
+      "focusLossCount": 0,
+      "focusLossMs": 0
+    },
+    "scenario": {
+      "running": false,
+      "warmingUp": false,
+      "warmupElapsedMs": 144000,
+      "durationMs": 60000,
+      "elapsedMs": 60000,
+      "simulationElapsedMs": 58083.33333333879,
+      "progress": 1,
+      "cycleIndex": 0,
+      "catheterType": "pigtail",
+      "stopReason": "duration",
+      "automated": true
+    },
+    "browserAcceptance": {
+      "durationPass": false,
+      "onePercentLowPass": false,
+      "noLongFramePass": false,
+      "penetrationPass": true,
+      "lengthPass": true,
+      "foldPass": true,
+      "finitePass": true,
+      "modePass": true,
+      "contactFieldPass": true,
+      "focusPass": true,
+      "passed": false
+    }
+  }
+}

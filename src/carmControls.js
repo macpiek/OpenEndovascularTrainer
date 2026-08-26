@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import {
+    getDetectorZoomMode
+} from './imaging/detectorZoomModes.js';
 
 // The perspective camera is placed at the X-ray source so that the rendered
 // image matches what a detector would capture. A virtual detector sits opposite
@@ -21,6 +24,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const carmYawReadout = document.getElementById('carmYawReadout');
     const carmPitchReadout = document.getElementById('carmPitchReadout');
     const carmRollReadout = document.getElementById('carmRollReadout');
+    const detectorZoomButtons = Array.from(
+        document.querySelectorAll('[data-detector-zoom]')
+    );
+    const detectorZoomStatus = document.getElementById('detectorZoomStatus');
+    const detectorZoomBadge = document.getElementById('detectorZoomBadge');
 
     const sliders = [
         carmXSlider,
@@ -37,10 +45,15 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let carmY = parseFloat(carmYSlider.value);
     let carmZ = parseFloat(carmZSlider.value);
     let detectorRadius = parseFloat(carmDetDistSlider.value);
+    let detectorZoomMode = getDetectorZoomMode('none');
+    let detectorZoomBadgeTimer = null;
+    let locked = false;
+    let revision = 0;
 
     const initialX = carmX;
     const initialY = carmY;
     const initialZ = carmZ;
+    const initialDetectorRadius = detectorRadius;
     const previewPelvisX = 10;
     const previewYawAxis = new THREE.Vector3(1, 0, 0);
     const previewPitchAxis = new THREE.Vector3(0, 0, 1);
@@ -79,6 +92,39 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         if (carmYawReadout) carmYawReadout.textContent = formatYaw(toDegrees(carmYaw));
         if (carmPitchReadout) carmPitchReadout.textContent = formatPitch(toDegrees(carmPitch));
         if (carmRollReadout) carmRollReadout.textContent = `Roll ${toDegrees(carmRoll)}°`;
+    }
+
+    function updateDetectorZoomUi({ announce = false } = {}) {
+        for (const button of detectorZoomButtons) {
+            const active = button.dataset.detectorZoom === detectorZoomMode.id;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+        }
+        if (detectorZoomStatus) {
+            detectorZoomStatus.textContent =
+                `${detectorZoomMode.label} · ${detectorZoomMode.inputFieldCm} cm FOV · ` +
+                `${detectorZoomMode.zoomFactor.toFixed(2)}× · ` +
+                `dose ≈${detectorZoomMode.referenceDoseRateMultiplier.toFixed(1)}×`;
+        }
+        if (!detectorZoomBadge) return;
+        if (detectorZoomBadgeTimer !== null) {
+            window.clearTimeout(detectorZoomBadgeTimer);
+            detectorZoomBadgeTimer = null;
+        }
+        if (!announce) {
+            detectorZoomBadge.hidden = true;
+            return;
+        }
+        detectorZoomBadge.textContent = detectorZoomMode.id === 'none'
+            ? 'NO ZOOM · FULL FIELD'
+            : `${detectorZoomMode.label.toUpperCase()} · ` +
+                `${detectorZoomMode.inputFieldCm} cm · ` +
+                `${detectorZoomMode.zoomFactor.toFixed(2)}×`;
+        detectorZoomBadge.hidden = false;
+        detectorZoomBadgeTimer = window.setTimeout(() => {
+            detectorZoomBadge.hidden = true;
+            detectorZoomBadgeTimer = null;
+        }, 2200);
     }
 
     function updateCamera() {
@@ -133,25 +179,43 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             renderPreview();
         }
         updateReadouts();
+        revision++;
     }
 
     updateCamera();
+    updateDetectorZoomUi();
     carmXSlider.addEventListener('input', e => {
+        if (locked) return;
         carmX = parseFloat(e.target.value);
         updateCamera();
     });
     carmYSlider.addEventListener('input', e => {
+        if (locked) return;
         carmY = parseFloat(e.target.value);
         updateCamera();
     });
     carmZSlider.addEventListener('input', e => {
+        if (locked) return;
         carmZ = parseFloat(e.target.value);
         updateCamera();
     });
     carmDetDistSlider.addEventListener('input', e => {
+        if (locked) return;
         detectorRadius = parseFloat(e.target.value);
         updateCamera();
     });
+    for (const button of detectorZoomButtons) {
+        button.addEventListener('click', () => {
+            if (locked) return;
+            const nextMode = getDetectorZoomMode(button.dataset.detectorZoom);
+            if (nextMode.id === detectorZoomMode.id) return;
+            detectorZoomMode = nextMode;
+            camera.zoom = detectorZoomMode.zoomFactor;
+            camera.updateProjectionMatrix();
+            updateDetectorZoomUi({ announce: true });
+            updateCamera();
+        });
+    }
     const positionJoystick = document.getElementById('positionJoystick');
     const positionJoystickHandle = document.getElementById('positionJoystickHandle');
     const angleJoystick = document.getElementById('angleJoystick');
@@ -186,6 +250,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         let dragging = false;
         const handleTransition = 'transform 0.2s ease-out';
         function updateFromJoystick(clientX, clientY) {
+            if (locked) return;
             const rect = joystick.getBoundingClientRect();
             let x = clientX - rect.left - rect.width / 2;
             let y = clientY - rect.top - rect.height / 2;
@@ -199,6 +264,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             onMove(x / maxDistance, y / maxDistance);
         }
         joystick.addEventListener('mousedown', e => {
+            if (locked) return;
             dragging = true;
             joystickHandle.style.transition = 'none';
             updateFromJoystick(e.clientX, e.clientY);
@@ -215,6 +281,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             onRelease();
         });
         joystick.addEventListener('pointerdown', e => {
+            if (locked) return;
             dragging = true;
             joystick.setPointerCapture?.(e.pointerId);
             joystickHandle.style.transition = 'none';
@@ -241,6 +308,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             onRelease();
         });
         joystick.addEventListener('touchstart', e => {
+            if (locked) return;
             e.preventDefault();
             dragging = true;
             joystickHandle.style.transition = 'none';
@@ -283,6 +351,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     function step(now) {
         const dt = (now - lastTime) / 1000;
         lastTime = now;
+        if (locked) {
+            requestAnimationFrame(step);
+            return;
+        }
         let updated = false;
         if (speedX !== 0 || speedY !== 0) {
             carmX = Math.min(Math.max(carmX + speedX * maxSpeedX * dt, minX), maxX);
@@ -340,6 +412,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     requestAnimationFrame(step);
 
     function startZ(dir) {
+        if (locked) return;
         speedZ = dir;
     }
     function stopZ() {
@@ -356,6 +429,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     function startRoll(dir) {
+        if (locked) return;
         rollSpeed = dir;
     }
     function stopRoll() {
@@ -373,6 +447,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
     function startAngleReset(e) {
         e?.preventDefault?.();
+        if (locked) return;
         angleResetActive = true;
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;
@@ -404,6 +479,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
     function startAngleTarget(targetYaw, button, e) {
         e?.preventDefault?.();
+        if (locked) return;
         angleResetActive = false;
         carmAngleResetButton?.classList.remove('active');
         angleSpeedYaw = 0;
@@ -458,4 +534,55 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;
     });
+
+    function stopMotion() {
+        speedX = 0;
+        speedY = 0;
+        speedZ = 0;
+        rollSpeed = 0;
+        angleSpeedYaw = 0;
+        angleSpeedPitch = 0;
+        angleResetActive = false;
+        angleTargetYaw = null;
+        activeAngleTargetButton?.classList.remove('active');
+        activeAngleTargetButton = null;
+        carmAngleResetButton?.classList.remove('active');
+        if (positionJoystickHandle) {
+            positionJoystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+        if (angleJoystickHandle) {
+            angleJoystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+
+    function reset() {
+        stopMotion();
+        carmYaw = 0;
+        carmPitch = 0;
+        carmRoll = 0;
+        carmX = initialX;
+        carmY = initialY;
+        carmZ = initialZ;
+        detectorRadius = initialDetectorRadius;
+        detectorZoomMode = getDetectorZoomMode('none');
+        camera.zoom = detectorZoomMode.zoomFactor;
+        camera.updateProjectionMatrix();
+        carmXSlider.value = String(Math.round(carmX));
+        carmYSlider.value = String(Math.round(carmY));
+        carmZSlider.value = String(Math.round(carmZ));
+        carmDetDistSlider.value = String(Math.round(detectorRadius));
+        updateDetectorZoomUi();
+        updateCamera();
+    }
+
+    return {
+        reset,
+        getRevision: () => revision,
+        getDetectorZoomMode: () => ({ ...detectorZoomMode }),
+        setLocked(value) {
+            locked = value === true;
+            for (const button of detectorZoomButtons) button.disabled = locked;
+            if (locked) stopMotion();
+        }
+    };
 }

@@ -1,0 +1,1456 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-22T15:21:41.871Z",
+  "browser": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "platform": "MacIntel",
+    "viewport": {
+      "width": 1440,
+      "height": 813,
+      "devicePixelRatio": 2
+    },
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)"
+  },
+  "report": {
+    "mode": "xpbd-contact-v1",
+    "durationMs": 60045.59999990463,
+    "frameCount": 3246,
+    "averageFps": 54.08548706097199,
+    "onePercentLowFps": 18,
+    "p99FrameMs": 67.69999694824219,
+    "instantaneousP99Fps": 14.77104941030525,
+    "fpsWindowCount": 59,
+    "maxFrameMs": 200.60000000003492,
+    "longFrame33Count": 105,
+    "longFrame50Count": 56,
+    "longFrameEvents": [
+      {
+        "frameMs": 66.5999984741211,
+        "elapsedMs": 25523.099609375,
+        "simulationElapsedMs": 25433.333984375,
+        "heapBytes": 178691808,
+        "previousFrameCpu": {
+          "simulationMs": 8.600000381469727,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 6.900000095367432,
+          "totalMs": 15.600000381469727
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 25557.30078125,
+        "simulationElapsedMs": 25450,
+        "heapBytes": 178691808,
+        "previousFrameCpu": {
+          "simulationMs": 8.800000190734863,
+          "updateMs": 0.19999980926513672,
+          "renderMs": 0.10000014305114746,
+          "totalMs": 9.100000381469727
+        }
+      },
+      {
+        "frameMs": 66.5,
+        "elapsedMs": 25618.69921875,
+        "simulationElapsedMs": 25466.666015625,
+        "heapBytes": 178165072,
+        "previousFrameCpu": {
+          "simulationMs": 19.299999237060547,
+          "updateMs": 0,
+          "renderMs": 6.199999809265137,
+          "totalMs": 25.5
+        }
+      },
+      {
+        "frameMs": 49.20000076293945,
+        "elapsedMs": 25662.5,
+        "simulationElapsedMs": 25483.333984375,
+        "heapBytes": 178165072,
+        "previousFrameCpu": {
+          "simulationMs": 8.800000190734863,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 9
+        }
+      },
+      {
+        "frameMs": 65.80000305175781,
+        "elapsedMs": 25752.80078125,
+        "simulationElapsedMs": 25516.666015625,
+        "heapBytes": 177970656,
+        "previousFrameCpu": {
+          "simulationMs": 8.300000190734863,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 8.5
+        }
+      },
+      {
+        "frameMs": 100.5,
+        "elapsedMs": 25852.400390625,
+        "simulationElapsedMs": 25533.333984375,
+        "heapBytes": 178200768,
+        "previousFrameCpu": {
+          "simulationMs": 8.100000381469727,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 6.5,
+          "totalMs": 14.699999809265137
+        }
+      },
+      {
+        "frameMs": 50.5,
+        "elapsedMs": 25903,
+        "simulationElapsedMs": 25550,
+        "heapBytes": 178391232,
+        "previousFrameCpu": {
+          "simulationMs": 14.5,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 9.300000190734863,
+          "totalMs": 23.899999618530273
+        }
+      },
+      {
+        "frameMs": 99.19999694824219,
+        "elapsedMs": 26003.19921875,
+        "simulationElapsedMs": 25566.666015625,
+        "heapBytes": 178578496,
+        "previousFrameCpu": {
+          "simulationMs": 8,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 8.300000190734863
+        }
+      },
+      {
+        "frameMs": 34.099998474121094,
+        "elapsedMs": 26035.099609375,
+        "simulationElapsedMs": 25583.333984375,
+        "heapBytes": 178578496,
+        "previousFrameCpu": {
+          "simulationMs": 18.799999237060547,
+          "updateMs": 0.2999999523162842,
+          "renderMs": 11.399999618530273,
+          "totalMs": 30.5
+        }
+      },
+      {
+        "frameMs": 49,
+        "elapsedMs": 26091.69921875,
+        "simulationElapsedMs": 25600,
+        "heapBytes": 177941968,
+        "previousFrameCpu": {
+          "simulationMs": 9.5,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 9.699999809265137
+        }
+      },
+      {
+        "frameMs": 67.5999984741211,
+        "elapsedMs": 26153.900390625,
+        "simulationElapsedMs": 25616.666015625,
+        "heapBytes": 178120368,
+        "previousFrameCpu": {
+          "simulationMs": 9,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 6.399999618530273,
+          "totalMs": 15.600000381469727
+        }
+      },
+      {
+        "frameMs": 50.099998474121094,
+        "elapsedMs": 26200.599609375,
+        "simulationElapsedMs": 25633.333984375,
+        "heapBytes": 178120368,
+        "previousFrameCpu": {
+          "simulationMs": 8.5,
+          "updateMs": 0.19999980926513672,
+          "renderMs": 37.099998474121094,
+          "totalMs": 45.79999923706055
+        }
+      },
+      {
+        "frameMs": 66.69999694824219,
+        "elapsedMs": 28733.099609375,
+        "simulationElapsedMs": 28083.333984375,
+        "heapBytes": 178528112,
+        "previousFrameCpu": {
+          "simulationMs": 11.899999618530273,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 8.300000190734863,
+          "totalMs": 20.299999237060547
+        }
+      },
+      {
+        "frameMs": 82.30000305175781,
+        "elapsedMs": 28818.69921875,
+        "simulationElapsedMs": 28100,
+        "heapBytes": 178669488,
+        "previousFrameCpu": {
+          "simulationMs": 8.899999618530273,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 7.199999809265137,
+          "totalMs": 16.299999237060547
+        }
+      },
+      {
+        "frameMs": 101.0999984741211,
+        "elapsedMs": 28918.19921875,
+        "simulationElapsedMs": 28116.666015625,
+        "heapBytes": 177974224,
+        "previousFrameCpu": {
+          "simulationMs": 9.300000190734863,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 17.700000762939453,
+          "totalMs": 27.200000762939453
+        }
+      },
+      {
+        "frameMs": 49.29999923706055,
+        "elapsedMs": 28969.19921875,
+        "simulationElapsedMs": 28133.333984375,
+        "heapBytes": 178122304,
+        "previousFrameCpu": {
+          "simulationMs": 10,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 9.199999809265137,
+          "totalMs": 19.299999237060547
+        }
+      },
+      {
+        "frameMs": 200.60000610351562,
+        "elapsedMs": 29168.099609375,
+        "simulationElapsedMs": 28150,
+        "heapBytes": 178246192,
+        "previousFrameCpu": {
+          "simulationMs": 11.899999618530273,
+          "updateMs": 0,
+          "renderMs": 0.3000001907348633,
+          "totalMs": 12.199999809265137
+        }
+      },
+      {
+        "frameMs": 166.60000610351562,
+        "elapsedMs": 29331.19921875,
+        "simulationElapsedMs": 28166.666015625,
+        "heapBytes": 178376336,
+        "previousFrameCpu": {
+          "simulationMs": 17.600000381469727,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 7.300000190734863,
+          "totalMs": 25
+        }
+      },
+      {
+        "frameMs": 165.89999389648438,
+        "elapsedMs": 29503.19921875,
+        "simulationElapsedMs": 28183.333984375,
+        "heapBytes": 178509664,
+        "previousFrameCpu": {
+          "simulationMs": 8.5,
+          "updateMs": 0.3000001907348633,
+          "renderMs": 7,
+          "totalMs": 15.800000190734863
+        }
+      },
+      {
+        "frameMs": 83.0999984741211,
+        "elapsedMs": 29587.400390625,
+        "simulationElapsedMs": 28200,
+        "heapBytes": 178636320,
+        "previousFrameCpu": {
+          "simulationMs": 7.899999618530273,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 5.199999809265137,
+          "totalMs": 13.199999809265137
+        }
+      },
+      {
+        "frameMs": 51,
+        "elapsedMs": 29636.099609375,
+        "simulationElapsedMs": 28216.666015625,
+        "heapBytes": 178636320,
+        "previousFrameCpu": {
+          "simulationMs": 7.5,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 7,
+          "totalMs": 14.600000381469727
+        }
+      },
+      {
+        "frameMs": 83.4000015258789,
+        "elapsedMs": 29716.19921875,
+        "simulationElapsedMs": 28233.333984375,
+        "heapBytes": 177941968,
+        "previousFrameCpu": {
+          "simulationMs": 8.5,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 8.899999618530273
+        }
+      },
+      {
+        "frameMs": 49.900001525878906,
+        "elapsedMs": 29777,
+        "simulationElapsedMs": 28250,
+        "heapBytes": 178059264,
+        "previousFrameCpu": {
+          "simulationMs": 7.300000190734863,
+          "updateMs": 0.2999999523162842,
+          "renderMs": 6.699999809265137,
+          "totalMs": 14.300000190734863
+        }
+      },
+      {
+        "frameMs": 50.099998474121094,
+        "elapsedMs": 29819.69921875,
+        "simulationElapsedMs": 28266.666015625,
+        "heapBytes": 178059264,
+        "previousFrameCpu": {
+          "simulationMs": 8.399999618530273,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 8.699999809265137
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 29853.400390625,
+        "simulationElapsedMs": 28283.333984375,
+        "heapBytes": 178287264,
+        "previousFrameCpu": {
+          "simulationMs": 8.199999809265137,
+          "updateMs": 0,
+          "renderMs": 7.400000095367432,
+          "totalMs": 15.600000381469727
+        }
+      },
+      {
+        "frameMs": 34.29999923706055,
+        "elapsedMs": 29967.30078125,
+        "simulationElapsedMs": 28366.666015625,
+        "heapBytes": 178866112,
+        "previousFrameCpu": {
+          "simulationMs": 15.100000381469727,
+          "updateMs": 0,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 15.399999618530273
+        }
+      },
+      {
+        "frameMs": 50.29999923706055,
+        "elapsedMs": 32371,
+        "simulationElapsedMs": 30733.333984375,
+        "heapBytes": 178552224,
+        "previousFrameCpu": {
+          "simulationMs": 7.699999809265137,
+          "updateMs": 0,
+          "renderMs": 7.199999809265137,
+          "totalMs": 14.899999618530273
+        }
+      },
+      {
+        "frameMs": 49,
+        "elapsedMs": 32418.80078125,
+        "simulationElapsedMs": 30750,
+        "heapBytes": 178552224,
+        "previousFrameCpu": {
+          "simulationMs": 7.699999809265137,
+          "updateMs": 0,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 8
+        }
+      },
+      {
+        "frameMs": 34.29999923706055,
+        "elapsedMs": 32448,
+        "simulationElapsedMs": 30766.666015625,
+        "heapBytes": 178800480,
+        "previousFrameCpu": {
+          "simulationMs": 18.399999618530273,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 8.699999809265137,
+          "totalMs": 27.299999237060547
+        }
+      },
+      {
+        "frameMs": 167.1999969482422,
+        "elapsedMs": 32649.69921875,
+        "simulationElapsedMs": 30800,
+        "heapBytes": 178105008,
+        "previousFrameCpu": {
+          "simulationMs": 9,
+          "updateMs": 0,
+          "renderMs": 5.5,
+          "totalMs": 14.5
+        }
+      },
+      {
+        "frameMs": 83.4000015258789,
+        "elapsedMs": 32757,
+        "simulationElapsedMs": 30833.333984375,
+        "heapBytes": 178333536,
+        "previousFrameCpu": {
+          "simulationMs": 8.399999618530273,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 8.600000381469727
+        }
+      },
+      {
+        "frameMs": 49.79999923706055,
+        "elapsedMs": 32806.5,
+        "simulationElapsedMs": 30850,
+        "heapBytes": 178333536,
+        "previousFrameCpu": {
+          "simulationMs": 7.900000095367432,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 6.099999904632568,
+          "totalMs": 14.100000381469727
+        }
+      },
+      {
+        "frameMs": 49.20000076293945,
+        "elapsedMs": 32854.3984375,
+        "simulationElapsedMs": 30866.666015625,
+        "heapBytes": 178574352,
+        "previousFrameCpu": {
+          "simulationMs": 8.5,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 8.800000190734863
+        }
+      },
+      {
+        "frameMs": 67.69999694824219,
+        "elapsedMs": 32930.69921875,
+        "simulationElapsedMs": 30883.333984375,
+        "heapBytes": 178695456,
+        "previousFrameCpu": {
+          "simulationMs": 7.5,
+          "updateMs": 0,
+          "renderMs": 5.199999809265137,
+          "totalMs": 12.699999809265137
+        }
+      },
+      {
+        "frameMs": 101,
+        "elapsedMs": 33078.8984375,
+        "simulationElapsedMs": 30916.666015625,
+        "heapBytes": 178003744,
+        "previousFrameCpu": {
+          "simulationMs": 7.600000381469727,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 7.800000190734863
+        }
+      },
+      {
+        "frameMs": 50,
+        "elapsedMs": 33117,
+        "simulationElapsedMs": 30933.333984375,
+        "heapBytes": 178003744,
+        "previousFrameCpu": {
+          "simulationMs": 9.100000381469727,
+          "updateMs": 0.2999999523162842,
+          "renderMs": 6.199999809265137,
+          "totalMs": 15.600000381469727
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 33294.3984375,
+        "simulationElapsedMs": 30950,
+        "heapBytes": 177365568,
+        "previousFrameCpu": {
+          "simulationMs": 13.100000381469727,
+          "updateMs": 0,
+          "renderMs": 0.3000001907348633,
+          "totalMs": 13.399999618530273
+        }
+      },
+      {
+        "frameMs": 165.5,
+        "elapsedMs": 33309.8984375,
+        "simulationElapsedMs": 30966.666015625,
+        "heapBytes": 177365568,
+        "previousFrameCpu": {
+          "simulationMs": 8.899999618530273,
+          "updateMs": 0,
+          "renderMs": 5.800000190734863,
+          "totalMs": 14.699999809265137
+        }
+      },
+      {
+        "frameMs": 66.5999984741211,
+        "elapsedMs": 36272.19921875,
+        "simulationElapsedMs": 33866.66796875,
+        "heapBytes": 177625120,
+        "previousFrameCpu": {
+          "simulationMs": 8,
+          "updateMs": 0,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 8.100000381469727
+        }
+      },
+      {
+        "frameMs": 66,
+        "elapsedMs": 36332.80078125,
+        "simulationElapsedMs": 33883.33203125,
+        "heapBytes": 177758144,
+        "previousFrameCpu": {
+          "simulationMs": 9,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 5.300000190734863,
+          "totalMs": 14.399999618530273
+        }
+      },
+      {
+        "frameMs": 49.79999923706055,
+        "elapsedMs": 36386.6015625,
+        "simulationElapsedMs": 33900,
+        "heapBytes": 177861136,
+        "previousFrameCpu": {
+          "simulationMs": 8.5,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.19999980926513672,
+          "totalMs": 8.800000190734863
+        }
+      },
+      {
+        "frameMs": 100.19999694824219,
+        "elapsedMs": 36482.3984375,
+        "simulationElapsedMs": 33916.66796875,
+        "heapBytes": 177982896,
+        "previousFrameCpu": {
+          "simulationMs": 8.100000381469727,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 7.199999809265137,
+          "totalMs": 15.5
+        }
+      },
+      {
+        "frameMs": 149.8000030517578,
+        "elapsedMs": 36663.5,
+        "simulationElapsedMs": 33950,
+        "heapBytes": 178199888,
+        "previousFrameCpu": {
+          "simulationMs": 8.199999809265137,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 8.5
+        }
+      },
+      {
+        "frameMs": 167.10000610351562,
+        "elapsedMs": 36850,
+        "simulationElapsedMs": 33983.33203125,
+        "heapBytes": 177368368,
+        "previousFrameCpu": {
+          "simulationMs": 7.599999904632568,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 7.800000190734863
+        }
+      },
+      {
+        "frameMs": 34.099998474121094,
+        "elapsedMs": 36919.1015625,
+        "simulationElapsedMs": 34016.66796875,
+        "heapBytes": 177586864,
+        "previousFrameCpu": {
+          "simulationMs": 8.199999809265137,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 8.600000381469727
+        }
+      },
+      {
+        "frameMs": 99.4000015258789,
+        "elapsedMs": 37020.6015625,
+        "simulationElapsedMs": 34033.33203125,
+        "heapBytes": 177711600,
+        "previousFrameCpu": {
+          "simulationMs": 8.199999809265137,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 6.899999618530273,
+          "totalMs": 15.199999809265137
+        }
+      },
+      {
+        "frameMs": 49.70000076293945,
+        "elapsedMs": 37069.5,
+        "simulationElapsedMs": 34050,
+        "heapBytes": 177711600,
+        "previousFrameCpu": {
+          "simulationMs": 7.900000095367432,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 6.300000190734863,
+          "totalMs": 14.300000190734863
+        }
+      },
+      {
+        "frameMs": 34.400001525878906,
+        "elapsedMs": 37110.80078125,
+        "simulationElapsedMs": 34066.66796875,
+        "heapBytes": 177942288,
+        "previousFrameCpu": {
+          "simulationMs": 11.600000381469727,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 11.800000190734863
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 37169.6015625,
+        "simulationElapsedMs": 34100,
+        "heapBytes": 178181680,
+        "previousFrameCpu": {
+          "simulationMs": 7.199999809265137,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 0.19999980926513672,
+          "totalMs": 7.599999904632568
+        }
+      },
+      {
+        "frameMs": 49.900001525878906,
+        "elapsedMs": 37222.80078125,
+        "simulationElapsedMs": 34116.66796875,
+        "heapBytes": 177368352,
+        "previousFrameCpu": {
+          "simulationMs": 7.199999809265137,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 7.400000095367432
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 37247.6015625,
+        "simulationElapsedMs": 34133.33203125,
+        "heapBytes": 177368352,
+        "previousFrameCpu": {
+          "simulationMs": 8.100000381469727,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 13.899999618530273,
+          "totalMs": 22.100000381469727
+        }
+      },
+      {
+        "frameMs": 33.70000076293945,
+        "elapsedMs": 40113.6015625,
+        "simulationElapsedMs": 36966.66796875,
+        "heapBytes": 177563088,
+        "previousFrameCpu": {
+          "simulationMs": 14,
+          "updateMs": 0,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 14.300000190734863
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 40184.80078125,
+        "simulationElapsedMs": 37000,
+        "heapBytes": 177763232,
+        "previousFrameCpu": {
+          "simulationMs": 13.899999618530273,
+          "updateMs": 0,
+          "renderMs": 0.19999980926513672,
+          "totalMs": 14.100000381469727
+        }
+      },
+      {
+        "frameMs": 50,
+        "elapsedMs": 40272,
+        "simulationElapsedMs": 37033.33203125,
+        "heapBytes": 177956560,
+        "previousFrameCpu": {
+          "simulationMs": 16.200000762939453,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 16.600000381469727
+        }
+      },
+      {
+        "frameMs": 116.69999694824219,
+        "elapsedMs": 40392.5,
+        "simulationElapsedMs": 37050,
+        "heapBytes": 178066000,
+        "previousFrameCpu": {
+          "simulationMs": 8.899999618530273,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 25.700000762939453,
+          "totalMs": 34.70000076293945
+        }
+      },
+      {
+        "frameMs": 66.30000305175781,
+        "elapsedMs": 40452.6015625,
+        "simulationElapsedMs": 37066.66796875,
+        "heapBytes": 178177872,
+        "previousFrameCpu": {
+          "simulationMs": 18,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 12.199999809265137,
+          "totalMs": 30.399999618530273
+        }
+      },
+      {
+        "frameMs": 99.30000305175781,
+        "elapsedMs": 40548,
+        "simulationElapsedMs": 37083.33203125,
+        "heapBytes": 177394272,
+        "previousFrameCpu": {
+          "simulationMs": 11.699999809265137,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.10000014305114746,
+          "totalMs": 11.899999618530273
+        }
+      },
+      {
+        "frameMs": 50.400001525878906,
+        "elapsedMs": 40606.5,
+        "simulationElapsedMs": 37100,
+        "heapBytes": 177514432,
+        "previousFrameCpu": {
+          "simulationMs": 8.300000190734863,
+          "updateMs": 0.2999999523162842,
+          "renderMs": 7.600000381469727,
+          "totalMs": 16.200000762939453
+        }
+      },
+      {
+        "frameMs": 132.89999389648438,
+        "elapsedMs": 40732.8984375,
+        "simulationElapsedMs": 37116.66796875,
+        "heapBytes": 177599744,
+        "previousFrameCpu": {
+          "simulationMs": 8.100000381469727,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 8.399999618530273
+        }
+      },
+      {
+        "frameMs": 50.099998474121094,
+        "elapsedMs": 40783.5,
+        "simulationElapsedMs": 37133.33203125,
+        "heapBytes": 177708464,
+        "previousFrameCpu": {
+          "simulationMs": 7.699999809265137,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 6.300000190734863,
+          "totalMs": 14.100000381469727
+        }
+      },
+      {
+        "frameMs": 33.599998474121094,
+        "elapsedMs": 40823.6015625,
+        "simulationElapsedMs": 37150,
+        "heapBytes": 177708464,
+        "previousFrameCpu": {
+          "simulationMs": 13.100000381469727,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 13.300000190734863
+        }
+      },
+      {
+        "frameMs": 67.4000015258789,
+        "elapsedMs": 40882.30078125,
+        "simulationElapsedMs": 37166.66796875,
+        "heapBytes": 177906656,
+        "previousFrameCpu": {
+          "simulationMs": 30.200000762939453,
+          "updateMs": 0,
+          "renderMs": 13.800000190734863,
+          "totalMs": 44
+        }
+      },
+      {
+        "frameMs": 83.30000305175781,
+        "elapsedMs": 41010.19921875,
+        "simulationElapsedMs": 37200,
+        "heapBytes": 178103984,
+        "previousFrameCpu": {
+          "simulationMs": 7.5,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 7.800000190734863
+        }
+      },
+      {
+        "frameMs": 50.099998474121094,
+        "elapsedMs": 41035,
+        "simulationElapsedMs": 37216.66796875,
+        "heapBytes": 178103984,
+        "previousFrameCpu": {
+          "simulationMs": 17.299999237060547,
+          "updateMs": 0,
+          "renderMs": 6.800000190734863,
+          "totalMs": 24.100000381469727
+        }
+      },
+      {
+        "frameMs": 49,
+        "elapsedMs": 41088,
+        "simulationElapsedMs": 37233.33203125,
+        "heapBytes": 177428368,
+        "previousFrameCpu": {
+          "simulationMs": 7.5,
+          "updateMs": 0.40000009536743164,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 8
+        }
+      },
+      {
+        "frameMs": 49.900001525878906,
+        "elapsedMs": 41135.69921875,
+        "simulationElapsedMs": 37250,
+        "heapBytes": 177428368,
+        "previousFrameCpu": {
+          "simulationMs": 9.199999809265137,
+          "updateMs": 0,
+          "renderMs": 12.300000190734863,
+          "totalMs": 21.5
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 41293.1015625,
+        "simulationElapsedMs": 37350,
+        "heapBytes": 178146224,
+        "previousFrameCpu": {
+          "simulationMs": 11.699999809265137,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.10000014305114746,
+          "totalMs": 11.899999618530273
+        }
+      },
+      {
+        "frameMs": 46.900001525878906,
+        "elapsedMs": 44078.6015625,
+        "simulationElapsedMs": 40050,
+        "heapBytes": 177972416,
+        "previousFrameCpu": {
+          "simulationMs": 9.899999618530273,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 8.300000190734863,
+          "totalMs": 18.299999237060547
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 44163.19921875,
+        "simulationElapsedMs": 40116.66796875,
+        "heapBytes": 177431520,
+        "previousFrameCpu": {
+          "simulationMs": 10.699999809265137,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.19999980926513672,
+          "totalMs": 11
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 44699.19921875,
+        "simulationElapsedMs": 40600,
+        "heapBytes": 178231648,
+        "previousFrameCpu": {
+          "simulationMs": 29.5,
+          "updateMs": 0,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 29.799999237060547
+        }
+      },
+      {
+        "frameMs": 34.099998474121094,
+        "elapsedMs": 44746.30078125,
+        "simulationElapsedMs": 40633.33203125,
+        "heapBytes": 178231648,
+        "previousFrameCpu": {
+          "simulationMs": 8.399999618530273,
+          "updateMs": 0,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 8.5
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 47834.30078125,
+        "simulationElapsedMs": 43700,
+        "heapBytes": 179015808,
+        "previousFrameCpu": {
+          "simulationMs": 9.899999618530273,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 10.100000381469727
+        }
+      },
+      {
+        "frameMs": 51,
+        "elapsedMs": 47900.3984375,
+        "simulationElapsedMs": 43733.33203125,
+        "heapBytes": 177475408,
+        "previousFrameCpu": {
+          "simulationMs": 8.600000381469727,
+          "updateMs": 0,
+          "renderMs": 0.19999980926513672,
+          "totalMs": 8.800000190734863
+        }
+      },
+      {
+        "frameMs": 99.4000015258789,
+        "elapsedMs": 47999.30078125,
+        "simulationElapsedMs": 43750,
+        "heapBytes": 177561888,
+        "previousFrameCpu": {
+          "simulationMs": 9,
+          "updateMs": 0,
+          "renderMs": 8.800000190734863,
+          "totalMs": 17.799999237060547
+        }
+      },
+      {
+        "frameMs": 83.9000015258789,
+        "elapsedMs": 48082.5,
+        "simulationElapsedMs": 43766.66796875,
+        "heapBytes": 177659648,
+        "previousFrameCpu": {
+          "simulationMs": 8.300000190734863,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 8,
+          "totalMs": 16.399999618530273
+        }
+      },
+      {
+        "frameMs": 82.4000015258789,
+        "elapsedMs": 48170.69921875,
+        "simulationElapsedMs": 43783.33203125,
+        "heapBytes": 177775152,
+        "previousFrameCpu": {
+          "simulationMs": 10.899999618530273,
+          "updateMs": 0.19999980926513672,
+          "renderMs": 18.799999237060547,
+          "totalMs": 29.899999618530273
+        }
+      },
+      {
+        "frameMs": 99.9000015258789,
+        "elapsedMs": 48291.1015625,
+        "simulationElapsedMs": 43816.66796875,
+        "heapBytes": 177938960,
+        "previousFrameCpu": {
+          "simulationMs": 9.600000381469727,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 9.800000190734863
+        }
+      },
+      {
+        "frameMs": 82.4000015258789,
+        "elapsedMs": 48371.69921875,
+        "simulationElapsedMs": 43833.33203125,
+        "heapBytes": 178026960,
+        "previousFrameCpu": {
+          "simulationMs": 7.600000381469727,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 11.699999809265137,
+          "totalMs": 19.399999618530273
+        }
+      },
+      {
+        "frameMs": 117.69999694824219,
+        "elapsedMs": 48487.1015625,
+        "simulationElapsedMs": 43850,
+        "heapBytes": 178125872,
+        "previousFrameCpu": {
+          "simulationMs": 6.099999904632568,
+          "updateMs": 0.20000004768371582,
+          "renderMs": 5.900000095367432,
+          "totalMs": 12.199999809265137
+        }
+      },
+      {
+        "frameMs": 100,
+        "elapsedMs": 48585,
+        "simulationElapsedMs": 43866.66796875,
+        "heapBytes": 178225184,
+        "previousFrameCpu": {
+          "simulationMs": 6,
+          "updateMs": 0,
+          "renderMs": 13.5,
+          "totalMs": 19.5
+        }
+      },
+      {
+        "frameMs": 83.5999984741211,
+        "elapsedMs": 48709.3984375,
+        "simulationElapsedMs": 43900,
+        "heapBytes": 178409088,
+        "previousFrameCpu": {
+          "simulationMs": 6,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 6.300000190734863
+        }
+      },
+      {
+        "frameMs": 49.29999923706055,
+        "elapsedMs": 48751.80078125,
+        "simulationElapsedMs": 43916.66796875,
+        "heapBytes": 178409088,
+        "previousFrameCpu": {
+          "simulationMs": 10.5,
+          "updateMs": 0.2999999523162842,
+          "renderMs": 2.799999952316284,
+          "totalMs": 13.600000381469727
+        }
+      },
+      {
+        "frameMs": 34.099998474121094,
+        "elapsedMs": 48792.5,
+        "simulationElapsedMs": 43933.33203125,
+        "heapBytes": 178589520,
+        "previousFrameCpu": {
+          "simulationMs": 12.600000381469727,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 12.800000190734863
+        }
+      },
+      {
+        "frameMs": 34.099998474121094,
+        "elapsedMs": 48856.6015625,
+        "simulationElapsedMs": 43966.66796875,
+        "heapBytes": 178810576,
+        "previousFrameCpu": {
+          "simulationMs": 20.799999237060547,
+          "updateMs": 0,
+          "renderMs": 0.2999999523162842,
+          "totalMs": 21.100000381469727
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 48984.19921875,
+        "simulationElapsedMs": 44058.33203125,
+        "heapBytes": 177649968,
+        "previousFrameCpu": {
+          "simulationMs": 4.5,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 4.699999809265137
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 51735.69921875,
+        "simulationElapsedMs": 46508.33203125,
+        "heapBytes": 177874224,
+        "previousFrameCpu": {
+          "simulationMs": 5.5,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 8.100000381469727,
+          "totalMs": 13.699999809265137
+        }
+      },
+      {
+        "frameMs": 49.400001525878906,
+        "elapsedMs": 51852.30078125,
+        "simulationElapsedMs": 46575,
+        "heapBytes": 178059632,
+        "previousFrameCpu": {
+          "simulationMs": 6.5,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 6.699999809265137
+        }
+      },
+      {
+        "frameMs": 33.400001525878906,
+        "elapsedMs": 51902.30078125,
+        "simulationElapsedMs": 46608.33203125,
+        "heapBytes": 178160272,
+        "previousFrameCpu": {
+          "simulationMs": 8.199999809265137,
+          "updateMs": 0,
+          "renderMs": 14.5,
+          "totalMs": 22.700000762939453
+        }
+      },
+      {
+        "frameMs": 50,
+        "elapsedMs": 51955.80078125,
+        "simulationElapsedMs": 46625,
+        "heapBytes": 178196000,
+        "previousFrameCpu": {
+          "simulationMs": 4.800000190734863,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 5
+        }
+      },
+      {
+        "frameMs": 65.9000015258789,
+        "elapsedMs": 52073.3984375,
+        "simulationElapsedMs": 46675,
+        "heapBytes": 178334864,
+        "previousFrameCpu": {
+          "simulationMs": 5.600000381469727,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 5.800000190734863
+        }
+      },
+      {
+        "frameMs": 33.900001525878906,
+        "elapsedMs": 52120.1015625,
+        "simulationElapsedMs": 46708.33203125,
+        "heapBytes": 178334864,
+        "previousFrameCpu": {
+          "simulationMs": 2.799999952316284,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0,
+          "totalMs": 2.8999998569488525
+        }
+      },
+      {
+        "frameMs": 34.400001525878906,
+        "elapsedMs": 55297.80078125,
+        "simulationElapsedMs": 49508.33203125,
+        "heapBytes": 178414352,
+        "previousFrameCpu": {
+          "simulationMs": 3.6999998092651367,
+          "updateMs": 0,
+          "renderMs": 0.10000014305114746,
+          "totalMs": 3.799999952316284
+        }
+      },
+      {
+        "frameMs": 183.3000030517578,
+        "elapsedMs": 55529.3984375,
+        "simulationElapsedMs": 49541.66796875,
+        "heapBytes": 178462048,
+        "previousFrameCpu": {
+          "simulationMs": 1.5,
+          "updateMs": 0,
+          "renderMs": 7.5,
+          "totalMs": 9
+        }
+      },
+      {
+        "frameMs": 33.5,
+        "elapsedMs": 55597.19921875,
+        "simulationElapsedMs": 49591.66796875,
+        "heapBytes": 178542160,
+        "previousFrameCpu": {
+          "simulationMs": 2,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 2.200000047683716
+        }
+      },
+      {
+        "frameMs": 83.4000015258789,
+        "elapsedMs": 55689,
+        "simulationElapsedMs": 49608.33203125,
+        "heapBytes": 177044848,
+        "previousFrameCpu": {
+          "simulationMs": 1.5,
+          "updateMs": 0,
+          "renderMs": 6.5,
+          "totalMs": 8
+        }
+      },
+      {
+        "frameMs": 49.599998474121094,
+        "elapsedMs": 55737.30078125,
+        "simulationElapsedMs": 49625,
+        "heapBytes": 177044848,
+        "previousFrameCpu": {
+          "simulationMs": 2.200000047683716,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 7.800000190734863,
+          "totalMs": 10.100000381469727
+        }
+      },
+      {
+        "frameMs": 33.70000076293945,
+        "elapsedMs": 55770.80078125,
+        "simulationElapsedMs": 49641.66796875,
+        "heapBytes": 177100464,
+        "previousFrameCpu": {
+          "simulationMs": 1.9000000953674316,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.10000014305114746,
+          "totalMs": 2.1000001430511475
+        }
+      },
+      {
+        "frameMs": 116.5,
+        "elapsedMs": 55896.69921875,
+        "simulationElapsedMs": 49666.66796875,
+        "heapBytes": 177145488,
+        "previousFrameCpu": {
+          "simulationMs": 1.1000001430511475,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 0.09999990463256836,
+          "totalMs": 1.2999999523162842
+        }
+      },
+      {
+        "frameMs": 84,
+        "elapsedMs": 55988.6015625,
+        "simulationElapsedMs": 49683.33203125,
+        "heapBytes": 177179472,
+        "previousFrameCpu": {
+          "simulationMs": 2.5,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 7.900000095367432,
+          "totalMs": 10.5
+        }
+      },
+      {
+        "frameMs": 50,
+        "elapsedMs": 56036.69921875,
+        "simulationElapsedMs": 49700,
+        "heapBytes": 177179472,
+        "previousFrameCpu": {
+          "simulationMs": 2,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 15.800000190734863,
+          "totalMs": 17.899999618530273
+        }
+      },
+      {
+        "frameMs": 50.099998474121094,
+        "elapsedMs": 56087.19921875,
+        "simulationElapsedMs": 49716.66796875,
+        "heapBytes": 177232288,
+        "previousFrameCpu": {
+          "simulationMs": 1.7999999523162842,
+          "updateMs": 0,
+          "renderMs": 0.20000004768371582,
+          "totalMs": 2
+        }
+      },
+      {
+        "frameMs": 49.70000076293945,
+        "elapsedMs": 56144.5,
+        "simulationElapsedMs": 49733.33203125,
+        "heapBytes": 177289888,
+        "previousFrameCpu": {
+          "simulationMs": 7.800000190734863,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 16.600000381469727,
+          "totalMs": 24.5
+        }
+      },
+      {
+        "frameMs": 49.400001525878906,
+        "elapsedMs": 56188.1015625,
+        "simulationElapsedMs": 49750,
+        "heapBytes": 177289888,
+        "previousFrameCpu": {
+          "simulationMs": 3.700000047683716,
+          "updateMs": 0,
+          "renderMs": 0.8999998569488525,
+          "totalMs": 4.599999904632568
+        }
+      },
+      {
+        "frameMs": 67,
+        "elapsedMs": 56252.19921875,
+        "simulationElapsedMs": 49766.66796875,
+        "heapBytes": 177349744,
+        "previousFrameCpu": {
+          "simulationMs": 2.700000047683716,
+          "updateMs": 0.10000014305114746,
+          "renderMs": 8.399999618530273,
+          "totalMs": 11.199999809265137
+        }
+      },
+      {
+        "frameMs": 50.099998474121094,
+        "elapsedMs": 56362.8984375,
+        "simulationElapsedMs": 49833.33203125,
+        "heapBytes": 177461168,
+        "previousFrameCpu": {
+          "simulationMs": 1.7000000476837158,
+          "updateMs": 0.09999990463256836,
+          "renderMs": 3,
+          "totalMs": 4.800000190734863
+        }
+      }
+    ],
+    "frameCpu": {
+      "samples": 3246,
+      "simulationAverageMs": 4.726524953994939,
+      "updateAverageMs": 0.0490449798452362,
+      "renderAverageMs": 1.2800677745928386,
+      "totalAverageMs": 6.0556377084330135,
+      "simulationP95Ms": 11.300000190734863,
+      "simulationP99Ms": 16.799999237060547,
+      "renderP95Ms": 6.900000095367432,
+      "renderP99Ms": 10.699999809265137,
+      "totalP95Ms": 15.800000190734863,
+      "totalP99Ms": 22.5,
+      "simulationMaximumMs": 34.299999952316284,
+      "updateMaximumMs": 3.5,
+      "renderMaximumMs": 37.10000014305115,
+      "maximumMs": 45.799999952316284
+    },
+    "physics": {
+      "mode": "xpbd-contact-v1",
+      "fixedDt": 0.008333333333333333,
+      "steps": 13487,
+      "lastSubsteps": 0,
+      "droppedTime": 0,
+      "contacts": 4,
+      "maxPenetration": 0.021208803919841368,
+      "settledMaxPenetration": 0.002097907274328459,
+      "settledContact": {
+        "bodyId": "guidewire",
+        "segment": 183,
+        "t": 1,
+        "x": 39.57373046875,
+        "y": 32.42213439941406,
+        "z": -66.1528091430664
+      },
+      "phases": {
+        "total": {
+          "lastMs": 0.9000000953674316,
+          "averageMs": 1.900894399529515,
+          "p95Ms": 2
+        },
+        "integrate": {
+          "lastMs": 0,
+          "averageMs": 0.014435901795977908,
+          "p95Ms": 0.09999990463256836
+        },
+        "narrowPhase": {
+          "lastMs": 0.3000001907348633,
+          "averageMs": 0.3864584969479118,
+          "p95Ms": 0.8000001907348633
+        },
+        "constraints": {
+          "lastMs": 0.5999999046325684,
+          "averageMs": 1.4847952304970577,
+          "p95Ms": 1.2000000476837158
+        },
+        "velocity": {
+          "lastMs": 0,
+          "averageMs": 0.009854071933022665,
+          "p95Ms": 0.09999990463256836
+        }
+      },
+      "bodies": [
+        {
+          "id": "guidewire",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.0004826895758577976,
+          "maxBendAngleDegrees": 31.62866901779282
+        },
+        {
+          "id": "catheter",
+          "sleeping": false,
+          "finite": true,
+          "maxLengthError": 0.0000035951826397410494,
+          "maxBendAngleDegrees": 0.008387049843054387
+        }
+      ]
+    },
+    "physicsEnvelope": {
+      "steps": 6373,
+      "maxPostStepPenetrationMm": 0.05637681634652947,
+      "maxPostStepPenetrationStep": 5326,
+      "maxPostStepPenetrationBodyId": "catheter",
+      "maxPostStepPenetrationSegment": 41,
+      "maxPostStepPenetrationT": 0.5,
+      "maxPostStepPenetrationX": -56.99993896484375,
+      "maxPostStepPenetrationY": -351.70867919921875,
+      "maxPostStepPenetrationZ": 3.6890865564346313,
+      "maxTransientPenetrationMm": 0.5677591412542861,
+      "maxTransientPenetrationStep": 2665,
+      "maxSegmentErrorPercent": 0.4509300836240938,
+      "maxSegmentErrorBodyId": "catheter",
+      "maxSegmentErrorNodeIndex": 51,
+      "maxSegmentErrorStep": 3120,
+      "maxBendAngleDegrees": 105.47563120371554,
+      "maxBendBodyId": "catheter",
+      "maxBendNodeIndex": 85,
+      "maxBendStep": 2370,
+      "maxBendX": 3.019345760345459,
+      "maxBendY": -240.2970733642578,
+      "maxBendZ": 12.67174243927002,
+      "finite": true
+    },
+    "contactField": {
+      "pointQueries": 2222502,
+      "capsuleQueries": 832816,
+      "capsuleSamples": 2199936,
+      "sweepQueries": 928,
+      "sweepSamples": 3382,
+      "batchQueries": 0,
+      "safeCoreHits": 163585,
+      "sdfHits": 2058917,
+      "bvhRefinements": 2878,
+      "signRefinements": 106094,
+      "signCacheHits": 97003,
+      "signCacheMisses": 9091,
+      "fallbackHits": 0,
+      "centerlineEstimateHits": 0,
+      "resultAllocations": 0,
+      "runtimeBytes": 33203496
+    },
+    "cameraProjectionChanges": 0,
+    "heapBytes": 178239518,
+    "heap": {
+      "supported": true,
+      "samples": 61,
+      "startBytes": 178036040,
+      "minimumBytes": 177100462,
+      "maximumBytes": 178662576,
+      "endBytes": 178239518,
+      "growthBytes": 203478,
+      "rangeBytes": 1562114
+    },
+    "pageState": {
+      "visibilityState": "visible",
+      "hasFocus": true,
+      "focusLossCount": 0,
+      "focusLossMs": 0
+    },
+    "scenario": {
+      "running": false,
+      "warmingUp": false,
+      "warmupPhase": "complete",
+      "warmupElapsedMs": 204000,
+      "durationMs": 60000,
+      "elapsedMs": 60000,
+      "simulationElapsedMs": 53108.333333337345,
+      "progress": 1,
+      "cycleIndex": 0,
+      "catheterType": "pigtail",
+      "stopReason": "duration",
+      "automated": true
+    },
+    "browserAcceptance": {
+      "durationPass": false,
+      "onePercentLowPass": false,
+      "noLongFramePass": false,
+      "penetrationPass": true,
+      "lengthPass": true,
+      "foldPass": true,
+      "finitePass": true,
+      "modePass": true,
+      "contactFieldPass": true,
+      "cameraStablePass": true,
+      "focusPass": true,
+      "passed": false
+    }
+  }
+}

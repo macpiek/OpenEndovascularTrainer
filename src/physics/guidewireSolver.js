@@ -110,11 +110,37 @@ function createPerformanceStats() {
         segmentSampleCount: 0,
         solveIterations: 0,
         moving: false,
+        boundaryDrivenFeed: false,
+        transportDeltaMm: 0,
+        transportSpeedMmPerSecond: 0,
         forceRelax: false,
         foldGuarded: false,
         stabilityRepaired: false,
         withdrawalRelaxed: false
     };
+}
+
+function resetPerformanceStats(stats) {
+    stats.advanceMs = 0;
+    stats.solveMs = 0;
+    stats.projectMs = 0;
+    stats.diagnosticMs = 0;
+    stats.pointContactCount = 0;
+    stats.diagnosticPointContactCount = 0;
+    stats.projectGuidewireCalls = 0;
+    stats.nodeProjectionCount = 0;
+    stats.segmentProjectionCount = 0;
+    stats.segmentSampleCount = 0;
+    stats.solveIterations = 0;
+    stats.moving = false;
+    stats.boundaryDrivenFeed = false;
+    stats.transportDeltaMm = 0;
+    stats.transportSpeedMmPerSecond = 0;
+    stats.forceRelax = false;
+    stats.foldGuarded = false;
+    stats.stabilityRepaired = false;
+    stats.withdrawalRelaxed = false;
+    return stats;
 }
 
 export class GuidewireSolver {
@@ -233,6 +259,7 @@ export class GuidewireSolver {
         this._slideTargetContact = createContactScratch();
         this._zeroVelocityContact = createContactScratch();
         this._projectNodePoint = { x: 0, y: 0, z: 0 };
+        this._convectSource = { x: 0, y: 0, z: 0 };
         this._lumenConstraintState = {
             projected: { x: 0, y: 0, z: 0 },
             radialMargin: 0,
@@ -261,6 +288,19 @@ export class GuidewireSolver {
 
     getPerformanceStats() {
         return { ...this.performanceStats };
+    }
+
+    reset() {
+        this.tailProgress = this.minInsert;
+        this.lastAdvanceDelta = 0;
+        this.settleFramesRemaining = 0;
+        this.withdrawalRelaxFramesRemaining = 0;
+        this.unsupportedBendRelaxFramesRemaining = 0;
+        this.unsupportedBendRelaxArmed = true;
+        this.contactPoints.length = 0;
+        this.breachPoints.length = 0;
+        this.initialize();
+        return this;
     }
 
     initialize() {
@@ -389,8 +429,13 @@ export class GuidewireSolver {
         }
     }
 
-    advance(command, dt, collisionTarget = null) {
-        this.performanceStats = createPerformanceStats();
+    advance(
+        command,
+        dt,
+        collisionTarget = null,
+        { routeAssist = true, boundaryDriven = false } = {}
+    ) {
+        resetPerformanceStats(this.performanceStats);
         const perfStart = nowMs();
         const previous = snapshotNodePositions(this.rod.nodes, this._advancePreviousPositions);
         this._advancePreviousPositions = previous;
@@ -416,13 +461,17 @@ export class GuidewireSolver {
         const feedSpeed = delta / Math.max(dt, 1e-6);
 
         this.constrainSheath(feedSpeed);
-        if (Math.abs(delta) > 1e-6) {
-            this.#convectMaterial(delta, previous, dt, collisionTarget);
+        if (Math.abs(delta) > 1e-6 && !boundaryDriven) {
+            this.#convectMaterial(delta, previous, dt, collisionTarget, routeAssist);
         }
 
         this.previousPositions = previous;
         this.performanceStats.advanceMs += nowMs() - perfStart;
         this.performanceStats.moving = Math.abs(delta) > 1e-6;
+        this.performanceStats.boundaryDrivenFeed =
+            boundaryDriven && Math.abs(delta) > 1e-6;
+        this.performanceStats.transportDeltaMm = delta;
+        this.performanceStats.transportSpeedMmPerSecond = feedSpeed;
         return delta;
     }
 
@@ -695,10 +744,10 @@ export class GuidewireSolver {
         return { contact: !breach && contact, breach };
     }
 
-    #convectMaterial(delta, previous, dt, collisionTarget = null) {
+    #convectMaterial(delta, previous, dt, collisionTarget = null, routeAssist = true) {
         const sourceShift = delta / this.segmentLength;
         const invDt = 1 / Math.max(dt, 1e-6);
-        const collider = this.#collisionCollider(collisionTarget);
+        const collider = routeAssist ? this.#collisionCollider(collisionTarget) : null;
 
         const startIndex = this.#firstNodeOutsideSheathIndex();
         for (let i = startIndex; i < this.rod.nodes.length; i++) {
@@ -706,7 +755,21 @@ export class GuidewireSolver {
             const inserted = this.insertedCoordinate(i);
             if (this.#isInSheath(inserted)) continue;
 
-            const source = this.#samplePreviousPosition(previous, i + sourceShift, collisionTarget);
+            const source = this.#samplePreviousPosition(
+                previous,
+                i + sourceShift,
+                routeAssist ? collisionTarget : null,
+                this._convectSource,
+                routeAssist
+            );
+            if (!routeAssist) {
+                const old = previous[i];
+                setNode(node, source);
+                node.vx = (source.x - old.x) * invDt * 0.2;
+                node.vy = (source.y - old.y) * invDt * 0.2;
+                node.vz = (source.z - old.z) * invDt * 0.2;
+                continue;
+            }
             const route = this.lumenSampler ? this.routeSample(inserted).point : source;
             const justExited = inserted < this.sheathLength + this.segmentLength * 2;
             const blend = this.lumenSampler
@@ -735,40 +798,78 @@ export class GuidewireSolver {
         }
     }
 
-    #samplePreviousPosition(previous, sourceIndex, collisionTarget = null) {
+    #samplePreviousPosition(
+        previous,
+        sourceIndex,
+        collisionTarget = null,
+        out = { x: 0, y: 0, z: 0 },
+        routeAssist = true
+    ) {
         const lastIndex = previous.length - 1;
         if (sourceIndex <= 0) {
             const head = previous[0];
-            return {
-                x: head.x + this.sheathDir.x * sourceIndex * this.segmentLength,
-                y: head.y + this.sheathDir.y * sourceIndex * this.segmentLength,
-                z: head.z + this.sheathDir.z * sourceIndex * this.segmentLength
-            };
+            out.x = head.x + this.sheathDir.x * sourceIndex * this.segmentLength;
+            out.y = head.y + this.sheathDir.y * sourceIndex * this.segmentLength;
+            out.z = head.z + this.sheathDir.z * sourceIndex * this.segmentLength;
+            return out;
         }
 
         if (sourceIndex < lastIndex) {
             const lower = Math.floor(sourceIndex);
             const upper = Math.min(lastIndex, lower + 1);
-            return interpolatePosition(previous[lower], previous[upper], sourceIndex - lower);
+            const t = sourceIndex - lower;
+            const a = previous[lower];
+            const b = previous[upper];
+            out.x = a.x + (b.x - a.x) * t;
+            out.y = a.y + (b.y - a.y) * t;
+            out.z = a.z + (b.z - a.z) * t;
+            return out;
         }
 
         const tip = previous[lastIndex];
         const prev = previous[Math.max(0, lastIndex - 1)];
-        const direction = normalizeVector({
-            x: tip.x - prev.x,
-            y: tip.y - prev.y,
-            z: tip.z - prev.z
-        }, this.routeSample(this.tailProgress).tangent);
-        const tangent = normalizeVector(
-            this.#slideVectorAlongCollider(tip, direction, this.#collisionCollider(collisionTarget)),
-            direction
+        let directionX = tip.x - prev.x;
+        let directionY = tip.y - prev.y;
+        let directionZ = tip.z - prev.z;
+        const directionLength = Math.sqrt(
+            directionX * directionX + directionY * directionY + directionZ * directionZ
         );
+        if (directionLength > 1e-8) {
+            directionX /= directionLength;
+            directionY /= directionLength;
+            directionZ /= directionLength;
+        } else if (routeAssist) {
+            const fallback = this.routeSample(this.tailProgress).tangent;
+            directionX = fallback.x;
+            directionY = fallback.y;
+            directionZ = fallback.z;
+        } else {
+            directionX = this.sheathDir.x;
+            directionY = this.sheathDir.y;
+            directionZ = this.sheathDir.z;
+        }
+        let tangentX = directionX;
+        let tangentY = directionY;
+        let tangentZ = directionZ;
+        const collider = routeAssist ? this.#collisionCollider(collisionTarget) : null;
+        if (collider) {
+            const tangent = normalizeVector(
+                this.#slideVectorAlongCollider(tip, {
+                    x: directionX,
+                    y: directionY,
+                    z: directionZ
+                }, collider),
+                { x: directionX, y: directionY, z: directionZ }
+            );
+            tangentX = tangent.x;
+            tangentY = tangent.y;
+            tangentZ = tangent.z;
+        }
         const distance = (sourceIndex - lastIndex) * this.segmentLength;
-        return {
-            x: tip.x + tangent.x * distance,
-            y: tip.y + tangent.y * distance,
-            z: tip.z + tangent.z * distance
-        };
+        out.x = tip.x + tangentX * distance;
+        out.y = tip.y + tangentY * distance;
+        out.z = tip.z + tangentZ * distance;
+        return out;
     }
 
     #routeNudge(multiplier = 1) {

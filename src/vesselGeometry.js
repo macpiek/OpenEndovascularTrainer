@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { INTRODUCER_SHEATH_RADIUS_MM } from './toolDimensions.js';
 
 /**
  * Generates the lightweight centerline/flow metadata used by the tools.
@@ -8,10 +9,15 @@ import * as THREE from 'three';
  * @param {number} branchAngleOffset angle offset in radians for branches (default 0)
  * @param {number|null} sheathLength length of the introducer sheath (default
  *   half the branch length)
- * @param {number} sheathRadius radius of the sheath (default 2)
+ * @param {number} sheathRadius radius of the sheath in mm (default 6F)
  * @returns {{vessel: object}}
 */
-export function generateVessel(branchLength = 140, branchAngleOffset = 0, sheathLength = null, sheathRadius = 2) {
+export function generateVessel(
+    branchLength = 140,
+    branchAngleOffset = 0,
+    sheathLength = null,
+    sheathRadius = INTRODUCER_SHEATH_RADIUS_MM
+) {
     const mainRadius = 20;
     const branchRadius = mainRadius / 2;
     const branchPointY = -300;

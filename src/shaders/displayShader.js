@@ -1,3 +1,18 @@
+import {
+    DSA_BRIGHT_CEILING_LUMA,
+    DSA_DARK_FLOOR_LUMA,
+    DSA_NEUTRAL_LUMA,
+    DSA_SUBTRACTION_DEADBAND,
+    DSA_SUBTRACTION_SCALE
+} from '../imaging/dsaDisplayParameters.js';
+import {
+    COLLIMATION_SHUTTER_SCALE,
+    DETECTOR_APERTURE_HALF_EXTENT,
+    MAX_COLLIMATION,
+    MAX_SIDE_COLLIMATOR_ROTATION_DEG,
+    MIN_SIDE_COLLIMATOR_ROTATION_DEG
+} from '../imaging/collimatorGeometry.js';
+
 export const vertexShader = `
 // Fullscreen quad vertex shader for the final display pass.
 // Simply forwards UVs to the fragment shader.
@@ -18,11 +33,21 @@ uniform sampler2D uTexture;
 uniform sampler2D contrastTexture;
 uniform sampler2D thicknessTexture;
 uniform sampler2D metalTexture;
+uniform sampler2D catheterTexture;
+uniform sampler2D catheterMarkerTexture;
 uniform sampler2D sheathTexture;
 uniform sampler2D boneTexture;
+uniform sampler2D dsaMaskTexture;
+uniform sampler2D roadmapTexture;
+uniform sampler2D cineTexture;
 uniform vec3 gray;
 uniform bool fluoroscopy;
-uniform float time;
+uniform bool dsaEnabled;
+uniform bool dsaMaskValid;
+uniform bool roadmapEnabled;
+uniform bool roadmapValid;
+uniform bool cineEnabled;
+uniform float fluoroPulseIndex;
 uniform float noiseLevel;
 uniform float imageBrightness;
 uniform float imageContrast;
@@ -30,12 +55,23 @@ uniform bool autoExposureEnabled;
 uniform float autoExposureLevel;
 uniform float pulseRate;
 uniform float scatterStrength;
-uniform float collimation;
+uniform float collimationLeft;
+uniform float collimationRight;
+uniform float collimationTop;
+uniform float collimationBottom;
+uniform float sideCollimatorRotationDegrees;
+uniform float detectorZoomNoiseScale;
+uniform float detectorZoomScatterScale;
 uniform float boneOpacity;
 uniform vec2 resolution;
 uniform float edgeStrength;
 uniform float contrastOpacity;
 uniform float contrastGain;
+uniform float dsaGain;
+uniform float roadmapOpacity;
+uniform float roadmapBackgroundVisibility;
+uniform float roadmapEdgeEnhancement;
+uniform float roadmapEdgeDarkness;
 varying vec2 vUv;
 
 float saturate(float value) {
@@ -46,13 +82,13 @@ float max3(vec3 value) {
     return max(max(value.r, value.g), value.b);
 }
 
-// Hash-based noise. Animated samples mimic quantum mottle; stable samples are
-// reused for detector fixed-pattern noise.
+// Hash-based noise. The pulse index seeds a new quantum-mottle realization
+// only when the simulator acquires another X-ray pulse.
 float random(vec2 st) {
     return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
 }
 
-float animatedNoise(vec2 st, float phase) {
+float pulseNoise(vec2 st, float phase) {
     return random(st + vec2(phase * 17.37, phase * 5.91));
 }
 
@@ -66,8 +102,18 @@ float contrastAt(vec2 uv) {
 }
 
 float metalAt(vec2 uv) {
-    float signal = sampleSignal(metalTexture, uv);
-    return smoothstep(0.025, 0.58, signal);
+    float center = sampleSignal(metalTexture, uv);
+    return pow(saturate(center), 1.18);
+}
+
+float catheterAt(vec2 uv) {
+    float signal = sampleSignal(catheterTexture, uv);
+    return smoothstep(0.025, 0.48, signal);
+}
+
+float catheterMarkerAt(vec2 uv) {
+    float signal = sampleSignal(catheterMarkerTexture, uv);
+    return smoothstep(0.025, 0.48, signal);
 }
 
 float sheathAt(vec2 uv) {
@@ -145,11 +191,10 @@ float corticalEdgeAt(vec2 uv) {
     return saturate(max(depthEdge * 0.34, max(transportEdge * 0.38, corticalShellEdge * 0.42)));
 }
 
-float attenuationAt(vec2 uv) {
+float attenuationAt(vec2 uv, vec4 bonePaths, float corticalEdge) {
     float boneVisibility = pow(saturate(boneOpacity), 0.55);
-    vec4 bonePaths = boneLayerPathsAt(uv);
     float corticalAbsorption = pow(saturate(bonePaths.y * 1.6), 0.96) * 0.84;
-    float edgeAbsorption = corticalEdgeAt(uv) * 0.16;
+    float edgeAbsorption = corticalEdge * 0.16;
     float cancellousAbsorption = pow(saturate(bonePaths.z), 0.82) * bonePaths.w * 0.34;
     float layeredAbsorption = pow(saturate(bonePaths.x), 0.72) * 0.66;
     float softBoneAbsorption = smoothstep(0.01, 0.72, bonePaths.x) * 0.48;
@@ -158,12 +203,17 @@ float attenuationAt(vec2 uv) {
     float bone = boneSignal * 1.58 * boneVisibility;
     float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
     float metal = metalAt(uv) * 5.25;
+    float catheter = catheterAt(uv) * 0.28;
+    // A real marker band contains radiopaque material within the catheter
+    // wall. Add absorption at the same silhouette instead of faking it with a
+    // wider piece of geometry.
+    float catheterMarker = catheterMarkerAt(uv) * 1.25;
     float sheath = sheathAt(uv) * 0.42;
 
     // The accumulated visible frame creates detector persistence across the
     // full fluoroscopy image while current attenuation still leads the frame.
     float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
-    return max(0.0, bone + iodine + metal + sheath + temporalTrace);
+    return max(0.0, bone + iodine + metal + catheter + catheterMarker + sheath + temporalTrace);
 }
 
 float vignetteField(vec2 uv) {
@@ -181,9 +231,9 @@ float patientBodyField(vec2 uv) {
     return saturate(max(lowerBody, trunk * 0.72));
 }
 
-float scatterFieldAt(vec2 uv, float attenuation) {
+float scatterFieldAt(vec2 uv, float attenuation, float bonePath) {
     float tissuePath = patientBodyField(uv);
-    float projectedPath = saturate(thicknessPathAt(uv) * 0.55 + bonePathAt(uv) * 0.26 + tissuePath * 0.22);
+    float projectedPath = saturate(thicknessPathAt(uv) * 0.55 + bonePath * 0.26 + tissuePath * 0.22);
     return saturate(scatterStrength * (projectedPath * 0.72 + attenuation * 0.08));
 }
 
@@ -196,12 +246,80 @@ float collimatorMask(vec2 uv) {
     } else {
         squareCoord.y /= max(0.001, aspect);
     }
-    float crop = saturate(collimation);
-    float halfSize = 1.0 - crop * 1.35;
-    float softness = 0.022 + crop * 0.055;
-    float maskX = 1.0 - smoothstep(halfSize, halfSize + softness, abs(squareCoord.x));
-    float maskY = 1.0 - smoothstep(halfSize, halfSize + softness, abs(squareCoord.y));
-    return saturate(maskX * maskY);
+    // Detector magnification changes only the projected anatomy. The monitor
+    // viewport and the displayed shutter mask stay fixed, matching a C-arm
+    // console where every input field fills the same image area.
+    float leftCrop = clamp(collimationLeft, 0.0, ${MAX_COLLIMATION.toFixed(2)});
+    float rightCrop = clamp(collimationRight, 0.0, ${MAX_COLLIMATION.toFixed(2)});
+    float topCrop = clamp(collimationTop, 0.0, ${MAX_COLLIMATION.toFixed(2)});
+    float bottomCrop = clamp(collimationBottom, 0.0, ${MAX_COLLIMATION.toFixed(2)});
+    float leftBoundary = -1.0 + leftCrop * ${COLLIMATION_SHUTTER_SCALE.toFixed(2)};
+    float rightBoundary = 1.0 - rightCrop * ${COLLIMATION_SHUTTER_SCALE.toFixed(2)};
+    float topBoundary = 1.0 - topCrop * ${COLLIMATION_SHUTTER_SCALE.toFixed(2)};
+    float bottomBoundary = -1.0 + bottomCrop * ${COLLIMATION_SHUTTER_SCALE.toFixed(2)};
+    // The parallel side shutters rotate as a pair around the detector center.
+    // Top and bottom shutters stay horizontal in detector space.
+    float sideRotation = radians(clamp(
+        sideCollimatorRotationDegrees,
+        ${MIN_SIDE_COLLIMATOR_ROTATION_DEG.toFixed(1)},
+        ${MAX_SIDE_COLLIMATOR_ROTATION_DEG.toFixed(1)}
+    ));
+    vec2 localCoord = vec2(
+        cos(sideRotation) * squareCoord.x + sin(sideRotation) * squareCoord.y,
+        squareCoord.y
+    );
+    float leftSoftness = 0.018 + leftCrop * 0.042;
+    float rightSoftness = 0.018 + rightCrop * 0.042;
+    float topSoftness = 0.018 + topCrop * 0.042;
+    float bottomSoftness = 0.018 + bottomCrop * 0.042;
+    float maskLeft = smoothstep(
+        leftBoundary - leftSoftness,
+        leftBoundary,
+        localCoord.x
+    );
+    float maskRight = 1.0 - smoothstep(
+        rightBoundary,
+        rightBoundary + rightSoftness,
+        localCoord.x
+    );
+    float maskBottom = smoothstep(
+        bottomBoundary - bottomSoftness,
+        bottomBoundary,
+        localCoord.y
+    );
+    float maskTop = 1.0 - smoothstep(
+        topBoundary,
+        topBoundary + topSoftness,
+        localCoord.y
+    );
+    // The rotating shutters are clipped by the fixed detector aperture. This
+    // prevents an oblique shutter edge from revealing projected anatomy in
+    // the black area outside the detector.
+    float detectorSoftness = 0.008;
+    float detectorLeft = smoothstep(
+        -${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)} - detectorSoftness,
+        -${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)},
+        squareCoord.x
+    );
+    float detectorRight = 1.0 - smoothstep(
+        ${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)},
+        ${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)} + detectorSoftness,
+        squareCoord.x
+    );
+    float detectorBottom = smoothstep(
+        -${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)} - detectorSoftness,
+        -${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)},
+        squareCoord.y
+    );
+    float detectorTop = 1.0 - smoothstep(
+        ${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)},
+        ${DETECTOR_APERTURE_HALF_EXTENT.toFixed(2)} + detectorSoftness,
+        squareCoord.y
+    );
+    float detectorAperture = detectorLeft * detectorRight *
+        detectorBottom * detectorTop;
+    float shutterMask = maskLeft * maskRight * maskBottom * maskTop;
+    return saturate(detectorAperture * shutterMask);
 }
 
 // Simple Sobel-like edge factor based on alpha channel of uTexture.
@@ -220,21 +338,53 @@ float edgeFactor(vec2 uv) {
     float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
     return length(vec2(gx, gy));
 }
+
+float roadmapVesselAt(vec2 uv) {
+    float storedRoadmapLuma = texture2D(roadmapTexture, uv).r /
+        max(0.001, gray.r * 0.992);
+    float roadmapDifference = max(
+        0.0,
+        ${DSA_NEUTRAL_LUMA.toFixed(3)} - storedRoadmapLuma
+    );
+    return smoothstep(0.032, 0.34, roadmapDifference);
+}
+
+float roadmapEdgeAt(vec2 uv) {
+    vec2 texel = 1.0 / resolution;
+    float tl = roadmapVesselAt(uv + texel * vec2(-1.0, -1.0));
+    float t  = roadmapVesselAt(uv + texel * vec2(0.0, -1.0));
+    float tr = roadmapVesselAt(uv + texel * vec2(1.0, -1.0));
+    float l  = roadmapVesselAt(uv + texel * vec2(-1.0, 0.0));
+    float r  = roadmapVesselAt(uv + texel * vec2(1.0, 0.0));
+    float bl = roadmapVesselAt(uv + texel * vec2(-1.0, 1.0));
+    float b  = roadmapVesselAt(uv + texel * vec2(0.0, 1.0));
+    float br = roadmapVesselAt(uv + texel * vec2(1.0, 1.0));
+    float gx = -tl - 2.0 * l - bl + tr + 2.0 * r + br;
+    float gy = -tl - 2.0 * t - tr + bl + 2.0 * b + br;
+    return smoothstep(0.08, 1.4, length(vec2(gx, gy)));
+}
+
 void main() {
     vec4 tex = texture2D(uTexture, vUv);
     if (fluoroscopy) {
-        float centerAttenuation = attenuationAt(vUv);
-        float localScatter = scatterFieldAt(vUv, centerAttenuation);
+        vec4 centerBonePaths = boneLayerPathsAt(vUv);
+        float centerCorticalEdge = corticalEdgeAt(vUv);
+        float centerAttenuation = attenuationAt(vUv, centerBonePaths, centerCorticalEdge);
+        float localScatter = scatterFieldAt(
+            vUv,
+            centerAttenuation,
+            centerBonePaths.x
+        ) * detectorZoomScatterScale;
         float exposureLift = autoExposureEnabled ? autoExposureLevel : 0.0;
-        float neighborAttenuation = centerAttenuation;
 
         // C-arm images are usually edge-enhanced after acquisition. Sharpen
-        // attenuation before transmission so radiopaque borders get the expected
-        // dark/bright overshoot instead of an alpha-only outline.
+        // attenuation before transmission. Screen-space derivatives preserve
+        // local radiopaque borders without four full neighboring attenuation
+        // evaluations per detector pixel.
         float scatterSoftenedEdge = mix(0.34, 0.16, localScatter);
         float sharpenedAttenuation = max(
             0.0,
-            centerAttenuation + (centerAttenuation - neighborAttenuation) * edgeStrength * scatterSoftenedEdge
+            centerAttenuation + fwidth(centerAttenuation) * edgeStrength * scatterSoftenedEdge
         );
 
         float transmission = exp(-sharpenedAttenuation);
@@ -248,26 +398,101 @@ void main() {
         luma = mix(0.045, 0.72, luma);
 
         float field = vignetteField(vUv);
-        float fixedPattern = (random(floor(vUv * resolution / 7.0)) - 0.5) * 0.012;
-        float columnPattern = (random(vec2(floor(vUv.x * resolution.x / 3.0), 19.0)) - 0.5) * 0.004;
-        float gridPattern =
-            sin(vUv.x * resolution.x * 0.86) * 0.0008 +
-            sin(vUv.y * resolution.y * 0.42) * 0.0006;
-        float doseNoiseScale = sqrt(30.0 / clamp(pulseRate, 7.5, 30.0));
-        float pulseIndex = floor(time * max(1.0, pulseRate));
-        float pulseJitter = (random(vec2(pulseIndex, 37.0)) - 0.5) * 0.003 * doseNoiseScale;
-        float stableMottle = random(floor(vUv * resolution / 2.0)) - 0.5;
-        float animatedMottle = animatedNoise(vUv * resolution, pulseIndex * 0.73) - 0.5;
-        float mottle = mix(stableMottle, animatedMottle, 0.32)
+        float doseNoiseScale = sqrt(30.0 / clamp(pulseRate, 4.0, 30.0))
+            * detectorZoomNoiseScale;
+        float pulseJitter = (random(vec2(fluoroPulseIndex, 37.0)) - 0.5)
+            * 0.003
+            * doseNoiseScale;
+        float mottle = (pulseNoise(vUv * resolution, fluoroPulseIndex * 0.73) - 0.5)
             * noiseLevel
             * doseNoiseScale
             * (0.08 + 0.18 * sqrt(max(luma, 0.0)));
 
-        luma = saturate(luma * field + fixedPattern + columnPattern + gridPattern + mottle + pulseJitter);
+        luma = saturate(luma * field + mottle + pulseJitter);
         luma = mix(luma, 0.50 + (luma - 0.50) * 0.68, localScatter * 0.22);
         luma = saturate(luma + exposureLift);
         luma = saturate((luma - 0.5) * max(0.0, imageContrast) + 0.5 + imageBrightness);
-        luma = mix(0.018, luma, collimatorMask(vUv));
+        float beamMask = collimatorMask(vUv);
+        luma = mix(0.018, luma, beamMask);
+
+        if (dsaEnabled && dsaMaskValid) {
+            // The mask stores the fully processed pre-contrast detector frame.
+            // Iodine reduces current detector brightness, so mask-current is
+            // positive. Center zero difference on neutral gray to preserve
+            // headroom for both dark iodine and bright motion/mask residuals.
+            float storedMaskLuma = texture2D(dsaMaskTexture, vUv).r /
+                max(0.001, gray.r * 0.992);
+            float rawSubtraction = storedMaskLuma - luma;
+            float centeredSubtraction = sign(rawSubtraction) * max(
+                abs(rawSubtraction) - ${DSA_SUBTRACTION_DEADBAND.toFixed(3)},
+                0.0
+            );
+            float signedSignal = clamp(
+                centeredSubtraction * max(0.0, dsaGain) * ${DSA_SUBTRACTION_SCALE.toFixed(1)},
+                -1.0,
+                1.0
+            );
+            float dsaLuma = ${DSA_NEUTRAL_LUMA.toFixed(3)}
+                - max(signedSignal, 0.0) * (
+                    ${DSA_NEUTRAL_LUMA.toFixed(3)} - ${DSA_DARK_FLOOR_LUMA.toFixed(3)}
+                )
+                + max(-signedSignal, 0.0) * (
+                    ${DSA_BRIGHT_CEILING_LUMA.toFixed(3)} - ${DSA_NEUTRAL_LUMA.toFixed(3)}
+                );
+            luma = mix(0.018, dsaLuma, beamMask);
+        } else if (roadmapEnabled && roadmapValid) {
+            // A roadmap target stores a DSA frame (neutral background, dark
+            // opacified vessels). Convert its darkness to a fixed vessel mask
+            // and use that mask to brighten the corresponding vessels in the
+            // current live fluoroscopy.
+            // Reject subtraction noise before turning the saved DSA frame into
+            // a persistent vessel stencil. True iodine-filled vessels are much
+            // darker than the 2-3% detector mottle around the DSA background.
+            float roadmapVessel = roadmapVesselAt(vUv) * beamMask;
+            float roadmapEdge = roadmapEdgeAt(vUv) * beamMask;
+            // Background visibility is independent from the vessel overlay.
+            // At 0% retain the neutral subtraction field inside the beam; at
+            // 100% retain the full live fluoroscopic anatomy.
+            float neutralRoadmapBackground = mix(
+                0.018,
+                ${DSA_NEUTRAL_LUMA.toFixed(3)},
+                beamMask
+            );
+            float visibleRoadmapBackground = mix(
+                neutralRoadmapBackground,
+                luma,
+                saturate(roadmapBackgroundVisibility)
+            );
+            float roadmapLayer = mix(
+                visibleRoadmapBackground,
+                1.0,
+                roadmapVessel
+            );
+            // A Sobel contour sharpens the saved vessel mask. Its color can be
+            // pulled slightly below the live background to create a subtle,
+            // adjustable dark border around the bright roadmap vessel.
+            float roadmapEdgeTarget = visibleRoadmapBackground * (
+                1.0 - saturate(roadmapEdgeDarkness) * 0.7
+            );
+            roadmapLayer = mix(
+                roadmapLayer,
+                roadmapEdgeTarget,
+                roadmapEdge * saturate(roadmapEdgeEnhancement)
+            );
+            luma = mix(
+                visibleRoadmapBackground,
+                roadmapLayer,
+                saturate(roadmapOpacity)
+            );
+        }
+
+        if (cineEnabled) {
+            // Archived DSA frames use the same native detector resolution as
+            // the live display. Reconstruct their stored grayscale directly,
+            // without another subtraction, denoise, or resize pass.
+            luma = texture2D(cineTexture, vUv).r /
+                max(0.001, gray.r * 0.992);
+        }
 
         // Phosphor/detector response is slightly warm-neutral, not mathematically
         // flat grayscale. Keep it subtle so it still reads as fluoroscopy.
