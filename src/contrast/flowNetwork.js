@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { repairArterialFlowTopology } from '../arterialFlowTopology.js';
 
 const MM3_PER_ML = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -235,9 +236,15 @@ export class ContrastFlowNetwork {
             ...DEFAULT_HEMODYNAMICS,
             ...hemodynamicOverrides
         };
-        this.sourceSegments = sourceSegments;
-        this.nodes = buildUndirectedNodes(sourceSegments);
-        this.rootNode = chooseRootNode(this.nodes, sourceSegments, rootPoint);
+        const topologyRepair = repairArterialFlowTopology(sourceSegments);
+        this.sourceSegments = topologyRepair.segments;
+        this.topologyRepairDiagnostics = topologyRepair.diagnostics;
+        this.nodes = buildUndirectedNodes(this.sourceSegments);
+        this.rootNode = chooseRootNode(
+            this.nodes,
+            this.sourceSegments,
+            rootPoint || topologyRepair.rootPoint
+        );
         if (!this.rootNode) throw new Error('Unable to select the arterial inlet');
         this.cellLengthMm = cellLengthMm;
         this.spatialCellMm = spatialCellMm;
@@ -276,22 +283,22 @@ export class ContrastFlowNetwork {
         this.time = 0;
         this.outletIodineMassMg = 0;
         this.totalIodineMassMg = 0;
-        this._edgeOutMassMg = new Float64Array(sourceSegments.length);
-        this._edgeUpstreamOutMassMg = new Float64Array(sourceSegments.length);
-        this._flowOverridesMm3PerS = new Float64Array(sourceSegments.length);
+        this._edgeOutMassMg = new Float64Array(this.sourceSegments.length);
+        this._edgeUpstreamOutMassMg = new Float64Array(this.sourceSegments.length);
+        this._flowOverridesMm3PerS = new Float64Array(this.sourceSegments.length);
         this._flowOverridesMm3PerS.fill(Number.NaN);
         this._faceFlowDeltaEdgeIndices = new Set();
         this._branchInletFlowMm3PerS =
-            new Float64Array(sourceSegments.length);
+            new Float64Array(this.sourceSegments.length);
         this._branchInletConcentrationMgPerMm3 =
-            new Float64Array(sourceSegments.length);
+            new Float64Array(this.sourceSegments.length);
         this._branchInletEdgeIndices = new Set();
         this._spatialIndex = new Map();
-        this._queryMarks = new Uint32Array(sourceSegments.length);
+        this._queryMarks = new Uint32Array(this.sourceSegments.length);
         this._queryEpoch = 0;
         this._locationScratch = {};
         this._activeEdgeIndices = new Set();
-        this._touchMarks = new Uint32Array(sourceSegments.length);
+        this._touchMarks = new Uint32Array(this.sourceSegments.length);
         this._touchEpoch = 0;
         this._touchedEdgeIndices = [];
         this._buildDirectedTree();
@@ -2293,7 +2300,9 @@ export class ContrastFlowNetwork {
             intraluminalAorticArtifacts:
                 this.intraluminalAorticArtifactDiagnostics,
             intraluminalAorticConnectors:
-                this.intraluminalAorticConnectorDiagnostics
+                this.intraluminalAorticConnectorDiagnostics,
+            physiologicalTopologyRepair:
+                this.topologyRepairDiagnostics
         };
     }
 }

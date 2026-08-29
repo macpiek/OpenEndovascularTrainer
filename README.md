@@ -1,13 +1,14 @@
 # Open Endovascular Trainer
 
-Open Endovascular Trainer is a browser-based endovascular training prototype built with Three.js. It lets a user practice guidewire and pigtail catheter manipulation inside a modeled aortoiliac vessel, switch between debug and fluoroscopy-style views, move a virtual C-arm, and inject contrast to observe wash-in and washout.
+Open Endovascular Trainer is a browser-based endovascular training prototype built with Three.js. It lets a user practice guidewire and pigtail catheter manipulation inside a modeled aorta, head-and-neck circulation, and bilateral upper- and lower-limb arterial tree, switch between debug and fluoroscopy-style views, move a virtual C-arm, and inject contrast to observe wash-in and washout.
 
 > This project is a simulation prototype for education, research, and interaction design. It is not a medical device and must not be used for clinical decision-making.
 
 ## Current Features
 
 - Real-time WebGL simulator with a full-screen Three.js scene.
-- Imported aorta and skeleton assets from `res/Aorta_plain.stl` and `res/skeleton.obj`.
+- Imported aortic, cerebral, iliac, and bilateral upper- and lower-limb arterial anatomy in
+  `res/Aorta_plain.stl`, plus the skeleton from `res/skeleton.obj`.
 - Shared XPBD world for the guidewire and catheter with segment-length preservation, bending/rest-shape constraints, wall contact, Coulomb friction, and resistance feedback.
 - Precompiled sparse signed-distance collision field backed by a MeshBVH validator; production startup does not generate the centerline or collision field.
 - Pigtail and Berenstein catheter shapes rendered with instanced segments instead of rebuilding `TubeGeometry` every frame.
@@ -71,6 +72,30 @@ The visible vessel, tool-wall contacts, and contrast-flow tree are driven by
 the imported STL aorta and `res/Aorta_plain.collision.bin`. The procedural
 vessel data is retained only for control and tool-path metadata.
 
+The STL continues both external iliac arteries through the common and
+superficial femoral, deep femoral, popliteal, anterior tibial, posterior
+tibial, tibioperoneal trunk, fibular, dorsalis pedis, medial and lateral
+plantar, deep plantar, and transverse plantar arch arteries. These are hollow,
+tapered vessel walls joined to the original lumen rather than overlaid visual tubes. The
+repeatable `npm run anatomy:extend-lower-limbs` generator starts from the
+original STL and rebuilds this Boolean extension before the collision asset is
+regenerated.
+
+Both subclavian endpoints continue through the axillary and brachial arteries.
+Each upper limb includes the deep brachial, radial, ulnar, common/anterior
+interosseous, superficial and deep palmar arch, and four common palmar digital
+branches. Their paths are aligned anterior-medial to the humerus, on the
+appropriate sides of the paired forearm bones, and anterior to the hand
+skeleton. They share the same hollow Boolean wall, collision field, and
+contrast-flow tree as the pre-existing vessels.
+
+At the unchanged superior endpoints of the source model, the STL also
+continues both common carotid and vertebral arteries. It includes the external
+and internal carotids, vertebrobasilar system, complete Circle of Willis, and
+distal ACA, MCA, and PCA branches. The extensions follow the original terminal
+centerlines while the pre-existing aorta and lower-limb geometry retain their
+original positions.
+
 The STL centerline is extracted offline as one acyclic medial tree. Each lumen cross-section is thinned to a topological medial axis, the resulting 3D graph is reduced with a clearance-weighted TEASAR pass, and every final edge is checked against the STL wall BVH. The centerline is used only for broad-phase lookup and branch identity; it never pulls a simulated tool toward the vessel axis.
 
 ## Development Scripts
@@ -82,6 +107,7 @@ strona w [`docs/index.html`](docs/index.html). Indeks można odświeżyć polece
 ```bash
 npm run dev          # start Vite development server
 npm run build        # build the browser app
+npm run anatomy:rebuild # rebuild the hollow limb, neck, and cerebral arteries
 npm run collision:build # regenerate the versioned centerline and sparse SDF asset
 npm run benchmark:collision # write legacy/XPBD timing reports to reports/
 npm run benchmark:browser:chrome # run the foreground Chrome acceptance workload
@@ -116,6 +142,9 @@ src/contrast/               Hybrid 1D/3D contrast transport and volume renderer
 src/vesselGeometry.js       Vessel centerline, sheath, flow, and branch metadata
 src/aortaModel.js           STL loading and vessel collision setup
 src/aortaPreprocess.js      Offline/source lumen preprocessing helpers
+src/lowerLimbArteries.js    Bilateral lower-limb path and attachment definitions
+src/upperLimbArteries.js    Bilateral upper-limb path and attachment definitions
+src/headArteries.js         Carotid, vertebrobasilar, and cerebral path definitions
 src/boneModel.js            Skeleton asset loading
 src/carmControls.js         C-arm movement controls
 src/ui/                    UI widgets, monitor, and C-arm preview
@@ -130,9 +159,10 @@ out/                        Generated preview frame and video
 
 The default mode is `xpbd-contact-v1`; append `?physics=legacy` to compare the previous path. The shared world runs at 120 Hz with at most two substeps per rendered frame. It solves the analytic sheath lumen, rod length and bending/rest shape, guidewire-in-catheter containment, external tool contact, vessel wall contact, and friction in a fixed order.
 
-Regenerate the collision asset whenever `Aorta_plain.stl`, its transform, or the offline centerline/SDF pipeline changes:
+Regenerate the collision asset whenever `Aorta_plain.stl`, its transform, or the offline centerline/SDF pipeline changes. To reproduce all arterial extensions from the original model, run the anatomy generator first:
 
 ```bash
+npm run anatomy:rebuild
 npm run collision:build
 npm test
 npm run build

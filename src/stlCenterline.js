@@ -8050,6 +8050,22 @@ function buildMedialSliceCenterline(geometry, {
         }
     }
     const centeringCorrectionMs = nowMs() - centeringCorrectionStartedAt;
+    const postCenteringBacktrackStartedAt = nowMs();
+    const postCenteringBacktrackSimplification = simplifyCenterlineBacktracks(
+        allSegments,
+        resolvedWallBvh ? null : lumenField,
+        resolvedWallBvh,
+        DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
+        { minDeflectionDegrees: 74, maxPasses: 12 }
+    );
+    if (postCenteringBacktrackSimplification.collapsedNodeCount) {
+        const resampled = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+        if (resampled.segments !== allSegments) {
+            allSegments.length = 0;
+            allSegments.push(...resampled.segments);
+        }
+    }
+    const postCenteringBacktrackMs = nowMs() - postCenteringBacktrackStartedAt;
     const cyclePruning = removeCenterlineCycles(allSegments);
     const components = segmentComponents(allSegments);
     const topology = measureCenterlineTopology(allSegments);
@@ -8087,6 +8103,7 @@ function buildMedialSliceCenterline(geometry, {
             simulationSmoothingMs,
             finalBacktrackMs,
             centeringCorrectionMs,
+            postCenteringBacktrackMs,
             centeringMs,
             totalMs
         },
@@ -8121,15 +8138,25 @@ function buildMedialSliceCenterline(geometry, {
         centerlineTopologyBeforeCleanup: topology,
         centerlineTopologyAfterCleanup: topology,
         centerlineBacktrackCollapsedNodeCount:
-            backtrackSimplification.collapsedNodeCount + finalBacktrackSimplification.collapsedNodeCount,
+            backtrackSimplification.collapsedNodeCount +
+            finalBacktrackSimplification.collapsedNodeCount +
+            postCenteringBacktrackSimplification.collapsedNodeCount,
         centerlineBacktrackRemovedSegmentCount:
-            backtrackSimplification.removedSegmentCount + finalBacktrackSimplification.removedSegmentCount,
+            backtrackSimplification.removedSegmentCount +
+            finalBacktrackSimplification.removedSegmentCount +
+            postCenteringBacktrackSimplification.removedSegmentCount,
         centerlineBacktrackInsertedSegmentCount:
-            backtrackSimplification.insertedSegmentCount + finalBacktrackSimplification.insertedSegmentCount,
+            backtrackSimplification.insertedSegmentCount +
+            finalBacktrackSimplification.insertedSegmentCount +
+            postCenteringBacktrackSimplification.insertedSegmentCount,
         centerlineBacktrackRejectedNodeCount:
-            backtrackSimplification.rejectedNodeCount + finalBacktrackSimplification.rejectedNodeCount,
+            backtrackSimplification.rejectedNodeCount +
+            finalBacktrackSimplification.rejectedNodeCount +
+            postCenteringBacktrackSimplification.rejectedNodeCount,
         centerlineBacktrackPathLengthReduction:
-            backtrackSimplification.pathLengthReduction + finalBacktrackSimplification.pathLengthReduction,
+            backtrackSimplification.pathLengthReduction +
+            finalBacktrackSimplification.pathLengthReduction +
+            postCenteringBacktrackSimplification.pathLengthReduction,
         centerlineSimulationSmoothing: simulationSmoothing,
         centerlineCenteringCorrection: {
             attemptedNodeCount: centeringCorrection.attemptedNodeCount,

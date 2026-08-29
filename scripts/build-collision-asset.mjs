@@ -20,10 +20,17 @@ const BRICK_SIZE = 8;
 const BRICK_WORLD_SIZE = VOXEL_SIZE * BRICK_SIZE;
 const SDF_BAND = 4;
 const SDF_QUANTIZATION = 0.02;
-const LUMEN_POINT_QUANTIZATION = 0.02;
+const ANATOMY_SLICE_SPACING = 0.9;
+// Full lower-limb anatomy exceeds the ±655 mm range of Int16 at 0.02 mm.
+// A 0.05 mm contour grid remains well below the 0.5 mm SDF voxel size while
+// covering the complete bilateral tree without changing the packed format.
+const LUMEN_POINT_QUANTIZATION = 0.05;
 const BROAD_PHASE_CELL_SIZE = 16;
 const CENTERLINE_STRIDE = 9;
-const MAX_DECODED_BYTES = 32 * 1024 * 1024;
+// The bilateral arm/hand extension adds roughly 2.9 MB of sparse SDF data to
+// the previous full-body tree. Keep a tight ceiling while allowing the complete
+// upper-limb collision field at the existing 0.5 mm voxel resolution.
+const MAX_DECODED_BYTES = 56 * 1024 * 1024;
 
 function nowMs() {
     return globalThis.performance?.now?.() ?? Date.now();
@@ -508,7 +515,10 @@ const preprocessing = preprocessAortaGeometry(geometry, {
 const preprocessMs = nowMs() - preprocessStarted;
 
 const centerlineStarted = nowMs();
-const centerline = buildStlSliceCenterline(geometry, { lumenField: preprocessing.lumenField });
+const centerline = buildStlSliceCenterline(geometry, {
+    lumenField: preprocessing.lumenField,
+    sliceSpacing: ANATOMY_SLICE_SPACING
+});
 const centerlineMs = nowMs() - centerlineStarted;
 const centerlineArrays = buildCenterlineArrays(centerline.segments, geometry.boundsTree);
 const broadPhase = buildCenterlineBroadPhase(centerlineArrays.data, geometry.boundingBox);
@@ -516,6 +526,7 @@ const broadPhase = buildCenterlineBroadPhase(centerlineArrays.data, geometry.bou
 const lumenStarted = nowMs();
 const collisionLumen = buildStlLumenCast(geometry, {
     lumenField: preprocessing.lumenField,
+    sliceSpacing: ANATOMY_SLICE_SPACING,
     fieldOnly: true
 });
 const packedLumen = packLumenAxes(collisionLumen.axisSlices, collisionLumen.slices);
@@ -535,7 +546,10 @@ const decodedBytes = centerlineArrays.data.byteLength + centerlineArrays.edges.b
     packedLumen.sliceContourOffsets.byteLength + packedLumen.contourPointOffsets.byteLength +
     packedLumen.contourBounds.byteLength + packedLumen.contourSamples.byteLength + packedLumen.points.byteLength;
 if (decodedBytes > MAX_DECODED_BYTES) {
-    throw new Error(`Decoded collision asset is ${(decodedBytes / 1048576).toFixed(2)} MB; limit is 32 MB`);
+    throw new Error(
+        `Decoded collision asset is ${(decodedBytes / 1048576).toFixed(2)} MB; ` +
+        `limit is ${MAX_DECODED_BYTES / 1048576} MB`
+    );
 }
 
 const metadata = {

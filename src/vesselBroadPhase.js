@@ -1887,7 +1887,12 @@ export function buildCenterlineFlowArrowSamples(flowEdges, {
     const samples = [];
     for (let arrayIndex = 0; arrayIndex < flowEdges.length; arrayIndex++) {
         const edge = flowEdges[arrayIndex];
-        if (!edge?.start || !edge?.end) continue;
+        if (
+            !edge?.start ||
+            !edge?.end ||
+            edge.transportExcluded ||
+            edge.renderExcluded
+        ) continue;
         const edgeIndex = Number.isInteger(edge.index) ? edge.index : arrayIndex;
         const start = toVector3(edge.start);
         const end = toVector3(edge.end);
