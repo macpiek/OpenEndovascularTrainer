@@ -301,6 +301,19 @@ function unionArteryPaths(module, paths, {
     return result;
 }
 
+function unionArteryPathGroups(module, pathGroups, options) {
+    const groupSolids = pathGroups.map(paths =>
+        unionArteryPaths(module, paths, options)
+    );
+    const result = module.Manifold.union(groupSolids);
+    for (const solid of groupSolids) solid.delete();
+    return result;
+}
+
+function createArteryPathGroupSolids(module, pathGroups, options) {
+    return pathGroups.map(paths => unionArteryPaths(module, paths, options));
+}
+
 function inverseAortaTransform(geometry, transform) {
     geometry.translate(
         -transform.targetCenter[0],
@@ -390,10 +403,17 @@ const centerline = loadCenterlineSegments(collisionAsset);
 const lowerLimbAttachmentRoots = findLowerLimbAttachmentRoots(centerline);
 const headAttachmentRoots = findHeadArteryAttachmentRoots(centerline);
 const upperLimbAttachmentRoots = findUpperLimbAttachmentRoots(centerline);
-const arteryPaths = [
-    ...createLowerLimbArteryPaths(lowerLimbAttachmentRoots),
-    ...createHeadArteryPaths(headAttachmentRoots),
-    ...createUpperLimbArteryPaths(upperLimbAttachmentRoots)
+const lowerLimbPaths = createLowerLimbArteryPaths(lowerLimbAttachmentRoots);
+const headPaths = createHeadArteryPaths(headAttachmentRoots);
+const upperLimbPaths = createUpperLimbArteryPaths(upperLimbAttachmentRoots);
+const arteryPaths = [...lowerLimbPaths, ...headPaths, ...upperLimbPaths];
+const pairedPathGroups = paths => ['right', 'left'].map(side =>
+    paths.filter(path => path.anatomicalSide === side)
+);
+const arteryPathGroups = [
+    ...pairedPathGroups(lowerLimbPaths),
+    headPaths,
+    ...pairedPathGroups(upperLimbPaths)
 ];
 
 console.log('Lower-limb attachment roots', lowerLimbAttachmentRoots.map(root => ({
@@ -424,10 +444,16 @@ console.log('Upper-limb attachment roots', upperLimbAttachmentRoots.map(root => 
 
 const manifoldModule = await ManifoldModule();
 manifoldModule.setup();
-const extensionOuterSolid = unionArteryPaths(manifoldModule, arteryPaths, {
+const extensionOuterSolid = unionArteryPathGroups(manifoldModule, arteryPathGroups, {
     outerWall: true
 });
-const extensionLumenSolid = unionArteryPaths(manifoldModule, arteryPaths);
+const extensionLumenGroupSolids = createArteryPathGroupSolids(
+    manifoldModule,
+    arteryPathGroups
+);
+const extensionLumenSolid = manifoldModule.Manifold.union(
+    extensionLumenGroupSolids
+);
 const extensionWallSolid = extensionOuterSolid.subtract(extensionLumenSolid);
 const baseSolid = threeGeometryToManifold(manifoldModule, sourceGeometry);
 const baseVolume = baseSolid.volume();
@@ -441,11 +467,20 @@ const wallUnionSolid = manifoldModule.Manifold.union([
 // The source STL is the material of the vessel wall, not a solid cast of its
 // lumen. Carving the inner tube both opens the old terminal caps and continues
 // the existing hollow lumen through the newly added arterial wall.
-const combinedSolid = wallUnionSolid.subtract(extensionLumenSolid);
+// Subtract each anatomical lumen group separately. Keeping the right and left
+// limbs independent here avoids numerical loss of a narrow subclavian inlet
+// when a single Boolean expression contains the complete full-body tree.
+let combinedSolid = wallUnionSolid;
+for (const lumenGroupSolid of extensionLumenGroupSolids) {
+    const nextSolid = combinedSolid.subtract(lumenGroupSolid);
+    if (combinedSolid !== wallUnionSolid) combinedSolid.delete();
+    combinedSolid = nextSolid;
+}
 const combinedVolume = combinedSolid.volume();
 baseSolid.delete();
 extensionOuterSolid.delete();
 extensionLumenSolid.delete();
+for (const solid of extensionLumenGroupSolids) solid.delete();
 extensionWallSolid.delete();
 wallUnionSolid.delete();
 const combinedGeometry = manifoldToThreeGeometry(combinedSolid);

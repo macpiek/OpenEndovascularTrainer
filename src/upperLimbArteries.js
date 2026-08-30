@@ -7,8 +7,9 @@ const ATTACHMENT_TARGET_ABS_X_MM = 145;
 const ATTACHMENT_TARGET_Y_MM = 100;
 const INWARD_TRACE_LENGTH_MM = 18;
 
-export const UPPER_LIMB_LATERAL_EXTENT_MM = 215;
+export const UPPER_LIMB_LATERAL_EXTENT_MM = 225;
 export const UPPER_LIMB_HAND_DISTAL_Y_MM = -625;
+export const UPPER_LIMB_FINGER_DISTAL_Y_MM = -660;
 
 function endpoint(segment, atStart) {
     const point = (atStart ? segment.start : segment.end).clone();
@@ -248,12 +249,19 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
         // extracted medial axis clear of the wall throughout the transition.
         const subclavianTransition = side === 'right'
             ? [
-                rootPoint(root, 14, 2.75),
-                point(-147, 132, 14, 2.82),
-                point(-151, 110, -7, 2.82)
+                rootPoint(root, 7, 3.75),
+                rootPoint(root, 14, 4.5),
+                point(-147, 132, 14, 4.25),
+                point(-151, 110, -7, 3.4)
             ]
             : [rootPoint(root, 14, 2.75)];
         const axillary = point(guide.axillaryX, 64, -39, 2.75);
+        const subscapularOrigin = point(
+            side === 'right' ? -165 : 162,
+            28,
+            -43,
+            1.08
+        );
         const proximalBrachial = point(
             guide.proximalBrachialX,
             -18,
@@ -290,6 +298,13 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
             -70,
             1.72
         );
+        const radialProximal = point(sideSign * 207, -286, -64, 1.68);
+        const interosseousDivision = point(
+            sideSign * 204,
+            -306,
+            -78,
+            0.94
+        );
         const radialWrist = point(guide.radialWristX, -475, -5, 1.16);
         const ulnarWrist = point(guide.ulnarWristX, -475, -7, 1.18);
 
@@ -313,6 +328,86 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
         ));
 
         paths.push(path(
+            `${side}-thoracoacromial`,
+            side,
+            ['thoracoacromial'],
+            [
+                clonedPoint(axillary, 1.02),
+                point(sideSign * 136, 75, -27, 0.88),
+                point(sideSign * 120, 88, -12, 0.56)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-lateral-thoracic`,
+            side,
+            ['lateral-thoracic'],
+            [
+                clonedPoint(axillary, 0.92),
+                point(sideSign * 145, 22, -26, 0.78),
+                point(sideSign * 136, -25, -18, 0.56)
+            ],
+            true
+        ));
+
+        const subscapularDivision = point(
+            sideSign * 146,
+            -5,
+            -75,
+            0.88
+        );
+        paths.push(path(
+            `${side}-subscapular-thoracodorsal`,
+            side,
+            ['subscapular', 'thoracodorsal'],
+            [
+                clonedPoint(axillary, 1.15),
+                subscapularOrigin,
+                subscapularDivision,
+                point(sideSign * 138, -65, -90, 0.7),
+                point(sideSign * 134, -125, -92, 0.56)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-circumflex-scapular`,
+            side,
+            ['circumflex-scapular'],
+            [
+                clonedPoint(subscapularDivision, 0.72),
+                point(sideSign * 128, 10, -94, 0.62),
+                point(sideSign * 113, 29, -84, 0.52)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-anterior-circumflex-humeral`,
+            side,
+            ['anterior-circumflex-humeral'],
+            [
+                clonedPoint(axillary, 0.78),
+                point(sideSign * 178, 20, -23, 0.64),
+                point(sideSign * 185, 38, -9, 0.52)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-posterior-circumflex-humeral`,
+            side,
+            ['posterior-circumflex-humeral'],
+            [
+                clonedPoint(axillary, 0.86),
+                point(sideSign * 189, 23, -67, 0.7),
+                point(sideSign * 201, 40, -56, 0.54)
+            ],
+            true
+        ));
+
+        paths.push(path(
             `${side}-deep-brachial`,
             side,
             ['deep-brachial'],
@@ -331,7 +426,7 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
             ['radial'],
             [
                 clonedPoint(brachialDivision, 1.78),
-                point(sideSign * 207, -286, -64, 1.68),
+                radialProximal,
                 point(guide.radialForearmX, -345, -51, 1.52),
                 point(guide.radialForearmX + sideSign * 2, -410, -27, 1.34),
                 radialWrist
@@ -357,9 +452,70 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
             ['common-interosseous', 'anterior-interosseous'],
             [
                 clonedPoint(ulnarOrigin, 1.02),
-                point(sideSign * 204, -306, -78, 0.94),
+                interosseousDivision,
                 point(sideSign * 207, -365, -60, 0.76),
                 point(sideSign * 207, -432, -31, 0.56)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-superior-ulnar-collateral`,
+            side,
+            ['superior-ulnar-collateral'],
+            [
+                clonedPoint(midBrachial, 0.82),
+                point(sideSign * 174, -151, -72, 0.68),
+                point(sideSign * 168, -215, -61, 0.54)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-inferior-ulnar-collateral`,
+            side,
+            ['inferior-ulnar-collateral'],
+            [
+                clonedPoint(distalBrachial, 0.74),
+                point(sideSign * 179, -207, -56, 0.62),
+                point(sideSign * 177, -242, -46, 0.52)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-radial-recurrent`,
+            side,
+            ['radial-recurrent'],
+            [
+                clonedPoint(radialProximal, 0.72),
+                point(sideSign * 213, -260, -76, 0.62),
+                point(sideSign * 209, -225, -81, 0.52)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-ulnar-recurrent`,
+            side,
+            ['ulnar-recurrent'],
+            [
+                clonedPoint(ulnarOrigin, 0.74),
+                point(sideSign * 188, -268, -83, 0.62),
+                point(sideSign * 183, -230, -75, 0.52)
+            ],
+            true
+        ));
+
+        paths.push(path(
+            `${side}-posterior-interosseous`,
+            side,
+            ['posterior-interosseous'],
+            [
+                clonedPoint(interosseousDivision, 0.78),
+                point(sideSign * 214, -332, -92, 0.68),
+                point(sideSign * 217, -390, -75, 0.6),
+                point(sideSign * 214, -440, -41, 0.52)
             ],
             true
         ));
@@ -381,19 +537,67 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
             ]
         ));
 
+        const deepArchRadial = point(sideSign * 220, -500, 5, 1.04);
         paths.push(path(
             `${side}-deep-palmar-arch`,
             side,
             ['deep-palmar-arch'],
             [
                 clonedPoint(radialWrist, 1.12),
-                point(sideSign * 220, -500, 5, 1.04),
+                deepArchRadial,
                 point(sideSign * 214, -516, 11, 0.94),
                 point(sideSign * 207, -519, 13, 0.84),
                 point(sideSign * 199, -514, 10, 0.7)
             ],
             true
         ));
+
+        const princepsPollicisDivision = point(
+            sideSign * 226,
+            -585,
+            22,
+            0.64
+        );
+        paths.push(path(
+            `${side}-princeps-pollicis`,
+            side,
+            ['princeps-pollicis'],
+            [
+                clonedPoint(deepArchRadial, 0.76),
+                point(sideSign * 229, -540, 14, 0.7),
+                princepsPollicisDivision
+            ]
+        ));
+        for (const [surface, distalMagnitude] of [
+            ['radial', 218],
+            ['ulnar', 211]
+        ]) {
+            paths.push(path(
+                `${side}-proper-palmar-digital-thumb-${surface}`,
+                side,
+                [`proper-palmar-digital-thumb-${surface}`],
+                [
+                    clonedPoint(princepsPollicisDivision, 0.6),
+                    point(
+                        sideSign * THREE.MathUtils.lerp(
+                            226,
+                            distalMagnitude,
+                            0.55
+                        ),
+                        -607,
+                        21,
+                        0.58
+                    ),
+                    point(
+                        sideSign * distalMagnitude,
+                        -630,
+                        19,
+                        0.56
+                    )
+                ],
+                true
+            ));
+        }
 
         const digitalDefinitions = [
             [superficialLateral, 218, 208, 0.68],
@@ -407,6 +611,12 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
             terminalMagnitude,
             originRadius
         ], index) => {
+            const commonDigitalTerminal = point(
+                sideSign * terminalMagnitude,
+                UPPER_LIMB_HAND_DISTAL_Y_MM,
+                20 - index * 2,
+                0.62 - index * 0.015
+            );
             paths.push(path(
                 `${side}-common-palmar-digital-${index + 1}`,
                 side,
@@ -419,15 +629,42 @@ export function createUpperLimbArteryPaths(attachmentRoots) {
                         27 - index * 2,
                         originRadius * 0.86
                     ),
-                    point(
-                        sideSign * terminalMagnitude,
-                        UPPER_LIMB_HAND_DISTAL_Y_MM,
-                        20 - index * 2,
-                        0.58 - index * 0.02
-                    )
-                ],
-                true
+                    commonDigitalTerminal
+                ]
             ));
+
+            const distalCenterMagnitude = [187, 176, 164, 153][index];
+            for (const [surface, offset] of [
+                ['radial', 3],
+                ['ulnar', -3]
+            ]) {
+                const distalMagnitude = distalCenterMagnitude + offset;
+                paths.push(path(
+                    `${side}-proper-palmar-digital-${index + 1}-${surface}`,
+                    side,
+                    [`proper-palmar-digital-${index + 1}-${surface}`],
+                    [
+                        clonedPoint(commonDigitalTerminal, 0.6),
+                        point(
+                            sideSign * THREE.MathUtils.lerp(
+                                terminalMagnitude,
+                                distalMagnitude,
+                                0.55
+                            ),
+                            -643,
+                            19 - index * 2,
+                            0.58
+                        ),
+                        point(
+                            sideSign * distalMagnitude,
+                            UPPER_LIMB_FINGER_DISTAL_Y_MM,
+                            18 - index * 2,
+                            0.56
+                        )
+                    ],
+                    true
+                ));
+            }
         });
     }
     return paths;

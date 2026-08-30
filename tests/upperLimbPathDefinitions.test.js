@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {
     createUpperLimbArteryPaths,
     findUpperLimbAttachmentRoots,
+    UPPER_LIMB_FINGER_DISTAL_Y_MM,
     UPPER_LIMB_HAND_DISTAL_Y_MM
 } from '../src/upperLimbArteries.js';
 
@@ -54,6 +55,20 @@ for (const side of ['right', 'left']) {
     const interosseous = vessel(side, 'common-interosseous');
     const superficialArch = vessel(side, 'superficial-palmar-arch');
     const deepArch = vessel(side, 'deep-palmar-arch');
+    const thoracoacromial = vessel(side, 'thoracoacromial');
+    const lateralThoracic = vessel(side, 'lateral-thoracic');
+    const subscapular = vessel(side, 'subscapular-thoracodorsal');
+    const circumflexScapular = vessel(side, 'circumflex-scapular');
+    const superiorUlnarCollateral = vessel(side, 'superior-ulnar-collateral');
+    const inferiorUlnarCollateral = vessel(side, 'inferior-ulnar-collateral');
+    const radialRecurrent = vessel(side, 'radial-recurrent');
+    const ulnarRecurrent = vessel(side, 'ulnar-recurrent');
+    const posteriorInterosseous = vessel(side, 'posterior-interosseous');
+    const princepsPollicis = vessel(side, 'princeps-pollicis');
+
+    const brachialPointAtY = y => brachial.points.find(item =>
+        item.position.y === y
+    );
 
     samePosition(
         brachial.points.at(-1),
@@ -80,6 +95,56 @@ for (const side of ['right', 'left']) {
         superficialArch.points[0],
         `${side} superficial palmar origin`
     );
+    samePosition(
+        brachialPointAtY(64),
+        thoracoacromial.points[0],
+        `${side} thoracoacromial origin`
+    );
+    samePosition(
+        brachialPointAtY(64),
+        lateralThoracic.points[0],
+        `${side} lateral thoracic origin`
+    );
+    samePosition(
+        brachialPointAtY(64),
+        subscapular.points[0],
+        `${side} subscapular origin`
+    );
+    samePosition(
+        subscapular.points[2],
+        circumflexScapular.points[0],
+        `${side} circumflex scapular origin`
+    );
+    samePosition(
+        brachialPointAtY(-112),
+        superiorUlnarCollateral.points[0],
+        `${side} superior ulnar collateral origin`
+    );
+    samePosition(
+        brachialPointAtY(-190),
+        inferiorUlnarCollateral.points[0],
+        `${side} inferior ulnar collateral origin`
+    );
+    samePosition(
+        radial.points[1],
+        radialRecurrent.points[0],
+        `${side} radial recurrent origin`
+    );
+    samePosition(
+        ulnar.points[1],
+        ulnarRecurrent.points[0],
+        `${side} ulnar recurrent origin`
+    );
+    samePosition(
+        interosseous.points[1],
+        posteriorInterosseous.points[0],
+        `${side} posterior interosseous origin`
+    );
+    samePosition(
+        deepArch.points[1],
+        princepsPollicis.points[0],
+        `${side} princeps pollicis origin`
+    );
 
     assert.ok(
         sideSign * radial.points[2].position.x >
@@ -104,6 +169,7 @@ for (const side of ['right', 'left']) {
         vessel(side, `common-palmar-digital-${index + 1}`)
     );
     for (const digital of digitalPaths) {
+        assert.equal(digital.terminal, false);
         assert.equal(
             digital.points.at(-1).position.y,
             UPPER_LIMB_HAND_DISTAL_Y_MM
@@ -114,7 +180,53 @@ for (const side of ['right', 'left']) {
             `${digital.name} should follow the distal hand toward the fingers`
         );
     }
+
+    digitalPaths.forEach((digital, index) => {
+        const radialProper = vessel(
+            side,
+            `proper-palmar-digital-${index + 1}-radial`
+        );
+        const ulnarProper = vessel(
+            side,
+            `proper-palmar-digital-${index + 1}-ulnar`
+        );
+        samePosition(
+            digital.points.at(-1),
+            radialProper.points[0],
+            `${side} radial proper digital ${index + 1} origin`
+        );
+        samePosition(
+            digital.points.at(-1),
+            ulnarProper.points[0],
+            `${side} ulnar proper digital ${index + 1} origin`
+        );
+        for (const proper of [radialProper, ulnarProper]) {
+            assert.equal(proper.terminal, true);
+            assert.equal(
+                proper.points.at(-1).position.y,
+                UPPER_LIMB_FINGER_DISTAL_Y_MM
+            );
+        }
+        assert.ok(
+            sideSign * radialProper.points.at(-1).position.x >
+                sideSign * ulnarProper.points.at(-1).position.x,
+            `${side} proper digital pair ${index + 1} should flank its finger`
+        );
+    });
+
+    for (const surface of ['radial', 'ulnar']) {
+        const thumb = vessel(
+            side,
+            `proper-palmar-digital-thumb-${surface}`
+        );
+        samePosition(
+            princepsPollicis.points.at(-1),
+            thumb.points[0],
+            `${side} proper thumb ${surface} origin`
+        );
+        assert.equal(thumb.terminal, true);
+    }
 }
 
-assert.equal(paths.length, 22, 'eleven named arterial paths should be generated per arm');
+assert.equal(paths.length, 66, 'thirty-three named arterial paths should be generated per arm');
 console.log('upper-limb skeletal path definitions passed');

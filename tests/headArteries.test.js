@@ -67,10 +67,11 @@ for (let index = 0; index < packedSegments.length / centerlineStride; index++) {
 
 const flowNetwork = new ContrastFlowNetwork(centerlineSegments);
 const flowTopology = flowNetwork.getTopologyDiagnostics();
-assert.equal(
-    flowTopology.physiologicalTopologyRepair.repaired,
-    true,
-    'the full arterial tree should reconnect the left carotid attachment'
+assert.ok(
+    flowTopology.physiologicalTopologyRepair.repaired ||
+        flowTopology.physiologicalTopologyRepair.reason ===
+            'no-carotid-attachment-gap',
+    'the full arterial tree should repair the carotid attachment or already be continuous'
 );
 assert.equal(
     flowTopology.disconnectedSourceSegmentCount,

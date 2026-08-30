@@ -7,6 +7,7 @@ import { ContrastFlowNetwork } from '../src/contrast/flowNetwork.js';
 import { decodeCollisionAsset } from '../src/physics/collision/collisionAssetFormat.js';
 import { VesselContactField } from '../src/physics/collision/vesselContactField.js';
 import {
+    UPPER_LIMB_FINGER_DISTAL_Y_MM,
     UPPER_LIMB_HAND_DISTAL_Y_MM,
     UPPER_LIMB_LATERAL_EXTENT_MM
 } from '../src/upperLimbArteries.js';
@@ -60,8 +61,8 @@ assert.ok(
     'left upper-limb vessels should reach beyond the wrist skeleton'
 );
 assert.ok(
-    asset.metadata.bounds.min[1] < UPPER_LIMB_HAND_DISTAL_Y_MM,
-    'upper-limb vessels should reach the distal hand'
+    asset.metadata.bounds.min[1] < UPPER_LIMB_FINGER_DISTAL_Y_MM,
+    'upper-limb vessels should reach the distal fingers'
 );
 assert.ok(asset.metadata.centerline.segmentCount > 8000);
 
@@ -89,14 +90,14 @@ for (const segment of centerlineSegments) {
 }
 const upperLimbLeaves = [...nodes.values()].filter(node =>
     node.degree === 1 &&
-    Math.abs(node.point.x) > 160 &&
-    node.point.y > -660 &&
+    Math.abs(node.point.x) > 100 &&
+    node.point.y > -680 &&
     node.point.y < 110
 );
 const rightLeaves = upperLimbLeaves.filter(node => node.point.x < 0);
 const leftLeaves = upperLimbLeaves.filter(node => node.point.x > 0);
-assert.ok(rightLeaves.length >= 6, 'right arm should retain its distal branches');
-assert.ok(leftLeaves.length >= 6, 'left arm should retain its distal branches');
+assert.ok(rightLeaves.length >= 20, 'right arm should retain its fine distal branches');
+assert.ok(leftLeaves.length >= 20, 'left arm should retain its fine distal branches');
 assert.ok(
     Math.abs(rightLeaves.length - leftLeaves.length) <= 2,
     'paired upper-limb trees should retain comparable outlet counts'
@@ -110,6 +111,9 @@ const lumenSamples = [
     ['right radial', -218, -345, -51, 0.75],
     ['right ulnar', -198, -345, -64, 0.75],
     ['right anterior interosseous', -207, -365, -60, 0.3],
+    ['right thoracoacromial', -136, 75, -27, 0.25],
+    ['right thoracodorsal', -138, -65, -90, 0.2],
+    ['right posterior interosseous', -217, -390, -75, 0.18],
     ['right superficial palmar arch', -209, -535, 26, 0.35],
     ['right deep palmar arch', -207, -519, 13, 0.35],
     ['left axillary', 150, 64, -39, 1],
@@ -118,6 +122,9 @@ const lumenSamples = [
     ['left radial', 220, -345, -51, 0.75],
     ['left ulnar', 198, -345, -64, 0.75],
     ['left anterior interosseous', 207, -365, -60, 0.3],
+    ['left thoracoacromial', 136, 75, -27, 0.25],
+    ['left thoracodorsal', 138, -65, -90, 0.2],
+    ['left posterior interosseous', 217, -390, -75, 0.18],
     ['left superficial palmar arch', 209, -535, 26, 0.35],
     ['left deep palmar arch', 207, -519, 13, 0.35]
 ];
@@ -135,9 +142,19 @@ for (const [name, x, y, z, minimumClearance] of lumenSamples) {
     );
 }
 
-const digitalLeaves = upperLimbLeaves.filter(node => node.point.y < -600);
-assert.equal(digitalLeaves.length, 8, 'four digital outlets should remain on each hand');
-for (const leaf of digitalLeaves) {
+const digitalLeaves = upperLimbLeaves.filter(node => node.point.y < -650);
+assert.equal(
+    digitalLeaves.length,
+    16,
+    'eight proper digital outlets should remain on each hand'
+);
+const thumbLeaves = upperLimbLeaves.filter(node =>
+    node.point.y < -620 &&
+    node.point.y > -640 &&
+    Math.abs(node.point.x) > 200
+);
+assert.equal(thumbLeaves.length, 4, 'two proper digital outlets should remain on each thumb');
+for (const leaf of [...digitalLeaves, ...thumbLeaves]) {
     const sample = leaf.point.clone().lerp(leaf.neighbours[0], 0.4);
     const contact = field.querySphere(sample, 0);
     assert.ok(
@@ -149,7 +166,11 @@ for (const leaf of digitalLeaves) {
 const flowNetwork = new ContrastFlowNetwork(centerlineSegments);
 const topology = flowNetwork.getTopologyDiagnostics();
 assert.equal(topology.disconnectedSourceSegmentCount, 0);
-assert.equal(topology.physiologicalTopologyRepair.repaired, true);
+assert.ok(
+    topology.physiologicalTopologyRepair.repaired ||
+        topology.physiologicalTopologyRepair.reason === 'no-carotid-attachment-gap',
+    'the flow tree should either repair the carotid junction or already be continuous'
+);
 
 const distalFlowSamples = [
     ['right brachial', -185, -112, -62],
@@ -176,5 +197,5 @@ console.log('upper-limb arterial anatomy passed', {
     rightLeaves: rightLeaves.length,
     leftLeaves: leftLeaves.length,
     lumenSamples: lumenSamples.length,
-    digitalSamples: digitalLeaves.length
+    digitalSamples: digitalLeaves.length + thumbLeaves.length
 });

@@ -27,10 +27,10 @@ const ANATOMY_SLICE_SPACING = 0.9;
 const LUMEN_POINT_QUANTIZATION = 0.05;
 const BROAD_PHASE_CELL_SIZE = 16;
 const CENTERLINE_STRIDE = 9;
-// The bilateral arm/hand extension adds roughly 2.9 MB of sparse SDF data to
-// the previous full-body tree. Keep a tight ceiling while allowing the complete
-// upper-limb collision field at the existing 0.5 mm voxel resolution.
-const MAX_DECODED_BYTES = 56 * 1024 * 1024;
+// Fine bilateral limb branches and proper digital arteries add several
+// thousand sparse SDF bricks. Keep the existing 0.5 mm voxel resolution and a
+// bounded ceiling while allowing the complete fingers-and-toes collision field.
+const MAX_DECODED_BYTES = 64 * 1024 * 1024;
 
 function nowMs() {
     return globalThis.performance?.now?.() ?? Date.now();
@@ -311,6 +311,71 @@ function buildSdfInsideBits(sdf, packedLumen) {
     return insideBits;
 }
 
+function validateCenterlineAgainstPackedLumen(segments, wallBvh, packedLumen) {
+    const field = new PackedLumenField(
+        { lumen: { pointQuantization: LUMEN_POINT_QUANTIZATION } },
+        {
+            lumenAxisBases: packedLumen.axisBases,
+            lumenAxisSliceOffsets: packedLumen.axisSliceOffsets,
+            lumenSliceYs: packedLumen.sliceYs,
+            lumenSliceContourOffsets: packedLumen.sliceContourOffsets,
+            lumenContourPointOffsets: packedLumen.contourPointOffsets,
+            lumenContourBounds: packedLumen.contourBounds,
+            lumenContourSamples: packedLumen.contourSamples,
+            lumenPoints: packedLumen.points
+        }
+    );
+    const point = new THREE.Vector3();
+    let wallIntersectionCount = 0;
+    let acceptedInternalWallSeamCount = 0;
+    let invalidSegmentCount = 0;
+    const invalidSegments = [];
+    for (const segment of segments) {
+        const delta = new THREE.Vector3().subVectors(segment.end, segment.start);
+        const length = delta.length();
+        if (length < 1e-5) continue;
+        const hit = wallBvh.raycastFirst(
+            new THREE.Ray(segment.start, delta.multiplyScalar(1 / length)),
+            THREE.DoubleSide,
+            1e-4,
+            Math.max(1e-4, length - 1e-4)
+        );
+        if (!hit) continue;
+        wallIntersectionCount++;
+        const sampleCount = Math.max(2, Math.ceil(length / 0.35));
+        let minimumClearance = Infinity;
+        let staysInside = true;
+        for (let sampleIndex = 0; sampleIndex <= sampleCount; sampleIndex++) {
+            point.lerpVectors(segment.start, segment.end, sampleIndex / sampleCount);
+            const sample = field.query(point);
+            minimumClearance = Math.min(minimumClearance, sample?.signedDistance ?? -Infinity);
+            if (!sample?.inside || sample.signedDistance < 0.1) {
+                staysInside = false;
+                break;
+            }
+        }
+        if (staysInside) {
+            acceptedInternalWallSeamCount++;
+            continue;
+        }
+        invalidSegmentCount++;
+        if (invalidSegments.length < 16) {
+            invalidSegments.push({
+                start: segment.start.toArray(),
+                end: segment.end.toArray(),
+                length,
+                minimumClearance
+            });
+        }
+    }
+    return {
+        wallIntersectionCount,
+        acceptedInternalWallSeamCount,
+        invalidSegmentCount,
+        invalidSegments
+    };
+}
+
 function segmentBounds(data, index, padding) {
     const offset = index * CENTERLINE_STRIDE;
     const radius = Math.max(data[offset + 6], data[offset + 7]) + padding;
@@ -500,6 +565,51 @@ function loadReusableSdf(stlSha256, transform, lumenSignature) {
     }
 }
 
+function loadReusablePackedLumen(stlSha256, transform) {
+    if (!fs.existsSync(OUTPUT_PATH)) return null;
+    try {
+        const bytes = fs.readFileSync(OUTPUT_PATH);
+        const previous = decodeCollisionAsset(arrayBufferFromBuffer(bytes));
+        const metadata = previous.metadata;
+        const lumen = metadata?.lumen;
+        const arrays = previous.arrays;
+        const compatible = (
+            metadata?.source?.stlSha256 === stlSha256 &&
+            JSON.stringify(metadata?.transform) === JSON.stringify(transform) &&
+            lumen?.pointQuantization === LUMEN_POINT_QUANTIZATION &&
+            arrays?.lumenAxisBases?.length === lumen.axisCount * 9 &&
+            arrays?.lumenAxisSliceOffsets?.length === lumen.axisCount + 1 &&
+            arrays?.lumenSliceYs?.length === lumen.sliceCount &&
+            arrays?.lumenSliceContourOffsets?.length === lumen.sliceCount + 1 &&
+            arrays?.lumenContourPointOffsets?.length === lumen.contourCount + 1 &&
+            arrays?.lumenContourBounds?.length === lumen.contourCount * 4 &&
+            arrays?.lumenContourSamples?.length === lumen.contourCount * 2 &&
+            arrays?.lumenPoints?.length === lumen.pointCount * 2
+        );
+        if (!compatible) return null;
+        return {
+            axisBases: arrays.lumenAxisBases,
+            axisSliceOffsets: arrays.lumenAxisSliceOffsets,
+            sliceYs: arrays.lumenSliceYs,
+            sliceContourOffsets: arrays.lumenSliceContourOffsets,
+            contourPointOffsets: arrays.lumenContourPointOffsets,
+            contourBounds: arrays.lumenContourBounds,
+            contourSamples: arrays.lumenContourSamples,
+            points: arrays.lumenPoints,
+            axisCount: lumen.axisCount,
+            sliceCount: lumen.sliceCount,
+            contourCount: lumen.contourCount,
+            pointCount: lumen.pointCount,
+            signature: lumen.signature,
+            diagnostics: lumen.diagnostics,
+            reused: true
+        };
+    } catch (error) {
+        console.warn(`Existing packed lumen cannot be reused: ${error.message}`);
+        return null;
+    }
+}
+
 const started = nowMs();
 const sourceBytes = fs.readFileSync(SOURCE_PATH);
 const stlSha256 = crypto.createHash('sha256').update(sourceBytes).digest('hex');
@@ -524,14 +634,33 @@ const centerlineArrays = buildCenterlineArrays(centerline.segments, geometry.bou
 const broadPhase = buildCenterlineBroadPhase(centerlineArrays.data, geometry.boundingBox);
 
 const lumenStarted = nowMs();
-const collisionLumen = buildStlLumenCast(geometry, {
+const reusablePackedLumen = loadReusablePackedLumen(stlSha256, transform);
+const collisionLumen = reusablePackedLumen ? null : buildStlLumenCast(geometry, {
     lumenField: preprocessing.lumenField,
     sliceSpacing: ANATOMY_SLICE_SPACING,
     fieldOnly: true
 });
-const packedLumen = packLumenAxes(collisionLumen.axisSlices, collisionLumen.slices);
-const lumenSignature = packedLumenSignature(packedLumen);
+const packedLumen = reusablePackedLumen ||
+    packLumenAxes(collisionLumen.axisSlices, collisionLumen.slices);
+const lumenSignature = reusablePackedLumen?.signature || packedLumenSignature(packedLumen);
 const lumenMs = nowMs() - lumenStarted;
+const packedCenterlineValidation = validateCenterlineAgainstPackedLumen(
+    centerline.segments,
+    geometry.boundsTree,
+    packedLumen
+);
+const centerlineDiagnostics = {
+    ...centerline.diagnostics,
+    centerlineWallIntersectionCount:
+        packedCenterlineValidation.wallIntersectionCount,
+    centerlineAcceptedInternalWallSeamCount:
+        packedCenterlineValidation.acceptedInternalWallSeamCount,
+    centerlineInvalidSegmentCountFinal:
+        packedCenterlineValidation.invalidSegmentCount,
+    centerlineInvalidSegmentDetailsFinal:
+        packedCenterlineValidation.invalidSegments,
+    wallValidation: 'stl-bvh-with-packed-lumen-seam-check'
+};
 
 const sdfStarted = nowMs();
 const sdf = loadReusableSdf(stlSha256, transform, lumenSignature) || buildSparseSdf(geometry);
@@ -570,7 +699,7 @@ const metadata = {
         nodeCount: centerlineArrays.nodeCount,
         minSafeRadius: centerlineArrays.minSafeRadius,
         maxSafeRadius: centerlineArrays.maxSafeRadius,
-        diagnostics: centerline.diagnostics
+        diagnostics: centerlineDiagnostics
     },
     broadPhase: {
         cellSize: BROAD_PHASE_CELL_SIZE,
@@ -585,7 +714,7 @@ const metadata = {
         pointCount: packedLumen.pointCount,
         pointQuantization: LUMEN_POINT_QUANTIZATION,
         signature: lumenSignature,
-        diagnostics: collisionLumen.diagnostics
+        diagnostics: collisionLumen?.diagnostics || reusablePackedLumen?.diagnostics || null
     },
     sdf: {
         voxelSize: VOXEL_SIZE,
@@ -605,6 +734,7 @@ const metadata = {
         preprocessMs,
         centerlineMs,
         lumenMs,
+        lumenReused: reusablePackedLumen?.reused === true,
         sdfMs,
         sdfReused: sdf.reused === true,
         sdfSignMs,

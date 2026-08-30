@@ -17,8 +17,8 @@ import {
 } from '../src/physics/collision/vesselContactField.js';
 import { generateVessel } from '../src/vesselGeometry.js';
 
-const MAX_ASSET_BYTES = 56 * 1024 * 1024;
-const MAX_RUNTIME_BYTES = 68 * 1024 * 1024;
+const MAX_ASSET_BYTES = 64 * 1024 * 1024;
+const MAX_RUNTIME_BYTES = 80 * 1024 * 1024;
 
 function arrayBufferFromBuffer(buffer) {
     return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
@@ -117,12 +117,12 @@ const sourceHash = crypto.createHash('sha256').update(sourceBytes).digest('hex')
 const assetBytes = fs.readFileSync('res/Aorta_plain.collision.bin');
 const asset = decodeCollisionAsset(arrayBufferFromBuffer(assetBytes));
 assert.equal(asset.metadata.source.stlSha256, sourceHash, 'collision asset should match the current STL');
-assert.ok(asset.metadata.decodedBytes <= MAX_ASSET_BYTES, 'decoded collision asset should stay under 56 MB');
+assert.ok(asset.metadata.decodedBytes <= MAX_ASSET_BYTES, 'decoded collision asset should stay under 64 MB');
 
 const field = new VesselContactField(asset);
 assert.ok(
     field.runtimeBytes <= MAX_RUNTIME_BYTES,
-    'full-body asset plus runtime brick lookup should stay under 68 MB'
+    'full-body asset plus runtime brick lookup should stay under 80 MB'
 );
 
 const centerlineContact = createContactResult();

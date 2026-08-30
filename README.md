@@ -75,8 +75,11 @@ vessel data is retained only for control and tool-path metadata.
 The STL continues both external iliac arteries through the common and
 superficial femoral, deep femoral, popliteal, anterior tibial, posterior
 tibial, tibioperoneal trunk, fibular, dorsalis pedis, medial and lateral
-plantar, deep plantar, and transverse plantar arch arteries. These are hollow,
-tapered vessel walls joined to the original lumen rather than overlaid visual tubes. The
+plantar, deep plantar, and transverse plantar arch arteries. Smaller branches
+include the circumflex and perforating femoral, genicular, and anterior tibial
+recurrent arteries. Four plantar metatarsal branches divide into proper plantar
+digital arteries reaching all five toes. These are hollow, tapered vessel walls
+joined to the original lumen rather than overlaid visual tubes. The
 repeatable `npm run anatomy:extend-lower-limbs` generator starts from the
 original STL and rebuilds this Boolean extension before the collision asset is
 regenerated.
@@ -84,7 +87,11 @@ regenerated.
 Both subclavian endpoints continue through the axillary and brachial arteries.
 Each upper limb includes the deep brachial, radial, ulnar, common/anterior
 interosseous, superficial and deep palmar arch, and four common palmar digital
-branches. Their paths are aligned anterior-medial to the humerus, on the
+branches. It also includes the thoracoacromial, lateral thoracic,
+subscapular/thoracodorsal, circumflex scapular and humeral, collateral,
+recurrent, and posterior interosseous branches. The common digital branches
+divide into proper digital arteries, with separate princeps pollicis and thumb
+digital arteries. Their paths are aligned anterior-medial to the humerus, on the
 appropriate sides of the paired forearm bones, and anterior to the hand
 skeleton. They share the same hollow Boolean wall, collision field, and
 contrast-flow tree as the pre-existing vessels.

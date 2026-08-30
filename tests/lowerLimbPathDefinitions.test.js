@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { createLowerLimbArteryPaths } from '../src/lowerLimbArteries.js';
+import {
+    createLowerLimbArteryPaths,
+    LOWER_LIMB_TOE_DISTAL_Z_MM
+} from '../src/lowerLimbArteries.js';
 
 const roots = [
     {
@@ -41,6 +44,14 @@ for (const side of ['right', 'left']) {
     const lateralPlantar = vessel(side, 'lateral-plantar');
     const plantarArch = vessel(side, 'deep-plantar-arch');
     const medialPlantar = vessel(side, 'medial-plantar');
+    const lateralCircumflex = vessel(side, 'lateral-circumflex-femoral');
+    const medialCircumflex = vessel(side, 'medial-circumflex-femoral');
+    const perforating1 = vessel(side, 'perforating-femoral-1');
+    const perforating2 = vessel(side, 'perforating-femoral-2');
+    const descendingGenicular = vessel(side, 'descending-genicular');
+    const superiorMedialGenicular = vessel(side, 'superior-medial-genicular');
+    const inferiorLateralGenicular = vessel(side, 'inferior-lateral-genicular');
+    const anteriorTibialRecurrent = vessel(side, 'anterior-tibial-recurrent');
 
     assert.ok(
         femoral && deepFemoral && anterior && trunk && posterior && fibular &&
@@ -91,6 +102,46 @@ for (const side of ['right', 'left']) {
         plantarArch.points.at(-1),
         `${side} lateral end of plantar arch`
     );
+    samePosition(
+        deepFemoral.points[2],
+        lateralCircumflex.points[0],
+        `${side} lateral circumflex femoral origin`
+    );
+    samePosition(
+        deepFemoral.points[2],
+        medialCircumflex.points[0],
+        `${side} medial circumflex femoral origin`
+    );
+    samePosition(
+        deepFemoral.points[3],
+        perforating1.points[0],
+        `${side} first perforating femoral origin`
+    );
+    samePosition(
+        deepFemoral.points[4],
+        perforating2.points[0],
+        `${side} second perforating femoral origin`
+    );
+    samePosition(
+        femoral.points[4],
+        descendingGenicular.points[0],
+        `${side} descending genicular origin`
+    );
+    samePosition(
+        femoral.points[6],
+        superiorMedialGenicular.points[0],
+        `${side} superior genicular origin`
+    );
+    samePosition(
+        femoral.points[7],
+        inferiorLateralGenicular.points[0],
+        `${side} inferior genicular origin`
+    );
+    samePosition(
+        anterior.points[2],
+        anteriorTibialRecurrent.points[0],
+        `${side} anterior tibial recurrent origin`
+    );
 
     const division = femoral.points.at(-1).position;
     const anteriorDirection = anterior.points[2].position
@@ -137,7 +188,7 @@ for (const side of ['right', 'left']) {
         `${side} dorsalis pedis should follow the distal slope of the dorsal foot`
     );
 
-    const archPoints = plantarArch.points.slice(2, 5).map(item => item.position);
+    const archPoints = plantarArch.points.slice(2).map(item => item.position);
     const archXSpan = Math.max(...archPoints.map(item => item.x)) -
         Math.min(...archPoints.map(item => item.x));
     const archZSpan = Math.max(...archPoints.map(item => item.z)) -
@@ -154,7 +205,58 @@ for (const side of ['right', 'left']) {
         plantarArch.points[1].position.y <= dorsalForefoot.y - 30,
         `${side} deep plantar branch should descend from dorsum to sole`
     );
+
+    const metatarsalArchIndices = [3, 4, 6, 7];
+    const properDigitalPaths = [];
+    metatarsalArchIndices.forEach((archIndex, index) => {
+        const metatarsal = vessel(side, `plantar-metatarsal-${index + 1}`);
+        samePosition(
+            plantarArch.points[archIndex],
+            metatarsal.points[0],
+            `${side} plantar metatarsal ${index + 1} origin`
+        );
+        assert.equal(metatarsal.terminal, false);
+
+        const lateral = vessel(
+            side,
+            `proper-plantar-digital-${index + 1}-lateral`
+        );
+        const medial = vessel(
+            side,
+            `proper-plantar-digital-${index + 2}-medial`
+        );
+        for (const proper of [lateral, medial]) {
+            samePosition(
+                metatarsal.points.at(-1),
+                proper.points[0],
+                `${side} ${proper.name} origin`
+            );
+            assert.equal(proper.terminal, true);
+            properDigitalPaths.push(proper);
+        }
+    });
+
+    const halluxMedial = vessel(side, 'proper-plantar-digital-1-medial');
+    const fifthLateral = vessel(side, 'proper-plantar-digital-5-lateral');
+    samePosition(
+        medialPlantar.points.at(-1),
+        halluxMedial.points[0],
+        `${side} medial hallux artery origin`
+    );
+    samePosition(
+        plantarArch.points.at(-1),
+        fifthLateral.points[0],
+        `${side} lateral fifth-toe artery origin`
+    );
+    properDigitalPaths.push(halluxMedial, fifthLateral);
+    assert.equal(properDigitalPaths.length, 10);
+    assert.ok(
+        properDigitalPaths.filter(path =>
+            path.points.at(-1).position.z === LOWER_LIMB_TOE_DISTAL_Z_MM
+        ).length >= 2,
+        `${side} hallux vessels should reach the distal end of the great toe`
+    );
 }
 
-assert.equal(paths.length, 18, 'nine named arterial paths should be generated per leg');
+assert.equal(paths.length, 66, 'thirty-three named arterial paths should be generated per leg');
 console.log('lower-limb skeletal path definitions passed');

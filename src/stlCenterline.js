@@ -1801,15 +1801,19 @@ function invalidCenterlineSegments(
     segments,
     lumenField,
     wallBvh,
-    connectorLumenClearance
+    connectorLumenClearance,
+    { wallFallbackLumenField = lumenField } = {}
 ) {
-    return segments.filter(segment => segmentValidityFailureReason(
-        segment,
-        wallBvh,
-        lumenField,
-        connectorLumenClearance,
-        { allowWallWhenInside: Boolean(segment.allowWallWhenInside) }
-    ));
+    return segments.filter(segment => {
+        const allowWallWhenInside = Boolean(segment.allowWallWhenInside);
+        return segmentValidityFailureReason(
+            segment,
+            wallBvh,
+            allowWallWhenInside ? wallFallbackLumenField : lumenField,
+            connectorLumenClearance,
+            { allowWallWhenInside }
+        );
+    });
 }
 
 function connectedInvalidSegmentComponents(invalidSegments, incidence, endpointKeys) {
@@ -2018,11 +2022,14 @@ function rerouteInvalidCenterlineChains(
     wallBvh,
     connectorLumenClearance,
     lumenGeometry,
-    { maxChains = CENTERLINE_INVALID_REROUTE_MAX_CHAINS } = {}
+    {
+        maxChains = CENTERLINE_INVALID_REROUTE_MAX_CHAINS,
+        validationLumenField = lumenField
+    } = {}
 ) {
     const initialInvalidSegmentCount = invalidCenterlineSegments(
         segments,
-        lumenField,
+        validationLumenField,
         wallBvh,
         connectorLumenClearance
     ).length;
@@ -2037,7 +2044,7 @@ function rerouteInvalidCenterlineChains(
     while (routedChainCount < maxChains) {
         const currentInvalidSegments = invalidCenterlineSegments(
             segments,
-            lumenField,
+            validationLumenField,
             wallBvh,
             connectorLumenClearance
         ).filter(segment => !blockedSegments.has(segment));
@@ -2211,7 +2218,7 @@ function rerouteInvalidCenterlineChains(
 
     const remainingInvalidSegmentCount = invalidCenterlineSegments(
         segments,
-        lumenField,
+        validationLumenField,
         wallBvh,
         connectorLumenClearance
     ).length;
@@ -7881,6 +7888,13 @@ function buildMedialSliceCenterline(geometry, {
     wallBvh
 }) {
     const startedAt = nowMs();
+    const profileStages = typeof process !== 'undefined' &&
+        process?.env?.CENTERLINE_PROFILE === '1';
+    const profileStage = (name, duration) => {
+        if (profileStages) {
+            console.log(`[centerline] ${name}: ${duration.toFixed(1)} ms`);
+        }
+    };
     const resolvedWallBvh = resolveWallBvh(geometry, wallBvh);
     const requestedSpacing = resolveSliceSpacing(
         geometry,
@@ -7899,6 +7913,7 @@ function buildMedialSliceCenterline(geometry, {
         { solidLumen: false, centerMode: 'medial' }
     );
     const extractionMs = nowMs() - startedAt;
+    profileStage('medial extraction', extractionMs);
     const medial = buildMedialCenterlineTree(slices, {
         lumenField,
         wallBvh: resolvedWallBvh,
@@ -7908,6 +7923,7 @@ function buildMedialSliceCenterline(geometry, {
     });
     const allSegments = medial.segments;
     const treeMs = nowMs() - startedAt - extractionMs;
+    profileStage('medial tree', treeMs);
 
     let refinement = {
         refinedNodeCount: 0,
@@ -7946,6 +7962,7 @@ function buildMedialSliceCenterline(geometry, {
             : 0;
     }
     const refinementMs = nowMs() - refinementStartedAt;
+    profileStage('medial refinement', refinementMs);
     const clearanceStartedAt = nowMs();
     const clearanceMaximization = maximizeCenterlineWallClearance(
         allSegments,
@@ -7983,6 +8000,7 @@ function buildMedialSliceCenterline(geometry, {
         clearancePolish.maxClearanceGain
     );
     const clearanceMs = nowMs() - clearanceStartedAt;
+    profileStage('medial clearance', clearanceMs);
     const backtrackStartedAt = nowMs();
     const backtrackSimplification = simplifyCenterlineBacktracks(
         allSegments,
@@ -7999,6 +8017,7 @@ function buildMedialSliceCenterline(geometry, {
         }
     }
     const backtrackMs = nowMs() - backtrackStartedAt;
+    profileStage('medial backtrack', backtrackMs);
     const simulationSmoothingStartedAt = nowMs();
     const simulationSmoothing = smoothCenterlineForSimulation(
         allSegments,
@@ -8017,6 +8036,7 @@ function buildMedialSliceCenterline(geometry, {
         }
     }
     const simulationSmoothingMs = nowMs() - simulationSmoothingStartedAt;
+    profileStage('medial simulation smoothing', simulationSmoothingMs);
     const finalBacktrackStartedAt = nowMs();
     const finalBacktrackSimplification = simplifyCenterlineBacktracks(
         allSegments,
@@ -8033,6 +8053,7 @@ function buildMedialSliceCenterline(geometry, {
         }
     }
     const finalBacktrackMs = nowMs() - finalBacktrackStartedAt;
+    profileStage('medial final backtrack', finalBacktrackMs);
     const centeringCorrectionStartedAt = nowMs();
     const centeringCorrection = correctCenterlineCenteringOutliers(
         allSegments,
@@ -8050,6 +8071,7 @@ function buildMedialSliceCenterline(geometry, {
         }
     }
     const centeringCorrectionMs = nowMs() - centeringCorrectionStartedAt;
+    profileStage('medial centering correction', centeringCorrectionMs);
     const postCenteringBacktrackStartedAt = nowMs();
     const postCenteringBacktrackSimplification = simplifyCenterlineBacktracks(
         allSegments,
@@ -8066,6 +8088,18 @@ function buildMedialSliceCenterline(geometry, {
         }
     }
     const postCenteringBacktrackMs = nowMs() - postCenteringBacktrackStartedAt;
+    profileStage('medial post-centering backtrack', postCenteringBacktrackMs);
+    const invalidRerouteStartedAt = nowMs();
+    const invalidChainRerouting = rerouteInvalidCenterlineChains(
+        allSegments,
+        lumenField,
+        resolvedWallBvh,
+        DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
+        geometry,
+        { validationLumenField: resolvedWallBvh ? null : lumenField }
+    );
+    const invalidRerouteMs = nowMs() - invalidRerouteStartedAt;
+    profileStage('medial invalid reroute', invalidRerouteMs);
     const cyclePruning = removeCenterlineCycles(allSegments);
     const components = segmentComponents(allSegments);
     const topology = measureCenterlineTopology(allSegments);
@@ -8079,7 +8113,8 @@ function buildMedialSliceCenterline(geometry, {
         allSegments,
         resolvedWallBvh ? null : lumenField,
         resolvedWallBvh,
-        DEFAULT_CONNECTOR_LUMEN_CLEARANCE
+        DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
+        { wallFallbackLumenField: lumenField }
     );
     const debugSegments = thinDebugPositions(buildDebugSegments(slices));
     const totalMs = nowMs() - startedAt;
@@ -8104,6 +8139,7 @@ function buildMedialSliceCenterline(geometry, {
             finalBacktrackMs,
             centeringCorrectionMs,
             postCenteringBacktrackMs,
+            invalidRerouteMs,
             centeringMs,
             totalMs
         },
@@ -8165,9 +8201,24 @@ function buildMedialSliceCenterline(geometry, {
             maxShift: centeringCorrection.maxShift,
             rolledBack: centeringCorrection.rolledBack || false
         },
-        centerlineInvalidSegmentCountBeforeReroute: invalidSegments.length,
-        centerlineInvalidSegmentCountAfterReroute: invalidSegments.length,
+        centerlineInvalidSegmentCountBeforeReroute:
+            invalidChainRerouting.initialInvalidSegmentCount,
+        centerlineInvalidSegmentCountAfterReroute:
+            invalidChainRerouting.remainingInvalidSegmentCount,
         centerlineInvalidSegmentCountFinal: invalidSegments.length,
+        centerlineInvalidRerouteAttemptedChainCount:
+            invalidChainRerouting.attemptedChainCount,
+        centerlineInvalidReroutedChainCount:
+            invalidChainRerouting.routedChainCount,
+        centerlineInvalidRerouteReplacedSegmentCount:
+            invalidChainRerouting.replacedSegmentCount,
+        centerlineInvalidRerouteInsertedSegmentCount:
+            invalidChainRerouting.insertedSegmentCount,
+        centerlineInvalidRerouteBlockedSegmentCount:
+            invalidChainRerouting.blockedSegmentCount,
+        centerlineInvalidRerouteChoices: invalidChainRerouting.choices,
+        centerlineInvalidRerouteBlockedComponents:
+            invalidChainRerouting.blockedComponents,
         centerlineCenteringMeasuredNodeCount: centering.measuredNodeCount,
         centerlineCenteringFailedNodeCount: centering.failedNodeCount,
         centerlineCenteringAverageOffset: centering.averageOffset,

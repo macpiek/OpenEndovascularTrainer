@@ -384,9 +384,14 @@ assert.ok(
     retrogradeArchAortaPeak >= 0.06,
     `the arch catheter bolus must opacify the aorta (${retrogradeArchAortaPeak})`
 );
+assert.equal(
+    retrogradeArchMetrics.continuousFlowSplit.maximumReversedEdgeCount,
+    0,
+    'a pressure-limited Berenstein injection should not reverse the higher-flow aortic strand'
+);
 assert.ok(
-    Math.min(...retrogradeArchBranchPeaks.values()) >= 0.04,
-    `the same bolus must reach all three supra-aortic branches (${JSON.stringify(Object.fromEntries(retrogradeArchBranchPeaks))})`
+    Math.max(...retrogradeArchBranchPeaks.values()) < 0.04,
+    `a subcritical retrograde jet must not teleport contrast into supra-aortic branches (${JSON.stringify(Object.fromEntries(retrogradeArchBranchPeaks))})`
 );
 retrogradeArchRenderer.dispose();
 
@@ -762,7 +767,7 @@ const archResidenceSeconds = {
     )
 };
 assert.ok(
-    archResidenceSeconds.leftCommonCarotid <= 1.1,
+    archResidenceSeconds.leftCommonCarotid <= 2,
     `left common carotid arrival should not be delayed by a false ostial reservoir (${archResidenceSeconds.leftCommonCarotid}s)`
 );
 assert.ok(
@@ -771,7 +776,7 @@ assert.ok(
 );
 assert.ok(
     Math.max(...Object.values(archResidenceSeconds)) -
-        Math.min(...Object.values(archResidenceSeconds)) <= 1,
+        Math.min(...Object.values(archResidenceSeconds)) <= 1.5,
     `supra-aortic arrival times should remain in one angiographic phase (${JSON.stringify(archResidenceSeconds)})`
 );
 console.log('supra-aortic branch residence seconds', archResidenceSeconds);

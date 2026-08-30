@@ -3,6 +3,8 @@ import * as THREE from 'three';
 const ATTACHMENT_MINIMUM_RADIUS_MM = 2.5;
 const ATTACHMENT_DISTAL_BAND_MM = 8;
 
+export const LOWER_LIMB_TOE_DISTAL_Z_MM = 126;
+
 function endpoint(segment, atStart) {
     return {
         nodeId: atStart ? segment.nodeStartId : segment.nodeEndId,
@@ -80,7 +82,14 @@ function skeletalGuide(root) {
             posteriorFootX: -55,
             lateralPlantarX: -95,
             plantarCenterX: -72,
-            medialPlantarX: -43
+            medialPlantarX: -43,
+            toeCenters: [
+                [-75, -1390, 126],
+                [-79, -1391, 115],
+                [-83, -1392, 107],
+                [-87, -1392, 99],
+                [-91, -1392, 91]
+            ]
         };
     }
     return {
@@ -98,12 +107,38 @@ function skeletalGuide(root) {
         posteriorFootX: 78,
         lateralPlantarX: 124,
         plantarCenterX: 99,
-        medialPlantarX: 70
+        medialPlantarX: 70,
+        toeCenters: [
+            [105, -1387, 126],
+            [109, -1388, 115],
+            [113, -1389, 107],
+            [117, -1390, 99],
+            [121, -1390, 91]
+        ]
     };
 }
 
 function guidedPoint(x, y, z, radius) {
     return point(x, y, z, radius);
+}
+
+function clonedPoint(source, radius = source.radius) {
+    return point(
+        source.position.x,
+        source.position.y,
+        source.position.z,
+        radius
+    );
+}
+
+function arteryPath(
+    name,
+    anatomicalSide,
+    vesselNames,
+    points,
+    terminal = false
+) {
+    return { name, anatomicalSide, vesselNames, points, terminal };
 }
 
 /**
@@ -263,7 +298,44 @@ export function createLowerLimbArteryPaths(attachmentRoots) {
             guide.medialPlantarX,
             -1380,
             31,
-            0.68
+            0.82
+        );
+        const plantarMetatarsalOrigins = [0.12, 0.36, 0.62, 0.84]
+            .map((progress, index) => guidedPoint(
+                THREE.MathUtils.lerp(
+                    plantarArchMedial.position.x,
+                    plantarArchLateral.position.x,
+                    progress
+                ),
+                THREE.MathUtils.lerp(
+                    plantarArchMedial.position.y,
+                    plantarArchLateral.position.y,
+                    progress
+                ),
+                THREE.MathUtils.lerp(
+                    plantarArchMedial.position.z,
+                    plantarArchLateral.position.z,
+                    progress
+                ),
+                0.9 - index * 0.03
+            ));
+        const deepFemoralOrigin = guidedPoint(
+            guide.upperFemoralX + root.sideSign * 8,
+            -538,
+            -13,
+            2.4
+        );
+        const deepFemoralMid = guidedPoint(
+            guide.upperFemoralX + root.sideSign * 20,
+            -600,
+            -27,
+            1.9
+        );
+        const deepFemoralDistal = guidedPoint(
+            guide.upperFemoralX + root.sideSign * 32,
+            -675,
+            -34,
+            1.25
         );
 
         paths.push({
@@ -293,26 +365,99 @@ export function createLowerLimbArteryPaths(attachmentRoots) {
             points: [
                 point(entry.x, entry.y, entry.z, 3.15),
                 commonFemoral,
-                guidedPoint(
-                    guide.upperFemoralX + root.sideSign * 8,
-                    -538,
-                    -13,
-                    2.4
-                ),
-                guidedPoint(
-                    guide.upperFemoralX + root.sideSign * 20,
-                    -600,
-                    -27,
-                    1.9
-                ),
-                guidedPoint(
-                    guide.upperFemoralX + root.sideSign * 32,
-                    -675,
-                    -34,
-                    1.25
-                )
+                deepFemoralOrigin,
+                deepFemoralMid,
+                deepFemoralDistal
             ]
         });
+
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-lateral-circumflex-femoral`,
+            root.anatomicalSide,
+            ['lateral-circumflex-femoral'],
+            [
+                clonedPoint(deepFemoralOrigin, 1.02),
+                guidedPoint(
+                    guide.upperFemoralX + root.sideSign * 30,
+                    -548,
+                    -8,
+                    0.78
+                ),
+                guidedPoint(
+                    guide.upperFemoralX + root.sideSign * 44,
+                    -520,
+                    5,
+                    0.58
+                )
+            ],
+            true
+        ));
+
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-medial-circumflex-femoral`,
+            root.anatomicalSide,
+            ['medial-circumflex-femoral'],
+            [
+                clonedPoint(deepFemoralOrigin, 0.96),
+                guidedPoint(
+                    guide.upperFemoralX - root.sideSign * 17,
+                    -552,
+                    -31,
+                    0.76
+                ),
+                guidedPoint(
+                    guide.upperFemoralX - root.sideSign * 27,
+                    -575,
+                    -48,
+                    0.58
+                )
+            ],
+            true
+        ));
+
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-perforating-femoral-1`,
+            root.anatomicalSide,
+            ['perforating-femoral-1'],
+            [
+                clonedPoint(deepFemoralMid, 0.78),
+                guidedPoint(
+                    deepFemoralMid.position.x - root.sideSign * 9,
+                    -620,
+                    -56,
+                    0.66
+                ),
+                guidedPoint(
+                    deepFemoralMid.position.x - root.sideSign * 14,
+                    -640,
+                    -75,
+                    0.58
+                )
+            ],
+            true
+        ));
+
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-perforating-femoral-2`,
+            root.anatomicalSide,
+            ['perforating-femoral-2'],
+            [
+                clonedPoint(deepFemoralDistal, 0.72),
+                guidedPoint(
+                    deepFemoralDistal.position.x - root.sideSign * 8,
+                    -690,
+                    -58,
+                    0.64
+                ),
+                guidedPoint(
+                    deepFemoralDistal.position.x - root.sideSign * 12,
+                    -712,
+                    -75,
+                    0.58
+                )
+            ],
+            true
+        ));
 
         paths.push({
             name: `${root.anatomicalSide}-anterior-tibial`,
@@ -352,6 +497,82 @@ export function createLowerLimbArteryPaths(attachmentRoots) {
                 tibioperonealSplit
             ]
         });
+
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-descending-genicular`,
+            root.anatomicalSide,
+            ['descending-genicular'],
+            [
+                clonedPoint(adductor, 0.82),
+                guidedPoint(
+                    guide.distalFemoralX - root.sideSign * 13,
+                    -770,
+                    -29,
+                    0.68
+                ),
+                guidedPoint(
+                    guide.kneeX - root.sideSign * 16,
+                    -842,
+                    -38,
+                    0.58
+                )
+            ],
+            true
+        ));
+
+        for (const [level, direction, origin, y, z] of [
+            ['superior', 'medial', popliteal, -860, -49],
+            ['superior', 'lateral', popliteal, -862, -66],
+            ['inferior', 'medial', poplitealDivision, -918, -46],
+            ['inferior', 'lateral', poplitealDivision, -920, -64]
+        ]) {
+            const lateralDirection = direction === 'lateral' ? 1 : -1;
+            paths.push(arteryPath(
+                `${root.anatomicalSide}-${level}-${direction}-genicular`,
+                root.anatomicalSide,
+                [`${level}-${direction}-genicular`],
+                [
+                    clonedPoint(origin, level === 'superior' ? 0.76 : 0.72),
+                    guidedPoint(
+                        guide.kneeX +
+                            root.sideSign * lateralDirection * 14,
+                        y,
+                        z,
+                        0.64
+                    ),
+                    guidedPoint(
+                        guide.kneeX +
+                            root.sideSign * lateralDirection * 23,
+                        y + (level === 'superior' ? -9 : 10),
+                        z + 5,
+                        0.58
+                    )
+                ],
+                true
+            ));
+        }
+
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-anterior-tibial-recurrent`,
+            root.anatomicalSide,
+            ['anterior-tibial-recurrent'],
+            [
+                clonedPoint(anteriorPassage, 0.76),
+                guidedPoint(
+                    guide.interosseousX + root.sideSign * 8,
+                    -919,
+                    -12,
+                    0.66
+                ),
+                guidedPoint(
+                    guide.kneeX + root.sideSign * 13,
+                    -889,
+                    -23,
+                    0.58
+                )
+            ],
+            true
+        ));
 
         paths.push({
             name: `${root.anatomicalSide}-posterior-tibial`,
@@ -416,7 +637,11 @@ export function createLowerLimbArteryPaths(attachmentRoots) {
                 dorsalisForefoot,
                 deepPlantar,
                 plantarArchMedial,
+                plantarMetatarsalOrigins[0],
+                plantarMetatarsalOrigins[1],
                 plantarArchCenter,
+                plantarMetatarsalOrigins[2],
+                plantarMetatarsalOrigins[3],
                 plantarArchLateral
             ]
         });
@@ -441,6 +666,142 @@ export function createLowerLimbArteryPaths(attachmentRoots) {
                 medialPlantarForefoot
             ]
         });
+
+        const toeCenters = guide.toeCenters.map(([x, y, z]) =>
+            new THREE.Vector3(x, y, z)
+        );
+        plantarMetatarsalOrigins.forEach((origin, index) => {
+            const firstToe = toeCenters[index];
+            const secondToe = toeCenters[index + 1];
+            const split = guidedPoint(
+                (firstToe.x + secondToe.x) * 0.5,
+                (firstToe.y + secondToe.y) * 0.5,
+                Math.min(firstToe.z, secondToe.z) - 20,
+                0.7
+            );
+            paths.push(arteryPath(
+                `${root.anatomicalSide}-plantar-metatarsal-${index + 1}`,
+                root.anatomicalSide,
+                [`plantar-metatarsal-${index + 1}`],
+                [
+                    clonedPoint(origin, 0.84 - index * 0.025),
+                    guidedPoint(
+                        THREE.MathUtils.lerp(
+                            origin.position.x,
+                            split.position.x,
+                            0.52
+                        ),
+                        THREE.MathUtils.lerp(
+                            origin.position.y,
+                            split.position.y,
+                            0.52
+                        ),
+                        THREE.MathUtils.lerp(
+                            origin.position.z,
+                            split.position.z,
+                            0.52
+                        ),
+                        0.76 - index * 0.02
+                    ),
+                    split
+                ]
+            ));
+
+            for (const [toeIndex, surface, offsetDirection] of [
+                [index, 'lateral', 1],
+                [index + 1, 'medial', -1]
+            ]) {
+                const toe = toeCenters[toeIndex];
+                const endpoint = guidedPoint(
+                    toe.x + root.sideSign * offsetDirection * 2.5,
+                    toe.y,
+                    toe.z,
+                    0.56
+                );
+                paths.push(arteryPath(
+                    `${root.anatomicalSide}-proper-plantar-digital-${toeIndex + 1}-${surface}`,
+                    root.anatomicalSide,
+                    [`proper-plantar-digital-${toeIndex + 1}-${surface}`],
+                    [
+                        clonedPoint(split, 0.68),
+                        guidedPoint(
+                            THREE.MathUtils.lerp(
+                                split.position.x,
+                                endpoint.position.x,
+                                0.55
+                            ),
+                            THREE.MathUtils.lerp(
+                                split.position.y,
+                                endpoint.position.y,
+                                0.55
+                            ),
+                            THREE.MathUtils.lerp(
+                                split.position.z,
+                                endpoint.position.z,
+                                0.55
+                            ),
+                            0.62
+                        ),
+                        endpoint
+                    ],
+                    true
+                ));
+            }
+        });
+
+        const halluxMedialEndpoint = guidedPoint(
+            toeCenters[0].x - root.sideSign * 2.5,
+            toeCenters[0].y,
+            toeCenters[0].z,
+            0.56
+        );
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-proper-plantar-digital-1-medial`,
+            root.anatomicalSide,
+            ['proper-plantar-digital-1-medial'],
+            [
+                clonedPoint(medialPlantarForefoot, 0.78),
+                guidedPoint(
+                    THREE.MathUtils.lerp(
+                        medialPlantarForefoot.position.x,
+                        halluxMedialEndpoint.position.x,
+                        0.55
+                    ),
+                    -1385,
+                    79,
+                    0.64
+                ),
+                halluxMedialEndpoint
+            ],
+            true
+        ));
+
+        const fifthToeLateralEndpoint = guidedPoint(
+            toeCenters[4].x + root.sideSign * 2.5,
+            toeCenters[4].y,
+            toeCenters[4].z,
+            0.56
+        );
+        paths.push(arteryPath(
+            `${root.anatomicalSide}-proper-plantar-digital-5-lateral`,
+            root.anatomicalSide,
+            ['proper-plantar-digital-5-lateral'],
+            [
+                clonedPoint(plantarArchLateral, 0.76),
+                guidedPoint(
+                    THREE.MathUtils.lerp(
+                        plantarArchLateral.position.x,
+                        fifthToeLateralEndpoint.position.x,
+                        0.55
+                    ),
+                    -1388,
+                    67,
+                    0.64
+                ),
+                fifthToeLateralEndpoint
+            ],
+            true
+        ));
     }
     return paths;
 }
