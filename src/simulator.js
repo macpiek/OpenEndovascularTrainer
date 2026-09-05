@@ -107,6 +107,13 @@ const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION = 0.005;
 const requestedPhysicsMode = new URLSearchParams(window.location.search).get('physics');
 const PHYSICS_MODE = requestedPhysicsMode === 'legacy' ? 'legacy' : 'xpbd-contact-v1';
+// The direct material solve is opt-in until the complete coupled browser
+// workload meets both the length and real-time performance acceptance gates.
+const GUIDEWIRE_CONSTITUTIVE_SOLVER = new URLSearchParams(window.location.search)
+    .get('wireSolver') === 'direct' ? 'direct' : 'local';
+if (GUIDEWIRE_CONSTITUTIVE_SOLVER === 'direct') {
+    document.getElementById('guidewireRelaxation').value = '1';
+}
 const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
 const loadingScreen = document.getElementById('loadingScreen');
@@ -497,7 +504,7 @@ let catheterTipStiffnessScale = 5;
 let catheterRelaxationRate = 30;
 let guidewireShaftStiffnessScale = 10;
 let guidewireTipStiffnessScale = 4.55;
-let guidewireRelaxationRate = 30;
+let guidewireRelaxationRate = GUIDEWIRE_CONSTITUTIVE_SOLVER === 'direct' ? 1 : 30;
 const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
 const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
 const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
@@ -1754,6 +1761,8 @@ function applyActiveGuidewireElasticProfile() {
 }
 
 function applyActiveGuidewireKirchhoffProfile() {
+    xpbdWireBody.constitutiveSolver = activeGuidewireType === GUIDEWIRE_TYPE_GLIDEWIRE
+        ? GUIDEWIRE_CONSTITUTIVE_SOLVER : 'local';
     applyKirchhoffMaterialProfile(xpbdWireBody, activeGuidewireType, {
         activeStart: 0,
         activeEnd: xpbdWireBody.count - 1,

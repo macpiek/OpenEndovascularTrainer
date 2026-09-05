@@ -43,7 +43,8 @@ function maximumBendDegrees(body) {
     return maximum;
 }
 
-test('a catheter advances over a held guidewire without dragging or kinking it', () => {
+for (const constitutiveSolver of ['local', 'direct']) {
+test(`a catheter advances over a held guidewire without dragging or kinking it (${constitutiveSolver})`, () => {
     // Match the first full browser-benchmark feed cycle.  The previous
     // 180-step fixture stopped after only 78 mm of catheter travel and could
     // not see the late portal/topology instability which starts after several
@@ -127,7 +128,8 @@ test('a catheter advances over a held guidewire without dragging or kinking it',
     // sweeps must be interleaved with lumen contact; running them body-local
     // is precisely the unstable configuration covered by this regression.
     const relaxationPasses = guidewireRelaxationPasses(30);
-    wireBody.relaxationPasses = relaxationPasses;
+    wireBody.constitutiveSolver = constitutiveSolver;
+    wireBody.relaxationPasses = constitutiveSolver === 'direct' ? 0 : relaxationPasses;
     catheterBody.relaxationPasses = relaxationPasses;
     if (process.env.OET_UNLIMITED_CATHETER_SPEED === '1') {
         catheterBody.maxSpeed = Infinity;
@@ -546,3 +548,4 @@ test('a catheter advances over a held guidewire without dragging or kinking it',
         catheter.dispose();
     }
 });
+}

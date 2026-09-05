@@ -21,6 +21,7 @@ import {
     transportBishopFrame
 } from './discreteKirchhoffRod.js';
 import { KirchhoffContactManifold } from './kirchhoffContactManifold.js';
+import { solveKirchhoffDirect } from './kirchhoffDirectSolver.js';
 
 const EPSILON = 1e-8;
 const TRIG_SERIES_ANGLE_SQUARED = 0.0625;
@@ -269,6 +270,8 @@ export class EndovascularRodBody {
         this.rodModel = profile.rodModel === 'kirchhoff'
             ? 'kirchhoff'
             : 'legacy';
+        this.constitutiveSolver = profile.constitutiveSolver === 'direct'
+            ? 'direct' : 'local';
         this.count = count;
         this.segmentCount = count - 1;
         this.segmentLength = segmentLength;
@@ -2416,6 +2419,18 @@ export class EndovascularPhysicsWorld {
                 finalStructuralClosurePasses,
                 this.coupledClosureMaxPasses
             );
+            // A converged stiff wire can transfer a larger reaction into the
+            // catheter portal than a locally under-solved wire. Allow extra
+            // contact/length iterations only when such a coupled system has
+            // not yet met the existing residual tolerances. The early-out
+            // below still ends a converged solve immediately.
+            for (const body of this.bodies) {
+                if (body.constitutiveSolver !== 'direct') continue;
+                finalStructuralClosurePasses = Math.max(
+                    finalStructuralClosurePasses, this.coupledClosureMaxPasses * 2
+                );
+                break;
+            }
         }
         this.lastCoupledClosurePasses = 0;
         this.lastCoupledClosureConverged = false;
@@ -3754,7 +3769,12 @@ export class EndovascularPhysicsWorld {
     }
 
     #solveKirchhoffBendTwist(body) {
-        if (body.sleeping || body.segmentCount < 2) return;
+        if (body.sleeping) return;
+        if (body.constitutiveSolver === 'direct') {
+            solveKirchhoffDirect(body, this.fixedDt);
+            return;
+        }
+        if (body.segmentCount < 2) return;
         const start = Math.max(1, body.activeStart + 1);
         const end = Math.min(body.segmentCount, body.activeEnd);
         // One alternating Gauss-Seidel sweep per world iteration transmits the
@@ -3774,6 +3794,9 @@ export class EndovascularPhysicsWorld {
 
     #solveLengths(body, reverse = false) {
         if (body.rodModel === 'kirchhoff') {
+            // Direct constitutive updates solve positions and frames together
+            // in #solveBending. Closure still uses the adaptation preconditioner.
+            if (body.constitutiveSolver === 'direct') return;
             this.#solveKirchhoffAdaptation(body, reverse);
             return;
         }
@@ -10779,6 +10802,7 @@ export class EndovascularPhysicsWorld {
         return {
             id: body.id,
             sleeping: body.sleeping,
+            constitutiveSolver: body.constitutiveSolver,
             finite,
             maxLengthError,
             maxBendAngleDegrees: maxBendAngle * 180 / Math.PI,

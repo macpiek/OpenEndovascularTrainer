@@ -128,6 +128,12 @@ out/                        Generated preview frame and video
 
 ## Collision And Physics
 
+The guidewire mechanics analysis and experimental direct Kirchhoff solver are
+documented in [`reports/guidewire-physics-rebuild.md`](reports/guidewire-physics-rebuild.md).
+Use `?wireSolver=direct` to evaluate that solver and
+`npm run test:guidewire:mechanics` for analytical bending, unloading and twist
+checks. The default solver remains unchanged pending full coupled acceptance.
+
 The default mode is `xpbd-contact-v1`; append `?physics=legacy` to compare the previous path. The shared world runs at 120 Hz with at most two substeps per rendered frame. It solves the analytic sheath lumen, rod length and bending/rest shape, guidewire-in-catheter containment, external tool contact, vessel wall contact, and friction in a fixed order.
 
 Regenerate the collision asset whenever `Aorta_plain.stl`, its transform, or the offline centerline/SDF pipeline changes:
