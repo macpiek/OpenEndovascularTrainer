@@ -14,12 +14,12 @@ function grownCapacity(required, current = 0) {
     return capacity;
 }
 
-/** Experimental exact material elimination with a growing contact working
+/** Exact material elimination with a growing contact working
  * set. Equality responses are computed only for contacts used by the solve.
  * Every excluded inequality is checked in the ORIGINAL full matrix after
  * reconstruction and any violated row is added before success is possible.
  * There is no contact-distance cutoff, removed physical DOF or reduced
- * stiffness. This entry point is not the application's default solver.
+ * stiffness. Contact responses share factor reads in batches of four.
  */
 export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, band, groups = [], options = {}) {
     // Explicit experimental route: keep every original material/contact row
@@ -95,13 +95,14 @@ export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, 
         workspace.matrixCapacity = grownCapacity(matrix.length, workspace.matrixCapacity);
         workspace.factorCapacity = grownCapacity(equalityEntries, workspace.factorCapacity);
         const kernel = workspace.kernel = createKirchhoffLinearKernel(8 * (workspace.matrixCapacity + workspace.factorCapacity) +
-            32 * (workspace.countCapacity + workspace.equalityCapacity) + 128);
+            32 * workspace.countCapacity + 64 * workspace.equalityCapacity + 128);
         workspace.fullMatrix = kernel.alloc(Float64Array, workspace.matrixCapacity);
         for (const key of ['fullRhs', 'fullX', 'fullResidual']) workspace[key] = kernel.alloc(Float64Array, workspace.countCapacity);
         workspace.fullStarts = kernel.alloc(Int32Array, workspace.countCapacity);
         workspace.factor = kernel.alloc(Float64Array, workspace.factorCapacity);
         workspace.starts = kernel.alloc(Int32Array, workspace.equalityCapacity);
         for (const key of ['scales', 'free', 'solveRhs']) workspace[key] = kernel.alloc(Float64Array, workspace.equalityCapacity);
+        workspace.batchRhs = kernel.alloc(Float64Array, workspace.equalityCapacity * 4);
     }
     const { kernel, factor, starts, fullMatrix, fullRhs, fullX, fullResidual, fullStarts } = workspace;
     const scales = workspace.scales.subarray(0, ne), free = workspace.free.subarray(0, ne), solveRhs = workspace.solveRhs.subarray(0, ne);
@@ -130,6 +131,7 @@ export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, 
     const responses = workspace.responses ??= new Map(), couplings = workspace.couplings ??= new Map();
     const responsePool = workspace.responsePool ??= [], couplingPool = workspace.couplingPool ??= [];
     responses.clear(); couplings.clear();
+    let responseKernelCalls = 0, responseBatches = 0;
     function response(row) {
         if (responses.has(row)) return responses.get(row);
         const slot = responses.size, coupling = couplingPool[slot] ??= [];
@@ -138,11 +140,49 @@ export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, 
             const e = equalityMap[j], a = valueAt(matrix, band, row, j);
             if (e >= 0 && a !== 0) { coupling.push(e, a); solveRhs[e] = a * scales[e]; }
         }
-        if (ne) kernel.solveSkyline(factor.byteOffset, solveRhs.byteOffset, ne, equalityBand, starts.byteOffset);
+        if (ne) { kernel.solveSkyline(factor.byteOffset, solveRhs.byteOffset, ne, equalityBand, starts.byteOffset); responseKernelCalls++; }
         if (!responsePool[slot] || responsePool[slot].length < ne) responsePool[slot] = new Float64Array(workspace.equalityCapacity);
         const result = responsePool[slot];
         for (let i = 0; i < ne; i++) result[i] = solveRhs[i] * scales[i];
         couplings.set(row, coupling); responses.set(row, result); return result;
+    }
+    function prepareResponses(rows) {
+        if (options.batchEqualityResponses === false || !ne) {
+            for (const row of rows) response(row);
+            return;
+        }
+        const pending = workspace.pendingResponses ??= [];
+        pending.length = 0;
+        for (const row of rows) if (!responses.has(row)) pending.push(row);
+        const batch = workspace.batchRhs;
+        let index = 0;
+        for (; index + 4 <= pending.length; index += 4) {
+            batch.fill(0, 0, ne * 4);
+            const firstSlot = responses.size;
+            for (let axis = 0; axis < 4; axis++) {
+                const row = pending[index + axis], slot = firstSlot + axis;
+                const coupling = couplingPool[slot] ??= [];
+                coupling.length = 0;
+                for (let j = Math.max(0, row - band + 1); j < Math.min(count, row + band); j++) {
+                    const e = equalityMap[j], a = valueAt(matrix, band, row, j);
+                    if (e >= 0 && a !== 0) {
+                        coupling.push(e, a); batch[e * 4 + axis] = a * scales[e];
+                    }
+                }
+                couplings.set(row, coupling);
+            }
+            kernel.solveSkyline4(factor.byteOffset, batch.byteOffset, ne, equalityBand, starts.byteOffset);
+            responseKernelCalls++; responseBatches++;
+            for (let axis = 0; axis < 4; axis++) {
+                const slot = firstSlot + axis;
+                if (!responsePool[slot] || responsePool[slot].length < ne)
+                    responsePool[slot] = new Float64Array(workspace.equalityCapacity);
+                const result = responsePool[slot];
+                for (let i = 0; i < ne; i++) result[i] = batch[i * 4 + axis] * scales[i];
+                responses.set(pending[index + axis], result);
+            }
+        }
+        for (; index < pending.length; index++) response(pending[index]);
     }
     if (!workspace.equalitySolution || workspace.equalitySolution.length < ne) workspace.equalitySolution = new Float64Array(workspace.equalityCapacity);
     const equalitySolution = workspace.equalitySolution;
@@ -185,7 +225,8 @@ export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, 
         rows = [...selected].sort((a, b) => a - b);
         const nr = rows.length, map = workspace.localMap;
         map.fill(-1, 0, count);
-        rows.forEach((row, i) => { map[row] = i; response(row); });
+        rows.forEach((row, i) => { map[row] = i; });
+        prepareResponses(rows);
         if (!workspace.schurMatrix || workspace.schurMatrix.length < nr * nr) workspace.schurMatrix = new Float64Array(grownCapacity(nr * nr, workspace.schurMatrix?.length));
         if (!workspace.localRhs || workspace.localRhs.length < nr) {
             const capacity = grownCapacity(nr, workspace.localRhs?.length);
@@ -263,5 +304,5 @@ export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, 
         maximumResidual: kkt.maximumResidual, frictionResidual: kkt.groupResidual, factorizations: factors, iterations,
         condensedCosts:{setupMs,schurMs,contactSolveMs,reconstructionMs,seedMs},
         originalCount: count, equalityCount: ne, equalityBand, retainedCount: rows.length,
-        responseColumns: responses.size, schurEvaluations, schurReuses, expansions: expansions + 1 } };
+        responseColumns: responses.size, responseKernelCalls, responseBatches, schurEvaluations, schurReuses, expansions: expansions + 1 } };
 }
