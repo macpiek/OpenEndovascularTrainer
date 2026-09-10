@@ -56,7 +56,8 @@ function rowFor(state, kind, side, node, alpha, lambda, strain, owner, component
 function gradient(row, side, node, axis, value) {
     if (!value) return;
     const index = row.gradients.length;
-    const item = row.gradientPool[index] ??= {};
+    // Fixed layout lets trial snapshots copy values without rediscovering keys.
+    const item = row.gradientPool[index] ??= Object.seal({ side: 0, dof: 0, value: 0 });
     item.side = side; item.dof = node * 6 + axis; item.value = value;
     row.gradients.push(item);
 }

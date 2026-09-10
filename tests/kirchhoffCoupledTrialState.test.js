@@ -327,6 +327,100 @@ test('array holes, additional hidden keys and changed identities are captured be
     assert.equal(Object.getOwnPropertyDescriptor(rows, 'hidden').enumerable, false);
 });
 
+test('dense trial arrays restore length, references and hidden trial additions on every retry', () => {
+    const f = fixture(), snapshot = {}, child = { value: 7 };
+    const rows = f.c.arrayProbe = [child, 2, -0, NaN];
+    child.owner = rows;
+    const options = { reusePropertyLayout: true };
+    capture(f.c, options, snapshot);
+    rows.push(child, 9);
+    capture(f.c, options, snapshot);
+    for (const length of [1, 12, 0]) {
+        rows.length = length;
+        rows[0] = 42; child.value = 99;
+        Object.defineProperty(rows, 'hiddenTrialField', { value: 10, configurable: true });
+        restore(snapshot);
+        assert.deepEqual(rows, [child, 2, -0, NaN, child, 9]);
+        assert.equal(child.value, 7); assert.equal(child.owner, rows);
+        assert.equal(Object.hasOwn(rows, 'hiddenTrialField'), false);
+    }
+});
+
+test('array rollback switches safely between dense buffers, sparse arrays and accessor metadata', () => {
+    const f = fixture(), snapshot = {}, rows = f.c.arrayProbe = [1, 2, 3];
+    const options = { reusePropertyLayout: true };
+    capture(f.c, options, snapshot);
+    delete rows[1]; rows.length = 5;
+    Object.defineProperty(rows, 'hidden', { value: 8, writable: true, configurable: true });
+    capture(f.c, options, snapshot);
+    rows.fill(9); rows.hidden = 10;
+    restore(snapshot);
+    assert.equal(1 in rows, false); assert.equal(3 in rows, false);
+    assert.equal(rows.hidden, 8);
+    delete rows.hidden; rows.length = 3; rows[1] = 4;
+    capture(f.c, options, snapshot);
+    rows.splice(0, 3); restore(snapshot);
+    assert.deepEqual(rows, [1, 4, 3]);
+    const getter = () => { throw Error('Array accessor must not be invoked'); };
+    Object.defineProperty(rows, '3', { get: getter, configurable: true, enumerable: true });
+    capture(f.c, options, snapshot);
+    delete rows[3]; rows[0] = 99;
+    restore(snapshot);
+    assert.equal(Object.getOwnPropertyDescriptor(rows, '3').get, getter);
+    assert.equal(rows[0], 1); assert.equal(rows.length, 4);
+});
+
+test('dense array retry matches the complete snapshot including graph ownership and property descriptors', () => {
+    const f = fixture(), optimized = {}, child = { value: 6 };
+    f.c.arrayProbe = [child, f.inner.x, child, f.contact];
+    child.owner = f.c.arrayProbe;
+    capture(f.c, { reusePropertyLayout: true }, optimized);
+    capture(f.c, { reusePropertyLayout: true }, optimized);
+    const reference = capture(f.c);
+    f.c.arrayProbe.reverse(); f.c.arrayProbe.push({ value: 10 });
+    delete f.c.arrayProbe[1]; child.value = 9; f.inner.x.fill(20);
+    f.c.manifold.clear();
+    restore(optimized);
+    for (const record of reference.records) {
+        if (record.kind === 'bytes') assert.deepEqual(record.view, record.copy);
+        else if (record.kind === 'object') {
+            const actualKeys = Object.getOwnPropertyNames(record.object)
+                .filter(key => !record.filter || record.filter(key, record.object[key]));
+            assert.deepEqual(actualKeys.slice().sort(), record.keys.slice().sort());
+            for (const key of record.keys)
+                assert.deepEqual(Object.getOwnPropertyDescriptor(record.object, key), record.descriptors[key]);
+        } else if (record.kind === 'map') assert.deepEqual([...record.object], record.entries);
+        else if (record.kind === 'set') assert.deepEqual([...record.object], record.entries);
+    }
+});
+
+test('packed contact values fall back for new accessors and hidden properties without retaining old children', () => {
+    const f = fixture(), snapshot = {}, oldChild = { value: 2 };
+    const state = f.c.metadata = { value: 1, child: oldChild };
+    const options = { reusePropertyLayout: true };
+    capture(f.c, options, snapshot);
+    const child = state.child = { value: 3 };
+    capture(f.c, options, snapshot);
+    const getter = () => { throw Error('Contact accessor must not be invoked'); };
+    Object.defineProperty(state, 'accessor', { get: getter, configurable: true });
+    Object.defineProperty(state, 'hidden', { value: 7, writable: true, configurable: true });
+    capture(f.c, options, snapshot);
+    state.hidden = 9; state.value = 10; child.value = 11; oldChild.value = 12;
+    delete state.accessor;
+    restore(snapshot);
+    assert.equal(state.value, 1); assert.equal(state.hidden, 7);
+    assert.equal(state.child, child); assert.equal(child.value, 3); assert.equal(oldChild.value, 12);
+    assert.equal(Object.getOwnPropertyDescriptor(state, 'accessor').get, getter);
+    assert.equal(Object.getOwnPropertyDescriptor(state, 'hidden').enumerable, false);
+    delete state.accessor; delete state.hidden;
+    for (const reusePropertyLayout of [true, false, true]) {
+        capture(f.c, { reusePropertyLayout }, snapshot);
+        state.child = oldChild; state.value = 15;
+        restore(snapshot);
+        assert.equal(state.child, child); assert.equal(state.value, 1);
+    }
+});
+
 test('a rejected real joint apply and contact refresh reproduce the original mechanical solve', async () => {
     const { solveKirchhoffCoupledSystem: solve, applyKirchhoffCoupledCorrection: apply } =
         await load('src/physics/kirchhoffCoupledSystem.js');

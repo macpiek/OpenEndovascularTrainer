@@ -1,4 +1,5 @@
 import { TOOL_MAX_BEND_ANGLE_DEGREES } from './kirchhoffToolRuntime.js';
+import { lineSearchLevel, createLineSearchStats, recordLineSearchTrial } from './kirchhoffLineSearch.js';
 import { beginKirchhoffWallWitnessFrictionModes, evaluateKirchhoffWallWitnessFrictionCandidate, prepareKirchhoffWallWitnessFrictionRetry, commitKirchhoffWallWitnessFrictionModes } from './kirchhoffWallWitnessFrictionMode.js';
 import { buildKirchhoffWallWitnessFriction, appendKirchhoffWallWitnessFriction, commitKirchhoffWallWitnessFriction, measureKirchhoffWallWitnessFriction } from './kirchhoffWallWitnessFriction.js';
 import { captureKirchhoffWallDiscoveries, retainKirchhoffWallDiscoveries, beginKirchhoffWallWitnessStep, collectKirchhoffWallWitnessRows, commitKirchhoffWallWitnessMultipliers, measureKirchhoffWallWitnessResidual } from './kirchhoffWallWitnessRows.js';
@@ -972,9 +973,11 @@ export class EndovascularPhysicsWorld {
         reuseDirectLinearization = true,
         coupledSystem = null,
         wholeStepSystem = null,
-        jointMotionMode = 'position-history'
+        jointMotionMode = 'position-history',
+        adaptiveLineSearch = true
     } = {}) {
         this.contactField = contactField;
+        this.adaptiveLineSearch = adaptiveLineSearch;
         this.reuseDirectLinearization = reuseDirectLinearization;
         this.coupledSystem = coupledSystem;
         validateWholeStepSystem(wholeStepSystem);
@@ -1544,10 +1547,12 @@ export class EndovascularPhysicsWorld {
         const totalStart = now();
         this.lastCoupledSolver = 'independent';
         this.lastJointNonlinearFailure = null;
+        this.lastJointLineSearch = createLineSearchStats();
         this.lastJointFactorizations = this.lastJointLinearIterations = 0;
         this.lastJointTrialEvaluations = this.lastJointBacktracks = 0;
         this.lastJointMaximumBand = this.lastJointMaximumRows = 0;
-        this.lastJointCosts = { assemblyMs:0, solveMs:0, snapshotMs:0, restoreMs:0, measureMs:0,
+        this.lastJointCosts = { assemblyMs:0, solveMs:0, applyMs:0, snapshotMs:0, restoreMs:0, measureMs:0,
+            solveCalls:0, applyCalls:0, measureCalls:0,
             snapshotObjects:0, snapshotBytes:0, snapshots:0, restores:0,
             condensedSetupMs:0,schurMs:0,contactSolveMs:0,reconstructionMs:0,seedMs:0 };
         this.contactCount = 0;
@@ -2715,6 +2720,9 @@ export class EndovascularPhysicsWorld {
         options.numericalShift = 1e-8;
         options.groups ??= [];
         let previousMerit = Infinity;
+        // Local to this closure: a new timestep/component/input does not
+        // inherit an old contact state's preferred scale.
+        let acceptedLevel = 0;
         let previousNonConeSettled = false, previousMaxCone = Infinity;
         constraint._jointTrialFailure = null;
         for (let pass = 0; pass < this.coupledClosureMaxPasses * 2; pass++) {
@@ -2811,6 +2819,7 @@ export class EndovascularPhysicsWorld {
                     { ...options, channels: channelRows.channels })
                 : this.coupledSystem.solve(constraint, this.fixedDt, options);
             this.lastJointCosts.solveMs += now() - solveStarted;
+            this.lastJointCosts.solveCalls++;
             const coreCosts=result.diagnostics.condensedCosts;
             if(coreCosts) {
                 this.lastJointCosts.condensedSetupMs+=coreCosts.setupMs;
@@ -2831,6 +2840,14 @@ export class EndovascularPhysicsWorld {
             constraint._contactBlockIterations += result.diagnostics.iterations ?? 0;
             this.lastCoupledContactPasses++;
             const proposedScale = result.scale;
+            // Near equilibrium, skip at most the full-scale candidate after
+            // a strongly damped success. Larger starts are revisited below.
+            // Far from equilibrium, retain full steps so shape recovery does
+            // not trade fewer trials for more global material solves.
+            const startLevel = this.adaptiveLineSearch && !constraint._splitMotion &&
+                pass > 1 && previousMerit <= 4
+                ? Math.min(1, Math.max(0, acceptedLevel - 2)) : 0;
+            if (startLevel) this.lastJointLineSearch.predictedStarts++;
             const snapshot = pass === 0 ? null : this.#captureJointTrial(constraint,
                 { world: this, reusePropertyLayout: true, frozenFrictionBatches: true }, constraint._jointTrialState ??= {});
             const knownWallWitnesses = constraint._usesWallWitnesses ? new Set(constraint._wallWitnessRows.witnesses) : null;
@@ -2841,7 +2858,10 @@ export class EndovascularPhysicsWorld {
                     this.#restoreJointTrial(snapshot);
                     this.lastJointBacktracks++;
                 }
-                result.scale = proposedScale * 2 ** -trialCount;
+                const level = lineSearchLevel(trialCount, startLevel);
+                if (startLevel && level < startLevel) this.lastJointLineSearch.largerFallbacks++;
+                result.scale = proposedScale * 2 ** -level;
+                const applyStarted = now();
                 if (channelRows) applyKirchhoffTwoChannelPhysicalMotion(constraint, result);
                 else applyKirchhoffSplitPhysicalIncrement(constraint, result);
                 this.coupledSystem.apply(constraint, result);
@@ -2862,6 +2882,8 @@ export class EndovascularPhysicsWorld {
                 if (wallBatch) commitKirchhoffSplitWallFriction(wallBatch, result.additionalIncrement, result.scale);
                 if (witnessFrictionBatch) commitKirchhoffWallWitnessFriction(witnessFrictionBatch, result.additionalIncrement, result.scale);
                 constraint._kirchhoffMappingLocked = true;
+                this.lastJointCosts.applyMs += now() - applyStarted;
+                this.lastJointCosts.applyCalls++;
                 state = this.#measureJointCoupledConstraints(constraint);
                 this.debugJointTrial?.(constraint, state, pass, trialCount, result.scale);
                 this.lastJointTrialEvaluations++;
@@ -2875,6 +2897,9 @@ export class EndovascularPhysicsWorld {
                     state.maximumConeViolation <= previousMaxCone * (1 - 1e-4 * result.scale);
                 const meritAccepted = state.merit <= previousMerit * (1 - 1e-4 * result.scale);
                 accepted = pass === 0 || state.settled || meritAccepted || coneFilterAccepted;
+                recordLineSearchTrial(this.lastJointLineSearch, level, accepted, state,
+                    constraint._jointBaseBoundaryWorst, constraint._jointBoundaryWorst);
+                if (accepted) acceptedLevel = level;
                 if (coneFilterAccepted && pass > 0 && !state.settled && !meritAccepted) {
                     (constraint._splitMotion.diagnostics.coneFilterAcceptances ??= []).push({
                         pass: pass + 1, scale: result.scale, previousMerit, merit: state.merit,
@@ -2986,6 +3011,7 @@ export class EndovascularPhysicsWorld {
 
     #measureJointCoupledConstraints(constraint, repairCone = true) {
         const started = now();
+        this.lastJointCosts.measureCalls++;
         try { return this.#measureJointCoupledConstraintsImpl(constraint, repairCone); }
         finally { this.lastJointCosts.measureMs += now() - started; }
     }

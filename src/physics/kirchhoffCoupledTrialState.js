@@ -16,6 +16,55 @@ function sameKeys(a, b) {
     return true;
 }
 
+// Ordinary dense arrays need one retained value buffer, not a descriptor for
+// every index. Own names still detect holes and added non-enumerable fields.
+// The runtime layout contract fixes existing property attributes; new indices
+// are validated before entering this path. Exotic arrays use the general path.
+function denseArrayLayout(object, keys, record) {
+    const length = object.length;
+    if (keys.length !== length + 1 || keys[length] !== 'length') return false;
+    const start = record.kind === 'array' ? Math.min(record.entries.length, length) : 0;
+    if (record.kind !== 'array' && !Object.getOwnPropertyDescriptor(object, 'length').writable) return false;
+    for (let i = start; i < length; i++) {
+        const d = Object.getOwnPropertyDescriptor(object, i);
+        if (!d || !('value' in d) || !d.writable || !d.enumerable || !d.configurable) return false;
+    }
+    return true;
+}
+
+function restoreDenseArray(record) {
+    const { object, entries } = record;
+    const keys = Object.getOwnPropertyNames(object);
+    if (keys.length !== object.length + 1 || keys[object.length] !== 'length') {
+        for (const key of keys) {
+            if (key === 'length') continue;
+            const index = Number(key);
+            if (!Number.isInteger(index) || index < 0 || index >= entries.length || String(index) !== key)
+                delete object[key];
+        }
+    }
+    object.length = entries.length;
+    for (let i = 0; i < entries.length; i++) object[i] = entries[i];
+}
+
+function captureValues(record, keys, graphChanged) {
+    const { object } = record, entries = record.entries ??= [];
+    for (let i = 0; i < keys.length; i++) {
+        const value = object[keys[i]];
+        if (entries[i] !== value && (isObject(entries[i]) || isObject(value))) graphChanged = true;
+        entries[i] = value;
+    }
+    entries.length = keys.length;
+    return graphChanged;
+}
+
+function removeTrialProperties(record) {
+    const { object } = record;
+    if (!record.fixedKeys) for (const key of Object.getOwnPropertyNames(object)) {
+        if ((!record.filter || record.filter(key, object[key])) && !(key in record.descriptors)) delete object[key];
+    }
+}
+
 /** Capture a joint nonlinear TRIAL, after assembly and before applying it.
  * Preserves existing object/array/contact identities and exact typed-array
  * bytes. Owned roots include contact records/pools/manifold/maps/curve caches,
@@ -112,7 +161,41 @@ export function captureKirchhoffCoupledTrialState(constraint, {
             // contract also fixes descriptor attributes; values/references
             // are still read on every capture. Arrays keep their length path.
             const keys = reusePropertyLayout && record.fixedKeys ? record.keys : Object.getOwnPropertyNames(object);
+            if (reusePropertyLayout && !filter && Array.isArray(object) && denseArrayLayout(object, keys, record)) {
+                if (record.kind !== 'array') {
+                    record.kind = 'array'; graphChanged = true;
+                    record.keys.length = record.dataKeys.length = record.dataDescriptors.length = 0;
+                    record.descriptors = Object.create(null);
+                }
+                const entries = record.entries ??= [];
+                if (entries.length !== object.length) graphChanged = true;
+                for (let i = 0; i < object.length; i++) {
+                    const value = object[i];
+                    if (entries[i] !== value && (isObject(entries[i]) || isObject(value))) graphChanged = true;
+                    entries[i] = value;
+                }
+                entries.length = object.length;
+                return;
+            }
+            if (record.kind === 'array') {
+                record.kind = 'object'; graphChanged = true;
+                // A dense array may gain holes or metadata between captures.
+                // Rebuild descriptors rather than reusing the earlier layout.
+                record.keys.length = 0;
+                record.descriptors = Object.create(null);
+                record.entries.length = 0;
+            }
             const sameLayout = reusePropertyLayout && !filter && sameKeys(keys, record.keys);
+            if (record.kind === 'plain') {
+                if (sameLayout) {
+                    graphChanged = captureValues(record, keys, graphChanged);
+                    return;
+                }
+                record.kind = 'object'; graphChanged = true;
+                record.keys.length = 0;
+                record.descriptors = Object.create(null);
+                record.entries.length = 0;
+            }
             if (sameLayout) {
                 // Runtime contact pools usually keep their shape. The owned
                 // layout contract preserves property attributes, so only the
@@ -162,6 +245,21 @@ export function captureKirchhoffCoupledTrialState(constraint, {
                 }
                 record.fixedKeys = !filter && !Array.isArray(object) && Object.isSealed(object);
             }
+            // Common contact/gradient records have only writable data fields.
+            // Keep their values in a flat buffer; descriptor handling remains
+            // available for accessors, hidden fields and filtered owner roots.
+            if (reusePropertyLayout && !filter && !Array.isArray(object) && record.keys.every(key => {
+                const d = record.descriptors[key];
+                return key !== '__proto__' && 'value' in d && d.writable &&
+                    (record.fixedKeys || (d.enumerable && d.configurable));
+            })) {
+                record.kind = 'plain'; graphChanged = true;
+                graphChanged = captureValues(record, record.keys, graphChanged);
+                // Only key membership is needed on restore. Do not retain
+                // stale child references through the former descriptors.
+                for (const key of record.keys) record.descriptors[key] = true;
+                record.dataKeys.length = record.dataDescriptors.length = 0;
+            }
         }
     }
     function visit(object, filter = null, force = false) {
@@ -180,12 +278,15 @@ export function captureKirchhoffCoupledTrialState(constraint, {
         }
         if (record.visitEpoch === epoch) return;
         record.visitEpoch = epoch;
-        if (record.filter !== filter) { record.filter = filter; record.captureEpoch = 0; }
+        if (record.filter !== filter) {
+            record.filter = filter; record.captureEpoch = 0; record.fixedKeys = false;
+        }
         refresh(record);
         records.push(record);
         if (record.kind === 'bytes') bytes += record.copy.byteLength;
         if (record.kind === 'map') for (const [, value] of record.entries) visit(value);
-        else if (record.kind === 'set') for (const value of record.entries) visit(value);
+        else if (record.kind === 'set' || record.kind === 'array' || record.kind === 'plain')
+            for (const value of record.entries) visit(value);
         else if (record.kind === 'object') for (const d of record.dataDescriptors) visit(d.value);
     }
     // The retained records are also a compiled traversal plan. Read every
@@ -232,12 +333,15 @@ export function restoreKirchhoffCoupledTrialState(snapshot) {
     for (const record of snapshot.records) {
         const { object } = record;
         if (record.kind === 'bytes') record.view.set(record.copy);
+        else if (record.kind === 'array') restoreDenseArray(record);
+        else if (record.kind === 'plain') {
+            removeTrialProperties(record);
+            for (let i = 0; i < record.keys.length; i++) object[record.keys[i]] = record.entries[i];
+        }
         else if (record.kind === 'map') { object.clear(); for (const [key, value] of record.entries) object.set(key, value); }
         else if (record.kind === 'set') { object.clear(); for (const value of record.entries) object.add(value); }
         else {
-            if (!record.fixedKeys) for (const key of Object.getOwnPropertyNames(object)) {
-                if ((!record.filter || record.filter(key, object[key])) && !(key in record.descriptors)) delete object[key];
-            }
+            removeTrialProperties(record);
             if (record.reusePropertyLayout) {
                 for (const key of record.keys) {
                     const descriptor = record.descriptors[key];

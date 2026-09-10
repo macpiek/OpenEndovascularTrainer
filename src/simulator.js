@@ -1,4 +1,5 @@
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
+import { ConstraintStageProfile } from './physics/constraintStageProfile.js';
 import { SHORT_CATHETER_BENCHMARK_MODE, SHORT_CATHETER_BENCHMARK_DURATION_MS,
     sampleShortCatheterBenchmarkCommands, ShortCatheterBenchmarkMetrics,
     DEEP_CATHETER_BENCHMARK_MODE, DEEP_CATHETER_BENCHMARK_PHASES, DEEP_CATHETER_BENCHMARK_DURATION_MS
@@ -1648,6 +1649,7 @@ endovascularWorld = new EndovascularPhysicsWorld({
     coupledSystem: coupledSolverSelection.coupledSystem,
     jointMotionMode: coupledSolverSelection.jointMotionMode,
     contactField: vesselCollisionTarget.contactField || null,
+    adaptiveLineSearch: new URLSearchParams(window.location.search).get('adaptiveLineSearch') !== '0',
     fixedDt: 1 / 120,
     maxSubsteps: 2,
     iterations: 6,
@@ -1913,6 +1915,7 @@ for (const eventName of AUTOMATED_BENCHMARK_BLOCKED_EVENTS) {
 const browserBenchmarkCommands = createBrowserBenchmarkCommands();
 let browserBenchmarkPreviousGuidewireCommand = 0;
 let browserBenchmarkPreviousGuidewireStepSpeed = 0;
+const browserConstraintStageProfile = new ConstraintStageProfile();
 const browserBenchmarkPhysicsEnvelope = {
     steps: 0,
     maxPostStepPenetrationMm: 0,
@@ -2008,6 +2011,7 @@ function getBrowserHeapStats() {
 }
 
 function resetBrowserBenchmark() {
+    browserConstraintStageProfile.reset();
     browserBenchmarkEpoch++;
     coupledSolverSelection.resetDiagnostics();
     browserFrameCursor = 0;
@@ -2161,6 +2165,7 @@ runtime.listen(window, 'focus', () => {
 });
 
 function recordBrowserPhysicsEnvelope() {
+    browserConstraintStageProfile.record(endovascularWorld);
     const envelope = browserBenchmarkPhysicsEnvelope;
     envelope.steps++;
     if (endovascularWorld.lastJointNonlinearFailure) {
@@ -2673,6 +2678,8 @@ function getBrowserBenchmarkReport() {
         },
         physics,
         physicsEnvelope: { ...browserBenchmarkPhysicsEnvelope },
+        constraintStageProfile: browserConstraintStageProfile.report(),
+        adaptiveLineSearch: endovascularWorld.adaptiveLineSearch,
         contactField,
         cameraProjectionChanges,
         heapBytes: heap.endBytes,

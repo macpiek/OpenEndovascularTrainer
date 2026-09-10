@@ -53,7 +53,7 @@ class PlaneWall {
 
 test('identical tools globally relax against a wall identically through movement, hold and reversal regardless of identity', () => {
     const fixtures = ['guidewire', 'catheter'].map(id => {
-        const world = new EndovascularPhysicsWorld({ coupledSystem, contactField: new PlaneWall() });
+        const world = new EndovascularPhysicsWorld({ coupledSystem, adaptiveLineSearch: true, contactField: new PlaneWall() });
         const body = configureKirchhoffToolRuntime(world.createRod(id, 8, 5,
             { radius: .5, linearDamping: .98, angularDamping: .96, sleepFrames: 1e6 }));
         for (let i = 0; i < body.count; i++) body.setNodePosition(i, 5 * i, -.55, 0);
@@ -79,7 +79,7 @@ test('identical tools globally relax against a wall identically through movement
 
 test('coupled motion is independent of body registration order during relative feed and hold', () => {
     const fixtures = [false, true].map(reverse => {
-        const world = new EndovascularPhysicsWorld({ coupledSystem });
+        const world = new EndovascularPhysicsWorld({ coupledSystem, adaptiveLineSearch: true });
         const profile = { radius: .4, linearDamping: .98, sleepFrames: 1e6 };
         const bodies = {};
         for (const id of reverse ? ['catheter', 'guidewire'] : ['guidewire', 'catheter'])

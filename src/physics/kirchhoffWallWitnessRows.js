@@ -80,7 +80,7 @@ export function collectKirchhoffWallWitnessRows(component,field,rows,dt){
   const gradients=row.gradients??=[];gradients.length=0;const pool=row.gradientPool??=[];
   for(let end=0;end<2;end++)for(let axis=0;axis<3;axis++){
    const value=(end?w.t:1-w.t)*g.direction[axis];if(!value)continue;
-   const entry=pool[gradients.length]??={};Object.assign(entry,{side:w.side,dof:(w.node+end)*6+axis,value});gradients.push(entry);
+   const entry=pool[gradients.length]??=Object.seal({side:0,dof:0,value:0});entry.side=w.side;entry.dof=(w.node+end)*6+axis;entry.value=value;gradients.push(entry);
   }
   captureKirchhoffWallReaction(w.body,gradients,w.side,w.frozen);rows.push(row);state.rows.push(row);
  }
