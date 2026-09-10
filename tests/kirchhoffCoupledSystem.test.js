@@ -111,7 +111,7 @@ for (const warm of [false, true]) test(`full simultaneous direction agrees with 
     assert.deepEqual(innerBody.y, old[0]); assert.deepEqual(outerBody.y, old[1]);
     applyKirchhoffCoupledCorrection(constraint, actual, 0.5);
     assert.deepEqual(records.map(r => r.manifoldContact.normalLambda), normal, 'caller owns contact accumulation');
-    assert.equal(innerBody.y[4], Math.fround(old[0][4] + 0.5 * actual.inner.correction[24 + 1]));
+    assert.equal(innerBody.y[4], old[0][4] + 0.5 * actual.inner.correction[24 + 1]);
 });
 
 test('assembly leaves solo material result and complete active ranges unchanged', () => {
@@ -469,7 +469,7 @@ test('isolated component solves material and wall together without second-body d
  solo.inner.correction.forEach((v,i)=>assert.ok(Math.abs(v-pair.inner.correction[i])<1e-8,`dof ${i}`));
  assert.ok(Math.abs(solo.additionalIncrement[0]-pair.additionalIncrement[0])<1e-8);
  const y=body.y[4];applyKirchhoffCoupledCorrection(component,solo,.5);
- assert.equal(body.y[4],Math.fround(y+.5*solo.inner.correction[25]));
+ assert.equal(body.y[4],y+.5*solo.inner.correction[25]);
  assert.throws(()=>applyKirchhoffCoupledCorrection({bodies:[other]},solo),/bodies changed/);
  assert.throws(()=>assembleKirchhoffCoupledSystem({bodies:[body],kirchhoffContacts:[record(2,-.01)]}),/two bodies/);
 });

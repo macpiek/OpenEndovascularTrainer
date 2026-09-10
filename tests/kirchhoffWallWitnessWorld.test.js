@@ -37,10 +37,11 @@ class CornerField {
     sweepSphere(a,b,r,out){return this.write(b,r,out);}
 }
 
-test('one common rod solve retains simultaneous finite wall witnesses at a corner',()=>{
+for (const physicalTrialState of [false, true]) {
+test('one common rod solve retains simultaneous finite wall witnesses at a corner' + (physicalTrialState ? ' (physical snapshot)' : ' (complete snapshot)'),()=>{
     let maximumRows=0, sawRelease=false;
     const world=new EndovascularPhysicsWorld({contactField:new CornerField(),coupledSystem:{
-        independentComponents:true,wallWitnesses:true,
+        independentComponents:true,wallWitnesses:true,physicalTrialState,earlyTrialRejection:true,
         solve(c,dt,options){
             maximumRows=Math.max(maximumRows,options.additionalRows.filter(r=>r.kind==='wall-witness').length);
             sawRelease ||= options.additionalRows.some(r=>r.kind==='wall-release');
@@ -50,6 +51,7 @@ test('one common rod solve retains simultaneous finite wall witnesses at a corne
     const body=world.createRod('corner-catheter',3,2,{radius:.5,wallFriction:0,sleepFrames:1e6});
     for(let n=0;n<body.count;n++)body.setNodePosition(n,2*n,.49,.49);
     world.stepFixed();
+    assert.equal(world.lastJointLineSearch.earlyRejections,0,'witness discovery requires complete measurements');
     assert.ok(maximumRows>body.segmentCount,'both walls must have independent rows on the same rod');
     assert.ok(world.lastCoupledClosureConverged,JSON.stringify(world.lastJointNonlinearFailure));
     for(let n=0;n<body.count-1;n++) {
@@ -59,11 +61,11 @@ test('one common rod solve retains simultaneous finite wall witnesses at a corne
     assert.equal(sawRelease,false,'both static finite walls remain valid during this solve');
 });
 
-test('world solves catheter wall slip and radius torque in the global normal/friction block',()=>{
+for (const legacyPositionStorage of [false, true]) test('world solves catheter wall slip and radius torque in the global normal/friction block' + (physicalTrialState ? ' (physical snapshot)' : ' (complete snapshot)') + (legacyPositionStorage ? ' Float32 discovery regression' : ' Float64'),()=>{
     let maximumGroups=0, maximumTorque=0, discoveredAtRestoredBase=0;
     const seen=new Set();
     const world=new EndovascularPhysicsWorld({contactField:new CornerField(),coupledSystem:{
-        independentComponents:true,wallWitnesses:true,
+        independentComponents:true,wallWitnesses:true,physicalTrialState,earlyTrialRejection:true,
         solve(c,dt,options){
             for(const w of c._wallWitnessRows.witnesses)if(w.discoveredForStep&&!seen.has(w)){
                 seen.add(w);discoveredAtRestoredBase++;
@@ -79,23 +81,28 @@ test('world solves catheter wall slip and radius torque in the global normal/fri
         },apply:applyKirchhoffCoupledCorrection
     }});
     const body=world.createRod('sliding-catheter',3,2,{radius:.5,wallFriction:.2,sleepFrames:1e6});
+    // Preserve the captured quantization-triggered discovery/rollback case
+    // alongside the production precision, which converges without that retry.
+    if (legacyPositionStorage) for (const key of ['x','y','z','previousX','previousY','previousZ','wallX','wallY','wallZ','wallNormalX','wallNormalY','wallNormalZ','wallT','wallGap'])
+        body[key] = Float32Array.from(body[key]);
     for(let n=0;n<body.count;n++){
         body.setNodePosition(n,2*n,.49,.49);
         body.velocityX[n]=.1;
     }
     world.stepFixed();
-    assert.ok(discoveredAtRestoredBase>0,'new contact geometry must survive rollback to be solved at the restored base');
+    assert.equal(world.lastJointLineSearch.earlyRejections,0,'witness discovery requires complete measurements');
+    if (legacyPositionStorage) assert.ok(discoveredAtRestoredBase>0,'new contact geometry must survive rollback to be solved at the restored base');
     assert.ok(maximumGroups>0,'wall normal and friction must share Coulomb groups');
     assert.ok(maximumTorque>0,'surface friction must include radius torque');
     assert.equal(body._wallWitnessFrictionSolved,true,'post-step friction must not apply the same load again');
     assert.ok(world.lastCoupledClosureConverged,JSON.stringify(world.lastJointNonlinearFailure));
 });
 
-test('world retries converged static sliding from the predicted state with kinetic friction',()=>{
+test('world retries converged static sliding from the predicted state with kinetic friction' + (physicalTrialState ? ' (physical snapshot)' : ' (complete snapshot)'),()=>{
     let maximumGroups=0, maximumTorque=0, discoveredAtRestoredBase=0, component;
     const seen=new Set(),attemptBases=new Map();
     const world=new EndovascularPhysicsWorld({contactField:new CornerField(),coupledSystem:{
-        independentComponents:true,wallWitnesses:true,
+        independentComponents:true,wallWitnesses:true,physicalTrialState,earlyTrialRejection:true,
         solve(c,dt,options){
             component=c;
             const attempt=c._wallWitnessFrictionModes.attempt;
@@ -130,6 +137,7 @@ test('world retries converged static sliding from the predicted state with kinet
         body.velocityX[n]=10;
     }
     world.stepFixed();
+    assert.equal(world.lastJointLineSearch.earlyRejections,0,'witness discovery requires complete measurements');
 
     assert.ok(maximumGroups>0,'wall normal and friction must share Coulomb groups');
     assert.ok(maximumTorque>0,'surface friction must include radius torque');
@@ -142,3 +150,5 @@ test('world retries converged static sliding from the predicted state with kinet
     assert.equal(body.wallStaticFriction,.006);
     assert.equal(body.wallKineticFriction,.002);
 });
+
+}

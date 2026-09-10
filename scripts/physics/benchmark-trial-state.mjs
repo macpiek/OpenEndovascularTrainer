@@ -24,6 +24,8 @@ class World extends EndovascularPhysicsWorld {
 const anatomy = await loadCoupledRuntimeAnatomy();
 const fixture = createCoupledRuntimeFixture({ ...anatomy, World, coupledSystem: {
     independentComponents: true,
+    physicalTrialState: true,
+    earlyTrialRejection: process.env.OET_EARLY_TRIAL_REJECTION !== '0',
     solve: (c, dt, options) => solveKirchhoffCoupledSystem(c, dt, { ...options, activeCondensation: true, simultaneousCoulomb: true }),
     apply: applyKirchhoffCoupledCorrection
 } });

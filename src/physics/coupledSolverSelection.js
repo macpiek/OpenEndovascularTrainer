@@ -73,6 +73,8 @@ export function createCoupledSolverSelection(id = 'reference', kernel = {}) {
     }
     const coupledSystem = options ? Object.freeze({
         independentComponents: id === 'joint-active-coulomb' || id === 'joint-wall-witnesses',
+        physicalTrialState: id === 'joint-active-coulomb' || id === 'joint-wall-witnesses',
+        earlyTrialRejection: id === 'joint-active-coulomb',
         ...(id === 'joint-wall-witnesses' ? {wallWitnesses:true} : {}),
         solve(constraint, dt, runtimeOptions) { return run(solveKernel, constraint, dt, runtimeOptions); },
         ...(twoChannel ? { solveTwoChannel(constraint, dt, runtimeOptions) {

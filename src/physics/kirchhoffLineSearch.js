@@ -9,12 +9,18 @@ export function lineSearchLevel(trial, startLevel) {
 export function createLineSearchStats() {
     return { accepted: Array(8).fill(0), rejected: Array(8).fill(0),
         rejectionTerms: {}, boundaryKinds: {}, boundaryWorstChanged: 0, predictedStarts: 0,
-        largerFallbacks: 0 };
+        largerFallbacks: 0, earlyRejections: 0 };
 }
 
 export function recordLineSearchTrial(stats, level, accepted, state, baseBoundary, boundary) {
     (accepted ? stats.accepted : stats.rejected)[level]++;
     if (accepted) return;
+    if (state.earlyRejected) {
+        // Only a sufficient boundary error was measured; do not present it as
+        // the dominant term of a full residual calculation.
+        stats.earlyRejections++;
+        return;
+    }
     let dominant = 'nonfinite', maximum = -Infinity;
     for (const key in state.meritTerms) {
         const value = state.meritTerms[key];

@@ -87,8 +87,10 @@ export function buildKirchhoffContactNormalGradients(constraint, record, { inclu
     const z = dot(s.offset, s.axis);
     for (let i = 0; i < 3; i++) s.radial[i] = s.offset[i] - z * s.axis[i];
     const rho = Math.hypot(...s.radial);
+    const radialEpsilon = record.normalRadialEpsilon ?? EPSILON;
+    if (!Number.isFinite(radialEpsilon) || radialEpsilon < 0) throw new RangeError('Invalid collector radial epsilon');
     let directional = false;
-    if (rho > EPSILON) for (let i = 0; i < 3; i++) s.radial[i] /= rho;
+    if (rho > radialEpsilon) for (let i = 0; i < 3; i++) s.radial[i] /= rho;
     else {
         // The old collector chooses an azimuth at its radial cusp. Preserve
         // that selected directional branch, but do not call it differentiable.
@@ -127,7 +129,14 @@ export function buildKirchhoffContactNormalGradients(constraint, record, { inclu
         diagnostics.reconstructedGap = finite(record.clearance, 'rim clearance') - rho;
     }
     const normalMismatch = Math.hypot(s.normal[0] - record.normal[0], s.normal[1] - record.normal[1], s.normal[2] - record.normal[2]);
-    if (normalMismatch > 1e-7) throw new Error('Contact normal geometry changed; rebuild the collector before normal gradients');
+    if (normalMismatch > 1e-7) {
+        const error = new Error('Contact normal geometry changed; rebuild the collector before normal gradients');
+        error.geometry = { normalMismatch, rho, radialEpsilon, kind: record.kind, innerSegment, outerSegment,
+            innerT: t, normal: Array.from(record.normal), reconstructedNormal: Array.from(s.normal),
+            inner0: Array.from(s.inner0), inner1: Array.from(s.inner1), outer0: Array.from(s.outer0), outer1: Array.from(s.outer1),
+            gap: record.gap, reconstructedGap: diagnostics.reconstructedGap, filletRadius: constraint.portalFilletRadius };
+        throw error;
+    }
     if (boundaryMode) {
         const denominator = dot(s.wireDirection, s.axis);
         if (Math.abs(denominator) <= EPSILON) throw new RangeError('Implicit portal crossing is degenerate');

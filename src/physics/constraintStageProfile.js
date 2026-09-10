@@ -1,7 +1,7 @@
 import { createLineSearchStats } from './kirchhoffLineSearch.js';
 const COST_KEYS = ['assemblyMs', 'solveMs', 'applyMs', 'snapshotMs', 'restoreMs', 'measureMs',
     'condensedSetupMs', 'schurMs', 'contactSolveMs', 'reconstructionMs', 'seedMs',
-    'solveCalls', 'applyCalls', 'measureCalls', 'snapshots', 'restores'];
+    'solveCalls', 'applyCalls', 'measureCalls', 'fullMeasureCalls', 'snapshots', 'restores'];
 const PHASE_KEYS = ['total', 'constraints', 'narrowPhase', 'integrate', 'velocity'];
 const KEYS = [...COST_KEYS, ...PHASE_KEYS, 'trials', 'backtracks', 'factorizations'];
 
@@ -33,8 +33,8 @@ export class ConstraintStageProfile {
         if (search) {
             for (const key of ['accepted', 'rejected']) for (let i = 0; i < 8; i++)
                 this.lineSearch[key][i] += search[key][i];
-            for (const key of ['boundaryWorstChanged', 'predictedStarts', 'largerFallbacks'])
-                this.lineSearch[key] += search[key];
+            for (const key of ['boundaryWorstChanged', 'predictedStarts', 'largerFallbacks', 'earlyRejections'])
+                this.lineSearch[key] += search[key] ?? 0;
             for (const group of ['rejectionTerms', 'boundaryKinds']) for (const key in search[group])
                 this.lineSearch[group][key] = (this.lineSearch[group][key] ?? 0) + search[group][key];
         }

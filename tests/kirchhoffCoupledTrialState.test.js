@@ -11,6 +11,8 @@ const { beginKirchhoffSplitMotion } = await load('src/physics/kirchhoffSplitMoti
 const { buildKirchhoffSplitWallFriction, commitKirchhoffSplitWallFriction,
     measureKirchhoffSplitWallFriction } = await load('src/physics/kirchhoffSplitWallFriction.js');
 import { captureKirchhoffCoupledTrialState as capture, restoreKirchhoffCoupledTrialState as restore } from '../src/physics/kirchhoffCoupledTrialState.js';
+import { beginKirchhoffCoupledFoldStep, buildKirchhoffCoupledFoldRows,
+    applyKirchhoffCoupledFoldMultipliers, measureKirchhoffCoupledFoldResidual } from '../src/physics/kirchhoffCoupledFoldRows.js';
 
 function fixture() {
     const world = new EndovascularPhysicsWorld({ fixedDt: 1 / 120 });
@@ -29,6 +31,76 @@ function fixture() {
     c._jointFrictionBatch = buildKirchhoffCoupledFrictionRows(c, 1 / 120);
     return { world, inner, outer, c, contact, record };
 }
+
+function physicalFoldFixture() {
+    const world = new EndovascularPhysicsWorld();
+    const body = world.createRod('fold-wire', 25, 5);
+    for (let n = 0; n < body.count; n++) body.setNodePosition(n, 0, 0, n * 5);
+    body.orientationX.fill(0); body.orientationY.fill(0); body.orientationZ.fill(0); body.orientationW.fill(1);
+    const c = { bodies: [body], kirchhoffContacts: [] };
+    beginKirchhoffCoupledFoldStep(c);
+    const rows = buildKirchhoffCoupledFoldRows(c, world.fixedDt);
+    // Exercise aliases through the combined operator, as in the actual world.
+    c._coupledBoundaries = { rows: rows.slice() };
+    return { world, body, c, rows };
+}
+
+test('physical trial snapshot omits calibration and frozen fold equations but restores forces exactly', () => {
+    const { world, body, c, rows } = physicalFoldFixture();
+    const options = { world, reusePropertyLayout: true, frozenFrictionBatches: true, physicalStateOnly: true };
+    const snapshot = capture(c, options), complete = capture(c, { world });
+    assert.ok(snapshot.objectCount < complete.objectCount / 2);
+    assert.ok(snapshot.bytes < complete.bytes);
+    for (const object of [body.inverseMass, body.restLength, body.restRotation1, body.nodeRadius,
+        c._coupledFoldRows, rows[0], rows[0].gradients[0]])
+        assert.ok(!snapshot.records.some(r => r.object === object));
+    for (const object of [body.x, body.orientationW, body.adaptationLambdaX, body.wallLambda])
+        assert.ok(snapshot.records.some(r => r.object === object));
+    const scratch = c._coupledFoldRows;
+    for (const scale of [1, .5, .125]) {
+        body.x[3] += .01;
+        body.orientationY[2] = .1;
+        body.adaptationLambdaX[2] = .02;
+        applyKirchhoffCoupledFoldMultipliers(c, new Float64Array(rows.length).fill(.001), scale);
+        measureKirchhoffCoupledFoldResidual(c);
+        restore(snapshot);
+        assert.equal(body.x[3], 0); assert.equal(body.orientationY[2], 0);
+        assert.equal(body.adaptationLambdaX[2], 0); assert.equal(scratch.pending, true);
+        assert.ok(rows.every(row => row.lambda === 0));
+        assert.ok(scratch.storage[0].lambda.every(value => value === 0));
+        // Derived data can remain dirty until it is evaluated; a fresh measure
+        // must reproduce the original residual from the restored mechanics.
+        assert.equal(measureKirchhoffCoupledFoldResidual(c).maximumResidual, 0);
+    }
+});
+
+test('frozen fold rebuild and row replacement reject rollback before changing positions or forces', () => {
+    for (const change of ['build', 'row', 'storage']) {
+        const { world, body, c, rows } = physicalFoldFixture();
+        const snapshot = capture(c, { world, frozenFrictionBatches: true, physicalStateOnly: true });
+        body.x[3] = 99; body.adaptationLambdaX[2] = 5;
+        if (change === 'build') buildKirchhoffCoupledFoldRows(c, world.fixedDt);
+        if (change === 'row') rows[0] = { ...rows[0] };
+        if (change === 'storage') c._coupledFoldRows.storage[0].lambda = new Float64Array(body.count);
+        assert.throws(() => restore(snapshot), /[Ff]rozen fold/);
+        assert.equal(body.x[3], 99); assert.equal(body.adaptationLambdaX[2], 5);
+    }
+});
+
+test('physical scope retains new mutable fields and can reuse a complete snapshot without narrowing it', () => {
+    const { world, body, c } = physicalFoldFixture(), snapshot = {};
+    const options = { world, frozenFrictionBatches: true, reusePropertyLayout: true, physicalStateOnly: true };
+    body.extensionForce = new Float64Array([3]);
+    capture(c, options, snapshot);
+    body.extensionForce[0] = 9; restore(snapshot);
+    assert.equal(body.extensionForce[0], 3);
+    capture(c, { world, reusePropertyLayout: true }, snapshot);
+    body.inverseMass[0] = 7; restore(snapshot);
+    assert.equal(body.inverseMass[0], 1);
+    assert.throws(() => capture(c, { physicalStateOnly: true }), /frozen position-history/);
+    c._splitMotion = {};
+    assert.throws(() => capture(c, options), /frozen position-history/);
+});
 
 test('rollback restores exact body bytes and identities without traversing static geometry', () => {
     const f = fixture(), positions = f.inner.x;

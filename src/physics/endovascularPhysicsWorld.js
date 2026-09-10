@@ -5,6 +5,7 @@ import { buildKirchhoffWallWitnessFriction, appendKirchhoffWallWitnessFriction, 
 import { captureKirchhoffWallDiscoveries, retainKirchhoffWallDiscoveries, beginKirchhoffWallWitnessStep, collectKirchhoffWallWitnessRows, commitKirchhoffWallWitnessMultipliers, measureKirchhoffWallWitnessResidual } from './kirchhoffWallWitnessRows.js';
 import { selectKirchhoffMechanicalComponents } from './kirchhoffMechanicalComponents.js';
 import { kirchhoffComponentBodies } from './kirchhoffComponentBodies.js';
+import { boundaryRejectsKirchhoffTrial } from './kirchhoffTrialRejection.js';
 import { buildKirchhoffPortalSideSamples } from './kirchhoffPortalSideSamples.js';
 import { captureKirchhoffSplitStep, restoreKirchhoffSplitStep,
     kirchhoffSplitStepTopologyUnchanged } from './kirchhoffSplitStepTransaction.js';
@@ -226,7 +227,10 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
 });
 
 export class EndovascularRodBody {
-    constructor(id, count, segmentLength, profile = {}) {
+    constructor(id, count, segmentLength, profile = {}, motionMode = 'position-history') {
+        // Split physical/bias motion has a separate numerical history contract;
+        // its experimental path keeps its existing storage in this change.
+        const CoordinateArray = motionMode === 'split-physical-bias' ? Float32Array : Float64Array;
         if (!Number.isInteger(count) || count < 2) throw new RangeError('A rod requires at least two nodes');
         this.id = id;
         // Material calibration is selected explicitly, independently of the solver.
@@ -355,12 +359,16 @@ export class EndovascularRodBody {
         this.sleeping = false;
         this.settledMaxPenetration = 0;
 
-        this.x = new Float32Array(count);
-        this.y = new Float32Array(count);
-        this.z = new Float32Array(count);
-        this.previousX = new Float32Array(count);
-        this.previousY = new Float32Array(count);
-        this.previousZ = new Float32Array(count);
+        // The global solver produces Float64 corrections. Rounding positions
+        // after each trial can erase their small normal component near a wall
+        // while still committing the full multiplier. Keep the applied motion
+        // and its velocity history at the same precision as the solved step.
+        this.x = new CoordinateArray(count);
+        this.y = new CoordinateArray(count);
+        this.z = new CoordinateArray(count);
+        this.previousX = new CoordinateArray(count);
+        this.previousY = new CoordinateArray(count);
+        this.previousZ = new CoordinateArray(count);
         this.portalSegmentX = new Float32Array(count);
         this.portalSegmentY = new Float32Array(count);
         this.portalSegmentZ = new Float32Array(count);
@@ -507,16 +515,18 @@ export class EndovascularRodBody {
         // an unlimited static-friction budget.
         this.wallFrictionLoad = new Float32Array(this.segmentCount);
         this.wallActive = new Uint8Array(this.segmentCount);
-        this.wallT = new Float32Array(this.segmentCount);
-        this.wallX = new Float32Array(this.segmentCount);
-        this.wallY = new Float32Array(this.segmentCount);
-        this.wallZ = new Float32Array(this.segmentCount);
-        this.wallNormalX = new Float32Array(this.segmentCount);
-        this.wallNormalY = new Float32Array(this.segmentCount);
-        this.wallNormalZ = new Float32Array(this.segmentCount);
+        // Rebuilding a contact plane must not quantize its point/normal before
+        // measuring the applied equations (notably far from the world origin).
+        this.wallT = new CoordinateArray(this.segmentCount);
+        this.wallX = new CoordinateArray(this.segmentCount);
+        this.wallY = new CoordinateArray(this.segmentCount);
+        this.wallZ = new CoordinateArray(this.segmentCount);
+        this.wallNormalX = new CoordinateArray(this.segmentCount);
+        this.wallNormalY = new CoordinateArray(this.segmentCount);
+        this.wallNormalZ = new CoordinateArray(this.segmentCount);
         this.wallBranchId = new Int32Array(this.segmentCount);
         this.wallFaceIndex = new Int32Array(this.segmentCount);
-        this.wallGap = new Float32Array(this.segmentCount);
+        this.wallGap = new CoordinateArray(this.segmentCount);
         this.wallInsideClearance = new Float32Array(this.segmentCount);
         this.wallCapsuleSampleCount = new Uint16Array(this.segmentCount);
         this.wallQueryStartX = new Float32Array(this.segmentCount);
@@ -1062,7 +1072,7 @@ export class EndovascularPhysicsWorld {
     }
 
     createRod(id, count, segmentLength, profile = {}) {
-        const body = new EndovascularRodBody(id, count, segmentLength, profile);
+        const body = new EndovascularRodBody(id, count, segmentLength, profile, this.jointMotionMode);
         body.contactField = this.contactField;
         this.bodies.push(body);
         return body;
@@ -1552,7 +1562,7 @@ export class EndovascularPhysicsWorld {
         this.lastJointTrialEvaluations = this.lastJointBacktracks = 0;
         this.lastJointMaximumBand = this.lastJointMaximumRows = 0;
         this.lastJointCosts = { assemblyMs:0, solveMs:0, applyMs:0, snapshotMs:0, restoreMs:0, measureMs:0,
-            solveCalls:0, applyCalls:0, measureCalls:0,
+            solveCalls:0, applyCalls:0, measureCalls:0, fullMeasureCalls:0,
             snapshotObjects:0, snapshotBytes:0, snapshots:0, restores:0,
             condensedSetupMs:0,schurMs:0,contactSolveMs:0,reconstructionMs:0,seedMs:0 };
         this.contactCount = 0;
@@ -2849,7 +2859,9 @@ export class EndovascularPhysicsWorld {
                 ? Math.min(1, Math.max(0, acceptedLevel - 2)) : 0;
             if (startLevel) this.lastJointLineSearch.predictedStarts++;
             const snapshot = pass === 0 ? null : this.#captureJointTrial(constraint,
-                { world: this, reusePropertyLayout: true, frozenFrictionBatches: true }, constraint._jointTrialState ??= {});
+                { world: this, reusePropertyLayout: true, frozenFrictionBatches: true,
+                    physicalStateOnly: this.coupledSystem.physicalTrialState === true && !constraint._splitMotion },
+                constraint._jointTrialState ??= {});
             const knownWallWitnesses = constraint._usesWallWitnesses ? new Set(constraint._wallWitnessRows.witnesses) : null;
             let wallDiscoveries = [];
             let state, accepted = false, trialCount = 0;
@@ -2884,7 +2896,13 @@ export class EndovascularPhysicsWorld {
                 constraint._kirchhoffMappingLocked = true;
                 this.lastJointCosts.applyMs += now() - applyStarted;
                 this.lastJointCosts.applyCalls++;
-                state = this.#measureJointCoupledConstraints(constraint);
+                // Keep the automatic first pass and the final failure report
+                // complete. Split-motion cone filters and witness discovery
+                // have additional acceptance/lifecycle rules and stay full.
+                const rejectionThreshold = this.coupledSystem.earlyTrialRejection === true && pass > 0 &&
+                    trialCount < 7 && !constraint._splitMotion && !constraint._usesWallWitnesses
+                    ? previousMerit * (1 - 1e-4 * result.scale) : null;
+                state = this.#measureJointCoupledConstraints(constraint, true, rejectionThreshold);
                 this.debugJointTrial?.(constraint, state, pass, trialCount, result.scale);
                 this.lastJointTrialEvaluations++;
                 // The load-continuous natural map guides line search only;
@@ -2895,8 +2913,8 @@ export class EndovascularPhysicsWorld {
                 // requires the original cone tolerance for all contacts.
                 const coneFilterAccepted = constraint._splitMotion?.twoChannel && previousNonConeSettled && state.nonConeSettled &&
                     state.maximumConeViolation <= previousMaxCone * (1 - 1e-4 * result.scale);
-                const meritAccepted = state.merit <= previousMerit * (1 - 1e-4 * result.scale);
-                accepted = pass === 0 || state.settled || meritAccepted || coneFilterAccepted;
+                const meritAccepted = !state.earlyRejected && state.merit <= previousMerit * (1 - 1e-4 * result.scale);
+                accepted = !state.earlyRejected && (pass === 0 || state.settled || meritAccepted || coneFilterAccepted);
                 recordLineSearchTrial(this.lastJointLineSearch, level, accepted, state,
                     constraint._jointBaseBoundaryWorst, constraint._jointBoundaryWorst);
                 if (accepted) acceptedLevel = level;
@@ -3009,14 +3027,18 @@ export class EndovascularPhysicsWorld {
         this.lastJointCosts.restores++;
     }
 
-    #measureJointCoupledConstraints(constraint, repairCone = true) {
+    #measureJointCoupledConstraints(constraint, repairCone = true, rejectionThreshold = null) {
         const started = now();
         this.lastJointCosts.measureCalls++;
-        try { return this.#measureJointCoupledConstraintsImpl(constraint, repairCone); }
+        try {
+            const result = this.#measureJointCoupledConstraintsImpl(constraint, repairCone, rejectionThreshold);
+            if (!result.earlyRejected) this.lastJointCosts.fullMeasureCalls++;
+            return result;
+        }
         finally { this.lastJointCosts.measureMs += now() - started; }
     }
 
-    #measureJointCoupledConstraintsImpl(constraint, repairCone = true) {
+    #measureJointCoupledConstraintsImpl(constraint, repairCone = true, rejectionThreshold = null) {
         const bodies = kirchhoffComponentBodies(constraint);
         const hasLumen = !constraint.bodies || constraint.containment === constraint;
         // Refresh the actual nonlinear gap and surface kinematics before
@@ -3063,6 +3085,17 @@ export class EndovascularPhysicsWorld {
         const wallWitnessResidual = constraint._usesWallWitnesses ? measureKirchhoffWallWitnessResidual(constraint) : null;
         if (wallWitnessResidual) constraint._jointBoundaryResidual = Math.max(constraint._jointBoundaryResidual, wallWitnessResidual.maximumResidual);
         const witnessesSettled = !wallWitnessResidual || wallWitnessResidual.finite && wallWitnessResidual.pending === 0;
+        const earlyRejected = boundaryRejectsKirchhoffTrial(constraint._jointBoundaryResidual,
+            this.coupledContainmentTolerance, rejectionThreshold);
+        if (earlyRejected && !this.debugJointEarlyRejection) {
+            // This is a rejection certificate, not a complete residual. The
+            // caller restores the trial snapshot before applying another scale.
+            return Object.assign(this._jointEarlyRejection ??= {}, {
+                earlyRejected: true, settled: false, nonConeSettled: false,
+                boundaryMeritLowerBound: constraint._jointBoundaryResidual / this.coupledContainmentTolerance,
+                rejectionThreshold
+            });
+        }
         const materialResidual = constraint._splitMotion?.twoChannel
             ? measureKirchhoffTwoChannelMaterial(constraint, constraint._jointMaterialResidual ??= {})
             : (constraint._splitMotion ? measureKirchhoffSplitMaterial : measureKirchhoffCoupledMaterialResidual)(constraint, this.fixedDt,
@@ -3147,11 +3180,18 @@ export class EndovascularPhysicsWorld {
         });
         let merit = 0;
         for (const key in meritTerms) merit = Math.max(merit, meritTerms[key]);
-        return Object.assign(constraint._jointStateMeasurement ??= {}, {
+        const measurement = Object.assign(constraint._jointStateMeasurement ??= {}, {
             motionPhase: constraint._splitMotion?.phase ?? 'position-history',
             settled, nonConeSettled, maximumConeViolation, merit, meritTerms, lengthResidual, materialResidual, channelResidual, foldResidual, orientationResidual,
             frictionResidual, externalFrictionResidual, wallPhysicalFriction, wallWitnessResidual, wallWitnessFriction, toolReleaseResidual, coneRepair
         });
+        // Diagnostic shadow mode finishes the same measurement (no repeated
+        // geometry query) so tests can check the certificate against all gates.
+        if (earlyRejected) this.debugJointEarlyRejection(constraint, {
+            boundaryMeritLowerBound: constraint._jointBoundaryResidual / this.coupledContainmentTolerance,
+            rejectionThreshold
+        }, measurement);
+        return measurement;
     }
 
     resetPerformanceStats() {
@@ -4554,6 +4594,8 @@ export class EndovascularPhysicsWorld {
         const innerWeight0 = 1 - innerT;
         const outerWeight0 = 1 - outerT;
         record.kind = kind;
+        // The Jacobian must use the same radial cusp branch as this collector.
+        record.normalRadialEpsilon = EPSILON;
         record.feature = feature;
         record.gap = gap;
         record.violation = Math.max(0, -gap);
@@ -4815,9 +4857,22 @@ export class EndovascularPhysicsWorld {
                 return records;
             }
         }
-        let fallbackNormalX = 1;
-        let fallbackNormalY = 0;
-        let fallbackNormalZ = 0;
+        // A portal may have no valid side sample to supply its azimuth. Its
+        // fallback must still be radial: a world-X vector is not perpendicular
+        // to an oblique catheter and gives a non-unit fillet normal on axis.
+        let fallbackNormalX = 1 - axisX * axisX;
+        let fallbackNormalY = -axisX * axisY;
+        let fallbackNormalZ = -axisX * axisZ;
+        let fallbackLength = magnitude3(fallbackNormalX, fallbackNormalY, fallbackNormalZ);
+        if (fallbackLength <= EPSILON) {
+            fallbackNormalX = -axisY * axisX;
+            fallbackNormalY = 1 - axisY * axisY;
+            fallbackNormalZ = -axisY * axisZ;
+            fallbackLength = magnitude3(fallbackNormalX, fallbackNormalY, fallbackNormalZ);
+        }
+        fallbackNormalX /= fallbackLength;
+        fallbackNormalY /= fallbackLength;
+        fallbackNormalZ /= fallbackLength;
         let worstGap = Infinity;
         let worstInnerT = 0;
         let worstOuterT = 0;

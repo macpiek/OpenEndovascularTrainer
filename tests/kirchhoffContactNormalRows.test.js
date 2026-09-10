@@ -53,6 +53,28 @@ function updateRecord(f) {
     f.record.innerWeights = [1 - g.t, g.t];
 }
 
+test('near-axis fillet Jacobian retains the radial branch selected by the runtime collector', () => {
+    const f = fixture();
+    f.inner.y.fill(5e-10); f.inner.z.fill(0);
+    // Runtime uses a fallback azimuth below 1e-8 mm, while the generic
+    // derivative's 1e-12 threshold would select the tiny y offset instead.
+    const axial = (f.inner.x[0] + f.inner.x[1]) / 2 - f.outer.x[1];
+    const u = axial + fillet, v = 5e-10 - (lumen - radius + fillet), distance = Math.hypot(u, v);
+    f.record.normal = [-u / distance, 0, -v / distance];
+    f.record.normalRadialEpsilon = 1e-8;
+    const normal = [...f.record.normal], lambda = f.record.manifoldContact.normalLambda;
+    const rows = buildKirchhoffContactNormalGradients(f.constraint, f.record);
+    assert.ok(rows.length > 0 && rows.every(row => Number.isFinite(row.value)));
+    assert.ok(f.record.normalGradientDiagnostics.normalMismatch < 1e-12);
+    assert.equal(f.record.normalGradientDiagnostics.directionalAtAxis, true);
+    assert.deepEqual(f.record.normal, normal);
+    assert.equal(f.record.manifoldContact.normalLambda, lambda);
+    delete f.record.normalRadialEpsilon;
+    assert.throws(() => buildKirchhoffContactNormalGradients(f.constraint, f.record), /geometry changed/);
+    f.record.normalRadialEpsilon = -1;
+    assert.throws(() => buildKirchhoffContactNormalGradients(f.constraint, f.record), /radial epsilon/);
+});
+
 function dense(rows) {
     const result = Array.from({ length: 2 }, () => new Float64Array(12));
     for (const row of rows) result[row.side][row.dof] += row.value;
