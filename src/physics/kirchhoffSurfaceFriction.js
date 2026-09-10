@@ -2,6 +2,14 @@ const EPSILON = 1e-12;
 const PARTITION_TOLERANCE = 1e-8;
 const XYZ = ['x', 'y', 'z'];
 const XYZW = ['X', 'Y', 'Z', 'W'];
+// Only shared within one synchronous evaluation. The monotonic token and
+// weak body caches live outside rollback state; restored snapshots cannot
+// resurrect a token for stale trial quaternions.
+let evaluationEpoch = 0;
+const quaternionCache = new WeakMap();
+/** Start a synchronous contact batch. Never reuse its token after pose edits,
+ * history edits or rollback; each subsequent build/measure starts a new one. */
+export function beginKirchhoffSurfaceEvaluation() { return ++evaluationEpoch; }
 
 function finite(value, name) {
     if (!Number.isFinite(value)) throw new TypeError(`${name} must be finite`);
@@ -42,12 +50,29 @@ function projectPlane(source, normal, out) {
     return normalize(out);
 }
 
-function quaternion(body, segment, previous, out) {
+function quaternion(body, segment, previous, out, epoch) {
+    let cache, slot;
+    if (epoch) {
+        cache = quaternionCache.get(body);
+        if (!cache || cache.stamps.length !== body.count * 2) {
+            cache = { stamps: new Float64Array(body.count * 2), values: new Float64Array(body.count * 8) };
+            quaternionCache.set(body, cache);
+        }
+        slot = segment * 2 + Number(previous);
+        if (cache.stamps[slot] === epoch) {
+            for (let i = 0; i < 4; i++) out[i] = cache.values[slot * 4 + i];
+            return out;
+        }
+    }
     const prefix = previous ? 'previousOrientation' : 'orientation';
     for (let i = 0; i < 4; i++) out[i] = finite(body[prefix + XYZW[i]]?.[segment], `${prefix}[${segment}]`);
     const length = Math.hypot(...out);
     if (length <= EPSILON) throw new RangeError('Material quaternion must have nonzero norm');
     for (let i = 0; i < 4; i++) out[i] /= length;
+    if (cache) {
+        for (let i = 0; i < 4; i++) cache.values[slot * 4 + i] = out[i];
+        cache.stamps[slot] = epoch;
+    }
     return out;
 }
 
@@ -71,7 +96,7 @@ function scratchState(out) {
         center: v3(), previousCenter: v3(), lever: v3(), localLever: v3(), previousLever: v3(),
         displacement: v3(), q: new Float64Array(4), previousQ: new Float64Array(4),
         director: v3(), witnessDirection: v3(), witness: v3() });
-    const row = () => ({ strain: 0, alpha: 0, lambda: 0, lower: -Infinity, upper: Infinity, gradients: [] });
+    const row = () => ({ strain: 0, alpha: 0, lambda: 0, lower: -Infinity, upper: Infinity, gradients: [], gradientPool: [] });
     const state = out._surfaceScratch = { sides: [side(), side()], bodies: [null, null], radii: new Float64Array(2), torque: v3(), localTorque: v3(),
         axial: v3(), oldForce: v3(), normal: v3(), u: v3(), v: v3(),
         rows: [row(), row()], basisZ: new Float64Array([0, 0, 1]) };
@@ -90,35 +115,43 @@ function scratchState(out) {
     return state;
 }
 
-function readStencil(body, record, contact, sideIndex, out) {
+function readStencil(body, record, contact, sideIndex, out, evaluation) {
     const prefix = sideIndex === 0 ? '_inner' : '_outer';
-    const segment = record[prefix + 'SegmentIndex'] ?? contact[sideIndex === 0 ? 'innerSegmentIndex' : 'outerSegmentIndex'];
-    if (!Number.isInteger(segment) || segment < 0 || segment + 1 >= body.count) throw new RangeError('Invalid contact material segment');
-    const nodes = record[prefix + 'NodeIndices'];
-    const weights = nodes ? record[prefix + 'NodeWeights'] : record[sideIndex === 0 ? 'innerWeights' : 'outerWeights'];
-    const count = nodes ? record[prefix + 'NodeCount'] : 2;
-    if (!Number.isInteger(count) || count < 1 || count > body.count || !weights || weights.length < count) throw new RangeError('Invalid contact interpolation stencil');
-    if (nodes && nodes.length < count) throw new RangeError('Contact interpolation nodes are missing');
+    const prepared = evaluation?.stencils?.[sideIndex];
+    const segment = prepared?.segment ?? record[prefix + 'SegmentIndex'] ?? contact[sideIndex === 0 ? 'innerSegmentIndex' : 'outerSegmentIndex'];
+    const nodes = prepared?.nodes ?? record[prefix + 'NodeIndices'];
+    const weights = prepared?.weights ?? (nodes ? record[prefix + 'NodeWeights'] : record[sideIndex === 0 ? 'innerWeights' : 'outerWeights']);
+    const count = prepared?.count ?? (nodes ? record[prefix + 'NodeCount'] : 2);
+    if (!prepared) {
+        if (!Number.isInteger(segment) || segment < 0 || segment + 1 >= body.count) throw new RangeError('Invalid contact material segment');
+        if (!Number.isInteger(count) || count < 1 || count > body.count || !weights || weights.length < count) throw new RangeError('Invalid contact interpolation stencil');
+        if (nodes && nodes.length < count) throw new RangeError('Contact interpolation nodes are missing');
+    }
     out.segment = segment; out.count = count;
     out.nodes.length = out.weights.length = count;
-    out.center.fill(0); out.previousCenter.fill(0);
+    // Coupled geometry has just validated and interpolated these same nodes.
+    // Borrow only for this call; previous poses are still read afresh.
+    const currentCenter = evaluation?.currentCenters?.[sideIndex];
+    if (currentCenter) out.center.set(currentCenter);
+    else out.center.fill(0);
+    out.previousCenter.fill(0);
     let total = 0;
     for (let i = 0; i < count; i++) {
         const node = nodes ? nodes[i] : segment + i;
-        if (!Number.isInteger(node) || node < 0 || node >= body.count) throw new RangeError('Contact interpolation node is outside body');
-        const weight = finite(weights[i], 'contact interpolation weight');
+        if (!prepared && (!Number.isInteger(node) || node < 0 || node >= body.count)) throw new RangeError('Contact interpolation node is outside body');
+        const weight = prepared ? weights[i] : finite(weights[i], 'contact interpolation weight');
         total += weight; out.nodes[i] = node; out.weights[i] = weight;
         for (let axis = 0; axis < 3; axis++) {
             const key = XYZ[axis];
-            out.center[axis] += finite(body[key]?.[node], `${key}[${node}]`) * weight;
+            if (!currentCenter) out.center[axis] += finite(body[key]?.[node], `${key}[${node}]`) * weight;
             out.previousCenter[axis] += finite(body['previous' + key.toUpperCase()]?.[node], `previous ${key}[${node}]`) * weight;
         }
     }
     // Negative cubic weights are allowed. Renormalizing malformed stencils
     // would change geometry and silently hide force/moment non-reciprocity.
     if (Math.abs(total - 1) > PARTITION_TOLERANCE) throw new RangeError(`Contact weights must sum to one (got ${total})`);
-    quaternion(body, segment, false, out.q);
-    quaternion(body, segment, true, out.previousQ);
+    quaternion(body, segment, false, out.q, evaluation?.epoch);
+    quaternion(body, segment, true, out.previousQ, evaluation?.epoch);
 }
 
 function unsupported(out, reason) {
@@ -128,7 +161,8 @@ function unsupported(out, reason) {
 
 function appendGradient(row, count, side, dof, value) {
     if (value === 0) return count;
-    const entry = row.gradients[count] ??= Object.seal({ side: 0, dof: 0, value: 0 });
+    const entry = row.gradientPool[count] ??= Object.seal({ side: 0, dof: 0, value: 0 });
+    row.gradients[count] = entry;
     entry.side = side; entry.dof = dof; entry.value = value;
     return count + 1;
 }
@@ -157,14 +191,30 @@ function appendGradient(row, count, side, dof, value) {
  * and consume one shared normal-load budget. Caller must retire the old twist
  * state/solver path on migration, not apply both. Inputs are never modified.
  * out and its arrays are reused; all returned views live until its next build.
+ * Optional evaluation is owned by the coupled geometry caller: its centers
+ * and stencils must have just been validated for this record and pose, and
+ * its epoch must belong to the current synchronous batch only.
  */
-export function buildKirchhoffSurfaceFriction(constraint, record, dt, out = {}) {
+export function buildKirchhoffSurfaceFriction(constraint, record, dt, out = {}, evaluation = null) {
+    return prepareSurfaceFriction(constraint, record, dt, out, true, evaluation);
+}
+
+/** Fresh surface motion and reaction components for residual evaluation.
+ * Shares all kinematics with assembly, but creates no gradient entries.
+ * Scalar rows remain available for diagnostics and the line-search merit.
+ */
+export function measureKirchhoffSurfaceFrictionState(constraint, record, dt, out = {}, evaluation = null) {
+    return prepareSurfaceFriction(constraint, record, dt, out, false, evaluation);
+}
+
+function prepareSurfaceFriction(constraint, record, dt, out, buildGradients, evaluation) {
     if (!Number.isFinite(dt) || dt <= 0) throw new RangeError('Positive finite dt is required');
     const state = scratchState(out), bodies = state.bodies;
     bodies[0] = constraint?.innerBody; bodies[1] = constraint?.outerBody;
     if (!bodies[0] || !bodies[1] || bodies[0] === bodies[1]) throw new TypeError('Two distinct bodies are required');
     const contact = record?.manifoldContact;
     out.supported = false; out.reason = null; out.rows.length = 0;
+    out.kinematicsOnly = !buildGradients;
     out.group.normalContact = contact ?? null;
     if (!contact) return unsupported(out, 'no-manifold-contact');
     const normalLambda = nonNegative(contact.normalLambda, 'normalLambda');
@@ -178,7 +228,7 @@ export function buildKirchhoffSurfaceFriction(constraint, record, dt, out = {}) 
     out.diagnostics.requiresLegacyTwistRetirement = out.diagnostics.ignoredLegacyTwistLambda !== 0;
     vector(record.normal ?? contact.normal, state.normal, 'contact normal');
     if (!normalize(state.normal)) throw new RangeError('Contact normal must be nonzero');
-    for (let side = 0; side < 2; side++) readStencil(bodies[side], record, contact, side, state.sides[side]);
+    for (let side = 0; side < 2; side++) readStencil(bodies[side], record, contact, side, state.sides[side], evaluation);
     if (record.surfaceAxialTangent) {
         vector(record.surfaceAxialTangent, state.axial, 'surfaceAxialTangent');
         out.diagnostics.axialTangentSource = 'provided';
@@ -247,7 +297,7 @@ export function buildKirchhoffSurfaceFriction(constraint, record, dt, out = {}) 
         row.lambda = dot(direction, state.oldForce);
         row.alpha = 0; row.lower = -Infinity; row.upper = Infinity;
         let count = 0;
-        for (let side = 0; side < 2; side++) {
+        if (buildGradients) for (let side = 0; side < 2; side++) {
             const s = state.sides[side], sign = side === 0 ? 1 : -1;
             for (let i = 0; i < s.count; i++) for (let component = 0; component < 3; component++)
                 count = appendGradient(row, count, side, s.nodes[i] * 6 + component, sign * s.weights[i] * direction[component]);
@@ -261,6 +311,44 @@ export function buildKirchhoffSurfaceFriction(constraint, record, dt, out = {}) 
     }
     out.supported = true;
     out.diagnostics.motionSource = physicalMotion ? 'physical-velocity' : 'finite-pose-history';
+    return out;
+}
+
+/** J W J^T for the two tangents, without materializing gradient objects.
+ * Re-evaluate masks/masses on every call; this is not a geometry/state cache.
+ * Repeated stencil nodes are summed before squaring, as in assembled rows.
+ */
+export function measureKirchhoffSurfaceFrictionMobility(surface, out = new Float64Array(3)) {
+    const state = surface._surfaceScratch;
+    out.fill(0);
+    const add = (u, v, w) => {
+        out[0] += u * w * u; out[1] += u * w * v; out[2] += v * w * v;
+    };
+    for (let side = 0; side < 2; side++) {
+        const s = state.sides[side], body = state.bodies[side], sign = side === 0 ? 1 : -1;
+        const start = body.activeStart ?? 0, end = body.activeEnd ?? body.count - 1;
+        for (let i = 0; i < s.count; i++) {
+            const node = s.nodes[i];
+            if (s.nodes.indexOf(node) !== i || node < start || node > end) continue;
+            for (let axis = 0; axis < 3; axis++) {
+                let u = 0, v = 0;
+                for (let j = i; j < s.count; j++) if (s.nodes[j] === node) {
+                    u += sign * s.weights[j] * surface.axes[0][axis];
+                    v += sign * s.weights[j] * surface.axes[1][axis];
+                }
+                add(u, v, body.inverseMass[node]);
+            }
+        }
+        const node = s.segment;
+        if (node < start || node >= end || body.orientationControlCompliance === 0 && node === body.orientationControlSegment) continue;
+        const torques = s.mobilityTorques ??= [new Float64Array(3), new Float64Array(3)];
+        for (let axis = 0; axis < 2; axis++) {
+            cross(s.lever, surface.axes[axis], state.torque);
+            rotate(s.q, state.torque, torques[axis], true);
+        }
+        for (let axis = 0; axis < 3; axis++)
+            add(sign * torques[0][axis], sign * torques[1][axis], body['inverseInertia' + (axis + 1)][node]);
+    }
     return out;
 }
 

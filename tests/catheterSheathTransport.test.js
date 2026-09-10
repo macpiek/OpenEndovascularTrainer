@@ -6,10 +6,33 @@ import { PigtailCatheter } from '../src/pigtailCatheter.js';
 import { RodState } from '../src/physics/rodState.js';
 import { GuidewireTransport } from '../src/physics/guidewireTransport.js';
 import { SHEATH_BOUNDARY_EPSILON } from '../src/physics/sheathBoundary.js';
+import { catheterPhysicsNodeCount, catheterNodeMass, CATHETER_PHYSICS_SPACING_MM } from '../src/physics/catheterDiscretization.js';
+import { CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM } from '../src/pigtailCatheter.js';
 
 const dt = 1 / 120;
 const sheath = { start: { x: 7, y: -2, z: 3 }, end: { x: 7, y: 4, z: 11 } };
 const axis = [0, 0.6, 0.8];
+test('5 mm catheter retains the visible reservoir at full insertion and transports back across node boundaries', () => {
+    const spacing = CATHETER_PHYSICS_SPACING_MM;
+    const count = catheterPhysicsNodeCount(1000, CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM);
+    const mass = catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass);
+    const world = new EndovascularPhysicsWorld();
+    const body = world.createRod('catheter-feed', count, spacing, { ...DEFAULT_TOOL_PROFILES.catheter, mass });
+    const state = transportCatheterThroughSheath(body, sheath, 0, dt);
+    near(mass / spacing, DEFAULT_TOOL_PROFILES.catheter.mass / 4, 'linear mass density');
+    for (const progress of [0.25, 4.75, 5, 5.25, 999.75, 1000, 999.75, 5.25, 5, 4.75, 0]) {
+        transportCatheterThroughSheath(body, sheath, progress, dt, state);
+        near(body.materialCoordinate[count - 1], progress, 'distal material coordinate');
+        assert.ok(body.materialCoordinate[0] <= -CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM);
+        for (let i = 0; i < count - 1; i++) {
+            near(body.materialCoordinate[i + 1] - body.materialCoordinate[i], 5, 'material spacing');
+            near(body.restLength[i], 5, 'rest length');
+        }
+        assert.ok(body.activeStart >= 0 && body.activeStart < body.activeEnd);
+    }
+    assert.ok(body.pinned.every(value => value === 1), 'full withdrawal returns all nodes into the reservoir');
+});
+
 function fixture(progress = 26) {
     const world = new EndovascularPhysicsWorld();
     const body = world.createRod('catheter-feed', 21, 4, { ...DEFAULT_TOOL_PROFILES.catheter });
@@ -81,7 +104,7 @@ test('only prescribed sheath nodes receive signed axial feed velocity, including
             assert.equal(body.inverseMass[i], 0);
             for (const [a, name] of ['X', 'Y', 'Z'].entries()) {
                 const position = sheath.start[name.toLowerCase()] + axis[a] * body.materialCoordinate[i];
-                assert.equal(body[name.toLowerCase()][i], Math.fround(position), `axis position ${i}/${name}`);
+                near(body[name.toLowerCase()][i], position, `axis position ${i}/${name}`);
                 assert.equal(body['velocity' + name][i], Math.fround(axis[a] * speed), `feed velocity ${i}/${name}`);
             }
         }
@@ -120,7 +143,7 @@ test('reset reconstructs the complete reservoir and next feed starts at the rese
     for (let i = 0; i < body.count; i++) {
         assert.equal(body.pinned[i], 1);
         for (const [a, name] of ['X', 'Y', 'Z'].entries()) {
-            assert.equal(body[name.toLowerCase()][i], Math.fround(sheath.start[name.toLowerCase()] + axis[a] * body.materialCoordinate[i]), 'reset axis');
+            near(body[name.toLowerCase()][i], sheath.start[name.toLowerCase()] + axis[a] * body.materialCoordinate[i], 'reset axis');
             assert.equal(body['velocity' + name][i], 0);
         }
     }

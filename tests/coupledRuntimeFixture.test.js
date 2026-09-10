@@ -10,9 +10,10 @@ test('runtime settings and initial material state reproduce across independent i
     const a = createCoupledRuntimeFixture(), b = createCoupledRuntimeFixture();
     try {
         assert.deepEqual(a.config, COUPLED_RUNTIME_DEFAULTS);
-        assert.equal(a.catheter.pathSpacing, 4);
+        assert.equal(a.catheter.pathSpacing, 5);
+        assert.equal(a.catheterBody.segmentLength, 5);
         assert.equal(a.wireBody.count, 201);
-        assert.equal(a.catheterBody.count, 320);
+        assert.equal(a.catheterBody.count, 219);
         assert.equal(a.world.fixedDt, 1 / 120);
         assert.deepEqual(a.snapshot(), b.snapshot());
         for (let i = 0; i < 12; i++) {
@@ -31,9 +32,9 @@ test('runtime settings and initial material state reproduce across independent i
 test('source-audited runtime defaults fail visibly if simulator constants drift', () => {
     const runtime = fs.readFileSync(new URL('../src/simulator.js', import.meta.url), 'utf8');
     for (const [name, expected] of Object.entries({
-        segmentLength: 5, nodeCount: 201, catheterShaftStiffnessScale: 25,
-        catheterTipStiffnessScale: 5, guidewireShaftStiffnessScale: 10,
-        guidewireTipStiffnessScale: 4.55, guidewireRelaxationRate: 1, catheterRelaxationRate: 1
+        segmentLength: 5, nodeCount: 201, catheterShaftStiffnessScale: 58.1,
+        catheterTipStiffnessScale: 87, guidewireShaftStiffnessScale: 39,
+        guidewireTipStiffnessScale: 30.7, guidewireRelaxationRate: 1, catheterRelaxationRate: 1
     })) {
         const match = runtime.match(new RegExp(`(?:const|let) ${name} = ([\\d.]+);`));
         assert.equal(Number(match?.[1]), expected, `audit adapter after ${name} changes`);

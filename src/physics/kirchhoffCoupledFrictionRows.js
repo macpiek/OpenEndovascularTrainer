@@ -1,4 +1,4 @@
-import { buildKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
+import { buildKirchhoffSurfaceFriction, measureKirchhoffSurfaceFrictionState, beginKirchhoffSurfaceEvaluation, evaluateKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
 
 const EPSILON = 1e-12;
 const XYZ = ['x', 'y', 'z'];
@@ -35,19 +35,23 @@ function segmentIndex(record, side) {
         record.manifoldContact?.[side === 0 ? 'innerSegmentIndex' : 'outerSegmentIndex'];
 }
 
-function pointAtStencil(body, record, side, out) {
+function pointAtStencil(body, record, side, out, stencil) {
     const prefix = side === 0 ? '_inner' : '_outer';
     const nodes = record[prefix + 'NodeIndices'];
     const weights = nodes ? record[prefix + 'NodeWeights'] : record[side === 0 ? 'innerWeights' : 'outerWeights'];
     const count = nodes ? record[prefix + 'NodeCount'] : 2;
     const segment = segmentIndex(record, side);
     if (!Number.isInteger(segment) || segment < 0 || segment + 1 >= body.count ||
-        !Number.isInteger(count) || count < 1 || !weights || weights.length < count) throw new RangeError('Invalid contact stencil');
+        !Number.isInteger(count) || count < 1 || count > body.count || !weights || weights.length < count ||
+        nodes && nodes.length < count) throw new RangeError('Invalid contact stencil');
+    stencil.segment = segment; stencil.count = count;
+    stencil.nodes.length = stencil.weights.length = count;
     out.fill(0);
     let sum = 0;
     for (let i = 0; i < count; i++) {
         const node = nodes ? nodes[i] : segment + i, weight = finite(weights[i], 'contact weight');
         if (!Number.isInteger(node) || node < 0 || node >= body.count) throw new RangeError('Invalid contact node');
+        stencil.nodes[i] = node; stencil.weights[i] = weight;
         sum += weight;
         for (let axis = 0; axis < 3; axis++) out[axis] += weight * finite(body[XYZ[axis]][node], 'contact position');
     }
@@ -83,6 +87,7 @@ function geometryStorage(out) {
     if (out.point) return out;
     for (const key of ['point', 'normal', 'axialTangent', 'outerAxis', 'radial', 'innerCenter',
         'outerCenter', 'innerWitness', 'outerWitness', 'normalMomentResidual']) out[key] = vector();
+    out.stencils = [0, 1].map(() => ({ segment: 0, count: 0, nodes: [], weights: [] }));
     return out;
 }
 
@@ -103,8 +108,8 @@ export function prepareKirchhoffCoupledSurfaceGeometry(constraint, record, out =
     geometryStorage(out);
     if (!KINDS.has(record.kind) && !record.surfaceContactPoint) throw new RangeError(`Unknown surface feature ${record.kind}`);
     const inner = constraint.innerBody, outer = constraint.outerBody;
-    pointAtStencil(inner, record, 0, out.innerCenter);
-    pointAtStencil(outer, record, 1, out.outerCenter);
+    pointAtStencil(inner, record, 0, out.innerCenter, out.stencils[0]);
+    pointAtStencil(outer, record, 1, out.outerCenter, out.stencils[1]);
     normalize(readVector(record.normal, out.normal, 'normal'), 'normal');
     const segment = segmentIndex(record, 0);
     const radius = Math.max(finite(inner.nodeRadius?.[segment] ?? inner.radius, 'wire radius'),
@@ -178,13 +183,19 @@ function makeEntry() {
  * no solver reaction. No source state is changed by build or append.
  */
 export function buildKirchhoffCoupledFrictionRows(constraint, dt, out = {}) {
+    return prepareCoupledFrictionBatch(constraint, dt, out, true);
+}
+
+function prepareCoupledFrictionBatch(constraint, dt, out, buildRows) {
     if (!Number.isFinite(dt) || dt <= 0) throw new RangeError('Positive finite dt is required');
     batchStorage(out);
     out.rows.length = out.groups.length = out.entries.length = out.skipped.length = 0;
     out.constraint = constraint; out.dt = dt; out.rowOffset = 0;
+    out.kinematicsOnly = !buildRows;
     out.committed = false; out.appended = false; out.version = (out.version ?? 0) + 1;
     out.maximumNormalMomentResidual = 0; out.effectiveFilletCount = 0;
     if (constraint.surfaceMotion?.phase === 'bias') return out;
+    const epoch = beginKirchhoffSurfaceEvaluation();
     for (const record of constraint.kirchhoffContacts ?? []) {
         if (!record.manifoldContact) { out.skipped.push({ record, reason: 'no-manifold-contact' }); continue; }
         const index = out.entries.length, entry = out._pool[index] ??= makeEntry();
@@ -196,13 +207,17 @@ export function buildKirchhoffCoupledFrictionRows(constraint, dt, out = {}) {
         if (!entry.view || Object.getPrototypeOf(entry.view) !== record) entry.view = Object.create(record);
         entry.view.surfaceContactPoint = entry.geometry.point;
         entry.view.surfaceAxialTangent = entry.geometry.axialTangent;
-        const surface = buildKirchhoffSurfaceFriction(constraint, entry.view, dt, entry.surface);
+        const evaluation = entry.evaluation ??= { epoch: 0,
+            currentCenters: [entry.geometry.innerCenter, entry.geometry.outerCenter], stencils: entry.geometry.stencils };
+        evaluation.epoch = epoch;
+        const surface = (buildRows ? buildKirchhoffSurfaceFriction : measureKirchhoffSurfaceFrictionState)(constraint, entry.view, dt, entry.surface, evaluation);
         if (!surface.supported) throw new RangeError(`Surface feature ${record.kind}: ${surface.reason}`);
-        entry.rowStart = out.rows.length;
-        for (const row of surface.rows) out.rows.push(row);
+        entry.rowStart = out.entries.length * 2;
+        if (buildRows) for (const row of surface.rows) out.rows.push(row);
         const group = surface.group;
         group.rowIndices[0] = entry.rowStart; group.rowIndices[1] = entry.rowStart + 1;
-        out.groups.push(group); out.entries.push(entry);
+        out.groups.push(group);
+        out.entries.push(entry);
         out.maximumNormalMomentResidual = Math.max(out.maximumNormalMomentResidual, Math.hypot(...entry.geometry.normalMomentResidual));
         out.effectiveFilletCount += Number(entry.geometry.effectiveFillet);
     }
@@ -212,6 +227,7 @@ export function buildKirchhoffCoupledFrictionRows(constraint, dt, out = {}) {
 /** Append after boundary/tool rows. Indices are relative to ALL additionalRows.
  * Records offset for commit; append once per freshly built batch. */
 export function appendKirchhoffCoupledFrictionRows(batch, additionalRows, groups) {
+    if (batch.kinematicsOnly) throw new Error('Residual batch has no solver rows');
     if (batch.appended) throw new Error('Friction batch was already appended; rebuild before reuse');
     if (!Array.isArray(additionalRows) || !Array.isArray(groups)) throw new TypeError('Row and group collectors must be arrays');
     batch.rowOffset = additionalRows.length;
@@ -255,6 +271,7 @@ function writeReactionDiagnostics(entry, components, phase) {
  * Commit exactly once, BEFORE rebuilding geometry/batch. Validation is atomic.
  */
 export function commitKirchhoffCoupledFrictionMultipliers(batch, additionalIncrement, scale = 1) {
+    if (batch.kinematicsOnly) throw new Error('Residual batch cannot apply solver reactions');
     if (!Number.isFinite(scale) || scale < 0 || scale > 1) throw new RangeError('Shared scale must lie in [0,1]');
     if (batch.committed) throw new Error('Friction multipliers were already committed');
     if (!additionalIncrement || additionalIncrement.length < batch.rowOffset + batch.rows.length) throw new RangeError('Missing friction increments');
@@ -297,11 +314,13 @@ export function commitKirchhoffCoupledFrictionMultipliers(batch, additionalIncre
  * units. inverseMobility is multiplier/mm. Does not clip lambda or apply any
  * mechanics. Optional diagnostic refresh expresses committed TOTAL reactions
  * at the new contact geometry; actual increment diagnostics stay untouched.
+ * Recomputes fresh kinematics without solver gradient rows. The borrowed
+ * _batch supports diagnostics/merit only and cannot be appended or committed.
  */
 export function measureKirchhoffCoupledFrictionResidual(constraint, dt, out = {},
     { inverseMobility = 1, updateDiagnostics = true } = {}) {
     if (!Number.isFinite(inverseMobility) || inverseMobility <= 0) throw new RangeError('inverseMobility must be positive and finite');
-    const batch = buildKirchhoffCoupledFrictionRows(constraint, dt, out._batch ??= {});
+    const batch = prepareCoupledFrictionBatch(constraint, dt, out._batch ??= {}, false);
     out.maximumResidual = out.maximumFeasibilityResidual = out.maximumStationarityResidual = 0;
     out.maximumDisplacementResidualMm = out.maximumConeViolation = 0;
     out.maximumNormalMomentResidual = batch.maximumNormalMomentResidual;

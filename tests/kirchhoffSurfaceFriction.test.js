@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
-import { buildKirchhoffSurfaceFriction, projectKirchhoffSurfaceFriction,
+import { buildKirchhoffSurfaceFriction, measureKirchhoffSurfaceFrictionState, projectKirchhoffSurfaceFriction,
     evaluateKirchhoffSurfaceFriction } from '../src/physics/kirchhoffSurfaceFriction.js';
 import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
 
@@ -13,6 +13,20 @@ const subtract = (a, b) => a.map((value, i) => value - b[i]);
 const norm = vector => Math.hypot(...vector);
 const rotate = (q, vector) => new THREE.Vector3(...vector).applyQuaternion(q).toArray();
 const aligned = () => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0));
+
+test('gradient objects survive an intervening residual-only evaluation', () => {
+    const f = fixture(), out = {};
+    const full = buildKirchhoffSurfaceFriction(f.constraint, f.record, dt, out);
+    const entries = full.rows.map(row => [...row.gradients]);
+    const values = structuredClone(entries);
+    measureKirchhoffSurfaceFrictionState(f.constraint, f.record, dt, out);
+    assert.ok(out.rows.every(row => row.gradients.length === 0));
+    buildKirchhoffSurfaceFriction(f.constraint, f.record, dt, out);
+    for (let axis = 0; axis < 2; axis++) {
+        assert.deepEqual(out.rows[axis].gradients, values[axis]);
+        for (let i = 0; i < entries[axis].length; i++) assert.equal(out.rows[axis].gradients[i], entries[axis][i]);
+    }
+});
 
 function getQ(body, segment = 0, previous = false) {
     const prefix = previous ? 'previousOrientation' : 'orientation';

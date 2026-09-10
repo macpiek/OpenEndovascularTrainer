@@ -1,3 +1,4 @@
+import { CATHETER_PHYSICS_SPACING_MM, catheterPhysicsNodeCount, catheterNodeMass } from '../../src/physics/catheterDiscretization.js';
 import * as THREE from 'three';
 import { DEFAULT_TOOL_PROFILES, EndovascularPhysicsWorld } from '../../src/physics/endovascularPhysicsWorld.js';
 import { RodState } from '../../src/physics/rodState.js';
@@ -28,10 +29,11 @@ export const COUPLED_RUNTIME_DEFAULTS = Object.freeze({
     jointMotionMode: 'position-history',
     fixedDt: 1 / 120, guidewireLength: 1000, guidewireTargetMm: 999.9,
     guidewireSpacing: 5, guidewireType: 'glidewire',
-    guidewireShaftStiffness: 10, guidewireTipStiffness: 4.55,
-    catheterType: 'berenstein', catheterShaftStiffness: 25, catheterTipStiffness: 5,
+    guidewireShaftStiffness: 39, guidewireTipStiffness: 30.7,
+    catheterType: 'berenstein', catheterShaftStiffness: 58.1, catheterTipStiffness: 87,
     relaxationRate: 1, catheterRelaxationRate: 1, maximumCatheterMm: 1000,
-    catheterPhysicsSpacing: 4, catheterBodyCount: 320,
+    catheterPhysicsSpacing: CATHETER_PHYSICS_SPACING_MM,
+    catheterBodyCount: catheterPhysicsNodeCount(1000, CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM),
     wireAdvanceRate: 44, catheterAdvanceRate: 52, catheterWithdrawRate: 32,
     rotationRate: Math.PI * 0.9
 });
@@ -45,6 +47,8 @@ export function createCoupledRuntimeFixture({
     World = EndovascularPhysicsWorld, coupledSystem = null, jointMotionMode = 'position-history', ...overrides
 } = {}) {
     const config = { ...COUPLED_RUNTIME_DEFAULTS, ...overrides, jointMotionMode };
+    if (!Object.hasOwn(overrides, 'catheterBodyCount')) config.catheterBodyCount = catheterPhysicsNodeCount(
+        config.maximumCatheterMm, CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM, config.catheterPhysicsSpacing);
     let dt = config.fixedDt;
     const spacing = config.guidewireSpacing;
     const count = Math.round(config.guidewireLength / spacing) + 1;
@@ -102,7 +106,10 @@ export function createCoupledRuntimeFixture({
         applyWireBoundary();
     }
     applyWireProfile();
-    const catheterBody = world.createRod('catheter', config.catheterBodyCount, 4, { ...DEFAULT_TOOL_PROFILES.catheter });
+    const catheterBody = world.createRod('catheter', config.catheterBodyCount, config.catheterPhysicsSpacing, {
+        ...DEFAULT_TOOL_PROFILES.catheter,
+        mass: catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass, config.catheterPhysicsSpacing)
+    });
     catheter.syncXpbdBody(catheterBody);
     world.addSheath({ start: vessel.sheath.start, end: vessel.sheath.end,
         innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM,

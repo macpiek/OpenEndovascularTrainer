@@ -1,3 +1,4 @@
+import { CATHETER_PHYSICS_SPACING_MM, catheterPhysicsNodeCount, catheterNodeMass } from './physics/catheterDiscretization.js';
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
 import { ConstraintStageProfile } from './physics/constraintStageProfile.js';
 import { SHORT_CATHETER_BENCHMARK_MODE, SHORT_CATHETER_BENCHMARK_DURATION_MS,
@@ -567,10 +568,10 @@ let xpbdCatheterBody = null;
 let xpbdContainment = null;
 let xpbdExternalToolContact = null;
 let xpbdPortalInnerDriven = true;
-let catheterShaftStiffnessScale = 25;
-let catheterTipStiffnessScale = 5;
-let guidewireShaftStiffnessScale = 10;
-let guidewireTipStiffnessScale = 4.55;
+let catheterShaftStiffnessScale = 58.1;
+let catheterTipStiffnessScale = 87;
+let guidewireShaftStiffnessScale = 39;
+let guidewireTipStiffnessScale = 30.7;
 const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
 const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
 const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
@@ -1666,8 +1667,11 @@ xpbdWireBody.syncFromRodState(wire);
 // frames once without deriving a manufactured rest shape from that pose.
 xpbdWireBody.captureKirchhoffRestConfiguration({ captureRestRotation: false });
 applyActiveGuidewireKirchhoffProfile();
-xpbdCatheterBody = endovascularWorld.createRod('catheter', 320, 4, {
-    ...DEFAULT_TOOL_PROFILES.catheter,
+xpbdCatheterBody = endovascularWorld.createRod('catheter',
+    catheterPhysicsNodeCount(pigtailCatheter.maxLength, CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM),
+    CATHETER_PHYSICS_SPACING_MM, {
+        ...DEFAULT_TOOL_PROFILES.catheter,
+        mass: catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass)
     });
 pigtailCatheter.syncXpbdBody(xpbdCatheterBody);
 endovascularWorld.addSheath({
@@ -3319,7 +3323,7 @@ function readCompositeAppToolSources() {
             // rotations retain the solver's own unwrapped angles.
             unwrappedAngles: new Float64Array(nodes.length - 1),
             referenceWindingTurns: new Float64Array(nodes.length - 2),
-            massPerMaterialLength: body.mass / (isWire ? segmentLength : 4),
+            massPerMaterialLength: body.mass / body.segmentLength,
             profile: {type: isWire ? activeGuidewireType : pigtailCatheter.type, tipMaterialCoordinate: 0,
                 shaftStiffnessScale: isWire ? guidewireShaftStiffnessScale : catheterShaftStiffnessScale,
                 tipStiffnessScale: isWire ? guidewireTipStiffnessScale : catheterTipStiffnessScale}});

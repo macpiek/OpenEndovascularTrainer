@@ -3,6 +3,9 @@ import test from 'node:test';
 import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
 import { KirchhoffContactManifold } from '../src/physics/kirchhoffContactManifold.js';
 import { evaluateKirchhoffLumenSegmentContact } from '../src/physics/kirchhoffLumenContact.js';
+import { buildKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from '../src/physics/kirchhoffSurfaceFriction.js';
+import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../src/physics/kirchhoffCoupledTrialState.js';
+import { measureKirchhoffFrictionMerit } from '../src/physics/kirchhoffFrictionMerit.js';
 import { prepareKirchhoffCoupledSurfaceGeometry, buildKirchhoffCoupledFrictionRows,
     appendKirchhoffCoupledFrictionRows, commitKirchhoffCoupledFrictionMultipliers,
     measureKirchhoffCoupledFrictionResidual } from '../src/physics/kirchhoffCoupledFrictionRows.js';
@@ -13,6 +16,115 @@ const sub = (a, b) => a.map((value, i) => value - b[i]);
 const add = (a, b) => a.map((value, i) => value + b[i]);
 const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+
+test('shared segment orientations are read once per evaluation and refreshed on the next call', () => {
+    const f = fixture();
+    for (let i = 0; i < 6; i++) f.record();
+    const source = f.outer.orientationX;
+    let reads = 0;
+    f.outer.orientationX = new Proxy(source, { get(target, key) {
+        if (key === '0') reads++;
+        return Reflect.get(target, key, target);
+    } });
+    const out = {};
+    buildKirchhoffCoupledFrictionRows(f.constraint, dt, out);
+    assert.equal(reads, 1);
+    source[0] += 0.1;
+    buildKirchhoffCoupledFrictionRows(f.constraint, dt, out);
+    assert.equal(reads, 2, 'no quaternion cache survives a geometry evaluation');
+    f.outer.orientationX = source;
+    for (const entry of out.entries) {
+        const uncached = buildKirchhoffSurfaceFriction(f.constraint, entry.view, dt);
+        assert.deepEqual(entry.surface.rows, uncached.rows);
+        assert.deepEqual(entry.surface.relativeSurfaceDisplacement, uncached.relativeSurfaceDisplacement);
+    }
+});
+
+test('shared geometry and row pools remain fresh after topology changes and full trial rollback', () => {
+    const f = fixture();
+    for (const kind of ['side', 'material-side', 'distal-fillet', 'distal-rim', 'sliding-rim']) f.record(kind);
+    const batch = f.constraint._jointFrictionBatch = buildKirchhoffCoupledFrictionRows(f.constraint, dt);
+    const baseline = batch.entries.map(e => structuredClone({ rows: e.surface.rows, slip: e.surface.relativeSurfaceDisplacement }));
+    const snapshot = captureKirchhoffCoupledTrialState(f.constraint, { world: f.world });
+    for (let trial = 0; trial < 3; trial++) {
+        const record = f.constraint.kirchhoffContacts[0];
+        record._innerSegmentIndex = record.manifoldContact.innerSegmentIndex = 1;
+        record.innerWeights[0] = 0.2; record.innerWeights[1] = 0.8;
+        f.inner.x[1] += 0.02;
+        f.outer.previousOrientationY[0] += 0.07;
+        record.manifoldContact.normalLambda = 0.01;
+        buildKirchhoffCoupledFrictionRows(f.constraint, dt, batch);
+        for (const entry of batch.entries) {
+            const uncached = buildKirchhoffSurfaceFriction(f.constraint, entry.view, dt);
+            assert.deepEqual(entry.surface.rows.map(r => r.gradients), uncached.rows.map(r => r.gradients));
+            assert.deepEqual(entry.surface.relativeSurfaceDisplacement, uncached.relativeSurfaceDisplacement);
+        }
+        restoreKirchhoffCoupledTrialState(snapshot);
+        buildKirchhoffCoupledFrictionRows(f.constraint, dt, batch);
+        for (let i = 0; i < baseline.length; i++) {
+            assert.deepEqual(batch.entries[i].surface.rows, baseline[i].rows);
+            assert.deepEqual(batch.entries[i].surface.relativeSurfaceDisplacement, baseline[i].slip);
+        }
+    }
+});
+
+test('residual-only contact evaluation matches full rows through motion, load changes and restoration', () => {
+    const f = fixture(), out = {};
+    for (const kind of ['side', 'material-side', 'distal-fillet', 'distal-rim', 'sliding-rim']) f.record(kind);
+    const duplicate = f.constraint.kirchhoffContacts[1];
+    Object.assign(duplicate, { _innerNodeIndices: [0, 1, 0, 2], _innerNodeWeights: [0.6, 0.3, -0.1, 0.2], _innerNodeCount: 4 });
+    const initial = { x: f.inner.x.slice(), q: f.inner.orientationZ.slice() };
+    for (let step = 0; step < 24; step++) {
+        const restore = step % 4 === 3;
+        f.inner.x[0] = restore ? initial.x[0] : initial.x[0] + 0.003 * step;
+        f.inner.orientationZ[0] = restore ? initial.q[0] : 0.01 * step;
+        f.inner.activeStart = step % 3;
+        f.inner.orientationControlSegment = 0;
+        f.inner.orientationControlCompliance = step % 2 ? 0 : 1;
+        f.constraint.axialFriction = step % 3 ? 0.2 : 0;
+        f.constraint.torsionalFriction = step % 2 ? 0.2 : 0.4;
+        for (const record of f.constraint.kirchhoffContacts) {
+            record.gap = restore ? -0.0595 : -0.03;
+            record.normal = restore ? [0, 1, 0] : [0.1 * Math.sin(step), 1, 0.2 * Math.cos(step)];
+            record.manifoldContact.normal = record.normal;
+            record.manifoldContact.normalLambda = step % 4 ? 2 : 0;
+            record.manifoldContact.tangentLambda[0] = restore ? 0.2 : step * 0.02;
+        }
+        if (step >= 12) f.constraint.surfaceMotion = { dt, bodies: [f.inner, f.outer] };
+        const positions = f.inner.x.slice(), reactions = f.constraint.kirchhoffContacts.map(r => [...r.manifoldContact.tangentLambda]);
+        const full = buildKirchhoffCoupledFrictionRows(f.constraint, dt);
+        const light = measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out);
+        assert.equal(light._batch.rows.length, 0, 'measurement never assembles solver rows');
+        let residual = 0, feasibility = 0, stationarity = 0, displacement = 0, cone = 0;
+        for (let i = 0; i < full.entries.length; i++) {
+            const entry = full.entries[i], actual = light._batch.entries[i];
+            for (let axis = 0; axis < 2; axis++) {
+                assert.equal(actual.surface.rows[axis].strain, entry.surface.rows[axis].strain);
+                assert.equal(actual.surface.rows[axis].lambda, entry.surface.rows[axis].lambda);
+                assert.equal(actual.surface.rows[axis].gradients.length, 0);
+            }
+            const expectedLocalMerit = measureKirchhoffFrictionMerit({ entries: [entry] }).maximumMm;
+            assert.ok(Math.abs(measureKirchhoffFrictionMerit({ entries: [actual] }).maximumMm - expectedLocalMerit) < 1e-12);
+            const lambda = entry.surface.rows.map(r => r.lambda), slip = entry.surface.rows.map(r => r.strain);
+            const r = evaluateKirchhoffSurfaceFriction(lambda, slip, entry.contact.normalLambda, entry.surface.group.mu);
+            const kkt = evaluateKirchhoffSurfaceFrictionKKT(lambda, slip, entry.contact.normalLambda, entry.surface.group.mu);
+            residual = Math.max(residual, r.residual); feasibility = Math.max(feasibility, r.feasibilityResidual);
+            stationarity = Math.max(stationarity, r.stationarityResidual);
+            displacement = Math.max(displacement, kkt.residualMm); cone = Math.max(cone, kkt.coneViolation);
+        }
+        assert.deepEqual([light.maximumResidual, light.maximumFeasibilityResidual, light.maximumStationarityResidual,
+            light.maximumDisplacementResidualMm, light.maximumConeViolation], [residual, feasibility, stationarity, displacement, cone]);
+        const expectedMerit = measureKirchhoffFrictionMerit(full).maximumMm;
+        assert.ok(Math.abs(measureKirchhoffFrictionMerit(light._batch).maximumMm - expectedMerit) < 1e-12);
+        assert.deepEqual(f.inner.x, positions);
+        assert.deepEqual(f.constraint.kirchhoffContacts.map(r => [...r.manifoldContact.tangentLambda]), reactions);
+        assert.throws(() => appendKirchhoffCoupledFrictionRows(light._batch, [], []), /no solver rows/);
+        assert.throws(() => commitKirchhoffCoupledFrictionMultipliers(light._batch, []), /cannot apply/);
+    }
+    f.constraint.kirchhoffContacts.length = 0;
+    assert.equal(measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out).contactCount, 0);
+    assert.equal(measureKirchhoffFrictionMerit(out._batch).maximumMm, 0);
+});
 
 function fixture(count = 6) {
     const world = new EndovascularPhysicsWorld({ fixedDt: dt });

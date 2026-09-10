@@ -1,3 +1,4 @@
+import { CATHETER_PHYSICS_SPACING_MM } from './physics/catheterDiscretization.js';
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
 import { transportCatheterThroughSheath } from './physics/catheterSheathTransport.js';
 import * as THREE from 'three';
@@ -161,7 +162,7 @@ export class PigtailCatheter {
         tailProgressRef,
         vessel = null,
         maxLength = 1000,
-        physicsSpacing = DEFAULT_PATH_SPACING,
+        physicsSpacing = CATHETER_PHYSICS_SPACING_MM,
         retainMaterialTip = false
     }) {
         this.wire = wire;
