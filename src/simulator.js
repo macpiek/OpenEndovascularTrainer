@@ -3448,8 +3448,10 @@ function prepareSimulationStep(dt) {
             startNode: firstContainedNode,
             endNode: Math.max(firstContainedNode, lastContainedNode),
             innerArcOffset:
-                firstContainedNode * segmentLength - guidewireLength + inserted,
-            containedLength: Math.min(pigtailCatheter.progress, inserted),
+                firstContainedNode * segmentLength - guidewireLength + inserted -
+                    (pigtailCatheter.physicsLumenOrigin ?? 0),
+            containedLength: Math.min(pigtailCatheter.progress, inserted) -
+                (pigtailCatheter.physicsLumenOrigin ?? 0),
             enforceDistalPortal: true
         });
 
@@ -3511,7 +3513,7 @@ function prepareSimulationStep(dt) {
             xpbdWireBody.activeEnd - 1,
             firstExternalSegment + 16
         );
-        xpbdExternalToolContact.startSegmentB = Math.max(0, catheterEndSegment - 8);
+        xpbdExternalToolContact.startSegmentB = Math.max(xpbdCatheterBody.activeStart, catheterEndSegment - 8);
         xpbdExternalToolContact.endSegmentB = catheterEndSegment;
 
         // Vessel-wall contact already removes forbidden normal motion and

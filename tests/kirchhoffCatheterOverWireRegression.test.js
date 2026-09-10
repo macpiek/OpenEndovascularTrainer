@@ -217,11 +217,11 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
                 endNode: Math.max(firstInsertedNode, lastContainedNode),
                 innerArcOffset:
                     firstInsertedNode * guidewireSpacing -
-                    guidewireLength + guidewireInserted,
+                    guidewireLength + guidewireInserted - catheter.physicsLumenOrigin,
                 containedLength: Math.min(
                     catheter.progress,
                     guidewireInserted
-                ),
+                ) - catheter.physicsLumenOrigin,
                 enforceDistalPortal: true
             });
             wireBody.projectionVelocityRetention = containment.enabled
@@ -425,10 +425,13 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         }
         const inlet = catheter.physicsLumenStartNode;
         const tip = catheterBody.activeEnd;
+        const sheathAxisLength = Math.hypot(sheath.end.x - sheath.start.x,
+            sheath.end.y - sheath.start.y, sheath.end.z - sheath.start.z);
+        const inletCoordinate = catheterBody.materialCoordinate[inlet];
         const inletError = Math.hypot(
-            catheterBody.x[inlet] - sheath.start.x,
-            catheterBody.y[inlet] - sheath.start.y,
-            catheterBody.z[inlet] - sheath.start.z
+            catheterBody.x[inlet] - sheath.start.x - (sheath.end.x - sheath.start.x) / sheathAxisLength * inletCoordinate,
+            catheterBody.y[inlet] - sheath.start.y - (sheath.end.y - sheath.start.y) / sheathAxisLength * inletCoordinate,
+            catheterBody.z[inlet] - sheath.start.z - (sheath.end.z - sheath.start.z) / sheathAxisLength * inletCoordinate
         );
         const finalWorldStats = world.getStats();
         const finalCatheterStats = finalWorldStats.bodies.find(
@@ -521,9 +524,10 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         }
         assert.equal(
             catheterBody.controlEnabled.findIndex(value => value === 1),
-            inlet,
-            'proximal feed must act at the physical introducer inlet'
+            -1,
+            'material passes through the sheath without a fixed spatial inlet node'
         );
+        assert.equal(catheterBody.pinned[inlet], 1, 'proximal material is prescribed inside the sheath');
         assert.ok(inletError < 0.5,
             `catheter slipped backwards through the introducer (${inletError} mm)`);
         assert.ok(finalTipGuideDistance < 0.75,

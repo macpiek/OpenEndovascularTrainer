@@ -5,7 +5,7 @@ const variants = Object.freeze({
     'composite-joint': null,
     joint: Object.freeze({ activeCondensation: false, simultaneousCoulomb: false }),
     'joint-active-coulomb': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
-    'joint-wall-witnesses': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true, choleskyDeletes: true }),
+    'joint-wall-witnesses': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
     'joint-axial-sections': Object.freeze({ sectionSpan: 32, sectionScope: 'all' }),
     'joint-two-channel': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
     'joint-full-band': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true, coulombStructure: 'full-band' })

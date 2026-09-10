@@ -1,3 +1,4 @@
+import { transportCatheterThroughSheath } from './physics/catheterSheathTransport.js';
 import * as THREE from 'three';
 import { clamp, smoothstep } from './mathUtils.js';
 import {
@@ -437,7 +438,39 @@ export class PigtailCatheter {
         return this;
     }
 
-    syncXpbdBody(body, {
+    syncXpbdBody(body, options = {}) {
+        if (!this.vessel?.sheath) return this.#syncPreviewBody(body, options);
+        const reset = this.physicsBody !== body || this.physicsActiveCount < 2;
+        this.#releaseXpbdProximalFeed();
+        const feed = transportCatheterThroughSheath(body, this.vessel.sheath,
+            this.progress, this._feedDt ?? 1 / 120, this._sheathFeed ??= {}, {reset});
+        this.physicsBody = body;
+        this.physicsActiveCount = body.count;
+        this.physicsLumenStartNode = feed.lumenStart;
+        this.physicsLumenOrigin = feed.lumenOrigin;
+        body.nodeRadius.fill(CATHETER_RADIUS);
+        const material = this._kirchhoffMaterialOptions;
+        material.activeStart = body.activeStart;
+        material.activeEnd = body.activeEnd;
+        material.materialCoordinates = body.materialCoordinate;
+        material.tipCoordinate = this.progress;
+        applyKirchhoffMaterialProfile(body, this.type, material);
+        this._kirchhoffBoundaryOptions.twist = this.rotation;
+        this._kirchhoffBoundaryOptions.segment = body.activeStart;
+        applyProximalTwistBoundary(body, this._kirchhoffBoundaryOptions);
+        this.#applyStandaloneKirchhoffRuntime(body);
+        if (this.guidewireInserted > MIN_GUIDE_SUPPORT) {
+            const moving = Math.abs(this.motionCommand) > 1e-6 ||
+                Math.abs(this.guidewireDelta) > 1e-5 || Math.abs(this.rotationCommand) > 1e-6;
+            body.projectionVelocityRetention = moving ? 1 : 0.005;
+            body.toolProjectionVelocityRetention = 0;
+        }
+        this._pendingXpbdRotation = 0;
+        this._xpbdProgress = this.progress;
+        return body.count;
+    }
+
+    #syncPreviewBody(body, {
 
         restLengthSlewLimit = 0.5,
         bendChordSlewLimit = 1
@@ -1346,14 +1379,15 @@ export class PigtailCatheter {
 
     advance(command, dt, guidewireInserted) {
         this.motionCommand = command;
+        this._feedDt = dt;
         this.previousGuidewireInserted = this.guidewireInserted;
         this.guidewireInserted = Math.max(0, guidewireInserted);
         this.guidewireDelta = this.guidewireInserted - this.previousGuidewireInserted;
         const speed = command > 0 ? CATHETER_ADVANCE_SPEED : CATHETER_WITHDRAW_SPEED;
         const nextProgress = clamp(this.progress + command * speed * dt, 0, this.maxLength);
-        if (nextProgress > this.progress) {
+        if (!this.vessel?.sheath && nextProgress > this.progress) {
             this.#recordGuidewirePath(Math.min(nextProgress, this.guidewireInserted));
-        } else if (nextProgress < this.progress) {
+        } else if (!this.vessel?.sheath && nextProgress < this.progress) {
             this.#trimPath(nextProgress);
         }
         // Existing catheter material keeps its recorded route. Re-sampling
@@ -1372,6 +1406,7 @@ export class PigtailCatheter {
     }
 
     stepPhysics(dt = 1 / 60) {
+        if (this.vessel?.sheath) return;
         const state = this.#deploymentState();
         this.#updateGuidewireRelease(dt);
 
@@ -1442,10 +1477,20 @@ export class PigtailCatheter {
     }
 
     updateMesh() {
+        if (this.physicsBody && this.physicsActiveCount < 2) {
+            this.mesh.visible = false; this.tipMarker.visible = false; return;
+        }
         const body = this.physicsBody;
         const physicalPath = getCompositeJointRenderPath(body?.jointStateView);
         const points = body ? null : this.#buildCenterline();
-        const pointCount = physicalPath ? physicalPath.pointCount : body ? this.physicsActiveCount : this._centerlinePointCount;
+        // The prescribed proximal reservoir is visible even though it does
+        // not participate in the free-rod solve. Its positions already lie on
+        // the sheath axis; rendering it must not enlarge the active physics range.
+        const renderStart = body && this.vessel?.sheath
+            ? Math.max(0, Math.min(body.activeStart, Math.floor(
+                body.count - 1 - (this.progress + EXTERNAL_CATHETER_VISIBLE_LENGTH) / body.segmentLength)))
+            : body?.activeStart ?? 0;
+        const pointCount = physicalPath ? physicalPath.pointCount : body ? body.activeEnd - renderStart + 1 : this._centerlinePointCount;
         if (pointCount < 2) {
             this.mesh.visible = false;
             this.tipMarker.visible = false;
@@ -1462,9 +1507,9 @@ export class PigtailCatheter {
             }
             if (physicalPath) physicalPath.getPointAt(index / (renderPointCount - 1), renderPoint);
             else renderPoint.set(
-                body ? body.x[index] : points[index].x,
-                body ? body.y[index] : points[index].y,
-                body ? body.z[index] : points[index].z
+                body ? body.x[renderStart + index] : points[index].x,
+                body ? body.y[renderStart + index] : points[index].y,
+                body ? body.z[renderStart + index] : points[index].z
             );
         }
         const previousGeometry = this.shaftMesh.geometry;
@@ -1547,7 +1592,7 @@ export class PigtailCatheter {
 
     #sampleDistalCenterline(distanceFromTip, outPosition, outTangent, body, points, pointCount) {
         let remaining = Math.max(0, distanceFromTip);
-        for (let index = pointCount - 1; index > 0; index--) {
+        for (let index = body ? body.activeEnd : pointCount - 1; index > (body ? body.activeStart : 0); index--) {
             const distalX = body ? body.x[index] : points[index].x;
             const distalY = body ? body.y[index] : points[index].y;
             const distalZ = body ? body.z[index] : points[index].z;

@@ -142,23 +142,20 @@ test('standalone catheter XPBD pose remains authoritative while it is advancing'
             catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
         }
-        assert.ok(catheter.freeNodes.length > 4);
-        const tracked = catheter.freeNodes[Math.floor(catheter.freeNodes.length / 2)];
-        const bodyIndex = tracked._xpbdIndex;
+        const bodyIndex = body.activeEnd - 1;
         assert.ok(bodyIndex > body.activeStart && bodyIndex <= body.activeEnd);
+        assert.equal(body.pinned[bodyIndex], 0, 'tracked material has exited the sheath');
         body.y[bodyIndex] += 3;
         const expectedY = body.y[bodyIndex];
 
         catheter.advance(1, DT, 0);
         catheter.stepPhysics(DT);
-
-        const synchronized = catheter.freeNodes.find(
-            node => node._xpbdIndex === bodyIndex
-        );
-        assert.ok(synchronized, 'the tracked catheter material node should remain active');
+        catheter.syncXpbdBody(body);
+        assert.ok(bodyIndex >= body.activeStart && bodyIndex <= body.activeEnd,
+            'the tracked catheter material node should remain active');
         assert.ok(
-            Math.abs(synchronized.pos.y - expectedY) < 1e-6,
-            `feed replaced the physical XPBD pose (${synchronized.pos.y} instead of ${expectedY})`
+            Math.abs(body.y[bodyIndex] - expectedY) < 1e-6,
+            `feed replaced the physical XPBD pose (${body.y[bodyIndex]} instead of ${expectedY})`
         );
     } finally {
         catheter.dispose();
