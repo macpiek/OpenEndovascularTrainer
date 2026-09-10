@@ -38,9 +38,7 @@ export function initUI(options) {
     onModeChange,
     onDebugLayerChange,
     onCatheterStiffnessChange,
-    onCatheterRelaxationChange,
     onGuidewireStiffnessChange,
-    onGuidewireRelaxationChange,
     onGuidewireFrictionChange,
     onContrastHemodynamicsChange,
     onContrastInjectionParametersChange,
@@ -108,10 +106,6 @@ export function initUI(options) {
   const catheterShaftStiffnessValue = document.getElementById('catheterShaftStiffnessValue');
   const catheterTipStiffnessSlider = document.getElementById('catheterTipStiffness');
   const catheterTipStiffnessValue = document.getElementById('catheterTipStiffnessValue');
-  const catheterRelaxationSlider = document.getElementById('catheterRelaxation');
-  const catheterRelaxationValue = document.getElementById('catheterRelaxationValue');
-  const guidewireRelaxationSlider = document.getElementById('guidewireRelaxation');
-  const guidewireRelaxationValue = document.getElementById('guidewireRelaxationValue');
   const staticFricSlider = document.getElementById('staticFriction');
   const kineticFricSlider = document.getElementById('kineticFriction');
   const modeToggle = document.getElementById('modeToggle');
@@ -467,10 +461,8 @@ export function initUI(options) {
   const sliders = [
     catheterShaftStiffnessSlider,
     catheterTipStiffnessSlider,
-    catheterRelaxationSlider,
     shaftStiffnessSlider,
     tipStiffnessSlider,
-    guidewireRelaxationSlider,
     staticFricSlider,
     kineticFricSlider,
     persistenceSlider,
@@ -1061,21 +1053,7 @@ export function initUI(options) {
       applyCatheterStiffness();
     });
   }
-  if (catheterRelaxationSlider) {
-    const applyCatheterRelaxationRate = value => {
-      const rate = parseFloat(value);
-      if (!Number.isFinite(rate)) return;
-      if (catheterRelaxationValue) {
-        catheterRelaxationValue.textContent =
-          `${rate.toFixed(2).replace('.', ',')}×`;
-      }
-      onCatheterRelaxationChange?.(rate);
-    };
-    applyCatheterRelaxationRate(catheterRelaxationSlider.value);
-    catheterRelaxationSlider.addEventListener('input', event => {
-      applyCatheterRelaxationRate(event.target.value);
-    });
-  }
+
   if (shaftStiffnessSlider && tipStiffnessSlider) {
     let shaftStiffnessScale = parseFloat(shaftStiffnessSlider.value);
     let tipStiffnessScale = parseFloat(tipStiffnessSlider.value);
@@ -1106,21 +1084,7 @@ export function initUI(options) {
       applyStiffness();
     });
   }
-  if (guidewireRelaxationSlider) {
-    const applyRelaxationRate = value => {
-      const rate = parseFloat(value);
-      if (!Number.isFinite(rate)) return;
-      if (guidewireRelaxationValue) {
-        guidewireRelaxationValue.textContent =
-          `${rate.toFixed(2).replace('.', ',')}×`;
-      }
-      onGuidewireRelaxationChange?.(rate);
-    };
-    applyRelaxationRate(guidewireRelaxationSlider.value);
-    guidewireRelaxationSlider.addEventListener('input', event => {
-      applyRelaxationRate(event.target.value);
-    });
-  }
+
   if (staticFricSlider && kineticFricSlider) {
     let staticFriction = parseFloat(staticFricSlider.value);
     let kineticFriction = parseFloat(kineticFricSlider.value);

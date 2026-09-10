@@ -1,3 +1,4 @@
+import { TOOL_MAX_BEND_ANGLE_DEGREES } from './kirchhoffToolRuntime.js';
 import { beginKirchhoffWallWitnessFrictionModes, evaluateKirchhoffWallWitnessFrictionCandidate, prepareKirchhoffWallWitnessFrictionRetry, commitKirchhoffWallWitnessFrictionModes } from './kirchhoffWallWitnessFrictionMode.js';
 import { buildKirchhoffWallWitnessFriction, appendKirchhoffWallWitnessFriction, commitKirchhoffWallWitnessFriction, measureKirchhoffWallWitnessFriction } from './kirchhoffWallWitnessFriction.js';
 import { captureKirchhoffWallDiscoveries, retainKirchhoffWallDiscoveries, beginKirchhoffWallWitnessStep, collectKirchhoffWallWitnessRows, commitKirchhoffWallWitnessMultipliers, measureKirchhoffWallWitnessResidual } from './kirchhoffWallWitnessRows.js';
@@ -145,7 +146,7 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         // A continuous metallic wire can flex, but it cannot form the nearly
         // reversed one-node hinge that a permissive numerical cap allowed at
         // a moving lumen boundary.
-        maxBendAngle: 60,
+        maxBendAngle: TOOL_MAX_BEND_ANGLE_DEGREES,
         // RodState's historical 10-degree shaft cap is a positional solver
         // parameter, not a calibrated curvature/yield limit. Kirchhoff EI/GJ
         // controls bending; retain this profile's existing anti-fold guard.
@@ -189,7 +190,7 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         // shaft. This inequality is only an anti-fold safety guard. Keeping
         // it above an ordinary aortic turn avoids an over-constrained
         // length/fold cycle while still rejecting a one-node kink.
-        maxBendAngle: 24,
+        maxBendAngle: TOOL_MAX_BEND_ANGLE_DEGREES,
         foldLimitStrength: 1,
         // The wall is a hard unilateral non-penetration constraint. Shape
         // memory and bending remain compliant, so a loaded catheter reaches
@@ -2953,16 +2954,8 @@ export class EndovascularPhysicsWorld {
             };
         }
         this._inCoupledClosure = false;
-        // Preserve the existing idle closure convention: operator transport
-        // retains its velocity; equilibrium corrections during hold do not
-        // become a new kinetic impulse on the following step.
-        if (!constraint._splitMotion && bodies[bodies.length - 1].projectionVelocityRetention < 0.5) {
-            for (const body of bodies) for (let node = body.activeStart; node <= body.activeEnd; node++) {
-                body.previousX[node] += body.x[node] - body.coupledClosureStartX[node];
-                body.previousY[node] += body.y[node] - body.coupledClosureStartY[node];
-                body.previousZ[node] += body.z[node] - body.coupledClosureStartZ[node];
-            }
-        }
+        // Keep one position-history convention during feed and hold. Do not
+        // rewrite both bodies' histories based on the last body's damping.
         for (const name of ['constraintPrimary', 'constraintBodyClosure', 'constraintBodyLengthPolish',
             'constraintBodyWallRepair', 'constraintBodyPrePost', 'constraintBodyPostStabilization', 'constraintMovingClosure']) {
             recordTiming(this.timings[name], 0);

@@ -107,7 +107,7 @@ test('standalone catheter keeps one guidewire-equivalent Kirchhoff runtime durin
     }
 });
 
-test('guidewire-supported catheter does not reconstruct idle projections as momentum', () => {
+test('guidewire-supported catheter keeps the same motion policy when controls are released', () => {
     const { body, catheter } = createStandaloneCatheter('pigtail');
     try {
         const guidewireInserted = 120;
@@ -121,12 +121,14 @@ test('guidewire-supported catheter does not reconstruct idle projections as mome
             'active feed must retain physical transport velocity');
         assert.equal(body.wallProjectionVelocityRetention, 0,
             'adding lumen support must not turn vessel projection into rebound');
+        const feedingPolicy = runtimeState(body);
 
         catheter.advance(0, DT, guidewireInserted);
         catheter.stepPhysics(DT);
         catheter.syncXpbdBody(body);
-        assert.equal(body.projectionVelocityRetention, 0.005,
-            'idle coupled equilibrium projections must be quasi-static');
+        assert.equal(body.projectionVelocityRetention, 1,
+            'releasing input must not change the velocity reconstruction law');
+        assert.deepEqual(runtimeState(body), feedingPolicy);
         assert.equal(body.wallProjectionVelocityRetention, 0,
             'idle coupled wall contact must remain zero-restitution');
     } finally {

@@ -190,9 +190,9 @@ test('actual physics-setting UI callbacks leave pending material and friction un
         MIN_CATHETER_STIFFNESS_SCALE:0,MAX_CATHETER_SHAFT_STIFFNESS_SCALE:100,MAX_CATHETER_TIP_STIFFNESS_SCALE:100,
         MIN_GUIDEWIRE_STIFFNESS_SCALE:0,MAX_GUIDEWIRE_SHAFT_STIFFNESS_SCALE:100,MAX_GUIDEWIRE_TIP_STIFFNESS_SCALE:100,
         catheterShaftStiffnessScale:1,catheterTipStiffnessScale:1,guidewireShaftStiffnessScale:1,guidewireTipStiffnessScale:1,
-        catheterRelaxationRate:1,guidewireRelaxationRate:1,guidewireStaticWallFriction:.1,guidewireKineticWallFriction:.1,
+        guidewireStaticWallFriction:.1,guidewireKineticWallFriction:.1,
         pigtailCatheter:{setStiffnessScales:()=>calls.catheter++},xpbdWireBody:{wake:()=>calls.wake++},xpbdCatheterBody:{wake:()=>calls.wake++},
-        clampGuidewireRelaxationRate:v=>v,applyActiveGuidewireElasticProfile:()=>{},
+        applyActiveGuidewireElasticProfile:()=>{},
         applyActiveGuidewireKirchhoffProfile:()=>calls.wire++,applyActiveGuidewireWallFriction:()=>calls.friction++};
     const callbacks=simulatorSource.slice(simulatorSource.indexOf('    onCatheterStiffnessChange:'),simulatorSource.indexOf('    onContrastHemodynamicsChange:'));
     vm.createContext(state);vm.runInContext('globalThis.callbacks={'+callbacks+'};',state);
@@ -200,10 +200,9 @@ test('actual physics-setting UI callbacks leave pending material and friction un
     state.callbacks.onCatheterStiffnessChange({shaftStiffnessScale:20,tipStiffnessScale:4});
     state.callbacks.onGuidewireStiffnessChange({shaftStiffnessScale:8,tipStiffnessScale:3});
     state.callbacks.onGuidewireFrictionChange({staticFriction:.03,kineticFriction:.01});
-    state.callbacks.onCatheterRelaxationChange(.8);state.callbacks.onGuidewireRelaxationChange(.7);
     assert.deepEqual(calls,{catheter:0,wire:0,friction:0,wake:0});assert.equal(state.guidewireStaticWallFriction,.1);
     owner.beginFrame();assert.equal(owner.attempt(dt).accepted,true);assert.equal(calls.friction,0);
-    owner.attempt(dt);assert.deepEqual(calls,{catheter:1,wire:1,friction:1,wake:2});
+    owner.attempt(dt);assert.deepEqual(calls,{catheter:1,wire:1,friction:1,wake:0});
     assert.equal(state.guidewireStaticWallFriction,.03);assert.equal(state.catheterShaftStiffnessScale,20);
 });
 

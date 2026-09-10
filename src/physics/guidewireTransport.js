@@ -1,11 +1,10 @@
 import { clamp } from '../mathUtils.js';
 import { snapshotNodePositions } from './pointBuffer.js';
+import { SHEATH_BOUNDARY_EPSILON } from './sheathBoundary.js';
 
 const DEFAULT_CONTACT_BAND = 1.35;
 
 const DEFAULT_DIAGNOSTIC_SAMPLES = [0, 0.2, 0.4, 0.6, 0.8, 1];
-
-const SHEATH_BOUNDARY_EPSILON = 1e-3;
 
 function createContactScratch() {
     return {

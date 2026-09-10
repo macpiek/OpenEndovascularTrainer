@@ -4,6 +4,8 @@ import { transportCatheterThroughSheath } from '../src/physics/catheterSheathTra
 import { DEFAULT_TOOL_PROFILES, EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
 import { PigtailCatheter } from '../src/pigtailCatheter.js';
 import { RodState } from '../src/physics/rodState.js';
+import { GuidewireTransport } from '../src/physics/guidewireTransport.js';
+import { SHEATH_BOUNDARY_EPSILON } from '../src/physics/sheathBoundary.js';
 
 const dt = 1 / 120;
 const sheath = { start: { x: 7, y: -2, z: 3 }, end: { x: 7, y: 4, z: 11 } };
@@ -17,6 +19,25 @@ function fixture(progress = 26) {
 function near(actual, expected, message) {
     assert.ok(Math.abs(actual - expected) < 1e-10, `${message}: ${actual} != ${expected}`);
 }
+
+test('wire and catheter release the same material nodes at the sheath outlet', () => {
+    const { body, state } = fixture(0);
+    const rod = new RodState(body.count, body.segmentLength);
+    const transport = new GuidewireTransport({ rod, segmentLength: 4,
+        guidewireLength: 80, sheath, maxInsert: 76 });
+    transport.initialize();
+    for (const progress of [10 - SHEATH_BOUNDARY_EPSILON, 10,
+        10 + SHEATH_BOUNDARY_EPSILON / 2, 10 + 2 * SHEATH_BOUNDARY_EPSILON,
+        14 + 2 * SHEATH_BOUNDARY_EPSILON, 14, 10]) {
+        transport.tailProgress = progress;
+        transport.constrainSheath();
+        transportCatheterThroughSheath(body, sheath, progress, dt, state);
+        for (let i = 0; i < body.count; i++) {
+            assert.equal(Boolean(body.pinned[i]), Boolean(rod.nodes[i].pinned),
+                `pinning at progress ${progress}, node ${i}`);
+        }
+    }
+});
 const nodeFields = ['x', 'y', 'z', 'previousX', 'previousY', 'previousZ', 'velocityX', 'velocityY', 'velocityZ'];
 const segmentFields = ['orientationX', 'orientationY', 'orientationZ', 'orientationW',
     'angularVelocityX', 'angularVelocityY', 'angularVelocityZ', 'wallLambda', 'wallFrictionLambda',

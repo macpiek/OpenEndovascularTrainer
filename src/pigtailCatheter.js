@@ -1,3 +1,4 @@
+import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
 import { transportCatheterThroughSheath } from './physics/catheterSheathTransport.js';
 import * as THREE from 'three';
 import { clamp, smoothstep } from './mathUtils.js';
@@ -71,17 +72,12 @@ const BERENSTEIN_XPBD_SOFT_TIP_TRANSITION_LENGTH = 12;
 // stores axial compression and seeds a lateral buckle at the sheath outlet.
 const XPBD_PROXIMAL_FEED_COMPLIANCE = 0;
 const XPBD_RELEASE_STABILITY_LENGTH = 20;
-const XPBD_IDLE_MAX_FRAME_DISPLACEMENT = 0.45;
 // The coaxial catheter-wire span is a composite beam: both second moments
 // resist the same local curvature. A barely 15% gain left that span visually
 // indistinguishable from either tool alone; a twofold local stiffness keeps
 // the supported shaft load-bearing while the 6 mm taper avoids a hinge where
 // the wire ends.
 
-const PIGTAIL_XPBD_FEED_POST_STABILIZATION_PASSES = 4;
-const PIGTAIL_XPBD_SOLO_FEED_POST_STABILIZATION_PASSES = 4;
-const PIGTAIL_XPBD_WITHDRAW_POST_STABILIZATION_PASSES = 4;
-const PIGTAIL_XPBD_IDLE_SHAPE_STABILIZATION_PASSES = 4;
 
 export const CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM = 90;
 const EXTERNAL_CATHETER_VISIBLE_LENGTH =
@@ -458,13 +454,7 @@ export class PigtailCatheter {
         this._kirchhoffBoundaryOptions.twist = this.rotation;
         this._kirchhoffBoundaryOptions.segment = body.activeStart;
         applyProximalTwistBoundary(body, this._kirchhoffBoundaryOptions);
-        this.#applyStandaloneKirchhoffRuntime(body);
-        if (this.guidewireInserted > MIN_GUIDE_SUPPORT) {
-            const moving = Math.abs(this.motionCommand) > 1e-6 ||
-                Math.abs(this.guidewireDelta) > 1e-5 || Math.abs(this.rotationCommand) > 1e-6;
-            body.projectionVelocityRetention = moving ? 1 : 0.005;
-            body.toolProjectionVelocityRetention = 0;
-        }
+        configureKirchhoffToolRuntime(body);
         this._pendingXpbdRotation = 0;
         this._xpbdProgress = this.progress;
         return body.count;
@@ -499,23 +489,7 @@ export class PigtailCatheter {
 
         }
         this.physicsBody = body;
-        body.postStabilizationPasses =
-            this.motionCommand > 1e-6 || Math.abs(this.guidewireDelta) > 1e-5
-                ? this.guidewireInserted <= MIN_GUIDE_SUPPORT
-                    ? PIGTAIL_XPBD_SOLO_FEED_POST_STABILIZATION_PASSES
-                    : PIGTAIL_XPBD_FEED_POST_STABILIZATION_PASSES
-                : this.motionCommand < -1e-6
-                ? PIGTAIL_XPBD_WITHDRAW_POST_STABILIZATION_PASSES
-                : PIGTAIL_XPBD_IDLE_SHAPE_STABILIZATION_PASSES;
-        body.postStabilizationMinPasses = 2;
-        body.postStabilizationTolerance = 0.01;
-        body.postStabilizationSettledPasses = 2;
-        {
-            const idle = Math.abs(this.motionCommand) <= 1e-6 &&
-                Math.abs(this.guidewireDelta) <= 1e-5;
-            body.finalStructuralClosurePasses = idle ? 16 : 8;
-
-        }
+        configureKirchhoffToolRuntime(body);
         // Pigtail shape memory is represented by material curvature below.
         // Re-solving an additional world-space positional shape in the idle
         // passes creates a second elastic potential with a moving reference.
@@ -551,34 +525,9 @@ export class PigtailCatheter {
 
         const previousCount = this.physicsActiveCount;
         const soloXpbd = this.guidewireInserted <= MIN_GUIDE_SUPPORT;
-        const unsupportedShapeLength = this.#naturalShapeLength();
-        const hasLocallyUnsupportedShaft =
-            this.progress > this.guidewireInserted +
-                GUIDE_CAPTURE_TOLERANCE + unsupportedShapeLength;
         const hasReleasedPreform =
             this.progress > this.guidewireInserted + 0.5;
         const preserveUnsupportedTopology = soloXpbd || hasReleasedPreform;
-        body.postStabilizeBending =
-            soloXpbd || hasLocallyUnsupportedShaft || hasReleasedPreform;
-        // Contact and length projections should not become a fresh inertial
-        // kick on the next frame. A catheter in blood and against a vessel is
-        // strongly overdamped, especially after the operator releases feed.
-        // Iterative Kirchhoff/length/contact corrections move the rod toward
-        // its constrained equilibrium, but they are not inertial momentum.
-        // This was already handled for a released/unsupported catheter. Apply
-        // the same quasi-static reconstruction whenever the operator is idle
-        // while a guidewire supports the catheter; otherwise an equilibrated
-        // lumen pair slowly accumulates projection energy until it waves.
-        body.projectionVelocityRetention = soloXpbd
-            ? (Math.abs(this.motionCommand) > 0 ? 1 : 0.005)
-            : (
-                Math.abs(this.motionCommand) > 1e-6 ||
-                Math.abs(this.guidewireDelta) > 1e-5 ||
-                Math.abs(this.rotationCommand) > 1e-6 ||
-                Math.abs(this._pendingXpbdRotation) > 1e-6
-                    ? 1
-                    : 0.005
-            );
         let insertedIndex = -1;
         let topologyChanged = false;
         let topologyDelta = 0;
@@ -652,16 +601,6 @@ export class PigtailCatheter {
             topologyDelta = -1;
             topologyIndex = removedIndex;
         }
-        const activelyFeeding = Math.abs(this.motionCommand) > 1e-6;
-        // During manipulation, kinetic Coulomb friction follows the normal
-        // load generated in this step: a tangent Pigtail can slide and open
-        // against the bifurcation instead of inheriting an old contact load.
-        // Once the operator releases it, retain the decaying contact multiplier
-        // as a small static-friction/damping term so two competing elastic and
-        // wall projections converge to a quiet equilibrium.
-        body.wallFrictionUsesCurrentLoad =
-            this.type === CATHETER_TYPE_PIGTAIL || soloXpbd;
-        body.wallFrictionUsesSmoothedLoad = false;
         body.setActiveRange(0, count - 1);
         if (
             topologyChanged ||
@@ -671,19 +610,6 @@ export class PigtailCatheter {
             body.wake();
         }
         if (topologyChanged) {
-            if (
-                this.type === CATHETER_TYPE_PIGTAIL &&
-                this.motionCommand > 1e-6 &&
-                soloXpbd
-            ) {
-                // A newly inserted material node starts from a continuous
-                // interpolated pose. Do not apply the full steady-feed polish
-                // in that same frame: repeated whole-rod length projections
-                // otherwise turn the harmless local split into a distal jump.
-                body.postStabilizationPasses =
-                    PIGTAIL_XPBD_SOLO_FEED_POST_STABILIZATION_PASSES;
-            }
-
             // Positions and material frames form one Lagrangian state. Every
             // insertion/removal remaps both, also while the guidewire supports
             // the catheter. Constitutive targets may be rebuilt below, but a
@@ -900,34 +826,7 @@ export class PigtailCatheter {
         );
         body.setCollisionRange(collisionStart, count - 2);
         body.setSheathMaterialEndNode(collisionStart);
-        // Keep the complete XPBD correction budget below a visible jump. This
-        // is a timestep/CFL guard, not an extra force: insertion, rotation,
-        // intrinsic curvature and wall contact still converge to the same
-        // equilibrium over subsequent steps.
-        const operatorIdle =
-            Math.abs(this.motionCommand) <= 1e-6 &&
-            Math.abs(this.guidewireDelta) <= 1e-5 &&
-            Math.abs(this.rotationCommand) <= 1e-6 &&
-            Math.abs(this._pendingXpbdRotation) <= 1e-6;
-        body.maxFrameDisplacement = operatorIdle
-            ? XPBD_IDLE_MAX_FRAME_DISPLACEMENT
-            : Infinity;
-        body.frameDisplacementStartNode = Math.max(
-            body.activeStart,
-            collisionStart
-        );
-        if (soloXpbd) {
-            this.#applyStandaloneKirchhoffRuntime(body);
-        } else {
-            // Vessel contact is the same unilateral, zero-restitution
-            // boundary with and without lumen support. Restoring the raw body
-            // default here used to make adding a guidewire turn wall
-            // projections into rebound velocity.
-            body.wallProjectionVelocityRetention = 0;
-            body.toolProjectionVelocityRetention = 0;
-            body.sweptContactPreserveTangentialMotion =
-                this._xpbdBaseSweptContactPreserveTangentialMotion ?? false;
-        }
+        configureKirchhoffToolRuntime(body);
         this.physicsActiveCount = count;
         for (let index = 0; index < count; index++) {
             this._xpbdLayoutX[index] = points[index].x;
@@ -991,33 +890,6 @@ export class PigtailCatheter {
             }
         }
         this._xpbdProximalFeedControlIndex = -1;
-    }
-
-    #applyStandaloneKirchhoffRuntime(body) {
-
-        // A catheter without guidewire support is the same kind of free,
-        // boundary-driven Kirchhoff rod as the guidewire. Keep its material
-        // profile (diameter, mass, stiffness and intrinsic distal curvature),
-        // but do not switch to a catheter-only solver schedule while feeding
-        // or after the operator releases the control.
-        body.postStabilizationPasses = 0;
-        body.finalStructuralClosurePasses = 8;
-
-        body.postStabilizeBending = false;
-        body.projectionVelocityRetention = 1;
-        body.distalProjectionVelocityRetention = 1;
-        body.distalProjectionVelocityRetentionStartNode = Infinity;
-        body.maxFrameDisplacement = Infinity;
-
-        // Match the guidewire's unilateral wall-contact transport: discard
-        // the normal displacement introduced by the projection while keeping
-        // physical tangential motion. Friction magnitude remains a catheter
-        // material property.
-        body.wallProjectionVelocityRetention = 0;
-        body.toolProjectionVelocityRetention = 1;
-        body.sweptContactPreserveTangentialMotion = true;
-        body.wallFrictionUsesCurrentLoad = false;
-        body.wallFrictionUsesSmoothedLoad = false;
     }
 
     #stabilizeUnsupportedXpbdEntry(body, count) {

@@ -1,3 +1,5 @@
+import { SHEATH_BOUNDARY_EPSILON } from './sheathBoundary.js';
+
 /** Fixed material chain, driven only inside the straight introducer.
  * Coordinates are measured from the proximal valve, exactly as for wire feed.
  * Exposed positions, velocities, directors and contact histories are untouched.
@@ -16,7 +18,7 @@ export function transportCatheterThroughSheath(body, sheath, progress, dt, state
     const activeStart = Math.max(0, Math.min(last - 1, Math.ceil((length - progress) / h) - 1));
     body.setActiveRange(activeStart, last);
     const positionValue = body.x instanceof Float32Array ? Math.fround : value => value;
-    const firstOutside = Math.max(0, Math.min(body.count, Math.floor((length - progress + sheathLength + 1e-9) / h) + 1));
+    const firstOutside = Math.max(0, Math.min(body.count, Math.floor((length - progress + sheathLength + SHEATH_BOUNDARY_EPSILON) / h) + 1));
     for (let i = 0; i <= last; i++) {
         const s = progress - (last - i) * h;
         body.materialCoordinate[i] = s;

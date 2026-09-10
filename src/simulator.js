@@ -1,3 +1,4 @@
+import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
 import { SHORT_CATHETER_BENCHMARK_MODE, SHORT_CATHETER_BENCHMARK_DURATION_MS,
     sampleShortCatheterBenchmarkCommands, ShortCatheterBenchmarkMetrics,
     DEEP_CATHETER_BENCHMARK_MODE, DEEP_CATHETER_BENCHMARK_PHASES, DEEP_CATHETER_BENCHMARK_DURATION_MS
@@ -28,16 +29,11 @@ import { createCompositeAppInletReservoir } from './physics/kirchhoffCompositeAp
 import { applyProximalTwistBoundary } from './physics/kirchhoffOrientationBoundary.js';
 import { GuidewireResistanceEstimator } from './physics/guidewireResistance.js';
 import {
-    clampGuidewireRelaxationRate,
-    guidewireRelaxationPasses
-} from './physics/guidewireRelaxationRate.js';
-import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
 } from './physics/endovascularPhysicsWorld.js';
 import {
     buildContainedGuidewireRenderPolyline,
-    firstFreeGuidewireNodeAfterContainment,
     spatiallyCapturedContainmentEnd
 } from './physics/catheterGuidewireCoupling.js';
 import { generateVessel } from './vesselGeometry.js';
@@ -134,7 +130,6 @@ const GUIDEWIRE_TUBE_RADIAL_SEGMENTS = 12;
 const GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT = 3;
 const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
-const TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION = 0.005;
 const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const axialBandSolve = new URLSearchParams(window.location.search).get('coupledLinearSolver') === 'axial-band';
 const PHYSICS_MODE = selectedCoupledSolver === 'composite-joint' ? 'composite-joint' : 'kirchhoff-direct';
@@ -181,8 +176,6 @@ const coupledSolverSelection = createCoupledSolverSelection(
         wholeStepSystem: compositeAppSystem }
 );
 // Both devices always use the shared direct Kirchhoff material solver.
-document.getElementById('guidewireRelaxation').value = '1';
-document.getElementById('catheterRelaxation').value = '1';
 const XRAY_CAMERA_NEAR = 0.1;
 const XRAY_CAMERA_FAR = 1000;
 const loadingScreen = document.getElementById('loadingScreen');
@@ -575,10 +568,8 @@ let xpbdExternalToolContact = null;
 let xpbdPortalInnerDriven = true;
 let catheterShaftStiffnessScale = 25;
 let catheterTipStiffnessScale = 5;
-let catheterRelaxationRate = 1;
 let guidewireShaftStiffnessScale = 10;
 let guidewireTipStiffnessScale = 4.55;
-let guidewireRelaxationRate = 1;
 const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
 const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
 const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
@@ -1079,10 +1070,7 @@ const ui = initUI({
             tipStiffnessScale: catheterTipStiffnessScale
         });
     }),
-    onCatheterRelaxationChange: value => changePhysicsSetting('catheter-relaxation', () => {
-        catheterRelaxationRate = clampGuidewireRelaxationRate(value);
-        xpbdCatheterBody?.wake();
-    }),
+
     onGuidewireStiffnessChange: ({
         shaftStiffnessScale,
         tipStiffnessScale
@@ -1102,10 +1090,7 @@ const ui = initUI({
         applyActiveGuidewireElasticProfile();
         if (xpbdWireBody) applyActiveGuidewireKirchhoffProfile();
     }),
-    onGuidewireRelaxationChange: value => changePhysicsSetting('guidewire-relaxation', () => {
-        guidewireRelaxationRate = clampGuidewireRelaxationRate(value);
-        xpbdWireBody?.wake();
-    }),
+
     onGuidewireFrictionChange: ({ staticFriction, kineticFriction }) => changePhysicsSetting('guidewire-friction', () => {
         guidewireStaticWallFriction = Math.max(0, staticFriction);
         guidewireKineticWallFriction = Math.max(0, kineticFriction);
@@ -1748,8 +1733,6 @@ globalThis.__OET_PHYSICS__ = {
         shaft: catheterShaftStiffnessScale,
         tip: catheterTipStiffnessScale
     }),
-    getCatheterRelaxationRate: () => catheterRelaxationRate,
-    getGuidewireRelaxationRate: () => guidewireRelaxationRate,
     getGuidewireMotionDiagnostics: () => {
         const body = endovascularWorld.getStats().bodies.find(
             candidate => candidate.id === 'guidewire'
@@ -1774,7 +1757,6 @@ globalThis.__OET_PHYSICS__ = {
             stiffnessScale: guidewireShaftStiffnessScale,
             shaftStiffnessScale: guidewireShaftStiffnessScale,
             tipStiffnessScale: guidewireTipStiffnessScale,
-            relaxationRate: guidewireRelaxationRate,
             relaxationPasses: body?.lastRelaxationPasses ?? 0
         };
     }
@@ -3516,48 +3498,10 @@ function prepareSimulationStep(dt) {
         xpbdExternalToolContact.startSegmentB = Math.max(xpbdCatheterBody.activeStart, catheterEndSegment - 8);
         xpbdExternalToolContact.endSegmentB = catheterEndSegment;
 
-        // Vessel-wall contact already removes forbidden normal motion and
-        // applies local Coulomb friction in the world solver. It must not
-        // globally freeze tangential sliding or Kirchhoff straightening.
-        // Keep the old suppression only in the material span currently being
-        // projected by tool-tool constraints; the unsupported distal shaft
-        // retains its elastic recovery velocity.
-        const guidewireIsToolCoupled = xpbdContainment.enabled ||
-            xpbdExternalToolContact.enabled;
-        // Relaxation is a constitutive convergence rate, not a release-only
-        // effect. Apply the selected value during feed, withdrawal, rotation,
-        // catheter coupling and rest so the wire never changes solver mode
-        // when the operator releases a control.
-        xpbdWireBody.relaxationPasses =
-            guidewireRelaxationPasses(guidewireRelaxationRate);
-        // The catheter uses the same constitutive convergence control as the
-        // guidewire, but keeps an independent rate. Apply it in every solver
-        // state so feeding, withdrawal and rest share one physical model.
-        xpbdCatheterBody.relaxationPasses =
-            guidewireRelaxationPasses(catheterRelaxationRate);
-        xpbdWireBody.projectionVelocityRetention = guidewireIsToolCoupled
-            ? TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION
-            : 1;
-        xpbdWireBody.toolProjectionVelocityRetention = guidewireIsToolCoupled
-            ? 0
-            : 1;
-        xpbdWireBody.distalProjectionVelocityRetention = 1;
-        if (guidewireIsToolCoupled && true) {
-            // The broad external-contact candidate window extends several
-            // centimetres beyond the catheter tip. It must not numerically
-            // damp that entire free shaft: only the lumen-contained span is
-            // owned by the coupling projection. Real side/rim contact already
-            // contributes its own Coulomb friction.
-            const firstFreeNode = firstFreeGuidewireNodeAfterContainment({
-                activeStart: xpbdWireBody.activeStart,
-                activeEnd: xpbdWireBody.activeEnd,
-                containmentEndNode: xpbdContainment.endNode
-            });
-            xpbdWireBody.distalProjectionVelocityRetentionStartNode =
-                Math.max(xpbdWireBody.activeStart, firstFreeNode);
-        } else {
-            xpbdWireBody.distalProjectionVelocityRetentionStartNode = Infinity;
-        }
+        // One numerical policy for both instruments in feed, hold, rotation
+        // and withdrawal. Only their material/geometric profiles differ.
+        configureKirchhoffToolRuntime(xpbdWireBody);
+        configureKirchhoffToolRuntime(xpbdCatheterBody);
         return { dt, automatedCommands, inserted, firstContainedNode, materialEndNode,
             benchmarkEpoch: browserBenchmarkEpoch,
             benchmarkRunning: browserBenchmarkScenario.running,
