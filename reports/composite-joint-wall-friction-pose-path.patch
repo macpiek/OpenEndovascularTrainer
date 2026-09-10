@@ -1,0 +1,312 @@
+--- a/src/physics/kirchhoffCompositeJointWallFrictionRows.js
++++ b/src/physics/kirchhoffCompositeJointWallFrictionRows.js
+@@ -1,5 +1,7 @@
+ import {createCompositeJointWallSurfaceWorkspace,evaluateCompositeJointWallSurface} from './kirchhoffCompositeJointWallSurface.js';
+ import {createCompositeJointSurfacePullback,pullbackCompositeJointSurface,evaluateCompositeJointSurfaceLoads} from './kirchhoffCompositeJointSurfacePullback.js';
++import {createCompositeJointPhysicalColumnPullback,pullbackCompositeJointPhysicalColumns,evaluateCompositeJointPhysicalColumnLoads} from './kirchhoffCompositeJointPhysicalColumnPullback.js';
++import {readCompositeJointSurfacePosePath} from './kirchhoffCompositeJointSurfacePoseHistory.js';
+ import {createCompositeFrictionEquationWorkspace,evaluateCompositeFrictionEquation,measureCompositeFriction} from './kirchhoffCompositeFriction.js';
+ 
+ const workspaces=new WeakMap();
+@@ -16,6 +18,9 @@
+     if(typeof v==='bigint')return `bigint:${v}`;
+     throw failure('A semantic material segment ID must be a string, finite number or bigint');
+ };
++/** Lossless manager convention for accepted path edge IDs. Material IDs retain
++ * their original primitive type separately in the prepared pose history. */
++export function getCompositeJointWallFrictionEdgeId(materialSegmentId) {return edgeId(materialSegmentId);}
+ const trace=f=>f===0?'right':f===1?'left':undefined;
+ const roundoffEqual=(a,b,scale)=>Math.abs(a-b)<=64*Number.EPSILON*(Math.abs(a)+Math.abs(b)+scale);
+ 
+@@ -101,11 +106,7 @@
+     const frozenPolicy=policySignature();
+     for(const [name,value] of Object.entries({normalRowOffset,frictionRowOffset}))if(!Number.isInteger(value)||value<0)throw failure(`${name} must be a nonnegative global row index`);
+     if(frictionRowOffset<normalRowOffset+retained.length&&frictionRowOffset+2*retained.length>normalRowOffset)throw failure('Normal and friction global row intervals overlap');
+-    const signature=JSON.stringify({normal:normalSignature,policy:frozenPolicy,owners,surface:'same-current-stationary-wall-material-witness',gauge:'no-normal-pressure-remap',...(nodal?{contactMode,pressureDiscretization:wall.pressureDiscretization,pressureSites:sites}:{})});
+     const history=state.wallFrictionState===undefined?null:copy(state.wallFrictionState);
+-    if(history&&(history.signature!==signature||!same(history.sampleIds,sampleIds)||history.tractions?.length!==2*sampleIds.length))
+-        throw failure('Wall friction chart/coefficient/path/sample history changed without traction transfer');
+-    const tractions=history?Float64Array.from(vector(history.tractions,2*sampleIds.length,'Accepted tangential history')):new Float64Array(2*sampleIds.length);
+     const oldPositions=new Map([...layout.spins.keys()].map(id=>{
+         const p=state.toolPositions.get(id);if(p?.length!==n)throw failure('Missing own incoming physical geometry');
+         const owned=p.map(v=>vector(v,3,'Incoming physical position')),previous=prepared.previousPositions.get(id);
+@@ -138,11 +139,62 @@
+             !roundoffEqual(previousMap.dsDx,prior.dsDx,Math.abs(dsDx)+Math.abs(slopeChange))))throw failure('Derived old material map disagrees with accepted friction history');
+         edges.set(key,result);return result;
+     }
++    // A manager owns only this dt's arenas. The reusable scratch never retains
++    // any path/history object or an ever-growing cache of prior preparations.
++    const poseList=wall.surfacePosePaths;
++    if(poseList!==undefined&&!Array.isArray(poseList))throw failure('surfacePosePaths must be an explicit prepared path list');
++    const poseEntries=new Map(),poseContracts=[];
++    for(const entry of poseList??[]) {
++        const {owner,edge,path}=entry??{},key=JSON.stringify([owner,edge]),data=readCompositeJointSurfacePosePath(path),target=data.edges[data.target];
++        const declared=wall.contactOwners.edges[edge]?.wall;
++        if(poseEntries.has(key)||!Number.isInteger(edge)||!declared||declared.owner!==owner||!views.some(v=>v.owner===owner&&v.edge===edge)||
++            data.toolId!==owner||target.edge!==edge||target.edgeId!==edgeId(declared.materialSegmentId)||target.materialSegmentId!==declared.materialSegmentId||data.dt!==dt)
++            throw failure('Prepared wall pose owner/edge/identity/dt must match one declared current surface');
++        for(const e of data.edges)if(e.source==='accepted') {
++            const declaration=wall.contactOwners.edges[e.edge]?.wall;
++            if(e.edgeId!==edgeId(e.materialSegmentId)||declaration?.owner===owner&&declaration.materialSegmentId!==e.materialSegmentId)
++                throw failure('Prepared accepted pose uses a changed semantic material edge identity');
++            const own=ownEdge(owner,e.edge,e.materialSegmentId),map=data.maps[data.edges.indexOf(e)],dx=own.coordinates[1]-own.coordinates[0];
++            if(!same(e.coordinates,own.coordinates)||!same(e.reference.tangent,own.reference.tangent)||!same(e.reference.director,own.reference.director)||e.angle!==own.previousAngle||
++                e.nodes.some((j,end)=>data.nodes[j].node!==e.edge+end||!same(data.nodes[j].position,own.previousPositions[end])))
++                throw failure('Every accepted pose endpoint/frame/angle must equal its incoming own physical state');
++            const oldLabels=[own.previousMap.sStart,own.previousMap.sStart+own.previousMap.dsDx*dx],labels=[own.currentMap.sStart,own.currentMap.sStart+own.currentMap.dsDx*dx];
++            if(e.labels.some((v,j)=>!roundoffEqual(v,oldLabels[j],Math.abs(labels[j])+dt*Math.abs(own.rates[j])))||
++                map.labels.some((v,j)=>!roundoffEqual(v,labels[j],Math.abs(labels[j])))||
++                map.rates.some((v,j)=>!roundoffEqual(dt*v,dt*own.rates[j],Math.abs(labels[j])+Math.abs(oldLabels[j]))))
++                throw failure('Prepared accepted/current pose maps must match incoming history and prepared inertia');
++        }
++        for(const h of data.hinges) {
++            const left=data.edges.find(e=>e.edgeId===h.leftEdgeId),right=data.edges.find(e=>e.edgeId===h.rightEdgeId);
++            if(left.source==='accepted'&&right.source==='accepted'&&h.referenceTwist!==byTool.get(owner)?.referenceTwists?.[left.edge])
++                throw failure('Accepted own hinge winding must equal its incoming physical state');
++        }
++        const surface=createCompositeJointWallSurfaceWorkspace({surfacePosePath:path});
++        const contract={owner,edge,targetEdgeId:target.edgeId,reservoirIdentity:data.reservoirIdentity===null?null:edgeId(data.reservoirIdentity),
++            policy:'explicit-prepared-own-pose-same-current-wall-witness',configurationColumns:data.configurationColumns,
++            nodes:data.nodes.map(n=>({id:edgeId(n.id),node:n.node??null})),
++            edges:data.edges.map(e=>({edgeId:e.edgeId,edge:e.edge??null,materialSegmentId:edgeId(e.materialSegmentId),source:e.source,nodeIds:e.nodeIds.map(edgeId),coordinates:e.coordinates})),
++            hinges:data.hinges.map(h=>({leftEdgeId:h.leftEdgeId,rightEdgeId:h.rightEdgeId})),
++            // Values/old frames/angles/maps and dt evolve. The geometric
++            // dependency support and its linear policy remain physical history.
++            nodeBindings:data.nodeBindings.map(b=>({nodeId:edgeId(b.nodeId),terms:b.terms})),
++            angleBindings:data.angleBindings.map(b=>({edgeId:b.edgeId,terms:b.terms}))};
++        poseContracts.push(contract);poseEntries.set(key,{owner,edge,path,data,surface});
++    }
++    poseContracts.sort((a,b)=>a.owner.localeCompare(b.owner)||a.edge-b.edge);
++    const signature=JSON.stringify({normal:normalSignature,policy:frozenPolicy,owners,surface:'same-current-stationary-wall-material-witness',gauge:'no-normal-pressure-remap',
++        ...(nodal?{contactMode,pressureDiscretization:wall.pressureDiscretization,pressureSites:sites}:{}),...(poseEntries.size?{surfacePosePaths:poseContracts}:{})});
++    if(history&&(history.signature!==signature||!same(history.sampleIds,sampleIds)||history.tractions?.length!==2*sampleIds.length))
++        throw failure('Wall friction chart/coefficient/path/sample history changed without traction transfer');
++    const tractions=history?Float64Array.from(vector(history.tractions,2*sampleIds.length,'Accepted tangential history')):new Float64Array(2*sampleIds.length);
+     const rows=[],records=views.map((view,i)=>{
+         const declared=wall.contactOwners.edges[view.edge]?.wall;
+         if(!declared||declared.owner!==view.owner||declared.radius!==view.radius)throw failure('Normal wall record differs from declared actual owner/radius');
+         const tool=ownEdge(view.owner,view.edge,declared.materialSegmentId),index=retainedIndex.get(view.base);
+-        const mapping=createCompositeJointSurfacePullback({layout,modes:state.modes,relativeToolId:state.relativeToolId,tools:[tool]});
++        const pose=poseEntries.get(JSON.stringify([view.owner,view.edge]));
++        const mapping=pose?createCompositeJointPhysicalColumnPullback({layout,modes:state.modes,relativeToolId:state.relativeToolId,
++            currentTools:pose.surface.currentTools,configurationColumns:pose.surface.configurationColumns}):
++            createCompositeJointSurfacePullback({layout,modes:state.modes,relativeToolId:state.relativeToolId,tools:[tool]});
+         const localRows=[0,1].map(component=>{
+             const m=mapping.rows[component],size=mapping.dofCount,row={toolId:'wall-friction',index:2*i+component,tractionIndex:2*i+component,sampleIndex:i,component,
+                 owner:view.owner,edge:view.edge,anchorNode:mapping.anchorNode,commonDofs:m.commonDofs,relativeDofs:m.relativeDofs,unit:'mm',
+@@ -150,7 +202,7 @@
+                 jacobian:new Float64Array(size).fill(NaN),forceColumn:new Float64Array(size).fill(NaN),geometricTangent:new Float64Array(size*size).fill(NaN),
+                 geometricTangentValid:false,residual:NaN,multiplierDerivative:NaN,tolerance:tol.linearConstraint};rows.push(row);return row;
+         });
+-        return {view,index:i,normalIndex:index,tool,mapping,rows:localRows,identity:recordIdentity(view)};
++        return {view,index:i,normalIndex:index,tool,pose,mapping,rows:localRows,identity:recordIdentity(view)};
+     });
+     if(history&&oldMaps.size!==edges.size)throw failure('Accepted friction maps contain changed physical support');
+     const nodalForces=new Map([...layout.spins.keys()].map(id=>[id,Array.from({length:n},()=>[0,0,0])])),spinTorques=new Map([...layout.spins.keys()].map(id=>[id,new Float64Array(n-1)]));
+@@ -168,6 +220,11 @@
+         if(wall.mode!=='wall-coulomb'||wall.friction!==policy||policy.forcePerLength!==penalty||(wall.contactMode??'capsule')!==contactMode||nodal&&JSON.stringify(pressureDescription())!==pressure||
+             policySignature()!==frozenPolicy||JSON.stringify(ownerDescription())!==owners||wall.field!==field||field.queryCapsuleCoordinates!==query)
+             throw failure('Frozen wall friction source/policy/ownership changed during a prepared step');
++        if(wall.surfacePosePaths!==poseList||(poseList?.length??0)!==poseEntries.size||poseList?.some(e=>{
++            const owned=poseEntries.get(JSON.stringify([e?.owner,e?.edge]));return !owned||owned.path!==e?.path;
++        })||
++            poseList&&new Set(poseList.map(e=>JSON.stringify([e.owner,e.edge]))).size!==poseEntries.size)
++            throw failure('Prepared wall pose contracts changed during the current step');
+         vector(tractions,2*records.length,'Private traction');vector(normal.normalForces,slotCount*records.length,'Private normal forces');
+         for(const rec of records) {
+             const v=rec.view;
+@@ -201,7 +258,9 @@
+         return evaluateCompositeJointWallSurface({current:{row:v.raw,field,positions,seam:v.seam,plane,localFaceIndices},
+             tool:{...t,positions,radius:v.radius,angle:candidate.angles.get(t.id)[t.edge],trace:nodal?v.trace:trace(f),materialMap:{...t.currentMap,dsDtEnds:t.rates.slice()},
+                 materialPath:{kind:'linear-affine-maps',previousEdgeId:t.edgeId,previousMap:{...t.previousMap},previousTrace:trace(previousFraction)}},dt,
+-            wall:{motion:policy.motion,source:policy.source,tangentBasis:policy.tangentBasis},order},scratch.surface);
++            ...(rec.pose?{configuration:Float64Array.from(rec.pose.data.configurationColumns,c=>c.kind==='position'
++                ?toolPositions.get(c.toolId)?.[c.node]?.[c.component]:candidate.angles.get(c.toolId)?.[c.edge])}:{}),
++            wall:{motion:policy.motion,source:policy.source,tangentBasis:policy.tangentBasis},order},rec.pose?.surface??scratch.surface);
+     }
+     function prepare({toolPositions=state.toolPositions}={}) {
+         invalidate();verify();if(preparedReady)throw failure('Wall friction is already prepared');
+@@ -244,8 +303,10 @@
+                 // A trial needs its true current B and finite slip. G/DB are
+                 // formed only for a full Newton assembly, never approximated
+                 // by B or reused from an earlier geometry.
+-                const mapped=pullbackCompositeJointSurface(order==='full'?surface:{tools:surface.tools,forceMap:surface.forceMap,forceMapValid:true},rec.mapping),
+-                    loads=evaluateCompositeJointSurfaceLoads(sampleTraction,mapped),size=mapped.dofCount;
++                const mapped=rec.pose?pullbackCompositeJointPhysicalColumns(order==='full'?surface:{currentTools:surface.currentTools,configurationColumns:surface.configurationColumns,
++                    forceMap:surface.forceMap,forceMapValid:true},rec.mapping):
++                    pullbackCompositeJointSurface(order==='full'?surface:{tools:surface.tools,forceMap:surface.forceMap,forceMapValid:true},rec.mapping),
++                    loads=rec.pose?evaluateCompositeJointPhysicalColumnLoads(sampleTraction,mapped):evaluateCompositeJointSurfaceLoads(sampleTraction,mapped),size=mapped.dofCount;
+                 rec.rows.forEach((row,c)=>{
+                     row.residual=eq.residual[c];row.multiplierDerivative=eq.tractionJacobian[2*c+c];
+                     row.multiplierJacobian[0]=eq.normalDerivative[c];row.multiplierJacobian[1]=eq.tractionJacobian[2*c+1-c];
+@@ -254,7 +315,8 @@
+                     row.geometricTangentValid=order==='full';
+                 });
+                 mapped.commonDofs.forEach((d,i)=>commonScratch[d]-=loads.common[i]);mapped.relativeDofs.forEach((d,i)=>relativeScratch[d]-=loads.relative[i]);
+-                for(const t of loads.tools){t.nodes.forEach((node,e)=>t.nodalForces[e].forEach((v,k)=>nodalForces.get(t.id)[node][k]+=v));spinTorques.get(t.id)[t.edge]+=t.scalarTorque;}
++                for(const t of loads.tools){t.nodes.forEach((node,e)=>t.nodalForces[e].forEach((v,k)=>nodalForces.get(t.id)[node][k]+=v));
++                    if(rec.pose)t.edges.forEach((edge,j)=>spinTorques.get(t.id)[edge]+=t.spinTorques[j]);else spinTorques.get(t.id)[t.edge]+=t.scalarTorque;}
+             }
+             if(!Number.isFinite(lineSearchMerit)||!commonScratch.every(Number.isFinite)||!relativeScratch.every(Number.isFinite)||
+                 commonScratch.some((v,i)=>!Number.isFinite(v+commonResidual[i]))||relativeScratch.some((v,i)=>!Number.isFinite(v+relativeResidual[i])))throw failure('Nonfinite complete friction residual');
+--- a/tests/kirchhoffCompositeJointWallFrictionRows.test.js
++++ b/tests/kirchhoffCompositeJointWallFrictionRows.test.js
+@@ -290,3 +290,158 @@
+     assert.ok([...m.spinTorques.values()].every(v=>v.every(x=>x===0)));assert.deepEqual(f.normal.normalForces,fn);assert.deepEqual(m.tractions,ft);assert.throws(()=>m.commit(),/unchanged certified/);
+     assert.deepEqual(refresh(f,m),full);assert.deepEqual(snapshotRows(m),saved);assert.deepEqual(m.commit(),history);
+ });
++
++import {getCompositeJointWallFrictionEdgeId as poseEdgeId} from '../src/physics/kirchhoffCompositeJointWallFrictionRows.js';
++import {createCompositeJointSurfacePoseHistory as poseHistory,prepareCompositeJointSurfacePosePath as preparePose} from '../src/physics/kirchhoffCompositeJointSurfacePoseHistory.js';
++function prepareFixturePose(f,{adjacent=true,reservoir=true,permuted=false,alterSource,alterPreparation}={}) {
++    const owner=f.wall.contactOwners.edges[0].wall.owner,tool=f.state.tools.find(t=>t.id===owner),p=f.state.toolPositions.get(owner),count=adjacent?3:2;
++    const semantic=edge=>edge===0?f.wall.contactOwners.edges[0].wall.materialSegmentId:`adjacent:${owner}:${edge}`;
++    const maps=Array.from({length:count-1},(_,edge)=>f.prepared.inertiaEdges[edge].tools.find(t=>t.id===owner).materialMap);
++    const source={toolId:owner,reservoirIdentity:reservoir?'explicit-reservoir:17':null,nodes:[...(reservoir?[{id:'external',position:sub(p[0],sub(p[1],p[0]))}]:[]),
++        ...p.slice(0,count).map((position,node)=>({id:node,node,position:position.slice()}))],edges:[],hinges:[]};
++    const accepted=maps.map((m,edge)=>{const dx=f.state.coordinates[edge+1]-f.state.coordinates[edge],rates=typeof m.dsDt==='number'?[m.dsDt,m.dsDt]:m.dsDt;
++        return {edgeId:poseEdgeId(semantic(edge)),materialSegmentId:semantic(edge),edge,source:'accepted',nodeIds:[edge,edge+1],coordinates:f.state.coordinates.slice(edge,edge+2),
++            labels:[m.sStart-f.dt*rates[0],m.sStart+m.dsDx*dx-f.dt*rates[1]],reference:structuredClone(tool.reference[edge]),angle:f.state.angles.get(owner)[edge]};});
++    if(reservoir){const a=accepted[0],dx=a.coordinates[1]-a.coordinates[0],ds=a.labels[1]-a.labels[0];source.edges.push({edgeId:'external:pose',materialSegmentId:'external:17',source:'reservoir',nodeIds:['external',0],
++        coordinates:[a.coordinates[0]-dx,a.coordinates[0]],labels:[a.labels[0]-ds,a.labels[0]],reference:structuredClone(a.reference),angle:a.angle});}
++    source.edges.push(...accepted);for(let j=0;j<source.edges.length-1;j++)source.hinges.push({leftEdgeId:source.edges[j].edgeId,rightEdgeId:source.edges[j+1].edgeId,referenceTwist:0});
++    const configurationColumns=[...Array.from({length:count},(_,node)=>[0,1,2].map(component=>({kind:'position',toolId:owner,node,component}))).flat(),...Array.from({length:count-1},(_,edge)=>({kind:'angle',toolId:owner,edge}))];
++    if(permuted)configurationColumns.reverse();const col=(node,k)=>configurationColumns.findIndex(c=>c.kind==='position'&&c.node===node&&c.component===k),spin=edge=>configurationColumns.findIndex(c=>c.kind==='angle'&&c.edge===edge);
++    const nodeBindings=source.nodes.map(n=>n.node===undefined?{nodeId:n.id,offset:[0,0,0],terms:[0,1,2].flatMap(k=>(adjacent?[[0,1],[1,1],[2,-1]]:[[0,2],[1,-1]]).map(([node,w])=>({column:col(node,k),weights:[0,1,2].map(axis=>axis===k?w:0)})))}:
++        {nodeId:n.id,offset:[0,0,0],terms:[0,1,2].map(k=>({column:col(n.node,k),weights:[0,1,2].map(axis=>axis===k?1:0)}))});
++    const angleBindings=source.edges.map(e=>({edgeId:e.edgeId,offset:0,terms:[{column:spin(e.source==='reservoir'&&adjacent?1:e.edge??0),weight:1}]}));
++    const currentMaps=accepted.map((e,j)=>({edgeId:e.edgeId,labels:[maps[j].sStart,maps[j].sStart+maps[j].dsDx*(e.coordinates[1]-e.coordinates[0])],dsDt:maps[j].dsDt}));
++    if(reservoir)currentMaps.unshift({edgeId:'external:pose',labels:[2*currentMaps[0].labels[0]-currentMaps[0].labels[1],currentMaps[0].labels[0]],dsDt:maps[0].dsDt});
++    alterSource?.(source);
++    const preparation={history:poseHistory(source),targetEdgeId:accepted[0].edgeId,dt:f.dt,configurationColumns,nodeBindings,angleBindings,currentMaps};alterPreparation?.(preparation);
++    const path=preparePose(preparation);f.wall.surfacePosePaths=[{owner,edge:0,path}];return {path,source,preparation};
++}
++function feedFixture({state,field=plane(),dt=.02,penalty=5,adjacent=true,permuted=false,source='analytic-plane',positions,radius=.25,rate=-.3}={}) {
++    const f=fixture({owner:'catheter',horizontal:true,rate,state,field,penalty,source,positions,radius});
++    for(const s of [f.state,f.candidate])s.tools.forEach(t=>{t.referenceTwists??=new Float64Array(1);});
++    f.dt=f.prepared.dt=dt;
++    f.prepared.inertiaEdges.forEach((e,edge)=>e.tools.forEach(t=>{const prior=state?.wallFrictionState?.currentMaps.find(m=>m.id===t.id&&m.edge===edge)?.currentMap;
++        t.materialMap.sStart=(prior?.sStart??20+2*edge+(t.id==='catheter'?10:0))+dt*rate;}));
++    f.wall.contactMode='nodal-endpoints';f.wall.pressureDiscretization='nodal-endpoints-one-sided-surface';
++    f.wall.pressureSites=[{owner:'catheter',node:0,edge:0,trace:'right'},{owner:'catheter',node:1,edge:0,trace:'left'}];
++    f.normal=createCompositeJointWallRows({...f.state,wall:{...f.wall,mode:'wall-normal',friction:'none'},tolerances:tol});f.normal.normalForces.set([2,3]);f.frictionRowOffset=11;
++    f.pose=prepareFixturePose(f,{adjacent,permuted});return f;
++}
++
++test('explicit prepared proximal catheter feed dsDt=-.3 gives two original nodal Coulomb laws, all columns and physical loads without extra queries',()=>{
++    const f=feedFixture(),before=structuredClone(f.state),w=workspace(),m=ready(f,{workspace:w}),queries=f.wall.field.calls;
++    const full=loadSliding(f,m);assert.ok(full.certificate.converged);assert.deepEqual(f.state,before);assert.equal(m.rows.length,4);
++    full.certificate.samples.forEach(s=>{vec(s.slip,[.006,0],4e-14);vec(s.traction,[-s.Fn*.3,0],1e-14);assert.ok(s.work<0);});
++    assert.deepEqual(m.rows.map(r=>Array.from(r.multiplierDofs)),[[3,12],[3,11],[4,14],[4,13]]);
++    assert.equal(m.rows[0].commonDofs.length,11);assert.equal(m.rows[0].relativeDofs.length,0);
++    vec(m.nodalForces.get('catheter').reduce((sum,p)=>sum.map((x,k)=>x+p[k]),[0,0,0]),[-1.5,0,0],2e-14);
++    assert.ok([...m.nodalForces.get('wire')].flat().every(v=>v===0));const saved=structuredClone(full),loads=structuredClone(m.nodalForces),spins=structuredClone(m.spinTorques),calls=f.wall.field.calls;
++    assert.deepEqual(refresh(f,m,{normal:false,order:'gradient'}),saved);assert.equal(f.wall.field.calls,calls);assert.deepEqual(m.nodalForces,loads);assert.deepEqual(m.spinTorques,spins);
++    assert.equal(m.diagnostics.preparationQueries,0);assert.equal(w.diagnostics.surfaceWorkspaceBuilds,1);assert.ok(calls>queries);const history=m.commit();assert.equal(history.currentMaps.length,2);
++    const missing=feedFixture();delete missing.wall.surfacePosePaths;const unprepared=create(missing);normalRefresh(missing);
++    assert.throws(()=>unprepared.prepare({toolPositions:missing.candidate.toolPositions}),{code:'surface-material-transport-required'});
++});
++
++for(const kind of ['plane','sdf','bvh'])test(`${kind}: N-physical wall manager equations and mechanics differentiate all expanded columns with simultaneous bending/spin`,context=>{
++    const field=kind==='sdf'?sdfField():kind==='bvh'?bvhField():plane(),positions=kind==='sdf'?[[-.625,-.625,.125],[.875,.875,.125],[2.375,2.375,.125]]:kind==='bvh'?[[.8,-.7,.3],[1,-.3,.7],[1.2,.1,1.1]]:undefined;
++    const f=feedFixture({field,positions,source:kind==='plane'?'analytic-plane':kind==='sdf'?'sparse-sdf':'sparse-sdf-bvh',radius:kind==='sdf'?2.2:.25,permuted:true}),m=ready(f);
++    const p=f.candidate.toolPositions.get('catheter');p[0][0]+=.002;p[1][2]+=.003;p[2][1]+=.004;f.candidate.angles.get('catheter').set([.2,-.1]);
++    loadSliding(f,m);const base=refresh(f,m),saved=snapshotRows(m),support=m.rows[0],size=support.jacobian.length,geometry=structuredClone(f.candidate.toolPositions),angles=structuredClone(f.candidate.angles),h=1e-6;
++    const extra=Array.from(support.commonDofs).findIndex(d=>d===f.state.layout.positions[2]+1);assert.ok(extra>=0);
++    close(saved[0].forceColumn[extra],0,0);assert.ok(saved.some(row=>Math.abs(row.jacobian[extra])>1e-10));
++    let maxEquation=0,maxMechanics=0;
++    const mechanics=r=>[...Array.from(support.commonDofs,d=>r.common[d]),...Array.from(support.relativeDofs,d=>r.relative[d])];
++    for(let j=0;j<size;j++){
++        const results=[];for(const sign of [-1,1]){f.candidate.toolPositions=structuredClone(geometry);f.candidate.angles=structuredClone(angles);perturb(f,support,j,sign*h);const r=refresh(f,m);results.push({residual:m.rows.map(r=>r.residual),force:mechanics(r)});}
++        for(let c=0;c<m.rows.length;c++){const error=Math.abs((results[1].residual[c]-results[0].residual[c])/(2*h)-saved[c].jacobian[j]);maxEquation=Math.max(maxEquation,error);assert.ok(error<4e-6,`${kind} equation ${c},${j}: ${error}`);}
++        for(let i=0;i<size;i++){const error=Math.abs((results[1].force[i]-results[0].force[i])/(2*h)-saved.reduce((sum,row)=>sum+row.H[i*size+j],0));maxMechanics=Math.max(maxMechanics,error);assert.ok(error<4e-6,`${kind} mechanics ${i},${j}: ${error}`);}
++    }
++    f.candidate.toolPositions=geometry;f.candidate.angles=angles;assert.deepEqual(refresh(f,m),base);
++    const calls=field.calls,bvhCalls=field.bvhQueries;assert.deepEqual(refresh(f,m,{normal:false,order:'gradient'}),base);assert.equal(field.calls,calls);assert.equal(field.bvhQueries,bvhCalls);
++    m.commit();field.fallbackGeometry?.dispose();context.diagnostic(JSON.stringify({kind,columns:size,maxEquation,maxMechanics}));
++});
++
++test('prepared old OWN nodes, frames, angles, labels and semantic IDs must match incoming state; explicit external pose is required',()=>{
++    const changes=[
++        s=>{s.nodes.filter(n=>n.node!==undefined).forEach(n=>n.position[0]+=.01);},
++        s=>{s.edges.filter(e=>e.source==='accepted').forEach(e=>{e.reference.director=e.reference.director.map(x=>-x);e.angle+=Math.PI;});s.edges[0].reference.director=s.edges[0].reference.director.map(x=>-x);s.edges[0].angle+=Math.PI;},
++        s=>{s.edges.forEach(e=>e.angle+=.1);}
++    ];
++    for(const alterSource of changes){const f=feedFixture();prepareFixturePose(f,{alterSource});assert.throws(()=>create(f),/incoming own physical state/);}
++    const winding=feedFixture();prepareFixturePose(winding,{alterSource:s=>{s.hinges[1].referenceTwist=2*Math.PI;}});assert.throws(()=>create(winding),/hinge winding/);
++    const old=feedFixture();old.state.angles.get('catheter')[1]=.1;assert.throws(()=>create(old),/incoming own physical state/);
++    const wrongMap=feedFixture();wrongMap.prepared.inertiaEdges[1].tools.find(t=>t.id==='catheter').materialMap.sStart+=.01;assert.throws(()=>create(wrongMap),/maps must match/);
++    const wrongSlope=feedFixture();wrongSlope.prepared.inertiaEdges[1].tools.find(t=>t.id==='catheter').materialMap.dsDx+=.01;assert.throws(()=>create(wrongSlope),/maps must match/);
++    const wrongDt=feedFixture();wrongDt.dt*=2;wrongDt.prepared.dt=wrongDt.dt;assert.throws(()=>create(wrongDt),/identity\/dt/);
++    const cloned=feedFixture();cloned.wall.surfacePosePaths[0].path=structuredClone(cloned.pose.path);assert.throws(()=>create(cloned),/prepared own surface pose path/);
++    for(const mutate of [f=>f.wall.surfacePosePaths.push(f.wall.surfacePosePaths[0]),f=>f.wall.surfacePosePaths[0].owner='wire',f=>f.wall.surfacePosePaths[0].edge=1,f=>f.wall.surfacePosePaths=()=>{}]){
++        const f=feedFixture();mutate(f);assert.throws(()=>create(f));}
++    const unsupported=feedFixture();prepareFixturePose(unsupported,{reservoir:false});const m=create(unsupported);normalRefresh(unsupported);assert.throws(()=>m.prepare({toolPositions:unsupported.candidate.toolPositions}),{code:'surface-material-transport-required'});
++    assert.equal(poseEdgeId(17),'number:17');assert.equal(poseEdgeId('17'),'string:2:17');assert.equal(poseEdgeId(17n),'bigint:17');assert.notEqual(poseEdgeId(17),poseEdgeId('17'));
++});
++
++test('two manager dt preserve their own Fn/Ft history with a newly prepared path and reject changed transport policy or support',()=>{
++    const w=workspace(),f=feedFixture(),m=ready(f,{workspace:w});f.candidate.toolPositions.get('catheter').forEach(p=>{p[0]+=.001;p[2]+=.002;});f.candidate.angles.get('catheter').fill(.1);
++    loadSliding(f,m);const history=m.commit(),next=structuredClone(f.candidate);next.wallFrictionState=history;
++    const g=feedFixture({state:next,field:f.wall.field,dt:.013,penalty:50}),other=ready(g,{workspace:w});assert.notEqual(g.pose.path,f.pose.path);assert.equal(other.signature,m.signature);assert.deepEqual(other.tractions,history.tractions);
++    assert.deepEqual(g.normal.normalForces,f.normal.normalForces);assert.throws(()=>m.commit(),/Stale/);
++    g.candidate.angles.get('catheter').fill(.2);const full=loadSliding(g,other);assert.ok(full.certificate.converged);other.commit();
++    const stale=feedFixture({state:next,field:f.wall.field,dt:.013});stale.wall.surfacePosePaths=f.wall.surfacePosePaths;assert.throws(()=>create(stale),/identity\/dt/);
++    const sameName=feedFixture({state:next,field:f.wall.field,dt:f.dt});sameName.wall.surfacePosePaths=f.wall.surfacePosePaths;assert.throws(()=>create(sameName),/incoming own physical state|history/);
++    for(const options of [
++        {alterSource:s=>{s.reservoirIdentity='other';}},
++        {alterPreparation:p=>{p.nodeBindings[0].terms[0].weights[0]+=.01;}},
++        {adjacent:false},
++        {permuted:true}
++    ]){const changed=feedFixture({state:next,field:f.wall.field,dt:.013});prepareFixturePose(changed,options);const ft=history.tractions.slice(),fn=changed.normal.normalForces.slice();assert.throws(()=>create(changed),/history changed/);assert.deepEqual(history.tractions,ft);assert.deepEqual(changed.normal.normalForces,fn);}
++    const without=feedFixture({state:next,field:f.wall.field});delete without.wall.surfacePosePaths;assert.throws(()=>create(without),/history changed/);
++});
++
++test('path workspace reuse across successive dt retains one legacy scratch arena and no accumulating path cache',()=>{
++    const w=workspace(),field=plane();let state,prior;
++    for(let i=0;i<12;i++){
++        const f=feedFixture({state,field,dt:i%2?.013:.02}),m=ready(f,{workspace:w});loadSliding(f,m);const history=m.commit();
++        if(prior)assert.throws(()=>prior.commit(),/Stale/);state=structuredClone(f.candidate);state.wallFrictionState=history;prior=m;
++        assert.equal(w.diagnostics.surfaceWorkspaceBuilds,1);assert.equal(w.diagnostics.equationWorkspaceBuilds,1);assert.equal(w.diagnostics.managers,i+1);
++        assert.equal(history.currentMaps.length,2);assert.ok(!('surfacePosePaths' in history));
++    }
++});
++
++test('expanded wall manager late failure, current extra-node/spin freshness and path replacement revoke commit and retry exactly',()=>{
++    const f=feedFixture(),m=ready(f);f.candidate.angles.get('catheter').set([.2,-.1]);loadSliding(f,m);const full=refresh(f,m),rows=snapshotRows(m),history=structuredClone(m.commit()),ft=m.tractions.slice(),fn=f.normal.normalForces.slice();
++    const common=new Float64Array(f.state.layout.dofCount).fill(7),relative=new Float64Array(f.candidate.relative.length).fill(9);
++    f.normal.surfaceRecords[1].raw.rawContact.source='bad';assert.throws(()=>refresh(f,m,{normal:false,common,relative}),/declared source/);
++    assert.ok(common.every(v=>v===7));assert.ok(relative.every(v=>v===9));assert.ok([...m.nodalForces.values()].flat(2).every(v=>v===0));assert.ok([...m.spinTorques.values()].every(a=>a.every(v=>v===0)));
++    assert.ok(m.rows.every(row=>!row.geometricTangentValid&&row.jacobian.every(Number.isNaN)));assert.deepEqual(m.tractions,ft);assert.deepEqual(f.normal.normalForces,fn);assert.throws(()=>m.commit(),/unchanged certified/);
++    assert.deepEqual(refresh(f,m),full);assert.deepEqual(snapshotRows(m),rows);assert.deepEqual(m.commit(),history);
++    for(const mutate of [()=>f.candidate.toolPositions.get('catheter')[2][0]+=.1,()=>f.candidate.angles.get('catheter')[1]+=.1]){
++        const p=structuredClone(f.candidate.toolPositions),a=structuredClone(f.candidate.angles);mutate();assert.throws(()=>m.commit(),/unchanged certified/);f.candidate.toolPositions=p;f.candidate.angles=a;assert.deepEqual(refresh(f,m),full);
++    }
++    const list=f.wall.surfacePosePaths,entry=list[0];prepareFixturePose(f);const replacement=f.wall.surfacePosePaths[0];f.wall.surfacePosePaths=list;list[0]=replacement;
++    assert.throws(()=>refresh(f,m,{normal:false}),/contracts changed/);assert.throws(()=>m.commit(),/contracts changed/);list[0]=entry;assert.deepEqual(refresh(f,m),full);assert.deepEqual(m.commit(),history);
++    for(const bad of [null,{}, {owner:'other',edge:9}]){list[0]=bad;assert.throws(()=>refresh(f,m,{normal:false}),/contracts changed/);list[0]=entry;assert.deepEqual(refresh(f,m),full);}
++});
++
++test('a declared catheter pose path coexists with unchanged seven-column wire surface rows and exact global dual offsets',()=>{
++    const f=feedFixture();f.wall.contactOwners.edges[1].wall={owner:'wire',radius:.25,materialSegmentId:'wire:1'};
++    f.prepared.inertiaEdges.forEach(e=>{const map=e.tools.find(t=>t.id==='wire').materialMap;map.sStart=20+2*f.prepared.inertiaEdges.indexOf(e);map.dsDt=0;});
++    f.wall.pressureSites.push({owner:'wire',node:1,edge:1,trace:'right'},{owner:'wire',node:2,edge:1,trace:'left'});
++    f.normal=createCompositeJointWallRows({...f.state,wall:{...f.wall,mode:'wall-normal',friction:'none'},tolerances:tol});f.normal.normalForces.set([2,3,1,1]);
++    const m=ready(f);f.candidate.angles.get('catheter').set([.2,-.1]);f.candidate.angles.get('wire')[1]=.1;const r=loadSliding(f,m);assert.ok(r.certificate.converged);assert.equal(m.rows.length,8);
++    assert.equal(m.rows[0].commonDofs.length,11);assert.equal(m.rows[4].commonDofs.length,7);assert.equal(m.rows[4].relativeDofs.length,6);
++    assert.deepEqual(m.rows.map(row=>Array.from(row.multiplierDofs)),[[3,12],[3,11],[4,14],[4,13],[5,16],[5,15],[6,18],[6,17]]);
++    const rows=snapshotRows(m),loads=structuredClone(m.nodalForces),spins=structuredClone(m.spinTorques);assert.deepEqual(refresh(f,m,{order:'gradient'}),r);assert.deepEqual(m.nodalForces,loads);assert.deepEqual(m.spinTorques,spins);
++    refresh(f,m);assert.deepEqual(snapshotRows(m),rows);m.commit();
++});
++
++test('prepared N=7 entry works, and an expanded relative wire owner retains all common/relative equation derivatives',()=>{
++    const single=feedFixture({adjacent:false}),one=ready(single);assert.ok(loadSliding(single,one).certificate.converged);assert.equal(one.rows[0].commonDofs.length,7);one.commit();
++    const f=feedFixture();f.wall.contactOwners.edges[0].wall.owner='wire';f.wall.pressureSites.forEach(s=>s.owner='wire');prepareFixturePose(f,{permuted:true});
++    f.normal=createCompositeJointWallRows({...f.state,wall:{...f.wall,mode:'wall-normal',friction:'none'},tolerances:tol});f.normal.normalForces.set([2,3]);
++    const m=ready(f);f.candidate.angles.get('wire').set([.2,-.1]);f.candidate.toolPositions.get('wire')[2][1]+=.003;loadSliding(f,m);
++    const saved=snapshotRows(m),support=m.rows[0],geometry=structuredClone(f.candidate.toolPositions),angles=structuredClone(f.candidate.angles),h=1e-6;
++    assert.equal(support.commonDofs.length,11);assert.equal(support.relativeDofs.length,9);
++    for(let j=0;j<support.jacobian.length;j++){const result=[];for(const sign of [-1,1]){f.candidate.toolPositions=structuredClone(geometry);f.candidate.angles=structuredClone(angles);perturb(f,support,j,sign*h);refresh(f,m);result.push(m.rows.map(r=>r.residual));}
++        for(let c=0;c<m.rows.length;c++)close((result[1][c]-result[0][c])/(2*h),saved[c].jacobian[j],4e-6);}
++    f.candidate.toolPositions=geometry;f.candidate.angles=angles;refresh(f,m);m.commit();
++});

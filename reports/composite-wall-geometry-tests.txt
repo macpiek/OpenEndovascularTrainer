@@ -1,0 +1,20 @@
+✔ the exact trilinear value, gradient and Hessian use quantized corners across brick boundaries (2.834166ms)
+✔ point geometry preserves detection and separates signed gradient from unit normal (1) (2.003416ms)
+✔ point geometry preserves detection and separates signed gradient from unit normal (-1) (0.349333ms)
+✔ the capsule pullback preserves the selected interior sample and differentiates both endpoints (1.748333ms)
+✔ real anatomy point and capsule queries keep the original gap, normal and sampling policy (92.198292ms)
+✔ the existing real-anatomy witness has the exact energy gradient in explicit gap-potential mode (34.180042ms)
+✔ mixed NCP uses actual Jg and physical normal, including Dn (active) (1.027333ms)
+✔ mixed NCP uses actual Jg and physical normal, including Dn (inactive) (0.432708ms)
+✔ the gap-potential Hessian includes the signed trilinear geometric term (0.294541ms)
+✔ the real-anatomy mixed row differentiates physical Fn and all six capsule coordinates (24.385583ms)
+✔ length and force unit changes preserve Jg, physical normal and both operator conventions (0.269625ms)
+✔ unsupported geometry cannot be mistaken for a physical or energy certificate (0.429416ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.418083

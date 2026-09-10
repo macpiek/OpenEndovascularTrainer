@@ -1,0 +1,46 @@
+{
+  "scope": "Frozen read-only SDF seam diagnosis; no production source changes",
+  "createdUTC": "2026-09-07T15:46:13.599266+00:00",
+  "files": {
+    "REPORT.md": "20b2bb7e7901868f8b7a6c52e664b8c54aac9a57d39bc6edbc3cbe1b2d7e693c",
+    "diagnose-seam.mjs": "38d5ff0d25334b2a198a5ac8c66dc441af2afb8a09e0a6bec7288a34cf27eb4b",
+    "input-trace.json": "00c24cfd6d81924424c3e987eb6d3ff54080594621ba4fdddd6aec639219b5e9",
+    "witness.json": "9ed2156fb73965e5efba6c86ad2bdb04d5c00d223ec825273913bbdf810042d3"
+  },
+  "checks": {
+    "polynomialParity": true,
+    "continuationRootsConverged": true,
+    "leftRootOutsideCell": true,
+    "rightRootOutsideCellAndTensile": true,
+    "coneOnSeam": true,
+    "conePositiveForces": true,
+    "originalQueryGapAndBranch": true,
+    "conePhysicalCertificate": true,
+    "strictLocalStability": true,
+    "originalTraceFirstDirection": true,
+    "sourcesStable": true
+  },
+  "sourceSHA256": {
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "4567e61ffe06c0d90598da02e535e715d833ded9d5946276369e6fd749e0fbec",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8"
+  },
+  "externalSHA256": {
+    "node_modules/three/package.json": "101789c7a14e61ed318f9e52e1dcc1c424dbf59fa13e85830e4ed0f80b5fd949",
+    "node_modules/three/build/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495"
+  },
+  "command": "node diagnose-seam.mjs /absolute/path/to/OpenEndovascularTrainer input-trace.json > reproduced.json"
+}

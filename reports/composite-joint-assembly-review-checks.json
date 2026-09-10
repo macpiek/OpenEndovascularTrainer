@@ -1,0 +1,108 @@
+{
+  "independent": {
+    "inertiaEnergy": 0.8967296471536981,
+    "energyError": 2.220446049250313e-16,
+    "gradientError": 1.3322676295501878e-15,
+    "hessianError": 2.842170943040401e-14,
+    "relativeNorm": 0.3244716591137589,
+    "N": 30,
+    "perTool": {
+      "wire": {
+        "mass": 0.8892,
+        "momentum": [
+          0.16530970819233332,
+          -0.03351191556800072,
+          0.07658174029534393
+        ],
+        "oldMomentum": [
+          0.16263,
+          -0.14835600000000002,
+          0.20779199999999995
+        ],
+        "physicalResidualResultant": [
+          0.03828154560476188,
+          1.6406297775999896,
+          -1.874432281495087
+        ],
+        "expectedResultant": [
+          0.03828154560476169,
+          1.6406297775999898,
+          -1.8744322814950858
+        ]
+      },
+      "catheter": {
+        "mass": 1.0944,
+        "momentum": [
+          -0.3412218675050704,
+          0.009597289075902076,
+          -0.035999398941144616
+        ],
+        "oldMomentum": [
+          -0.20131199999999996,
+          0.109728,
+          -0.018719999999999997
+        ],
+        "physicalResidualResultant": [
+          -1.9987123929295774,
+          -1.430438727487113,
+          -0.24684855630206604
+        ],
+        "expectedResultant": [
+          -1.9987123929295774,
+          -1.4304387274871133,
+          -0.24684855630206595
+        ]
+      }
+    }
+  },
+  "basisCovariance": {
+    "energyError": 0,
+    "gradientError": 4.440892098500626e-16,
+    "hessianError": 7.105427357601002e-15
+  },
+  "straightTorsion": {
+    "expectedEnergy": 0.06047077922077922,
+    "actualEnergy": 0.06047077922077923,
+    "materialHinges": 4
+  },
+  "reactions": {
+    "maxPhysicalForceDecodeError": 1.1102230246251565e-16,
+    "maxPerToolMoment": 1.576213700060856e-16,
+    "positiveLambda": "tension",
+    "physicalLengthForce": "-lambda J",
+    "commonResidual": "wire + catheter",
+    "relativeResidual": "B^T wire"
+  },
+  "metricWitness": {
+    "acceptedOperator": true,
+    "allLengthsSatisfied": true,
+    "commonCoordinates": [
+      0,
+      1,
+      2
+    ],
+    "elasticDsDx": 1,
+    "inertiaDsDxWire": 2,
+    "restLengthsWire": [
+      1,
+      1
+    ],
+    "massPerReferenceLength": 1,
+    "wireMassReported": 4,
+    "wireMassForRestArcLength": 2,
+    "wireMomentumReported": [
+      0,
+      0,
+      4
+    ],
+    "wireMomentumForRestArcLength": [
+      0,
+      0,
+      2
+    ],
+    "totalZResidual": 59.999999999999986,
+    "totalZResidualForRestArcLength": 40,
+    "wireElasticEnergy": 0.020000000000000004,
+    "interpretation": "If s is physical reference arclength, one material is silently assigned incompatible rest/elastic and inertial measures. If s is an arbitrary label, the missing metric/density conversion must instead be declared."
+  }
+}

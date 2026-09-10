@@ -1,0 +1,213 @@
+{
+  "scope": "frozen known-open correction and before/after correctness probe",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "eede5eeff76be41c3c2a8af4205c93efefd27fa734e6dcbbca759f42637c7947"
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "acbc4fb2d53fe3c56d08e438d3d5e3cd8458ffc6bea7b5a4b15d59be1f9233cc"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "248232798041eb9dd0dca8680da164f46ac4db8b593b7bd564731f2a63b8c565"
+    },
+    {
+      "path": "source.json",
+      "sha256": "c94333750e7a474067e67bd9ba51fd350f9038c186ce57df9523297950e14fff"
+    },
+    {
+      "path": "stage/package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "stage/src/physics/collision/collisionAssetFormat.js",
+      "sha256": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca"
+    },
+    {
+      "path": "stage/src/physics/collision/packedLumenField.js",
+      "sha256": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434"
+    },
+    {
+      "path": "stage/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "sha256": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174"
+    },
+    {
+      "path": "stage/src/physics/collision/vesselContactField.js",
+      "sha256": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeChain.js",
+      "sha256": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeContactPullback.js",
+      "sha256": "7152a522a9c76037c8cb097293cca87d0126b5ba733b4ba8287135972cb91148"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeElementExact.js",
+      "sha256": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeElementExactKernelBytes.js",
+      "sha256": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeFriction.js",
+      "sha256": "9900193b587abed02443e21cdbd4d46cd34774bfc2c81197727702583f0fc4b2"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointAssembly.js",
+      "sha256": "fa709ae0c21bae4a21b6c7344de056b3e4dc333099b56d5e722af6e706084f09"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointLumenFrictionRows.js",
+      "sha256": "8d0937ed30f83dea0acde7a648651d2909fd456587c4983e8bc82ad4b9c84c51"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointLumenRows.js",
+      "sha256": "fe3b4f5fbdf9f60e08f12dcafdc23b052c136d544a66e7df728d6bed5397a3af"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointLumenSurface.js",
+      "sha256": "526b2ca7d48eb068bdd79f0e4466c68bf09808b7fbcccb4cb16fe73d64ee4a58"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointMaterialHistory.js",
+      "sha256": "cc7786883efa67204ac8c6a3510b0fe8d17e4ab33d66e6b3394113f3c70f6f9b"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointSurfaceMotion.js",
+      "sha256": "545c1b1b3fe25e6e045bf0745e1ed4c4a45d801640a4f03860083224320af92d"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointSurfacePullback.js",
+      "sha256": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointTimeStep.js",
+      "sha256": "68863abe08a15b06b0cd8037a135a669fc1e3e05f380e9c149d10aa1ef651c8e"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointTimeStepBefore.js",
+      "sha256": "9a917835424c6aa66ff5e9a1e993dac2bbce26fd0be2edf577031b783da19749"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointWallFrictionRows.js",
+      "sha256": "cdcbfa956202f8779b47bda0267c20eb50d2c9682afc893032a197cc99cfa59b"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointWallRows.js",
+      "sha256": "a492b9f1aa8c334de26ba38989b464e9b8ad3c663f288ec33059a632110b88d3"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeJointWallSurface.js",
+      "sha256": "dae80edb3b75cf39e0d696317ecdab6762cf7ebb0e48482895617a8728952be8"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeKinematics.js",
+      "sha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeLumenSideGeometry.js",
+      "sha256": "77b6ac3482ae0c55084b53a6c269106ec4fa6e7502ddf50fd83e8fb3f2cb1452"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeLumenTipGeometry.js",
+      "sha256": "08d0c8ef854251574e86dc29e05dcb51f23280f0094a699ea003c3638a6fc48b"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeMaterialInertia.js",
+      "sha256": "0d0b425eaa69740e3a9d04eab15e455a270040a8c635ca3922d67caf7ea3eee9"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositePiecewiseMaterialInertia.js",
+      "sha256": "8dbe6fac46a8cc7d52a7f7bb99b3a0b4f39fae4aec5eaad8c2ec9b28487eaeee"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeRelativeCluster.js",
+      "sha256": "a91c4e2fcf3b2ce2bd70137d0857a054618a9cc349318f0f4b8e00851b465a45"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeRelativeDirection.js",
+      "sha256": "e88a0c81527fcfa4d55488e2939681fc69d3737bdca1f1b4c6ffe6d7043ea8a4"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeToolLengths.js",
+      "sha256": "16134396067409b43faf97f6dd722032a0e3c993966fd60e7eae864f5b80f532"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeWallBvhGeometry.js",
+      "sha256": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeWallContacts.js",
+      "sha256": "47b11dedba3a67c124e1d499f1c162c60439349980b2ec2878a58b2bc2c581f7"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeWallDifferentialRows.js",
+      "sha256": "3e57d869cdc4deb403fe0802a5637f0699ad9ba40ea0c0dbe52fb05fb333a80f"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeWallEnvelope.js",
+      "sha256": "83a4496c191646f2c26668a72b781110bf7400f2255dd3795a4ab1a9b06390e7"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeWallGeometry.js",
+      "sha256": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCompositeWallSdfBranches.js",
+      "sha256": "4346836ca63da0045abb878291a1f46ced1649c6637f5cec2a9dfda5dcd7ba0f"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffContactManifold.js",
+      "sha256": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffContinuousFrictionKKT.js",
+      "sha256": "628d6f72149dc8a0423157f7d819f420913b94f9e3c8758daeba9d270818c20c"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffCoulombBandLU.js",
+      "sha256": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffLumenContact.js",
+      "sha256": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6"
+    },
+    {
+      "path": "stage/src/physics/kirchhoffSurfaceFriction.js",
+      "sha256": "f89463fcee825a725e8671ed8efb2e55af7e53379d00765d6d297c79668b18a6"
+    },
+    {
+      "path": "stage/tests/kirchhoffCompositeJointFrictionTimeStep.test.js",
+      "sha256": "84c71f06dfcbe247754d4177c561ff76ddffeb12cee4a4884dd583335b0ee74c"
+    },
+    {
+      "path": "stage/tests/knownOpenFixture.js",
+      "sha256": "a7d0d1415ba0104358b3ed216458f3f3c2868a03a05233184cbd9ba9971d95c2"
+    }
+  ]
+}

@@ -1,3 +1,45 @@
+import { beginKirchhoffWallWitnessFrictionModes, evaluateKirchhoffWallWitnessFrictionCandidate, prepareKirchhoffWallWitnessFrictionRetry, commitKirchhoffWallWitnessFrictionModes } from './kirchhoffWallWitnessFrictionMode.js';
+import { buildKirchhoffWallWitnessFriction, appendKirchhoffWallWitnessFriction, commitKirchhoffWallWitnessFriction, measureKirchhoffWallWitnessFriction } from './kirchhoffWallWitnessFriction.js';
+import { captureKirchhoffWallDiscoveries, retainKirchhoffWallDiscoveries, beginKirchhoffWallWitnessStep, collectKirchhoffWallWitnessRows, commitKirchhoffWallWitnessMultipliers, measureKirchhoffWallWitnessResidual } from './kirchhoffWallWitnessRows.js';
+import { selectKirchhoffMechanicalComponents } from './kirchhoffMechanicalComponents.js';
+import { kirchhoffComponentBodies } from './kirchhoffComponentBodies.js';
+import { buildKirchhoffPortalSideSamples } from './kirchhoffPortalSideSamples.js';
+import { captureKirchhoffSplitStep, restoreKirchhoffSplitStep,
+    kirchhoffSplitStepTopologyUnchanged } from './kirchhoffSplitStepTransaction.js';
+import { buildKirchhoffSplitWallFriction, appendKirchhoffSplitWallFriction,
+    commitKirchhoffSplitWallFriction, measureKirchhoffSplitWallFriction } from './kirchhoffSplitWallFriction.js';
+import { captureKirchhoffWallFrictionIncoming, initializeKirchhoffWallFrictionModes,
+    evaluateKirchhoffWallFrictionCandidate, prepareKirchhoffWallFrictionRetry } from './kirchhoffWallFrictionMode.js';
+import { beginKirchhoffSplitMotion, captureKirchhoffSplitSweep, appendKirchhoffSplitSweeps, appendKirchhoffSplitPointWalls,
+    prepareKirchhoffSplitLumenRows, prepareKirchhoffSplitBoundaryRows, applyKirchhoffSplitPhysicalIncrement,
+    beginKirchhoffSplitBias, finishKirchhoffSplitBias, measureKirchhoffSplitMaterial,
+    copyKirchhoffSplitVelocity, prescribeKirchhoffSplitOrientation, syncKirchhoffSplitVelocity,
+    commitKirchhoffSplitHistory, getKirchhoffSplitMotionStats } from './kirchhoffSplitMotion.js';
+import { beginKirchhoffTwoChannelMotion, applyKirchhoffTwoChannelPhysicalMotion,
+    commitKirchhoffTwoChannelBiasMaterial, measureKirchhoffTwoChannelMaterial } from './kirchhoffTwoChannelMotion.js';
+import { beginKirchhoffTwoChannelRows, prepareKirchhoffTwoChannelRows,
+    commitKirchhoffTwoChannelRows, measureKirchhoffTwoChannelRows } from './kirchhoffTwoChannelRows.js';
+import { solveKirchhoffTwoChannelSystem, nextKirchhoffTwoChannelTolerance } from './kirchhoffTwoChannelSystem.js';
+import { measureKirchhoffFrictionMerit } from './kirchhoffFrictionMerit.js';
+import { beginKirchhoffCoupledBoundaryStep, collectKirchhoffCoupledBoundaryRows, applyKirchhoffCoupledBoundaryMultipliers, measureKirchhoffCoupledBoundaryResidual } from './kirchhoffCoupledBoundaryRows.js';
+import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from './kirchhoffCoupledTrialState.js';
+import { isKirchhoffDistalLumenWitness, locateKirchhoffDistalLumenBranch,
+    beginKirchhoffToolReactionStep, appendKirchhoffToolRelease, hasKirchhoffToolReaction, captureKirchhoffToolReaction,
+    measureKirchhoffToolReleaseRows, evaluateKirchhoffOwnedSlidingPortal } from './kirchhoffToolContactOwnership.js';
+import { measureKirchhoffCoupledMaterialResidual } from './kirchhoffCoupledResidual.js';
+import { prepareKirchhoffCoupledConeRepair, applyKirchhoffCoupledConeRepair } from './kirchhoffCoupledConeRepair.js';
+import { beginKirchhoffCoupledOrientationStep, buildKirchhoffCoupledOrientationRows,
+    appendKirchhoffCoupledOrientationRows, commitKirchhoffCoupledOrientationMultipliers,
+    measureKirchhoffCoupledOrientationResidual } from './kirchhoffCoupledOrientationRows.js';
+import { beginKirchhoffCoupledFoldStep, buildKirchhoffCoupledFoldRows,
+    applyKirchhoffCoupledFoldMultipliers, measureKirchhoffCoupledFoldResidual } from './kirchhoffCoupledFoldRows.js';
+import { buildKirchhoffCoupledFrictionRows, appendKirchhoffCoupledFrictionRows,
+    commitKirchhoffCoupledFrictionMultipliers, measureKirchhoffCoupledFrictionResidual } from './kirchhoffCoupledFrictionRows.js';
+import { buildKirchhoffContactNormalGradients } from './kirchhoffContactNormalRows.js';
+import { beginKirchhoffExternalFrictionStep, buildKirchhoffExternalFrictionRows,
+    appendKirchhoffExternalFrictionRows, commitKirchhoffExternalFrictionMultipliers,
+    measureKirchhoffExternalFrictionResidual } from './kirchhoffExternalFrictionRows.js';
+import { solveKirchhoffContactBlock } from './kirchhoffContactBlock.js';
 import { createContactResult } from './collision/vesselContactField.js';
 import {
     GUIDEWIRE_RADIUS_MM,
@@ -7,21 +49,14 @@ import {
     PIGTAIL_CATHETER_INNER_RADIUS_MM,
     PIGTAIL_CATHETER_RADIUS_MM
 } from '../toolDimensions.js';
-import {
-    conjugateQuaternion,
-    createBishopFrame,
-    inverseRotateVectorByQuaternion,
-    multiplyQuaternions,
-    normalizeQuaternion,
-    quaternionExp,
-    quaternionLog,
-    solveAdaptationXPBDArraySweep,
-    solveBendTwistXPBDBlockArraySweep,
-    solveBendTwistXPBD,
-    transportBishopFrame
-} from './discreteKirchhoffRod.js';
+import { conjugateQuaternion, createBishopFrame, inverseRotateVectorByQuaternion, multiplyQuaternions, normalizeQuaternion, quaternionExp, quaternionLog, solveAdaptationXPBDArraySweep, solveBendTwistXPBD, transportBishopFrame } from './discreteKirchhoffRod.js';
 import { KirchhoffContactManifold } from './kirchhoffContactManifold.js';
-import { solveKirchhoffDirect } from './kirchhoffDirectSolver.js';
+import {
+    solveKirchhoffDirect
+} from './kirchhoffDirectSolver.js';
+import { evaluateKirchhoffSlidingPortal } from './kirchhoffSlidingPortal.js';
+import { closestKirchhoffCenterlinePoint, prepareKirchhoffCenterlineSearch } from './kirchhoffCenterlineSearch.js';
+import { measureKirchhoffContactMotion } from './kirchhoffCoupledConvergence.js';
 
 const EPSILON = 1e-8;
 const TRIG_SERIES_ANGLE_SQUARED = 0.0625;
@@ -31,8 +66,6 @@ const CONTACT_PENETRATION = 3;
 const CONTACT_BRANCH_ID = 4;
 const CONTACT_SEGMENT_T = 5;
 const MAX_WALL_CORRECTION_PASSES = 16;
-const CHORD_TO_ANGULAR_BEND_COMPLIANCE_SCALE = 100;
-const WALL_SETTLING_CLEARANCE = 0.01;
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -42,93 +75,9 @@ function magnitude3(x, y, z) {
     return Math.sqrt(x * x + y * y + z * z);
 }
 
-function closestRodSegmentParameters(
-    firstBody,
-    firstSegment,
-    secondBody,
-    secondSegment,
-    out
-) {
-    const firstStartX = firstBody.x[firstSegment];
-    const firstStartY = firstBody.y[firstSegment];
-    const firstStartZ = firstBody.z[firstSegment];
-    const firstDirectionX = firstBody.x[firstSegment + 1] - firstStartX;
-    const firstDirectionY = firstBody.y[firstSegment + 1] - firstStartY;
-    const firstDirectionZ = firstBody.z[firstSegment + 1] - firstStartZ;
-    const secondStartX = secondBody.x[secondSegment];
-    const secondStartY = secondBody.y[secondSegment];
-    const secondStartZ = secondBody.z[secondSegment];
-    const secondDirectionX = secondBody.x[secondSegment + 1] - secondStartX;
-    const secondDirectionY = secondBody.y[secondSegment + 1] - secondStartY;
-    const secondDirectionZ = secondBody.z[secondSegment + 1] - secondStartZ;
-    const offsetX = firstStartX - secondStartX;
-    const offsetY = firstStartY - secondStartY;
-    const offsetZ = firstStartZ - secondStartZ;
-    const firstLengthSquared = firstDirectionX * firstDirectionX +
-        firstDirectionY * firstDirectionY +
-        firstDirectionZ * firstDirectionZ;
-    const secondLengthSquared = secondDirectionX * secondDirectionX +
-        secondDirectionY * secondDirectionY +
-        secondDirectionZ * secondDirectionZ;
-    const secondProjection = secondDirectionX * offsetX +
-        secondDirectionY * offsetY + secondDirectionZ * offsetZ;
-    let firstT;
-    let secondT;
-    if (firstLengthSquared <= EPSILON && secondLengthSquared <= EPSILON) {
-        firstT = 0;
-        secondT = 0;
-    } else if (firstLengthSquared <= EPSILON) {
-        firstT = 0;
-        secondT = clamp(secondProjection / secondLengthSquared, 0, 1);
-    } else {
-        const firstProjection = firstDirectionX * offsetX +
-            firstDirectionY * offsetY + firstDirectionZ * offsetZ;
-        if (secondLengthSquared <= EPSILON) {
-            secondT = 0;
-            firstT = clamp(-firstProjection / firstLengthSquared, 0, 1);
-        } else {
-            const directionsDot = firstDirectionX * secondDirectionX +
-                firstDirectionY * secondDirectionY +
-                firstDirectionZ * secondDirectionZ;
-            const denominator = firstLengthSquared * secondLengthSquared -
-                directionsDot * directionsDot;
-            firstT = denominator > EPSILON
-                ? clamp(
-                    (directionsDot * secondProjection -
-                        firstProjection * secondLengthSquared) / denominator,
-                    0,
-                    1
-                )
-                : 0;
-            secondT = (
-                directionsDot * firstT + secondProjection
-            ) / secondLengthSquared;
-            if (secondT < 0) {
-                secondT = 0;
-                firstT = clamp(-firstProjection / firstLengthSquared, 0, 1);
-            } else if (secondT > 1) {
-                secondT = 1;
-                firstT = clamp(
-                    (directionsDot - firstProjection) / firstLengthSquared,
-                    0,
-                    1
-                );
-            }
-        }
-    }
-    const deltaX = firstStartX + firstDirectionX * firstT -
-        secondStartX - secondDirectionX * secondT;
-    const deltaY = firstStartY + firstDirectionY * firstT -
-        secondStartY - secondDirectionY * secondT;
-    const deltaZ = firstStartZ + firstDirectionZ * firstT -
-        secondStartZ - secondDirectionZ * secondT;
-    out.firstT = firstT;
-    out.secondT = secondT;
-    // Candidate selection only needs an ordering. Comparing squared distances
-    // avoids one square root for every segment in the temporal-coherence
-    // window; the actual Euclidean distance is evaluated once for the winner.
-    out.distanceSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
-    return out;
+function hasKirchhoffContactImpulse(contact, manifold) {
+    return contact?._manifold === manifold && (contact.normalLambda !== 0 ||
+        contact.tangentLambda[0] !== 0 || contact.tangentLambda[1] !== 0 || contact.twistLambda !== 0);
 }
 
 function now() {
@@ -178,6 +127,13 @@ function timingStats(timing) {
     };
 }
 
+function validateWholeStepSystem(system) {
+    if (system === null) return;
+    if (!system || typeof system.id !== 'string' || !system.id.trim() ||
+        typeof system.step !== 'function' || typeof system.reset !== 'function')
+        throw new TypeError('wholeStepSystem requires a nonempty id and synchronous step(world, dt), reset(world) methods');
+}
+
 export const DEFAULT_TOOL_PROFILES = Object.freeze({
     guidewire: Object.freeze({
         id: 'guidewire',
@@ -190,6 +146,10 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         // reversed one-node hinge that a permissive numerical cap allowed at
         // a moving lumen boundary.
         maxBendAngle: 60,
+        // RodState's historical 10-degree shaft cap is a positional solver
+        // parameter, not a calibrated curvature/yield limit. Kirchhoff EI/GJ
+        // controls bending; retain this profile's existing anti-fold guard.
+        inheritRodStateBendLimit: false,
         foldLimitStrength: 1,
         wallFriction: 0.006,
         wallMaxCorrection: 0.2,
@@ -201,8 +161,8 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         wallProjectionVelocityRetention: 0,
         sweptContactPreserveTangentialMotion: true,
         linearDamping: 0.98,
-        bendDamping: 0.3,
-        // Operator feed is bounded independently by GuidewireSolver. A limit
+
+        // Operator feed is bounded independently by GuidewireTransport. A limit
         // on the complete nodal velocity also clips elastic recovery and wall
         // sliding, especially when the 44 mm/s feed already consumes almost
         // the whole former 45 mm/s budget. Swept contact and the unilateral
@@ -224,7 +184,7 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         // distal material profile selectively raises compliance again where a
         // preformed tip needs to flex and recover.
         bendCompliance: 1e-9,
-        shapeCompliance: 1e-4,
+
         // Elastic bending stiffness is responsible for straightening the
         // shaft. This inequality is only an anti-fold safety guard. Keeping
         // it above an ordinary aortic turn avoids an over-constrained
@@ -244,7 +204,7 @@ export const DEFAULT_TOOL_PROFILES = Object.freeze({
         lumenAxialFriction: 0.015,
         lumenTorsionalFriction: 0.006,
         linearDamping: 0.9,
-        bendDamping: 0.68,
+
         // Feeding is already bounded by the physical inlet control. A second
         // per-node velocity clamp below the commanded feed rate compresses an
         // inextensible catheter at the introducer and creates a numerical
@@ -267,11 +227,8 @@ export class EndovascularRodBody {
     constructor(id, count, segmentLength, profile = {}) {
         if (!Number.isInteger(count) || count < 2) throw new RangeError('A rod requires at least two nodes');
         this.id = id;
-        this.rodModel = profile.rodModel === 'kirchhoff'
-            ? 'kirchhoff'
-            : 'legacy';
-        this.constitutiveSolver = profile.constitutiveSolver === 'direct'
-            ? 'direct' : 'local';
+        // Material calibration is selected explicitly, independently of the solver.
+
         this.count = count;
         this.segmentCount = count - 1;
         this.segmentLength = segmentLength;
@@ -281,8 +238,9 @@ export class EndovascularRodBody {
         this.stretchCompliance = profile.stretchCompliance ?? 2e-7;
         this.bendCompliance = profile.bendCompliance ?? 1e-3;
         this.minBendComplianceScale = profile.minBendComplianceScale ?? 0.125;
-        this.shapeCompliance = profile.shapeCompliance ?? 5e-5;
+
         this.maxBendAngle = profile.maxBendAngle ?? 135;
+        this.inheritRodStateBendLimit = profile.inheritRodStateBendLimit ?? true;
         this.foldLimitStrength = profile.foldLimitStrength ?? 0.7;
         this.wallCompliance = profile.wallCompliance ?? 0;
         this.wallMaxCorrection = profile.wallMaxCorrection ?? Infinity;
@@ -303,7 +261,7 @@ export class EndovascularRodBody {
         // a fresh launch velocity on the next fixed step.
         this.toolProjectionVelocityRetention = clamp(
             profile.toolProjectionVelocityRetention ??
-                (this.rodModel === 'kirchhoff' ? 0 : 1),
+                (0),
             0,
             1
         );
@@ -315,7 +273,7 @@ export class EndovascularRodBody {
         this.lumenTorsionalFriction = profile.lumenTorsionalFriction ??
             this.lumenFriction;
         this.linearDamping = profile.linearDamping ?? 0.98;
-        this.bendDamping = clamp(profile.bendDamping ?? 0, 0, 1);
+
         this.angularDamping = clamp(profile.angularDamping ?? 0.96, 0, 1);
         this.adaptationCompliance = Math.max(
             0,
@@ -364,22 +322,10 @@ export class EndovascularRodBody {
         this.lastRelaxationPasses = 0;
         this.lastPostStabilizationPasses = 0;
         this.lastPostStabilizationResidual = Infinity;
-        this.postStabilizeShape = false;
+
         this.distalLengthTransportMaxCorrection = 1.25;
         this.postStabilizeBending = false;
-        this.restTurnPolishMaxAngle = 0;
-        this.restDirectionSubiterations = 1;
-        this.restDirectionContactPasses = 0;
-        this.restDirectionContactCorrectionScale = 1;
         this.debugConstraintPhase = null;
-        this.curvatureVariationEnabled = false;
-        this.curvatureVariationCompliance = profile.curvatureVariationCompliance ?? 2e-4;
-        this.curvatureVariationStartNode = 0;
-        this.curvatureVariationEndNode = count - 1;
-        this.longStraightSpan = 0;
-        this.longStraightCompliance = profile.longStraightCompliance ?? 5e-5;
-        this.longStraightStartNode = 0;
-        this.longStraightEndNode = count - 1;
         this.sleepVelocity = profile.sleepVelocity ?? 0.015;
         this.sleepAngularVelocity = profile.sleepAngularVelocity ?? 0.015;
         this.sleepFrames = profile.sleepFrames ?? 120;
@@ -430,49 +376,6 @@ export class EndovascularRodBody {
         this.controlY = new Float32Array(count);
         this.controlZ = new Float32Array(count);
         this.controlCompliance = new Float32Array(count);
-        this.restShapeEnabled = new Uint8Array(count);
-        this.restShapeX = new Float32Array(count);
-        this.restShapeY = new Float32Array(count);
-        this.restShapeZ = new Float32Array(count);
-        this.restShapeCompliance = new Float32Array(count);
-        this.restShapeMaxCorrection = new Float32Array(count);
-        this.restShapeMaxCorrection.fill(Infinity);
-        this.restShapeCorrectionX = new Float32Array(count);
-        this.restShapeCorrectionY = new Float32Array(count);
-        this.restShapeCorrectionZ = new Float32Array(count);
-        this.restShapeTranslationNeutralStart = -1;
-        this.restShapeTranslationNeutralEnd = -1;
-        this.shapeClosureEnabled = false;
-        this.shapeClosureStart = 0;
-        this.shapeClosureEnd = 0;
-        this.shapeClosureDistance = 0;
-        this.shapeClosureCompliance = 0;
-        this.shapeClosureMaxCorrection = Infinity;
-        this.shapeClosureLambda = 0;
-        // Signed material-direction constraints complement the scalar bend
-        // chord. They encode which way a preformed segment turns without
-        // pinning any node to an absolute world-space point.
-        this.restDirectionEnabled = new Uint8Array(this.segmentCount);
-        this.restDirectionX = new Float32Array(this.segmentCount);
-        this.restDirectionY = new Float32Array(this.segmentCount);
-        this.restDirectionZ = new Float32Array(this.segmentCount);
-        this.restDirectionCompliance = new Float32Array(this.segmentCount);
-        this.restDirectionMaxCorrection = new Float32Array(this.segmentCount);
-        this.restDirectionMaxCorrection.fill(Infinity);
-        this.restDirectionDistalBias = new Float32Array(this.segmentCount);
-        this.restDirectionRelative = new Uint8Array(this.segmentCount);
-        this.restDirectionTurnAngle = new Float32Array(this.segmentCount);
-        this.restDirectionAxisX = new Float32Array(this.segmentCount);
-        this.restDirectionAxisY = new Float32Array(this.segmentCount);
-        this.restDirectionAxisZ = new Float32Array(this.segmentCount);
-        this.restDirectionLambdaX = new Float32Array(this.segmentCount);
-        this.restDirectionLambdaY = new Float32Array(this.segmentCount);
-        this.restDirectionLambdaZ = new Float32Array(this.segmentCount);
-        // A joint with intrinsic curvature is governed by the signed material
-        // turn below. The legacy unsigned chord constraint is disabled there,
-        // so the same bend is not counted as two independent elastic energies.
-        this.intrinsicBendEnabled = new Uint8Array(this.segmentCount);
-        this.intrinsicCurvature = new Float32Array(this.segmentCount);
         // A Kirchhoff body owns one material frame per edge. The third
         // director is constrained to the edge tangent; relative frame
         // rotations store the two bending strains and one torsional strain.
@@ -575,7 +478,6 @@ export class EndovascularRodBody {
             }
         };
         this.restLength = new Float32Array(this.segmentCount);
-        this.restBendChord = new Float32Array(count);
         this.lengthLambda = new Float32Array(this.segmentCount);
         this.lengthNormalX = new Float32Array(this.segmentCount);
         this.lengthNormalY = new Float32Array(this.segmentCount);
@@ -584,20 +486,15 @@ export class EndovascularRodBody {
         this.lengthUpper = new Float32Array(this.segmentCount);
         this.lengthRhs = new Float32Array(this.segmentCount);
         this.lengthSolution = new Float32Array(this.segmentCount);
-        this.bendLambda = new Float32Array(count);
         this.foldCorrectionX = new Float32Array(count);
         this.foldCorrectionY = new Float32Array(count);
         this.foldCorrectionZ = new Float32Array(count);
         this.foldCorrectionWeight = new Float32Array(count);
-        this.curvatureVariationLambdaX = new Float32Array(count);
-        this.curvatureVariationLambdaY = new Float32Array(count);
-        this.curvatureVariationLambdaZ = new Float32Array(count);
-        this.longStraightLambda = new Float32Array(count);
-        this.bendComplianceByNode = new Float32Array(count);
         this.maxBendAngleByNode = new Float32Array(count);
         this.controlLambda = new Float32Array(count);
-        this.shapeLambda = new Float32Array(count);
-        this.wallLambda = new Float32Array(this.segmentCount);
+        // Retain the solved load at the same precision as the applied impulse
+        // and tangential reactions; rounding Fn alone can break their cone.
+        this.wallLambda = new Float64Array(this.segmentCount);
         // wallLambda is warm-started across frames for positional convergence.
         // Friction must use only normal corrections generated in the current
         // fixed step; otherwise a historic contact becomes residual static
@@ -659,7 +556,6 @@ export class EndovascularRodBody {
         this.nodeRadius.fill(this.radius);
         this.inverseMass.fill(1 / Math.max(EPSILON, this.mass));
         this.restLength.fill(segmentLength);
-        this.bendComplianceByNode.fill(this.bendCompliance);
         this.maxBendAngleByNode.fill(this.maxBendAngle);
         this.orientationW.fill(1);
         this.previousOrientationW.fill(1);
@@ -825,215 +721,9 @@ export class EndovascularRodBody {
         return this;
     }
 
-    setRestShapeTarget(
-        index,
-        x,
-        y,
-        z,
-        compliance = this.shapeCompliance,
-        maxCorrection = Infinity
-    ) {
-        const nextCompliance = Math.max(0, compliance);
-        const nextMaxCorrection = Math.max(0, maxCorrection);
-        const changed = !this.restShapeEnabled[index] ||
-            Math.abs(this.restShapeX[index] - x) > 0.01 ||
-            Math.abs(this.restShapeY[index] - y) > 0.01 ||
-            Math.abs(this.restShapeZ[index] - z) > 0.01 ||
-            Math.abs(this.restShapeCompliance[index] - nextCompliance) > 1e-10 ||
-            this.restShapeMaxCorrection[index] !== nextMaxCorrection;
-        this.restShapeEnabled[index] = 1;
-        this.restShapeX[index] = x;
-        this.restShapeY[index] = y;
-        this.restShapeZ[index] = z;
-        this.restShapeCompliance[index] = nextCompliance;
-        this.restShapeMaxCorrection[index] = nextMaxCorrection;
-        if (changed) {
-            this.shapeLambda[index] = 0;
-            this.wake();
-        }
-        return this;
-    }
+    get rodModel() { return 'kirchhoff'; }
 
-    clearRestShapeTarget(index) {
-        if (this.restShapeEnabled[index]) this.wake();
-        this.restShapeEnabled[index] = 0;
-        this.shapeLambda[index] = 0;
-        return this;
-    }
-
-    setShapeClosureTarget(
-        start,
-        end,
-        distance,
-        compliance = this.shapeCompliance,
-        maxCorrection = Infinity
-    ) {
-        const nextStart = Math.max(0, Math.min(this.count - 1, start));
-        const nextEnd = Math.max(0, Math.min(this.count - 1, end));
-        const nextDistance = Math.max(0, distance);
-        const nextCompliance = Math.max(0, compliance);
-        const nextMaxCorrection = Math.max(0, maxCorrection);
-        const changed = !this.shapeClosureEnabled ||
-            this.shapeClosureStart !== nextStart ||
-            this.shapeClosureEnd !== nextEnd ||
-            Math.abs(this.shapeClosureDistance - nextDistance) > 1e-4 ||
-            Math.abs(this.shapeClosureCompliance - nextCompliance) > 1e-10 ||
-            this.shapeClosureMaxCorrection !== nextMaxCorrection;
-        this.shapeClosureEnabled = nextStart !== nextEnd;
-        this.shapeClosureStart = nextStart;
-        this.shapeClosureEnd = nextEnd;
-        this.shapeClosureDistance = nextDistance;
-        this.shapeClosureCompliance = nextCompliance;
-        this.shapeClosureMaxCorrection = nextMaxCorrection;
-        if (changed) {
-            this.shapeClosureLambda = 0;
-            this.wake();
-        }
-        return this;
-    }
-
-    clearShapeClosureTarget() {
-        if (this.shapeClosureEnabled) this.wake();
-        this.shapeClosureEnabled = false;
-        this.shapeClosureLambda = 0;
-        return this;
-    }
-
-    setRestDirectionTarget(
-        segment,
-        x,
-        y,
-        z,
-        compliance = this.shapeCompliance,
-        maxCorrection = Infinity
-    ) {
-        if (segment < 0 || segment >= this.segmentCount) return this;
-        const nextCompliance = Math.max(0, compliance);
-        const nextMaxCorrection = Math.max(0, maxCorrection);
-        const changed = !this.restDirectionEnabled[segment] ||
-            Math.abs(this.restDirectionX[segment] - x) > 1e-4 ||
-            Math.abs(this.restDirectionY[segment] - y) > 1e-4 ||
-            Math.abs(this.restDirectionZ[segment] - z) > 1e-4 ||
-            Math.abs(this.restDirectionCompliance[segment] - nextCompliance) > 1e-10 ||
-            this.restDirectionMaxCorrection[segment] !== nextMaxCorrection;
-        this.restDirectionEnabled[segment] = 1;
-        this.restDirectionRelative[segment] = 0;
-        this.restDirectionX[segment] = x;
-        this.restDirectionY[segment] = y;
-        this.restDirectionZ[segment] = z;
-        this.restDirectionCompliance[segment] = nextCompliance;
-        this.restDirectionMaxCorrection[segment] = nextMaxCorrection;
-        if (changed) {
-            this.restDirectionLambdaX[segment] = 0;
-            this.restDirectionLambdaY[segment] = 0;
-            this.restDirectionLambdaZ[segment] = 0;
-            this.wake();
-        }
-        return this;
-    }
-
-    setRestTurnTarget(
-        segment,
-        angle,
-        axisX,
-        axisY,
-        axisZ,
-        compliance = this.shapeCompliance,
-        maxCorrection = Infinity,
-        distalBias = 0
-    ) {
-        if (segment <= 0 || segment >= this.segmentCount) return this;
-        const axisLength = magnitude3(axisX, axisY, axisZ);
-        if (axisLength < EPSILON) return this.clearRestDirectionTarget(segment);
-        const nextCompliance = Math.max(0, compliance);
-        const nextMaxCorrection = Math.max(0, maxCorrection);
-        const nextDistalBias = clamp(distalBias, 0, 1);
-        axisX /= axisLength;
-        axisY /= axisLength;
-        axisZ /= axisLength;
-        const constitutiveChanged = !this.restDirectionEnabled[segment] ||
-            !this.restDirectionRelative[segment] ||
-            Math.abs(this.restDirectionTurnAngle[segment] - angle) > 1e-4 ||
-            Math.abs(this.restDirectionCompliance[segment] - nextCompliance) > 1e-10 ||
-            this.restDirectionMaxCorrection[segment] !== nextMaxCorrection ||
-            Math.abs(this.restDirectionDistalBias[segment] - nextDistalBias) > 1e-4;
-        const frameChanged =
-            Math.abs(this.restDirectionAxisX[segment] - axisX) > 1e-4 ||
-            Math.abs(this.restDirectionAxisY[segment] - axisY) > 1e-4 ||
-            Math.abs(this.restDirectionAxisZ[segment] - axisZ) > 1e-4;
-        this.restDirectionEnabled[segment] = 1;
-        this.restDirectionRelative[segment] = 1;
-        this.restDirectionTurnAngle[segment] = angle;
-        this.restDirectionAxisX[segment] = axisX;
-        this.restDirectionAxisY[segment] = axisY;
-        this.restDirectionAxisZ[segment] = axisZ;
-        this.restDirectionCompliance[segment] = nextCompliance;
-        this.restDirectionMaxCorrection[segment] = nextMaxCorrection;
-        this.restDirectionDistalBias[segment] = nextDistalBias;
-        if (constitutiveChanged) {
-            this.restDirectionLambdaX[segment] = 0;
-            this.restDirectionLambdaY[segment] = 0;
-            this.restDirectionLambdaZ[segment] = 0;
-        }
-        if (constitutiveChanged || frameChanged) this.wake();
-        return this;
-    }
-
-    setIntrinsicCurvatureTarget(
-        segment,
-        angle,
-        axisX,
-        axisY,
-        axisZ,
-        compliance = this.shapeCompliance,
-        maxCorrection = Infinity,
-        distalBias = 0,
-        voronoiLength = this.segmentLength
-    ) {
-        if (segment <= 0 || segment >= this.segmentCount) return this;
-        this.intrinsicBendEnabled[segment] = 1;
-        this.intrinsicCurvature[segment] = angle /
-            Math.max(EPSILON, voronoiLength);
-        return this.setRestTurnTarget(
-            segment,
-            angle,
-            axisX,
-            axisY,
-            axisZ,
-            compliance,
-            maxCorrection,
-            distalBias
-        );
-    }
-
-    clearRestDirectionTarget(segment) {
-        if (segment < 0 || segment >= this.segmentCount) return this;
-        if (this.restDirectionEnabled[segment]) this.wake();
-        this.restDirectionEnabled[segment] = 0;
-        this.restDirectionRelative[segment] = 0;
-        this.restDirectionDistalBias[segment] = 0;
-        this.intrinsicBendEnabled[segment] = 0;
-        this.intrinsicCurvature[segment] = 0;
-        this.restDirectionLambdaX[segment] = 0;
-        this.restDirectionLambdaY[segment] = 0;
-        this.restDirectionLambdaZ[segment] = 0;
-        return this;
-    }
-
-    enableKirchhoff(enabled = true, { captureRest = true } = {}) {
-        const nextModel = enabled ? 'kirchhoff' : 'legacy';
-        if (this.rodModel === nextModel) return this;
-        this.rodModel = nextModel;
-        if (enabled && captureRest) this.captureKirchhoffRestConfiguration();
-        this.adaptationLambdaX.fill(0);
-        this.adaptationLambdaY.fill(0);
-        this.adaptationLambdaZ.fill(0);
-        this.bendTwistLambda1.fill(0);
-        this.bendTwistLambda2.fill(0);
-        this.bendTwistLambda3.fill(0);
-        this.wake();
-        return this;
-    }
+    get constitutiveSolver() { return 'direct'; }
 
     setMaterialFrame(
         segment,
@@ -1193,16 +883,8 @@ export class EndovascularRodBody {
                 this.z[index + 1] - this.z[index]
             ) || this.segmentLength;
         }
-        for (let index = 1; index < this.count - 1; index++) {
-            this.restBendChord[index] = magnitude3(
-                this.x[index + 1] - this.x[index - 1],
-                this.y[index + 1] - this.y[index - 1],
-                this.z[index + 1] - this.z[index - 1]
-            );
-        }
         this.lengthLambda.fill(0);
-        this.bendLambda.fill(0);
-        if (this.rodModel === 'kirchhoff') {
+        {
             this.captureKirchhoffRestConfiguration();
         }
         return this;
@@ -1219,7 +901,7 @@ export class EndovascularRodBody {
         this.sleepCounter = 0;
     }
 
-    syncFromElasticRod(rod, { resetVelocity = false, preservePrevious = false } = {}) {
+    syncFromRodState(rod, { resetVelocity = false, preservePrevious = false } = {}) {
         const storage = rod.nodeStorage;
         const count = Math.min(this.count, rod.nodes.length);
         let changed = false;
@@ -1244,13 +926,10 @@ export class EndovascularRodBody {
             this.velocityZ[index] = resetVelocity ? 0 : storage.vz[index];
             this.inverseMass[index] = storage.pinned[index] ? 0 : 1 / Math.max(EPSILON, storage.mass[index]);
             this.pinned[index] = storage.pinned[index];
-            this.bendComplianceByNode[index] = clamp(
-                this.bendCompliance * 32 / Math.max(0.1, storage.bendingStiffness[index]),
-                this.bendCompliance * this.minBendComplianceScale,
-                this.bendCompliance * 8
-            );
             this.maxBendAngleByNode[index] = clamp(
-                storage.bendAngleLimit?.[index] ?? this.maxBendAngle,
+                this.inheritRodStateBendLimit
+                    ? storage.bendAngleLimit?.[index] ?? this.maxBendAngle
+                    : this.maxBendAngle,
                 1,
                 179
             );
@@ -1260,7 +939,7 @@ export class EndovascularRodBody {
         return this;
     }
 
-    syncToElasticRod(rod) {
+    syncToRodState(rod) {
         const storage = rod.nodeStorage;
         const count = Math.min(this.count, rod.nodes.length);
         for (let index = 0; index < count; index++) {
@@ -1285,10 +964,23 @@ export class EndovascularPhysicsWorld {
         highPenetration = 0.15,
         contactActivation = 0.25,
         coupledClosureMaxPasses = 32,
+        coupledContactMaxPasses = 32,
         coupledContainmentTolerance = 0.001,
-        coupledLengthTolerance = 0.002
+        coupledLengthTolerance = 0.002,
+        coupledAngularToleranceRad = 0.001,
+        reuseDirectLinearization = true,
+        coupledSystem = null,
+        wholeStepSystem = null,
+        jointMotionMode = 'position-history'
     } = {}) {
         this.contactField = contactField;
+        this.reuseDirectLinearization = reuseDirectLinearization;
+        this.coupledSystem = coupledSystem;
+        validateWholeStepSystem(wholeStepSystem);
+        this.wholeStepSystem = wholeStepSystem;
+        this._pendingWholeSubstep = null;
+        if (!['position-history', 'split-physical-bias'].includes(jointMotionMode)) throw new RangeError('Unknown joint motion mode');
+        this.jointMotionMode = jointMotionMode;
         this.fixedDt = fixedDt;
         this.maxSubsteps = maxSubsteps;
         this.iterations = iterations;
@@ -1299,6 +991,7 @@ export class EndovascularPhysicsWorld {
             8,
             Math.floor(coupledClosureMaxPasses)
         );
+        this.coupledContactMaxPasses = Math.max(1, Math.floor(coupledContactMaxPasses));
         this.coupledContainmentTolerance = Math.max(
             0,
             coupledContainmentTolerance
@@ -1307,6 +1000,7 @@ export class EndovascularPhysicsWorld {
             0,
             coupledLengthTolerance
         );
+        this.coupledAngularToleranceRad = Math.max(0, coupledAngularToleranceRad);
         this.accumulator = 0;
         this.bodies = [];
         this.sheaths = [];
@@ -1329,6 +1023,7 @@ export class EndovascularPhysicsWorld {
         this.lastCoupledRelaxationPasses = 0;
         this.lastCoupledClosureConverged = true;
         this.lastCoupledContainmentResidual = 0;
+        this.lastCoupledContactPasses = 0;
         this._queryStart = { x: 0, y: 0, z: 0 };
         this._queryEnd = { x: 0, y: 0, z: 0 };
         this._segmentParameters = { s: 0, t: 0 };
@@ -1414,7 +1109,6 @@ export class EndovascularPhysicsWorld {
     }
 
     addContainment(innerBody, outerBody, {
-        model = 'legacy',
         innerRadius = outerBody.innerRadius,
         compliance = 0,
         friction = outerBody.lumenFriction,
@@ -1433,29 +1127,16 @@ export class EndovascularPhysicsWorld {
         endNode = innerBody.activeEnd,
         innerResponse = 1,
         outerResponse = 1,
-        finalProjection = 'inner',
-        outerFollowsInnerCenterline = false,
-        innerFollowsOuterCenterline = false,
+
         enforceDistalPortal = false,
-        limitDistalCorrection = false,
-        preserveStationaryInnerLength = false,
-        reconcileMovingInnerStructure = false,
-        portalInnerResponse = 1,
-        portalOuterResponse = outerResponse,
-        portalCompliance = 1e-7,
-        portalTransitionLength = Math.max(innerBody.segmentLength, outerBody.segmentLength),
-        portalMaxCorrection = 0.1,
-        portalSmoothingLength = portalTransitionLength * 4,
+
         portalFilletRadius = 0.15,
-        portalRetractionDistance = null,
+
         innerArcOffset = 0,
         containedLength = Infinity
     } = {}) {
-        const containmentModel = model === 'kirchhoff'
-            ? 'kirchhoff'
-            : 'legacy';
         const constraint = {
-            model: containmentModel,
+            model: 'kirchhoff',
             innerBody,
             outerBody,
             innerRadius,
@@ -1492,55 +1173,21 @@ export class EndovascularPhysicsWorld {
             endNode,
             innerResponse: clamp(innerResponse, 0, 1),
             outerResponse: clamp(outerResponse, 0, 1),
-            // Kirchhoff contact is always solved symmetrically from its
-            // unilateral gradients. Legacy one-way final projection and its
-            // command-specific response modes must never run on this path.
-            finalProjection: containmentModel === 'kirchhoff'
-                ? 'none'
-                : finalProjection,
-            outerFollowsInnerCenterline,
-            innerFollowsOuterCenterline,
             enforceDistalPortal,
-            limitDistalCorrection,
-            preserveStationaryInnerLength,
-            reconcileMovingInnerStructure,
-            portalInnerResponse: clamp(portalInnerResponse, 0, 1),
-            portalOuterResponse: clamp(portalOuterResponse, 0, 1),
-            portalCompliance: Math.max(0, portalCompliance),
-            portalTransitionLength: Math.max(EPSILON, portalTransitionLength),
-            portalMaxCorrection: Math.max(EPSILON, portalMaxCorrection),
-            portalSmoothingLength: Math.max(
-                innerBody.segmentLength,
-                portalSmoothingLength
-            ),
+            // The open aperture constrains the geometric crossing of the rods.
+            distalPortalModel: 'spatial',
+
             // Effective centreline fillet of the physical distal lumen edge.
             // It is local contact geometry, not an exit-direction target.
             portalFilletRadius: Math.max(0, portalFilletRadius),
-            portalRetractionDistance,
-            portalLambda: 0,
-            portalDirectionLambda: 0,
-            materialPortalAxialLambda: 0,
-            materialPortalRadialLambda: 0,
-            materialPortalInnerSegment: -1,
-            materialPortalInnerT: 0,
-            materialPortalActivation: 0,
-            // The constrained point is material, not a permanently selected
-            // mesh node.  Keep its coordinate across fixed steps so velocity
-            // stabilization can include the convective velocity generated as
-            // wire material slides through the distal opening.
-            materialPortalCoordinate: NaN,
-            materialPortalPreviousCoordinate: NaN,
+
             innerArcOffset,
             containedLength,
-            manifold: containmentModel === 'kirchhoff'
-                ? new KirchhoffContactManifold({
+            manifold: new KirchhoffContactManifold({
                     frictionCoefficient: Math.max(0, axialFriction),
                     retentionSteps: 1
-                })
-                : null,
-            kirchhoffOuterSegmentByInner: containmentModel === 'kirchhoff'
-                ? new Int32Array(innerBody.segmentCount)
-                : null,
+                }),
+            kirchhoffOuterSegmentByInner: new Int32Array(innerBody.segmentCount),
             kirchhoffContacts: [],
             kirchhoffContactActivation: Math.max(0.01, this.contactActivation),
             kirchhoffMaxViolation: 0,
@@ -1626,7 +1273,7 @@ export class EndovascularPhysicsWorld {
         constraint.enforceDistalPortal = enforceDistalPortal !== false;
         constraint.enabled = nextEnabled;
 
-        if (topologyChanged && constraint.model === 'kirchhoff') {
+        if (topologyChanged && true) {
             constraint._kirchhoffMappingLocked = false;
             // Cached mappings are material-local. Retain the overlap, but
             // invalidate indices which left the contiguous lumen window so a
@@ -1667,7 +1314,7 @@ export class EndovascularPhysicsWorld {
             endSegmentA,
             startSegmentB,
             endSegmentB,
-            lambdas: new Float32Array(pairCount),
+            lambdas: new Float64Array(pairCount),
             _lastEnabled: enabled,
             _lastStartSegmentA: startSegmentA,
             _lastEndSegmentA: endSegmentA,
@@ -1678,24 +1325,250 @@ export class EndovascularPhysicsWorld {
         return constraint;
     }
 
+    // A rejected split leaves one prepared dt pending. Its callback inputs
+    // survive rollback, and only an accepted retry consumes that elapsed time.
     advance(frameDt, beforeSubstep = null) {
+        if (this._pendingWholeSubstep || this.wholeStepSystem !== null)
+            return this.#advanceWholeStep(frameDt, beforeSubstep);
         const elapsed = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
         this.accumulator += elapsed;
         let substeps = 0;
         while (this.accumulator + EPSILON >= this.fixedDt && substeps < this.maxSubsteps) {
-            beforeSubstep?.(this.fixedDt, substeps);
-            this.stepFixed();
-            this.accumulator -= this.fixedDt;
+            if (this._pendingSplitSubstep && (this.jointMotionMode !== 'split-physical-bias' ||
+                this._pendingSplitSubstep.dt !== this.fixedDt))
+                throw new Error('A pending split timestep must retain its dt and motion mode');
+            if (!this._pendingSplitSubstep) {
+                beforeSubstep?.(this.fixedDt, substeps);
+                if (this.wholeStepSystem !== null)
+                    this._pendingWholeSubstep = this.#newWholePending(true);
+                else if (this.jointMotionMode === 'split-physical-bias' && this.#jointCoupledConstraint())
+                    this._pendingSplitSubstep = { dt: this.fixedDt };
+            }
+            const result = this.stepFixed();
+            if (result?.accepted === false) break;
+            if (!result?.consumedPendingDt) {
+                this._pendingSplitSubstep = null;
+                this.accumulator -= this.fixedDt;
+            }
             substeps++;
         }
         this.lastSubsteps = substeps;
         return substeps;
     }
 
+    // Legacy position-history keeps its void return. Optional split returns
+    // an owned acceptance result; false means no committed physical timestep.
     stepFixed() {
+        // The whole-dt provider owns prediction, all constraints/friction,
+        // physical histories and atomic body publication. It cannot enter
+        // any legacy pass or fall back after a rejection or exception.
+        if (this._pendingWholeSubstep || this.wholeStepSystem !== null)
+            return this.#stepWholeFixed();
+        if (this._pendingSplitSubstep && (this.jointMotionMode !== 'split-physical-bias' ||
+            this._pendingSplitSubstep.dt !== this.fixedDt))
+            throw new Error('A pending split timestep must retain its dt and motion mode');
+        if (this.jointMotionMode !== 'split-physical-bias') return this.#stepFixedImpl();
+        const joint = this.#jointCoupledConstraint();
+        if (!joint) {
+            if (!this._pendingSplitSubstep) {
+                // The selected law applies to an eligible pair. Before the
+                // catheter is deployed the existing independent wire path
+                // still prepares it; this is not retrying a failed split.
+                this.lastStepResult = null;
+                return this.#stepFixedImpl();
+            }
+            this.lastCoupledClosureConverged = false;
+            return this.lastStepResult = { accepted: false, dt: this.fixedDt,
+                status: 'split-joint-unavailable', diagnostics: null };
+        }
+        const transactionStart = now();
+        const transaction = captureKirchhoffSplitStep(this);
+        try {
+            this.#stepFixedImpl(true);
+            const topologyUnchanged = kirchhoffSplitStepTopologyUnchanged(this, transaction);
+            const accepted = this.lastCoupledClosureConverged && topologyUnchanged;
+            const diagnostics = structuredClone(getKirchhoffSplitMotionStats(this));
+            const result = { accepted, dt: transaction.dt,
+                status: accepted ? 'accepted' : topologyUnchanged ? 'split-uncertified' : 'split-topology-changed', diagnostics };
+            if (!accepted) {
+                if (diagnostics) diagnostics.candidateMotion = this.bodies.map(body => Object.fromEntries(
+                    ['velocityX', 'velocityY', 'velocityZ', 'angularVelocityX', 'angularVelocityY', 'angularVelocityZ']
+                        .map(key => [key, Array.from(body[key])])));
+                if (diagnostics) diagnostics.candidatePose = this.bodies.map(body => ({
+                    id: body.id, activeStart: body.activeStart, activeEnd: body.activeEnd,
+                    ...Object.fromEntries(['x', 'y', 'z', 'orientationX', 'orientationY', 'orientationZ', 'orientationW']
+                        .map(key => [key, Array.from(body[key])]))
+                }));
+                restoreKirchhoffSplitStep(this, transaction);
+                this.lastCoupledClosureConverged = false;
+                if (diagnostics) { diagnostics.certified = false; diagnostics.historyCommits = 0; }
+            } else if (this._pendingSplitSubstep) {
+                // Also consume the queued dt when a caller retries stepFixed
+                // directly after a failed advance. It must not execute again
+                // when advance next visits its accumulator.
+                this.accumulator -= this._pendingSplitSubstep.dt;
+                this._pendingSplitSubstep = null;
+                result.consumedPendingDt = true;
+            }
+            this.lastStepResult = result;
+            return result;
+        } catch (error) {
+            let diagnostics = null;
+            try { diagnostics = structuredClone(getKirchhoffSplitMotionStats(this)); } catch { /* Incomplete failed phase. */ }
+            if (!transaction.restored) restoreKirchhoffSplitStep(this, transaction);
+            this.lastCoupledClosureConverged = false;
+            if (diagnostics) { diagnostics.certified = false; diagnostics.historyCommits = 0; }
+            this.lastStepResult = { accepted: false, dt: transaction.dt, status: 'split-error',
+                message: error.message, diagnostics };
+            throw error;
+        } finally {
+            // One sample includes snapshot, failed work and rollback, rather
+            // than reporting only the inner physics solve as the whole dt.
+            recordTiming(this.timings.total, now() - transactionStart);
+        }
+    }
+
+    #assertWholeConfiguration() {
+        const pending = this._pendingWholeSubstep;
+        if (this._pendingSplitSubstep)
+            throw new Error('A pending split timestep cannot switch to a wholeStepSystem');
+        if (pending && (this.wholeStepSystem !== pending.system || this.fixedDt !== pending.dt ||
+            pending.system.id !== pending.id || pending.system.step !== pending.step || pending.system.reset !== pending.reset))
+            throw new Error('A pending whole timestep must retain its dt and wholeStepSystem identity and methods');
+        if (pending?.running) throw new Error('A whole timestep is already running');
+        validateWholeStepSystem(this.wholeStepSystem);
+        if (this.wholeStepSystem === null) throw new Error('A whole timestep requires its wholeStepSystem');
+        if (!(Number.isFinite(this.fixedDt) && this.fixedDt > 0))
+            throw new RangeError('A whole timestep requires a positive finite fixedDt');
+    }
+
+    #newWholePending(consumesAccumulator) {
+        this.#assertWholeConfiguration();
+        const system = this.wholeStepSystem;
+        return { system, id: system.id, step: system.step, reset: system.reset,
+            dt: this.fixedDt, consumesAccumulator, running: false, preparationFailed: false, preparationError: null, preparationMs: 0 };
+    }
+
+    #advanceWholeStep(frameDt, beforeSubstep) {
+        // Check the pending identity even with no available elapsed time;
+        // rejected mode changes must not add new elapsed time to the queue.
+        this.#assertWholeConfiguration();
+        this.accumulator += Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
+        let substeps = 0;
+        try {
+            while (this.accumulator + EPSILON >= this.fixedDt && substeps < this.maxSubsteps) {
+                this.#assertWholeConfiguration();
+                if (!this._pendingWholeSubstep) {
+                    const pending = this._pendingWholeSubstep = this.#newWholePending(true), started = now();
+                    pending.running = true;
+                    try {
+                        beforeSubstep?.(pending.dt, substeps);
+                    } catch (error) {
+                        // A partially executed preparation cannot safely be
+                        // repeated or passed to the provider as valid input.
+                        // Reset is the explicit way to abandon this dt.
+                        pending.preparationFailed = true;
+                        pending.preparationError = error;
+                        this.lastStepResult = { accepted: false, dt: pending.dt, systemId: pending.id,
+                            status: 'whole-step-preparation-error', message: error?.message ?? String(error), diagnostics: null };
+                        recordTiming(this.timings.total, now() - started);
+                        throw error;
+                    } finally {
+                        pending.running = false;
+                        if (!pending.preparationFailed) pending.preparationMs = now() - started;
+                    }
+                }
+                // A direct stepFixed rejection has no elapsed time attached.
+                // An advance retry now funds exactly that prepared dt from
+                // its available queue without preparing the inputs again.
+                this._pendingWholeSubstep.consumesAccumulator = true;
+                const result = this.stepFixed();
+                if (!result.accepted) break;
+                substeps++;
+            }
+        } finally { this.lastSubsteps = substeps; }
+        return substeps;
+    }
+
+    #stepWholeFixed() {
+        this.#assertWholeConfiguration();
+        const pending = this._pendingWholeSubstep ??= this.#newWholePending(false);
+        if (pending.preparationFailed) throw pending.preparationError;
+        const started = now(), stepCount = this.stepCount, accumulator = this.accumulator;
+        pending.running = true;
+        try {
+            const supplied = pending.step.call(pending.system, this, pending.dt);
+            if (!supplied || typeof supplied.then === 'function' || typeof supplied.accepted !== 'boolean' ||
+                supplied.dt !== pending.dt || typeof supplied.status !== 'string' || !supplied.status.trim())
+                throw new TypeError('wholeStepSystem.step must return a synchronous { accepted: boolean, dt: requested dt, status: nonempty string }');
+            if (this.wholeStepSystem !== pending.system || this.fixedDt !== pending.dt || pending.system.id !== pending.id ||
+                pending.system.step !== pending.step || pending.system.reset !== pending.reset)
+                throw new Error('wholeStepSystem.step changed its prepared dt or system identity');
+            if (this.stepCount !== stepCount || this.accumulator !== accumulator)
+                throw new Error('wholeStepSystem.step must leave World clocks to World');
+            // The provider must return owned/stable diagnostics and must
+            // publish its body/state changes atomically only on success.
+            // World does not run the old split snapshot or mutate its own
+            // clocks on a rejected provider transaction.
+            const result = { ...supplied, systemId: pending.id, consumedPendingDt: false };
+            if (result.accepted) {
+                this.stepCount = stepCount + 1;
+                if (pending.consumesAccumulator) {
+                    this.accumulator = accumulator - pending.dt;
+                    result.consumedPendingDt = true;
+                }
+                this._pendingWholeSubstep = null;
+            }
+            this.lastCoupledSolver = pending.id;
+            this.lastCoupledClosureConverged = result.accepted;
+            return this.lastStepResult = result;
+        } catch (error) {
+            this.stepCount = stepCount;
+            this.accumulator = accumulator;
+            this.lastCoupledSolver = pending.id;
+            this.lastCoupledClosureConverged = false;
+            this.lastStepResult = { accepted: false, dt: pending.dt, systemId: pending.id,
+                status: 'whole-step-error', message: error?.message ?? String(error), diagnostics: null };
+            throw error;
+        } finally {
+            pending.running = false;
+            // Includes provider preparation, failed work and its rollback;
+            // beforeSubstep time belongs only to its first attempted dt.
+            recordTiming(this.timings.total, now() - started + pending.preparationMs);
+            pending.preparationMs = 0;
+        }
+    }
+
+    #stepFixedImpl(transactional = false) {
         const totalStart = now();
+        this.lastCoupledSolver = 'independent';
+        this.lastJointNonlinearFailure = null;
+        this.lastJointFactorizations = this.lastJointLinearIterations = 0;
+        this.lastJointTrialEvaluations = this.lastJointBacktracks = 0;
+        this.lastJointMaximumBand = this.lastJointMaximumRows = 0;
+        this.lastJointCosts = { assemblyMs:0, solveMs:0, snapshotMs:0, restoreMs:0, measureMs:0,
+            snapshotObjects:0, snapshotBytes:0, snapshots:0, restores:0,
+            condensedSetupMs:0,schurMs:0,contactSolveMs:0,reconstructionMs:0,seedMs:0 };
         this.contactCount = 0;
         this.maxPenetration = 0;
+        const connected = this.#jointCoupledConstraint();
+        for (const body of this.bodies) body._splitPhysicalMotion = null;
+        for (const constraint of this.containments) {
+            if (constraint !== connected || this.jointMotionMode !== 'split-physical-bias') {
+                // Phase-local motion belongs only to the selected pair. In
+                // particular, a withdrawn/disabled pair must not publish an
+                // old certificate or alter the independent velocity path.
+                delete constraint._splitMotion;
+                delete constraint.surfaceMotion;
+            }
+        }
+        const mechanicalComponents = this.coupledSystem?.independentComponents &&
+            this.jointMotionMode === 'position-history' ? selectKirchhoffMechanicalComponents(this) : null;
+        const independentComponents = connected ? null : mechanicalComponents;
+        for (const component of mechanicalComponents ?? []) {
+            if (component._jointClosureConverged !== true)
+                for (const body of kirchhoffComponentBodies(component)) if (body.sleeping) body.wake();
+        }
         let everyBodySleeping = this.bodies.length > 0;
         for (let index = 0; index < this.bodies.length; index++) {
             if (!this.bodies[index].sleeping) {
@@ -1703,19 +1576,42 @@ export class EndovascularPhysicsWorld {
                 break;
             }
         }
+        // Sleep is valid only for an already solved mechanical component.
+        // It must never turn a failed closure into a successful zero-work step.
+        if (everyBodySleeping && this.#jointCoupledConstraint() && !this.lastCoupledClosureConverged) {
+            for (const body of this.bodies) body.wake();
+            everyBodySleeping = false;
+        }
         if (everyBodySleeping) {
+            this.lastCoupledSolver = 'sleeping';
             this.lastLengthPolishPasses = 0;
             this.lastWallRepairPasses = 0;
             this.lastCoupledClosurePasses = 0;
             this.lastCoupledRelaxationPasses = 0;
             this.lastCoupledClosureConverged = true;
             this.lastCoupledContainmentResidual = 0;
+            this.lastCoupledContactPasses = 0;
             for (const [name, timing] of Object.entries(this.timings)) {
                 if (name !== 'total') recordTiming(timing, 0);
             }
             this.stepCount++;
-            recordTiming(this.timings.total, now() - totalStart);
+            if (!transactional) recordTiming(this.timings.total, now() - totalStart);
             return;
+        }
+        // A load on either tool wakes their connected mechanical component
+        // before prediction captures positions and material frames.
+        const wallFrictionIncoming = connected && this.jointMotionMode === 'split-physical-bias'
+            ? captureKirchhoffWallFrictionIncoming(connected, this) : null;
+        if (connected) {
+            if (connected.innerBody.sleeping) connected.innerBody.wake();
+            if (connected.outerBody.sleeping) connected.outerBody.wake();
+            if (this.jointMotionMode === 'split-physical-bias') {
+                // Configured damping acts once on physical incoming motion.
+                // The subsequent joint velocity solve owns normal/friction
+                // impulses; legacy post-projection velocity filters do not.
+                this.#dampKirchhoffContainedRadialVelocity(connected, connected.innerBody, connected.outerBody);
+                this.#dampKirchhoffCoupledBendingRates(connected, connected.innerBody, connected.outerBody);
+            }
         }
         for (
             let constraintIndex = 0;
@@ -1723,7 +1619,6 @@ export class EndovascularPhysicsWorld {
             constraintIndex++
         ) {
             const constraint = this.containments[constraintIndex];
-            if (constraint.model !== 'kirchhoff') continue;
             if (constraint._kirchhoffStepOpen) {
                 constraint.manifold.endStep({ prune: false });
             }
@@ -1738,19 +1633,28 @@ export class EndovascularPhysicsWorld {
                 constraint.manifold.clearLambdas(contact);
             }
             constraint._kirchhoffStepOpen = true;
-            constraint.materialPortalAxialLambda = 0;
-            constraint.materialPortalRadialLambda = 0;
-            constraint.materialPortalPreviousCoordinate =
-                constraint.materialPortalCoordinate;
-            constraint.materialPortalCoordinate = NaN;
+
+            constraint._contactBlockSweeps = 0;
+            constraint._contactBlockIterations = 0;
+            constraint.kirchhoffSolverResidual = null;
+            constraint.kirchhoffContactMotion = 0;
+
             constraint._kirchhoffMappingLocked = false;
+            const assemblyStarted = now();
             constraint.kirchhoffContacts.length = 0;
             constraint.kirchhoffMaxViolation = 0;
         }
+        this._inCoupledClosure = false;
         let phaseStart = now();
         for (let index = 0; index < this.bodies.length; index++) {
             const body = this.bodies[index];
             body.contactField = this.contactField;
+            const direct = body.kirchhoffScratch.direct;
+            if (direct) {
+                direct.factorAge = Infinity;
+                direct.factorizationCount = 0;
+                direct.factorReuseCount = 0;
+            }
             const activeNodeStart = Math.max(0, body.activeStart);
             const activeNodeEnd = Math.min(body.count, body.activeEnd + 1);
             const activeSegmentStart = Math.min(
@@ -1767,17 +1671,7 @@ export class EndovascularPhysicsWorld {
             // reset as soon as a node becomes active, so clearing dormant
             // capacity every 1/120 s performs no physical work.
             body.lengthLambda.fill(0, activeSegmentStart, activeSegmentEnd);
-            body.bendLambda.fill(0, activeNodeStart, activeNodeEnd);
-            body.curvatureVariationLambdaX.fill(0, activeNodeStart, activeNodeEnd);
-            body.curvatureVariationLambdaY.fill(0, activeNodeStart, activeNodeEnd);
-            body.curvatureVariationLambdaZ.fill(0, activeNodeStart, activeNodeEnd);
-            body.longStraightLambda.fill(0, activeNodeStart, activeNodeEnd);
             body.controlLambda.fill(0, activeNodeStart, activeNodeEnd);
-            body.shapeLambda.fill(0, activeNodeStart, activeNodeEnd);
-            body.shapeClosureLambda = 0;
-            body.restDirectionLambdaX.fill(0, activeSegmentStart, activeSegmentEnd);
-            body.restDirectionLambdaY.fill(0, activeSegmentStart, activeSegmentEnd);
-            body.restDirectionLambdaZ.fill(0, activeSegmentStart, activeSegmentEnd);
             body.adaptationLambdaX.fill(0, activeSegmentStart, activeSegmentEnd);
             body.adaptationLambdaY.fill(0, activeSegmentStart, activeSegmentEnd);
             body.adaptationLambdaZ.fill(0, activeSegmentStart, activeSegmentEnd);
@@ -1789,6 +1683,7 @@ export class EndovascularPhysicsWorld {
             // positional lambda across frames without applying a matching
             // warm-start impulse makes both normal reaction and Coulomb
             // friction depend on how many projections happened previously.
+            body._wallWitnessFrictionSolved = false;
             body.wallLambda.fill(0, activeSegmentStart, activeSegmentEnd);
             body.wallFrictionLambda.fill(0, activeSegmentStart, activeSegmentEnd);
             body.wallProjectionX.fill(0, activeNodeStart, activeNodeEnd);
@@ -1806,6 +1701,17 @@ export class EndovascularPhysicsWorld {
             body.lastMaximumReconstructedSpeed = 0;
             this.#integrate(body);
         }
+        if (connected && this.jointMotionMode === 'split-physical-bias') {
+            beginKirchhoffSplitMotion(connected, this);
+            if (connected._splitMotion.biasMaterialMode === 'coupled-compliance') {
+                beginKirchhoffTwoChannelMotion(connected);
+                beginKirchhoffTwoChannelRows(connected, this);
+                connected._splitMotion.diagnostics.twoChannel = true;
+                delete connected._splitMotion.diagnostics.biasElasticEnergyDelta;
+            }
+            initializeKirchhoffWallFrictionModes(connected, wallFrictionIncoming,
+                { displacementToleranceMm: this.coupledContainmentTolerance * 0.2 });
+        }
         recordTiming(this.timings.integrate, now() - phaseStart);
         for (let index = 0; index < this.bodies.length; index++) {
             const body = this.bodies[index];
@@ -1819,917 +1725,659 @@ export class EndovascularPhysicsWorld {
         let narrowPhaseDuration = now() - phaseStart;
 
         phaseStart = now();
-        const iterationCount = this.maxPenetration > this.highPenetration
-            ? this.penetrationIterations
-            : this.iterations;
-        for (let iteration = 0; iteration < iterationCount; iteration++) {
-            for (let index = 0; index < this.sheaths.length; index++) this.#solveSheath(this.sheaths[index]);
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    body.debugConstraintPhase?.('afterSheath', body);
+        const jointConstraint = this.#jointCoupledConstraint();
+        if (jointConstraint) {
+            this.lastCoupledSolver = 'joint';
+            this.#solveJointPhysicalWithWallModes(jointConstraint);
+            if (jointConstraint._splitMotion) {
+                if (jointConstraint._jointLinearFailure || jointConstraint._jointTrialFailure)
+                    jointConstraint._splitMotion.diagnostics.physicalFailure = structuredClone({
+                        linear: jointConstraint._jointLinearFailure, trial: jointConstraint._jointTrialFailure
+                    });
+                if (jointConstraint._splitMotion.twoChannel) {
+                    const split = jointConstraint._splitMotion;
+                    // Both equations have just been solved in the same outer
+                    // iterations. No second integration or material-bank swap.
+                    split.physicalMaterialResidual = { ...measureKirchhoffTwoChannelMaterial(jointConstraint).physicalResidual };
+                    split.diagnostics.physicalAccepted = split.diagnostics.biasAccepted = this.lastCoupledClosureConverged;
+                    split.diagnostics.jointPasses = split.diagnostics.physicalPasses;
+                    split.phase = 'complete';
+                } else {
+                    beginKirchhoffSplitBias(jointConstraint, this, this.lastCoupledClosureConverged);
+                    this.#solveJointCoupledConstraints(jointConstraint);
+                    if (jointConstraint._jointLinearFailure || jointConstraint._jointTrialFailure)
+                        jointConstraint._splitMotion.diagnostics.biasFailure = structuredClone({
+                            linear: jointConstraint._jointLinearFailure, trial: jointConstraint._jointTrialFailure
+                        });
+                    finishKirchhoffSplitBias(jointConstraint, this.lastCoupledClosureConverged);
                 }
+                const physical = this.#measureJointCoupledConstraints(jointConstraint, false);
+                const split = jointConstraint._splitMotion;
+                split.diagnostics.finalPhysicalResidualSettled = physical.settled;
+                split.diagnostics.certified = split.diagnostics.physicalAccepted && split.diagnostics.biasAccepted &&
+                    physical.settled && split.diagnostics.unverifiedHistoryKinds.length === 0;
+                this.lastCoupledClosureConverged = split.diagnostics.certified;
             }
-            for (let index = 0; index < this.bodies.length; index++) this.#solveControls(this.bodies[index]);
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    body.debugConstraintPhase?.('afterControls', body);
+            jointConstraint._jointClosureConverged = this.lastCoupledClosureConverged;
+        } else if (this.coupledSystem?.independentComponents && this.jointMotionMode === 'position-history') {
+            const components = independentComponents;
+            let allConverged = true;
+            this.lastCoupledSolver = 'joint-components';
+            for (const component of components) {
+                if (component._jointClosureConverged === true && kirchhoffComponentBodies(component).every(body => body.sleeping)) continue;
+                // Compatibility aliases name actual tools only. A singleton
+                // has no invented outer body or artificial lumen constraint.
+                if (component.bodies?.length === 2) {
+                    component.innerBody = component.bodies[0];component.outerBody = component.bodies[1];
+                }
+                component._contactBlockSweeps = component._contactBlockIterations = 0;
+                this.#solveJointPhysicalWithWallModes(component);
+                component._jointClosureConverged = this.lastCoupledClosureConverged;
+                allConverged &&= this.lastCoupledClosureConverged;
+            }
+            this.lastCoupledClosureConverged = allConverged;
+        } else {
+            if (this.containments.some(item => item.enabled)) this.lastCoupledSolver = 'partitioned';
+            const iterationCount = this.maxPenetration > this.highPenetration
+                ? this.penetrationIterations
+                : this.iterations;
+            for (let iteration = 0; iteration < iterationCount; iteration++) {
+                for (let index = 0; index < this.sheaths.length; index++) this.#solveSheath(this.sheaths[index]);
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        const body = this.bodies[index];
+                        body.debugConstraintPhase?.('afterSheath', body);
+                    }
+                }
+                for (let index = 0; index < this.bodies.length; index++) this.#solveControls(this.bodies[index]);
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        const body = this.bodies[index];
+                        body.debugConstraintPhase?.('afterControls', body);
+                    }
+                }
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        const body = this.bodies[index];
+                        body.debugConstraintPhase?.('afterLengths', body);
+                    }
+                }
+                for (let index = 0; index < this.bodies.length; index++) this.#solveBending(this.bodies[index]);
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        const body = this.bodies[index];
+                        body.debugConstraintPhase?.('afterBending', body);
+                    }
+                }
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        const body = this.bodies[index];
+                        body.debugConstraintPhase?.('afterDirections', body);
+                    }
+                }
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        this.bodies[index].debugConstraintPhase?.(
+                            'afterRest',
+                            this.bodies[index]
+                        );
+                    }
+                }
+                // Shape memory is deliberately solved after the first control
+                // projection, but an unsupported catheter tip must not receive the
+                // entire shape correction as a single-frame impulse. Rebalance the
+                // compliant controls before the wall gets the final say.
+                for (let index = 0; index < this.bodies.length; index++) this.#solveControls(this.bodies[index]);
+                for (let index = 0; index < this.containments.length; index++) this.#solveContainment(this.containments[index]);
+                for (let index = 0; index < this.toolContacts.length; index++) this.#solveToolContact(this.toolContacts[index]);
+                for (let index = 0; index < this.bodies.length; index++) this.#solveWallContacts(this.bodies[index]);
+                for (let index = 0; index < this.bodies.length; index++) this.#solveFoldLimits(this.bodies[index]);
+                if (iteration + 1 === iterationCount) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        this.bodies[index].debugConstraintPhase?.(
+                            'afterFold',
+                            this.bodies[index]
+                        );
+                    }
                 }
             }
             for (let index = 0; index < this.bodies.length; index++) {
-                this.#solveLengths(this.bodies[index], (iteration & 1) === 1);
+                this.bodies[index].debugConstraintPhase?.('primary', this.bodies[index]);
             }
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    body.debugConstraintPhase?.('afterLengths', body);
-                }
-            }
-            for (let index = 0; index < this.bodies.length; index++) this.#solveBending(this.bodies[index]);
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    body.debugConstraintPhase?.('afterBending', body);
-                }
-            }
-            for (let index = 0; index < this.bodies.length; index++) this.#solveCurvatureVariation(this.bodies[index]);
-            for (let index = 0; index < this.bodies.length; index++) this.#solveLongStraightness(this.bodies[index]);
-            for (let index = 0; index < this.bodies.length; index++) this.#solveRestShape(this.bodies[index]);
-            for (let index = 0; index < this.bodies.length; index++) {
-                const body = this.bodies[index];
-                for (let pass = 0; pass < body.restDirectionSubiterations; pass++) {
-                    this.#solveRestDirections(body);
-                }
-            }
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    body.debugConstraintPhase?.('afterDirections', body);
-                }
-            }
-            for (let index = 0; index < this.bodies.length; index++) {
-                this.#solveShapeClosure(this.bodies[index]);
-            }
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    this.bodies[index].debugConstraintPhase?.(
-                        'afterRest',
-                        this.bodies[index]
-                    );
-                }
-            }
-            // Shape memory is deliberately solved after the first control
-            // projection, but an unsupported catheter tip must not receive the
-            // entire shape correction as a single-frame impulse. Rebalance the
-            // compliant controls before the wall gets the final say.
-            for (let index = 0; index < this.bodies.length; index++) this.#solveControls(this.bodies[index]);
-            for (let index = 0; index < this.containments.length; index++) this.#solveContainment(this.containments[index]);
-            for (let index = 0; index < this.toolContacts.length; index++) this.#solveToolContact(this.toolContacts[index]);
-            for (let index = 0; index < this.bodies.length; index++) this.#solveWallContacts(this.bodies[index]);
-            let maximumContactDirectionPasses = 0;
-            for (let index = 0; index < this.bodies.length; index++) {
-                maximumContactDirectionPasses = Math.max(
-                    maximumContactDirectionPasses,
-                    this.bodies[index].restDirectionContactPasses
-                );
-            }
-            for (let pass = 0; pass < maximumContactDirectionPasses; pass++) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    if (pass >= body.restDirectionContactPasses) continue;
-                    this.#solveRestDirections(
-                        body,
-                        body.restDirectionContactCorrectionScale
-                    );
-                    this.#solveControls(body);
-                    this.#prepareWallContacts(body);
-                }
-                for (let index = 0; index < this.containments.length; index++) {
-                    this.#solveContainment(this.containments[index]);
-                }
-                for (let index = 0; index < this.toolContacts.length; index++) {
-                    this.#solveToolContact(this.toolContacts[index]);
-                }
-                for (let index = 0; index < this.bodies.length; index++) {
-                    const body = this.bodies[index];
-                    if (pass >= body.restDirectionContactPasses) continue;
-                    this.#solveWallContacts(body);
-                }
-            }
-            for (let index = 0; index < this.bodies.length; index++) this.#solveFoldLimits(this.bodies[index]);
-            if (iteration + 1 === iterationCount) {
-                for (let index = 0; index < this.bodies.length; index++) {
-                    this.bodies[index].debugConstraintPhase?.(
-                        'afterFold',
-                        this.bodies[index]
-                    );
-                }
-            }
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            this.bodies[index].debugConstraintPhase?.('primary', this.bodies[index]);
-        }
-        // Let selected rods converge more quickly without advancing physical
-        // time or modifying their constitutive parameters. A rod which does
-        // not share an active Kirchhoff lumen keeps the original body-local
-        // schedule exactly. Once two rods share a lumen, however, their
-        // constitutive sweeps and the unilateral lumen contact are one
-        // mechanical system: solving all wire sweeps and then all catheter
-        // sweeps lets each member approach an incompatible free equilibrium
-        // before contact reacts, which produces the alternating lateral wave
-        // seen during over-the-wire feed.
-        let maximumCoupledRelaxationPasses = 0;
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            body._coupledRelaxationActive = false;
-            body.lastRelaxationPasses = 0;
-        }
-        for (let index = 0; index < this.containments.length; index++) {
-            const constraint = this.containments[index];
-            if (constraint.model !== 'kirchhoff' || !constraint.enabled) {
-                continue;
-            }
-            const inner = constraint.innerBody;
-            const outer = constraint.outerBody;
-            inner._coupledRelaxationActive = true;
-            outer._coupledRelaxationActive = true;
-            maximumCoupledRelaxationPasses = Math.max(
-                maximumCoupledRelaxationPasses,
-                Math.max(0, Math.floor(inner.relaxationPasses ?? 0)),
-                Math.max(0, Math.floor(outer.relaxationPasses ?? 0))
-            );
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            if (body._coupledRelaxationActive) continue;
-            const relaxationPasses = Math.max(
-                0,
-                Math.floor(body.relaxationPasses ?? 0)
-            );
-            for (let pass = 0; pass < relaxationPasses; pass++) {
-                if (body.sleeping) break;
-                this.#solveRelaxationPass(body, pass);
-                body.lastRelaxationPasses = pass + 1;
-            }
-        }
-        this.lastCoupledRelaxationPasses = 0;
-        for (
-            let pass = 0;
-            pass < maximumCoupledRelaxationPasses;
-            pass++
-        ) {
-            let solvedBody = false;
+            // Let selected rods converge more quickly without advancing physical
+            // time or modifying their constitutive parameters. A rod which does
+            // not share an active Kirchhoff lumen keeps the original body-local
+            // schedule exactly. Once two rods share a lumen, however, their
+            // constitutive sweeps and the unilateral lumen contact are one
+            // mechanical system: solving all wire sweeps and then all catheter
+            // sweeps lets each member approach an incompatible free equilibrium
+            // before contact reacts, which produces the alternating lateral wave
+            // seen during over-the-wire feed.
+            let maximumCoupledRelaxationPasses = 0;
             for (let index = 0; index < this.bodies.length; index++) {
                 const body = this.bodies[index];
-                if (
-                    !body._coupledRelaxationActive ||
-                    body.sleeping ||
-                    pass >= Math.max(0, Math.floor(body.relaxationPasses ?? 0))
-                ) continue;
-                this.#solveRelaxationPass(body, pass);
-                body.lastRelaxationPasses = pass + 1;
-                // Project the shared lumen immediately after each member's
-                // constitutive update. Waiting until both free-rod energies
-                // have run creates an avoidable Jacobi-like oscillation; this
-                // is the block Gauss-Seidel ordering of the coupled system.
-                this.#solveKirchhoffContainmentsForBody(body, false);
-                solvedBody = true;
+                body._coupledRelaxationActive = false;
+                body.lastRelaxationPasses = 0;
             }
-            if (!solvedBody) break;
-            this.lastCoupledRelaxationPasses = pass + 1;
-        }
-        let constraintSectionEnd = now();
-        recordTiming(
-            this.timings.constraintPrimary,
-            constraintSectionEnd - constraintSectionStart
-        );
-        constraintSectionStart = constraintSectionEnd;
-        let bodyClosureStageStart = constraintSectionStart;
-        // Later bend, shape and contact projections can perturb segment lengths.
-        // Finish the substep with inexpensive structural polishing so callers
-        // never observe a transiently stretched rod between fixed steps.
-        this.lastLengthPolishPasses = 0;
-        for (let pass = 0; pass < 16; pass++) {
-            this.lastLengthPolishPasses = pass + 1;
-            for (let index = 0; index < this.bodies.length; index++) {
-                this.#solveWallContacts(this.bodies[index]);
-            }
-            for (let index = 0; index < this.bodies.length; index++) {
-                this.#solveFoldLimits(this.bodies[index]);
-            }
-            for (let index = 0; index < this.bodies.length; index++) {
-                this.#solveLengthsGlobal(this.bodies[index]);
-            }
-            let lengthsSettled = true;
-            for (let index = 0; index < this.bodies.length; index++) {
-                lengthsSettled = lengthsSettled && !this.#hasLengthErrorOver(this.bodies[index], 0.002);
-            }
-            if (lengthsSettled) break;
-        }
-        let bodyClosureStageEnd = now();
-        recordTiming(
-            this.timings.constraintBodyLengthPolish,
-            bodyClosureStageEnd - bodyClosureStageStart
-        );
-        bodyClosureStageStart = bodyClosureStageEnd;
-        if (this._wallRepairPenetration.length < this.bodies.length) {
-            this._wallRepairPenetration = new Float32Array(
-                this.bodies.length
-            );
-            this._wallRepairEligible = new Uint8Array(this.bodies.length);
-        }
-        const wallRepairPenetration = this._wallRepairPenetration;
-        const wallRepairEligible = this._wallRepairEligible;
-        this.wallRepairResiduals.fill(0);
-        this.wallRepairWorstSegments.fill(-1);
-        this.wallRepairWorstBodies.fill(-1);
-        this.lastWallRepairPasses = 0;
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            let movingLumenOwnsInner = false;
-            for (
-                let constraintIndex = 0;
-                constraintIndex < this.containments.length;
-                constraintIndex++
-            ) {
-                const constraint = this.containments[constraintIndex];
-                if (
-                    constraint.enabled &&
-                    constraint.limitDistalCorrection &&
-                    constraint.innerBody === body
-                ) {
-                    movingLumenOwnsInner = true;
-                    break;
-                }
-            }
-            wallRepairEligible[index] = movingLumenOwnsInner ? 0 : 1;
-        }
-        for (
-            let correctionPass = 0;
-            correctionPass < MAX_WALL_CORRECTION_PASSES;
-            correctionPass++
-        ) {
-            this.lastWallRepairPasses = correctionPass + 1;
-            let activePenetration = 0;
-            let repairablePenetration = 0;
-            for (let index = 0; index < this.bodies.length; index++) {
-                const body = this.bodies[index];
-                // Bodies owned by the later moving-lumen closure are never
-                // written in this phase. Their exact first-pass penetration
-                // therefore remains exact for every subsequent repair pass.
-                const bodyPenetration =
-                    correctionPass > 0 && !wallRepairEligible[index]
-                        ? wallRepairPenetration[index]
-                        : this.#refreshActiveWallContacts(body);
-                wallRepairPenetration[index] = bodyPenetration;
-                if (wallRepairEligible[index]) {
-                    repairablePenetration = Math.max(
-                        repairablePenetration,
-                        bodyPenetration
-                    );
-                }
-                if (bodyPenetration > activePenetration) {
-                    activePenetration = bodyPenetration;
-                    this.wallRepairWorstBodies[correctionPass] = index;
-                    this.wallRepairWorstSegments[correctionPass] =
-                        body._wallRefreshWorstSegment ?? -1;
-                }
-            }
-            this.wallRepairResiduals[correctionPass] = activePenetration;
-            // A moving lumen owns the contained rod's wall response later in
-            // the coupled closure. Re-querying the same skipped body for all
-            // 16 repair passes cannot change any position or multiplier, so
-            // stop as soon as no body eligible in this phase needs repair.
-            if (repairablePenetration <= 0.02) break;
-            for (let index = 0; index < this.bodies.length; index++) {
-                if (
-                    !wallRepairEligible[index] ||
-                    wallRepairPenetration[index] <= 0.02
-                ) continue;
-                const body = this.bodies[index];
-                this.#solveFoldLimits(body);
-                this.#prepareWallContacts(body);
-                this.#solveWallContacts(body);
-                if (correctionPass + 1 < MAX_WALL_CORRECTION_PASSES) {
-                    this.#solveLengthsGlobal(body);
-                }
-            }
-        }
-        bodyClosureStageEnd = now();
-        recordTiming(
-            this.timings.constraintBodyWallRepair,
-            bodyClosureStageEnd - bodyClosureStageStart
-        );
-        bodyClosureStageStart = bodyClosureStageEnd;
-        // Later wall and fold corrections can separate the two centerlines.
-        // Finish with exactly one radial projection of the body selected by
-        // the material coupling. Repeating structural projections here caused
-        // the catheter to collapse at its open distal transition.
-        let needsSecondFinalContainmentPass = false;
-        for (
-            let constraintIndex = 0;
-            constraintIndex < this.containments.length;
-            constraintIndex++
-        ) {
-            const constraint = this.containments[constraintIndex];
-            if (
-                constraint.enabled &&
-                constraint.finalProjection !== 'none' &&
-                !constraint.outerFollowsInnerCenterline
-            ) {
-                needsSecondFinalContainmentPass = true;
-                break;
-            }
-        }
-        const finalContainmentPasses = needsSecondFinalContainmentPass ? 2 : 1;
-        for (let pass = 0; pass < finalContainmentPasses; pass++) {
             for (let index = 0; index < this.containments.length; index++) {
                 const constraint = this.containments[index];
-                if (!constraint.enabled || constraint.finalProjection === 'none') continue;
-                if (
-                    constraint.finalProjection !== 'outer' &&
-                    !constraint.outerFollowsInnerCenterline
-                ) continue;
-                this.#solveContainment(
-                    constraint,
-                    constraint.finalProjection !== 'outer',
-                    constraint.finalProjection === 'outer',
-                    false
+                if (!constraint.enabled) {
+                    continue;
+                }
+                const inner = constraint.innerBody;
+                const outer = constraint.outerBody;
+                inner._coupledRelaxationActive = true;
+                outer._coupledRelaxationActive = true;
+                maximumCoupledRelaxationPasses = Math.max(
+                    maximumCoupledRelaxationPasses,
+                    Math.max(0, Math.floor(inner.relaxationPasses ?? 0)),
+                    Math.max(0, Math.floor(outer.relaxationPasses ?? 0))
                 );
             }
-        }
-        // A hard radial projection can leave the contained rod with a large
-        // length error or an almost reversed hinge. Alternate one-way lumen
-        // projection with the inner rod's structure before body-local wall
-        // polishing. This protects the distal capture transition from a single
-        // unrestricted correction.
-        for (let index = 0; index < this.containments.length; index++) {
-            const constraint = this.containments[index];
-            if (
-                !constraint.enabled ||
-                constraint.model === 'kirchhoff' ||
-                constraint.finalProjection === 'none' ||
-                constraint.finalProjection === 'outer' ||
-                constraint.outerFollowsInnerCenterline ||
-                constraint.limitDistalCorrection
-            ) continue;
-            const inner = constraint.innerBody;
-            // Aggressive whole-rod polishing is reserved for a fixed topology.
-            // While either tool is being fed, the capped containment solve is
-            // the only safe owner of the moving material boundary; global
-            // relaxation here otherwise turns the first covered node into a
-            // large distal jump.
-            const innerStructurePasses = 8;
-            for (let pass = 0; pass < innerStructurePasses; pass++) {
-                this.#solveLengthsGlobal(inner);
-                this.#solveBending(inner);
-                this.#solveFoldLimits(inner);
-                this.#solveLengthsGlobal(inner);
-                this.#solveFoldLimits(inner);
-                this.#solveLengthsGlobal(inner);
-                if (pass + 1 < innerStructurePasses) {
-                    this.#solveContainment(constraint, true, false, false);
-                }
-            }
-            this.#solveContainment(constraint, true, false, false);
-            this.#captureContainmentOuterPose(constraint);
-        }
-        bodyClosureStageEnd = now();
-        recordTiming(
-            this.timings.constraintBodyPrePost,
-            bodyClosureStageEnd - bodyClosureStageStart
-        );
-        bodyClosureStageStart = bodyClosureStageEnd;
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            let settledPostPasses = 0;
-            body.lastPostStabilizationPasses = 0;
-            body.lastPostStabilizationResidual = Infinity;
-            for (let pass = 0; pass < body.postStabilizationPasses; pass++) {
-                for (let node = body.activeStart; node <= body.activeEnd; node++) {
-                    body.postPassStartX[node] = body.x[node];
-                    body.postPassStartY[node] = body.y[node];
-                    body.postPassStartZ[node] = body.z[node];
-                }
-                if (body.postStabilizeShape) {
-                    this.#solveRestShape(body);
-                }
-                this.#solveControls(body);
-                this.#solveRestDirections(body);
-                this.#solveShapeClosure(body);
-                // Direction memory shares nodes with positional controls. A
-                // direction pass can therefore reopen the material anchor;
-                // rebalance controls before global length/contact polishing,
-                // matching the ordering used by the primary XPBD iterations.
-                this.#solveControls(body);
-                this.#solveLengthsGlobal(body);
-                if (body.postStabilizeBending) {
-                    this.#solveBending(body);
-                    this.#solveCurvatureVariation(body);
-                    this.#solveLongStraightness(body);
-                    this.#solveLengthsGlobal(body);
-                }
-                // Restore the signed material side once after unsigned
-                // structural bending; applying it both before and after the
-                // same pass double-counts the intrinsic moment.
-                this.#solveRestDirections(body);
-                this.#prepareWallContacts(body);
-                this.#solveWallContacts(body);
-                // Length and wall projection can recreate a sharp hinge at a
-                // material transition. Keep the bend limit as the last
-                // angular operation of every stabilization pass, then restore
-                // material length so the correction cannot become axial
-                // energy on the next frame.
-                this.#solveFoldLimits(body);
-                this.#solveLengthsGlobal(body);
-                this.#solveFoldLimits(body);
-                let residual = 0;
-                for (let node = body.activeStart; node <= body.activeEnd; node++) {
-                    residual = Math.max(residual, magnitude3(
-                        body.x[node] - body.postPassStartX[node],
-                        body.y[node] - body.postPassStartY[node],
-                        body.z[node] - body.postPassStartZ[node]
-                    ));
-                }
-                body.lastPostStabilizationPasses = pass + 1;
-                body.lastPostStabilizationResidual = residual;
-                if (
-                    pass + 1 >= body.postStabilizationMinPasses &&
-                    residual <= body.postStabilizationTolerance &&
-                    !this.#hasLengthErrorOver(body, 0.002)
-                ) {
-                    settledPostPasses++;
-                    if (settledPostPasses >= body.postStabilizationSettledPasses) break;
-                } else {
-                    settledPostPasses = 0;
-                }
-            }
-            this.#solveFoldLimits(body);
-            this.#solveLengthsGlobal(body);
-            this.#solveFoldLimits(body);
-            // Do not expose a frame after structural/contact polishing has
-            // reopened a positional material anchor. Otherwise its displaced
-            // pose becomes the next frame's refreshed target and shape memory
-            // ratchets the catheter along the vessel despite zero user input.
-            this.#solveControls(body);
-            this.#polishRestTurns(body);
-            body.debugConstraintPhase?.('final', body);
-        }
-        bodyClosureStageEnd = now();
-        recordTiming(
-            this.timings.constraintBodyPostStabilization,
-            bodyClosureStageEnd - bodyClosureStageStart
-        );
-        constraintSectionEnd = now();
-        recordTiming(
-            this.timings.constraintBodyClosure,
-            constraintSectionEnd - constraintSectionStart
-        );
-        constraintSectionStart = constraintSectionEnd;
-        for (let index = 0; index < this.sheaths.length; index++) {
-            this.#solveSheath(this.sheaths[index]);
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            body.debugConstraintPhase?.('closureAfterSheath', body);
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            if (body.postStabilizationPasses <= 0) continue;
-            this.#transportDistalLengthError(
-                body,
-                body.collisionStartSegment,
-                body.distalLengthTransportMaxCorrection
-            );
-        }
-        // The dominant catheter can still move during its final wall solve.
-        // Advect the contained wire by that same local centerline displacement
-        // before refreshing the lumen projection. Otherwise the next frame
-        // converts the mismatch into an alternating radial kick.
-        for (let index = 0; index < this.containments.length; index++) {
-            const constraint = this.containments[index];
-            if (
-                !constraint.enabled ||
-                constraint.finalProjection === 'none' ||
-                constraint.finalProjection === 'outer' ||
-                constraint.outerFollowsInnerCenterline ||
-                (
-                    !constraint.limitDistalCorrection &&
-                    !constraint.innerFollowsOuterCenterline
-                )
-            ) continue;
-            if (!constraint.limitDistalCorrection) {
-                this.#carryContainedInnerWithOuter(constraint);
-            }
-            this.#solveContainment(constraint, true, false, false);
-            const inner = constraint.innerBody;
-            if (
-                constraint.limitDistalCorrection &&
-                constraint.preserveStationaryInnerLength
-            ) {
-                // Advancing an outer catheter over a stationary inner wire
-                // changes only the lumen classification. Reconcile locally so
-                // that capture cannot stretch the held wire. This is disabled
-                // while both material boundaries advance; their portal solve
-                // already owns that simultaneous remeshing transition.
-                inner.wake();
-                for (let pass = 0; pass < 24; pass++) {
-                    this.#solveLengths(inner, (pass & 1) === 1);
-                    this.#solveBending(inner);
-                    this.#solveContainment(constraint, true, false, false);
-                }
-            } else if (
-                constraint.limitDistalCorrection &&
-                constraint.reconcileMovingInnerStructure
-            ) {
-                // With both feeds active the sheath and distal portal move in
-                // the same step. Use a small number of global material-length
-                // projections to suppress the long-wave fold, but keep this
-                // separate from the stronger stationary-wire reconciliation.
-                for (let pass = 0; pass < 6; pass++) {
-                    this.#solveLengthsGlobal(inner);
-                    this.#solveBending(inner);
-                    this.#solveFoldLimits(inner);
-                    this.#solveContainment(constraint, true, false, false);
-                }
-            }
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            body.debugConstraintPhase?.('closureAfterCarry', body);
-        }
-        for (let index = 0; index < this.containments.length; index++) {
-            const constraint = this.containments[index];
-            if (
-                !constraint.enabled ||
-                (
-                    !constraint.preserveStationaryInnerLength &&
-                    !constraint.reconcileMovingInnerStructure
-                )
-            ) continue;
-            const inner = constraint.innerBody;
-            for (let sheathIndex = 0; sheathIndex < this.sheaths.length; sheathIndex++) {
-                const sheath = this.sheaths[sheathIndex];
-                if (sheath.bodies && !sheath.bodies.includes(inner)) continue;
-                const materialToOutlet = Math.max(
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                if (body._coupledRelaxationActive) continue;
+                const relaxationPasses = Math.max(
                     0,
-                    sheath.length - Math.max(0, constraint.innerArcOffset)
+                    Math.floor(body.relaxationPasses ?? 0)
                 );
-                const outletSegment = constraint.startNode + Math.floor(
-                    materialToOutlet /
-                    Math.max(EPSILON, inner.segmentLength)
-                );
-                this.#transportDistalLengthError(
-                    inner,
-                    outletSegment,
-                    1.1
-                );
-            }
-            this.#solveContainment(constraint, true, false, false);
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            this.#limitFrameDisplacement(this.bodies[index]);
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            body.debugConstraintPhase?.('closureAfterLimit', body);
-        }
-        // Settle each rod against its wall before the final lumen closure. No
-        // outer-catheter projection may run after that closure, otherwise the
-        // lumen can move away from an already settled guidewire.
-        let finalStructuralClosurePasses = 8;
-        let hasActiveKirchhoffContainment = false;
-        for (let index = 0; index < this.containments.length; index++) {
-            const constraint = this.containments[index];
-            if (constraint.model === 'kirchhoff' && constraint.enabled) {
-                hasActiveKirchhoffContainment = true;
-                break;
-            }
-        }
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            finalStructuralClosurePasses = Math.max(
-                finalStructuralClosurePasses,
-                body.finalStructuralClosurePasses ?? 8
-            );
-        }
-        if (hasActiveKirchhoffContainment) {
-            finalStructuralClosurePasses = Math.max(
-                finalStructuralClosurePasses,
-                this.coupledClosureMaxPasses
-            );
-            // A converged stiff wire can transfer a larger reaction into the
-            // catheter portal than a locally under-solved wire. Allow extra
-            // contact/length iterations only when such a coupled system has
-            // not yet met the existing residual tolerances. The early-out
-            // below still ends a converged solve immediately.
-            for (const body of this.bodies) {
-                if (body.constitutiveSolver !== 'direct') continue;
-                finalStructuralClosurePasses = Math.max(
-                    finalStructuralClosurePasses, this.coupledClosureMaxPasses * 2
-                );
-                break;
-            }
-        }
-        this.lastCoupledClosurePasses = 0;
-        this.lastCoupledClosureConverged = false;
-        this.lastCoupledContainmentResidual = 0;
-        if (this.captureCoupledClosureTrace) {
-            this.coupledClosureTrace.length = 0;
-        }
-        if (
-            !this._coupledHasIntrinsicBend ||
-            this._coupledHasIntrinsicBend.length < this.bodies.length
-        ) {
-            this._coupledHasIntrinsicBend = new Uint8Array(
-                this.bodies.length
-            );
-        }
-        const coupledHasIntrinsicBend = this._coupledHasIntrinsicBend;
-        for (let bodyIndex = 0; bodyIndex < this.bodies.length; bodyIndex++) {
-            const body = this.bodies[bodyIndex];
-            let hasIntrinsicBend = false;
-            for (
-                let segment = body.activeStart;
-                segment < body.activeEnd;
-                segment++
-            ) {
-                if (!body.intrinsicBendEnabled[segment]) continue;
-                hasIntrinsicBend = true;
-                break;
-            }
-            coupledHasIntrinsicBend[bodyIndex] = hasIntrinsicBend ? 1 : 0;
-            if (hasActiveKirchhoffContainment) {
-                for (
-                    let node = body.activeStart;
-                    node <= body.activeEnd;
-                    node++
-                ) {
-                    body.coupledClosureStartX[node] = body.x[node];
-                    body.coupledClosureStartY[node] = body.y[node];
-                    body.coupledClosureStartZ[node] = body.z[node];
+                for (let pass = 0; pass < relaxationPasses; pass++) {
+                    if (body.sleeping) break;
+                    this.#solveRelaxationPass(body, pass);
+                    body.lastRelaxationPasses = pass + 1;
                 }
             }
-        }
-        for (let pass = 0; pass < finalStructuralClosurePasses; pass++) {
-            this.lastCoupledClosurePasses = pass + 1;
-            if (this.captureCoupledClosureTrace) {
+            this.lastCoupledRelaxationPasses = 0;
+            for (
+                let pass = 0;
+                pass < maximumCoupledRelaxationPasses;
+                pass++
+            ) {
+                let solvedBody = false;
                 for (let index = 0; index < this.bodies.length; index++) {
                     const body = this.bodies[index];
-                    for (
-                        let node = body.activeStart;
-                        node <= body.activeEnd;
-                        node++
-                    ) {
+                    if (
+                        !body._coupledRelaxationActive ||
+                        body.sleeping ||
+                        pass >= Math.max(0, Math.floor(body.relaxationPasses ?? 0))
+                    ) continue;
+                    this.#solveRelaxationPass(body, pass);
+                    body.lastRelaxationPasses = pass + 1;
+                    // Project the shared lumen immediately after each member's
+                    // constitutive update. Waiting until both free-rod energies
+                    // have run creates an avoidable Jacobi-like oscillation; this
+                    // is the block Gauss-Seidel ordering of the coupled system.
+                    this.#solveKirchhoffContainmentsForBody(body, false);
+                    solvedBody = true;
+                }
+                if (!solvedBody) break;
+                this.lastCoupledRelaxationPasses = pass + 1;
+            }
+            let constraintSectionEnd = now();
+            recordTiming(
+                this.timings.constraintPrimary,
+                constraintSectionEnd - constraintSectionStart
+            );
+            constraintSectionStart = constraintSectionEnd;
+            let bodyClosureStageStart = constraintSectionStart;
+            // Later bend, shape and contact projections can perturb segment lengths.
+            // Finish the substep with inexpensive structural polishing so callers
+            // never observe a transiently stretched rod between fixed steps.
+            this.lastLengthPolishPasses = 0;
+            for (let pass = 0; pass < 16; pass++) {
+                this.lastLengthPolishPasses = pass + 1;
+                for (let index = 0; index < this.bodies.length; index++) {
+                    this.#solveWallContacts(this.bodies[index]);
+                }
+                for (let index = 0; index < this.bodies.length; index++) {
+                    this.#solveFoldLimits(this.bodies[index]);
+                }
+                for (let index = 0; index < this.bodies.length; index++) {
+                    this.#solveLengthsGlobal(this.bodies[index]);
+                }
+                let lengthsSettled = true;
+                for (let index = 0; index < this.bodies.length; index++) {
+                    lengthsSettled = lengthsSettled && !this.#hasLengthErrorOver(this.bodies[index], 0.002);
+                }
+                if (lengthsSettled) break;
+            }
+            let bodyClosureStageEnd = now();
+            recordTiming(
+                this.timings.constraintBodyLengthPolish,
+                bodyClosureStageEnd - bodyClosureStageStart
+            );
+            bodyClosureStageStart = bodyClosureStageEnd;
+            if (this._wallRepairPenetration.length < this.bodies.length) {
+                this._wallRepairPenetration = new Float32Array(
+                    this.bodies.length
+                );
+                this._wallRepairEligible = new Uint8Array(this.bodies.length);
+            }
+            const wallRepairPenetration = this._wallRepairPenetration;
+            const wallRepairEligible = this._wallRepairEligible;
+            this.wallRepairResiduals.fill(0);
+            this.wallRepairWorstSegments.fill(-1);
+            this.wallRepairWorstBodies.fill(-1);
+            this.lastWallRepairPasses = 0;
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                let movingLumenOwnsInner = false;
+                wallRepairEligible[index] = movingLumenOwnsInner ? 0 : 1;
+            }
+            for (
+                let correctionPass = 0;
+                correctionPass < MAX_WALL_CORRECTION_PASSES;
+                correctionPass++
+            ) {
+                this.lastWallRepairPasses = correctionPass + 1;
+                let activePenetration = 0;
+                let repairablePenetration = 0;
+                for (let index = 0; index < this.bodies.length; index++) {
+                    const body = this.bodies[index];
+                    // Bodies owned by the later moving-lumen closure are never
+                    // written in this phase. Their exact first-pass penetration
+                    // therefore remains exact for every subsequent repair pass.
+                    const bodyPenetration =
+                        correctionPass > 0 && !wallRepairEligible[index]
+                            ? wallRepairPenetration[index]
+                            : this.#refreshActiveWallContacts(body);
+                    wallRepairPenetration[index] = bodyPenetration;
+                    if (wallRepairEligible[index]) {
+                        repairablePenetration = Math.max(
+                            repairablePenetration,
+                            bodyPenetration
+                        );
+                    }
+                    if (bodyPenetration > activePenetration) {
+                        activePenetration = bodyPenetration;
+                        this.wallRepairWorstBodies[correctionPass] = index;
+                        this.wallRepairWorstSegments[correctionPass] =
+                            body._wallRefreshWorstSegment ?? -1;
+                    }
+                }
+                this.wallRepairResiduals[correctionPass] = activePenetration;
+                // A moving lumen owns the contained rod's wall response later in
+                // the coupled closure. Re-querying the same skipped body for all
+                // 16 repair passes cannot change any position or multiplier, so
+                // stop as soon as no body eligible in this phase needs repair.
+                if (repairablePenetration <= 0.02) break;
+                for (let index = 0; index < this.bodies.length; index++) {
+                    if (
+                        !wallRepairEligible[index] ||
+                        wallRepairPenetration[index] <= 0.02
+                    ) continue;
+                    const body = this.bodies[index];
+                    this.#solveFoldLimits(body);
+                    this.#prepareWallContacts(body);
+                    this.#solveWallContacts(body);
+                    if (correctionPass + 1 < MAX_WALL_CORRECTION_PASSES) {
+                        this.#solveLengthsGlobal(body);
+                    }
+                }
+            }
+            bodyClosureStageEnd = now();
+            recordTiming(
+                this.timings.constraintBodyWallRepair,
+                bodyClosureStageEnd - bodyClosureStageStart
+            );
+            bodyClosureStageStart = bodyClosureStageEnd;
+            // Later wall and fold corrections can separate the two centerlines.
+            // Finish with exactly one radial projection of the body selected by
+            // the material coupling. Repeating structural projections here caused
+            // the catheter to collapse at its open distal transition.
+            let needsSecondFinalContainmentPass = false;
+            const finalContainmentPasses = needsSecondFinalContainmentPass ? 2 : 1;
+            for (let pass = 0; pass < finalContainmentPasses; pass++) {
+                for (let index = 0; index < this.containments.length; index++) {
+                    const constraint = this.containments[index];
+                    continue;
+
+                }
+            }
+            // A hard radial projection can leave the contained rod with a large
+            // length error or an almost reversed hinge. Alternate one-way lumen
+            // projection with the inner rod's structure before body-local wall
+            // polishing. This protects the distal capture transition from a single
+            // unrestricted correction.
+            for (let index = 0; index < this.containments.length; index++) {
+                const constraint = this.containments[index];
+                continue;
+
+            }
+            bodyClosureStageEnd = now();
+            recordTiming(
+                this.timings.constraintBodyPrePost,
+                bodyClosureStageEnd - bodyClosureStageStart
+            );
+            bodyClosureStageStart = bodyClosureStageEnd;
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                let settledPostPasses = 0;
+                body.lastPostStabilizationPasses = 0;
+                body.lastPostStabilizationResidual = Infinity;
+                for (let pass = 0; pass < body.postStabilizationPasses; pass++) {
+                    for (let node = body.activeStart; node <= body.activeEnd; node++) {
                         body.postPassStartX[node] = body.x[node];
                         body.postPassStartY[node] = body.y[node];
                         body.postPassStartZ[node] = body.z[node];
                     }
-                }
-            }
-            for (let index = 0; index < this.bodies.length; index++) {
-                const body = this.bodies[index];
-                const kirchhoffBody = body.rodModel === 'kirchhoff';
-                const hasIntrinsicBend = coupledHasIntrinsicBend[index] !== 0;
-                if (hasIntrinsicBend) {
-                    if (body.intrinsicClosureCorrectionScale > 0) {
-                        this.#solveRestDirections(
-                            body,
-                            body.intrinsicClosureCorrectionScale
-                        );
+                    this.#solveControls(body);
+                    // Direction memory shares nodes with positional controls. A
+                    // direction pass can therefore reopen the material anchor;
+                    // rebalance controls before global length/contact polishing,
+                    // matching the ordering used by the primary XPBD iterations.
+                    this.#solveControls(body);
+                    this.#solveLengthsGlobal(body);
+                    if (body.postStabilizeBending) {
+                        this.#solveBending(body);
+                        this.#solveLengthsGlobal(body);
                     }
-                    if (!kirchhoffBody) this.#solveFoldLimits(body);
-                }
-                // The material adaptation constraint is the Kirchhoff rod's
-                // inextensibility constraint. It must participate in the last
-                // coupled closure even when the body does not use the legacy
-                // post-stabilization passes (the guidewire normally does not).
-                // Otherwise the outlet, wall and lumen projections below are
-                // the final writers of its positions and expose an axially
-                // stretched segment until the next fixed step.
-                if (kirchhoffBody) {
-                    this.#solveBending(body);
-                    // Constitutive bend first, unilateral safety bound second,
-                    // then adaptation.  This leaves one coherent orientation
-                    // state for the centerline instead of letting material
-                    // energy immediately undo the fold projection.
+                    // Restore the signed material side once after unsigned
+                    // structural bending; applying it both before and after the
+                    // same pass double-counts the intrinsic moment.
+                    this.#prepareWallContacts(body);
+                    this.#solveWallContacts(body);
+                    // Length and wall projection can recreate a sharp hinge at a
+                    // material transition. Keep the bend limit as the last
+                    // angular operation of every stabilization pass, then restore
+                    // material length so the correction cannot become axial
+                    // energy on the next frame.
                     this.#solveFoldLimits(body);
                     this.#solveLengthsGlobal(body);
-                } else if (body.postStabilizationPasses > 0) {
-                    this.#solveLengthsGlobal(body);
+                    this.#solveFoldLimits(body);
+                    let residual = 0;
+                    for (let node = body.activeStart; node <= body.activeEnd; node++) {
+                        residual = Math.max(residual, magnitude3(
+                            body.x[node] - body.postPassStartX[node],
+                            body.y[node] - body.postPassStartY[node],
+                            body.z[node] - body.postPassStartZ[node]
+                        ));
+                    }
+                    body.lastPostStabilizationPasses = pass + 1;
+                    body.lastPostStabilizationResidual = residual;
+                    if (
+                        pass + 1 >= body.postStabilizationMinPasses &&
+                        residual <= body.postStabilizationTolerance &&
+                        !this.#hasLengthErrorOver(body, 0.002)
+                    ) {
+                        settledPostPasses++;
+                        if (settledPostPasses >= body.postStabilizationSettledPasses) break;
+                    } else {
+                        settledPostPasses = 0;
+                    }
                 }
-                // Length/adaptation is allowed to redistribute the inlet
-                // reaction, but the Eulerian introducer sample is itself a
-                // member of this coupled closure. Leaving its control solve
-                // outside the loop lets every later length pass pull the
-                // catheter backwards and accumulate axial compression.
+                this.#solveFoldLimits(body);
+                this.#solveLengthsGlobal(body);
+                this.#solveFoldLimits(body);
+                // Do not expose a frame after structural/contact polishing has
+                // reopened a positional material anchor. Otherwise its displaced
+                // pose becomes the next frame's refreshed target and shape memory
+                // ratchets the catheter along the vessel despite zero user input.
                 this.#solveControls(body);
-                this.#prepareWallContacts(body);
-                this.#solveWallContacts(body);
-                // The final Newton-like closure updates both constitutive rods
-                // before evaluating their shared material contact once below.
-                // Projecting the same symmetric contact after each individual
-                // body made the result depend on body array order and counted
-                // one physical constraint three times per pass.
+                body.debugConstraintPhase?.('final', body);
             }
-            // Close both material rods and their lumen contacts as one
-            // symmetric system. This uses the same compliant unilateral
-            // constraint as the primary iterations; it is not a centerline
-            // snap and never invokes the legacy distal direction projection.
-            for (
-                let constraintIndex = 0;
-                constraintIndex < this.containments.length;
-                constraintIndex++
-            ) {
-                const constraint = this.containments[constraintIndex];
-                if (
-                    constraint.model !== 'kirchhoff' ||
-                    !constraint.enabled
-                ) continue;
-                this.#solveKirchhoffContainment(constraint, true, false);
+            bodyClosureStageEnd = now();
+            recordTiming(
+                this.timings.constraintBodyPostStabilization,
+                bodyClosureStageEnd - bodyClosureStageStart
+            );
+            constraintSectionEnd = now();
+            recordTiming(
+                this.timings.constraintBodyClosure,
+                constraintSectionEnd - constraintSectionStart
+            );
+            constraintSectionStart = constraintSectionEnd;
+            for (let index = 0; index < this.sheaths.length; index++) {
+                this.#solveSheath(this.sheaths[index]);
             }
-            let coupledResidualSettled = true;
-            const tracedBodies = this.captureCoupledClosureTrace ? [] : null;
             for (let index = 0; index < this.bodies.length; index++) {
                 const body = this.bodies[index];
-                const hasIntrinsicBend = coupledHasIntrinsicBend[index] !== 0;
-                const kirchhoffBody = body.rodModel === 'kirchhoff';
-                if (
-                    !kirchhoffBody &&
-                    !hasIntrinsicBend &&
-                    body.postStabilizationPasses <= 0
-                ) continue;
-                const materialResidual = !kirchhoffBody && hasIntrinsicBend &&
-                    body.intrinsicClosureCorrectionScale > 0
-                    ? this.#bodyStats(body).maxMaterialTurnResidualDegrees
-                    : 0;
-                const foldError = hasIntrinsicBend &&
-                    this.#hasFoldLimitErrorOver(body, 0.02);
-                const lengthError = !(
-                    !kirchhoffBody && body.postStabilizationPasses <= 0
-                ) && this.#hasLengthErrorOver(
+                body.debugConstraintPhase?.('closureAfterSheath', body);
+            }
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                if (body.postStabilizationPasses <= 0) continue;
+                this.#transportDistalLengthError(
                     body,
-                    hasActiveKirchhoffContainment
-                        ? this.coupledLengthTolerance
-                        : 0.002
+                    body.collisionStartSegment,
+                    body.distalLengthTransportMaxCorrection
                 );
-                let maximumPositionDelta = 0;
-                let maximumRelativeLengthError = 0;
-                if (this.captureCoupledClosureTrace) {
+            }
+            // The dominant catheter can still move during its final wall solve.
+            // Advect the contained wire by that same local centerline displacement
+            // before refreshing the lumen projection. Otherwise the next frame
+            // converts the mismatch into an alternating radial kick.
+            for (let index = 0; index < this.containments.length; index++) {
+                const constraint = this.containments[index];
+                continue;
+
+            }
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                body.debugConstraintPhase?.('closureAfterCarry', body);
+            }
+            for (let index = 0; index < this.containments.length; index++) {
+                const constraint = this.containments[index];
+                continue;
+
+            }
+            for (let index = 0; index < this.bodies.length; index++) {
+                this.#limitFrameDisplacement(this.bodies[index]);
+            }
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                body.debugConstraintPhase?.('closureAfterLimit', body);
+            }
+            // Settle each rod against its wall before the final lumen closure. No
+            // outer-catheter projection may run after that closure, otherwise the
+            // lumen can move away from an already settled guidewire.
+            let finalStructuralClosurePasses = 8;
+            const hasActiveKirchhoffContainment = this.containments.some(constraint => constraint.enabled);
+            let activeRodNodes = 0;
+            for (const body of this.bodies) {
+                activeRodNodes += body.activeEnd - body.activeStart + 1;
+                finalStructuralClosurePasses = Math.max(
+                    finalStructuralClosurePasses,
+                    body.finalStructuralClosurePasses ?? 8
+                );
+            }
+            if (hasActiveKirchhoffContainment) {
+                finalStructuralClosurePasses = Math.max(
+                    finalStructuralClosurePasses, this.coupledClosureMaxPasses * 2
+                );
+            }
+            this.lastCoupledClosurePasses = 0;
+            this.lastCoupledClosureConverged = false;
+            this.lastCoupledContainmentResidual = 0;
+            this.lastCoupledContactPasses = 0;
+            if (this.captureCoupledClosureTrace) {
+                this.coupledClosureTrace.length = 0;
+            }
+            for (let bodyIndex = 0; bodyIndex < this.bodies.length; bodyIndex++) {
+                const body = this.bodies[bodyIndex];
+                if (hasActiveKirchhoffContainment) {
                     for (
                         let node = body.activeStart;
                         node <= body.activeEnd;
                         node++
                     ) {
-                        maximumPositionDelta = Math.max(
-                            maximumPositionDelta,
-                            magnitude3(
-                                body.x[node] - body.postPassStartX[node],
-                                body.y[node] - body.postPassStartY[node],
-                                body.z[node] - body.postPassStartZ[node]
-                            )
-                        );
+                        body.coupledClosureStartX[node] = body.x[node];
+                        body.coupledClosureStartY[node] = body.y[node];
+                        body.coupledClosureStartZ[node] = body.z[node];
                     }
-                    for (
-                        let segment = body.activeStart;
-                        segment < body.activeEnd;
-                        segment++
-                    ) {
-                        const restLength = Math.max(
-                            EPSILON,
-                            body.restLength[segment]
-                        );
-                        maximumRelativeLengthError = Math.max(
-                            maximumRelativeLengthError,
-                            Math.abs(
+                }
+            }
+            this._inCoupledClosure = true;
+            for (let pass = 0; pass < finalStructuralClosurePasses; pass++) {
+                this.lastCoupledClosurePasses = pass + 1;
+                if (this.captureCoupledClosureTrace || hasActiveKirchhoffContainment) {
+                    for (let index = 0; index < this.bodies.length; index++) {
+                        const body = this.bodies[index];
+                        for (
+                            let node = body.activeStart;
+                            node <= body.activeEnd;
+                            node++
+                        ) {
+                            body.postPassStartX[node] = body.x[node];
+                            body.postPassStartY[node] = body.y[node];
+                            body.postPassStartZ[node] = body.z[node];
+                        }
+                    }
+                }
+                for (let index = 0; index < this.bodies.length; index++) {
+                    const body = this.bodies[index];
+                    // The material adaptation constraint is the Kirchhoff rod's
+                    // inextensibility constraint. It must participate in the last
+                    // coupled closure even when the body does not use the extra
+                    // post-stabilization passes (the guidewire normally does not).
+                    // Otherwise the outlet, wall and lumen projections below are
+                    // the final writers of its positions and expose an axially
+                    // stretched segment until the next fixed step.
+                    {
+                        this.#solveBending(body);
+                        // Constitutive bend first, unilateral safety bound second,
+                        // then adaptation.  This leaves one coherent orientation
+                        // state for the centerline instead of letting material
+                        // energy immediately undo the fold projection.
+                        this.#solveFoldLimits(body);
+                        this.#solveLengthsGlobal(body);
+                    }
+                    // Length/adaptation is allowed to redistribute the inlet
+                    // reaction, but the Eulerian introducer sample is itself a
+                    // member of this coupled closure. Leaving its control solve
+                    // outside the loop lets every later length pass pull the
+                    // catheter backwards and accumulate axial compression.
+                    this.#solveControls(body);
+                    this.#prepareWallContacts(body);
+                    this.#solveWallContacts(body);
+                    // The final Newton-like closure updates both constitutive rods
+                    // before evaluating their shared material contact once below.
+                    // Projecting the same symmetric contact after each individual
+                    // body made the result depend on body array order and counted
+                    // one physical constraint three times per pass.
+                }
+                // A contact residual needs another contact sweep, not necessarily
+                // another free-rod Newton solve. Polish the coupled contact block
+                // at the current material iterate; lengths of BOTH complete rods
+                // are checked below and reopen the global solve when necessary.
+                // Each outer iterate includes the complete direct solves for both
+                // rods, so contact reactions propagate beyond the overlap.
+                let contactPassLimit = this.coupledContactMaxPasses;
+                let previousContactResidual = Infinity;
+                for (let contactPass = 0; contactPass < contactPassLimit; contactPass++) {
+                    let contactCount = 0;
+                    for (const constraint of this.containments) {
+                        if (!constraint.enabled) continue;
+                        this.#solveKirchhoffContainment(constraint, true, false);
+                        contactCount += constraint.kirchhoffContacts.length;
+                    }
+                    if (!hasActiveKirchhoffContainment) break;
+                    this.lastCoupledContactPasses++;
+                    // Length error already requires a global rod update. Avoid
+                    // traversing (or polishing) a contact network it will reopen.
+                    if (this.bodies.some(body => this.#hasLengthErrorOver(body, this.coupledLengthTolerance))) break;
+                    let contactMotionSettled = true;
+                    for (const constraint of this.containments) {
+                        if (!constraint.enabled) continue;
+                        constraint.kirchhoffContactMotion = measureKirchhoffContactMotion(constraint);
+                        if (constraint.kirchhoffContactMotion > this.coupledContainmentTolerance) {
+                            contactMotionSettled = false;
+                        }
+                    }
+                    // Large motion of the coupled coordinates also requires the
+                    // next material iterate. Only the remaining contact residual
+                    // benefits from additional inexpensive inner sweeps.
+                    if (!contactMotionSettled) break;
+                    // Bound inner work by the size of the global rod block (six
+                    // rows per node). Long overlaps return to the material solve
+                    // sooner; small overlaps can finish cheaply in this loop.
+                    contactPassLimit = Math.min(contactPassLimit, Math.max(
+                        2, Math.ceil(6 * activeRodNodes / Math.max(1, contactCount))
+                    ));
+                    let contactsSettled = true;
+                    let contactResidual = 0;
+                    for (const constraint of this.containments) {
+                        if (!constraint.enabled) continue;
+                        constraint.kirchhoffSolverResidual = this.#kirchhoffContactSolverResidual(constraint);
+                        contactResidual = Math.max(contactResidual, constraint.kirchhoffSolverResidual);
+                        if (constraint.kirchhoffSolverResidual > this.coupledContainmentTolerance) {
+                            contactsSettled = false;
+                        }
+                    }
+                    if (contactsSettled) break;
+                    // Contact polishing cannot repair material length. Return to
+                    // the full rod response as soon as it is required, or when
+                    // the contact block stops making progress on its own.
+                    if (contactResidual >= previousContactResidual * 0.95) break;
+                    previousContactResidual = contactResidual;
+                }
+                let coupledResidualSettled = true;
+                const tracedBodies = this.captureCoupledClosureTrace ? [] : null;
+                for (let index = 0; index < this.bodies.length; index++) {
+                    const body = this.bodies[index];
+                    const lengthError = this.#hasLengthErrorOver(
+                        body,
+                        hasActiveKirchhoffContainment
+                            ? this.coupledLengthTolerance
+                            : 0.002
+                    );
+                    let maximumPositionDelta = 0;
+                    let maximumRelativeLengthError = 0;
+                    if (this.captureCoupledClosureTrace) {
+                        for (
+                            let node = body.activeStart;
+                            node <= body.activeEnd;
+                            node++
+                        ) {
+                            maximumPositionDelta = Math.max(
+                                maximumPositionDelta,
                                 magnitude3(
-                                    body.x[segment + 1] - body.x[segment],
-                                    body.y[segment + 1] - body.y[segment],
-                                    body.z[segment + 1] - body.z[segment]
-                                ) - restLength
-                            ) / restLength
-                        );
+                                    body.x[node] - body.postPassStartX[node],
+                                    body.y[node] - body.postPassStartY[node],
+                                    body.z[node] - body.postPassStartZ[node]
+                                )
+                            );
+                        }
+                        for (
+                            let segment = body.activeStart;
+                            segment < body.activeEnd;
+                            segment++
+                        ) {
+                            const restLength = Math.max(
+                                EPSILON,
+                                body.restLength[segment]
+                            );
+                            maximumRelativeLengthError = Math.max(
+                                maximumRelativeLengthError,
+                                Math.abs(
+                                    magnitude3(
+                                        body.x[segment + 1] - body.x[segment],
+                                        body.y[segment + 1] - body.y[segment],
+                                        body.z[segment + 1] - body.z[segment]
+                                    ) - restLength
+                                ) / restLength
+                            );
+                        }
                     }
+                    coupledResidualSettled = coupledResidualSettled && !lengthError;
+                    tracedBodies?.push({
+                        id: body.id,
+                        lengthError,
+                        maximumPositionDelta,
+                        maximumRelativeLengthError
+                    });
                 }
-                coupledResidualSettled = coupledResidualSettled &&
-                    !foldError &&
-                    (
-                    body.intrinsicClosureCorrectionScale <= 0 ||
-                        materialResidual <= 1
-                    ) && !lengthError;
-                tracedBodies?.push({
-                    id: body.id,
-                    foldError,
-                    lengthError,
-                    materialResidual,
-                    maximumPositionDelta,
-                    maximumRelativeLengthError
-                });
-            }
-            let tracedContainmentViolation = 0;
-            let tracedSideViolation = 0;
-            let tracedPortalViolation = 0;
-            // The exact post-projection containment scan cannot change any
-            // generalized coordinate. If a material residual already requires
-            // another sweep, measuring every lumen segment here cannot affect
-            // the convergence decision and only repeats the contact geometry
-            // traversal. Defer it until containment is the remaining gate (or
-            // tracing explicitly requests the value).
-            const measureContainmentResidual =
-                coupledResidualSettled || this.captureCoupledClosureTrace;
-            for (
-                let constraintIndex = 0;
-                constraintIndex < this.containments.length;
-                constraintIndex++
-            ) {
-                const constraint = this.containments[constraintIndex];
-                if (
-                    constraint.model === 'kirchhoff' &&
-                    constraint.enabled &&
-                    measureContainmentResidual
-                ) {
-                    constraint.kirchhoffMaxViolation =
-                        this.#measureKirchhoffCoupledContainmentViolation(
-                            constraint
-                        );
-                    tracedContainmentViolation = Math.max(
-                        tracedContainmentViolation,
-                        constraint.kirchhoffMaxViolation
-                    );
-                    tracedSideViolation = Math.max(
-                        tracedSideViolation,
-                        constraint.kirchhoffMeasuredSideViolation ?? 0
-                    );
-                    tracedPortalViolation = Math.max(
-                        tracedPortalViolation,
-                        constraint.kirchhoffMeasuredPortalViolation ?? 0
-                    );
-                }
-                if (
-                    constraint.model === 'kirchhoff' &&
-                    constraint.enabled &&
-                    measureContainmentResidual &&
-                    constraint.kirchhoffMaxViolation >
-                        this.coupledContainmentTolerance
-                ) {
-                    coupledResidualSettled = false;
-                }
-            }
-            if (this.captureCoupledClosureTrace) {
-                this.coupledClosureTrace.push({
-                    pass: pass + 1,
-                    settled: coupledResidualSettled,
-                    containmentViolation: tracedContainmentViolation,
-                    sideViolation: tracedSideViolation,
-                    portalViolation: tracedPortalViolation,
-                    spatialPortalViolation: this.containments.find(
-                        (constraint) =>
-                            constraint.model === 'kirchhoff' &&
-                            constraint.enabled
-                    )?.kirchhoffMeasuredSpatialPortalViolation ?? 0,
-                    materialPortal: (() => {
-                        const tracedConstraint = this.containments.find(
-                            (constraint) =>
-                                constraint.model === 'kirchhoff' &&
-                                constraint.enabled
-                        );
-                        return tracedConstraint ? {
-                            t: tracedConstraint
-                                .kirchhoffMeasuredMaterialPortalT ?? 0,
-                            axial: tracedConstraint
-                                .kirchhoffMeasuredMaterialPortalAxial ?? 0,
-                            radial: tracedConstraint
-                                .kirchhoffMeasuredMaterialPortalRadial ?? 0
-                        } : null;
-                    })(),
-                    worstSide: this.containments.find(
-                        (constraint) =>
-                            constraint.model === 'kirchhoff' &&
-                            constraint.enabled
-                    )?.kirchhoffMeasuredWorstSide ?? null,
-                    bodies: tracedBodies
-                });
-            }
-            if (measureContainmentResidual) {
-                this.lastCoupledContainmentResidual =
-                    tracedContainmentViolation;
-            }
-            if (coupledResidualSettled) {
-                this.lastCoupledClosureConverged = true;
-                break;
-            }
-        }
-        if (hasActiveKirchhoffContainment) {
-            // The final coupled closure is a quasi-static nonlinear solve, not
-            // an impulse integrator. Once operator transport stops, carry its
-            // net projection into the previous pose so velocity reconstruction
-            // cannot turn repeated equilibrium corrections into fresh kinetic
-            // energy. During feed the catheter publishes retention=1 and this
-            // blend becomes zero, preserving the real material transport.
-            for (let bodyIndex = 0; bodyIndex < this.bodies.length; bodyIndex++) {
-                const body = this.bodies[bodyIndex];
-                let transportRetention = 0;
+                let tracedContainmentViolation = 0;
+                let tracedSideViolation = 0;
+                let tracedPortalViolation = 0;
+                // The exact post-projection containment scan cannot change any
+                // generalized coordinate. If material length already requires
+                // another global sweep, measuring every lumen segment cannot affect
+                // the convergence decision and only repeats the contact geometry
+                // traversal. Defer it until containment is the remaining gate (or
+                // tracing explicitly requests the value).
+                const measureContainmentResidual =
+                    coupledResidualSettled || this.captureCoupledClosureTrace;
                 for (
                     let constraintIndex = 0;
                     constraintIndex < this.containments.length;
@@ -2737,114 +2385,146 @@ export class EndovascularPhysicsWorld {
                 ) {
                     const constraint = this.containments[constraintIndex];
                     if (
-                        constraint.model !== 'kirchhoff' ||
-                        !constraint.enabled ||
-                        (
-                            constraint.innerBody !== body &&
-                            constraint.outerBody !== body
-                        )
-                    ) continue;
-                    transportRetention = Math.max(
-                        transportRetention,
-                        constraint.outerBody.projectionVelocityRetention
-                    );
+                        constraint.enabled &&
+                        measureContainmentResidual
+                    ) {
+                        constraint.kirchhoffMaxViolation =
+                            this.#measureKirchhoffCoupledContainmentViolation(
+                                constraint
+                            );
+                        constraint.kirchhoffSolverResidual = this.#kirchhoffContactSolverResidual(constraint);
+                        constraint.kirchhoffContactMotion = measureKirchhoffContactMotion(constraint);
+                        tracedContainmentViolation = Math.max(
+                            tracedContainmentViolation,
+                            constraint.kirchhoffMaxViolation
+                        );
+                        tracedSideViolation = Math.max(
+                            tracedSideViolation,
+                            constraint.kirchhoffMeasuredSideViolation ?? 0
+                        );
+                        tracedPortalViolation = Math.max(
+                            tracedPortalViolation,
+                            constraint.kirchhoffMeasuredPortalViolation ?? 0
+                        );
+                    }
+                    if (
+                        constraint.enabled &&
+                        measureContainmentResidual &&
+                        Math.max(constraint.kirchhoffSolverResidual, constraint.kirchhoffContactMotion) >
+                            this.coupledContainmentTolerance
+                    ) {
+                        coupledResidualSettled = false;
+                    }
                 }
-                const quasiStaticBlend = transportRetention < 0.5 ? 1 : 0;
-                if (quasiStaticBlend <= EPSILON) continue;
-                for (
-                    let node = body.activeStart;
-                    node <= body.activeEnd;
-                    node++
-                ) {
-                    body.previousX[node] += (
-                        body.x[node] - body.coupledClosureStartX[node]
-                    ) * quasiStaticBlend;
-                    body.previousY[node] += (
-                        body.y[node] - body.coupledClosureStartY[node]
-                    ) * quasiStaticBlend;
-                    body.previousZ[node] += (
-                        body.z[node] - body.coupledClosureStartZ[node]
-                    ) * quasiStaticBlend;
+                if (this.captureCoupledClosureTrace) {
+                    this.coupledClosureTrace.push({
+                        pass: pass + 1,
+                        settled: coupledResidualSettled,
+                        containmentViolation: tracedContainmentViolation,
+                        contactPasses: this.lastCoupledContactPasses,
+                        contactMotion: Math.max(0, ...this.containments.filter(c => c.enabled).map(c => c.kirchhoffContactMotion ?? 0)),
+                        solverResidual: Math.max(0, ...this.containments.filter(c => c.enabled).map(c => c.kirchhoffSolverResidual ?? 0)),
+                        sideViolation: tracedSideViolation,
+                        portalViolation: tracedPortalViolation,
+                        spatialPortalViolation: this.containments.find(
+                            (constraint) =>
+                                constraint.enabled
+                        )?.kirchhoffMeasuredSpatialPortalViolation ?? 0,
+
+                        worstSide: this.containments.find(
+                            (constraint) =>
+                                constraint.enabled
+                        )?.kirchhoffMeasuredWorstSide ?? null,
+                        bodies: tracedBodies
+                    });
+                }
+                if (measureContainmentResidual) {
+                    this.lastCoupledContainmentResidual =
+                        tracedContainmentViolation;
+                }
+                if (coupledResidualSettled) {
+                    this.lastCoupledClosureConverged = true;
+                    break;
                 }
             }
-        }
-        constraintSectionEnd = now();
-        recordTiming(
-            this.timings.constraintCoupledClosure,
-            constraintSectionEnd - constraintSectionStart
-        );
-        constraintSectionStart = constraintSectionEnd;
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            body.debugConstraintPhase?.('closureAfterWall', body);
-        }
-        // A moving lumen boundary and its material-length constraint form one
-        // coupled system. Close that system per inner rod, without re-solving
-        // the outer catheter: convergence of a guidewire must not multiply the
-        // catheter's intrinsic-bend or wall passes. Each sweep first repairs
-        // inner structure, then applies unilateral containment. Convergence is
-        // measured after containment, so no unverified projection follows it.
-        for (let index = 0; index < this.containments.length; index++) {
-            const constraint = this.containments[index];
-            if (
-                !constraint.enabled ||
-                constraint.finalProjection === 'none' ||
-                constraint.finalProjection === 'outer' ||
-                constraint.outerFollowsInnerCenterline ||
-                (
-                    !constraint.limitDistalCorrection &&
-                    !constraint.innerFollowsOuterCenterline
-                )
-            ) continue;
-            const inner = constraint.innerBody;
-            const residualStart = clamp(
-                constraint.startNode - 1,
-                inner.activeStart,
-                inner.activeEnd
-            );
-            const residualEnd = clamp(
-                constraint.endNode + 1,
-                residualStart,
-                inner.activeEnd
-            );
-            const closurePasses = 64;
-            for (let pass = 0; pass < closurePasses; pass++) {
-                this.#solveFoldLimits(inner);
-                this.#solveLengthsGlobal(inner);
-                for (let node = residualStart; node <= residualEnd; node++) {
-                    inner.postPassStartX[node] = inner.x[node];
-                    inner.postPassStartY[node] = inner.y[node];
-                    inner.postPassStartZ[node] = inner.z[node];
+            this._inCoupledClosure = false;
+            if (hasActiveKirchhoffContainment) {
+                // The final coupled closure is a quasi-static nonlinear solve, not
+                // an impulse integrator. Once operator transport stops, carry its
+                // net projection into the previous pose so velocity reconstruction
+                // cannot turn repeated equilibrium corrections into fresh kinetic
+                // energy. During feed the catheter publishes retention=1 and this
+                // blend becomes zero, preserving the real material transport.
+                for (let bodyIndex = 0; bodyIndex < this.bodies.length; bodyIndex++) {
+                    const body = this.bodies[bodyIndex];
+                    let transportRetention = 0;
+                    for (
+                        let constraintIndex = 0;
+                        constraintIndex < this.containments.length;
+                        constraintIndex++
+                    ) {
+                        const constraint = this.containments[constraintIndex];
+                        if (
+                            !constraint.enabled ||
+                            (
+                                constraint.innerBody !== body &&
+                                constraint.outerBody !== body
+                            )
+                        ) continue;
+                        transportRetention = Math.max(
+                            transportRetention,
+                            constraint.outerBody.projectionVelocityRetention
+                        );
+                    }
+                    const quasiStaticBlend = transportRetention < 0.5 ? 1 : 0;
+                    if (quasiStaticBlend <= EPSILON) continue;
+                    for (
+                        let node = body.activeStart;
+                        node <= body.activeEnd;
+                        node++
+                    ) {
+                        body.previousX[node] += (
+                            body.x[node] - body.coupledClosureStartX[node]
+                        ) * quasiStaticBlend;
+                        body.previousY[node] += (
+                            body.y[node] - body.coupledClosureStartY[node]
+                        ) * quasiStaticBlend;
+                        body.previousZ[node] += (
+                            body.z[node] - body.coupledClosureStartZ[node]
+                        ) * quasiStaticBlend;
+                    }
                 }
-                this.#solveContainment(constraint, true, false, false);
-                let maximumContainmentCorrection = 0;
-                for (let node = residualStart; node <= residualEnd; node++) {
-                    maximumContainmentCorrection = Math.max(
-                        maximumContainmentCorrection,
-                        magnitude3(
-                            inner.x[node] - inner.postPassStartX[node],
-                            inner.y[node] - inner.postPassStartY[node],
-                            inner.z[node] - inner.postPassStartZ[node]
-                        )
-                    );
-                }
-                if (
-                    maximumContainmentCorrection <= (
-                        constraint.limitDistalCorrection ? 0.002 : 0.00025
-                    ) &&
-                    !this.#hasFoldLimitErrorOver(inner, 0.02) &&
-                    !this.#hasLengthErrorOver(inner, 0.002)
-                ) break;
             }
-        }
-        constraintSectionEnd = now();
-        recordTiming(
-            this.timings.constraintMovingClosure,
-            constraintSectionEnd - constraintSectionStart
-        );
-        for (let index = 0; index < this.bodies.length; index++) {
-            const body = this.bodies[index];
-            body.debugConstraintPhase?.('closureEnd', body);
+            constraintSectionEnd = now();
+            recordTiming(
+                this.timings.constraintCoupledClosure,
+                constraintSectionEnd - constraintSectionStart
+            );
+            constraintSectionStart = constraintSectionEnd;
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                body.debugConstraintPhase?.('closureAfterWall', body);
+            }
+            // A moving lumen boundary and its material-length constraint form one
+            // coupled system. Close that system per inner rod, without re-solving
+            // the outer catheter: convergence of a guidewire must not multiply the
+            // catheter's intrinsic-bend or wall passes. Each sweep first repairs
+            // inner structure, then applies unilateral containment. Convergence is
+            // measured after containment, so no unverified projection follows it.
+            for (let index = 0; index < this.containments.length; index++) {
+                const constraint = this.containments[index];
+                continue;
+
+            }
+            constraintSectionEnd = now();
+            recordTiming(
+                this.timings.constraintMovingClosure,
+                constraintSectionEnd - constraintSectionStart
+            );
+            for (let index = 0; index < this.bodies.length; index++) {
+                const body = this.bodies[index];
+                body.debugConstraintPhase?.('closureEnd', body);
+            }
         }
         for (
             let constraintIndex = 0;
@@ -2853,7 +2533,6 @@ export class EndovascularPhysicsWorld {
         ) {
             const constraint = this.containments[constraintIndex];
             if (
-                constraint.model !== 'kirchhoff' ||
                 !constraint._kirchhoffStepOpen
             ) continue;
             constraint.manifold.endStep();
@@ -2883,22 +2562,577 @@ export class EndovascularPhysicsWorld {
 
         phaseStart = now();
         for (let index = 0; index < this.bodies.length; index++) this.#updateVelocityAndFriction(this.bodies[index]);
-        for (let index = 0; index < this.bodies.length; index++) {
-            this.#stabilizeBendingVelocity(this.bodies[index]);
-        }
         for (let index = 0; index < this.containments.length; index++) {
+            if (this.containments[index]._splitMotion) continue;
             this.#stabilizeContainmentVelocity(this.containments[index]);
         }
         for (let index = 0; index < this.toolContacts.length; index++) {
+            if (this.toolContacts[index].bodyA._splitPhysicalMotion && this.toolContacts[index].bodyB._splitPhysicalMotion) continue;
             this.#stabilizeToolContactVelocity(this.toolContacts[index]);
         }
         for (let index = 0; index < this.bodies.length; index++) {
             this.#limitVelocity(this.bodies[index]);
         }
+        if (jointConstraint?._splitMotion) {
+            syncKirchhoffSplitVelocity(jointConstraint);
+            const finalPhysical = this.#measureJointCoupledConstraints(jointConstraint, false);
+            this.lastCoupledClosureConverged = commitKirchhoffSplitHistory(jointConstraint, this, finalPhysical);
+        }
+        // The connected pair sleeps atomically. Sleeping its members on
+        // different frames made each wake the other at the next step, resetting
+        // their counters forever despite an already settled component.
+        if (this.lastCoupledSolver === 'joint' && this.lastCoupledClosureConverged &&
+            this.bodies.every(body => body.sleepCounter >= body.sleepFrames)) {
+            for (const body of this.bodies) this.#sleepBody(body);
+        }
         recordTiming(this.timings.velocity, now() - phaseStart);
 
         this.stepCount++;
-        recordTiming(this.timings.total, now() - totalStart);
+        if (!transactional) recordTiming(this.timings.total, now() - totalStart);
+    }
+
+    #jointCoupledConstraint() {
+        if (!this.coupledSystem || this.bodies.length !== 2) return null;
+        let selected = null;
+        for (const constraint of this.containments) {
+            if (!constraint.enabled) continue;
+            if (selected) return null;
+            selected = constraint;
+        }
+        return selected && this.bodies.includes(selected.innerBody) && this.bodies.includes(selected.outerBody)
+            ? selected : null;
+    }
+
+    // One material/contact Newton direction per iteration. Boundary rows take
+    // part in that same solve; no separate free-rod update follows it.
+    #solveJointPhysicalWithWallModes(constraint) {
+        if (this.coupledSystem.wallWitnesses && kirchhoffComponentBodies(constraint).some(
+            body => body.wallStaticFriction !== body.wallKineticFriction)) {
+            beginKirchhoffWallWitnessStep(constraint);
+            beginKirchhoffWallWitnessFrictionModes(constraint, { dt: this.fixedDt, step: this.stepCount,
+                displacementToleranceMm: this.coupledContainmentTolerance });
+            // Prediction and operator feed have already run exactly once.
+            // Retry only this component's complete material/contact solve from
+            // its unchanged predicted pose, with zero applied wall reactions.
+            const base = this.#captureJointTrial(constraint, { world: this });
+            const attempts = [];
+            for (;;) {
+                this.#solveJointCoupledConstraints(constraint);
+                const measurement = this.#measureJointCoupledConstraints(constraint, false);
+                const decision = evaluateKirchhoffWallWitnessFrictionCandidate(constraint,
+                    measurement.wallWitnessFriction._batch, { converged: this.lastCoupledClosureConverged && measurement.settled });
+                attempts.push({ status: decision.status, attempt: decision.attempt,
+                    contacts: decision.contacts, passes: this.lastCoupledClosurePasses });
+                if (!decision.restart) {
+                    this.lastCoupledClosureConverged &&= decision.accepted;
+                    if (decision.accepted) commitKirchhoffWallWitnessFrictionModes(constraint, decision);
+                    constraint._wallWitnessFrictionAttempts = attempts;
+                    return;
+                }
+                this.#restoreJointTrial(base);
+                prepareKirchhoffWallWitnessFrictionRetry(constraint, decision);
+            }
+        }
+        if (!constraint._splitMotion?.wallFrictionModes) {
+            this.#solveJointCoupledConstraints(constraint);
+            return;
+        }
+        // All mode candidates start from the same post-integration mechanics.
+        // This transaction also restores material/contact multipliers, pose,
+        // physical velocity and reaction history. It deliberately retains
+        // actual work counters; a discarded static attempt still costs time.
+        let base = captureKirchhoffSplitStep(this);
+        const attempts = [];
+        let physicalPasses = 0;
+        for (;;) {
+            this.#solveJointCoupledConstraints(constraint);
+            physicalPasses += constraint._splitMotion.diagnostics.physicalPasses;
+            const state = this.lastCoupledClosureConverged
+                ? this.#measureJointCoupledConstraints(constraint, false) : null;
+            const decision = evaluateKirchhoffWallFrictionCandidate(constraint, state?.wallPhysicalFriction?._batch,
+                { converged: this.lastCoupledClosureConverged && state?.settled === true });
+            attempts.push({ attempt: decision.attempt, status: decision.status,
+                passes: constraint._splitMotion.diagnostics.physicalPasses,
+                contacts: decision.contacts.length,
+                staticContacts: decision.contacts.filter(contact => contact.mode === 'stick').length,
+                slidingContacts: decision.contacts.filter(contact => contact.mode === 'slide').length,
+                issues: structuredClone(decision.issues) });
+            if (!decision.restart) {
+                const diagnostics = constraint._splitMotion.diagnostics;
+                diagnostics.physicalPasses = physicalPasses;
+                diagnostics.wallFrictionAttempts = attempts;
+                diagnostics.wallFrictionRestarts = attempts.length - 1;
+                this.lastCoupledClosureConverged = this.lastCoupledClosureConverged && decision.accepted;
+                return;
+            }
+            restoreKirchhoffSplitStep(this, base);
+            prepareKirchhoffWallFrictionRetry(constraint, decision);
+            base = captureKirchhoffSplitStep(this);
+        }
+    }
+
+    #solveJointCoupledConstraints(constraint) {
+        const began = now();
+        const bodies = kirchhoffComponentBodies(constraint);
+        const hasLumen = !constraint.bodies || constraint.containment === constraint;
+        for (const body of bodies) {
+            if (body.sleeping) body.wake();
+            for (let node = body.activeStart; node <= body.activeEnd; node++) {
+                body.coupledClosureStartX[node] = body.x[node];
+                body.coupledClosureStartY[node] = body.y[node];
+                body.coupledClosureStartZ[node] = body.z[node];
+            }
+            body.lastRelaxationPasses = 0;
+        }
+        beginKirchhoffCoupledBoundaryStep(constraint);
+        constraint._usesWallWitnesses = this.coupledSystem.wallWitnesses === true;
+        if (constraint._usesWallWitnesses) {
+            if (constraint._splitMotion) throw new Error('Wall witnesses require the position-history component solve');
+            for (const body of bodies) body._wallWitnessFrictionSolved = true;
+            beginKirchhoffWallWitnessStep(constraint);
+        }
+        beginKirchhoffCoupledFoldStep(constraint);
+        beginKirchhoffCoupledOrientationStep(constraint);
+        beginKirchhoffExternalFrictionStep(constraint);
+        for (const contact of this.toolContacts) {
+            if (!bodies.includes(contact.bodyA) || !bodies.includes(contact.bodyB)) continue;
+            contact.lambdas.fill(0);
+            beginKirchhoffToolReactionStep(contact);
+        }
+        this.lastLengthPolishPasses = this.lastWallRepairPasses = this.lastCoupledRelaxationPasses = 0;
+        this.lastCoupledClosurePasses = this.lastCoupledContactPasses = 0;
+        this.lastCoupledClosureConverged = false;
+        this.lastCoupledContainmentResidual = 0;
+        constraint._jointLinearFailure = null;
+        if (this.captureCoupledClosureTrace) this.coupledClosureTrace.length = 0;
+        this._inCoupledClosure = true;
+        const options = constraint._jointOptions ??= {};
+        options.tolerance = this.coupledContainmentTolerance * 0.2;
+        options.resolveNormalLoads = true;
+        // Proximal factorization shift only: every QP/refinement and applied
+        // correction is checked against the original unshifted equations.
+        options.numericalShift = 1e-8;
+        options.groups ??= [];
+        let previousMerit = Infinity;
+        let previousNonConeSettled = false, previousMaxCone = Infinity;
+        constraint._jointTrialFailure = null;
+        for (let pass = 0; pass < this.coupledClosureMaxPasses * 2; pass++) {
+            this.lastCoupledClosurePasses = pass + 1;
+            if (constraint._splitMotion) constraint._splitMotion.diagnostics[constraint._splitMotion.phase + 'Passes'] = pass + 1;
+            for (const body of bodies) {
+                for (let node = body.activeStart; node <= body.activeEnd; node++) {
+                    body.postPassStartX[node] = body.x[node];
+                    body.postPassStartY[node] = body.y[node];
+                    body.postPassStartZ[node] = body.z[node];
+                }
+                const controlled = body.orientationControlSegment;
+                if (body.orientationControlCompliance === 0 && controlled >= body.activeStart &&
+                    controlled < Math.min(body.segmentCount, body.activeEnd)) {
+                    // Prescribe before any frame-dependent contact Jacobians.
+                    prescribeKirchhoffSplitOrientation(constraint, body, controlled);
+                    body.orientationX[controlled] = body.orientationControlX;
+                    body.orientationY[controlled] = body.orientationControlY;
+                    body.orientationZ[controlled] = body.orientationControlZ;
+                    body.orientationW[controlled] = body.orientationControlW;
+                }
+                this.#prepareWallContacts(body);
+            }
+            if (pass === 0 && constraint._splitMotion?.phase === 'bias') {
+                // The physical solve can already leave geometry and strain
+                // within every nonlinear acceptance gate. Certify that fresh
+                // state before requesting a tighter, unnecessary bias solve.
+                buildKirchhoffCoupledFoldRows(constraint, this.fixedDt);
+                const initial = this.#measureJointCoupledConstraints(constraint, false);
+                constraint._splitMotion.diagnostics.biasInitialStateSettled = initial.settled;
+                constraint._splitMotion.diagnostics.biasInitialMerit = initial.merit;
+                if (initial.settled) {
+                    this.lastCoupledClosureConverged = true;
+                    break;
+                }
+            }
+            // Contact feet/features can migrate between linearizations. The
+            // trial must decrease the merit of THIS base state, evaluated
+            // with the same fresh geometry, not a stale previous feature set.
+            if (pass > 0) {
+                const previous = this.#measureJointCoupledConstraints(constraint, false);
+                // Measurement scratch is borrowed: retain scalar values before
+                // evaluating candidates, which overwrite that same object.
+                previousMerit = previous.merit;
+                Object.assign(constraint._jointBaseMeritTerms ??= {}, previous.meritTerms);
+                Object.assign(constraint._jointBaseBoundaryWorst ??= {}, constraint._jointBoundaryWorst);
+                previousNonConeSettled = previous.nonConeSettled;
+                previousMaxCone = previous.maximumConeViolation;
+            }
+            const assemblyStarted = now();
+            constraint.kirchhoffContacts.length = 0;
+            constraint.kirchhoffMaxViolation = 0;
+            // An empty lumen batch does not remove either rod's material and
+            // boundary equations (e.g. while the catheter is outside entry).
+            if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true);
+            for (const record of constraint.kirchhoffContacts) buildKirchhoffContactNormalGradients(constraint, record);
+            options.additionalRows = collectKirchhoffCoupledBoundaryRows(
+                constraint, this.sheaths, this.fixedDt, this.contactActivation, !constraint._usesWallWitnesses
+            );
+            if (constraint._usesWallWitnesses) collectKirchhoffWallWitnessRows(constraint, this.contactField, options.additionalRows, this.fixedDt);
+            for (const contact of this.toolContacts) if (bodies.includes(contact.bodyA) && bodies.includes(contact.bodyB))
+                this.#solveToolContact(contact, options.additionalRows, constraint);
+            appendKirchhoffSplitSweeps(constraint, options.additionalRows);
+            appendKirchhoffSplitPointWalls(constraint, this, options.additionalRows);
+            buildKirchhoffCoupledFoldRows(constraint, this.fixedDt, options.additionalRows);
+            const orientationBatch = buildKirchhoffCoupledOrientationRows(constraint, this.fixedDt);
+            appendKirchhoffCoupledOrientationRows(orientationBatch, options.additionalRows);
+            prepareKirchhoffSplitLumenRows(constraint);
+            prepareKirchhoffSplitBoundaryRows(constraint, options.additionalRows);
+            options.materialStrainOffsets = constraint._splitMotion?.materialStrainOffsets ?? undefined;
+            options.groups.length = 0;
+            const frictionBatch = buildKirchhoffCoupledFrictionRows(constraint, this.fixedDt,
+                constraint._jointFrictionBatch ??= {});
+            appendKirchhoffCoupledFrictionRows(frictionBatch, options.additionalRows, options.groups);
+            const externalBatch = buildKirchhoffExternalFrictionRows(constraint, options.additionalRows,
+                this.fixedDt, constraint._jointExternalFrictionBatch ??= {});
+            appendKirchhoffExternalFrictionRows(externalBatch, options.additionalRows, options.groups);
+            const wallBatch = constraint._splitMotion ? buildKirchhoffSplitWallFriction(constraint, options.additionalRows,
+                this.fixedDt, constraint._jointSplitWallFrictionBatch ??= {}) : null;
+            if (wallBatch) appendKirchhoffSplitWallFriction(wallBatch, options.additionalRows, options.groups);
+            const witnessFrictionBatch = constraint._usesWallWitnesses ? buildKirchhoffWallWitnessFriction(constraint,
+                options.additionalRows, this.fixedDt, constraint._wallWitnessFrictionSolve ??= {}) : null;
+            if (witnessFrictionBatch) appendKirchhoffWallWitnessFriction(witnessFrictionBatch, options.additionalRows, options.groups);
+            const channelRows = constraint._splitMotion?.twoChannel
+                ? prepareKirchhoffTwoChannelRows(constraint, options.additionalRows, options.groups) : null;
+            if (channelRows && !channelRows.ready) {
+                constraint._jointLinearFailure = { converged: false, status: 'two-channel-contact-history', issues: channelRows.issues };
+                break;
+            }
+            this.lastJointCosts.assemblyMs += now() - assemblyStarted;
+            const solveStarted = now();
+            const result = channelRows
+                ? (this.coupledSystem.solveTwoChannel ?? solveKirchhoffTwoChannelSystem)(constraint, this.fixedDt,
+                    { ...options, channels: channelRows.channels })
+                : this.coupledSystem.solve(constraint, this.fixedDt, options);
+            this.lastJointCosts.solveMs += now() - solveStarted;
+            const coreCosts=result.diagnostics.condensedCosts;
+            if(coreCosts) {
+                this.lastJointCosts.condensedSetupMs+=coreCosts.setupMs;
+                for(const key of ['schurMs','contactSolveMs','reconstructionMs','seedMs'])this.lastJointCosts[key]+=coreCosts[key];
+            }
+            constraint._jointDiagnostics = result.diagnostics;
+            this.lastJointFactorizations += result.diagnostics.factorizations ?? 0;
+            this.lastJointLinearIterations += result.diagnostics.iterations ?? 0;
+            this.lastJointMaximumBand = Math.max(this.lastJointMaximumBand, result.diagnostics.band ?? 0);
+            this.lastJointMaximumRows = Math.max(this.lastJointMaximumRows, result.diagnostics.rowCount ?? 0);
+            if (!result.diagnostics.converged) {
+                // Keep the last accepted coordinates when controls/contact
+                // produce an infeasible local system. This step remains failed.
+                constraint._jointLinearFailure = { ...result.diagnostics };
+                break;
+            }
+            constraint._contactBlockSweeps++;
+            constraint._contactBlockIterations += result.diagnostics.iterations ?? 0;
+            this.lastCoupledContactPasses++;
+            const proposedScale = result.scale;
+            const snapshot = pass === 0 ? null : this.#captureJointTrial(constraint,
+                { world: this, reusePropertyLayout: true, frozenFrictionBatches: true }, constraint._jointTrialState ??= {});
+            const knownWallWitnesses = constraint._usesWallWitnesses ? new Set(constraint._wallWitnessRows.witnesses) : null;
+            let wallDiscoveries = [];
+            let state, accepted = false, trialCount = 0;
+            for (; trialCount < 8; trialCount++) {
+                if (trialCount) {
+                    this.#restoreJointTrial(snapshot);
+                    this.lastJointBacktracks++;
+                }
+                result.scale = proposedScale * 2 ** -trialCount;
+                if (channelRows) applyKirchhoffTwoChannelPhysicalMotion(constraint, result);
+                else applyKirchhoffSplitPhysicalIncrement(constraint, result);
+                this.coupledSystem.apply(constraint, result);
+                if (channelRows) {
+                    commitKirchhoffTwoChannelBiasMaterial(constraint, result);
+                    commitKirchhoffTwoChannelRows(constraint, result);
+                }
+                applyKirchhoffCoupledBoundaryMultipliers(constraint, result.additionalIncrement, result.scale);
+                if (constraint._usesWallWitnesses) commitKirchhoffWallWitnessMultipliers(constraint, result.additionalIncrement, result.scale);
+                applyKirchhoffCoupledFoldMultipliers(constraint, result.additionalIncrement, result.scale);
+                commitKirchhoffCoupledOrientationMultipliers(orientationBatch, result.additionalIncrement, result.scale);
+                for (let index = 0; index < constraint.kirchhoffContacts.length; index++) {
+                    const contact = constraint.kirchhoffContacts[index].manifoldContact;
+                    contact.normalLambda = Math.max(0, contact.normalLambda + result.scale * result.contactIncrement[index]);
+                }
+                commitKirchhoffCoupledFrictionMultipliers(frictionBatch, result.additionalIncrement, result.scale);
+                commitKirchhoffExternalFrictionMultipliers(externalBatch, result.additionalIncrement, result.scale);
+                if (wallBatch) commitKirchhoffSplitWallFriction(wallBatch, result.additionalIncrement, result.scale);
+                if (witnessFrictionBatch) commitKirchhoffWallWitnessFriction(witnessFrictionBatch, result.additionalIncrement, result.scale);
+                constraint._kirchhoffMappingLocked = true;
+                state = this.#measureJointCoupledConstraints(constraint);
+                this.debugJointTrial?.(constraint, state, pass, trialCount, result.scale);
+                this.lastJointTrialEvaluations++;
+                // The load-continuous natural map guides line search only;
+                // final physical acceptance uses the independent KKT gates.
+                // Once every other equation meets its final gate, allow
+                // further cone repair even when an already-small material
+                // residual dominates the merit. Final acceptance still
+                // requires the original cone tolerance for all contacts.
+                const coneFilterAccepted = constraint._splitMotion?.twoChannel && previousNonConeSettled && state.nonConeSettled &&
+                    state.maximumConeViolation <= previousMaxCone * (1 - 1e-4 * result.scale);
+                const meritAccepted = state.merit <= previousMerit * (1 - 1e-4 * result.scale);
+                accepted = pass === 0 || state.settled || meritAccepted || coneFilterAccepted;
+                if (coneFilterAccepted && pass > 0 && !state.settled && !meritAccepted) {
+                    (constraint._splitMotion.diagnostics.coneFilterAcceptances ??= []).push({
+                        pass: pass + 1, scale: result.scale, previousMerit, merit: state.merit,
+                        previousCone: previousMaxCone, cone: state.maximumConeViolation
+                    });
+                }
+                if (accepted) break;
+                if (knownWallWitnesses) {
+                    wallDiscoveries = captureKirchhoffWallDiscoveries(constraint, knownWallWitnesses);
+                    if (wallDiscoveries.length) break;
+                }
+            }
+            if (!accepted) {
+                const rejectedMerit = state.merit;
+                const rejectedTerms = {...state.meritTerms};
+                const rejectedBoundary = {...constraint._jointBoundaryWorst};
+                this.#restoreJointTrial(snapshot);
+                if (wallDiscoveries.length && retainKirchhoffWallDiscoveries(constraint, wallDiscoveries)) {
+                    // Re-linearize the unchanged base with newly discovered rows.
+                    // This does not accept the rejected trial or weaken its gates.
+                    continue;
+                }
+                const restoredMerit = this.#measureJointCoupledConstraints(constraint, false).merit;
+                const tighter = channelRows ? nextKirchhoffTwoChannelTolerance(result.diagnostics, options.tolerance) : null;
+                if (tighter !== null && pass + 1 < this.coupledClosureMaxPasses * 2) {
+                    // Retry the restored mechanical state through the same
+                    // full block. No force prediction, operator input, history
+                    // commit or final acceptance threshold is repeated/changed.
+                    (constraint._splitMotion.diagnostics.linearRefinements ??= []).push({
+                        pass: pass + 1, from: options.tolerance, to: tighter,
+                        structuralResidualFloor: result.diagnostics.structuralResidualFloor,
+                        linearResidual: result.diagnostics.maximumResidual, previousMerit, rejectedMerit
+                    });
+                    options.tolerance = tighter;
+                    continue;
+                }
+                constraint._jointTrialFailure = { previousMerit, rejectedMerit, restoredMerit, proposedScale, trials: trialCount,
+                    baseTerms: {...constraint._jointBaseMeritTerms}, rejectedTerms,
+                    baseBoundary: {...constraint._jointBaseBoundaryWorst}, rejectedBoundary,
+                    restoredBoundary: {...constraint._jointBoundaryWorst},
+                    restoredTerms: {...constraint._jointStateMeasurement.meritTerms} };
+                break;
+            }
+            previousMerit = state.merit;
+            const { materialResidual, foldResidual, orientationResidual, frictionResidual,
+                externalFrictionResidual, coneRepair } = state;
+            const settled = result.diagnostics.converged && state.settled;
+            if (this.captureCoupledClosureTrace) this.coupledClosureTrace.push({
+                pass: pass + 1, settled, merit: state.merit, trials: trialCount + 1, scale: result.scale, coneRepair, solver: 'joint', contactPasses: this.lastCoupledContactPasses,
+                contactMotion: constraint.kirchhoffContactMotion, solverResidual: constraint.kirchhoffSolverResidual,
+                boundaryResidual: constraint._jointBoundaryResidual, containmentViolation: constraint.kirchhoffMaxViolation,
+                materialResidual: { ...materialResidual },
+                foldResidual: { ...foldResidual },
+                orientationResidual: { ...orientationResidual },
+                frictionResidual: frictionResidual.maximumResidual,
+                frictionDisplacementResidualMm: frictionResidual.maximumDisplacementResidualMm,
+                frictionFeasibilityResidual: frictionResidual.maximumFeasibilityResidual,
+                frictionConeViolation: frictionResidual.maximumConeViolation,
+                externalFrictionDisplacementResidualMm: externalFrictionResidual.maximumDisplacementResidualMm,
+                externalFrictionConeViolation: externalFrictionResidual.maximumConeViolation,
+                linear: { ...result.diagnostics }
+            });
+            if (settled) { this.lastCoupledClosureConverged = true; break; }
+        }
+        if (!this.lastCoupledClosureConverged) {
+            const measurement = constraint._jointStateMeasurement;
+            this.lastJointNonlinearFailure = {
+                bodyIds: bodies.map(body => body.id), passes: this.lastCoupledClosurePasses,
+                linearStatus: constraint._jointLinearFailure?.status ?? null,
+                trial: constraint._jointTrialFailure ? {...constraint._jointTrialFailure} : null,
+                merit: measurement?.merit ?? null, lengthResidual: measurement?.lengthResidual ?? null,
+                material: measurement?.materialResidual ? {...measurement.materialResidual} : null,
+                boundaryResidual: constraint._jointBoundaryResidual ?? null,
+                foldResidual: measurement?.foldResidual?.maximumResidual ?? null,
+                positionalFoldViolation: measurement?.foldResidual?.maximumPositionalViolation ?? null,
+                orientationResidual: measurement?.orientationResidual?.maximumResidualRad ?? null
+            };
+        }
+        this._inCoupledClosure = false;
+        // Preserve the existing idle closure convention: operator transport
+        // retains its velocity; equilibrium corrections during hold do not
+        // become a new kinetic impulse on the following step.
+        if (!constraint._splitMotion && bodies[bodies.length - 1].projectionVelocityRetention < 0.5) {
+            for (const body of bodies) for (let node = body.activeStart; node <= body.activeEnd; node++) {
+                body.previousX[node] += body.x[node] - body.coupledClosureStartX[node];
+                body.previousY[node] += body.y[node] - body.coupledClosureStartY[node];
+                body.previousZ[node] += body.z[node] - body.coupledClosureStartZ[node];
+            }
+        }
+        for (const name of ['constraintPrimary', 'constraintBodyClosure', 'constraintBodyLengthPolish',
+            'constraintBodyWallRepair', 'constraintBodyPrePost', 'constraintBodyPostStabilization', 'constraintMovingClosure']) {
+            recordTiming(this.timings[name], 0);
+        }
+        recordTiming(this.timings.constraintCoupledClosure, now() - began);
+        for (const body of bodies) body.debugConstraintPhase?.('closureEnd', body);
+    }
+
+    // Rebuild actual contact geometry and evaluate all APPLIED equations.
+    // Scratch is borrowed until the next call. Trial acceptance uses these
+    // physical units; the linear QP residual alone is never sufficient.
+    #captureJointTrial(constraint, options, out = {}) {
+        const started = now();
+        const snapshot = captureKirchhoffCoupledTrialState(constraint, options, out);
+        const costs = this.lastJointCosts;
+        costs.snapshotMs += now() - started; costs.snapshots++;
+        costs.snapshotObjects = Math.max(costs.snapshotObjects, snapshot.objectCount);
+        costs.snapshotBytes = Math.max(costs.snapshotBytes, snapshot.bytes);
+        return snapshot;
+    }
+
+    #restoreJointTrial(snapshot) {
+        const started = now();
+        restoreKirchhoffCoupledTrialState(snapshot);
+        this.lastJointCosts.restoreMs += now() - started;
+        this.lastJointCosts.restores++;
+    }
+
+    #measureJointCoupledConstraints(constraint, repairCone = true) {
+        const started = now();
+        try { return this.#measureJointCoupledConstraintsImpl(constraint, repairCone); }
+        finally { this.lastJointCosts.measureMs += now() - started; }
+    }
+
+    #measureJointCoupledConstraintsImpl(constraint, repairCone = true) {
+        const bodies = kirchhoffComponentBodies(constraint);
+        const hasLumen = !constraint.bodies || constraint.containment === constraint;
+        // Refresh the actual nonlinear gap and surface kinematics before
+        // testing normal complementarity and the final-load friction cone.
+        constraint.kirchhoffContacts.length = 0;
+        if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true);
+        for (const record of constraint.kirchhoffContacts) buildKirchhoffContactNormalGradients(constraint, record);
+        prepareKirchhoffSplitLumenRows(constraint);
+        const frictionResidual = measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt,
+            constraint._jointFrictionResidual ??= {});
+        let coneRepair = null;
+        if (!constraint._splitMotion && repairCone && frictionResidual.maximumConeViolation > 1e-9) {
+            const plan = prepareKirchhoffCoupledConeRepair(constraint, this.fixedDt, {
+                maximumPositionCorrectionMm: this.coupledContainmentTolerance,
+                maximumAngleCorrectionRad: this.coupledAngularToleranceRad
+            }, constraint._jointConeRepair ??= {});
+            if (plan.accepted && plan.changedContacts) {
+                // This also applies W J^T deltaLambda to both tools. A
+                // force-only clip would silently discard their reaction.
+                applyKirchhoffCoupledConeRepair(plan);
+                coneRepair = { contacts: plan.changedContacts, positionMm: plan.maximumPositionCorrectionMm,
+                    angleRad: plan.maximumAngleCorrectionRad, multiplier: plan.maximumMultiplierCorrection };
+                constraint.kirchhoffContacts.length = 0;
+                if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true);
+                for (const record of constraint.kirchhoffContacts) buildKirchhoffContactNormalGradients(constraint, record);
+                measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt, frictionResidual);
+            }
+        }
+        const lengthsSettled = bodies.every(body => !this.#hasLengthErrorOver(body, this.coupledLengthTolerance));
+        constraint.kirchhoffContactMotion = measureKirchhoffContactMotion(constraint, false);
+        constraint.kirchhoffMaxViolation = hasLumen ? this.#measureKirchhoffCoupledContainmentViolation(constraint) : 0;
+        constraint.kirchhoffSolverResidual = hasLumen ? this.#kirchhoffContactSolverResidual(constraint) : 0;
+        this.lastCoupledContainmentResidual = constraint.kirchhoffMaxViolation;
+        for (const body of bodies) this.#prepareWallContacts(body, true);
+        const boundaryRows = collectKirchhoffCoupledBoundaryRows(constraint, this.sheaths,
+            this.fixedDt, this.contactActivation, !constraint._usesWallWitnesses);
+        if (constraint._usesWallWitnesses) collectKirchhoffWallWitnessRows(constraint, this.contactField, boundaryRows, this.fixedDt);
+        for (const contact of this.toolContacts) if (bodies.includes(contact.bodyA) && bodies.includes(contact.bodyB))
+            this.#solveToolContact(contact, boundaryRows, constraint);
+        appendKirchhoffSplitSweeps(constraint, boundaryRows);
+        appendKirchhoffSplitPointWalls(constraint, this, boundaryRows);
+        prepareKirchhoffSplitBoundaryRows(constraint, boundaryRows);
+        constraint._jointBoundaryResidual = measureKirchhoffCoupledBoundaryResidual(boundaryRows, constraint._jointBoundaryWorst ??= {});
+        const wallWitnessResidual = constraint._usesWallWitnesses ? measureKirchhoffWallWitnessResidual(constraint) : null;
+        if (wallWitnessResidual) constraint._jointBoundaryResidual = Math.max(constraint._jointBoundaryResidual, wallWitnessResidual.maximumResidual);
+        const witnessesSettled = !wallWitnessResidual || wallWitnessResidual.finite && wallWitnessResidual.pending === 0;
+        const materialResidual = constraint._splitMotion?.twoChannel
+            ? measureKirchhoffTwoChannelMaterial(constraint, constraint._jointMaterialResidual ??= {})
+            : (constraint._splitMotion ? measureKirchhoffSplitMaterial : measureKirchhoffCoupledMaterialResidual)(constraint, this.fixedDt,
+                constraint._jointMaterialResidual ??= {});
+        const channelResidual = constraint._splitMotion?.twoChannel
+            ? measureKirchhoffTwoChannelRows(constraint, boundaryRows) : null;
+        const foldResidual = measureKirchhoffCoupledFoldResidual(constraint);
+        const orientationResidual = measureKirchhoffCoupledOrientationResidual(constraint, this.fixedDt);
+        const externalFrictionResidual = measureKirchhoffExternalFrictionResidual(constraint, boundaryRows,
+            this.fixedDt, constraint._jointExternalFrictionResidual ??= {});
+        const wallPhysicalFriction = constraint._splitMotion ? measureKirchhoffSplitWallFriction(constraint, boundaryRows,
+            this.fixedDt, constraint._jointSplitWallFrictionResidual ??= {}) : null;
+        // measure creates its own row bank; do not assemble the same geometry
+        // twice just to pass the component, normal rows and timestep through.
+        const witnessFrictionBatch = constraint._usesWallWitnesses ? Object.assign(
+            constraint._wallWitnessFrictionMeasure ??= {},
+            {component:constraint, normalRows:boundaryRows, dt:this.fixedDt}) : null;
+        const wallWitnessFriction = witnessFrictionBatch ? measureKirchhoffWallWitnessFriction(constraint, witnessFrictionBatch) : null;
+        const witnessFrictionSettled = !wallWitnessFriction || wallWitnessFriction.finite &&
+            wallWitnessFriction.maximumTransportPositionMm <= this.coupledContainmentTolerance &&
+            wallWitnessFriction.maximumTransportAngleRad <= this.coupledAngularToleranceRad &&
+            wallWitnessFriction.maximumDisplacementResidualMm <= this.coupledContainmentTolerance;
+        const toolReleaseResidual = measureKirchhoffToolReleaseRows(constraint, boundaryRows,
+            constraint._jointToolReleaseResidual ??= {});
+        const channelsSettled = !channelResidual || channelResidual.finite && channelResidual.supported &&
+            channelResidual.missingLoadedRows.length === 0 &&
+            Math.max(channelResidual.normalResidualMm, channelResidual.controlResidualMm,
+                channelResidual.releasePositionMm ?? 0) <= this.coupledContainmentTolerance &&
+            Math.max(channelResidual.orientationResidualRad, channelResidual.releaseAngleRad ?? 0) <= this.coupledAngularToleranceRad;
+        const settled = witnessFrictionSettled && (!wallWitnessFriction || wallWitnessFriction.maximumConeViolation <= 1e-9) && witnessesSettled && channelsSettled && lengthsSettled && toolReleaseResidual.pending === 0 &&
+            materialResidual.adaptationMm <= this.coupledContainmentTolerance &&
+            materialResidual.bendTwistRad <= this.coupledAngularToleranceRad &&
+            foldResidual.maximumResidual <= this.coupledAngularToleranceRad &&
+            foldResidual.maximumPositionalViolation <= this.coupledAngularToleranceRad &&
+            orientationResidual.maximumResidualRad <= this.coupledAngularToleranceRad &&
+            frictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
+            frictionResidual.maximumConeViolation <= 1e-9 &&
+            externalFrictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
+            externalFrictionResidual.maximumConeViolation <= 1e-9 &&
+            (!wallPhysicalFriction || wallPhysicalFriction.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
+                wallPhysicalFriction.maximumConeViolation <= 1e-9) &&
+            Math.max(constraint.kirchhoffContactMotion, constraint.kirchhoffSolverResidual,
+                constraint._jointBoundaryResidual) <= this.coupledContainmentTolerance;
+        const nonConeSettled = witnessFrictionSettled && witnessesSettled && channelsSettled && lengthsSettled && toolReleaseResidual.pending === 0 &&
+            materialResidual.adaptationMm <= this.coupledContainmentTolerance &&
+            materialResidual.bendTwistRad <= this.coupledAngularToleranceRad &&
+            foldResidual.maximumResidual <= this.coupledAngularToleranceRad &&
+            foldResidual.maximumPositionalViolation <= this.coupledAngularToleranceRad &&
+            orientationResidual.maximumResidualRad <= this.coupledAngularToleranceRad &&
+            frictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
+            externalFrictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
+            (!wallPhysicalFriction || wallPhysicalFriction.maximumDisplacementResidualMm <= this.coupledContainmentTolerance) &&
+            Math.max(constraint.kirchhoffContactMotion, constraint.kirchhoffSolverResidual,
+                constraint._jointBoundaryResidual) <= this.coupledContainmentTolerance;
+        const maximumConeViolation = Math.max(frictionResidual.maximumConeViolation,
+            externalFrictionResidual.maximumConeViolation, wallPhysicalFriction?.maximumConeViolation ?? 0, wallWitnessFriction?.maximumConeViolation ?? 0);
+        let lengthResidual = 0;
+        for (const body of bodies) for (let segment = body.activeStart; segment < body.activeEnd; segment++) {
+            const length = magnitude3(body.x[segment + 1] - body.x[segment],
+                body.y[segment + 1] - body.y[segment], body.z[segment + 1] - body.z[segment]);
+            lengthResidual = Math.max(lengthResidual,
+                Math.abs(length - body.restLength[segment]) / body.restLength[segment]);
+        }
+        const mm = this.coupledContainmentTolerance, rad = this.coupledAngularToleranceRad;
+        const channelMerit = !channelResidual ? 0 : !channelResidual.finite || !channelResidual.supported || channelResidual.missingLoadedRows.length
+            ? Infinity : Math.max(channelResidual.normalResidualMm / mm, channelResidual.controlResidualMm / mm,
+                channelResidual.orientationResidualRad / rad, (channelResidual.releasePositionMm ?? 0) / mm,
+                (channelResidual.releaseAngleRad ?? 0) / rad);
+        const meritTerms = Object.assign(constraint._jointMeritTerms ??= {}, {
+            witnessFriction: wallWitnessFriction ? Math.max(wallWitnessFriction.maximumMeritMm / mm,
+                wallWitnessFriction.maximumTransportPositionMm / mm, wallWitnessFriction.maximumTransportAngleRad / rad) : 0,
+            channels: channelMerit, length: lengthResidual / this.coupledLengthTolerance,
+            releasePosition: toolReleaseResidual.positionMm / mm, releaseAngle: toolReleaseResidual.angleRad / rad,
+            adaptation: materialResidual.adaptationMm / mm, bendTwist: materialResidual.bendTwistRad / rad,
+            fold: foldResidual.maximumResidual / rad, positionalFold: foldResidual.maximumPositionalViolation / rad,
+            orientation: orientationResidual.maximumResidualRad / rad,
+            lumenFriction: measureKirchhoffFrictionMerit(frictionResidual._batch, constraint._jointFrictionMerit ??= {}).maximumMm / mm,
+            externalFriction: measureKirchhoffFrictionMerit(externalFrictionResidual._batch, constraint._jointExternalFrictionMerit ??= {}).maximumMm / mm,
+            wallFriction: wallPhysicalFriction ? measureKirchhoffFrictionMerit(wallPhysicalFriction._batch, constraint._jointSplitWallFrictionMerit ??= {}).maximumMm / mm : 0,
+            lumenNormal: constraint.kirchhoffSolverResidual / mm,
+            boundary: constraint._jointBoundaryResidual / mm
+        });
+        let merit = 0;
+        for (const key in meritTerms) merit = Math.max(merit, meritTerms[key]);
+        return Object.assign(constraint._jointStateMeasurement ??= {}, {
+            motionPhase: constraint._splitMotion?.phase ?? 'position-history',
+            settled, nonConeSettled, maximumConeViolation, merit, meritTerms, lengthResidual, materialResidual, channelResidual, foldResidual, orientationResidual,
+            frictionResidual, externalFrictionResidual, wallPhysicalFriction, wallWitnessResidual, wallWitnessFriction, toolReleaseResidual, coneRepair
+        });
     }
 
     resetPerformanceStats() {
@@ -2921,23 +3155,21 @@ export class EndovascularPhysicsWorld {
     }
 
     resetSimulationState() {
+        if (this._pendingWholeSubstep?.running) throw new Error('Cannot reset a running whole timestep');
+        // Reset the saved pending owner too if configuration was changed
+        // before explicitly abandoning that transaction via reset.
+        const wholeSystems = new Set([this._pendingWholeSubstep?.system, this.wholeStepSystem].filter(system => system != null));
+        for (const system of wholeSystems) validateWholeStepSystem(system);
+        this._pendingWholeSubstep = null;
+        this._pendingSplitSubstep = null;
+        this.lastStepResult = null;
         this.accumulator = 0;
         this.stepCount = 0;
         this.lastSubsteps = 0;
         this.droppedTime = 0;
         for (const body of this.bodies) {
             body.lengthLambda.fill(0);
-            body.bendLambda.fill(0);
-            body.curvatureVariationLambdaX.fill(0);
-            body.curvatureVariationLambdaY.fill(0);
-            body.curvatureVariationLambdaZ.fill(0);
-            body.longStraightLambda.fill(0);
             body.controlLambda.fill(0);
-            body.shapeLambda.fill(0);
-            body.shapeClosureLambda = 0;
-            body.restDirectionLambdaX.fill(0);
-            body.restDirectionLambdaY.fill(0);
-            body.restDirectionLambdaZ.fill(0);
             body.adaptationLambdaX.fill(0);
             body.adaptationLambdaY.fill(0);
             body.adaptationLambdaZ.fill(0);
@@ -2968,7 +3200,7 @@ export class EndovascularPhysicsWorld {
             body.lastMaximumRejectedToolProjectionSpeed = 0;
             body.lastMaximumReconstructedSpeed = 0;
             body.copyCurrentToPrevious();
-            if (body.rodModel === 'kirchhoff') {
+            {
                 body.previousOrientationX.set(body.orientationX);
                 body.previousOrientationY.set(body.orientationY);
                 body.previousOrientationZ.set(body.orientationZ);
@@ -2981,7 +3213,7 @@ export class EndovascularPhysicsWorld {
         }
         for (const sheath of this.sheaths) sheath.lambdas.clear();
         for (const containment of this.containments) {
-            if (containment.model === 'kirchhoff') {
+            {
                 if (containment._kirchhoffStepOpen) {
                     containment.manifold.endStep({ prune: false });
                     containment._kirchhoffStepOpen = false;
@@ -2993,12 +3225,7 @@ export class EndovascularPhysicsWorld {
             }
             containment.lambdas.fill(0);
             containment.closestSegment.fill(-1);
-            containment.portalLambda = 0;
-            containment.portalDirectionLambda = 0;
-            containment.materialPortalAxialLambda = 0;
-            containment.materialPortalRadialLambda = 0;
-            containment.materialPortalCoordinate = NaN;
-            containment.materialPortalPreviousCoordinate = NaN;
+
             containment._lastEnabled = containment.enabled;
             containment._lastOuterStartNode = containment.outerStartNode;
             containment._lastStartNode = containment.startNode;
@@ -3016,6 +3243,7 @@ export class EndovascularPhysicsWorld {
             contact._lastStartSegmentB = contact.startSegmentB;
             contact._lastEndSegmentB = contact.endSegmentB;
         }
+        for (const system of wholeSystems) system.reset(this);
         this.resetPerformanceStats();
         return this;
     }
@@ -3023,7 +3251,18 @@ export class EndovascularPhysicsWorld {
     getStats() {
         const bodies = this.bodies.map(body => this.#bodyStats(body));
         return {
-            mode: 'xpbd-contact-v1',
+            mode: this.wholeStepSystem ? 'whole-step' : 'kirchhoff-direct',
+            coupledSolver: this.lastCoupledSolver ?? 'independent',
+            ...(this.wholeStepSystem ? { wholeStepSystem: this.wholeStepSystem.id, wholeStep: this.lastStepResult } : {}),
+            jointMotion: this.wholeStepSystem ? null : this.jointMotionMode === 'split-physical-bias' && this.lastStepResult?.accepted === false
+                ? this.lastStepResult.diagnostics : getKirchhoffSplitMotionStats(this),
+            jointFactorizations: this.lastJointFactorizations ?? 0,
+            jointTrialEvaluations: this.lastJointTrialEvaluations ?? 0,
+            jointBacktracks: this.lastJointBacktracks ?? 0,
+            jointLinearIterations: this.lastJointLinearIterations ?? 0,
+            jointMaximumBand: this.lastJointMaximumBand ?? 0,
+            jointMaximumRows: this.lastJointMaximumRows ?? 0,
+            jointCosts: this.lastJointCosts ? { ...this.lastJointCosts } : null,
             fixedDt: this.fixedDt,
             steps: this.stepCount,
             lastSubsteps: this.lastSubsteps,
@@ -3048,6 +3287,7 @@ export class EndovascularPhysicsWorld {
                 )
             ),
             coupledClosurePasses: this.lastCoupledClosurePasses ?? 0,
+            coupledContactPasses: this.lastCoupledContactPasses ?? 0,
             coupledClosureConverged:
                 this.lastCoupledClosureConverged ?? true,
             coupledContainmentResidual:
@@ -3103,6 +3343,13 @@ export class EndovascularPhysicsWorld {
             },
             containments: this.containments.map(constraint => ({
                 model: constraint.model,
+                distalPortalModel: constraint.distalPortalModel,
+                contactBlockSweeps: constraint._contactBlockSweeps ?? 0,
+                contactBlockIterations: constraint._contactBlockIterations ?? 0,
+                solverResidual: constraint.kirchhoffSolverResidual ?? null,
+                jointTrialFailure: constraint._jointTrialFailure ?? null,
+                jointLinearFailure: constraint._jointLinearFailure ?? null,
+                closureContactMotion: constraint.kirchhoffContactMotion ?? 0,
                 enabled: constraint.enabled,
                 axialFriction: constraint.axialFriction,
                 torsionalFriction: constraint.torsionalFriction,
@@ -3122,13 +3369,7 @@ export class EndovascularPhysicsWorld {
 
     #solveRelaxationPass(body, pass) {
         this.#solveControls(body);
-        this.#solveLengths(body, (pass & 1) === 1);
         this.#solveBending(body);
-        this.#solveCurvatureVariation(body);
-        this.#solveLongStraightness(body);
-        this.#solveRestShape(body);
-        this.#solveRestDirections(body);
-        this.#solveShapeClosure(body);
         this.#solveControls(body);
         this.#prepareWallContacts(body);
         this.#solveWallContacts(body);
@@ -3139,7 +3380,6 @@ export class EndovascularPhysicsWorld {
         for (let index = 0; index < this.containments.length; index++) {
             const constraint = this.containments[index];
             if (
-                constraint.model !== 'kirchhoff' ||
                 !constraint.enabled ||
                 (
                     constraint.innerBody !== body &&
@@ -3160,7 +3400,7 @@ export class EndovascularPhysicsWorld {
         const dtSquared = dt * dt;
         const start = body.activeStart;
         const end = body.activeEnd;
-        if (body.rodModel === 'kirchhoff') {
+        {
             const scratch = body.kirchhoffScratch.integrate;
             const segmentStart = Math.max(0, start);
             const segmentEnd = Math.min(body.segmentCount, end);
@@ -3230,6 +3470,14 @@ export class EndovascularPhysicsWorld {
             this._queryEnd.z = body.z[index];
             const contact = this.contactField.sweepSphere(this._queryStart, this._queryEnd, radius, this._sweep);
             if (!contact.violation || contact.timeOfImpact >= 1) continue;
+            const splitJoint = body._splitPhysicalMotion ? this.#jointCoupledConstraint() : null;
+            if (splitJoint) {
+                // Keep the existing continuous witness in the joint solve.
+                // The physical prediction has not already received a separate
+                // TOI position projection, so its normal impulse is applied once.
+                captureKirchhoffSplitSweep(splitJoint, body, index, contact);
+                continue;
+            }
             const safeT = Math.max(0, contact.timeOfImpact - 1e-3);
             const inwardX = contact.inward.x;
             const inwardY = contact.inward.y;
@@ -3285,14 +3533,14 @@ export class EndovascularPhysicsWorld {
         }
     }
 
-    #prepareWallContacts(body) {
+    #prepareWallContacts(body, exact = false) {
         if (!this.contactField || body.sleeping || body.collisionEndSegment < body.collisionStartSegment) return;
         const start = Math.max(body.activeStart, body.collisionStartSegment, 0);
         const end = Math.min(body.activeEnd, body.collisionEndSegment + 1, body.segmentCount);
         for (let index = start; index < end; index++) {
             const wasActive = body.wallActive[index] !== 0;
             body.wallActive[index] = 0;
-            if (wasActive) {
+            if (wasActive && !exact) {
                 const t = body.wallT[index];
                 const px = body.x[index] + (body.x[index + 1] - body.x[index]) * t;
                 const py = body.y[index] + (body.y[index + 1] - body.y[index]) * t;
@@ -3362,7 +3610,10 @@ export class EndovascularPhysicsWorld {
                     body.wallFaceIndex[index],
                     false,
                     false,
-                    wasActive ? body.wallBranchId[index] : -1
+                    wasActive ? body.wallBranchId[index] : -1,
+                    false, -1, 0,
+                    this.coupledSystem?.wallWitnesses === true || ['joint', 'joint-components'].includes(this.lastCoupledSolver),
+                    this.coupledSystem?.wallWitnesses === true
                 );
             } else {
                 const radius = Math.max(body.nodeRadius[index], body.nodeRadius[index + 1]);
@@ -3397,11 +3648,11 @@ export class EndovascularPhysicsWorld {
                 0,
                 contact.capsuleSampleCount || 0
             );
-            if (signedGap > this.contactActivation) {
+            if (signedGap > this.contactActivation && !(['joint', 'joint-components'].includes(this.lastCoupledSolver) && body.wallLambda[index] > 0)) {
                 body.wallLambda[index] = 0;
                 continue;
             }
-            if (body.wallBranchId[index] !== branchId) body.wallLambda[index] = 0;
+            if (body.wallBranchId[index] !== branchId && !['joint', 'joint-components'].includes(this.lastCoupledSolver)) body.wallLambda[index] = 0;
             body.wallActive[index] = 1;
             body.wallT[index] = segmentT;
             body.wallX[index] = closest[0];
@@ -3524,7 +3775,9 @@ export class EndovascularPhysicsWorld {
                     body.wallBranchId[index],
                     knownNearWall,
                     segmentLength,
-                    sampleCount
+                    sampleCount,
+                    this.coupledSystem?.wallWitnesses === true,
+                    this.coupledSystem?.wallWitnesses === true
                 );
             } else {
                 const radius = Math.max(body.nodeRadius[index], body.nodeRadius[index + 1]);
@@ -3616,74 +3869,9 @@ export class EndovascularPhysicsWorld {
         return false;
     }
 
-    #hasFoldLimitErrorOver(body, toleranceDegrees = 0) {
-        const start = Math.max(1, body.activeStart + 1);
-        const end = Math.min(body.count - 1, body.activeEnd);
-        const kirchhoffScratch = body.kirchhoffScratch ??= {};
-        const cache = kirchhoffScratch.foldResidual ??= {
-            limitDegrees: new Float64Array(body.count),
-            limitCosine: new Float64Array(body.count)
-        };
-        if (!cache.initialized) {
-            cache.limitDegrees.fill(Number.NaN);
-            cache.initialized = true;
-        }
-        for (let index = start; index < end; index++) {
-            const incomingX = body.x[index] - body.x[index - 1];
-            const incomingY = body.y[index] - body.y[index - 1];
-            const incomingZ = body.z[index] - body.z[index - 1];
-            const outgoingX = body.x[index + 1] - body.x[index];
-            const outgoingY = body.y[index + 1] - body.y[index];
-            const outgoingZ = body.z[index + 1] - body.z[index];
-            const denominator = magnitude3(incomingX, incomingY, incomingZ) *
-                magnitude3(outgoingX, outgoingY, outgoingZ);
-            if (denominator < EPSILON) return true;
-            const thresholdDegrees =
-                body.maxBendAngleByNode[index] + toleranceDegrees;
-            if (thresholdDegrees >= 180) continue;
-            if (thresholdDegrees < 0) return true;
-            if (cache.limitDegrees[index] !== thresholdDegrees) {
-                cache.limitDegrees[index] = thresholdDegrees;
-                cache.limitCosine[index] = Math.cos(
-                    thresholdDegrees * Math.PI / 180
-                );
-            }
-            const cosine = clamp(
-                (
-                    incomingX * outgoingX +
-                    incomingY * outgoingY +
-                    incomingZ * outgoingZ
-                ) / denominator,
-                -1,
-                1
-            );
-            if (cosine < cache.limitCosine[index]) return true;
-        }
-        return false;
-    }
-
-    #hasRestDirectionErrorOver(body, threshold) {
-        if (body.rodModel === 'kirchhoff') return false;
-        const start = Math.max(0, body.activeStart);
-        const end = Math.min(body.segmentCount, body.activeEnd);
-        for (let segment = start; segment < end; segment++) {
-            if (!body.restDirectionEnabled[segment]) continue;
-            const error = magnitude3(
-                body.x[segment + 1] - body.x[segment] -
-                    body.restDirectionX[segment],
-                body.y[segment + 1] - body.y[segment] -
-                    body.restDirectionY[segment],
-                body.z[segment + 1] - body.z[segment] -
-                    body.restDirectionZ[segment]
-            );
-            if (error > threshold) return true;
-        }
-        return false;
-    }
-
     #solveControls(body) {
         if (body.sleeping) return;
-        if (body.rodModel === 'kirchhoff') {
+        {
             this.#solveKirchhoffOrientationControl(body);
         }
         const dtSquared = this.fixedDt * this.fixedDt;
@@ -3770,71 +3958,15 @@ export class EndovascularPhysicsWorld {
 
     #solveKirchhoffBendTwist(body) {
         if (body.sleeping) return;
-        if (body.constitutiveSolver === 'direct') {
-            solveKirchhoffDirect(body, this.fixedDt);
+        {
+            solveKirchhoffDirect(body, this.fixedDt, false, this.reuseDirectLinearization);
             return;
         }
-        if (body.segmentCount < 2) return;
-        const start = Math.max(1, body.activeStart + 1);
-        const end = Math.min(body.segmentCount, body.activeEnd);
-        // One alternating Gauss-Seidel sweep per world iteration transmits the
-        // same material moment in both directions over successive iterations.
-        // Doing a forward and backward sweep on every call doubled the most
-        // expensive SO(3) constraint without adding a new physical equation.
-        const reverse = body.kirchhoffBendSweepReverse === true;
-        body.kirchhoffBendSweepReverse = !reverse;
-        solveBendTwistXPBDBlockArraySweep(
-            body,
-            start,
-            end,
-            reverse,
-            this.fixedDt
-        );
-    }
 
-    #solveLengths(body, reverse = false) {
-        if (body.rodModel === 'kirchhoff') {
-            // Direct constitutive updates solve positions and frames together
-            // in #solveBending. Closure still uses the adaptation preconditioner.
-            if (body.constitutiveSolver === 'direct') return;
-            this.#solveKirchhoffAdaptation(body, reverse);
-            return;
-        }
-        if (body.sleeping) return;
-        const alpha = body.stretchCompliance / (this.fixedDt * this.fixedDt);
-        const start = Math.max(0, body.activeStart);
-        const end = Math.min(body.segmentCount, body.activeEnd);
-        for (
-            let index = reverse ? end - 1 : start;
-            reverse ? index >= start : index < end;
-            index += reverse ? -1 : 1
-        ) {
-            const dx = body.x[index + 1] - body.x[index];
-            const dy = body.y[index + 1] - body.y[index];
-            const dz = body.z[index + 1] - body.z[index];
-            const distance = magnitude3(dx, dy, dz);
-            if (distance < EPSILON) continue;
-            const w0 = body.inverseMass[index];
-            const w1 = body.inverseMass[index + 1];
-            const denominator = w0 + w1 + alpha;
-            if (denominator < EPSILON) continue;
-            const constraint = distance - body.restLength[index];
-            const deltaLambda = (-constraint - alpha * body.lengthLambda[index]) / denominator;
-            body.lengthLambda[index] += deltaLambda;
-            const nx = dx / distance;
-            const ny = dy / distance;
-            const nz = dz / distance;
-            body.x[index] -= nx * deltaLambda * w0;
-            body.y[index] -= ny * deltaLambda * w0;
-            body.z[index] -= nz * deltaLambda * w0;
-            body.x[index + 1] += nx * deltaLambda * w1;
-            body.y[index + 1] += ny * deltaLambda * w1;
-            body.z[index + 1] += nz * deltaLambda * w1;
-        }
     }
 
     #solveLengthsGlobal(body) {
-        if (body.rodModel === 'kirchhoff') {
+        {
             const reverse = body.kirchhoffLengthSweepReverse === true;
             body.kirchhoffLengthSweepReverse = !reverse;
             this.#solveKirchhoffAdaptation(body, reverse);
@@ -3940,759 +4072,12 @@ export class EndovascularPhysicsWorld {
     }
 
     #solveBending(body) {
-        if (body.rodModel === 'kirchhoff') {
-            this.#solveKirchhoffBendTwist(body);
-            return;
-        }
-        if (body.sleeping || body.count < 3) return;
-        const start = Math.max(1, body.activeStart + 1);
-        const end = Math.min(body.count - 1, body.activeEnd);
-        // A symmetric sweep is the discrete rod equivalent of transmitting a
-        // bending moment in both material directions. A one-way sweep leaves
-        // a fed shaft much softer distally than proximally and lets contact
-        // accumulate a travelling sinusoidal buckle.
-        for (let sweep = 0; sweep < 2; sweep++) {
-        for (let offset = 0; offset < end - start; offset++) {
-            const index = sweep === 0
-                ? start + offset
-                : end - 1 - offset;
-            if (body.intrinsicBendEnabled[index]) continue;
-            const previous = index - 1;
-            const next = index + 1;
-            let incomingX = body.x[index] - body.x[previous];
-            let incomingY = body.y[index] - body.y[previous];
-            let incomingZ = body.z[index] - body.z[previous];
-            let outgoingX = body.x[next] - body.x[index];
-            let outgoingY = body.y[next] - body.y[index];
-            let outgoingZ = body.z[next] - body.z[index];
-            const incomingLength = magnitude3(incomingX, incomingY, incomingZ);
-            const outgoingLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-            if (incomingLength < EPSILON || outgoingLength < EPSILON) continue;
-            incomingX /= incomingLength;
-            incomingY /= incomingLength;
-            incomingZ /= incomingLength;
-            outgoingX /= outgoingLength;
-            outgoingY /= outgoingLength;
-            outgoingZ /= outgoingLength;
-            const dot = clamp(
-                incomingX * outgoingX +
-                    incomingY * outgoingY +
-                    incomingZ * outgoingZ,
-                -1,
-                1
-            );
-            const angle = Math.acos(dot);
-            if (angle < 1e-7) continue;
-            let axisX = incomingY * outgoingZ - incomingZ * outgoingY;
-            let axisY = incomingZ * outgoingX - incomingX * outgoingZ;
-            let axisZ = incomingX * outgoingY - incomingY * outgoingX;
-            const axisLength = magnitude3(axisX, axisY, axisZ);
-            if (axisLength < EPSILON) continue;
-            axisX /= axisLength;
-            axisY /= axisLength;
-            axisZ /= axisLength;
-            const gradientPreviousX =
-                (axisY * incomingZ - axisZ * incomingY) / incomingLength;
-            const gradientPreviousY =
-                (axisZ * incomingX - axisX * incomingZ) / incomingLength;
-            const gradientPreviousZ =
-                (axisX * incomingY - axisY * incomingX) / incomingLength;
-            const gradientNextX =
-                (axisY * outgoingZ - axisZ * outgoingY) / outgoingLength;
-            const gradientNextY =
-                (axisZ * outgoingX - axisX * outgoingZ) / outgoingLength;
-            const gradientNextZ =
-                (axisX * outgoingY - axisY * outgoingX) / outgoingLength;
-            const gradientJointX = -gradientPreviousX - gradientNextX;
-            const gradientJointY = -gradientPreviousY - gradientNextY;
-            const gradientJointZ = -gradientPreviousZ - gradientNextZ;
-            const previousWeight = body.inverseMass[previous];
-            const jointWeight = body.inverseMass[index];
-            const nextWeight = body.inverseMass[next];
-            const alpha = (
-                body.bendComplianceByNode[index] *
-                CHORD_TO_ANGULAR_BEND_COMPLIANCE_SCALE
-            ) / (this.fixedDt * this.fixedDt);
-            const denominator = alpha +
-                previousWeight * magnitude3(
-                    gradientPreviousX,
-                    gradientPreviousY,
-                    gradientPreviousZ
-                ) ** 2 +
-                jointWeight * magnitude3(
-                    gradientJointX,
-                    gradientJointY,
-                    gradientJointZ
-                ) ** 2 +
-                nextWeight * magnitude3(
-                    gradientNextX,
-                    gradientNextY,
-                    gradientNextZ
-                ) ** 2;
-            if (denominator < EPSILON) continue;
-            let deltaLambda = (
-                -angle - alpha * body.bendLambda[index]
-            ) / denominator;
-            const maximumDisplacement = Math.max(
-                previousWeight * magnitude3(
-                    gradientPreviousX,
-                    gradientPreviousY,
-                    gradientPreviousZ
-                ),
-                jointWeight * magnitude3(
-                    gradientJointX,
-                    gradientJointY,
-                    gradientJointZ
-                ),
-                nextWeight * magnitude3(
-                    gradientNextX,
-                    gradientNextY,
-                    gradientNextZ
-                )
-            ) * Math.abs(deltaLambda);
-            // Bound each angular-energy projection so a short material
-            // interval cannot turn one local correction into a visible kick.
-            const displacementLimit = Math.min(incomingLength, outgoingLength) * 0.2;
-            if (maximumDisplacement > displacementLimit) {
-                deltaLambda *= displacementLimit / maximumDisplacement;
-            }
-            body.bendLambda[index] += deltaLambda;
-            body.x[previous] += gradientPreviousX * deltaLambda * previousWeight;
-            body.y[previous] += gradientPreviousY * deltaLambda * previousWeight;
-            body.z[previous] += gradientPreviousZ * deltaLambda * previousWeight;
-            body.x[index] += gradientJointX * deltaLambda * jointWeight;
-            body.y[index] += gradientJointY * deltaLambda * jointWeight;
-            body.z[index] += gradientJointZ * deltaLambda * jointWeight;
-            body.x[next] += gradientNextX * deltaLambda * nextWeight;
-            body.y[next] += gradientNextY * deltaLambda * nextWeight;
-            body.z[next] += gradientNextZ * deltaLambda * nextWeight;
-        }
-        }
-    }
-
-    #solveCurvatureVariation(body) {
-        if (body.rodModel === 'kirchhoff') return;
-        if (body.sleeping || !body.curvatureVariationEnabled || body.count < 4) return;
-        const start = Math.max(body.activeStart, body.curvatureVariationStartNode);
-        const end = Math.min(body.activeEnd, body.curvatureVariationEndNode);
-        if (end - start < 3) return;
-        const alpha = body.curvatureVariationCompliance /
-            (this.fixedDt * this.fixedDt);
-        for (let index = start; index + 3 <= end; index++) {
-            const index1 = index + 1;
-            const index2 = index + 2;
-            const index3 = index + 3;
-            const w0 = body.inverseMass[index];
-            const w1 = body.inverseMass[index1];
-            const w2 = body.inverseMass[index2];
-            const w3 = body.inverseMass[index3];
-            const denominator = alpha + w0 + 9 * w1 + 9 * w2 + w3;
-            if (denominator < EPSILON) continue;
-            const constraintX = body.x[index] - 3 * body.x[index1] +
-                3 * body.x[index2] - body.x[index3];
-            const deltaX = (
-                -constraintX - alpha * body.curvatureVariationLambdaX[index]
-            ) / denominator;
-            body.curvatureVariationLambdaX[index] += deltaX;
-            body.x[index] += w0 * deltaX;
-            body.x[index1] -= 3 * w1 * deltaX;
-            body.x[index2] += 3 * w2 * deltaX;
-            body.x[index3] -= w3 * deltaX;
-
-            const constraintY = body.y[index] - 3 * body.y[index1] +
-                3 * body.y[index2] - body.y[index3];
-            const deltaY = (
-                -constraintY - alpha * body.curvatureVariationLambdaY[index]
-            ) / denominator;
-            body.curvatureVariationLambdaY[index] += deltaY;
-            body.y[index] += w0 * deltaY;
-            body.y[index1] -= 3 * w1 * deltaY;
-            body.y[index2] += 3 * w2 * deltaY;
-            body.y[index3] -= w3 * deltaY;
-
-            const constraintZ = body.z[index] - 3 * body.z[index1] +
-                3 * body.z[index2] - body.z[index3];
-            const deltaZ = (
-                -constraintZ - alpha * body.curvatureVariationLambdaZ[index]
-            ) / denominator;
-            body.curvatureVariationLambdaZ[index] += deltaZ;
-            body.z[index] += w0 * deltaZ;
-            body.z[index1] -= 3 * w1 * deltaZ;
-            body.z[index2] += 3 * w2 * deltaZ;
-            body.z[index3] -= w3 * deltaZ;
-        }
-    }
-
-    #solveLongStraightness(body) {
-        if (body.rodModel === 'kirchhoff') return;
-        const span = body.longStraightSpan;
-        if (body.sleeping || span < 3 || body.count <= span) return;
-        const start = Math.max(body.activeStart, body.longStraightStartNode);
-        const end = Math.min(body.activeEnd, body.longStraightEndNode);
-        if (end - start < span) return;
-        const alpha = body.longStraightCompliance /
-            (this.fixedDt * this.fixedDt);
-        for (let index = start; index + span <= end; index++) {
-            const other = index + span;
-            const dx = body.x[other] - body.x[index];
-            const dy = body.y[other] - body.y[index];
-            const dz = body.z[other] - body.z[index];
-            const distance = magnitude3(dx, dy, dz);
-            if (distance < EPSILON) continue;
-            let restChord = 0;
-            for (let segment = index; segment < other; segment++) {
-                restChord += body.restLength[segment];
-            }
-            const w0 = body.inverseMass[index];
-            const w1 = body.inverseMass[other];
-            const denominator = w0 + w1 + alpha;
-            if (denominator < EPSILON) continue;
-            const constraint = distance - restChord;
-            const deltaLambda = (
-                -constraint - alpha * body.longStraightLambda[index]
-            ) / denominator;
-            body.longStraightLambda[index] += deltaLambda;
-            const nx = dx / distance;
-            const ny = dy / distance;
-            const nz = dz / distance;
-            body.x[index] -= nx * deltaLambda * w0;
-            body.y[index] -= ny * deltaLambda * w0;
-            body.z[index] -= nz * deltaLambda * w0;
-            body.x[other] += nx * deltaLambda * w1;
-            body.y[other] += ny * deltaLambda * w1;
-            body.z[other] += nz * deltaLambda * w1;
-        }
-    }
-
-    #solveRestShape(body) {
-        if (body.rodModel === 'kirchhoff') return;
-        if (body.sleeping) return;
-        const dtSquared = this.fixedDt * this.fixedDt;
-        const neutralStart = Math.max(
-            body.activeStart,
-            body.restShapeTranslationNeutralStart
-        );
-        const neutralEnd = Math.min(
-            body.activeEnd,
-            body.restShapeTranslationNeutralEnd
-        );
-        const translationNeutral = neutralStart >= body.activeStart &&
-            neutralEnd >= neutralStart;
-        let neutralCorrectionX = 0;
-        let neutralCorrectionY = 0;
-        let neutralCorrectionZ = 0;
-        let neutralCount = 0;
-        for (let index = body.activeStart; index <= body.activeEnd; index++) {
-            if (!body.restShapeEnabled[index] || body.inverseMass[index] <= 0) continue;
-            const dx = body.x[index] - body.restShapeX[index];
-            const dy = body.y[index] - body.restShapeY[index];
-            const dz = body.z[index] - body.restShapeZ[index];
-            const distance = magnitude3(dx, dy, dz);
-            if (distance < EPSILON) continue;
-            const alpha = body.restShapeCompliance[index] / dtSquared;
-            let deltaLambda = (-distance - alpha * body.shapeLambda[index]) /
-                (body.inverseMass[index] + alpha);
-            const displacement = Math.abs(deltaLambda) * body.inverseMass[index];
-            const maxCorrection = body.restShapeMaxCorrection[index];
-            if (displacement > maxCorrection) {
-                deltaLambda *= maxCorrection / displacement;
-            }
-            body.shapeLambda[index] += deltaLambda;
-            const scale = deltaLambda / distance * body.inverseMass[index];
-            const correctionX = dx * scale;
-            const correctionY = dy * scale;
-            const correctionZ = dz * scale;
-            if (
-                translationNeutral &&
-                index >= neutralStart &&
-                index <= neutralEnd
-            ) {
-                body.restShapeCorrectionX[index] = correctionX;
-                body.restShapeCorrectionY[index] = correctionY;
-                body.restShapeCorrectionZ[index] = correctionZ;
-                neutralCorrectionX += correctionX;
-                neutralCorrectionY += correctionY;
-                neutralCorrectionZ += correctionZ;
-                neutralCount++;
-                continue;
-            }
-            body.x[index] += correctionX;
-            body.y[index] += correctionY;
-            body.z[index] += correctionZ;
-        }
-        if (neutralCount <= 0) return;
-        neutralCorrectionX /= neutralCount;
-        neutralCorrectionY /= neutralCount;
-        neutralCorrectionZ /= neutralCount;
-        for (let index = neutralStart; index <= neutralEnd; index++) {
-            if (!body.restShapeEnabled[index] || body.inverseMass[index] <= 0) continue;
-            body.x[index] += body.restShapeCorrectionX[index] - neutralCorrectionX;
-            body.y[index] += body.restShapeCorrectionY[index] - neutralCorrectionY;
-            body.z[index] += body.restShapeCorrectionZ[index] - neutralCorrectionZ;
-        }
-    }
-
-    #solveShapeClosure(body) {
-        if (body.rodModel === 'kirchhoff') return;
-        if (body.sleeping || !body.shapeClosureEnabled) return;
-        const start = body.shapeClosureStart;
-        const end = body.shapeClosureEnd;
-        if (
-            start < body.activeStart ||
-            end > body.activeEnd ||
-            start === end
-        ) return;
-        const dx = body.x[end] - body.x[start];
-        const dy = body.y[end] - body.y[start];
-        const dz = body.z[end] - body.z[start];
-        const distance = magnitude3(dx, dy, dz);
-        if (distance < EPSILON) return;
-        const w0 = body.inverseMass[start];
-        const w1 = body.inverseMass[end];
-        const alpha = body.shapeClosureCompliance /
-            (this.fixedDt * this.fixedDt);
-        const denominator = w0 + w1 + alpha;
-        if (denominator < EPSILON) return;
-        let deltaLambda = (
-            -(distance - body.shapeClosureDistance) -
-            alpha * body.shapeClosureLambda
-        ) / denominator;
-        const displacement = Math.max(w0, w1) * Math.abs(deltaLambda);
-        if (displacement > body.shapeClosureMaxCorrection) {
-            deltaLambda *= body.shapeClosureMaxCorrection / displacement;
-        }
-        body.shapeClosureLambda += deltaLambda;
-        const nx = dx / distance;
-        const ny = dy / distance;
-        const nz = dz / distance;
-        body.x[start] -= nx * deltaLambda * w0;
-        body.y[start] -= ny * deltaLambda * w0;
-        body.z[start] -= nz * deltaLambda * w0;
-        body.x[end] += nx * deltaLambda * w1;
-        body.y[end] += ny * deltaLambda * w1;
-        body.z[end] += nz * deltaLambda * w1;
-    }
-
-    #solveRestDirections(body, correctionScale = 1) {
-        if (body.rodModel === 'kirchhoff') return;
-        if (body.sleeping) return;
-        const dtSquared = this.fixedDt * this.fixedDt;
-        const start = Math.max(0, body.activeStart);
-        const end = Math.min(body.segmentCount - 1, body.activeEnd - 1);
-        const segmentCount = Math.max(0, end - start + 1);
-        // Adjacent direction constraints share a node. A one-way sweep leaves
-        // the last constraints satisfied and continually reopens the first
-        // ones. Symmetric Gauss-Seidel propagates the signed curvature back
-        // to the material anchor within the same solver iteration.
-        const intrinsicRod = body.intrinsicBendEnabled.some(
-            (enabled, segment) => enabled &&
-                segment >= body.activeStart &&
-                segment < body.activeEnd
-        );
-        for (let sweep = 0; sweep < (intrinsicRod ? 2 : 1); sweep++) {
-        for (let offset = 0; offset < segmentCount; offset++) {
-            const segment = sweep === 0
-                ? start + offset
-                : end - offset;
-            if (!body.restDirectionEnabled[segment]) continue;
-            const next = segment + 1;
-            let targetX = body.restDirectionX[segment];
-            let targetY = body.restDirectionY[segment];
-            let targetZ = body.restDirectionZ[segment];
-            let w0 = body.inverseMass[segment];
-            const w1 = body.inverseMass[next];
-            if (body.restDirectionRelative[segment]) {
-                const previous = segment - 1;
-                if (previous < body.activeStart) continue;
-                const axisX = body.restDirectionAxisX[segment];
-                const axisY = body.restDirectionAxisY[segment];
-                const axisZ = body.restDirectionAxisZ[segment];
-                const compliance = body.restDirectionCompliance[segment];
-                const maximumCorrection =
-                    body.restDirectionMaxCorrection[segment] * correctionScale;
-                let outgoingX = body.x[next] - body.x[segment];
-                let outgoingY = body.y[next] - body.y[segment];
-                let outgoingZ = body.z[next] - body.z[segment];
-
-                let incomingX = body.x[segment] - body.x[previous];
-                let incomingY = body.y[segment] - body.y[previous];
-                let incomingZ = body.z[segment] - body.z[previous];
-                outgoingX = body.x[next] - body.x[segment];
-                outgoingY = body.y[next] - body.y[segment];
-                outgoingZ = body.z[next] - body.z[segment];
-                const incomingLength = magnitude3(incomingX, incomingY, incomingZ);
-                const outgoingLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-                if (incomingLength < EPSILON || outgoingLength < EPSILON) continue;
-                incomingX /= incomingLength;
-                incomingY /= incomingLength;
-                incomingZ /= incomingLength;
-                outgoingX /= outgoingLength;
-                outgoingY /= outgoingLength;
-                outgoingZ /= outgoingLength;
-
-                // Evaluate the signed hinge angle in the common material
-                // plane. Unlike the former target-vector projection, this
-                // three-node constraint carries reaction both proximally and
-                // distally. A wall-blocked tip can therefore reposition the
-                // loop instead of reversing curvature into a zig-zag.
-                const incomingAxial =
-                    axisX * incomingX + axisY * incomingY + axisZ * incomingZ;
-                const outgoingAxial =
-                    axisX * outgoingX + axisY * outgoingY + axisZ * outgoingZ;
-                incomingX -= axisX * incomingAxial;
-                incomingY -= axisY * incomingAxial;
-                incomingZ -= axisZ * incomingAxial;
-                outgoingX -= axisX * outgoingAxial;
-                outgoingY -= axisY * outgoingAxial;
-                outgoingZ -= axisZ * outgoingAxial;
-                const incomingPlanarLength = magnitude3(incomingX, incomingY, incomingZ);
-                const outgoingPlanarLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-                if (incomingPlanarLength < EPSILON || outgoingPlanarLength < EPSILON) continue;
-                incomingX /= incomingPlanarLength;
-                incomingY /= incomingPlanarLength;
-                incomingZ /= incomingPlanarLength;
-                outgoingX /= outgoingPlanarLength;
-                outgoingY /= outgoingPlanarLength;
-                outgoingZ /= outgoingPlanarLength;
-                const crossX = incomingY * outgoingZ - incomingZ * outgoingY;
-                const crossY = incomingZ * outgoingX - incomingX * outgoingZ;
-                const crossZ = incomingX * outgoingY - incomingY * outgoingX;
-                const sine = axisX * crossX + axisY * crossY + axisZ * crossZ;
-                const cosine = clamp(
-                    incomingX * outgoingX +
-                    incomingY * outgoingY +
-                    incomingZ * outgoingZ,
-                    -1,
-                    1
-                );
-                let angleError = Math.atan2(sine, cosine) -
-                    body.restDirectionTurnAngle[segment];
-                if (angleError > Math.PI) angleError -= Math.PI * 2;
-                else if (angleError < -Math.PI) angleError += Math.PI * 2;
-
-                const gradientPreviousX = (axisY * incomingZ - axisZ * incomingY) /
-                    incomingLength;
-                const gradientPreviousY = (axisZ * incomingX - axisX * incomingZ) /
-                    incomingLength;
-                const gradientPreviousZ = (axisX * incomingY - axisY * incomingX) /
-                    incomingLength;
-                const gradientNextX = (axisY * outgoingZ - axisZ * outgoingY) /
-                    outgoingLength;
-                const gradientNextY = (axisZ * outgoingX - axisX * outgoingZ) /
-                    outgoingLength;
-                const gradientNextZ = (axisX * outgoingY - axisY * outgoingX) /
-                    outgoingLength;
-                const gradientJointX = -gradientPreviousX - gradientNextX;
-                const gradientJointY = -gradientPreviousY - gradientNextY;
-                const gradientJointZ = -gradientPreviousZ - gradientNextZ;
-                const distalBias = body.restDirectionDistalBias[segment];
-                const reactionScale = 1 - distalBias;
-                const previousWeight = body.inverseMass[previous] * reactionScale;
-                const jointWeight = w0 * reactionScale;
-                const nextWeight = w1;
-                const angularWeight =
-                    previousWeight * (
-                        gradientPreviousX * gradientPreviousX +
-                        gradientPreviousY * gradientPreviousY +
-                        gradientPreviousZ * gradientPreviousZ
-                    ) +
-                    jointWeight * (
-                        gradientJointX * gradientJointX +
-                        gradientJointY * gradientJointY +
-                        gradientJointZ * gradientJointZ
-                    ) +
-                    nextWeight * (
-                        gradientNextX * gradientNextX +
-                        gradientNextY * gradientNextY +
-                        gradientNextZ * gradientNextZ
-                    );
-                const meanLength = Math.max(
-                    EPSILON,
-                    (incomingLength + outgoingLength) * 0.5
-                );
-                const angularAlpha = compliance / (dtSquared * meanLength * meanLength);
-                if (angularWeight + angularAlpha < EPSILON) continue;
-                let angularDelta = (
-                    -angleError -
-                    angularAlpha * body.restDirectionLambdaX[segment]
-                ) / (angularWeight + angularAlpha);
-                const maximumAngularDisplacement = Math.max(
-                    previousWeight * magnitude3(
-                        gradientPreviousX,
-                        gradientPreviousY,
-                        gradientPreviousZ
-                    ),
-                    jointWeight * magnitude3(
-                        gradientJointX,
-                        gradientJointY,
-                        gradientJointZ
-                    ),
-                    nextWeight * magnitude3(
-                        gradientNextX,
-                        gradientNextY,
-                        gradientNextZ
-                    )
-                ) * Math.abs(angularDelta);
-                if (maximumAngularDisplacement > maximumCorrection) {
-                    angularDelta *= maximumCorrection /
-                        maximumAngularDisplacement;
-                }
-                body.restDirectionLambdaX[segment] += angularDelta;
-                body.x[previous] += gradientPreviousX * angularDelta * previousWeight;
-                body.y[previous] += gradientPreviousY * angularDelta * previousWeight;
-                body.z[previous] += gradientPreviousZ * angularDelta * previousWeight;
-                body.x[segment] += gradientJointX * angularDelta * jointWeight;
-                body.y[segment] += gradientJointY * angularDelta * jointWeight;
-                body.z[segment] += gradientJointZ * angularDelta * jointWeight;
-                body.x[next] += gradientNextX * angularDelta * nextWeight;
-                body.y[next] += gradientNextY * angularDelta * nextWeight;
-                body.z[next] += gradientNextZ * angularDelta * nextWeight;
-
-                // Keep a world-space diagnostic target for sleep/error
-                // reporting and test introspection.
-                const targetAngle = body.restDirectionTurnAngle[segment];
-                const targetCosine = Math.cos(targetAngle);
-                const targetSine = Math.sin(targetAngle);
-                const targetCrossX = axisY * incomingZ - axisZ * incomingY;
-                const targetCrossY = axisZ * incomingX - axisX * incomingZ;
-                const targetCrossZ = axisX * incomingY - axisY * incomingX;
-                const restLength = body.restLength[segment];
-                body.restDirectionX[segment] = (
-                    incomingX * targetCosine + targetCrossX * targetSine
-                ) * restLength;
-                body.restDirectionY[segment] = (
-                    incomingY * targetCosine + targetCrossY * targetSine
-                ) * restLength;
-                body.restDirectionZ[segment] = (
-                    incomingZ * targetCosine + targetCrossZ * targetSine
-                ) * restLength;
-                continue;
-            }
-            const weight = w0 + w1;
-            if (weight < EPSILON) continue;
-            const alpha = body.restDirectionCompliance[segment] / dtSquared;
-            const denominator = weight + alpha;
-            const errorX =
-                body.x[next] - body.x[segment] - targetX;
-            const errorY =
-                body.y[next] - body.y[segment] - targetY;
-            const errorZ =
-                body.z[next] - body.z[segment] - targetZ;
-            let deltaX = (
-                -errorX - alpha * body.restDirectionLambdaX[segment]
-            ) / denominator;
-            let deltaY = (
-                -errorY - alpha * body.restDirectionLambdaY[segment]
-            ) / denominator;
-            let deltaZ = (
-                -errorZ - alpha * body.restDirectionLambdaZ[segment]
-            ) / denominator;
-            const correctionLength = magnitude3(deltaX, deltaY, deltaZ);
-            const maximumCorrection =
-                body.restDirectionMaxCorrection[segment] * correctionScale;
-            if (correctionLength > maximumCorrection) {
-                const correctionScale = maximumCorrection / correctionLength;
-                deltaX *= correctionScale;
-                deltaY *= correctionScale;
-                deltaZ *= correctionScale;
-            }
-            body.restDirectionLambdaX[segment] += deltaX;
-            body.restDirectionLambdaY[segment] += deltaY;
-            body.restDirectionLambdaZ[segment] += deltaZ;
-            body.x[segment] -= deltaX * w0;
-            body.y[segment] -= deltaY * w0;
-            body.z[segment] -= deltaZ * w0;
-            body.x[next] += deltaX * w1;
-            body.y[next] += deltaY * w1;
-            body.z[next] += deltaZ * w1;
-        }
-        }
-    }
-
-    #polishRestTurns(body) {
-        if (body.rodModel === 'kirchhoff') return;
-        const maximumAngle = body.restTurnPolishMaxAngle;
-        if (body.sleeping || maximumAngle <= 0 || body.activeEnd < body.activeStart + 2) {
-            return;
-        }
-        const start = Math.max(1, body.activeStart + 1);
-        const end = Math.min(body.segmentCount - 1, body.activeEnd - 1);
-        for (let segment = start; segment <= end; segment++) {
-            if (
-                !body.restDirectionEnabled[segment] ||
-                !body.restDirectionRelative[segment]
-            ) continue;
-            const previous = segment - 1;
-            const next = segment + 1;
-            const axisX = body.restDirectionAxisX[segment];
-            const axisY = body.restDirectionAxisY[segment];
-            const axisZ = body.restDirectionAxisZ[segment];
-            let incomingX = body.x[segment] - body.x[previous];
-            let incomingY = body.y[segment] - body.y[previous];
-            let incomingZ = body.z[segment] - body.z[previous];
-            let outgoingX = body.x[next] - body.x[segment];
-            let outgoingY = body.y[next] - body.y[segment];
-            let outgoingZ = body.z[next] - body.z[segment];
-            const incomingAxial =
-                incomingX * axisX + incomingY * axisY + incomingZ * axisZ;
-            const outgoingAxial =
-                outgoingX * axisX + outgoingY * axisY + outgoingZ * axisZ;
-            incomingX -= axisX * incomingAxial;
-            incomingY -= axisY * incomingAxial;
-            incomingZ -= axisZ * incomingAxial;
-            outgoingX -= axisX * outgoingAxial;
-            outgoingY -= axisY * outgoingAxial;
-            outgoingZ -= axisZ * outgoingAxial;
-            const incomingLength = magnitude3(incomingX, incomingY, incomingZ);
-            const outgoingLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-            if (incomingLength < EPSILON || outgoingLength < EPSILON) continue;
-            incomingX /= incomingLength;
-            incomingY /= incomingLength;
-            incomingZ /= incomingLength;
-            outgoingX /= outgoingLength;
-            outgoingY /= outgoingLength;
-            outgoingZ /= outgoingLength;
-            const crossX = incomingY * outgoingZ - incomingZ * outgoingY;
-            const crossY = incomingZ * outgoingX - incomingX * outgoingZ;
-            const crossZ = incomingX * outgoingY - incomingY * outgoingX;
-            const sine = axisX * crossX + axisY * crossY + axisZ * crossZ;
-            const cosine = clamp(
-                incomingX * outgoingX +
-                    incomingY * outgoingY +
-                    incomingZ * outgoingZ,
-                -1,
-                1
-            );
-            let correction = body.restDirectionTurnAngle[segment] -
-                Math.atan2(sine, cosine);
-            if (correction > Math.PI) correction -= Math.PI * 2;
-            else if (correction < -Math.PI) correction += Math.PI * 2;
-            correction = clamp(correction, -maximumAngle, maximumAngle);
-            if (Math.abs(correction) < 1e-6) continue;
-
-            const anchorX = body.x[segment];
-            const anchorY = body.y[segment];
-            const anchorZ = body.z[segment];
-            if (
-                this.contactField &&
-                body.collisionEndSegment >= body.collisionStartSegment
-            ) {
-                let accepted = false;
-                let trialCorrection = correction;
-                for (let attempt = 0; attempt < 6; attempt++) {
-                    const trialCosine = Math.cos(trialCorrection);
-                    const trialSine = Math.sin(trialCorrection);
-                    const trialOneMinusCosine = 1 - trialCosine;
-                    let fitsLumen = true;
-                    for (
-                        let contactSegment = Math.max(
-                            segment,
-                            body.collisionStartSegment
-                        );
-                        contactSegment <= Math.min(
-                            body.activeEnd - 1,
-                            body.collisionEndSegment
-                        );
-                        contactSegment++
-                    ) {
-                        for (let endpoint = 0; endpoint < 2; endpoint++) {
-                            const node = contactSegment + endpoint;
-                            const output = endpoint === 0
-                                ? this._queryStart
-                                : this._queryEnd;
-                            if (node === segment) {
-                                output.x = anchorX;
-                                output.y = anchorY;
-                                output.z = anchorZ;
-                                continue;
-                            }
-                            const relativeX = body.x[node] - anchorX;
-                            const relativeY = body.y[node] - anchorY;
-                            const relativeZ = body.z[node] - anchorZ;
-                            const axisDot =
-                                relativeX * axisX +
-                                relativeY * axisY +
-                                relativeZ * axisZ;
-                            output.x = anchorX +
-                                relativeX * trialCosine +
-                                (axisY * relativeZ - axisZ * relativeY) *
-                                    trialSine +
-                                axisX * axisDot * trialOneMinusCosine;
-                            output.y = anchorY +
-                                relativeY * trialCosine +
-                                (axisZ * relativeX - axisX * relativeZ) *
-                                    trialSine +
-                                axisY * axisDot * trialOneMinusCosine;
-                            output.z = anchorZ +
-                                relativeZ * trialCosine +
-                                (axisX * relativeY - axisY * relativeX) *
-                                    trialSine +
-                                axisZ * axisDot * trialOneMinusCosine;
-                        }
-                        const radius = Math.max(
-                            body.nodeRadius[contactSegment],
-                            body.nodeRadius[contactSegment + 1]
-                        );
-                        const contact = this.contactField.queryCapsule(
-                            this._queryStart,
-                            this._queryEnd,
-                            radius,
-                            this._contact
-                        );
-                        const allowedPenetration = Math.max(
-                            0.01,
-                            Number.isFinite(body.wallGap[contactSegment])
-                                ? -body.wallGap[contactSegment] + 0.002
-                                : 0
-                        );
-                        if (
-                            contact.violation &&
-                            contact.penetration > allowedPenetration
-                        ) {
-                            fitsLumen = false;
-                            break;
-                        }
-                    }
-                    if (fitsLumen) {
-                        correction = trialCorrection;
-                        accepted = true;
-                        break;
-                    }
-                    trialCorrection *= 0.5;
-                }
-                if (!accepted) continue;
-            }
-
-            const rotationCosine = Math.cos(correction);
-            const rotationSine = Math.sin(correction);
-            const oneMinusCosine = 1 - rotationCosine;
-            for (let node = next; node <= body.activeEnd; node++) {
-                const relativeX = body.x[node] - anchorX;
-                const relativeY = body.y[node] - anchorY;
-                const relativeZ = body.z[node] - anchorZ;
-                const axisDot =
-                    relativeX * axisX +
-                    relativeY * axisY +
-                    relativeZ * axisZ;
-                body.x[node] = anchorX +
-                    relativeX * rotationCosine +
-                    (axisY * relativeZ - axisZ * relativeY) * rotationSine +
-                    axisX * axisDot * oneMinusCosine;
-                body.y[node] = anchorY +
-                    relativeY * rotationCosine +
-                    (axisZ * relativeX - axisX * relativeZ) * rotationSine +
-                    axisY * axisDot * oneMinusCosine;
-                body.z[node] = anchorZ +
-                    relativeZ * rotationCosine +
-                    (axisX * relativeY - axisY * relativeX) * rotationSine +
-                    axisZ * axisDot * oneMinusCosine;
-            }
-        }
+        this.#solveKirchhoffBendTwist(body);
     }
 
     #solveFoldLimits(body) {
         if (body.sleeping || body.count < 3 || body.foldLimitStrength <= 0) return;
-        if (body.rodModel === 'kirchhoff') {
+        {
             this.#solveKirchhoffFoldLimits(body);
             return;
         }
@@ -4700,172 +4085,7 @@ export class EndovascularPhysicsWorld {
         // anti-fold inequality belongs to the unsupported rod; solving it in
         // the curved supported section displaces the shared outlet node and
         // creates exactly the hinge it is intended to prevent.
-        const unsupportedStart = Number.isFinite(body.sheathMaterialEndNode)
-            ? Math.floor(body.sheathMaterialEndNode)
-            : body.activeStart + 1;
-        const start = Math.max(1, body.activeStart + 1, unsupportedStart);
-        const end = Math.min(body.count - 1, body.activeEnd);
-        const correctionX = body.foldCorrectionX;
-        const correctionY = body.foldCorrectionY;
-        const correctionZ = body.foldCorrectionZ;
-        const correctionWeight = body.foldCorrectionWeight;
-        for (let sweep = 0; sweep < 2; sweep++) {
-            correctionX.fill(0, body.activeStart, body.activeEnd + 1);
-            correctionY.fill(0, body.activeStart, body.activeEnd + 1);
-            correctionZ.fill(0, body.activeStart, body.activeEnd + 1);
-            correctionWeight.fill(0, body.activeStart, body.activeEnd + 1);
-            let correctionCount = 0;
-        for (let index = start; index < end; index++) {
-            const limit = clamp(body.maxBendAngleByNode[index], 1, 179) * Math.PI / 180;
-            const previous = index - 1;
-            const next = index + 1;
-            let incomingX = body.x[index] - body.x[previous];
-            let incomingY = body.y[index] - body.y[previous];
-            let incomingZ = body.z[index] - body.z[previous];
-            let outgoingX = body.x[next] - body.x[index];
-            let outgoingY = body.y[next] - body.y[index];
-            let outgoingZ = body.z[next] - body.z[index];
-            const incomingLength = magnitude3(incomingX, incomingY, incomingZ);
-            const outgoingLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-            if (incomingLength < EPSILON || outgoingLength < EPSILON) continue;
-            incomingX /= incomingLength;
-            incomingY /= incomingLength;
-            incomingZ /= incomingLength;
-            outgoingX /= outgoingLength;
-            outgoingY /= outgoingLength;
-            outgoingZ /= outgoingLength;
-            const dot = clamp(
-                incomingX * outgoingX + incomingY * outgoingY + incomingZ * outgoingZ
-            , -1, 1);
-            const angle = Math.acos(dot);
 
-            // A newly exposed material interval can be shorter than the
-            // nominal discretisation length. Applying the regular fold limit
-            // to that temporary joint magnifies a tiny excess by 1 / length
-            // and can kick the neighbouring full segment. The elastic rod
-            // energy remains active there; only the emergency inequality is
-            // relaxed by a small, bounded angular guard until the interval
-            // grows to a regular material segment.
-            const fractionalFeedJoint = Math.min(
-                body.restLength[previous],
-                body.restLength[index]
-            ) < body.segmentLength * 0.8;
-            const effectiveLimit = limit;
-            if (angle <= effectiveLimit) continue;
-            correctionCount++;
-
-            let axisX = incomingY * outgoingZ - incomingZ * outgoingY;
-            let axisY = incomingZ * outgoingX - incomingX * outgoingZ;
-            let axisZ = incomingX * outgoingY - incomingY * outgoingX;
-            let axisLength = magnitude3(axisX, axisY, axisZ);
-            if (axisLength < EPSILON && body.intrinsicBendEnabled[index]) {
-                axisX = body.restDirectionAxisX[index];
-                axisY = body.restDirectionAxisY[index];
-                axisZ = body.restDirectionAxisZ[index];
-                axisLength = magnitude3(axisX, axisY, axisZ);
-            }
-            if (axisLength < EPSILON) {
-                if (Math.abs(incomingX) < 0.8) {
-                    axisX = 0;
-                    axisY = incomingZ;
-                    axisZ = -incomingY;
-                } else {
-                    axisX = -incomingZ;
-                    axisY = 0;
-                    axisZ = incomingX;
-                }
-                axisLength = magnitude3(axisX, axisY, axisZ);
-            }
-            axisX /= axisLength;
-            axisY /= axisLength;
-            axisZ /= axisLength;
-
-            const gradientPreviousX = (axisY * incomingZ - axisZ * incomingY) /
-                incomingLength;
-            const gradientPreviousY = (axisZ * incomingX - axisX * incomingZ) /
-                incomingLength;
-            const gradientPreviousZ = (axisX * incomingY - axisY * incomingX) /
-                incomingLength;
-            const gradientNextX = (axisY * outgoingZ - axisZ * outgoingY) /
-                outgoingLength;
-            const gradientNextY = (axisZ * outgoingX - axisX * outgoingZ) /
-                outgoingLength;
-            const gradientNextZ = (axisX * outgoingY - axisY * outgoingX) /
-                outgoingLength;
-            const gradientJointX = -gradientPreviousX - gradientNextX;
-            const gradientJointY = -gradientPreviousY - gradientNextY;
-            const gradientJointZ = -gradientPreviousZ - gradientNextZ;
-            const previousWeight = body.inverseMass[previous];
-            const jointWeight = body.inverseMass[index];
-            const nextWeight = body.inverseMass[next];
-            const denominator =
-                previousWeight * magnitude3(
-                    gradientPreviousX,
-                    gradientPreviousY,
-                    gradientPreviousZ
-                ) ** 2 +
-                jointWeight * magnitude3(
-                    gradientJointX,
-                    gradientJointY,
-                    gradientJointZ
-                ) ** 2 +
-                nextWeight * magnitude3(
-                    gradientNextX,
-                    gradientNextY,
-                    gradientNextZ
-                ) ** 2;
-            if (denominator < EPSILON) continue;
-            let delta = -(angle - effectiveLimit) * body.foldLimitStrength / denominator;
-            const maximumDisplacement = Math.max(
-                previousWeight * magnitude3(
-                    gradientPreviousX,
-                    gradientPreviousY,
-                    gradientPreviousZ
-                ),
-                jointWeight * magnitude3(
-                    gradientJointX,
-                    gradientJointY,
-                    gradientJointZ
-                ),
-                nextWeight * magnitude3(
-                    gradientNextX,
-                    gradientNextY,
-                    gradientNextZ
-                )
-            ) * Math.abs(delta);
-            const displacementLimit = Math.min(incomingLength, outgoingLength) *
-                (fractionalFeedJoint ? 0.16 : 0.35);
-            if (maximumDisplacement > displacementLimit) {
-                delta *= displacementLimit / maximumDisplacement;
-            }
-            if (previousWeight > 0) {
-                correctionX[previous] += gradientPreviousX * delta * previousWeight;
-                correctionY[previous] += gradientPreviousY * delta * previousWeight;
-                correctionZ[previous] += gradientPreviousZ * delta * previousWeight;
-                correctionWeight[previous]++;
-            }
-            if (jointWeight > 0) {
-                correctionX[index] += gradientJointX * delta * jointWeight;
-                correctionY[index] += gradientJointY * delta * jointWeight;
-                correctionZ[index] += gradientJointZ * delta * jointWeight;
-                correctionWeight[index]++;
-            }
-            if (nextWeight > 0) {
-                correctionX[next] += gradientNextX * delta * nextWeight;
-                correctionY[next] += gradientNextY * delta * nextWeight;
-                correctionZ[next] += gradientNextZ * delta * nextWeight;
-                correctionWeight[next]++;
-            }
-        }
-            if (correctionCount === 0) break;
-            for (let index = body.activeStart; index <= body.activeEnd; index++) {
-                const weight = correctionWeight[index];
-                if (weight <= 0) continue;
-                body.x[index] += correctionX[index] / weight;
-                body.y[index] += correctionY[index] / weight;
-                body.z[index] += correctionZ[index] / weight;
-            }
-        }
     }
 
     #solveKirchhoffFoldLimits(body) {
@@ -5252,135 +4472,6 @@ export class EndovascularPhysicsWorld {
         body.orientationW[segment] = w * inverseLength;
     }
 
-    #solveStableFoldLimits(body) {
-        const start = Math.max(1, body.activeStart + 1);
-        const end = Math.min(body.count - 1, body.activeEnd);
-        for (let index = start; index < end; index++) {
-            const limit = clamp(body.maxBendAngleByNode[index], 1, 179) * Math.PI / 180;
-            const minDot = Math.cos(limit);
-            const previous = index - 1;
-            const next = index + 1;
-            const incomingX = body.x[index] - body.x[previous];
-            const incomingY = body.y[index] - body.y[previous];
-            const incomingZ = body.z[index] - body.z[previous];
-            const outgoingX = body.x[next] - body.x[index];
-            const outgoingY = body.y[next] - body.y[index];
-            const outgoingZ = body.z[next] - body.z[index];
-            const incomingLength = magnitude3(incomingX, incomingY, incomingZ);
-            const outgoingLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-            if (incomingLength < EPSILON || outgoingLength < EPSILON) continue;
-            const dot = (
-                incomingX * outgoingX + incomingY * outgoingY + incomingZ * outgoingZ
-            ) / (incomingLength * outgoingLength);
-            if (dot >= minDot) continue;
-            const wallConstrained = (
-                (previous > 0 && body.wallActive[previous - 1]) ||
-                body.wallActive[previous] ||
-                body.wallActive[index]
-            );
-            if (wallConstrained && body.inverseMass[index] > 0) {
-                const strength = Math.min(0.72, body.foldLimitStrength * 0.62);
-                body.x[index] += ((body.x[previous] + body.x[next]) * 0.5 - body.x[index]) * strength;
-                body.y[index] += ((body.y[previous] + body.y[next]) * 0.5 - body.y[index]) * strength;
-                body.z[index] += ((body.z[previous] + body.z[next]) * 0.5 - body.z[index]) * strength;
-                continue;
-            }
-            let chordX = body.x[next] - body.x[previous];
-            let chordY = body.y[next] - body.y[previous];
-            let chordZ = body.z[next] - body.z[previous];
-            const chordLength = magnitude3(chordX, chordY, chordZ);
-            if (chordLength < EPSILON) continue;
-            chordX /= chordLength;
-            chordY /= chordLength;
-            chordZ /= chordLength;
-            const targetChord = Math.sqrt(Math.max(0,
-                incomingLength * incomingLength + outgoingLength * outgoingLength +
-                2 * incomingLength * outgoingLength * minDot
-            ));
-            const deficit = targetChord - chordLength;
-            if (deficit <= 0) continue;
-            const previousWeight = body.inverseMass[previous];
-            const nextWeight = body.inverseMass[next];
-            const totalWeight = previousWeight + nextWeight;
-            if (totalWeight < EPSILON) continue;
-            const correction = Math.min(
-                deficit * body.foldLimitStrength,
-                Math.min(incomingLength, outgoingLength) * 0.35
-            );
-            const previousScale = correction * previousWeight / totalWeight;
-            const nextScale = correction * nextWeight / totalWeight;
-            body.x[previous] -= chordX * previousScale;
-            body.y[previous] -= chordY * previousScale;
-            body.z[previous] -= chordZ * previousScale;
-            body.x[next] += chordX * nextScale;
-            body.y[next] += chordY * nextScale;
-            body.z[next] += chordZ * nextScale;
-            if (body.inverseMass[index] > 0) {
-                const strength = body.foldLimitStrength * 0.45;
-                body.x[index] += ((body.x[previous] + body.x[next]) * 0.5 - body.x[index]) * strength;
-                body.y[index] += ((body.y[previous] + body.y[next]) * 0.5 - body.y[index]) * strength;
-                body.z[index] += ((body.z[previous] + body.z[next]) * 0.5 - body.z[index]) * strength;
-                if (dot < -0.999 && chordLength < Math.min(incomingLength, outgoingLength) * 0.1) {
-                    const nx = incomingX / incomingLength;
-                    const ny = incomingY / incomingLength;
-                    const nz = incomingZ / incomingLength;
-                    let bendX = Math.abs(nx) < 0.8 ? 0 : -nz;
-                    let bendY = Math.abs(nx) < 0.8 ? nz : 0;
-                    let bendZ = Math.abs(nx) < 0.8 ? -ny : nx;
-                    const bendLength = magnitude3(bendX, bendY, bendZ) || 1;
-                    const nudge = Math.min(incomingLength, outgoingLength) * body.foldLimitStrength * 0.05;
-                    body.x[index] += bendX / bendLength * nudge;
-                    body.y[index] += bendY / bendLength * nudge;
-                    body.z[index] += bendZ / bendLength * nudge;
-                }
-            }
-        }
-    }
-
-    #captureContainmentOuterPose(constraint) {
-        constraint.outerPostX.set(constraint.outerBody.x);
-        constraint.outerPostY.set(constraint.outerBody.y);
-        constraint.outerPostZ.set(constraint.outerBody.z);
-    }
-
-    #carryContainedInnerWithOuter(constraint) {
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
-        const innerEnd = clamp(constraint.endNode, innerStart, inner.activeEnd);
-        const outerStart = clamp(constraint.outerStartNode, outer.activeStart, outer.activeEnd);
-        const outerEnd = Math.min(outer.activeEnd, outer.segmentCount);
-        const retainedProjection = clamp(outer.projectionVelocityRetention, 0, 1);
-        for (let innerIndex = innerStart; innerIndex <= innerEnd; innerIndex++) {
-            if (inner.inverseMass[innerIndex] <= 0) continue;
-            const segment = constraint.closestSegment[innerIndex];
-            if (segment < outerStart || segment >= outerEnd) continue;
-            const t = clamp(constraint.closestT[innerIndex], 0, 1);
-            const w0 = 1 - t;
-            const w1 = t;
-            const dx =
-                (outer.x[segment] - constraint.outerPostX[segment]) * w0 +
-                (outer.x[segment + 1] - constraint.outerPostX[segment + 1]) * w1;
-            const dy =
-                (outer.y[segment] - constraint.outerPostY[segment]) * w0 +
-                (outer.y[segment + 1] - constraint.outerPostY[segment + 1]) * w1;
-            const dz =
-                (outer.z[segment] - constraint.outerPostZ[segment]) * w0 +
-                (outer.z[segment + 1] - constraint.outerPostZ[segment + 1]) * w1;
-            if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) < EPSILON) continue;
-            inner.x[innerIndex] += dx;
-            inner.y[innerIndex] += dy;
-            inner.z[innerIndex] += dz;
-            // Match the outer body's projection retention. A wall correction
-            // that is intentionally overdamped must carry the wire without
-            // becoming a full-strength inertial impulse in the next step.
-            const previousBlend = 1 - retainedProjection;
-            inner.previousX[innerIndex] += dx * previousBlend;
-            inner.previousY[innerIndex] += dy * previousBlend;
-            inner.previousZ[innerIndex] += dz * previousBlend;
-        }
-    }
-
     #kirchhoffRuntimeContactRecord(
         constraint,
         innerSegment,
@@ -5468,6 +4559,7 @@ export class EndovascularPhysicsWorld {
         record._innerNodeWeights = null;
         record._outerNodeIndices = null;
         record._outerNodeWeights = null;
+        record.normalGradients = null;
         const sameMaterialSegments = constraint._kirchhoffMappingLocked &&
             record._innerSegmentIndex === innerSegment &&
             record._outerSegmentIndex === outerSegment;
@@ -5487,15 +4579,13 @@ export class EndovascularPhysicsWorld {
         record._outerMaterialSegmentId = outerMaterialSegmentId;
         record._innerSegmentIndex = innerSegment;
         record._outerSegmentIndex = outerSegment;
+        record._normalReference = this.#kirchhoffContactNormalOffset(
+            record, constraint.innerBody, constraint.outerBody
+        );
         const cached = record.cachedManifoldContact;
         const cachedBelongsToManifold =
             cached?._manifold === constraint.manifold;
-        const hasStoredImpulse = cachedBelongsToManifold && (
-            cached.normalLambda !== 0 ||
-            cached.tangentLambda[0] !== 0 ||
-            cached.tangentLambda[1] !== 0 ||
-            cached.twistLambda !== 0
-        );
+        const hasStoredImpulse = hasKirchhoffContactImpulse(cached, constraint.manifold);
         // An open unilateral constraint with positive gap and no stored
         // impulse has no physical state to project. Keep evaluating its exact
         // geometry every sweep, but avoid rebuilding a tangent basis and
@@ -5513,9 +4603,12 @@ export class EndovascularPhysicsWorld {
                 .touchKnownOpenContact(cached);
             return record;
         }
-        if (gap <= constraint.kirchhoffContactActivation) {
+        if (gap <= constraint.kirchhoffContactActivation || hasStoredImpulse) {
             const upsertOptions = constraint._kirchhoffUpsertOptions ??= {};
             upsertOptions.id = record.id;
+            upsertOptions.preserveLambdas = this.lastCoupledSolver === 'joint' &&
+                constraint._kirchhoffMappingLocked && cachedBelongsToManifold &&
+                cached.innerMaterialSegmentId === innerMaterialSegmentId && cached.feature === feature;
             upsertOptions.innerMaterialSegmentId = innerMaterialSegmentId;
             upsertOptions.outerMaterialSegmentId = outerMaterialSegmentId;
             upsertOptions.feature = feature;
@@ -5525,6 +4618,7 @@ export class EndovascularPhysicsWorld {
             upsertOptions.tangentU = constraint._kirchhoffRuntimeAxis;
             upsertOptions.frictionCoefficient =
                 constraint.axialFriction;
+            upsertOptions.projectFriction = this.lastCoupledSolver !== 'joint';
             upsertOptions.twistFrictionCoefficient =
                 constraint.torsionalFriction;
             upsertOptions.effectiveTwistRadius = effectiveTwistRadius;
@@ -5582,6 +4676,7 @@ export class EndovascularPhysicsWorld {
             `${constraint._kirchhoffFeaturePrefix}:distal-fillet`;
         const records = constraint._kirchhoffRuntimeRecords ??=
             new Array(7);
+        const separateSideSamples = this.lastCoupledSolver === 'joint';
         records.fill(null);
         const lastOuter = Math.min(
             outer.segmentCount - 1,
@@ -5894,7 +4989,7 @@ export class EndovascularPhysicsWorld {
             openCache[openCacheOffset] = Number.NaN;
         }
         if (
-            includeSide &&
+            includeSide && !separateSideSamples &&
             worstGap <= constraint.kirchhoffContactActivation
         ) {
             constraint._kirchhoffRuntimeAxis[0] = worstAxisX;
@@ -5904,7 +4999,7 @@ export class EndovascularPhysicsWorld {
                 constraint,
                 innerSegment,
                 worstOuterSegment,
-                0,
+                4, // Slots 0..3 belong to the smooth side quadrature.
                 'side',
                 constraint._kirchhoffSideFeature,
                 worstInnerT,
@@ -5997,8 +5092,7 @@ export class EndovascularPhysicsWorld {
                     );
                     if (circleDistance <= EPSILON) continue;
                     const gap = circleDistance - filletRadius;
-                    if (gap >= worstFilletGap) continue;
-                    // #applyKirchhoffNormalCorrection applies -normal to the
+                    // The shared contact block applies -normal to the
                     // inner rod. Negating the signed-distance gradient moves
                     // the wire centre away from the rounded solid lip.
                     const inverseCircleDistance = 1 / circleDistance;
@@ -6006,6 +5100,18 @@ export class EndovascularPhysicsWorld {
                         circleAxial * inverseCircleDistance;
                     const gradientRadial =
                         circleRadial * inverseCircleDistance;
+                    if (separateSideSamples) {
+                        const slot = 16 + sampleIndex;
+                        const record = this.#kirchhoffRuntimeContactRecord(constraint, innerSegment, outerSegment,
+                            slot, 'distal-fillet', constraint._kirchhoffFilletFeature, innerT, 1,
+                            filletRadius - gap, filletRadius,
+                            -(portalAxisX * gradientAxial + radialUnitX * gradientRadial),
+                            -(portalAxisY * gradientAxial + radialUnitY * gradientRadial),
+                            -(portalAxisZ * gradientAxial + radialUnitZ * gradientRadial), gap, radialRadius);
+                        record.normalInnerParameterMode = sampleIndex < 5 ? 'fixed' : 'portal-side-boundary';
+                        records[slot] = record;
+                    }
+                    if (gap >= worstFilletGap) continue;
                     worstFilletGap = gap;
                     worstFilletInnerT = innerT;
                     worstFilletRadius = radialRadius;
@@ -6023,7 +5129,7 @@ export class EndovascularPhysicsWorld {
                     );
                 }
                 if (
-                    worstFilletGap <=
+                    !separateSideSamples && worstFilletGap <=
                         constraint.kirchhoffContactActivation
                 ) {
                     records[6] = this.#kirchhoffRuntimeContactRecord(
@@ -6095,128 +5201,26 @@ export class EndovascularPhysicsWorld {
                 }
             }
         }
-        return records;
-    }
-
-    #kirchhoffClosestOuterSegment(
-        constraint,
-        innerSegment,
-        expectedOuterSegment,
-        minimumOuterSegment,
-        maximumOuterSegment
-    ) {
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const firstOuter = clamp(
-            constraint.outerStartNode,
-            outer.activeStart,
-            Math.max(outer.activeStart, outer.activeEnd - 1)
-        );
-        const lastOuter = Math.min(outer.segmentCount - 1, outer.activeEnd - 1);
-        if (lastOuter < firstOuter) return null;
-
-        const topologicalFirst = clamp(
-            minimumOuterSegment,
-            firstOuter,
-            lastOuter
-        );
-        const topologicalLast = clamp(
-            maximumOuterSegment,
-            topologicalFirst,
-            lastOuter
-        );
-        const expected = clamp(
-            expectedOuterSegment,
-            topologicalFirst,
-            topologicalLast
-        );
-        const cached = constraint.kirchhoffOuterSegmentByInner[innerSegment];
-        const hasCache = cached >= firstOuter && cached <= lastOuter;
-        if (
-            constraint._kirchhoffMappingLocked &&
-            hasCache &&
-            cached >= topologicalFirst &&
-            cached <= topologicalLast
-        ) {
-            const closest = constraint._kirchhoffClosestResult ??= {};
-            closestRodSegmentParameters(
-                inner,
-                innerSegment,
-                outer,
-                cached,
-                closest
-            );
-            const result = constraint._kirchhoffClosestMapping ??= {
-                outerSegment: -1,
-                closest
-            };
-            result.outerSegment = cached;
-            result.closest = closest;
-            return result;
-        }
-        const window = Math.max(1, Math.floor(constraint.searchWindow));
-        // A lumen is a material tube, not an unordered bag of line segments.
-        // Once the centerline bends back near itself, an unrestricted nearest
-        // search can jump to a remote catheter segment and create a fictitious
-        // cross-link.  Continue from the material arc-length prediction and a
-        // persistent local cache, while preserving the monotonic order of the
-        // two rods.  Axial sliding remains free inside this local band; only a
-        // topologically impossible branch jump is excluded.
-        const cacheCenter = hasCache
-            ? clamp(cached, expected - window, expected + window)
-            : expected;
-        const searchStart = Math.max(
-            topologicalFirst,
-            Math.min(expected, cacheCenter) - window
-        );
-        const searchEnd = Math.min(
-            topologicalLast,
-            Math.max(expected, cacheCenter) + window
-        );
-        let bestOuterSegment = -1;
-        let bestDistanceSquared = Infinity;
-        let bestFirstT = 0;
-        let bestSecondT = 0;
-        const candidate = constraint._kirchhoffClosestCandidate ??= {};
-        const scan = (start, end) => {
-            for (let outerSegment = start; outerSegment <= end; outerSegment++) {
-                closestRodSegmentParameters(
-                    inner,
-                    innerSegment,
-                    outer,
-                    outerSegment,
-                    candidate
-                );
-                if (
-                    candidate.distanceSquared < bestDistanceSquared ||
-                    (
-                        candidate.distanceSquared === bestDistanceSquared &&
-                        outerSegment < bestOuterSegment
-                    )
-                ) {
-                    bestOuterSegment = outerSegment;
-                    bestDistanceSquared = candidate.distanceSquared;
-                    bestFirstT = candidate.firstT;
-                    bestSecondT = candidate.secondT;
-                }
+        if (separateSideSamples && includeSide) {
+            const pool = constraint._jointPortalSideSamples ??= [];
+            const samples = buildKirchhoffPortalSideSamples(inner, outer, innerSegment, outerSegment,
+                clearance, openDistal ? constraint.portalFilletRadius : 0, pool[innerSegment] ??= {}).samples;
+            constraint._kirchhoffRuntimeAxis[0] = axisX;
+            constraint._kirchhoffRuntimeAxis[1] = axisY;
+            constraint._kirchhoffRuntimeAxis[2] = axisZ;
+            for (const sample of samples) {
+                // The high clipping point belongs to the fillet boundary
+                // sample, or to distal-rim for a sharp opening. Emit it once.
+                if (openDistal && sample.plane === 1) continue;
+                const slot = 8 + sample.endpoint;
+                const record = this.#kirchhoffRuntimeContactRecord(constraint, innerSegment, outerSegment,
+                    slot, 'side', constraint._kirchhoffSideFeature, sample.innerT, sample.outerT,
+                    sample.radius, clearance, ...sample.normal);
+                record.portalSideGradients = sample.gradients;
+                records[slot] = record;
             }
-        };
-        scan(searchStart, searchEnd);
-        if (bestOuterSegment >= 0) {
-            constraint.kirchhoffOuterSegmentByInner[innerSegment] =
-                bestOuterSegment;
-            const closest = constraint._kirchhoffClosestResult ??= {};
-            closest.firstT = bestFirstT;
-            closest.secondT = bestSecondT;
-            closest.distance = Math.sqrt(bestDistanceSquared);
-            const result = constraint._kirchhoffClosestMapping ??= {
-                outerSegment: -1,
-                closest
-            };
-            result.outerSegment = bestOuterSegment;
-            return result;
         }
-        return null;
+        return records;
     }
 
     #kirchhoffSmoothCenterlineSample(
@@ -6480,95 +5484,13 @@ export class EndovascularPhysicsWorld {
                 outerLast,
                 materialOuterSegment + localSearchWindow
             );
-            let closestOuterSegment = materialOuterSegment;
-            let closestOuterT = 0;
-            let closestDistanceSquared = Infinity;
-            for (
-                let candidateSegment = candidateStart;
-                candidateSegment <= candidateEnd;
-                candidateSegment++
-            ) {
-                const segmentX =
-                    outer.x[candidateSegment + 1] - outer.x[candidateSegment];
-                const segmentY =
-                    outer.y[candidateSegment + 1] - outer.y[candidateSegment];
-                const segmentZ =
-                    outer.z[candidateSegment + 1] - outer.z[candidateSegment];
-                const segmentLengthSquared =
-                    segmentX * segmentX + segmentY * segmentY +
-                    segmentZ * segmentZ;
-                const chordT = segmentLengthSquared > EPSILON
-                    ? clamp((
-                        (innerSample.point[0] - outer.x[candidateSegment]) *
-                            segmentX +
-                        (innerSample.point[1] - outer.y[candidateSegment]) *
-                            segmentY +
-                        (innerSample.point[2] - outer.z[candidateSegment]) *
-                            segmentZ
-                    ) / segmentLengthSquared, 0, 1)
-                    : 0;
-                // The material interval excludes remote branches. Newton's
-                // closest-point solve on the cubic leaves the axial coordinate
-                // free without the dozens of samples required by a grid search.
-                let candidateT = chordT;
-                for (let refinement = 0; refinement < 4; refinement++) {
-                    const candidateSample =
-                        this.#kirchhoffSmoothCenterlineSample(
-                            outer,
-                            candidateSegment,
-                            candidateT,
-                            scratch.outer
-                        );
-                    const distanceX =
-                        innerSample.point[0] - candidateSample.point[0];
-                    const distanceY =
-                        innerSample.point[1] - candidateSample.point[1];
-                    const distanceZ =
-                        innerSample.point[2] - candidateSample.point[2];
-                    const derivativeX = candidateSample.derivative[0];
-                    const derivativeY = candidateSample.derivative[1];
-                    const derivativeZ = candidateSample.derivative[2];
-                    const denominator =
-                        derivativeX * derivativeX +
-                        derivativeY * derivativeY +
-                        derivativeZ * derivativeZ - (
-                            distanceX * candidateSample.secondDerivative[0] +
-                            distanceY * candidateSample.secondDerivative[1] +
-                            distanceZ * candidateSample.secondDerivative[2]
-                        );
-                    if (Math.abs(denominator) <= EPSILON) break;
-                    const nextT = clamp(
-                        candidateT + (
-                            distanceX * derivativeX +
-                            distanceY * derivativeY +
-                            distanceZ * derivativeZ
-                        ) / denominator,
-                        0,
-                        1
-                    );
-                    if (Math.abs(nextT - candidateT) <= 1e-5) {
-                        candidateT = nextT;
-                        break;
-                    }
-                    candidateT = nextT;
-                }
-                const candidateSample = this.#kirchhoffSmoothCenterlineSample(
-                    outer,
-                    candidateSegment,
-                    candidateT,
-                    scratch.outer
-                );
-                const candidateDistanceSquared =
-                    (innerSample.point[0] - candidateSample.point[0]) ** 2 +
-                    (innerSample.point[1] - candidateSample.point[1]) ** 2 +
-                    (innerSample.point[2] - candidateSample.point[2]) ** 2;
-                if (candidateDistanceSquared >= closestDistanceSquared) continue;
-                closestDistanceSquared = candidateDistanceSquared;
-                closestOuterSegment = candidateSegment;
-                closestOuterT = candidateT;
-            }
-            searchSegment = closestOuterSegment;
-            const outerT = closestOuterT;
+            const closest = closestKirchhoffCenterlinePoint(
+                outer, innerSample.point, candidateStart, candidateEnd,
+                materialOuterSegment, constraint._kirchhoffClosestCurve ??= {},
+                constraint._kirchhoffCurveCache
+            );
+            searchSegment = closest.segment;
+            const outerT = closest.t;
             const outerSample = this.#kirchhoffSmoothCenterlineSample(
                 outer,
                 searchSegment,
@@ -6625,7 +5547,9 @@ export class EndovascularPhysicsWorld {
             }
             if (
                 emitRecord &&
-                gap <= constraint.kirchhoffContactActivation
+                (gap <= constraint.kirchhoffContactActivation || hasKirchhoffContactImpulse(
+                    constraint._kirchhoffRuntimeRecordPool?.[innerSegment]?.[sampleIndex]?.cachedManifoldContact,
+                    constraint.manifold))
             ) {
                 constraint._kirchhoffRuntimeAxis[0] = axisX;
                 constraint._kirchhoffRuntimeAxis[1] = axisY;
@@ -6667,6 +5591,7 @@ export class EndovascularPhysicsWorld {
                 record._outerNodeIndices = record._smoothOuterNodeIndices;
                 record._outerNodeWeights = record._smoothOuterNodeWeights;
                 record._outerNodeCount = outerSample.count;
+                record._normalReference = this.#kirchhoffContactNormalOffset(record, inner, outer);
                 record._containedSpanFraction = containedSpanFraction;
                 emittedRecords[sampleIndex] = record;
                 constraint.kirchhoffContacts.push(record);
@@ -6781,66 +5706,7 @@ export class EndovascularPhysicsWorld {
         if (outer.sleeping) outer.wake();
     }
 
-    #applyKirchhoffNormalCorrection(record, lambda) {
-        if (Math.abs(lambda) < EPSILON) return;
-        const contact = record.manifoldContact;
-        const inner = record._innerBody;
-        const outer = record._outerBody;
-        const innerSegment = contact.innerSegmentIndex;
-        const outerSegment = contact.outerSegmentIndex;
-        const innerNodes = record._innerNodeIndices;
-        const outerNodes = record._outerNodeIndices;
-        const innerWeights = record._innerNodeWeights;
-        const outerWeights = record._outerNodeWeights;
-        const innerCount = innerNodes ? record._innerNodeCount : 2;
-        const outerCount = outerNodes ? record._outerNodeCount : 2;
-        for (let index = 0; index < innerCount; index++) {
-            const innerNode = innerNodes?.[index] ?? innerSegment + index;
-            const innerWeight = -(
-                innerWeights?.[index] ?? record.innerWeights[index]
-            );
-            const innerGradientX = record.normal[0] * innerWeight;
-            const innerGradientY = record.normal[1] * innerWeight;
-            const innerGradientZ = record.normal[2] * innerWeight;
-            const innerScale = inner.inverseMass[innerNode] * lambda;
-            const innerCorrectionX = innerGradientX * innerScale;
-            const innerCorrectionY = innerGradientY * innerScale;
-            const innerCorrectionZ = innerGradientZ * innerScale;
-            inner.x[innerNode] += innerCorrectionX;
-            inner.y[innerNode] += innerCorrectionY;
-            inner.z[innerNode] += innerCorrectionZ;
-            inner.toolProjectionX[innerNode] += innerCorrectionX;
-            inner.toolProjectionY[innerNode] += innerCorrectionY;
-            inner.toolProjectionZ[innerNode] += innerCorrectionZ;
-        }
-        for (let index = 0; index < outerCount; index++) {
-            const outerNode = outerNodes?.[index] ?? outerSegment + index;
-            const outerWeight = outerWeights?.[index] ?? record.outerWeights[index];
-            const outerGradientX = record.normal[0] * outerWeight;
-            const outerGradientY = record.normal[1] * outerWeight;
-            const outerGradientZ = record.normal[2] * outerWeight;
-            const outerScale = outer.inverseMass[outerNode] * lambda;
-            const outerCorrectionX = outerGradientX * outerScale;
-            const outerCorrectionY = outerGradientY * outerScale;
-            const outerCorrectionZ = outerGradientZ * outerScale;
-            outer.x[outerNode] += outerCorrectionX;
-            outer.y[outerNode] += outerCorrectionY;
-            outer.z[outerNode] += outerCorrectionZ;
-            outer.toolProjectionX[outerNode] += outerCorrectionX;
-            outer.toolProjectionY[outerNode] += outerCorrectionY;
-            outer.toolProjectionZ[outerNode] += outerCorrectionZ;
-        }
-        if (inner.sleeping) inner.wake();
-        if (outer.sleeping) outer.wake();
-    }
-
     #kirchhoffFrameIncrement(body, segment, out) {
-        if (body.rodModel !== 'kirchhoff') {
-            out[0] = 0;
-            out[1] = 0;
-            out[2] = 0;
-            return out;
-        }
         const scratch = body.kirchhoffScratch.contactFrame;
         scratch.current.x = body.orientationX[segment];
         scratch.current.y = body.orientationY[segment];
@@ -6882,7 +5748,6 @@ export class EndovascularPhysicsWorld {
 
     #applyKirchhoffFrameTwist(body, segment, angularImpulse, sharedAxis) {
         if (
-            body.rodModel !== 'kirchhoff' ||
             Math.abs(angularImpulse) < EPSILON
         ) return;
         const inverseInertia = body.inverseInertia3[segment];
@@ -6966,13 +5831,19 @@ export class EndovascularPhysicsWorld {
         );
     }
 
-    #solveKirchhoffLumenRecord(constraint, record, applyFriction) {
+    #solveKirchhoffLumenRecord(constraint, record, applyFriction, normalIncrement = null) {
         const contact = record.manifoldContact;
         if (!contact) return;
         const inner = constraint.innerBody;
         const outer = constraint.outerBody;
         record._innerBody = inner;
         record._outerBody = outer;
+        {
+            // A global reaction moves other samples in the cached manifold.
+            const offset = this.#kirchhoffContactNormalOffset(record, inner, outer);
+            record.gap -= offset - record._normalReference;
+            record._normalReference = offset;
+        }
         const weight = this.#kirchhoffContactWeight(record, inner, outer);
         const baseAlpha = Math.max(0, constraint.compliance) /
             (this.fixedDt * this.fixedDt);
@@ -6995,57 +5866,12 @@ export class EndovascularPhysicsWorld {
         const alpha = baseAlpha + weight * (
             (1 - containedResponseFraction) / containedResponseFraction
         );
+        record._normalAlpha = alpha;
+        if (constraint._collectContactBlock) return;
         const previousU = contact.tangentLambda[0];
         const previousV = contact.tangentLambda[1];
         const previousTwist = contact.twistLambda;
-        if (weight + alpha > EPSILON) {
-            let requested = (-record.gap - alpha * contact.normalLambda) /
-                (weight + alpha);
-            const maximumCorrection = constraint.lumenMaxCorrection;
-            if (Number.isFinite(maximumCorrection)) {
-                let maximumResponseWeight = 0;
-                if (record._innerNodeIndices && record._outerNodeIndices) {
-                    for (let index = 0; index < record._innerNodeCount; index++) {
-                        maximumResponseWeight = Math.max(
-                            maximumResponseWeight,
-                            inner.inverseMass[record._innerNodeIndices[index]] *
-                                Math.abs(record._innerNodeWeights[index])
-                        );
-                    }
-                    for (let index = 0; index < record._outerNodeCount; index++) {
-                        maximumResponseWeight = Math.max(
-                            maximumResponseWeight,
-                            outer.inverseMass[record._outerNodeIndices[index]] *
-                                Math.abs(record._outerNodeWeights[index])
-                        );
-                    }
-                } else {
-                    maximumResponseWeight = Math.max(
-                        inner.inverseMass[contact.innerSegmentIndex] *
-                            Math.abs(record.innerWeights[0]),
-                        inner.inverseMass[contact.innerSegmentIndex + 1] *
-                            Math.abs(record.innerWeights[1]),
-                        outer.inverseMass[contact.outerSegmentIndex] *
-                            Math.abs(record.outerWeights[0]),
-                        outer.inverseMass[contact.outerSegmentIndex + 1] *
-                            Math.abs(record.outerWeights[1])
-                    );
-                }
-                if (
-                    maximumResponseWeight > EPSILON &&
-                    Math.abs(requested) * maximumResponseWeight >
-                        maximumCorrection
-                ) {
-                    requested = Math.sign(requested) *
-                        maximumCorrection / maximumResponseWeight;
-                }
-            }
-            const applied = constraint.manifold.accumulateKnownNormalLambda(
-                contact,
-                requested
-            );
-            this.#applyKirchhoffNormalCorrection(record, applied);
-        }
+        constraint.manifold.accumulateKnownNormalLambda(contact, normalIncrement);
 
         // Normal unloading can shrink both Coulomb bounds. Apply that
         // projection to the rods too, otherwise the manifold and generalized
@@ -7149,12 +5975,8 @@ export class EndovascularPhysicsWorld {
             );
         }
 
-        const innerInverseInertia = inner.rodModel === 'kirchhoff'
-            ? inner.inverseInertia3[innerSegment]
-            : 0;
-        const outerInverseInertia = outer.rodModel === 'kirchhoff'
-            ? outer.inverseInertia3[outerSegment]
-            : 0;
+        const innerInverseInertia = inner.inverseInertia3[innerSegment];
+        const outerInverseInertia = outer.inverseInertia3[outerSegment];
         const angularWeight = innerInverseInertia + outerInverseInertia;
         if (
             angularWeight <= EPSILON ||
@@ -7229,222 +6051,66 @@ export class EndovascularPhysicsWorld {
         this.#applyKirchhoffTwistCorrection(record, twist.appliedInner);
     }
 
-    #applyKirchhoffMaterialPortalScalar(
-        constraint,
-        innerSegment,
-        innerT,
-        normalX,
-        normalY,
-        normalZ,
-        deltaLambda,
-        activation
-    ) {
-        if (Math.abs(deltaLambda) <= EPSILON) return;
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const outerTip = outer.activeEnd;
-        const innerResponse = constraint.portalInnerResponse;
-        const outerResponse = constraint.portalOuterResponse;
-        const weight0 = 1 - innerT;
-        const weight1 = innerT;
-        const innerScale0 = inner.inverseMass[innerSegment] *
-            innerResponse * weight0 * activation * deltaLambda;
-        const innerScale1 = inner.inverseMass[innerSegment + 1] *
-            innerResponse * weight1 * activation * deltaLambda;
-        const outerScale = -outer.inverseMass[outerTip] *
-            outerResponse * activation * deltaLambda;
-        const correction0X = normalX * innerScale0;
-        const correction0Y = normalY * innerScale0;
-        const correction0Z = normalZ * innerScale0;
-        const correction1X = normalX * innerScale1;
-        const correction1Y = normalY * innerScale1;
-        const correction1Z = normalZ * innerScale1;
-        const outerCorrectionX = normalX * outerScale;
-        const outerCorrectionY = normalY * outerScale;
-        const outerCorrectionZ = normalZ * outerScale;
-        inner.x[innerSegment] += correction0X;
-        inner.y[innerSegment] += correction0Y;
-        inner.z[innerSegment] += correction0Z;
-        inner.x[innerSegment + 1] += correction1X;
-        inner.y[innerSegment + 1] += correction1Y;
-        inner.z[innerSegment + 1] += correction1Z;
-        outer.x[outerTip] += outerCorrectionX;
-        outer.y[outerTip] += outerCorrectionY;
-        outer.z[outerTip] += outerCorrectionZ;
-        inner.toolProjectionX[innerSegment] += correction0X;
-        inner.toolProjectionY[innerSegment] += correction0Y;
-        inner.toolProjectionZ[innerSegment] += correction0Z;
-        inner.toolProjectionX[innerSegment + 1] += correction1X;
-        inner.toolProjectionY[innerSegment + 1] += correction1Y;
-        inner.toolProjectionZ[innerSegment + 1] += correction1Z;
-        outer.toolProjectionX[outerTip] += outerCorrectionX;
-        outer.toolProjectionY[outerTip] += outerCorrectionY;
-        outer.toolProjectionZ[outerTip] += outerCorrectionZ;
-        if (inner.sleeping) inner.wake();
-        if (outer.sleeping) outer.wake();
+    #kirchhoffContactNormalOffset(record, inner, outer) {
+        let result = 0;
+        for (let side = 0; side < 2; side++) {
+            const body = side === 0 ? inner : outer;
+            const nodes = side === 0 ? record._innerNodeIndices : record._outerNodeIndices;
+            const weights = side === 0 ? record._innerNodeWeights : record._outerNodeWeights;
+            const segment = side === 0 ? record._innerSegmentIndex : record._outerSegmentIndex;
+            const count = nodes ? (side === 0 ? record._innerNodeCount : record._outerNodeCount) : 2;
+            const fallback = side === 0 ? record.innerWeights : record.outerWeights;
+            for (let i = 0; i < count; i++) {
+                const node = nodes ? nodes[i] : segment + i;
+                result += (side === 0 ? 1 : -1) * (weights ? weights[i] : fallback[i]) * (
+                    body.x[node] * record.normal[0] + body.y[node] * record.normal[1] +
+                    body.z[node] * record.normal[2]);
+            }
+        }
+        return result;
     }
 
-    #solveKirchhoffMaterialPortal(constraint, innerSegment, innerT) {
-        if (
-            !constraint.enforceDistalPortal ||
-            !constraint.openDistal ||
-            !Number.isFinite(constraint.containedLength) ||
-            innerSegment < constraint.innerBody.activeStart ||
-            innerSegment >= constraint.innerBody.activeEnd
-        ) {
-            constraint.materialPortalAxialLambda = 0;
-            constraint.materialPortalRadialLambda = 0;
-            constraint.materialPortalInnerSegment = -1;
-            return;
+    #kirchhoffContactSolverResidual(constraint) {
+        let maximum = 0;
+        for (const record of constraint.kirchhoffContacts) {
+            const contact = record.manifoldContact;
+            if (!contact) continue;
+            const gap = record.gap - (this.#kirchhoffContactNormalOffset(
+                record, constraint.innerBody, constraint.outerBody
+            ) - record._normalReference);
+            // XPBD equilibrium is g + alpha*lambda = 0 on a loaded compliant
+            // cell. Demanding g = 0 makes a fractional entering cell consume
+            // every closure pass even after it has reached that equilibrium.
+            // Raw geometric penetration remains separately reported above.
+            const residual = gap + (record._normalAlpha ?? 0) * contact.normalLambda;
+            maximum = Math.max(maximum, contact.normalLambda > EPSILON
+                ? Math.abs(residual) : Math.max(0, -gap));
         }
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const outerTip = outer.activeEnd;
-        if (outerTip <= outer.activeStart) return;
-        const retraction = this.#containmentPortalRetraction(constraint);
-        const transitionRatio = clamp(
-            1 - retraction / constraint.portalTransitionLength,
-            0,
-            1
-        );
-        const activation = transitionRatio * transitionRatio *
-            (3 - 2 * transitionRatio);
-        if (activation <= EPSILON) {
-            constraint.materialPortalAxialLambda = 0;
-            constraint.materialPortalRadialLambda = 0;
-            constraint.materialPortalInnerSegment = -1;
-            return;
-        }
-        let axisX = outer.x[outerTip] - outer.x[outerTip - 1];
-        let axisY = outer.y[outerTip] - outer.y[outerTip - 1];
-        let axisZ = outer.z[outerTip] - outer.z[outerTip - 1];
-        const axisLength = magnitude3(axisX, axisY, axisZ);
-        if (axisLength <= EPSILON) return;
-        axisX /= axisLength;
-        axisY /= axisLength;
-        axisZ /= axisLength;
-        const weight0 = 1 - innerT;
-        const weight1 = innerT;
-        constraint.materialPortalInnerSegment = innerSegment;
-        constraint.materialPortalInnerT = innerT;
-        constraint.materialPortalActivation = activation;
-        const material0 = inner.materialCoordinate?.[innerSegment] ??
-            innerSegment * inner.segmentLength;
-        const material1 = inner.materialCoordinate?.[innerSegment + 1] ??
-            (innerSegment + 1) * inner.segmentLength;
-        constraint.materialPortalCoordinate =
-            material0 * weight0 + material1 * weight1;
-        const innerResponse = constraint.portalInnerResponse;
-        const outerResponse = constraint.portalOuterResponse;
-        const gradientScale = activation;
-        const effectiveWeight = (
-            inner.inverseMass[innerSegment] * innerResponse * weight0 * weight0 +
-            inner.inverseMass[innerSegment + 1] * innerResponse * weight1 * weight1 +
-            outer.inverseMass[outerTip] * outerResponse
-        ) * gradientScale * gradientScale;
-        const alpha = constraint.portalCompliance /
-            (this.fixedDt * this.fixedDt);
-        const denominator = effectiveWeight + alpha;
-        if (denominator <= EPSILON) return;
-        const maximumResponseWeight = Math.max(
-            inner.inverseMass[innerSegment] * innerResponse * weight0 * gradientScale,
-            inner.inverseMass[innerSegment + 1] * innerResponse * weight1 * gradientScale,
-            outer.inverseMass[outerTip] * outerResponse * gradientScale
-        );
-        const maximumDeltaLambda = constraint.portalMaxCorrection /
-            Math.max(EPSILON, maximumResponseWeight);
-        let pointX = inner.x[innerSegment] * weight0 +
-            inner.x[innerSegment + 1] * weight1;
-        let pointY = inner.y[innerSegment] * weight0 +
-            inner.y[innerSegment + 1] * weight1;
-        let pointZ = inner.z[innerSegment] * weight0 +
-            inner.z[innerSegment + 1] * weight1;
-        let offsetX = pointX - outer.x[outerTip];
-        let offsetY = pointY - outer.y[outerTip];
-        let offsetZ = pointZ - outer.z[outerTip];
-        const axialConstraint = (
-            offsetX * axisX + offsetY * axisY + offsetZ * axisZ
-        ) * activation;
-        let deltaLambda = (
-            -axialConstraint -
-            alpha * constraint.materialPortalAxialLambda
-        ) / denominator;
-        deltaLambda = clamp(
-            deltaLambda,
-            -maximumDeltaLambda,
-            maximumDeltaLambda
-        );
-        constraint.materialPortalAxialLambda += deltaLambda;
-        this.#applyKirchhoffMaterialPortalScalar(
-            constraint,
-            innerSegment,
-            innerT,
-            axisX,
-            axisY,
-            axisZ,
-            deltaLambda,
-            activation
-        );
+        return maximum;
+    }
 
-        pointX = inner.x[innerSegment] * weight0 +
-            inner.x[innerSegment + 1] * weight1;
-        pointY = inner.y[innerSegment] * weight0 +
-            inner.y[innerSegment + 1] * weight1;
-        pointZ = inner.z[innerSegment] * weight0 +
-            inner.z[innerSegment + 1] * weight1;
-        offsetX = pointX - outer.x[outerTip];
-        offsetY = pointY - outer.y[outerTip];
-        offsetZ = pointZ - outer.z[outerTip];
-        const axial = offsetX * axisX + offsetY * axisY + offsetZ * axisZ;
-        const radialX = offsetX - axisX * axial;
-        const radialY = offsetY - axisY * axial;
-        const radialZ = offsetZ - axisZ * axial;
-        const radialDistance = magnitude3(radialX, radialY, radialZ);
-        const innerRadius = Math.max(
-            inner.nodeRadius[innerSegment],
-            inner.nodeRadius[innerSegment + 1]
+    #solveKirchhoffSlidingPortal(constraint, applyFriction) {
+
+        const evaluatePortal = this.lastCoupledSolver === 'joint' ? evaluateKirchhoffOwnedSlidingPortal : evaluateKirchhoffSlidingPortal;
+        const state = evaluatePortal(
+            constraint, constraint._slidingPortalState ??= {}
         );
-        const allowedRadius = Math.max(
-            0,
-            constraint.innerRadius - innerRadius
+        if (state.segment < 0 || state.distance <= EPSILON) return;
+        this.#kirchhoffSegmentAxis(constraint.innerBody, state.segment,
+            constraint._kirchhoffRuntimeAxis);
+        const record = this.#kirchhoffRuntimeContactRecord(
+            constraint, state.segment, constraint.outerBody.activeEnd - 1,
+            7, 'sliding-rim', 'lumen:sliding-rim', state.t, 1,
+            state.distance, state.clearance, state.x / state.distance,
+            state.y / state.distance, state.z / state.distance
         );
-        if (radialDistance <= allowedRadius || radialDistance <= EPSILON) {
-            constraint.materialPortalRadialLambda = Math.min(
-                0,
-                constraint.materialPortalRadialLambda
-            );
-            return;
-        }
-        const normalX = radialX / radialDistance;
-        const normalY = radialY / radialDistance;
-        const normalZ = radialZ / radialDistance;
-        const radialConstraint = (radialDistance - allowedRadius) * activation;
-        deltaLambda = (
-            -radialConstraint -
-            alpha * constraint.materialPortalRadialLambda
-        ) / denominator;
-        deltaLambda = clamp(
-            deltaLambda,
-            -maximumDeltaLambda,
-            maximumDeltaLambda
-        );
-        const nextLambda = Math.min(
-            0,
-            constraint.materialPortalRadialLambda + deltaLambda
-        );
-        const appliedLambda = nextLambda -
-            constraint.materialPortalRadialLambda;
-        constraint.materialPortalRadialLambda = nextLambda;
-        this.#applyKirchhoffMaterialPortalScalar(
-            constraint,
-            innerSegment,
-            innerT,
-            normalX,
-            normalY,
-            normalZ,
-            appliedLambda,
-            activation
-        );
+        if (!record.manifoldContact) return;
+        record._containedSpanFraction = 1;
+        constraint.kirchhoffContacts.push(record);
+        // The same rigid lumen clearance and Coulomb law apply at the mouth
+        // and along its side. A separate soft portal spring permits large
+        // penetration when a stiff catheter preform presses against the wire.
+        this.#solveKirchhoffLumenRecord(constraint, record, applyFriction);
     }
 
     #measureKirchhoffContainmentViolation(
@@ -7647,6 +6313,9 @@ export class EndovascularPhysicsWorld {
             outerLast
         );
         if (innerEnd < innerStart || outerLast < outerStart) return 0;
+        constraint._kirchhoffCurveCache = prepareKirchhoffCenterlineSearch(
+            outer, constraint._kirchhoffCurveCache ??= {}
+        );
         this.#prepareKirchhoffOuterMaterialArc(
             constraint,
             outerStart,
@@ -7729,72 +6398,22 @@ export class EndovascularPhysicsWorld {
             constraint.kirchhoffMeasuredSideViolation = maximumViolation;
             constraint.kirchhoffMeasuredSpatialPortalViolation =
                 spatialPortalViolation;
-            const transitionRestLength = Math.max(
-                EPSILON,
-                inner.restLength[innerEnd]
-            );
-            const transitionT = clamp(
-                (constraint.containedLength - transitionArcStart) /
-                    transitionRestLength,
-                0,
-                1
-            );
-            const outerTip = outer.activeEnd;
-            const outerPrevious = Math.max(outer.activeStart, outerTip - 1);
-            let axisX = outer.x[outerTip] - outer.x[outerPrevious];
-            let axisY = outer.y[outerTip] - outer.y[outerPrevious];
-            let axisZ = outer.z[outerTip] - outer.z[outerPrevious];
-            const axisLength = Math.max(
-                EPSILON,
-                magnitude3(axisX, axisY, axisZ)
-            );
-            axisX /= axisLength;
-            axisY /= axisLength;
-            axisZ /= axisLength;
-            const materialX = inner.x[innerEnd] +
-                (inner.x[innerEnd + 1] - inner.x[innerEnd]) * transitionT;
-            const materialY = inner.y[innerEnd] +
-                (inner.y[innerEnd + 1] - inner.y[innerEnd]) * transitionT;
-            const materialZ = inner.z[innerEnd] +
-                (inner.z[innerEnd + 1] - inner.z[innerEnd]) * transitionT;
-            const offsetX = materialX - outer.x[outerTip];
-            const offsetY = materialY - outer.y[outerTip];
-            const offsetZ = materialZ - outer.z[outerTip];
-            const axial = offsetX * axisX + offsetY * axisY + offsetZ * axisZ;
-            constraint.kirchhoffMeasuredMaterialPortalT = transitionT;
-            constraint.kirchhoffMeasuredMaterialPortalAxial = axial;
-            const materialRadial = magnitude3(
-                offsetX - axisX * axial,
-                offsetY - axisY * axial,
-                offsetZ - axisZ * axial
-            );
-            const innerRadius = Math.max(
-                inner.nodeRadius[innerEnd],
-                inner.nodeRadius[innerEnd + 1]
-            );
-            const materialClearance = Math.max(
-                0,
-                constraint.innerRadius - innerRadius
-            );
-            const materialPortalViolation = Math.max(
-                Math.abs(axial),
-                materialRadial - materialClearance,
-                0
-            );
-            constraint.kirchhoffMeasuredMaterialPortalRadial = materialRadial;
-            constraint.kirchhoffMeasuredPortalViolation =
-                materialPortalViolation;
-            maximumViolation = Math.max(
-                maximumViolation,
-                materialPortalViolation
-            );
+            {
+                const evaluatePortal = this.lastCoupledSolver === 'joint' ? evaluateKirchhoffOwnedSlidingPortal : evaluateKirchhoffSlidingPortal;
+                const sliding = evaluatePortal(
+                    constraint, constraint._slidingPortalState ??= {}
+                );
+                const portalViolation = Math.max(spatialPortalViolation, sliding.violation);
+                constraint.kirchhoffMeasuredPortalViolation = portalViolation;
+
+                return Math.max(maximumViolation, portalViolation);
+            }
+
         } else {
             constraint.kirchhoffMeasuredSideViolation = maximumViolation;
             constraint.kirchhoffMeasuredPortalViolation = 0;
             constraint.kirchhoffMeasuredSpatialPortalViolation = 0;
-            constraint.kirchhoffMeasuredMaterialPortalT = 0;
-            constraint.kirchhoffMeasuredMaterialPortalAxial = 0;
-            constraint.kirchhoffMeasuredMaterialPortalRadial = 0;
+
         }
         return maximumViolation;
     }
@@ -7812,6 +6431,42 @@ export class EndovascularPhysicsWorld {
         if (inner.sleeping && outer.sleeping) return;
         if (inner.sleeping) inner.wake();
         if (outer.sleeping) outer.wake();
+        // Aggregate the complete rods' responses once per step. Subsequent
+        // local contact blocks alternate with complete outer material solves.
+        constraint._contactBlockDirect = constraint._contactBlockSweeps === 0;
+        if (constraint._contactBlockDirect) {
+            solveKirchhoffDirect(inner, this.fixedDt, true, this.reuseDirectLinearization);
+            solveKirchhoffDirect(outer, this.fixedDt, true, this.reuseDirectLinearization);
+        }
+        if (!this.#collectKirchhoffContainmentGeometry(constraint, applyFriction)) return;
+        // Simultaneous reciprocal normals, followed by Coulomb projection.
+        // The outer closure alternates this block with BOTH complete rods.
+        // The diagonal shift damps only the increment, never the stored load;
+        // final acceptance uses the original physical contact residual.
+        // Predictor geometry will change again. Reserve tight linear accuracy
+        // for the final closure; its physical acceptance gate is unchanged.
+        const linearTolerance = this.coupledContainmentTolerance *
+            (this._inCoupledClosure ? 0.2 : 20);
+        const block = solveKirchhoffContactBlock(constraint, linearTolerance, 1e-3);
+        constraint._contactBlockSweeps++;
+        constraint._contactBlockIterations += block.iterations;
+        for (let i = 0; i < constraint.kirchhoffContacts.length; i++) {
+            this.#solveKirchhoffLumenRecord(constraint, constraint.kirchhoffContacts[i], applyFriction, block.increment[i]);
+        }
+        constraint._kirchhoffMappingLocked = true;
+        if (measureResidual) {
+            constraint.kirchhoffMaxViolation =
+                this.#measureKirchhoffCoupledContainmentViolation(constraint);
+        }
+    }
+
+    // Freeze every lumen/portal sample before computing a mechanical update.
+    // The collector is shared by the contact-only reference and the upcoming
+    // simultaneous material/contact solve; it applies no tool correction.
+    #collectKirchhoffContainmentGeometry(constraint, applyFriction) {
+        const inner = constraint.innerBody;
+        const outer = constraint.outerBody;
+        constraint._collectContactBlock = true;
         const innerStart = clamp(
             constraint.startNode,
             inner.activeStart,
@@ -7827,12 +6482,18 @@ export class EndovascularPhysicsWorld {
             Math.max(innerStart, constraint.endNode)
         );
         const outerLast = Math.min(outer.segmentCount - 1, outer.activeEnd - 1);
-        if (innerEnd < innerStart || outerLast < outer.activeStart) return;
+        if (innerEnd < innerStart || outerLast < outer.activeStart) {
+            constraint._collectContactBlock = false;
+            return false;
+        }
 
         const outerStart = clamp(
             constraint.outerStartNode,
             outer.activeStart,
             outerLast
+        );
+        constraint._kirchhoffCurveCache = prepareKirchhoffCenterlineSearch(
+            outer, constraint._kirchhoffCurveCache ??= {}
         );
         this.#prepareKirchhoffOuterMaterialArc(
             constraint,
@@ -7845,7 +6506,6 @@ export class EndovascularPhysicsWorld {
             outer.restLength[expectedOuterSegment]
         );
         let innerArcStart = Math.max(0, constraint.innerArcOffset);
-        let materialPortalT = 0;
 
         for (
             let innerSegment = innerStart;
@@ -7867,9 +6527,7 @@ export class EndovascularPhysicsWorld {
                     1
                 )
                 : 1;
-            if (innerSegment === innerEnd) {
-                materialPortalT = segmentContainedFraction;
-            }
+
             const innerArcMidpoint = innerArcStart + innerRestLength * 0.5;
             while (
                 expectedOuterSegment < outerLast &&
@@ -7943,16 +6601,9 @@ export class EndovascularPhysicsWorld {
                 );
             }
         }
-        this.#solveKirchhoffMaterialPortal(
-            constraint,
-            innerEnd,
-            materialPortalT
-        );
-        constraint._kirchhoffMappingLocked = true;
-        if (measureResidual) {
-            constraint.kirchhoffMaxViolation =
-                this.#measureKirchhoffCoupledContainmentViolation(constraint);
-        }
+        this.#solveKirchhoffSlidingPortal(constraint, applyFriction);
+        constraint._collectContactBlock = false;
+        return true;
     }
 
     #solveContainment(
@@ -7961,7 +6612,7 @@ export class EndovascularPhysicsWorld {
         outerOnly = false,
         applyFriction = true
     ) {
-        if (constraint.model === 'kirchhoff') {
+        {
             this.#solveKirchhoffContainment(
                 constraint,
                 applyFriction,
@@ -7969,1190 +6620,10 @@ export class EndovascularPhysicsWorld {
             );
             return;
         }
-        if (
-            constraint.enabled !== constraint._lastEnabled ||
-            constraint.outerStartNode !== constraint._lastOuterStartNode ||
-            constraint.startNode !== constraint._lastStartNode ||
-            constraint.endNode !== constraint._lastEndNode ||
-            constraint.innerBody.activeStart !== constraint._lastInnerActiveStart ||
-            constraint.innerBody.activeEnd !== constraint._lastInnerActiveEnd ||
-            constraint.outerBody.activeStart !== constraint._lastOuterActiveStart ||
-            constraint.outerBody.activeEnd !== constraint._lastOuterActiveEnd
-        ) {
-            constraint.lambdas.fill(0);
-            constraint.closestSegment.fill(-1);
-            constraint.closestT.fill(0);
-            constraint.portalLambda = 0;
-            constraint.portalDirectionLambda = 0;
-            constraint._lastEnabled = constraint.enabled;
-            constraint._lastOuterStartNode = constraint.outerStartNode;
-            constraint._lastStartNode = constraint.startNode;
-            constraint._lastInnerActiveStart = constraint.innerBody.activeStart;
-            constraint._lastInnerActiveEnd = constraint.innerBody.activeEnd;
-            constraint._lastOuterActiveStart = constraint.outerBody.activeStart;
-            constraint._lastOuterActiveEnd = constraint.outerBody.activeEnd;
-        }
-        constraint._lastEndNode = constraint.endNode;
-        if (!constraint.enabled) return;
-        if (constraint.outerFollowsInnerCenterline) {
-            this.#projectOuterAlongInnerCenterline(constraint);
-            return;
-        }
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const settledContainmentGuard = constraint.limitDistalCorrection ? 0 : 0.004;
-        const allowedRadius = Math.max(
-            0,
-            constraint.innerRadius - inner.radius - settledContainmentGuard
-        );
-        // When a catheter advances over a held guidewire, lumen contact and
-        // wire length are a compliant force balance. Treating both as exact
-        // projections produces an unsatisfiable two-cycle at coarse polyline
-        // joints: length restores the metal wire, then a hard capsule snap
-        // stretches it again. A finite XPBD compliance is active only for
-        // this moving stationary-rail state; ordinary settled containment
-        // remains exact.
-        const containmentCompliance =
-            constraint.limitDistalCorrection &&
-            constraint.preserveStationaryInnerLength
-                ? Math.max(constraint.compliance, 5e-5)
-                : constraint.compliance;
-        const alpha = containmentCompliance / (this.fixedDt * this.fixedDt);
-        const outerStart = clamp(constraint.outerStartNode, outer.activeStart, outer.activeEnd);
-        const outerEnd = Math.min(outer.activeEnd, outer.segmentCount);
-        if (outerEnd <= outerStart) return;
-        const nearDistalOpening =
-            constraint.openDistal &&
-            this.#containmentPortalRetraction(constraint) <=
-                constraint.portalTransitionLength;
-        const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
-        const configuredInnerEnd = clamp(
-            constraint.endNode,
-            innerStart,
-            inner.activeEnd
-        );
-        const hasExternalDistalMaterial = configuredInnerEnd < inner.activeEnd;
-        const portalNearOpening =
-            constraint.enforceDistalPortal &&
-            nearDistalOpening &&
-            hasExternalDistalMaterial;
-        // The first node nominally outside an open catheter is still part of
-        // the lumen-to-free-space transition. Constrain it while it remains
-        // proximal to the distal plane, then let it pass through the opening.
-        // Without this extra node, the crossing segment can leave through the
-        // side wall even though both cached endpoint classifications are valid.
-        const innerEnd = portalNearOpening
-            ? Math.min(inner.activeEnd, configuredInnerEnd + 1)
-            : configuredInnerEnd;
-        let expected = outerStart;
-        let previousBestSegment = -1;
-        let previousBestT = 0;
-        // The first discrete wire node is generally a fractional segment past
-        // the catheter's lumen entrance. Honour that material offset so the
-        // expected outer segment advances continuously as proximal nodes enter
-        // through the sheath; ignoring it made the nearest-segment window jump
-        // backward on every guidewire remesh.
-        let innerArcLength = Math.max(0, constraint.innerArcOffset);
-        let outerArcEnd = outer.restLength[outerStart];
-        for (let innerIndex = innerStart; innerIndex <= innerEnd; innerIndex++) {
-            if (innerIndex > innerStart) innerArcLength += inner.restLength[innerIndex - 1];
-            while (expected < outerEnd - 1 && outerArcEnd < innerArcLength) {
-                expected++;
-                outerArcEnd += outer.restLength[expected];
-            }
-            const portalSmoothingNodes = Math.max(1, Math.ceil(
-                constraint.portalSmoothingLength /
-                Math.max(EPSILON, inner.segmentLength)
-            ));
-            const distalMaterialMapping =
-                constraint.limitDistalCorrection &&
-                hasExternalDistalMaterial &&
-                innerIndex >= configuredInnerEnd - portalSmoothingNodes;
-            const materialMappedNode = distalMaterialMapping;
-            const searchStart = materialMappedNode
-                ? expected
-                : Math.max(
-                    outerStart,
-                    previousBestSegment,
-                    expected - constraint.searchWindow
-                );
-            const searchEnd = materialMappedNode
-                ? expected
-                : Math.min(
-                    outerEnd - 1,
-                    Math.max(searchStart, expected + constraint.searchWindow)
-                );
-            let bestDistanceSq = Infinity;
-            let bestSegment = -1;
-            let bestT = 0;
-            let bestX = 0;
-            let bestY = 0;
-            let bestZ = 0;
-            for (let segment = searchStart; segment <= searchEnd; segment++) {
-                const ax = outer.x[segment];
-                const ay = outer.y[segment];
-                const az = outer.z[segment];
-                const dx = outer.x[segment + 1] - ax;
-                const dy = outer.y[segment + 1] - ay;
-                const dz = outer.z[segment + 1] - az;
-                const lengthSq = dx * dx + dy * dy + dz * dz;
-                const segmentRestLength = Math.max(
-                    EPSILON,
-                    outer.restLength[segment]
-                );
-                const materialT = clamp(
-                    (innerArcLength - (outerArcEnd - segmentRestLength)) /
-                        segmentRestLength,
-                    0,
-                    1
-                );
-                const nearestT = clamp(
-                    ((inner.x[innerIndex] - ax) * dx +
-                        (inner.y[innerIndex] - ay) * dy +
-                        (inner.z[innerIndex] - az) * dz) /
-                        Math.max(EPSILON, lengthSq),
-                    0,
-                    1
-                );
-                let t = materialMappedNode
-                    ? clamp(
-                        nearestT,
-                        Math.max(0, materialT - 0.2),
-                        Math.min(1, materialT + 0.2)
-                    )
-                    : nearestT;
-                // The wire is free to slide longitudinally, but its material
-                // order cannot reverse inside one catheter segment. Clamp the
-                // candidate only when it would cross the previous wire node;
-                // all ordinary nearest-point motion remains purely radial.
-                if (segment === previousBestSegment) {
-                    t = Math.max(t, Math.min(1, previousBestT + 1e-3));
-                }
-                const cx = ax + dx * t;
-                const cy = ay + dy * t;
-                const cz = az + dz * t;
-                const rx = inner.x[innerIndex] - cx;
-                const ry = inner.y[innerIndex] - cy;
-                const rz = inner.z[innerIndex] - cz;
-                const distanceSq = rx * rx + ry * ry + rz * rz;
-                if (distanceSq < bestDistanceSq) {
-                    bestDistanceSq = distanceSq;
-                    bestSegment = segment;
-                    bestT = t;
-                    bestX = cx;
-                    bestY = cy;
-                    bestZ = cz;
-                }
-            }
-            if (bestSegment < 0) continue;
-            previousBestSegment = bestSegment;
-            previousBestT = bestT;
-            constraint.closestSegment[innerIndex] = bestSegment;
-            constraint.closestT[innerIndex] = bestT;
-            // The dedicated portal solver owns the crossing segment while the
-            // wire is at the opening. Correcting its endpoint here as an
-            // independent lumen node creates a large hinge one node proximal
-            // before the distributed portal correction gets a chance to act.
-            if (portalNearOpening && innerIndex >= configuredInnerEnd) continue;
-            if (constraint.openProximal && bestSegment === outerStart) {
-                const dx = outer.x[outerStart + 1] - outer.x[outerStart];
-                const dy = outer.y[outerStart + 1] - outer.y[outerStart];
-                const dz = outer.z[outerStart + 1] - outer.z[outerStart];
-                const before =
-                    (inner.x[innerIndex] - outer.x[outerStart]) * dx +
-                    (inner.y[innerIndex] - outer.y[outerStart]) * dy +
-                    (inner.z[innerIndex] - outer.z[outerStart]) * dz;
-                // Geometry may lag the material feed by one solver sweep.
-                // Only the actual boundary node is allowed to remain outside
-                // an open proximal end, and only while its material offset
-                // has not crossed that end yet. Once innerArcOffset is
-                // positive the node is already inside the lumen and must not
-                // escape merely because a bend placed it behind the plane.
-                if (
-                    before < 0 &&
-                    innerIndex === innerStart &&
-                    constraint.innerArcOffset <= EPSILON
-                ) continue;
-            }
-            if (constraint.openDistal && bestSegment === outerEnd - 1) {
-                const dx = outer.x[outerEnd] - outer.x[outerEnd - 1];
-                const dy = outer.y[outerEnd] - outer.y[outerEnd - 1];
-                const dz = outer.z[outerEnd] - outer.z[outerEnd - 1];
-                const beyond =
-                    (inner.x[innerIndex] - outer.x[outerEnd]) * dx +
-                    (inner.y[innerIndex] - outer.y[outerEnd]) * dy +
-                    (inner.z[innerIndex] - outer.z[outerEnd]) * dz;
-                if (beyond > 0) continue;
-            }
-            const distance = Math.sqrt(bestDistanceSq);
-            if (distance <= allowedRadius || distance < EPSILON) {
-                constraint.lambdas[innerIndex] *= 0.8;
-                continue;
-            }
-            const radialX = (inner.x[innerIndex] - bestX) / distance;
-            const radialY = (inner.y[innerIndex] - bestY) / distance;
-            const radialZ = (inner.z[innerIndex] - bestZ) / distance;
-            const stationaryRail =
-                !innerOnly &&
-                !outerOnly &&
-                constraint.limitDistalCorrection &&
-                constraint.preserveStationaryInnerLength;
-            const innerResponse = outerOnly
-                ? 0
-                : innerOnly
-                    ? 1
-                    : stationaryRail
-                        ? 0.2
-                        : constraint.innerResponse;
-            const outerResponse = innerOnly
-                ? 0
-                : stationaryRail
-                    ? 0.8
-                    : constraint.outerResponse;
-            const innerWeight = inner.inverseMass[innerIndex] * innerResponse;
-            const w0Factor = 1 - bestT;
-            const w1Factor = bestT;
-            const outerInverseMass0 =
-                (
-                    !Number.isFinite(outer.sheathMaterialEndNode) ||
-                    bestSegment > outer.sheathMaterialEndNode
-                )
-                    ? outer.inverseMass[bestSegment]
-                    : 0;
-            const outerInverseMass1 =
-                (
-                    !Number.isFinite(outer.sheathMaterialEndNode) ||
-                    bestSegment + 1 > outer.sheathMaterialEndNode
-                )
-                    ? outer.inverseMass[bestSegment + 1]
-                    : 0;
-            const outerWeight0 =
-                outerInverseMass0 * outerResponse * w0Factor * w0Factor;
-            const outerWeight1 =
-                outerInverseMass1 * outerResponse * w1Factor * w1Factor;
-            const denominator = innerWeight + outerWeight0 + outerWeight1 + alpha;
-            if (denominator < EPSILON) continue;
-            const c = allowedRadius - distance;
-            let deltaLambda = (-c - alpha * constraint.lambdas[innerIndex]) / denominator;
-            if (
-                constraint.outerResponse <= EPSILON &&
-                outerResponse <= EPSILON &&
-                innerResponse > EPSILON &&
-                (
-                    materialMappedNode ||
-                    (portalNearOpening && innerIndex >= configuredInnerEnd - 1)
-                ) &&
-                innerWeight > EPSILON
-            ) {
-                const maximumDeltaLambda =
-                    constraint.portalMaxCorrection / innerWeight;
-                deltaLambda = clamp(
-                    deltaLambda,
-                    -maximumDeltaLambda,
-                    maximumDeltaLambda
-                );
-            }
-            constraint.lambdas[innerIndex] += deltaLambda;
-            const innerCorrectionX = -radialX * deltaLambda * innerWeight;
-            const innerCorrectionY = -radialY * deltaLambda * innerWeight;
-            const innerCorrectionZ = -radialZ * deltaLambda * innerWeight;
-            inner.x[innerIndex] += innerCorrectionX;
-            inner.y[innerIndex] += innerCorrectionY;
-            inner.z[innerIndex] += innerCorrectionZ;
-            if (
-                innerWeight > EPSILON &&
-                Math.abs(innerCorrectionX) +
-                    Math.abs(innerCorrectionY) +
-                    Math.abs(innerCorrectionZ) > 1e-5
-            ) {
-                inner.wake();
-            }
-            if (
-                constraint.outerResponse <= EPSILON &&
-                outerResponse <= EPSILON &&
-                innerResponse > EPSILON &&
-                (distalMaterialMapping || portalNearOpening) &&
-                innerIndex >= configuredInnerEnd - 1
-            ) {
-                const smoothingNodes = Math.max(1, Math.ceil(
-                    constraint.portalSmoothingLength /
-                    Math.max(EPSILON, inner.segmentLength)
-                ));
-                const firstSmoothedNode = Math.max(
-                    innerStart,
-                    innerIndex - smoothingNodes
-                );
-                for (let node = firstSmoothedNode; node < innerIndex; node++) {
-                    if (inner.inverseMass[node] <= 0) continue;
-                    const proximalOffset = innerIndex - node;
-                    const taper = 1 - proximalOffset / (smoothingNodes + 1);
-                    inner.x[node] += innerCorrectionX * taper;
-                    inner.y[node] += innerCorrectionY * taper;
-                    inner.z[node] += innerCorrectionZ * taper;
-                }
-                // When the catheter has not yet covered the whole guidewire,
-                // the next wire node is outside the distal opening. Moving
-                // only the final contained node makes that crossing segment
-                // reverse direction. Carry the correction through the first
-                // external segment, then fade it over the same material span.
-                // When the outer catheter is advancing over a stationary
-                // guidewire, transmit only a small share: full carry made a
-                // newly covered node drag the entire free tip by more than one
-                // 5 mm discretization interval in a single fixed step.
-                if (
-                    inner.activeEnd - innerIndex <= smoothingNodes
-                ) {
-                    const distalCarry =
-                        constraint.preserveStationaryInnerLength &&
-                        constraint.portalInnerResponse <= EPSILON
-                            ? 0.2
-                            : 1;
-                    const lastSmoothedNode = Math.min(
-                        inner.activeEnd,
-                        innerIndex + smoothingNodes
-                    );
-                    for (let node = innerIndex + 1; node <= lastSmoothedNode; node++) {
-                        if (inner.inverseMass[node] <= 0) continue;
-                        const distalOffset = node - innerIndex;
-                        const taper = 1 - Math.max(0, distalOffset - 1) / smoothingNodes;
-                        inner.x[node] += innerCorrectionX * taper * distalCarry;
-                        inner.y[node] += innerCorrectionY * taper * distalCarry;
-                        inner.z[node] += innerCorrectionZ * taper * distalCarry;
-                    }
-                }
-            }
-            outer.x[bestSegment] +=
-                radialX * deltaLambda * outerInverseMass0 * outerResponse * w0Factor;
-            outer.y[bestSegment] +=
-                radialY * deltaLambda * outerInverseMass0 * outerResponse * w0Factor;
-            outer.z[bestSegment] +=
-                radialZ * deltaLambda * outerInverseMass0 * outerResponse * w0Factor;
-            outer.x[bestSegment + 1] +=
-                radialX * deltaLambda * outerInverseMass1 * outerResponse * w1Factor;
-            outer.y[bestSegment + 1] +=
-                radialY * deltaLambda * outerInverseMass1 * outerResponse * w1Factor;
-            outer.z[bestSegment + 1] +=
-                radialZ * deltaLambda * outerInverseMass1 * outerResponse * w1Factor;
-            if (outerResponse > EPSILON && Math.abs(deltaLambda) > 1e-5) {
-                outer.wake();
-            }
-            const relativeX =
-                inner.x[innerIndex] - inner.previousX[innerIndex] -
-                (outer.x[bestSegment] - outer.previousX[bestSegment]) * w0Factor -
-                (outer.x[bestSegment + 1] - outer.previousX[bestSegment + 1]) * w1Factor;
-            const relativeY =
-                inner.y[innerIndex] - inner.previousY[innerIndex] -
-                (outer.y[bestSegment] - outer.previousY[bestSegment]) * w0Factor -
-                (outer.y[bestSegment + 1] - outer.previousY[bestSegment + 1]) * w1Factor;
-            const relativeZ =
-                inner.z[innerIndex] - inner.previousZ[innerIndex] -
-                (outer.z[bestSegment] - outer.previousZ[bestSegment]) * w0Factor -
-                (outer.z[bestSegment + 1] - outer.previousZ[bestSegment + 1]) * w1Factor;
-            const normalMotion = relativeX * radialX + relativeY * radialY + relativeZ * radialZ;
-            let tangentX = relativeX - radialX * normalMotion;
-            let tangentY = relativeY - radialY * normalMotion;
-            let tangentZ = relativeZ - radialZ * normalMotion;
-            const tangentLength = magnitude3(tangentX, tangentY, tangentZ);
-            const frictionWeight = innerWeight + outerWeight0 + outerWeight1;
-            if (
-                tangentLength > EPSILON && frictionWeight > EPSILON &&
-                applyFriction && constraint.friction > 0
-            ) {
-                tangentX /= tangentLength;
-                tangentY /= tangentLength;
-                tangentZ /= tangentLength;
-                const tangentLambda = -Math.min(
-                    tangentLength / frictionWeight,
-                    constraint.friction * constraint.lambdas[innerIndex]
-                );
-                inner.x[innerIndex] += tangentX * tangentLambda * innerWeight;
-                inner.y[innerIndex] += tangentY * tangentLambda * innerWeight;
-                inner.z[innerIndex] += tangentZ * tangentLambda * innerWeight;
-                outer.x[bestSegment] -= tangentX * tangentLambda *
-                    outerInverseMass0 * outerResponse * w0Factor;
-                outer.y[bestSegment] -= tangentY * tangentLambda *
-                    outerInverseMass0 * outerResponse * w0Factor;
-                outer.z[bestSegment] -= tangentZ * tangentLambda *
-                    outerInverseMass0 * outerResponse * w0Factor;
-                outer.x[bestSegment + 1] -= tangentX * tangentLambda *
-                    outerInverseMass1 * outerResponse * w1Factor;
-                outer.y[bestSegment + 1] -= tangentY * tangentLambda *
-                    outerInverseMass1 * outerResponse * w1Factor;
-                outer.z[bestSegment + 1] -= tangentZ * tangentLambda *
-                    outerInverseMass1 * outerResponse * w1Factor;
-            }
-        }
-        if (constraint.enforceDistalPortal) {
-            this.#solveDistalPortal(constraint, innerOnly, outerOnly);
-        }
+
     }
 
-    #solveDistalPortal(
-        constraint,
-        innerOnly = false,
-        outerOnly = false
-    ) {
-        if (!constraint.enabled || !constraint.openDistal) {
-            constraint.portalLambda = 0;
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-        if (
-            innerOnly &&
-            constraint.portalInnerResponse <= EPSILON &&
-            constraint.portalOuterResponse > EPSILON
-        ) {
-            constraint.portalLambda = 0;
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const innerSegment = clamp(
-            constraint.endNode,
-            inner.activeStart,
-            Math.min(inner.activeEnd - 1, inner.segmentCount - 1)
-        );
-        const outerTip = outer.activeEnd;
-        if (innerSegment < inner.activeStart || outerTip <= outer.activeStart) {
-            constraint.portalLambda = 0;
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-
-        let tipX = outer.x[outerTip];
-        let tipY = outer.y[outerTip];
-        let tipZ = outer.z[outerTip];
-        let tangentX = tipX - outer.x[outerTip - 1];
-        let tangentY = tipY - outer.y[outerTip - 1];
-        let tangentZ = tipZ - outer.z[outerTip - 1];
-        const tangentLength = magnitude3(tangentX, tangentY, tangentZ);
-        if (tangentLength < EPSILON) {
-            constraint.portalLambda = 0;
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-        tangentX /= tangentLength;
-        tangentY /= tangentLength;
-        tangentZ /= tangentLength;
-
-        let aRelativeX = inner.x[innerSegment] - tipX;
-        let aRelativeY = inner.y[innerSegment] - tipY;
-        let aRelativeZ = inner.z[innerSegment] - tipZ;
-        let bRelativeX = inner.x[innerSegment + 1] - tipX;
-        let bRelativeY = inner.y[innerSegment + 1] - tipY;
-        let bRelativeZ = inner.z[innerSegment + 1] - tipZ;
-        let aAxial =
-            aRelativeX * tangentX +
-            aRelativeY * tangentY +
-            aRelativeZ * tangentZ;
-        let bAxial =
-            bRelativeX * tangentX +
-            bRelativeY * tangentY +
-            bRelativeZ * tangentZ;
-        let axialDelta = bAxial - aAxial;
-        let segmentT = Math.abs(axialDelta) > EPSILON
-            ? clamp(-aAxial / axialDelta, 0, 1)
-            : Math.abs(aAxial) <= Math.abs(bAxial) ? 0 : 1;
-        let crossingX =
-            aRelativeX + (bRelativeX - aRelativeX) * segmentT;
-        let crossingY =
-            aRelativeY + (bRelativeY - aRelativeY) * segmentT;
-        let crossingZ =
-            aRelativeZ + (bRelativeZ - aRelativeZ) * segmentT;
-        let crossingAxial =
-            crossingX * tangentX +
-            crossingY * tangentY +
-            crossingZ * tangentZ;
-        const axialDistance = Math.abs(crossingAxial);
-        const spatialTransitionRatio = clamp(
-            1 - axialDistance / constraint.portalTransitionLength,
-            0,
-            1
-        );
-        const materialRetraction = this.#containmentPortalRetraction(constraint);
-        const materialTransitionRatio = clamp(
-            1 - Math.max(0, materialRetraction) / constraint.portalTransitionLength,
-            0,
-            1
-        );
-        const transitionRatio = Math.min(
-            spatialTransitionRatio,
-            materialTransitionRatio
-        );
-        const activation = transitionRatio * transitionRatio * (3 - 2 * transitionRatio);
-        if (activation <= EPSILON) {
-            constraint.portalLambda = 0;
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-        const allowedRadius = Math.max(0, constraint.innerRadius - inner.radius);
-
-        // The lumen behind the distal aperture acts as a short physical
-        // bearing. It transfers a bending moment to the material segment that
-        // is crossing the opening, but it does not prescribe any position for
-        // the free guidewire beyond that segment. Solving this angular contact
-        // before the radial aperture contact prevents a centered crossing from
-        // retaining an arbitrary, visibly separated direction.
-        this.#solveDistalPortalDirection(
-            constraint,
-            innerSegment,
-            tangentX,
-            tangentY,
-            tangentZ,
-            activation,
-            allowedRadius,
-            { innerOnly, outerOnly }
-        );
-
-        // The angular solve can move either the free wire or the catheter's
-        // distal bearing, depending on which material boundary is driving.
-        // Refresh both the opening frame and its intersection before applying
-        // radial aperture contact.
-        tipX = outer.x[outerTip];
-        tipY = outer.y[outerTip];
-        tipZ = outer.z[outerTip];
-        tangentX = tipX - outer.x[outerTip - 1];
-        tangentY = tipY - outer.y[outerTip - 1];
-        tangentZ = tipZ - outer.z[outerTip - 1];
-        const refreshedTangentLength = magnitude3(
-            tangentX,
-            tangentY,
-            tangentZ
-        );
-        if (refreshedTangentLength < EPSILON) {
-            constraint.portalLambda = 0;
-            return;
-        }
-        tangentX /= refreshedTangentLength;
-        tangentY /= refreshedTangentLength;
-        tangentZ /= refreshedTangentLength;
-        aRelativeX = inner.x[innerSegment] - tipX;
-        aRelativeY = inner.y[innerSegment] - tipY;
-        aRelativeZ = inner.z[innerSegment] - tipZ;
-        bRelativeX = inner.x[innerSegment + 1] - tipX;
-        bRelativeY = inner.y[innerSegment + 1] - tipY;
-        bRelativeZ = inner.z[innerSegment + 1] - tipZ;
-        aAxial =
-            aRelativeX * tangentX +
-            aRelativeY * tangentY +
-            aRelativeZ * tangentZ;
-        bAxial =
-            bRelativeX * tangentX +
-            bRelativeY * tangentY +
-            bRelativeZ * tangentZ;
-        axialDelta = bAxial - aAxial;
-        if (Math.abs(axialDelta) < EPSILON) {
-            constraint.portalLambda = 0;
-            return;
-        }
-        segmentT = clamp(-aAxial / axialDelta, 0, 1);
-        const aWeight = 1 - segmentT;
-        const bWeight = segmentT;
-        crossingX = aRelativeX + (bRelativeX - aRelativeX) * segmentT;
-        crossingY = aRelativeY + (bRelativeY - aRelativeY) * segmentT;
-        crossingZ = aRelativeZ + (bRelativeZ - aRelativeZ) * segmentT;
-        crossingAxial =
-            crossingX * tangentX +
-            crossingY * tangentY +
-            crossingZ * tangentZ;
-        let radialX = crossingX - tangentX * crossingAxial;
-        let radialY = crossingY - tangentY * crossingAxial;
-        let radialZ = crossingZ - tangentZ * crossingAxial;
-        const radialDistance = magnitude3(radialX, radialY, radialZ);
-        if (radialDistance <= allowedRadius || radialDistance < EPSILON) {
-            constraint.portalLambda *= 0.5;
-            return;
-        }
-        radialX /= radialDistance;
-        radialY /= radialDistance;
-        radialZ /= radialDistance;
-
-        // In catheter-dominant coupling, translating only the crossing
-        // segment makes the guidewire form a hinge immediately proximal to the
-        // catheter tip. Move the crossing segment as a rigid pair and taper
-        // that translation over a short proximal span. This preserves segment
-        // length at the opening and distributes the required bend instead of
-        // creating a one-node fold.
-        if (
-            !outerOnly &&
-            constraint.portalInnerResponse > EPSILON &&
-            constraint.portalOuterResponse <= EPSILON
-        ) {
-            const correctionDistance = Math.min(
-                constraint.portalMaxCorrection,
-                Math.max(0, radialDistance - allowedRadius) * activation
-            );
-            const smoothingNodes = Math.max(1, Math.ceil(
-                constraint.portalSmoothingLength /
-                Math.max(EPSILON, inner.segmentLength)
-            ));
-            const firstNode = Math.max(
-                inner.activeStart,
-                innerSegment - smoothingNodes
-            );
-            for (let node = firstNode; node <= inner.activeEnd; node++) {
-                if (inner.inverseMass[node] <= 0) continue;
-                const proximalOffset = Math.max(0, innerSegment - node);
-                const taper = proximalOffset <= 0
-                    ? 1
-                    : 1 - proximalOffset / (smoothingNodes + 1);
-                const correctionX = -radialX * correctionDistance * taper;
-                const correctionY = -radialY * correctionDistance * taper;
-                const correctionZ = -radialZ * correctionDistance * taper;
-                inner.x[node] += correctionX;
-                inner.y[node] += correctionY;
-                inner.z[node] += correctionZ;
-                inner.toolProjectionX[node] += correctionX;
-                inner.toolProjectionY[node] += correctionY;
-                inner.toolProjectionZ[node] += correctionZ;
-            }
-            if (correctionDistance > 1e-5) inner.wake();
-            constraint.portalLambda = 0;
-            return;
-        }
-        if (
-            !innerOnly &&
-            constraint.portalOuterResponse > EPSILON &&
-            constraint.portalInnerResponse <= EPSILON
-        ) {
-            const correctionDistance = Math.min(
-                constraint.portalMaxCorrection,
-                Math.max(0, radialDistance - allowedRadius) * activation
-            ) * constraint.portalOuterResponse;
-            const smoothingNodes = Math.max(1, Math.ceil(
-                constraint.portalSmoothingLength /
-                Math.max(EPSILON, outer.segmentLength)
-            ));
-            const firstNode = Math.max(
-                outer.activeStart,
-                outerTip - smoothingNodes
-            );
-            const previousBlend = constraint.limitDistalCorrection
-                ? constraint.preserveStationaryInnerLength
-                    ? Math.min(
-                        0.05,
-                        Math.max(
-                            0,
-                            constraint.portalRetractionDistance ?? 0
-                        ) * 0.05
-                    )
-                    : 1 - clamp(outer.projectionVelocityRetention, 0, 1)
-                : 1;
-            for (let node = firstNode; node <= outerTip; node++) {
-                if (outer.inverseMass[node] <= 0) continue;
-                const proximalOffset = outerTip - node;
-                const taper = proximalOffset <= 0
-                    ? 1
-                    : 1 - proximalOffset / (smoothingNodes + 1);
-                const correctionX = radialX * correctionDistance * taper;
-                const correctionY = radialY * correctionDistance * taper;
-                const correctionZ = radialZ * correctionDistance * taper;
-                outer.x[node] += correctionX;
-                outer.y[node] += correctionY;
-                outer.z[node] += correctionZ;
-                outer.toolProjectionX[node] += correctionX;
-                outer.toolProjectionY[node] += correctionY;
-                outer.toolProjectionZ[node] += correctionZ;
-                outer.previousX[node] += correctionX * previousBlend;
-                outer.previousY[node] += correctionY * previousBlend;
-                outer.previousZ[node] += correctionZ * previousBlend;
-            }
-            if (correctionDistance > 1e-5) outer.wake();
-            constraint.portalLambda = 0;
-            return;
-        }
-
-        const innerResponse = outerOnly
-            ? 0
-            : innerOnly ? 1 : constraint.portalInnerResponse;
-        const outerResponse = innerOnly ? 0 : constraint.portalOuterResponse;
-        const gradientScale = activation;
-        const innerWeightA =
-            inner.inverseMass[innerSegment] * innerResponse *
-            aWeight * aWeight * gradientScale * gradientScale;
-        const innerWeightB =
-            inner.inverseMass[innerSegment + 1] * innerResponse *
-            bWeight * bWeight * gradientScale * gradientScale;
-        const outerWeight = outer.inverseMass[outerTip] * outerResponse *
-            gradientScale * gradientScale;
-        const alpha = constraint.portalCompliance / (this.fixedDt * this.fixedDt);
-        const denominator = innerWeightA + innerWeightB + outerWeight + alpha;
-        if (denominator < EPSILON) return;
-        const constraintValue = (radialDistance - allowedRadius) * activation;
-        const unconstrainedDelta = (
-            constraintValue - alpha * constraint.portalLambda
-        ) / denominator;
-        const maximumGradientWeight = Math.max(
-            inner.inverseMass[innerSegment] * innerResponse * aWeight * gradientScale,
-            inner.inverseMass[innerSegment + 1] * innerResponse * bWeight * gradientScale,
-            outer.inverseMass[outerTip] * outerResponse * gradientScale
-        );
-        const maximumDelta = constraint.portalMaxCorrection /
-            Math.max(EPSILON, maximumGradientWeight);
-        const nextLambda = Math.max(
-            0,
-            constraint.portalLambda + clamp(unconstrainedDelta, -maximumDelta, maximumDelta)
-        );
-        const correction = nextLambda - constraint.portalLambda;
-        constraint.portalLambda = nextLambda;
-
-        const innerCorrectionA = -correction *
-            inner.inverseMass[innerSegment] * innerResponse *
-            aWeight * gradientScale;
-        const innerCorrectionB = -correction *
-            inner.inverseMass[innerSegment + 1] * innerResponse *
-            bWeight * gradientScale;
-        const outerCorrection = correction * outer.inverseMass[outerTip] *
-            outerResponse * gradientScale;
-        inner.x[innerSegment] += radialX * innerCorrectionA;
-        inner.y[innerSegment] += radialY * innerCorrectionA;
-        inner.z[innerSegment] += radialZ * innerCorrectionA;
-        inner.x[innerSegment + 1] += radialX * innerCorrectionB;
-        inner.y[innerSegment + 1] += radialY * innerCorrectionB;
-        inner.z[innerSegment + 1] += radialZ * innerCorrectionB;
-        outer.x[outerTip] += radialX * outerCorrection;
-        outer.y[outerTip] += radialY * outerCorrection;
-        outer.z[outerTip] += radialZ * outerCorrection;
-        inner.toolProjectionX[innerSegment] += radialX * innerCorrectionA;
-        inner.toolProjectionY[innerSegment] += radialY * innerCorrectionA;
-        inner.toolProjectionZ[innerSegment] += radialZ * innerCorrectionA;
-        inner.toolProjectionX[innerSegment + 1] += radialX * innerCorrectionB;
-        inner.toolProjectionY[innerSegment + 1] += radialY * innerCorrectionB;
-        inner.toolProjectionZ[innerSegment + 1] += radialZ * innerCorrectionB;
-        outer.toolProjectionX[outerTip] += radialX * outerCorrection;
-        outer.toolProjectionY[outerTip] += radialY * outerCorrection;
-        outer.toolProjectionZ[outerTip] += radialZ * outerCorrection;
-        if (Math.abs(correction) > 1e-5) {
-            if (innerResponse > EPSILON) inner.wake();
-            if (outerResponse > EPSILON) outer.wake();
-        }
-    }
-
-    #solveDistalPortalDirection(
-        constraint,
-        innerSegment,
-        tangentX,
-        tangentY,
-        tangentZ,
-        activation,
-        allowedRadius,
-        { innerOnly = false, outerOnly = false } = {}
-    ) {
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const innerResponse = outerOnly ? 0 : constraint.portalInnerResponse;
-        const outerResponse = innerOnly ? 0 : constraint.portalOuterResponse;
-        if (
-            (innerResponse <= EPSILON && outerResponse <= EPSILON) ||
-            activation <= EPSILON
-        ) {
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-
-        const next = innerSegment + 1;
-        let segmentX = inner.x[next] - inner.x[innerSegment];
-        let segmentY = inner.y[next] - inner.y[innerSegment];
-        let segmentZ = inner.z[next] - inner.z[innerSegment];
-        const segmentLength = magnitude3(segmentX, segmentY, segmentZ);
-        if (segmentLength < EPSILON) {
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-        segmentX /= segmentLength;
-        segmentY /= segmentLength;
-        segmentZ /= segmentLength;
-
-        const cosine = clamp(
-            segmentX * tangentX +
-                segmentY * tangentY +
-                segmentZ * tangentZ,
-            -1,
-            1
-        );
-        const angle = Math.acos(cosine);
-        // A wire can touch opposite lumen walls across the supported distal
-        // length. That clearance defines a small physical exit cone; inside
-        // it no angular correction is applied.
-        const supportLength = Math.max(
-            EPSILON,
-            constraint.portalTransitionLength
-        );
-        const maximumAngle = Math.atan2(allowedRadius * 2, supportLength);
-        const angleError = angle - maximumAngle;
-        if (angleError <= 0) {
-            constraint.portalDirectionLambda *= 0.5;
-            return;
-        }
-
-        let axisX = segmentY * tangentZ - segmentZ * tangentY;
-        let axisY = segmentZ * tangentX - segmentX * tangentZ;
-        let axisZ = segmentX * tangentY - segmentY * tangentX;
-        const axisLength = magnitude3(axisX, axisY, axisZ);
-        if (axisLength < EPSILON) {
-            constraint.portalDirectionLambda = 0;
-            return;
-        }
-        axisX /= axisLength;
-        axisY /= axisLength;
-        axisZ /= axisLength;
-
-        // The guidewire is one continuous elastic rod, not two independent
-        // segments joined at the catheter opening. Rotating only the crossing
-        // segment satisfies the aperture direction but creates an artificial
-        // hinge at the next node and also changes both adjacent segment
-        // lengths. The lumen bearing instead applies a boundary moment to the
-        // whole free distal material. In the absence of another support its
-        // lowest-energy response is a rigid rotation; vessel contacts and the
-        // regular rod bending constraints subsequently distribute any
-        // reaction-supported curvature along the metal wire.
-        const gradientScale = activation;
-        const angularWeight = (innerResponse + outerResponse) *
-            gradientScale * gradientScale;
-        const alpha = constraint.portalCompliance /
-            (this.fixedDt * this.fixedDt);
-        const denominator = angularWeight + alpha;
-        if (denominator < EPSILON) return;
-        let innerLeverLength = segmentLength;
-        if (innerResponse > EPSILON) {
-            innerLeverLength = 0;
-            for (
-                let segment = innerSegment;
-                segment < inner.activeEnd;
-                segment++
-            ) {
-                innerLeverLength += inner.restLength[segment];
-            }
-        }
-        const outerTip = outer.activeEnd;
-        const outerSupportSegments = Math.max(2, Math.ceil(
-            constraint.portalSmoothingLength /
-                Math.max(EPSILON, outer.segmentLength)
-        ));
-        const outerAnchor = Math.max(
-            outer.activeStart,
-            outerTip - outerSupportSegments
-        );
-        let outerLeverLength = outer.segmentLength;
-        if (outerResponse > EPSILON) {
-            outerLeverLength = 0;
-            for (let segment = outerAnchor; segment < outerTip; segment++) {
-                outerLeverLength += outer.restLength[segment];
-            }
-        }
-        const maximumRotation = Math.atan2(
-            constraint.portalMaxCorrection,
-            Math.max(segmentLength, innerLeverLength, outerLeverLength)
-        );
-        const constraintValue = angleError * activation;
-        const unconstrainedDelta = (
-            -constraintValue - alpha * constraint.portalDirectionLambda
-        ) / denominator;
-        const maximumDelta = maximumRotation /
-            Math.max(
-                EPSILON,
-                (innerResponse + outerResponse) * gradientScale
-            );
-        const nextLambda = Math.min(
-            0,
-            constraint.portalDirectionLambda +
-                clamp(unconstrainedDelta, -maximumDelta, maximumDelta)
-        );
-        const lambdaCorrection = nextLambda - constraint.portalDirectionLambda;
-        constraint.portalDirectionLambda = nextLambda;
-        const innerCorrectionAngle = -lambdaCorrection *
-            innerResponse * gradientScale;
-        const outerCorrectionAngle = -lambdaCorrection *
-            outerResponse * gradientScale;
-        if (
-            innerCorrectionAngle <= EPSILON &&
-            outerCorrectionAngle <= EPSILON
-        ) return;
-
-        if (innerCorrectionAngle > EPSILON) {
-            const anchorX = inner.x[innerSegment];
-            const anchorY = inner.y[innerSegment];
-            const anchorZ = inner.z[innerSegment];
-            const rotationCosine = Math.cos(innerCorrectionAngle);
-            const rotationSine = Math.sin(innerCorrectionAngle);
-            const oneMinusCosine = 1 - rotationCosine;
-            const previousBlend = 1 - clamp(
-                inner.projectionVelocityRetention,
-                0,
-                1
-            );
-            for (let node = next; node <= inner.activeEnd; node++) {
-                if (inner.inverseMass[node] <= 0) continue;
-                const originalX = inner.x[node];
-                const originalY = inner.y[node];
-                const originalZ = inner.z[node];
-                const relativeX = originalX - anchorX;
-                const relativeY = originalY - anchorY;
-                const relativeZ = originalZ - anchorZ;
-                const axisDot =
-                    relativeX * axisX +
-                    relativeY * axisY +
-                    relativeZ * axisZ;
-                inner.x[node] = anchorX +
-                    relativeX * rotationCosine +
-                    (axisY * relativeZ - axisZ * relativeY) * rotationSine +
-                    axisX * axisDot * oneMinusCosine;
-                inner.y[node] = anchorY +
-                    relativeY * rotationCosine +
-                    (axisZ * relativeX - axisX * relativeZ) * rotationSine +
-                    axisY * axisDot * oneMinusCosine;
-                inner.z[node] = anchorZ +
-                    relativeZ * rotationCosine +
-                    (axisX * relativeY - axisY * relativeX) * rotationSine +
-                    axisZ * axisDot * oneMinusCosine;
-                inner.previousX[node] +=
-                    (inner.x[node] - originalX) * previousBlend;
-                inner.previousY[node] +=
-                    (inner.y[node] - originalY) * previousBlend;
-                inner.previousZ[node] +=
-                    (inner.z[node] - originalZ) * previousBlend;
-            }
-            inner.wake();
-        }
-
-        if (outerCorrectionAngle > EPSILON && outerTip > outerAnchor) {
-            for (let segment = outerAnchor; segment < outerTip; segment++) {
-                outer.portalSegmentX[segment] =
-                    outer.x[segment + 1] - outer.x[segment];
-                outer.portalSegmentY[segment] =
-                    outer.y[segment + 1] - outer.y[segment];
-                outer.portalSegmentZ[segment] =
-                    outer.z[segment + 1] - outer.z[segment];
-            }
-            // Once operator feed stops this is a quasi-static elastic
-            // reaction, not a new command velocity. During active material
-            // transport retain the body's configured projection response;
-            // afterwards carry the previous pose by the full correction so
-            // the bearing moment cannot pump an idle pair into oscillation.
-            const previousBlend = constraint.limitDistalCorrection
-                ? constraint.preserveStationaryInnerLength
-                    ? Math.min(
-                        0.05,
-                        Math.max(
-                            0,
-                            constraint.portalRetractionDistance ?? 0
-                        ) * 0.05
-                    )
-                    : 1 - clamp(outer.projectionVelocityRetention, 0, 1)
-                : 1;
-            const supportCount = outerTip - outerAnchor;
-            for (let segment = outerAnchor; segment < outerTip; segment++) {
-                const originalX = outer.x[segment + 1];
-                const originalY = outer.y[segment + 1];
-                const originalZ = outer.z[segment + 1];
-                const ratio = (segment - outerAnchor + 1) / supportCount;
-                const distributedRatio = ratio * ratio * (3 - 2 * ratio);
-                const angle = -outerCorrectionAngle * distributedRatio;
-                const rotationCosine = Math.cos(angle);
-                const rotationSine = Math.sin(angle);
-                const oneMinusCosine = 1 - rotationCosine;
-                const directionX = outer.portalSegmentX[segment];
-                const directionY = outer.portalSegmentY[segment];
-                const directionZ = outer.portalSegmentZ[segment];
-                const axisDot =
-                    directionX * axisX +
-                    directionY * axisY +
-                    directionZ * axisZ;
-                const rotatedX =
-                    directionX * rotationCosine +
-                    (axisY * directionZ - axisZ * directionY) * rotationSine +
-                    axisX * axisDot * oneMinusCosine;
-                const rotatedY =
-                    directionY * rotationCosine +
-                    (axisZ * directionX - axisX * directionZ) * rotationSine +
-                    axisY * axisDot * oneMinusCosine;
-                const rotatedZ =
-                    directionZ * rotationCosine +
-                    (axisX * directionY - axisY * directionX) * rotationSine +
-                    axisZ * axisDot * oneMinusCosine;
-                outer.x[segment + 1] = outer.x[segment] + rotatedX;
-                outer.y[segment + 1] = outer.y[segment] + rotatedY;
-                outer.z[segment + 1] = outer.z[segment] + rotatedZ;
-                outer.previousX[segment + 1] +=
-                    (outer.x[segment + 1] - originalX) * previousBlend;
-                outer.previousY[segment + 1] +=
-                    (outer.y[segment + 1] - originalY) * previousBlend;
-                outer.previousZ[segment + 1] +=
-                    (outer.z[segment + 1] - originalZ) * previousBlend;
-            }
-            outer.wake();
-        }
-    }
-
-    #containmentPortalRetraction(constraint) {
-        if (Number.isFinite(constraint.portalRetractionDistance)) {
-            return Math.max(0, constraint.portalRetractionDistance);
-        }
-        if (!Number.isFinite(constraint.containedLength)) return 0;
-        const outer = constraint.outerBody;
-        const outerStart = clamp(
-            constraint.outerStartNode,
-            outer.activeStart,
-            outer.activeEnd
-        );
-        let outerLumenLength = 0;
-        for (let segment = outerStart; segment < outer.activeEnd; segment++) {
-            outerLumenLength += outer.restLength[segment];
-        }
-        return Math.max(
-            0,
-            outerLumenLength - Math.max(0, constraint.containedLength)
-        );
-    }
-
-    #projectOuterAlongInnerCenterline(constraint) {
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
-        const outerStart = clamp(constraint.outerStartNode, outer.activeStart, outer.activeEnd);
-        if (innerStart >= inner.activeEnd || outerStart > outer.activeEnd) return;
-
-        let innerSegment = innerStart;
-        let innerSegmentArc = Math.max(0, constraint.innerArcOffset);
-        if (innerStart > inner.activeStart) {
-            innerSegment = innerStart - 1;
-            innerSegmentArc -= inner.restLength[innerSegment];
-        }
-        let outerArc = 0;
-        const containedLength = Math.max(0, constraint.containedLength);
-        for (let outerIndex = outerStart; outerIndex <= outer.activeEnd; outerIndex++) {
-            if (outerArc > containedLength + 1e-5) break;
-            while (
-                innerSegment < inner.activeEnd - 1 &&
-                innerSegmentArc + inner.restLength[innerSegment] < outerArc
-            ) {
-                innerSegmentArc += inner.restLength[innerSegment];
-                innerSegment++;
-            }
-            const segmentLength = Math.max(EPSILON, inner.restLength[innerSegment]);
-            const t = clamp((outerArc - innerSegmentArc) / segmentLength, 0, 1);
-            const targetX =
-                inner.x[innerSegment] +
-                (inner.x[innerSegment + 1] - inner.x[innerSegment]) * t;
-            const targetY =
-                inner.y[innerSegment] +
-                (inner.y[innerSegment + 1] - inner.y[innerSegment]) * t;
-            const targetZ =
-                inner.z[innerSegment] +
-                (inner.z[innerSegment + 1] - inner.z[innerSegment]) * t;
-            outer.x[outerIndex] = targetX;
-            outer.y[outerIndex] = targetY;
-            outer.z[outerIndex] = targetZ;
-            if (outerIndex < outer.activeEnd) outerArc += outer.restLength[outerIndex];
-        }
-    }
-
-    #projectInnerAlongOuterCenterline(constraint) {
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const innerStart = clamp(
-            constraint.startNode,
-            inner.activeStart,
-            inner.activeEnd
-        );
-        const innerEnd = clamp(
-            constraint.endNode,
-            innerStart,
-            inner.activeEnd
-        );
-        const projectionEnd = innerEnd;
-        const outerStart = clamp(
-            constraint.outerStartNode,
-            outer.activeStart,
-            outer.activeEnd
-        );
-        const outerEnd = Math.min(outer.activeEnd, outer.segmentCount);
-        if (innerStart > innerEnd || outerStart >= outerEnd) return;
-        if (innerEnd < inner.activeEnd) return;
-
-        let outerSegment = outerStart;
-        let segmentOffset = Math.max(0, constraint.innerArcOffset);
-        while (outerSegment < outerEnd) {
-            const materialLength = Math.max(
-                EPSILON,
-                outer.restLength[outerSegment]
-            );
-            if (
-                segmentOffset <= materialLength ||
-                outerSegment >= outerEnd - 1
-            ) break;
-            segmentOffset -= materialLength;
-            outerSegment++;
-        }
-        const useSettledArcLength = !constraint.limitDistalCorrection;
-        if (useSettledArcLength) {
-            const dx = outer.x[outerSegment + 1] - outer.x[outerSegment];
-            const dy = outer.y[outerSegment + 1] - outer.y[outerSegment];
-            const dz = outer.z[outerSegment + 1] - outer.z[outerSegment];
-            const materialLength = Math.max(
-                EPSILON,
-                outer.restLength[outerSegment]
-            );
-            segmentOffset = clamp(segmentOffset / materialLength, 0, 1) *
-                Math.max(EPSILON, magnitude3(dx, dy, dz));
-        }
-
-        let moved = false;
-        for (let innerIndex = innerStart; innerIndex <= projectionEnd; innerIndex++) {
-            while (outerSegment < outerEnd) {
-                const materialLength = Math.max(
-                    EPSILON,
-                    outer.restLength[outerSegment]
-                );
-                const mappingLength = useSettledArcLength
-                    ? Math.max(EPSILON, magnitude3(
-                        outer.x[outerSegment + 1] - outer.x[outerSegment],
-                        outer.y[outerSegment + 1] - outer.y[outerSegment],
-                        outer.z[outerSegment + 1] - outer.z[outerSegment]
-                    ))
-                    : materialLength;
-                if (
-                    segmentOffset <= mappingLength ||
-                    outerSegment >= outerEnd - 1
-                ) break;
-                segmentOffset -= mappingLength;
-                outerSegment++;
-            }
-            const dx = outer.x[outerSegment + 1] - outer.x[outerSegment];
-            const dy = outer.y[outerSegment + 1] - outer.y[outerSegment];
-            const dz = outer.z[outerSegment + 1] - outer.z[outerSegment];
-            const materialLength = Math.max(
-                EPSILON,
-                outer.restLength[outerSegment]
-            );
-            const mappingLength = useSettledArcLength
-                ? Math.max(EPSILON, magnitude3(dx, dy, dz))
-                : materialLength;
-            const t = clamp(segmentOffset / mappingLength, 0, 1);
-            const targetX = outer.x[outerSegment] + dx * t;
-            const targetY = outer.y[outerSegment] + dy * t;
-            const targetZ = outer.z[outerSegment] + dz * t;
-            const correctionX = targetX - inner.x[innerIndex];
-            const correctionY = targetY - inner.y[innerIndex];
-            const correctionZ = targetZ - inner.z[innerIndex];
-            if (inner.inverseMass[innerIndex] > 0) {
-                inner.x[innerIndex] = targetX;
-                inner.y[innerIndex] = targetY;
-                inner.z[innerIndex] = targetZ;
-                moved ||= Math.abs(correctionX) + Math.abs(correctionY) +
-                    Math.abs(correctionZ) > 0.01;
-            }
-            constraint.closestSegment[innerIndex] = outerSegment;
-            constraint.closestT[innerIndex] = t;
-            if (innerIndex < projectionEnd) {
-                segmentOffset += inner.restLength[innerIndex];
-            }
-        }
-        if (moved) inner.wake();
-    }
-
-    #solveToolContact(constraint) {
+    #solveToolContact(constraint, collectRows = null, jointConstraint = null) {
         if (
             constraint.enabled !== constraint._lastEnabled ||
             constraint.startSegmentA !== constraint._lastStartSegmentA ||
@@ -9160,17 +6631,27 @@ export class EndovascularPhysicsWorld {
             constraint.startSegmentB !== constraint._lastStartSegmentB ||
             constraint.endSegmentB !== constraint._lastEndSegmentB
         ) {
-            constraint.lambdas.fill(0);
+            // In a joint trial, range/enable changes retire the old reaction
+            // through the common solve. Only the independent reference path
+            // retains its separate per-range reset convention.
+            if (!collectRows) constraint.lambdas.fill(0);
             constraint._lastEnabled = constraint.enabled;
             constraint._lastStartSegmentA = constraint.startSegmentA;
             constraint._lastEndSegmentA = constraint.endSegmentA;
             constraint._lastStartSegmentB = constraint.startSegmentB;
             constraint._lastEndSegmentB = constraint.endSegmentB;
         }
-        if (!constraint.enabled) return;
+        const retireUnlisted = collectRows ? seen => {
+            for (const [index] of constraint._jointReactions ?? []) if (!seen?.has(index))
+                appendKirchhoffToolRelease(jointConstraint, constraint, index, collectRows, 'outside-tool-window');
+        } : null;
+        if (!constraint.enabled) { retireUnlisted?.(); return; }
         const a = constraint.bodyA;
         const b = constraint.bodyB;
-        if (a.sleeping && b.sleeping) return;
+        if (collectRows && (constraint.endSegmentA < constraint.startSegmentA || constraint.endSegmentB < constraint.startSegmentB)) {
+            retireUnlisted(); return;
+        }
+        if (a.sleeping && b.sleeping && !collectRows) return;
         if (a.sleeping) a.wake();
         if (b.sleeping) b.wake();
         const alpha = constraint.compliance / (this.fixedDt * this.fixedDt);
@@ -9178,6 +6659,8 @@ export class EndovascularPhysicsWorld {
         const aEnd = clamp(constraint.endSegmentA, aStart, Math.min(a.activeEnd - 1, a.segmentCount - 1));
         const bStart = clamp(constraint.startSegmentB, b.activeStart, b.segmentCount - 1);
         const bEnd = clamp(constraint.endSegmentB, bStart, Math.min(b.activeEnd - 1, b.segmentCount - 1));
+        const seen = collectRows ? new Set() : null;
+        const branch = collectRows ? locateKirchhoffDistalLumenBranch(jointConstraint) : null;
         for (let ia = aStart; ia <= aEnd; ia++) {
             for (let ib = bStart; ib <= bEnd; ib++) {
                 const closest = this.#closestSegmentParameters(a, ia, b, ib, this._segmentParameters);
@@ -9187,15 +6670,24 @@ export class EndovascularPhysicsWorld {
                 const bx = b.x[ib] + (b.x[ib + 1] - b.x[ib]) * closest.t;
                 const by = b.y[ib] + (b.y[ib + 1] - b.y[ib]) * closest.t;
                 const bz = b.z[ib] + (b.z[ib + 1] - b.z[ib]) * closest.t;
-                if (constraint.openDistalB && ib === bEnd && closest.t >= 1 - 1e-5) {
-                    const endDx = b.x[bEnd + 1] - b.x[bEnd];
-                    const endDy = b.y[bEnd + 1] - b.y[bEnd];
-                    const endDz = b.z[bEnd + 1] - b.z[bEnd];
+                const lambdaIndex = ia * b.segmentCount + ib;
+                seen?.add(lambdaIndex);
+                let releaseReason = collectRows && constraint._jointReactions?.get(lambdaIndex)?.retiring ? 'pending-release' : null;
+                if (collectRows && isKirchhoffDistalLumenWitness(jointConstraint, constraint,
+                    ia, ib, closest.s, ax, ay, az, branch)) releaseReason = 'lumen-ownership';
+                if (constraint.openDistalB && ib === (collectRows ? b.activeEnd - 1 : bEnd) && closest.t >= 1 - 1e-5) {
+                    const endDx = b.x[ib + 1] - b.x[ib];
+                    const endDy = b.y[ib + 1] - b.y[ib];
+                    const endDz = b.z[ib + 1] - b.z[ib];
                     const beyond =
-                        (ax - b.x[bEnd + 1]) * endDx +
-                        (ay - b.y[bEnd + 1]) * endDy +
-                        (az - b.z[bEnd + 1]) * endDz;
-                    if (beyond > 0) continue;
+                        (ax - b.x[ib + 1]) * endDx +
+                        (ay - b.y[ib + 1]) * endDy +
+                        (az - b.z[ib + 1]) * endDz;
+                    if (beyond > 0) releaseReason ??= 'open-distal';
+                }
+                if (releaseReason) {
+                    if (collectRows) appendKirchhoffToolRelease(jointConstraint, constraint, lambdaIndex, collectRows, releaseReason);
+                    continue;
                 }
                 let nx = ax - bx;
                 let ny = ay - by;
@@ -9203,10 +6695,21 @@ export class EndovascularPhysicsWorld {
                 const distance = magnitude3(nx, ny, nz);
                 const minimum = Math.max(a.nodeRadius[ia], a.nodeRadius[ia + 1]) +
                     Math.max(b.nodeRadius[ib], b.nodeRadius[ib + 1]);
-                if (distance >= minimum || distance < EPSILON) continue;
-                nx /= distance;
-                ny /= distance;
-                nz /= distance;
+                let normalLength = distance;
+                if (distance < EPSILON) {
+                    if (!collectRows || !hasKirchhoffToolReaction(jointConstraint, constraint, lambdaIndex)) continue;
+                    // Coincident axes do not retire a real external contact.
+                    // Its previous normal is an admissible one-sided branch.
+                    const previous = constraint._jointBoundaryRows?.get(lambdaIndex)?.normal;
+                    if (!previous || !(Math.hypot(...previous) > 0))
+                        throw new Error('Loaded coincident tool contact has no retained normal');
+                    [nx, ny, nz] = previous; normalLength = Math.hypot(nx, ny, nz);
+                }
+                if (distance >= minimum && (!collectRows ||
+                    (distance > minimum + this.contactActivation && !hasKirchhoffToolReaction(jointConstraint, constraint, lambdaIndex)))) continue;
+                nx /= normalLength;
+                ny /= normalLength;
+                nz /= normalLength;
                 const aw0 = 1 - closest.s;
                 const aw1 = closest.s;
                 const bw0 = 1 - closest.t;
@@ -9216,9 +6719,42 @@ export class EndovascularPhysicsWorld {
                 const wb0 = b.inverseMass[ib] * bw0 * bw0;
                 const wb1 = b.inverseMass[ib + 1] * bw1 * bw1;
                 const denominator = wa0 + wa1 + wb0 + wb1 + alpha;
-                if (denominator < EPSILON) continue;
-                const lambdaIndex = ia * b.segmentCount + ib;
+                if (denominator < EPSILON && !collectRows) continue;
                 const c = distance - minimum;
+                if (collectRows) {
+                    const cache = constraint._jointBoundaryRows ??= new Map();
+                    let row = cache.get(lambdaIndex);
+                    if (!row) {
+                        row = { kind: 'tool', gradients: Array.from({ length: 12 }, () => ({})),
+                            owner: constraint, node: lambdaIndex, lower: 0, upper: Infinity };
+                        cache.set(lambdaIndex, row);
+                    }
+                    row.strain = c; row.alpha = alpha; row.lambda = constraint.lambdas[lambdaIndex];
+                    row.segmentA = ia; row.segmentB = ib;
+                    row.bodyA = a; row.bodyB = b;
+                    row.tA = closest.s; row.tB = closest.t;
+                    row.distance = distance;
+                    row.normal ??= new Float64Array(3);
+                    row.normal[0] = nx; row.normal[1] = ny; row.normal[2] = nz;
+                    row.bodyA = a; row.bodyB = b;
+                    let cursor = 0;
+                    for (let sideIndex = 0; sideIndex < 2; sideIndex++) {
+                        const body = sideIndex === 0 ? a : b;
+                        const side = body === jointConstraint.innerBody ? 0 : 1;
+                        const segment = sideIndex === 0 ? ia : ib;
+                        const weight0 = sideIndex === 0 ? aw0 : bw0, weight1 = sideIndex === 0 ? aw1 : bw1;
+                        const sign = sideIndex === 0 ? 1 : -1;
+                        for (let endpoint = 0; endpoint < 2; endpoint++) for (let axis = 0; axis < 3; axis++) {
+                            const g = row.gradients[cursor++];
+                            g.side = side; g.dof = (segment + endpoint) * 6 + axis;
+                            g.value = sign * (endpoint ? weight1 : weight0) * (axis === 0 ? nx : axis === 1 ? ny : nz);
+                        }
+                    }
+                    row.reactionWrenches = captureKirchhoffToolReaction(jointConstraint, row.gradients, row.reactionWrenches);
+                    collectRows.push(row);
+                    continue;
+                }
+
                 let deltaLambda = (-c - alpha * constraint.lambdas[lambdaIndex]) / denominator;
                 const nextLambda = Math.max(0, constraint.lambdas[lambdaIndex] + deltaLambda);
                 deltaLambda = nextLambda - constraint.lambdas[lambdaIndex];
@@ -9296,6 +6832,7 @@ export class EndovascularPhysicsWorld {
                 }
             }
         }
+        retireUnlisted?.(seen);
     }
 
     #closestSegmentParameters(a, ia, b, ib, out) {
@@ -9498,144 +7035,22 @@ export class EndovascularPhysicsWorld {
         }
     }
 
-    #solveDistributedWallContacts(body) {
-        if (body.sleeping) return;
-        const correctionX = body.wallCorrectionX;
-        const correctionY = body.wallCorrectionY;
-        const correctionZ = body.wallCorrectionZ;
-        const correctionWeight = body.wallCorrectionWeight;
-        correctionX.fill(0);
-        correctionY.fill(0);
-        correctionZ.fill(0);
-        correctionWeight.fill(0);
-        const start = Math.max(0, body.activeStart, body.collisionStartSegment);
-        const end = Math.min(body.activeEnd, body.collisionEndSegment + 1, body.segmentCount);
-
-        for (let index = start; index < end; index++) {
-            if (!body.wallActive[index]) continue;
-            const t = body.wallT[index];
-            const px = body.x[index] + (body.x[index + 1] - body.x[index]) * t;
-            const py = body.y[index] + (body.y[index + 1] - body.y[index]) * t;
-            const pz = body.z[index] + (body.z[index + 1] - body.z[index]) * t;
-            const nx = body.wallNormalX[index];
-            const ny = body.wallNormalY[index];
-            const nz = body.wallNormalZ[index];
-            const radius = Math.max(body.nodeRadius[index], body.nodeRadius[index + 1]);
-            const penetration = Math.max(0, WALL_SETTLING_CLEARANCE + radius - (
-                (px - body.wallX[index]) * nx +
-                (py - body.wallY[index]) * ny +
-                (pz - body.wallZ[index]) * nz
-            ));
-            if (penetration <= 0.02) continue;
-
-            const nominalLength = Math.max(0.5, body.segmentLength);
-            const span = clamp(Math.ceil(penetration / (nominalLength * 0.02)), 4, 32);
-            const contactNode = index + t;
-            const firstNode = Math.max(body.activeStart, Math.floor(contactNode - span));
-            const lastNode = Math.min(body.activeEnd, Math.ceil(contactNode + span));
-            for (let node = firstNode; node <= lastNode; node++) {
-                if (body.inverseMass[node] <= 0) continue;
-                const weight = Math.max(0, 1 - Math.abs(node - contactNode) / (span + 0.5));
-                correctionX[node] += nx * penetration * weight;
-                correctionY[node] += ny * penetration * weight;
-                correctionZ[node] += nz * penetration * weight;
-                correctionWeight[node] += weight;
-            }
-        }
-
-        for (let node = body.activeStart; node <= body.activeEnd; node++) {
-            const weight = correctionWeight[node];
-            if (weight > EPSILON) {
-                correctionX[node] /= weight;
-                correctionY[node] /= weight;
-                correctionZ[node] /= weight;
-            }
-        }
-
-        // Project the correction field itself before applying it. This spreads
-        // incompatible normals around bends while bounding the extra strain
-        // introduced by each wall pass.
-        for (let sweep = 0; sweep < 28; sweep++) {
-            let changed = false;
-            const reverse = (sweep & 1) === 1;
-            for (
-                let segment = reverse ? body.activeEnd - 1 : body.activeStart;
-                reverse ? segment >= body.activeStart : segment < body.activeEnd;
-                segment += reverse ? -1 : 1
-            ) {
-                const next = segment + 1;
-                const dx = correctionX[next] - correctionX[segment];
-                const dy = correctionY[next] - correctionY[segment];
-                const dz = correctionZ[next] - correctionZ[segment];
-                const distanceSq = dx * dx + dy * dy + dz * dz;
-                const limit = Math.max(1e-5, body.restLength[segment] * 0.02);
-                if (distanceSq <= limit * limit) continue;
-                const distance = Math.sqrt(distanceSq);
-                const w0 = body.inverseMass[segment];
-                const w1 = body.inverseMass[next];
-                const totalWeight = w0 + w1;
-                if (totalWeight <= EPSILON) continue;
-                const excessScale = (distance - limit) / distance;
-                const scale0 = excessScale * w0 / totalWeight;
-                const scale1 = excessScale * w1 / totalWeight;
-                correctionX[segment] += dx * scale0;
-                correctionY[segment] += dy * scale0;
-                correctionZ[segment] += dz * scale0;
-                correctionX[next] -= dx * scale1;
-                correctionY[next] -= dy * scale1;
-                correctionZ[next] -= dz * scale1;
-                changed = true;
-            }
-            if (!changed) break;
-        }
-
-        for (let node = body.activeStart; node <= body.activeEnd; node++) {
-            body.x[node] += correctionX[node];
-            body.y[node] += correctionY[node];
-            body.z[node] += correctionZ[node];
-        }
-
-        // A capsule contact exactly at the free distal endpoint cannot be
-        // resolved by translating the whole stiff shaft. Finish that one
-        // degree of freedom directly; the following substep redistributes the
-        // tiny length change through the deliberately soft terminal section.
-        const terminalSegment = Math.min(end - 1, body.activeEnd - 1);
-        if (
-            terminalSegment >= start &&
-            body.wallActive[terminalSegment] &&
-            body.wallT[terminalSegment] > 0.75 &&
-            body.inverseMass[terminalSegment + 1] > 0
-        ) {
-            const t = body.wallT[terminalSegment];
-            const px = body.x[terminalSegment] +
-                (body.x[terminalSegment + 1] - body.x[terminalSegment]) * t;
-            const py = body.y[terminalSegment] +
-                (body.y[terminalSegment + 1] - body.y[terminalSegment]) * t;
-            const pz = body.z[terminalSegment] +
-                (body.z[terminalSegment + 1] - body.z[terminalSegment]) * t;
-            const nx = body.wallNormalX[terminalSegment];
-            const ny = body.wallNormalY[terminalSegment];
-            const nz = body.wallNormalZ[terminalSegment];
-            const radius = Math.max(
-                body.nodeRadius[terminalSegment],
-                body.nodeRadius[terminalSegment + 1]
-            );
-            const penetration = Math.max(0, WALL_SETTLING_CLEARANCE + radius - (
-                (px - body.wallX[terminalSegment]) * nx +
-                (py - body.wallY[terminalSegment]) * ny +
-                (pz - body.wallZ[terminalSegment]) * nz
-            ));
-            if (penetration > 0) {
-                const correction = penetration / t;
-                body.x[terminalSegment + 1] += nx * correction;
-                body.y[terminalSegment + 1] += ny * correction;
-                body.z[terminalSegment + 1] += nz * correction;
-            }
-        }
-    }
-
     #updateVelocityAndFriction(body) {
         if (body.sleeping) return;
+        if (copyKirchhoffSplitVelocity(body)) {
+            body.lastMaximumReconstructedSpeed = 0;
+            let angular = 0;
+            for (let i = body.activeStart; i <= body.activeEnd; i++) {
+                body.lastMaximumReconstructedSpeed = Math.max(body.lastMaximumReconstructedSpeed,
+                    Math.hypot(body.velocityX[i], body.velocityY[i], body.velocityZ[i]));
+                if (i < body.activeEnd) angular = Math.max(angular,
+                    Math.hypot(body.angularVelocityX[i], body.angularVelocityY[i], body.angularVelocityZ[i]));
+            }
+            if (body.lastMaximumReconstructedSpeed < body.sleepVelocity && angular < body.sleepAngularVelocity &&
+                body.settledMaxPenetration < body.sleepPenetration && this.lastCoupledClosureConverged) body.sleepCounter++;
+            else body.sleepCounter = 0;
+            return;
+        }
         const inverseDt = 1 / this.fixedDt;
         let maxSpeed = 0;
         let maxAngularSpeed = 0;
@@ -9819,7 +7234,7 @@ export class EndovascularPhysicsWorld {
                 const tangentY = dy - ny * normalMotion;
                 const tangentZ = dz - nz * normalMotion;
                 const tangentLength = magnitude3(tangentX, tangentY, tangentZ);
-                if (staticFrictionBudget > 0 && tangentLength > EPSILON) {
+                if (!body._wallWitnessFrictionSolved && staticFrictionBudget > 0 && tangentLength > EPSILON) {
                     // Coulomb stick/slip: static friction may cancel the full
                     // tangential trial motion. Once that cone is exceeded,
                     // only the lower kinetic budget opposes sliding.
@@ -9851,7 +7266,7 @@ export class EndovascularPhysicsWorld {
             );
             maxSpeed = Math.max(maxSpeed, reconstructedSpeed);
         }
-        if (body.rodModel === 'kirchhoff') {
+        {
             const scratch = body.kirchhoffScratch.velocity;
             const segmentStart = Math.max(0, body.activeStart);
             const segmentEnd = Math.min(body.segmentCount, body.activeEnd);
@@ -9905,18 +7320,16 @@ export class EndovascularPhysicsWorld {
             maxSpeed < body.sleepVelocity &&
             maxAngularSpeed < body.sleepAngularVelocity &&
             body.settledMaxPenetration < body.sleepPenetration &&
-            !this.#hasRestDirectionErrorOver(body, 0.05)
+            (!['joint', 'joint-components'].includes(this.lastCoupledSolver) || this.lastCoupledClosureConverged)
         ) body.sleepCounter++;
         else body.sleepCounter = 0;
-        if (body.sleepCounter >= body.sleepFrames) {
-            body.sleeping = true;
-            body.velocityX.fill(0);
-            body.velocityY.fill(0);
-            body.velocityZ.fill(0);
-            body.angularVelocityX.fill(0);
-            body.angularVelocityY.fill(0);
-            body.angularVelocityZ.fill(0);
-        }
+        if (body.sleepCounter >= body.sleepFrames && this.lastCoupledSolver !== 'joint') this.#sleepBody(body);
+    }
+
+    #sleepBody(body) {
+        body.sleeping = true;
+        body.velocityX.fill(0); body.velocityY.fill(0); body.velocityZ.fill(0);
+        body.angularVelocityX.fill(0); body.angularVelocityY.fill(0); body.angularVelocityZ.fill(0);
     }
 
     #limitVelocity(body) {
@@ -9957,83 +7370,11 @@ export class EndovascularPhysicsWorld {
     }
 
     #stabilizeContainmentVelocity(constraint) {
-        if (constraint.model === 'kirchhoff') {
+        {
             this.#stabilizeKirchhoffContainmentVelocity(constraint);
             return;
         }
-        if (!constraint.enabled || constraint.outerFollowsInnerCenterline) return;
-        const inner = constraint.innerBody;
-        const outer = constraint.outerBody;
-        const allowedRadius = Math.max(0, constraint.innerRadius - inner.radius);
-        const innerStart = clamp(constraint.startNode, inner.activeStart, inner.activeEnd);
-        const innerEnd = clamp(constraint.endNode, innerStart, inner.activeEnd);
-        const outerStart = clamp(constraint.outerStartNode, outer.activeStart, outer.activeEnd);
-        const outerEnd = Math.min(outer.activeEnd, outer.segmentCount);
-        for (let innerIndex = innerStart; innerIndex <= innerEnd; innerIndex++) {
-            const segment = constraint.closestSegment[innerIndex];
-            if (segment < outerStart || segment >= outerEnd) continue;
-            const ax = outer.x[segment];
-            const ay = outer.y[segment];
-            const az = outer.z[segment];
-            const dx = outer.x[segment + 1] - ax;
-            const dy = outer.y[segment + 1] - ay;
-            const dz = outer.z[segment + 1] - az;
-            const lengthSq = dx * dx + dy * dy + dz * dz;
-            const t = clamp(
-                ((inner.x[innerIndex] - ax) * dx +
-                    (inner.y[innerIndex] - ay) * dy +
-                    (inner.z[innerIndex] - az) * dz) /
-                    Math.max(EPSILON, lengthSq),
-                0,
-                1
-            );
-            const radialX = inner.x[innerIndex] - (ax + dx * t);
-            const radialY = inner.y[innerIndex] - (ay + dy * t);
-            const radialZ = inner.z[innerIndex] - (az + dz * t);
-            const distance = magnitude3(radialX, radialY, radialZ);
-            if (
-                distance < EPSILON ||
-                (distance < allowedRadius - 0.01 && constraint.lambdas[innerIndex] <= EPSILON)
-            ) {
-                continue;
-            }
-            const nx = radialX / distance;
-            const ny = radialY / distance;
-            const nz = radialZ / distance;
-            const w0 = 1 - t;
-            const w1 = t;
-            const relativeX = inner.velocityX[innerIndex] -
-                outer.velocityX[segment] * w0 - outer.velocityX[segment + 1] * w1;
-            const relativeY = inner.velocityY[innerIndex] -
-                outer.velocityY[segment] * w0 - outer.velocityY[segment + 1] * w1;
-            const relativeZ = inner.velocityZ[innerIndex] -
-                outer.velocityZ[segment] * w0 - outer.velocityZ[segment + 1] * w1;
-            const outwardVelocity = relativeX * nx + relativeY * ny + relativeZ * nz;
-            if (outwardVelocity <= 0) continue;
-            const innerWeight = inner.inverseMass[innerIndex] * constraint.innerResponse;
-            const outerWeight0 =
-                outer.inverseMass[segment] * constraint.outerResponse * w0 * w0;
-            const outerWeight1 =
-                outer.inverseMass[segment + 1] * constraint.outerResponse * w1 * w1;
-            const denominator = innerWeight + outerWeight0 + outerWeight1;
-            if (denominator < EPSILON) continue;
-            const impulse = outwardVelocity / denominator;
-            inner.velocityX[innerIndex] -= nx * impulse * innerWeight;
-            inner.velocityY[innerIndex] -= ny * impulse * innerWeight;
-            inner.velocityZ[innerIndex] -= nz * impulse * innerWeight;
-            outer.velocityX[segment] +=
-                nx * impulse * outer.inverseMass[segment] * constraint.outerResponse * w0;
-            outer.velocityY[segment] +=
-                ny * impulse * outer.inverseMass[segment] * constraint.outerResponse * w0;
-            outer.velocityZ[segment] +=
-                nz * impulse * outer.inverseMass[segment] * constraint.outerResponse * w0;
-            outer.velocityX[segment + 1] +=
-                nx * impulse * outer.inverseMass[segment + 1] * constraint.outerResponse * w1;
-            outer.velocityY[segment + 1] +=
-                ny * impulse * outer.inverseMass[segment + 1] * constraint.outerResponse * w1;
-            outer.velocityZ[segment + 1] +=
-                nz * impulse * outer.inverseMass[segment + 1] * constraint.outerResponse * w1;
-        }
+
     }
 
     #stabilizeKirchhoffContainmentVelocity(constraint) {
@@ -10045,11 +7386,7 @@ export class EndovascularPhysicsWorld {
             inner,
             outer
         );
-        this.#stabilizeKirchhoffMaterialPortalVelocity(
-            constraint,
-            inner,
-            outer
-        );
+
         for (const record of constraint.kirchhoffContacts) {
             const contact = record?.manifoldContact;
             if (!contact) continue;
@@ -10115,186 +7452,6 @@ export class EndovascularPhysicsWorld {
             }
         }
         this.#dampKirchhoffCoupledBendingRates(constraint, inner, outer);
-        this.#dampKirchhoffFreeDistalVelocity(constraint, inner, outer);
-    }
-
-    #dampKirchhoffFreeDistalVelocity(constraint, inner, outer) {
-        // Blood drag on the unsupported wire acts on motion relative to the
-        // catheter mouth. Apply it only after operator transport has stopped;
-        // the solo wire and every active feed/withdrawal step keep their
-        // existing dynamics. A smooth onset avoids a velocity hinge at the
-        // material boundary while damping the free-span mode that the local
-        // lumen bending-rate filter cannot see.
-        if (outer.projectionVelocityRetention >= 0.5) return;
-        const firstFreeNode = clamp(
-            (constraint.materialPortalInnerSegment ?? constraint.endNode) + 1,
-            inner.activeStart,
-            inner.activeEnd
-        );
-        if (firstFreeNode >= inner.activeEnd) return;
-        const damping = 0.35;
-        const transitionNodes = 8;
-        const referenceX = outer.velocityX[outer.activeEnd];
-        const referenceY = outer.velocityY[outer.activeEnd];
-        const referenceZ = outer.velocityZ[outer.activeEnd];
-        for (let node = firstFreeNode; node <= inner.activeEnd; node++) {
-            const ratio = clamp(
-                (node - firstFreeNode + 1) / transitionNodes,
-                0,
-                1
-            );
-            const taper = ratio * ratio * (3 - 2 * ratio);
-            const retained = 1 - damping * taper;
-            inner.velocityX[node] = referenceX +
-                (inner.velocityX[node] - referenceX) * retained;
-            inner.velocityY[node] = referenceY +
-                (inner.velocityY[node] - referenceY) * retained;
-            inner.velocityZ[node] = referenceZ +
-                (inner.velocityZ[node] - referenceZ) * retained;
-        }
-    }
-
-    #stabilizeKirchhoffMaterialPortalVelocity(constraint, inner, outer) {
-        const innerSegment = constraint.materialPortalInnerSegment ?? -1;
-        if (
-            innerSegment < inner.activeStart ||
-            innerSegment >= inner.activeEnd ||
-            outer.activeEnd <= outer.activeStart
-        ) return;
-        const innerT = clamp(constraint.materialPortalInnerT ?? 0, 0, 1);
-        const activation = clamp(
-            constraint.materialPortalActivation ?? 0,
-            0,
-            1
-        );
-        if (activation <= EPSILON) return;
-        const outerTip = outer.activeEnd;
-        let axisX = outer.x[outerTip] - outer.x[outerTip - 1];
-        let axisY = outer.y[outerTip] - outer.y[outerTip - 1];
-        let axisZ = outer.z[outerTip] - outer.z[outerTip - 1];
-        const axisLength = magnitude3(axisX, axisY, axisZ);
-        if (axisLength <= EPSILON) return;
-        axisX /= axisLength;
-        axisY /= axisLength;
-        axisZ /= axisLength;
-        const weight0 = 1 - innerT;
-        const weight1 = innerT;
-        const material0 = inner.materialCoordinate?.[innerSegment] ??
-            innerSegment * inner.segmentLength;
-        const material1 = inner.materialCoordinate?.[innerSegment + 1] ??
-            (innerSegment + 1) * inner.segmentLength;
-        const materialSpan = material1 - material0;
-        const currentMaterialCoordinate =
-            constraint.materialPortalCoordinate;
-        const previousMaterialCoordinate =
-            constraint.materialPortalPreviousCoordinate;
-        const materialCoordinateRate =
-            Number.isFinite(currentMaterialCoordinate) &&
-            Number.isFinite(previousMaterialCoordinate)
-                ? (currentMaterialCoordinate - previousMaterialCoordinate) /
-                    this.fixedDt
-                : 0;
-        // d x(s(t), t) / dt = sum(N_i v_i) + x_s * s_dot.
-        // Omitting the second term locks the currently sampled mesh nodes to
-        // the catheter tip and releases them as an impulse whenever the
-        // material boundary crosses into the adjacent segment.
-        const inverseMaterialSpan = Math.abs(materialSpan) > EPSILON
-            ? 1 / materialSpan
-            : 0;
-        const convectiveX = (
-            inner.x[innerSegment + 1] - inner.x[innerSegment]
-        ) * inverseMaterialSpan * materialCoordinateRate;
-        const convectiveY = (
-            inner.y[innerSegment + 1] - inner.y[innerSegment]
-        ) * inverseMaterialSpan * materialCoordinateRate;
-        const convectiveZ = (
-            inner.z[innerSegment + 1] - inner.z[innerSegment]
-        ) * inverseMaterialSpan * materialCoordinateRate;
-        const innerResponse = constraint.portalInnerResponse;
-        const outerResponse = constraint.portalOuterResponse;
-        const denominator = (
-            inner.inverseMass[innerSegment] * innerResponse * weight0 * weight0 +
-            inner.inverseMass[innerSegment + 1] * innerResponse * weight1 * weight1 +
-            outer.inverseMass[outerTip] * outerResponse
-        ) * activation * activation;
-        if (denominator <= EPSILON) return;
-        let relativeX =
-            inner.velocityX[innerSegment] * weight0 +
-            inner.velocityX[innerSegment + 1] * weight1 -
-            outer.velocityX[outerTip] + convectiveX;
-        let relativeY =
-            inner.velocityY[innerSegment] * weight0 +
-            inner.velocityY[innerSegment + 1] * weight1 -
-            outer.velocityY[outerTip] + convectiveY;
-        let relativeZ =
-            inner.velocityZ[innerSegment] * weight0 +
-            inner.velocityZ[innerSegment + 1] * weight1 -
-            outer.velocityZ[outerTip] + convectiveZ;
-        const applyVelocityImpulse = (normalX, normalY, normalZ, speed) => {
-            if (Math.abs(speed) <= EPSILON) return;
-            const impulse = speed * activation / denominator;
-            const innerScale0 = inner.inverseMass[innerSegment] *
-                innerResponse * weight0 * activation * impulse;
-            const innerScale1 = inner.inverseMass[innerSegment + 1] *
-                innerResponse * weight1 * activation * impulse;
-            const outerScale = outer.inverseMass[outerTip] *
-                outerResponse * activation * impulse;
-            inner.velocityX[innerSegment] -= normalX * innerScale0;
-            inner.velocityY[innerSegment] -= normalY * innerScale0;
-            inner.velocityZ[innerSegment] -= normalZ * innerScale0;
-            inner.velocityX[innerSegment + 1] -= normalX * innerScale1;
-            inner.velocityY[innerSegment + 1] -= normalY * innerScale1;
-            inner.velocityZ[innerSegment + 1] -= normalZ * innerScale1;
-            outer.velocityX[outerTip] += normalX * outerScale;
-            outer.velocityY[outerTip] += normalY * outerScale;
-            outer.velocityZ[outerTip] += normalZ * outerScale;
-        };
-        const axialSpeed = relativeX * axisX +
-            relativeY * axisY + relativeZ * axisZ;
-        applyVelocityImpulse(axisX, axisY, axisZ, axialSpeed);
-
-        const pointX = inner.x[innerSegment] * weight0 +
-            inner.x[innerSegment + 1] * weight1;
-        const pointY = inner.y[innerSegment] * weight0 +
-            inner.y[innerSegment + 1] * weight1;
-        const pointZ = inner.z[innerSegment] * weight0 +
-            inner.z[innerSegment + 1] * weight1;
-        const offsetX = pointX - outer.x[outerTip];
-        const offsetY = pointY - outer.y[outerTip];
-        const offsetZ = pointZ - outer.z[outerTip];
-        const axialOffset = offsetX * axisX +
-            offsetY * axisY + offsetZ * axisZ;
-        const radialX = offsetX - axisX * axialOffset;
-        const radialY = offsetY - axisY * axialOffset;
-        const radialZ = offsetZ - axisZ * axialOffset;
-        const radialDistance = magnitude3(radialX, radialY, radialZ);
-        if (radialDistance <= EPSILON) return;
-        const normalX = radialX / radialDistance;
-        const normalY = radialY / radialDistance;
-        const normalZ = radialZ / radialDistance;
-        // Recompute after the axial impulse because it changed both endpoint
-        // velocities. The aperture is unilateral: inward release remains
-        // untouched while outward separation is removed without restitution.
-        relativeX =
-            inner.velocityX[innerSegment] * weight0 +
-            inner.velocityX[innerSegment + 1] * weight1 -
-            outer.velocityX[outerTip] + convectiveX;
-        relativeY =
-            inner.velocityY[innerSegment] * weight0 +
-            inner.velocityY[innerSegment + 1] * weight1 -
-            outer.velocityY[outerTip] + convectiveY;
-        relativeZ =
-            inner.velocityZ[innerSegment] * weight0 +
-            inner.velocityZ[innerSegment + 1] * weight1 -
-            outer.velocityZ[outerTip] + convectiveZ;
-        const outwardSpeed = relativeX * normalX +
-            relativeY * normalY + relativeZ * normalZ;
-        if (
-            outwardSpeed > EPSILON &&
-            constraint.materialPortalRadialLambda < -EPSILON
-        ) {
-            applyVelocityImpulse(normalX, normalY, normalZ, outwardSpeed);
-        }
     }
 
     #dampKirchhoffCoupledBendingRates(constraint, inner, outer) {
@@ -10547,34 +7704,6 @@ export class EndovascularPhysicsWorld {
         }
     }
 
-    #stabilizeBendingVelocity(body) {
-        if (body.rodModel === 'kirchhoff') return;
-        if (body.sleeping || body.bendDamping <= 0 || body.count < 3) return;
-        const start = Math.max(1, body.activeStart + 1);
-        const end = Math.min(body.count - 1, body.activeEnd);
-        for (let index = start; index < end; index++) {
-            if (body.inverseMass[index] <= 0) continue;
-            const tangentX = body.x[index + 1] - body.x[index - 1];
-            const tangentY = body.y[index + 1] - body.y[index - 1];
-            const tangentZ = body.z[index + 1] - body.z[index - 1];
-            const tangentLength = magnitude3(tangentX, tangentY, tangentZ);
-            if (tangentLength < EPSILON) continue;
-            const tx = tangentX / tangentLength;
-            const ty = tangentY / tangentLength;
-            const tz = tangentZ / tangentLength;
-            const averageX = (body.velocityX[index - 1] + body.velocityX[index + 1]) * 0.5;
-            const averageY = (body.velocityY[index - 1] + body.velocityY[index + 1]) * 0.5;
-            const averageZ = (body.velocityZ[index - 1] + body.velocityZ[index + 1]) * 0.5;
-            const relativeX = body.velocityX[index] - averageX;
-            const relativeY = body.velocityY[index] - averageY;
-            const relativeZ = body.velocityZ[index] - averageZ;
-            const axial = relativeX * tx + relativeY * ty + relativeZ * tz;
-            body.velocityX[index] -= (relativeX - tx * axial) * body.bendDamping;
-            body.velocityY[index] -= (relativeY - ty * axial) * body.bendDamping;
-            body.velocityZ[index] -= (relativeZ - tz * axial) * body.bendDamping;
-        }
-    }
-
     #stabilizeToolContactVelocity(constraint) {
         if (!constraint.enabled) return;
         const a = constraint.bodyA;
@@ -10649,14 +7778,6 @@ export class EndovascularPhysicsWorld {
         let maxBendLimitDegrees = 0;
         let maxSpeed = 0;
         let kineticEnergy = 0;
-        let maxMaterialTurnError = 0;
-        let materialTurnErrorSquared = 0;
-        let maxMaterialTurnResidual = 0;
-        let maxMaterialTurnResidualNode = -1;
-        let maxMaterialActualTurn = 0;
-        let maxMaterialTargetTurn = 0;
-        let materialTurnResidualSquared = 0;
-        let materialTurnCount = 0;
         let activeWallContacts = 0;
         let currentNormalLoad = 0;
         let retainedFrictionLoad = 0;
@@ -10698,101 +7819,6 @@ export class EndovascularPhysicsWorld {
                     maxBendLimitDegrees = body.maxBendAngleByNode[index];
                 }
             }
-            if (body.restDirectionEnabled[index] && body.restDirectionRelative[index]) {
-                let incomingX = ax;
-                let incomingY = ay;
-                let incomingZ = az;
-                let outgoingX = bx;
-                let outgoingY = by;
-                let outgoingZ = bz;
-                const incomingLength = magnitude3(incomingX, incomingY, incomingZ);
-                const outgoingLength = magnitude3(outgoingX, outgoingY, outgoingZ);
-                if (incomingLength > EPSILON && outgoingLength > EPSILON) {
-                    incomingX /= incomingLength;
-                    incomingY /= incomingLength;
-                    incomingZ /= incomingLength;
-                    outgoingX /= outgoingLength;
-                    outgoingY /= outgoingLength;
-                    outgoingZ /= outgoingLength;
-                    const axisX = body.restDirectionAxisX[index];
-                    const axisY = body.restDirectionAxisY[index];
-                    const axisZ = body.restDirectionAxisZ[index];
-                    const incomingAxial =
-                        incomingX * axisX + incomingY * axisY + incomingZ * axisZ;
-                    const outgoingAxial =
-                        outgoingX * axisX + outgoingY * axisY + outgoingZ * axisZ;
-                    incomingX -= axisX * incomingAxial;
-                    incomingY -= axisY * incomingAxial;
-                    incomingZ -= axisZ * incomingAxial;
-                    outgoingX -= axisX * outgoingAxial;
-                    outgoingY -= axisY * outgoingAxial;
-                    outgoingZ -= axisZ * outgoingAxial;
-                    const incomingPlanarLength = magnitude3(
-                        incomingX,
-                        incomingY,
-                        incomingZ
-                    );
-                    const outgoingPlanarLength = magnitude3(
-                        outgoingX,
-                        outgoingY,
-                        outgoingZ
-                    );
-                    if (incomingPlanarLength > EPSILON && outgoingPlanarLength > EPSILON) {
-                        incomingX /= incomingPlanarLength;
-                        incomingY /= incomingPlanarLength;
-                        incomingZ /= incomingPlanarLength;
-                        outgoingX /= outgoingPlanarLength;
-                        outgoingY /= outgoingPlanarLength;
-                        outgoingZ /= outgoingPlanarLength;
-                        const crossX = incomingY * outgoingZ - incomingZ * outgoingY;
-                        const crossY = incomingZ * outgoingX - incomingX * outgoingZ;
-                        const crossZ = incomingX * outgoingY - incomingY * outgoingX;
-                        const actualTurn = Math.atan2(
-                            axisX * crossX + axisY * crossY + axisZ * crossZ,
-                            clamp(
-                                incomingX * outgoingX +
-                                    incomingY * outgoingY +
-                                    incomingZ * outgoingZ,
-                                -1,
-                                1
-                            )
-                        );
-                        let signedTurnError = actualTurn -
-                            body.restDirectionTurnAngle[index];
-                        if (signedTurnError > Math.PI) signedTurnError -= Math.PI * 2;
-                        else if (signedTurnError < -Math.PI) signedTurnError += Math.PI * 2;
-                        const turnError = Math.abs(signedTurnError);
-                        const meanLength = Math.max(
-                            EPSILON,
-                            (incomingLength + outgoingLength) * 0.5
-                        );
-                        const angularAlpha = body.restDirectionCompliance[index] /
-                            (
-                                this.fixedDt * this.fixedDt *
-                                meanLength * meanLength
-                            );
-                        const turnResidual = Math.abs(
-                            signedTurnError +
-                            angularAlpha * body.restDirectionLambdaX[index]
-                        );
-                        maxMaterialTurnError = Math.max(
-                            maxMaterialTurnError,
-                            turnError
-                        );
-                        materialTurnErrorSquared += turnError * turnError;
-                        if (turnResidual > maxMaterialTurnResidual) {
-                            maxMaterialTurnResidual = turnResidual;
-                            maxMaterialTurnResidualNode = index;
-                            maxMaterialActualTurn = actualTurn;
-                            maxMaterialTargetTurn =
-                                body.restDirectionTurnAngle[index];
-                        }
-                        materialTurnResidualSquared +=
-                            turnResidual * turnResidual;
-                        materialTurnCount++;
-                    }
-                }
-            }
             if (body.wallActive[index]) {
                 activeWallContacts++;
                 currentNormalLoad += body.wallFrictionLambda[index];
@@ -10803,6 +7829,9 @@ export class EndovascularPhysicsWorld {
             id: body.id,
             sleeping: body.sleeping,
             constitutiveSolver: body.constitutiveSolver,
+            directFactorizations: body.kirchhoffScratch.direct?.factorizationCount ?? 0,
+            directFactorReuses: body.kirchhoffScratch.direct?.factorReuseCount ?? 0,
+
             finite,
             maxLengthError,
             maxBendAngleDegrees: maxBendAngle * 180 / Math.PI,
@@ -10832,22 +7861,7 @@ export class EndovascularPhysicsWorld {
             activeWallContacts,
             currentNormalLoad,
             retainedFrictionLoad,
-            maxMaterialTurnErrorDegrees: maxMaterialTurnError * 180 / Math.PI,
-            rmsMaterialTurnErrorDegrees: materialTurnCount > 0
-                ? Math.sqrt(materialTurnErrorSquared / materialTurnCount) *
-                    180 / Math.PI
-                : 0,
-            maxMaterialTurnResidualDegrees:
-                maxMaterialTurnResidual * 180 / Math.PI,
-            maxMaterialTurnResidualNode,
-            maxMaterialActualTurnDegrees:
-                maxMaterialActualTurn * 180 / Math.PI,
-            maxMaterialTargetTurnDegrees:
-                maxMaterialTargetTurn * 180 / Math.PI,
-            rmsMaterialTurnResidualDegrees: materialTurnCount > 0
-                ? Math.sqrt(materialTurnResidualSquared / materialTurnCount) *
-                    180 / Math.PI
-                : 0
+
         };
     }
 }

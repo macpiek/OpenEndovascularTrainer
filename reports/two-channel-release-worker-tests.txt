@@ -1,0 +1,49 @@
+✔ begin captures a separate predicted pose once and outer passes retain qP and time-start history (8.912125ms)
+✔ bias-only updates total geometry and beta without changing qP, physical velocity, or physical material lambda (0.728417ms)
+✔ physical displacement adds one impulse and leaves body qG and physical multipliers for root application (0.406792ms)
+✔ physical local angular correction is transported from current qG before left-multiplying the separate qP (0.857542ms)
+✔ common fractional scale applies separately to each physical and bias material channel exactly once (1.111958ms)
+✔ fresh material measurement returns C(qG)-C(qP)+alpha beta using unchanged finite compliance (1.88175ms)
+✔ hard-frame measurement preserves both posed frames, control targets, pose references and native mobility mask (1.058375ms)
+✔ a failing qP assembly restores body references and reconstructs current geometric scratch in finally (0.411166ms)
+✔ rejected combined trial restores qP, beta, physical motion, geometry and once-only receipts in place (2.491292ms)
+✔ native local material indexing is preserved for an active range starting after node zero (1.150625ms)
+✔ the reused split hook journals physical sheath increments without recording bias normals (0.282209ms)
+✔ an unconverged direction is rejected before qP, velocity or beta changes (0.19975ms)
+✔ actual two-channel solve and motion staging close both finite-compliance material equations at the final poses (14.996875ms)
+ℹ {"physicalPoseX":8.367552280433376,"geometryX":10,"physicalVelocityX":195.90099334805006,"betaMaterial":-161.61232423708825,"physicalResidual":{"adaptationMm":7.42496342187593e-14,"bendTwistRad":0},"biasResidual":{"adaptationMm":7.616129948928574e-14,"bendTwistRad":0},"alpha":0.0101010101010101}
+✔ native release keeps fractional old beta and applies its whole old-J response at the same common scale (12.78ms)
+✔ new witness starts with beta zero alongside the retained old force without shifting friction indices (3.068875ms)
+✔ rotated angular release preserves old world torque, current anisotropic mobility and full-system force balance (3.933833ms)
+✔ pending gate uses net generalized response, including cancellation and tiny multipliers with large mobility (2.316042ms)
+✔ whole trial rollback restores retirement, old canonical beta, owned arrays and applied receipts exactly (5.508083ms)
+✔ continuous transports telescope exactly through one reusable difference carrier without moving pose or velocity (1.725375ms)
+✔ native fractional difference release preserves force balance through a subsequent transport and snapshot retry (3.683291ms)
+✔ continuous angular transport retains world reaction across frame rotations, then semantic replacement fully retires both terms (2.377958ms)
+✔ missing force history, material/mobility changes and negative bias remain hard failures rather than releases (2.786166ms)
+✔ a force representation changed after frozen assembly cannot be committed using the old result (1.627084ms)
+✔ begin creates real independently owned banks without resetting physical arrays or history (6.054ms)
+✔ every runtime row gets its correct channel; compliance and raw geometry remain independent of physical strain (7.395ms)
+✔ untyped surface friction is classified only through its explicit group indices and never sees beta normal load (2.734458ms)
+✔ commits snapshot targets at the exact shared scale despite collector pool reuse and row reordering (1.5785ms)
+✔ missing loaded normals retain whole old reactions in release banks while missing controls remain unsupported (2.229708ms)
+✔ a manifold object rekey or changed material label cannot inherit a loaded beta (1.459834ms)
+✔ continuous material-foot changes preserve beta with explicit world-wrench difference releases (1.808084ms)
+✔ missing angular normal retains the old world wrench even after material frames rotate (1.133334ms)
+✔ zero-beta rows can vanish; a released reaction can vanish only after its negative increment was actually committed (0.861333ms)
+✔ fresh residuals use nonlinear raw geometry and vector control norms, including loaded separating normals (0.970208ms)
+✔ orientation uses the difference of native target-frame logs, measures freshly with null batch and leaves the solve batch untouched (2.829792ms)
+✔ commit prevalidation is atomic for scale mismatch, stale targets, invalid normals and foreign bias friction increments (0.860292ms)
+✔ native assembly detects a source equation or normal compliance changed after prepare (0.959666ms)
+✔ trial rollback restores all beta bytes, real bank references, target receipts and sheath reaction history (3.467ms)
+✔ sheath history journals the actual difference wrench rather than its unit carrier (1.608833ms)
+✔ native wall/material solve closes both channels and retains independent beta on the next outer pass (22.929542ms)
+ℹ {"geometryX":10,"physicalPoseX":8.367552280433378,"physicalVelocityX":195.9009933480502,"betaNormal":163.2447719566548,"physicalNormal":0}
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 771.805625

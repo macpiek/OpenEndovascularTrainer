@@ -1,0 +1,843 @@
+[
+  {
+    "name": "bias-only",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 2.9802322387695312e-8,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 8.940696716308594e-8,
+      "physicalKKTResidualMm": 0,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 2.9802322387695312e-8
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 2.9802322387695312e-8
+      },
+      "maximumOutwardContactVelocity": 0,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "sheath:0:0:0",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0,
+          "normalBias": 0.19999999381161346,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "sheath:0:0:1",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0,
+          "normalBias": 0.35000000887677307,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "sheath:0:0:2",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0,
+          "normalBias": 0.1999999938116135,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "rawGaps": [
+      0,
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0,
+        "startGap": -0.25,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0,
+        "startGap": -0.25,
+        "startAxial": 0
+      },
+      {
+        "node": 2,
+        "actualGap": 0,
+        "startGap": -0.25,
+        "startAxial": 1
+      }
+    ]
+  },
+  {
+    "name": "incoming-radial",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 2.9802322387695312e-8,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 8.940696716308594e-8,
+      "physicalKKTResidualMm": 5.206529281783408e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 2.1399440379432644e-16,
+        "adaptationMm": 2.980232422708713e-8
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 2.1399440379432644e-16,
+        "adaptationMm": 2.980232422708713e-8
+      },
+      "maximumOutwardContactVelocity": 6.24783513814009e-9,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "sheath:0:0:0",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0.008333325323438731,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "sheath:0:0:1",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0.008333325365539383,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "sheath:0:0:2",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0.008333325323438731,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "rawGaps": [
+      0,
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        4,
+        4,
+        4
+      ],
+      [
+        6.24783513814009e-9,
+        4.9913593258565925e-9,
+        6.24783513814009e-9
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        -1.2564752850427571e-9,
+        1.2564753370844614e-9
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 0
+      },
+      {
+        "node": 2,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 1
+      }
+    ]
+  },
+  {
+    "name": "next-step-away",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 7.450580596923828e-9,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 1.4901161193847656e-8,
+      "physicalKKTResidualMm": 0,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 2.208941147471531e-16,
+        "adaptationMm": 7.450596980559281e-9
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 2.208941147471531e-16,
+        "adaptationMm": 7.450596980559281e-9
+      },
+      "maximumOutwardContactVelocity": 0,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": []
+    },
+    "rawGaps": [
+      0.016666680574417114,
+      0.016666680574417114,
+      0.016666680574417114
+    ],
+    "velocity": [
+      [
+        2.999998092651367,
+        2.999998092651367,
+        2.999998092651367
+      ],
+      [
+        -2.0000016689300537,
+        -2.0000016689300537,
+        -2.0000016689300537
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        -6.184656988151808e-10,
+        6.184657711402805e-10
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0.016666680574417114,
+        "startGap": 0,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0.016666680574417114,
+        "startGap": 0,
+        "startAxial": 0
+      },
+      {
+        "node": 2,
+        "actualGap": 0.016666680574417114,
+        "startGap": 0,
+        "startAxial": 1
+      }
+    ]
+  },
+  {
+    "name": "oblique-history",
+    "exactStartGap": [
+      -4.768372485752792e-8,
+      -1.084804535089745e-7,
+      -1.4781952040188173e-7
+    ],
+    "oldTangentPlane": [
+      0.019999926185609918,
+      0.019999853134176362,
+      0.019999814701102875
+    ]
+  },
+  {
+    "name": "distal-entry-unsupported",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [
+        "sheath-axial-feature-changed"
+      ],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "sheathHistoryIssues": [
+        {
+          "reason": "sheath-axial-feature-changed",
+          "sheath": 0,
+          "side": 0,
+          "node": 2,
+          "from": "distal-exterior",
+          "to": "interior",
+          "startAxial": 1,
+          "currentAxial": 0.9666666388511658
+        },
+        {
+          "reason": "sheath-axial-feature-changed",
+          "sheath": "sheath",
+          "side": 0,
+          "node": 2
+        }
+      ],
+      "biasHardStrainMaximum": 2.9802322387695312e-8,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 8.940696716308594e-8,
+      "physicalKKTResidualMm": 0,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 2.9802322387695312e-8
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 2.9802322387695312e-8
+      },
+      "maximumOutwardContactVelocity": 0,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [
+        "sheath-axial-feature-changed"
+      ],
+      "contacts": []
+    },
+    "rawGaps": [
+      0,
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        -4,
+        -4,
+        -4
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 0
+      },
+      {
+        "node": 2,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 1
+      }
+    ]
+  },
+  {
+    "name": "loaded-distal-exit-unsupported",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [
+        "sheath-axial-feature-changed"
+      ],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "sheathHistoryIssues": [
+        {
+          "reason": "sheath-axial-feature-changed",
+          "sheath": 0,
+          "side": 0,
+          "node": 2,
+          "from": "interior",
+          "to": "distal-exterior",
+          "startAxial": 1,
+          "currentAxial": 1.100000023841858
+        }
+      ],
+      "biasHardStrainMaximum": 2.2351741790771484e-8,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 2.220446049250313e-16,
+      "physicalKKTResidualMm": 5.206529281783408e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 2.1399440379432644e-16,
+        "adaptationMm": 2.2351744243293854e-8
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 2.1399440379432644e-16,
+        "adaptationMm": 2.2351744243293854e-8
+      },
+      "maximumOutwardContactVelocity": 6.24783513814009e-9,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [
+        "sheath-axial-feature-changed"
+      ],
+      "contacts": [
+        {
+          "id": "sheath:0:0:0",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0.008333325323438731,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "sheath:0:0:1",
+          "kind": "sheath",
+          "feature": "radial-interior",
+          "normalPhysical": 0.008333325365539383,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "rawGaps": [
+      0,
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        6.24783513814009e-9,
+        4.9913593258565925e-9,
+        6.24783513814009e-9
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        -1.2564752850427571e-9,
+        1.2564753370844614e-9
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 0
+      }
+    ]
+  },
+  {
+    "name": "geometry-change-unsupported",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [
+        "sheath-geometry-changed"
+      ],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "sheathHistoryIssues": [
+        {
+          "reason": "sheath-geometry-changed",
+          "sheath": 0
+        }
+      ],
+      "biasHardStrainMaximum": 0,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 0,
+      "physicalKKTResidualMm": 0,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 0
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 0
+      },
+      "maximumOutwardContactVelocity": 0,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [
+        "sheath-geometry-changed"
+      ],
+      "contacts": []
+    },
+    "rawGaps": [
+      0.04999999999999999,
+      0.04999999999999999,
+      0.04999999999999999
+    ],
+    "velocity": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0.04999999999999999,
+        "startGap": 0,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0.04999999999999999,
+        "startGap": 0,
+        "startAxial": 0
+      },
+      {
+        "node": 2,
+        "actualGap": 0.04999999999999999,
+        "startGap": 0,
+        "startAxial": 1
+      }
+    ]
+  },
+  {
+    "name": "material-change-unsupported",
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [
+        "sheath-material-support-changed"
+      ],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "sheathHistoryIssues": [
+        {
+          "reason": "sheath-material-support-changed",
+          "sheath": 0,
+          "side": 0,
+          "node": 2
+        }
+      ],
+      "biasHardStrainMaximum": 0,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 0,
+      "physicalKKTResidualMm": 0,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 0
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 0
+      },
+      "maximumOutwardContactVelocity": 0,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [
+        "sheath-material-support-changed"
+      ],
+      "contacts": []
+    },
+    "rawGaps": [
+      0,
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "history": [
+      {
+        "node": 0,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": -1
+      },
+      {
+        "node": 1,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 0
+      },
+      {
+        "node": 2,
+        "actualGap": 0,
+        "startGap": 0,
+        "startAxial": 1
+      }
+    ]
+  }
+]

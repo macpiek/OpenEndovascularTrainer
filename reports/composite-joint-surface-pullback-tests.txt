@@ -1,0 +1,21 @@
+✔ adjacent rotated tools: dense G/B/DB scatter and virtual power include actual endpoints and own spins (8.330791ms)
+✔ reversed physical tool order: dense G/B/DB scatter and virtual power include actual endpoints and own spins (4.247333ms)
+✔ mixed exposed/overlap edges: dense G/B/DB scatter and virtual power include actual endpoints and own spins (2.790542ms)
+✔ wire against wall within a two-tool chart: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.819ms)
+✔ single wire: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.388916ms)
+✔ single catheter: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.34475ms)
+✔ full physical DforceMap maps cross-tool and both spin configuration derivatives without assuming symmetry (1.173667ms)
+✔ frozen instantaneous SurfaceMotion -> two distinct tools loads preserves power, including prescribed feed/wall (3.326375ms)
+✔ frozen instantaneous SurfaceMotion -> wire loads preserves power, including prescribed feed/wall (0.380708ms)
+✔ frozen instantaneous SurfaceMotion -> catheter loads preserves power, including prescribed feed/wall (0.383375ms)
+✔ prepared bases, edge records and input operators are owned; arrays reuse and force-only refresh invalidate stale derivatives/loads (1.328125ms)
+✔ missing physical spin/owner, incomplete modes, forged chart and out-of-stencil pairs reject (1.263625ms)
+✔ stale validity, wrong physical identity/dimensions, nonfinite/overflow operators and failed load calls cannot publish stale data (4.493875ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.364875

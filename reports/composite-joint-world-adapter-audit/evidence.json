@@ -1,0 +1,61 @@
+{
+  "finding": {
+    "case": "same World field with every declared wall owner null",
+    "executed": 1,
+    "accepted": true,
+    "status": "accepted",
+    "queries": 0,
+    "worldStepCount": 1,
+    "adapterStateStep": 1,
+    "claimedCertificate": true,
+    "wallCertificate": {
+      "scope": "joint-original-wall-normal-rows-only",
+      "contactMode": "capsule",
+      "minGap": null,
+      "minForce": null,
+      "penetration": 0,
+      "negativeForce": 0,
+      "ncp": 0,
+      "complementarity": 0,
+      "domainAdmissible": true,
+      "samples": [],
+      "merit": 0,
+      "retainedRows": 0,
+      "converged": true,
+      "rowStructureChanged": false,
+      "structureVersion": 0,
+      "queryGeneration": 12
+    },
+    "worstCenterWallDistance": -0.34112987445410675,
+    "note": "The wire centerline itself is outside y<=0, even before applying any positive tool radius."
+  },
+  "loadedPublicationControl": {
+    "passed": true,
+    "beforeStateHash": "2f57ed9270aa4b2f7c041725536a4db27ed3750b997b534ebe75cc53ae7227b7",
+    "beforeBodyHash": "ff9f6a66e074dbde2f0744f02023c25d06360be289674128923c4e966c638cdd",
+    "priorFn": [
+      0.3756386374483219
+    ],
+    "priorFt": [
+      0.0022409214868255364,
+      -0.002067917125120522
+    ],
+    "rollbackRestoresOldViewIdentity": true,
+    "retainedPendingDt": 0.008333333333333333,
+    "directRetryMatches": true,
+    "afterStateHash": "2bb12ae532b472d7446dd44a66b5b69578c0411fa5148474f8b132055e136e2b"
+  },
+  "windingControl": {
+    "passed": true,
+    "steps": 2,
+    "wire": [
+      12.566870614359173,
+      12.568870619092014
+    ],
+    "catheter": [
+      -18.849722588205424,
+      -18.849722588277505
+    ],
+    "viewsRetainFullWinding": true
+  }
+}

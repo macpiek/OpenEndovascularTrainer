@@ -61,3 +61,13 @@ export function sampleGuidewireBrowserBenchmarkCommands(elapsedMs, out) {
     out.catheterType = 'berenstein';
     return out;
 }
+
+export const BROWSER_BENCHMARK_MODE_CATHETER = 'catheter-only';
+
+/** Same advance/hold/withdraw schedule, with the guidewire stationary. */
+export function sampleCatheterBrowserBenchmarkCommands(elapsedMs,out) {
+    sampleGuidewireBrowserBenchmarkCommands(elapsedMs,out);
+    out.catheterAdvance=out.guidewireAdvance;
+    out.guidewireAdvance=0;
+    return out;
+}

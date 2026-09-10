@@ -1,0 +1,327 @@
+--- a/src/physics/kirchhoffCompositeRelativeDirection.js
++++ b/src/physics/kirchhoffCompositeRelativeDirection.js
+@@ -1,4 +1,5 @@
+ import {createCoulombBandLU} from './kirchhoffCoulombBandLU.js';
++import {createCompositeRestrictedDirectionCache,solveCompositeRestrictedDirection} from './kirchhoffCompositeRestrictedDirection.js';
+ 
+ const finite=(v,name)=>{if(!Number.isFinite(v))throw new RangeError(`${name} must be finite`);return v;};
+ const positive=(v,name)=>{if(!(finite(v,name)>0))throw new RangeError(`${name} must be positive`);return v;};
+@@ -155,6 +156,7 @@
+         fixedMask:new Uint8Array(count),heldMultiplierRows:new Uint8Array(rows.length),freeGeometryRows:new Uint8Array(rows.length),
+         commonIncrement:new Float64Array(n),relativeIncrement:new Float64Array(r),multiplierIncrement:new Float64Array(rows.length),
+         fixedReactionIncrement:new Float64Array(n),fixedStationarity:new Float64Array(n),constraintResidual:new Float64Array(rows.length),
++        restriction:createCompositeRestrictedDirectionCache(),searchKeep:new Uint8Array(count),
+         maxRowsPerNode:Math.max(0,...rowsByNode.map(a=>a.length))};
+     validateClusterStructure(w,cluster,false);return w;
+ }
+@@ -190,7 +192,8 @@
+  * No pivot floor, disk normal, branch decision or nonlinear dt approval.
+  * Returned typed arrays belong to workspace and are overwritten next solve.
+  */
+-export function solveCompositeRelativeDirection(w,chain,{cluster,commonResidual,relativeResidual,fixed,rows=[],tolerances,maxCorrections=1,numericalShift=0}) {
++export function solveCompositeRelativeDirection(w,chain,{cluster,commonResidual,relativeResidual,fixed,rows=[],tolerances,maxCorrections=1,numericalShift=0,
++    relativeReduction='none',maxLinearSolves=relativeReduction==='adaptive'?maxCorrections+3:maxCorrections+1}) {
+     if(chain.layout!==w.layout||chain.hessianValid===false)throw new RangeError('A fresh full common Hessian with the frozen layout is required');
+     validateClusterStructure(w,cluster);
+     if(chain.elementBackend!==undefined&&(chain.elementBackend==='wasm-exact')!==(cluster.hessianKind==='exact'))
+@@ -201,6 +204,8 @@
+     if(!fixed||fixed.length!==common.length||!fixed.every(v=>v===0||v===1)||rows.length!==w.rows.length)
+         throw new RangeError('Fixed coordinates and rows must match the frozen layout');
+     if(!Number.isInteger(maxCorrections)||maxCorrections<0||maxCorrections>2)throw new RangeError('maxCorrections must be 0..2');
++    if(!['none','adaptive'].includes(relativeReduction))throw new RangeError('Relative direction reduction must be none or adaptive');
++    if(!Number.isInteger(maxLinearSolves)||maxLinearSolves<1)throw new RangeError('maxLinearSolves must be a positive integer');
+     if(!Number.isFinite(numericalShift)||numericalShift<0)throw new RangeError('numericalShift must be finite and nonnegative');
+     const tol={force:positive(tolerances?.force,'linear force tolerance'),torque:positive(tolerances?.torque,'linear torque tolerance')};
+     A.fill(0);F.fill(0);increment.fill(0);w.fixedMask.fill(0);w.heldMultiplierRows.fill(0);w.freeGeometryRows.fill(0);
+@@ -307,14 +312,51 @@
+     };
+     const passes=proof=>proof.force<=tol.force&&proof.torque<=tol.torque&&proof.constraints.every(c=>c.converged);
+     let factorizations=0,linearSolves=0,solverAccepted=false,proof=measure(true,numericalShift>0);
+-    for(let attempt=0;attempt<=maxCorrections;attempt++) {
++    const keep=w.searchKeep;keep.fill(1);
++    if(relativeReduction==='adaptive') {
++        // Seed a search subspace from current physical force error. Preserve
++        // every relative direction occurring in an ORIGINAL constraint J,
++        // including separate material lengths, contact and handle rows.
++        // This is only a proposal: coupling to common bending may require
++        // apparently unloaded directions, so the full residual below decides.
++        relative.forEach(d=>{if(Math.abs(F[d])<=tol.force)keep[d]=0;});
++        w.rows.forEach((def,i)=>def.relativeDofs.forEach((r,j)=>{if(rows[i].jacobian[def.commonDofs.length+j]!==0)keep[relative[r]]=1;}));
++        // Tiny reductions cannot repay a second packed-matrix copy. This is
++        // a cost choice, not a physical error threshold.
++        if(count-keep.reduce((a,b)=>a+b,0)<Math.max(3,Math.ceil(relative.length*.1)))keep.fill(1);
++    }
++    const reduction={mode:relativeReduction,initialCount:keep.reduce((a,b)=>a+b,0),fullCount:count,attempts:[],enrichedRelativeDofs:0};
++    let restrictedAttempts=0,fullCorrections=0;
++    while(linearSolves<maxLinearSolves) {
++        const restricted=keep.some(v=>v===0),rhs=linearSolves===0?residual:w.linearResidual;
+         factorizations++;linearSolves++;
+-        solverAccepted=w.lu.solve(matrix,attempt===0?residual:w.linearResidual,scales,0,w.correction);
+-        if(!solverAccepted)break;
++        if(restricted) {
++            const result=solveCompositeRestrictedDirection(w.restriction,{layout:p,keep,matrix,residual:rhs,scales,correction:w.correction});
++            restrictedAttempts++;solverAccepted=result.accepted;reduction.attempts.push({...result});
++        } else solverAccepted=w.lu.solve(matrix,rhs,scales,0,w.correction);
++        if(!solverAccepted){if(restricted){keep.fill(1);continue;}break;}
+         for(let i=0;i<count;i++)increment[i]=w.fixedMask[i]?0:increment[i]+scales[i]*w.correction[i];
+         // Held reaction increments are prescribed exactly, not a tiny LU error.
+         w.heldMultiplierRows.forEach((held,index)=>{if(held)increment[dual[index]]=0;});
+-        proof=measure(false,numericalShift>0);if(passes(proof))break;
++        proof=measure(false,numericalShift>0);
++        if(restricted)Object.assign(reduction.attempts.at(-1),{fullEquationConverged:passes(proof),force:proof.force,torque:proof.torque});
++        if(passes(proof))break;
++        if(restricted) {
++            // Enrich only from the freshly evaluated FULL equations. The
++            // accepted state and its rho are never projected or overwritten.
++            let added=0;
++            for(let m=0;m<cluster.modes.length;m++) {
++                const dofs=cluster.modes[m].relativeDofs;
++                if(dofs.some(r=>!keep[relative[r]]&&Math.abs(w.linearResidual[relative[r]])>tol.force))
++                    dofs.forEach(r=>{if(!keep[relative[r]]){keep[relative[r]]=1;added++;}});
++            }
++            reduction.enrichedRelativeDofs+=added;
++            // At most two restricted factorizations. Failed/rank-deficient
++            // proposals return to the original band, within the SAME budget.
++            if(!added||restrictedAttempts>=2)keep.fill(1);
++            continue;
++        }
++        if(fullCorrections++>=maxCorrections)break;
+     }
+     const numericalProof=proof,numericalConverged=solverAccepted&&passes(numericalProof);
+     if(numericalShift>0)proof=measure();
+@@ -333,7 +375,7 @@
+     return {commonIncrement:w.commonIncrement,relativeIncrement:w.relativeIncrement,multiplierIncrement:w.multiplierIncrement,
+         fixedReactionIncrement:w.fixedReactionIncrement,fixedStationarity:w.fixedStationarity,
+         originalLinearResidual:w.originalLinearResidual,constraintResidual:w.constraintResidual,heldMultiplierRows:w.heldMultiplierRows,
+-        proof,numericalProof,numericalShift,numericalConverged,factorizations,linearSolves,converged:solverAccepted&&w.originalLinearResidual.every(Number.isFinite)&&passes(proof),
++        proof,numericalProof,numericalShift,numericalConverged,factorizations,linearSolves,reduction,converged:solverAccepted&&w.originalLinearResidual.every(Number.isFinite)&&passes(proof),
+         count,bandwidth:p.kl,matrixEntries:matrix.length,factorEntries:w.lu.diagnostics.factorEntries,maxRowsPerNode:w.maxRowsPerNode,
+         scope:'one-common-axis-and-joint-relative-original-linear-direction',relativeRepresentation:cluster.relativeRepresentation,
+         fullRankOnRepresentedNodes:cluster.fullRankOnRepresentedNodes===true,certified:false,nonlinearStepAccepted:false};
+--- /dev/null
++++ b/src/physics/kirchhoffCompositeRestrictedDirection.js
+@@ -0,0 +1,45 @@
++import {createCoulombBandLU} from './kirchhoffCoulombBandLU.js';
++
++/** A principal search subspace, never a physical constraint or certificate.
++ * Omitted increments are zero for this attempt only. Its caller must measure
++ * EVERY original equation and enrich the subspace before accepting a direction.
++ * Ordered restriction preserves the original local band and dual asymmetry.
++ * Only structure/storage is cached; numeric matrix/RHS/scales are recopied.
++ */
++export function createCompositeRestrictedDirectionCache(capacity=2) {
++    if(!Number.isInteger(capacity)||capacity<1||capacity>4)throw new RangeError('Restricted direction cache capacity must be 1..4');
++    return {capacity,entries:new Map(),builds:0,hits:0};
++}
++
++export function solveCompositeRestrictedDirection(cache,{layout,keep,matrix,residual,scales,correction}) {
++    const count=keep.length;
++    if(layout.starts.length!==count||matrix.length!==layout.entries||[residual,scales,correction].some(a=>a.length!==count)||
++        !keep.every(v=>v===0||v===1))throw new RangeError('Restricted search arrays must match the original band');
++    const indices=Int32Array.from(Array.from(keep,(v,i)=>v?i:-1).filter(i=>i>=0));
++    if(!indices.length)throw new RangeError('The search subspace must retain an equation');
++    const signature=JSON.stringify([Array.from(layout.starts),Array.from(layout.ends),Array.from(indices)]);
++    let w=cache.entries.get(signature);
++    if(w){cache.hits++;cache.entries.delete(signature);}
++    else {
++        const inverse=new Int32Array(count).fill(-1);indices.forEach((d,i)=>inverse[d]=i);
++        const n=indices.length,starts=new Int32Array(n),ends=new Int32Array(n),offsets=new Int32Array(n),source=[];
++        let entries=0,kl=0,ku=0;
++        indices.forEach((d,i)=>{
++            let first=i,last=i;
++            for(let j=layout.starts[d];j<=layout.ends[d];j++)if(inverse[j]>=0){first=Math.min(first,inverse[j]);last=Math.max(last,inverse[j]);}
++            starts[i]=first;ends[i]=last;offsets[i]=entries-first;
++            for(let j=first;j<=last;j++)source.push(layout.offsets[d]+indices[j]);
++            entries+=last-first+1;kl=Math.max(kl,i-first);ku=Math.max(ku,last-i);
++        });
++        const packed={starts,ends,offsets,entries,kl,ku};
++        w={indices,source:Int32Array.from(source),matrix:new Float64Array(entries),residual:new Float64Array(n),scales:new Float64Array(n),
++            correction:new Float64Array(n),layout:packed,lu:createCoulombBandLU(packed,n)};
++        cache.builds++;
++    }
++    cache.entries.set(signature,w);if(cache.entries.size>cache.capacity)cache.entries.delete(cache.entries.keys().next().value);
++    w.source.forEach((s,i)=>w.matrix[i]=matrix[s]);
++    w.indices.forEach((d,i)=>{w.residual[i]=residual[d];w.scales[i]=scales[d];});
++    const accepted=w.lu.solve(w.matrix,w.residual,w.scales,0,w.correction);
++    correction.fill(0);if(accepted)w.indices.forEach((d,i)=>correction[d]=w.correction[i]);
++    return {accepted,count:w.indices.length,bandwidth:w.layout.kl,matrixEntries:w.matrix.length,factorEntries:w.lu.diagnostics.factorEntries};
++}
+--- a/src/physics/kirchhoffCompositeJointTimeStep.js
++++ b/src/physics/kirchhoffCompositeJointTimeStep.js
+@@ -234,7 +234,7 @@
+     finally {try {invalidateCompositeJointAssemblyWorkspace(scratch.assembly);} finally {scratch.busy=false;}}
+ }
+ function advancePreparedJointStep(state,{dt,torsionMode,contacts,wall='none',inertia,boundaries={positions:[],spins:[]},loads={forces:[],torques:[]},
+-    tolerances={},budget={},elementBackend='wasm-exact',assemblyPolicy='lazy',globalization='adaptive'}={},scratch) {
++    tolerances={},budget={},elementBackend='wasm-exact',assemblyPolicy='lazy',globalization='adaptive',relativeReduction='none'}={},scratch) {
+     const started=performance.now(); positive(dt,'dt');
+     const contactMode=contacts==='none'?'none':['lumen-normal','lumen-coulomb'].includes(contacts?.mode)?contacts.mode:null;
+     const frictionEnabled=contactMode==='lumen-coulomb';
+@@ -248,6 +248,7 @@
+     if(wallMode==='none'&&state.wallContactState?.normalForces?.some(Fn=>Fn!==0))throw new RangeError('wall:none cannot discard a nonzero accepted wall reaction');
+     if(!['wasm-exact','wasm','javascript'].includes(elementBackend)||!['lazy','full'].includes(assemblyPolicy))throw new RangeError('Unknown joint backend or assembly policy');
+     if(!['adaptive','newton'].includes(globalization))throw new RangeError('Unknown joint globalization policy');
++    if(!['none','adaptive'].includes(relativeReduction))throw new RangeError('Unknown relative direction reduction policy');
+     const tol={force:positive(tolerances.force??1e-7,'force tolerance'),torque:positive(tolerances.torque??1e-8,'torque tolerance'),
+         length:positive(tolerances.length??1e-8,'length tolerance'),boundary:positive(tolerances.boundary??1e-9,'boundary tolerance'),
+         linearForce:positive(tolerances.linearForce??5e-10,'linear force tolerance'),linearTorque:positive(tolerances.linearTorque??5e-10,'linear torque tolerance'),
+@@ -350,7 +351,7 @@
+         elementBackend,assemblyPolicy,preparationMs:performance.now()-started,iterationMs:0,commitMs:0,totalMs:0,
+         directions:0,evaluations:0,fullAssemblies:0,gradientAssemblies:0,factorizations:0,linearSolves:0,lineSearchTrials:0,
+         globalization,numericalDirections:0,regularizationActivations:[],tinyNewtonStepsAvoided:0,
+-        directionMs:0,
++        relativeReduction,relativeSearches:[],directionMs:0,
+         unknowns:directionWorkspace.count,bandwidth:directionWorkspace.packedLayout.kl,commonDofs:layout.dofCount,relativeDofs:candidate.relative.length,
+         originalLengthRows:lengths.rows.length,retainedLengthRows:activeLengths.length,suppressedPrescribedLengthRows:suppressed,acceptedAlphas:[],certificate:null,
+         workspaceReused:!!scratch};
+@@ -486,9 +487,11 @@
+             if(!output.hessianValid)measured=evaluate('full');
+             const directionStarted=performance.now();
+             const direction=solveCompositeRelativeDirection(directionWorkspace,output.chain,{cluster:output.cluster,commonResidual:cg,relativeResidual:rg,fixed,rows,
+-                tolerances:{force:tol.linearForce,torque:tol.linearTorque},maxCorrections:Math.min(1,limits.linearSolves-diagnostics.linearSolves-1),numericalShift:directionShift});
++                tolerances:{force:tol.linearForce,torque:tol.linearTorque},maxCorrections:Math.min(1,limits.linearSolves-diagnostics.linearSolves-1),numericalShift:directionShift,
++                relativeReduction,maxLinearSolves:Math.min(relativeReduction==='adaptive'?4:2,limits.linearSolves-diagnostics.linearSolves)});
+             diagnostics.directionMs+=performance.now()-directionStarted;
+             diagnostics.directions++;diagnostics.linearSolves+=direction.linearSolves;diagnostics.factorizations+=direction.factorizations;
++            if(relativeReduction==='adaptive')diagnostics.relativeSearches.push(direction.reduction);
+             if(directionShift>0)diagnostics.numericalDirections++;
+             if(!(directionShift>0?direction.numericalConverged:direction.converged)){
+                 diagnostics.lastLinearFailure={original:direction.proof,numerical:direction.numericalProof,shift:directionShift};
+--- /dev/null
++++ b/tests/kirchhoffCompositeRelativeSearch.test.js
+@@ -0,0 +1,83 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import {relativeSearchFixture as fixture,relativeSearchOptions as options} from './fixtures/compositeRelativeSearch.js';
++import {advanceCompositeJointTimeStep as advance,createCompositeJointTimeStepWorkspace as workspace} from '../src/physics/kirchhoffCompositeJointTimeStep.js';
++
++const close=(a,b,t=1e-8)=>assert.ok(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=t,`${a} != ${b}`);
++const vector=(a,b,t)=>{assert.equal(a.length,b.length);a.forEach((v,i)=>close(v,b[i],t));};
++const accepted=r=>assert.equal(r.accepted,true,JSON.stringify({status:r.status,error:r.error,diagnostics:r.diagnostics}));
++function parity(a,b) {
++    accepted(a);accepted(b);
++    for(const [id,p] of a.state.toolPositions)p.forEach((v,i)=>vector(v,b.state.toolPositions.get(id)[i],2e-9));
++    for(const [id,v] of a.state.angles)vector(v,b.state.angles.get(id),2e-9);
++    vector(a.state.lengthMultipliers,b.state.lengthMultipliers,1e-8);
++    for(const key of ['lumenContactState','lumenFrictionState'])if(a.state[key]) {
++        const field=key==='lumenContactState'?'normalForces':'tractions';vector(a.state[key][field],b.state[key][field],1e-8);
++    }
++    for(const r of [a,b]) {
++        assert.equal(r.diagnostics.certificate.converged,true);
++        for(const [id,p] of r.state.toolPositions)for(let e=0;e<p.length-1;e++)
++            close(Math.hypot(...p[e+1].map((v,k)=>v-p[e][k])),r.state.restLengths.get(id)[e],1e-8);
++        for(const b of r.balances.values())vector(b.momentumRate,b.appliedForce.map((v,k)=>v+b.boundaryForce[k]+(b.contactForce?.[k]??0)),1e-7);
++    }
++}
++
++test('a common straight shaft solves fewer relative increments with independent feed/spin and original two-tool balance',()=>{
++    const f=fixture({n:33}),w=workspace(f.state);let state=f.state;
++    for(let i=0;i<2;i++) {
++        const args={feed:.3,spin:.04},full=advance(state,options(f,state,args)),reduced=advance(state,options(f,state,{...args,relativeReduction:'adaptive',workspace:w}));
++        parity(full,reduced);
++        const trials=reduced.diagnostics.relativeSearches.flatMap(x=>x.attempts);
++        assert.ok(trials.length>0);assert.ok(trials.some(x=>x.count<reduced.diagnostics.unknowns&&x.fullEquationConverged));
++        assert.equal(reduced.diagnostics.linearSolves,full.diagnostics.linearSolves);
++        state=reduced.state;
++    }
++});
++
++test('transverse load activates omitted motion through full equations and retains the independent physical shape',()=>{
++    const f=fixture({n:17}),args={force:[.01,.025,-.012]},full=advance(f.state,options(f,f.state,args)),
++        r=advance(f.state,options(f,f.state,{...args,relativeReduction:'adaptive'}));
++    parity(full,r);
++    assert.ok(r.diagnostics.relativeSearches.some(s=>s.enrichedRelativeDofs>0));
++    assert.ok(r.diagnostics.relativeSearches.flatMap(s=>s.attempts).some(a=>a.fullEquationConverged===false));
++    assert.ok(Math.abs(r.state.relative.at(-2)-f.state.relative.at(-2))>1e-7);
++});
++
++test('curved original geometry is preserved and independent lumen samples remain in the whole-step certificate',()=>{
++    for(const params of [{curved:true},{lumen:true}]) {
++        const f=fixture({n:17,...params}),args={force:[.01,0,0]},full=advance(f.state,options(f,f.state,args)),
++            r=advance(f.state,options(f,f.state,{...args,relativeReduction:'adaptive'}));
++        parity(full,r);
++        if(params.lumen) {
++            assert.equal(r.diagnostics.lumenSamples,32);assert.equal(r.diagnostics.certificate.contact.samples.length,32);
++            assert.equal(r.diagnostics.certificate.friction.samples.length,32);assert.equal(r.diagnostics.contactQueries,full.diagnostics.contactQueries);
++        }
++    }
++});
++
++test('all reduced factorizations consume the existing budget and a rejected step retries from the same owned state',()=>{
++    const f=fixture({n:17}),before=structuredClone(f.state),w=workspace(f.state),args={force:[.01,.025,-.012],relativeReduction:'adaptive',workspace:w},
++        r=advance(f.state,options(f,f.state,{...args,budget:{linearSolves:1}}));
++    assert.equal(r.accepted,false);assert.equal(r.diagnostics.linearSolves,1);assert.equal(r.state,f.state);assert.deepEqual(f.state,before);
++    const retry=advance(f.state,options(f,f.state,args)),cold=advance(f.state,options(f,f.state,{...args,workspace:undefined}));
++    parity(retry,cold);assert.deepEqual(retry.state,cold.state);
++    assert.throws(()=>advance(f.state,options(f,f.state,{relativeReduction:'uncertified'})),/reduction policy/);
++});
++
++test('loaded lumen normal and Coulomb reactions stay in the reduced solve and survive the second dt and late query rejection',()=>{
++    const f=fixture({n:17,lumen:true,offset:.04075,wireSlope:-.0005}),w=workspace(f.state);let state=f.state;
++    for(let i=0;i<2;i++) {
++        const args={force:[.1,.4,0],forceNode:0},full=advance(state,options(f,state,args)),
++            r=advance(state,options(f,state,{...args,relativeReduction:'adaptive',workspace:w}));
++        parity(full,r);
++        assert.ok(r.state.lumenContactState.normalForces.some(v=>v>.1));assert.ok(r.state.lumenFrictionState.tractions.some(v=>Math.abs(v)>.01));
++        assert.ok(r.diagnostics.relativeSearches.flatMap(s=>s.attempts).some(a=>a.fullEquationConverged));
++        if(i===1) {
++            const before=structuredClone(state),bad=advance(state,options(f,state,{...args,relativeReduction:'adaptive',workspace:w,budget:{contactQueries:r.diagnostics.contactQueries-1}}));
++            assert.equal(bad.accepted,false);assert.equal(bad.state,state);assert.deepEqual(state,before);
++            const retry=advance(state,options(f,state,{...args,relativeReduction:'adaptive',workspace:w}));
++            accepted(retry);assert.deepEqual(retry.state,r.state);
++        }
++        state=r.state;
++    }
++});
+--- /dev/null
++++ b/scripts/benchmark-composite-relative-search.mjs
+@@ -0,0 +1,38 @@
++import assert from 'node:assert/strict';
++import {writeFileSync} from 'node:fs';
++import {relativeSearchFixture as fixture,relativeSearchOptions as options} from '../tests/fixtures/compositeRelativeSearch.js';
++import {advanceCompositeJointTimeStep as advance,createCompositeJointTimeStepWorkspace as workspace} from '../src/physics/kirchhoffCompositeJointTimeStep.js';
++
++const cases=[
++    {name:'straight-33-feed-spin',geometry:{n:33},input:{feed:.3,spin:.04}},
++    {name:'straight-201-feed-spin',geometry:{n:201},input:{feed:.3,spin:.04}},
++    {name:'transverse-33',geometry:{n:33},input:{force:[.01,.025,-.012]}},
++    {name:'curved-33',geometry:{n:33,curved:true},input:{force:[.01,.025,-.012]}},
++    {name:'loaded-lumen-17',geometry:{n:17,lumen:true,offset:.04075,wireSlope:-.0005},input:{force:[.1,.4,0],forceNode:0}}
++];
++const stats=xs=>{const sorted=xs.slice().sort((a,b)=>a-b);return {mean:xs.reduce((a,b)=>a+b,0)/xs.length,median:sorted[Math.floor(xs.length/2)],p95:sorted[Math.ceil(xs.length*.95)-1]};};
++const report={scope:'Same-source alternating whole-step A/B with reusable workspaces and full physical certificates; synthetic materials, no anatomy or browser FPS',warmupPairs:12,measuredPairs:24,cases:[]};
++for(const spec of cases) {
++    const f=fixture(spec.geometry),workspaces=[workspace(f.state),workspace(f.state)],records=[[],[]];let maxShapeError=0,maxReactionError=0;
++    for(let repeat=-report.warmupPairs;repeat<report.measuredPairs;repeat++) {
++        const results=[];
++        for(const side of repeat%2===0?[0,1]:[1,0]) {
++            const r=advance(f.state,options(f,f.state,{...spec.input,workspace:workspaces[side],relativeReduction:side?'adaptive':'none'}));
++            assert.equal(r.accepted,true,JSON.stringify({scenario:spec.name,side,status:r.status,error:r.error,certificate:r.diagnostics.certificate}));results[side]=r;
++            const d=r.diagnostics;
++            if(repeat>=0)records[side].push({totalMs:d.totalMs,directionMs:d.directionMs,preparationMs:d.preparationMs,iterationMs:d.iterationMs,
++                directions:d.directions,linearSolves:d.linearSolves,fullUnknowns:d.unknowns,
++                minimumSearchUnknowns:Math.min(d.unknowns,...d.relativeSearches.flatMap(s=>s.attempts.map(a=>a.count))),
++                rejectedProposals:d.relativeSearches.flatMap(s=>s.attempts).filter(a=>!a.fullEquationConverged).length});
++        }
++        for(const [id,p] of results[0].state.toolPositions)p.forEach((v,i)=>v.forEach((x,k)=>maxShapeError=Math.max(maxShapeError,Math.abs(x-results[1].state.toolPositions.get(id)[i][k]))));
++        for(const field of ['lengthMultipliers'])results[0].state[field].forEach((x,i)=>maxReactionError=Math.max(maxReactionError,Math.abs(x-results[1].state[field][i])));
++        for(const [key,field] of [['lumenContactState','normalForces'],['lumenFrictionState','tractions']])if(results[0].state[key])
++            results[0].state[key][field].forEach((x,i)=>maxReactionError=Math.max(maxReactionError,Math.abs(x-results[1].state[key][field][i])));
++    }
++    assert.ok(maxShapeError<=2e-9&&maxReactionError<=1e-8,JSON.stringify({maxShapeError,maxReactionError}));
++    const entry={...spec,maxShapeError,maxReactionError,results:records.map((r,side)=>({mode:side?'adaptive':'none',
++        statistics:Object.fromEntries(Object.keys(r[0]).map(key=>[key,stats(r.map(x=>x[key]))])),records:r}))};report.cases.push(entry);
++    console.log(JSON.stringify({...entry,results:entry.results.map(({records,...x})=>x)}));
++}
++if(process.argv[2])writeFileSync(process.argv[2],JSON.stringify(report,null,2)+'\n');
+--- a/package.json
++++ b/package.json
+@@ -27,7 +27,7 @@
+     "test:catheter:mechanics": "node tests/kirchhoffDirectCoupling.test.js && node tests/kirchhoffCatheterOverWireRegression.test.js",
+     "test:memory": "node tests/runtimeMemoryLifetime.test.js && node tests/skeletonGeometry.test.js",
+     "test:physics:coupled": "node --test --test-concurrency=1 tests/kirchhoffBundleModel.test.js tests/kirchhoffBundleDiscretization.test.js tests/kirchhoffBundleRuntime.test.js tests/kirchhoffCoupledSystem.test.js tests/kirchhoffCoupledFrictionSolver.test.js tests/kirchhoffCoupledFrictionRuntime.test.js tests/kirchhoffCoupledLoadSolver.test.js tests/kirchhoffCoupledCapacity.test.js tests/kirchhoffSkylineKernel.test.js tests/kirchhoffCoupledTrialState.test.js tests/kirchhoffCoupledConeRepair.test.js tests/kirchhoffCoupledFrictionRows.test.js tests/kirchhoffSurfaceFriction.test.js tests/kirchhoffSurfaceFrictionKKT.test.js tests/kirchhoffContinuousFrictionKKT.test.js tests/kirchhoffFrictionMerit.test.js tests/kirchhoffPortalSideSamples.test.js tests/kirchhoffContactNormalRows.test.js tests/kirchhoffExternalFrictionRows.test.js tests/kirchhoffCoupledBoundaryRows.test.js tests/kirchhoffCoupledFoldRows.test.js tests/kirchhoffCoupledOrientationRows.test.js tests/coupledRealismCriteria.test.js tests/kirchhoffCoupledRuntime.test.js tests/kirchhoffLoadedContactLifecycle.test.js tests/kirchhoffActiveCondensedSolver.test.js tests/kirchhoffCoulombNewtonSolver.test.js tests/kirchhoffToolContactOwnership.test.js tests/kirchhoffActiveCondensedWorkspace.test.js tests/coupledSolverSelection.test.js tests/coupledRuntimeFixture.test.js tests/kirchhoffCoulombBoundRecovery.test.js tests/kirchhoffToolContactLifecycle.test.js tests/frozenCoupledSystemAudit.test.js tests/kirchhoffOwnershipProof.test.js tests/kirchhoffCoulombBandLU.test.js tests/kirchhoffFullBandCoulomb.test.js tests/frozenCoupledMetadata.test.js tests/curvedElementGeometry.test.js tests/kirchhoffSplitMotionWorld.test.js tests/kirchhoffSplitMotionCertification.test.js tests/kirchhoffSplitWallWorld.test.js tests/kirchhoffSplitBiasStrain.test.js tests/kirchhoffSplitSheathHistory.test.js tests/kirchhoffSplitStepTransaction.test.js tests/kirchhoffSplitDiscreteContactCertificate.test.js tests/kirchhoffSplitStepScratch.test.js tests/kirchhoffSplitSheathUnloadedTransition.test.js tests/kirchhoffSplitPointWallCoverage.test.js tests/kirchhoffWallFrictionMode.test.js tests/kirchhoffWallFrictionModeWrench.test.js tests/kirchhoffWallFrictionModeWorld.test.js tests/kirchhoffCoulombNonsymmetric.test.js tests/kirchhoffTwoChannelSystem.test.js tests/kirchhoffTwoChannelMotion.test.js tests/kirchhoffTwoChannelMotionSystem.test.js tests/kirchhoffTwoChannelCondensation.test.js tests/kirchhoffTwoChannelFallbackAccounting.test.js tests/kirchhoffTwoChannelRows.test.js tests/kirchhoffTwoChannelRowsSystem.test.js tests/kirchhoffTwoChannelWorld.test.js tests/kirchhoffWallFrictionHardMaterialStop.test.js tests/kirchhoffLumenConeBasisDrift.test.js tests/kirchhoffNormalMultiplierPrecision.test.js tests/kirchhoffTwoChannelRuntimeRefinement.test.js tests/kirchhoffTwoChannelRelease.test.js tests/kirchhoffTwoChannelReleaseMeasure.test.js",
+-    "test:physics:composite": "node --test --test-concurrency=1 tests/kirchhoffCompositeTopology.test.js tests/kirchhoffCompositeElement.test.js tests/kirchhoffCompositeChain.test.js tests/kirchhoffCompositeElementFast.test.js tests/kirchhoffCompositeMesh.test.js tests/kirchhoffCompositeClearance.test.js tests/kirchhoffCompositeRelativePatch.test.js tests/kirchhoffCompositeKinematics.test.js tests/kirchhoffCompositeWallContacts.test.js tests/kirchhoffCompositeFriction.test.js tests/kirchhoffCompositeStaticKineticFriction.test.js tests/kirchhoffCompositeMaterialCache.test.js tests/kirchhoffCompositeLengthConstraints.test.js tests/kirchhoffCompositeTimeStep.test.js tests/kirchhoffCompositeWallTimeStep.test.js tests/kirchhoffCompositeChainRefinement.test.js tests/kirchhoffCompositeStateTransfer.test.js tests/kirchhoffCompositeMixedDirection.test.js tests/kirchhoffCompositeMixedTimeStep.test.js tests/kirchhoffCompositeWallEnvelope.test.js tests/kirchhoffCompositeInertiaCache.test.js tests/kirchhoffCompositeElementExact.test.js tests/kirchhoffCompositeTimeStepWorkspace.test.js tests/kirchhoffCompositeSurfaceMotion.test.js tests/kirchhoffCompositeElementGradient.test.js tests/kirchhoffCompositeGradientTimeStep.test.js tests/kirchhoffCompositeSurfaceContinuity.test.js tests/kirchhoffCompositeWallGeometry.test.js tests/kirchhoffCompositeRelativeCluster.test.js tests/kirchhoffCompositeWallDifferentialRows.test.js tests/kirchhoffCompositeSdfTimeStep.test.js tests/kirchhoffCompositeRelativeDirection.test.js tests/kirchhoffCompositeWallBvhGeometry.test.js tests/kirchhoffCompositeMaterialInertia.test.js tests/kirchhoffCompositeToolLengths.test.js tests/kirchhoffCompositeWallSdfBranches.test.js tests/kirchhoffCompositeJointAssembly.test.js tests/kirchhoffCompositeWallBvhRows.test.js tests/kirchhoffCompositeContactPullback.test.js tests/kirchhoffCompositeJointTimeStep.test.js tests/kirchhoffCompositeLumenSideGeometry.test.js tests/kirchhoffCompositeJointLumenTimeStep.test.js tests/kirchhoffCompositeJointFrictionTimeStep.test.js tests/kirchhoffCompositeJointWallRows.test.js tests/kirchhoffCompositeJointWallTimeStep.test.js tests/kirchhoffCompositeJointMaterialHistory.test.js tests/kirchhoffCompositePiecewiseMaterialInertia.test.js tests/kirchhoffCompositeJointFeedHistoryTimeStep.test.js tests/kirchhoffCompositeLumenTipGeometry.test.js tests/kirchhoffCompositeJointTipTimeStep.test.js tests/kirchhoffCompositeJointSingleMaterial.test.js tests/kirchhoffCompositeJointSurfaceMotion.test.js tests/kirchhoffCompositeJointSurfacePullback.test.js tests/kirchhoffCompositeJointLumenSurface.test.js tests/kirchhoffCompositeJointLumenFrictionRows.test.js tests/kirchhoffCompositeJointWallSurface.test.js tests/kirchhoffCompositeJointWallFrictionRows.test.js tests/kirchhoffCompositeJointWallFrictionTimeStep.test.js tests/kirchhoffCompositeJointPhysicalColumnPullback.test.js tests/kirchhoffCompositeJointReservoirSurface.test.js tests/kirchhoffCompositeJointReservoirPullback.test.js tests/kirchhoffCompositeWholeStepWorld.test.js tests/kirchhoffCompositeJointWorldAdapter.test.js tests/kirchhoffCompositeJointWorldImport.test.js tests/kirchhoffCompositeJointImportedWorld.test.js tests/kirchhoffCompositeJointWallFeedTimeStep.test.js tests/kirchhoffCompositeJointWorldWall.test.js"
++    "test:physics:composite": "node --test --test-concurrency=1 tests/kirchhoffCompositeTopology.test.js tests/kirchhoffCompositeElement.test.js tests/kirchhoffCompositeChain.test.js tests/kirchhoffCompositeElementFast.test.js tests/kirchhoffCompositeMesh.test.js tests/kirchhoffCompositeClearance.test.js tests/kirchhoffCompositeRelativePatch.test.js tests/kirchhoffCompositeKinematics.test.js tests/kirchhoffCompositeWallContacts.test.js tests/kirchhoffCompositeFriction.test.js tests/kirchhoffCompositeStaticKineticFriction.test.js tests/kirchhoffCompositeMaterialCache.test.js tests/kirchhoffCompositeLengthConstraints.test.js tests/kirchhoffCompositeTimeStep.test.js tests/kirchhoffCompositeWallTimeStep.test.js tests/kirchhoffCompositeChainRefinement.test.js tests/kirchhoffCompositeStateTransfer.test.js tests/kirchhoffCompositeMixedDirection.test.js tests/kirchhoffCompositeMixedTimeStep.test.js tests/kirchhoffCompositeWallEnvelope.test.js tests/kirchhoffCompositeInertiaCache.test.js tests/kirchhoffCompositeElementExact.test.js tests/kirchhoffCompositeTimeStepWorkspace.test.js tests/kirchhoffCompositeSurfaceMotion.test.js tests/kirchhoffCompositeElementGradient.test.js tests/kirchhoffCompositeGradientTimeStep.test.js tests/kirchhoffCompositeSurfaceContinuity.test.js tests/kirchhoffCompositeWallGeometry.test.js tests/kirchhoffCompositeRelativeCluster.test.js tests/kirchhoffCompositeWallDifferentialRows.test.js tests/kirchhoffCompositeSdfTimeStep.test.js tests/kirchhoffCompositeRelativeDirection.test.js tests/kirchhoffCompositeRelativeSearch.test.js tests/kirchhoffCompositeWallBvhGeometry.test.js tests/kirchhoffCompositeMaterialInertia.test.js tests/kirchhoffCompositeToolLengths.test.js tests/kirchhoffCompositeWallSdfBranches.test.js tests/kirchhoffCompositeJointAssembly.test.js tests/kirchhoffCompositeWallBvhRows.test.js tests/kirchhoffCompositeContactPullback.test.js tests/kirchhoffCompositeJointTimeStep.test.js tests/kirchhoffCompositeLumenSideGeometry.test.js tests/kirchhoffCompositeJointLumenTimeStep.test.js tests/kirchhoffCompositeJointFrictionTimeStep.test.js tests/kirchhoffCompositeJointWallRows.test.js tests/kirchhoffCompositeJointWallTimeStep.test.js tests/kirchhoffCompositeJointMaterialHistory.test.js tests/kirchhoffCompositePiecewiseMaterialInertia.test.js tests/kirchhoffCompositeJointFeedHistoryTimeStep.test.js tests/kirchhoffCompositeLumenTipGeometry.test.js tests/kirchhoffCompositeJointTipTimeStep.test.js tests/kirchhoffCompositeJointSingleMaterial.test.js tests/kirchhoffCompositeJointSurfaceMotion.test.js tests/kirchhoffCompositeJointSurfacePullback.test.js tests/kirchhoffCompositeJointLumenSurface.test.js tests/kirchhoffCompositeJointLumenFrictionRows.test.js tests/kirchhoffCompositeJointWallSurface.test.js tests/kirchhoffCompositeJointWallFrictionRows.test.js tests/kirchhoffCompositeJointWallFrictionTimeStep.test.js tests/kirchhoffCompositeJointPhysicalColumnPullback.test.js tests/kirchhoffCompositeJointReservoirSurface.test.js tests/kirchhoffCompositeJointReservoirPullback.test.js tests/kirchhoffCompositeWholeStepWorld.test.js tests/kirchhoffCompositeJointWorldAdapter.test.js tests/kirchhoffCompositeJointWorldImport.test.js tests/kirchhoffCompositeJointImportedWorld.test.js tests/kirchhoffCompositeJointWallFeedTimeStep.test.js tests/kirchhoffCompositeJointWorldWall.test.js"
+   },
+   "keywords": [],
+   "author": "",

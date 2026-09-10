@@ -1,0 +1,226 @@
+{
+  "scope": "loaded flat catheter: original capsule wall point switch without traction transport; unresolved, immutable source state",
+  "status": "line-search",
+  "error": null,
+  "diagnostics": {
+    "scope": "fixed-topology-full-relative-nonlinear-dt",
+    "contacts": "lumen-coulomb",
+    "torsionMode": "quasi-static",
+    "materialCoordinate": "reference-arclength",
+    "elementBackend": "wasm-exact",
+    "assemblyPolicy": "lazy",
+    "preparationMs": 7.496542000000005,
+    "iterationMs": 79.06908299999999,
+    "commitMs": 0,
+    "totalMs": 86.595959,
+    "directions": 12,
+    "evaluations": 149,
+    "fullAssemblies": 12,
+    "gradientAssemblies": 137,
+    "factorizations": 12,
+    "linearSolves": 12,
+    "lineSearchTrials": 136,
+    "unknowns": 35,
+    "bandwidth": 31,
+    "commonDofs": 13,
+    "relativeDofs": 9,
+    "originalLengthRows": 4,
+    "retainedLengthRows": 4,
+    "suppressedPrescribedLengthRows": [],
+    "acceptedAlphas": [
+      1,
+      0.5,
+      0.5,
+      0.125,
+      0.0078125,
+      0.0009765625,
+      0.00048828125,
+      0.00006103515625,
+      0.000030517578125,
+      0.00000762939453125,
+      2.384185791015625e-7
+    ],
+    "certificate": {
+      "force": 0.00020749548300446667,
+      "torque": 4.810113678893613e-12,
+      "length": 2.626311612630161e-9,
+      "boundary": 0,
+      "merit": 63088921.52726175,
+      "converged": false,
+      "contact": {
+        "minGap": 3.0068930678694983e-10,
+        "minForce": 0.49377661677340884,
+        "penetration": 0,
+        "negativeForce": 0,
+        "ncp": 3.0068930678694983e-10,
+        "complementarity": 1.4847334860520168e-10,
+        "activeCount": 1,
+        "eliminatedCount": 0,
+        "sampleCount": 1,
+        "retainedRows": 1,
+        "redundantSamples": 0,
+        "samples": [
+          {
+            "sampleId": "[\"full-friction-dt\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.25]",
+            "Fn": 0.49377661677340884,
+            "gap": 3.0068930678694983e-10,
+            "innerT": 0.25,
+            "outerT": 0.3000000265397652,
+            "active": true,
+            "eliminated": false,
+            "redundant": false,
+            "ncp": 3.0068930678694983e-10,
+            "complementarity": 1.4847334860520168e-10
+          }
+        ],
+        "merit": 0.022948475838201907,
+        "converged": true,
+        "lineSearchMerit": 0.0009041405921601643
+      },
+      "friction": {
+        "scope": "original-strict-side-finite-Coulomb-rows",
+        "converged": false,
+        "merit": 3.2877281206138416,
+        "lineSearchMerit": 0.00013208598796849057,
+        "samples": [
+          {
+            "sampleId": "[\"full-friction-dt\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.25]",
+            "Fn": 0.49377661677340884,
+            "traction": [
+              -0.007406296266733012,
+              -0.000028924266099253793
+            ],
+            "slip": [
+              0.003342759112192725,
+              0.00008160809352102737
+            ],
+            "mu": [
+              0.015,
+              0.006
+            ],
+            "equationResidual": [
+              -2.921656423737762e-12,
+              1.1489152588677152e-10
+            ],
+            "work": -0.000024759824787433594,
+            "minimumWork": -0.000024759824767917832,
+            "workGap": 1.9515761077483484e-14,
+            "coneViolation": 7.901095333551211e-10,
+            "slipResidual": 1.6319690436850695e-8,
+            "converged": false,
+            "redundant": false,
+            "normalAdmissible": true,
+            "surfaceWitness": "virtual-midpoint-not-exact-cylinder-intersection"
+          }
+        ],
+        "sampleCount": 1,
+        "retainedRows": 2
+      },
+      "wall": {
+        "scope": "joint-original-wall-normal-rows-only",
+        "contactMode": "capsule",
+        "minGap": -0.00002530228874420004,
+        "minForce": 0.26059722692174786,
+        "penetration": 0.00002530228874420004,
+        "negativeForce": 0,
+        "ncp": 0.00002530228874420004,
+        "complementarity": 0.000006593706281511885,
+        "domainAdmissible": true,
+        "samples": [
+          {
+            "key": "[\"catheter\",0,0.8,\"capsule\"]",
+            "owner": "catheter",
+            "edge": 0,
+            "role": "capsule",
+            "querySampleFraction": 0,
+            "querySampleCount": 2,
+            "endpointFraction": 0,
+            "dependent": null,
+            "forceIndex": 0,
+            "source": "analytic-plane",
+            "sdfBranch": null,
+            "Fn": 0.26059722692174786,
+            "gap": -0.00002530228874420004,
+            "ncp": 0.00002530228874420004,
+            "complementarity": 0.000006593706281511885,
+            "active": true,
+            "eliminated": false,
+            "representative": null
+          }
+        ],
+        "merit": 56281078.84074673,
+        "retainedRows": 1,
+        "converged": false,
+        "rowStructureChanged": false,
+        "structureVersion": 1,
+        "queryGeneration": 125
+      },
+      "wallFriction": {
+        "scope": "original-capsule-stationary-wall-finite-Coulomb-rows",
+        "converged": false,
+        "merit": 12537.321062711022,
+        "lineSearchMerit": 16.388673731731547,
+        "samples": [
+          {
+            "sampleId": "[\"catheter\",0,0.8,\"capsule\"]",
+            "key": "[\"catheter\",0,0.8,\"capsule\"]",
+            "owner": "catheter",
+            "edge": 0,
+            "forceIndex": 0,
+            "Fn": 0.26059722692174786,
+            "traction": [
+              0.0015584430987907153,
+              -0.00012664578334309673
+            ],
+            "slip": [
+              -0.0008333350252743742,
+              0.0000665939636494623
+            ],
+            "mu": [
+              0.006,
+              0.006
+            ],
+            "equationResidual": [
+              -3.3095066385904065e-9,
+              -4.0347422953421456e-8
+            ],
+            "work": -0.0000013071390638117427,
+            "minimumWork": -0.0000013071426169933913,
+            "workGap": 3.553181648621991e-12,
+            "coneViolation": 0,
+            "slipResidual": 0.000001118969721500729,
+            "converged": false,
+            "redundant": false,
+            "normalAdmissible": true,
+            "surfaceWitness": "original-geometric-wall-foot",
+            "wallWork": 0
+          }
+        ],
+        "sampleCount": 1,
+        "retainedRows": 2
+      },
+      "lineSearchMerit": 19599434.758383106
+    },
+    "workspaceReused": true,
+    "contactQueries": 299,
+    "minimumPrivateNormalForce": 0,
+    "lumenSamples": 1,
+    "lumenRows": 1,
+    "lumenGauge": {
+      "kind": "affine-side-endpoints",
+      "retainedRows": 1,
+      "redundantSamples": 0,
+      "transfers": [],
+      "preparationQueries": 0
+    },
+    "frictionRows": 2,
+    "frictionPreparationQueries": 1,
+    "wall": "wall-coulomb",
+    "wallQueries": 149,
+    "wallRowRebuilds": 0,
+    "wallChartDiscoveries": 0,
+    "wallFrictionRows": 2,
+    "invalidTrials": 125,
+    "lastInvalidTrial": "Loaded wall source/sample/feature changed without traction transfer"
+  }
+}

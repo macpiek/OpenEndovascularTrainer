@@ -1,0 +1,176 @@
+{
+  "baseManifest": "b19dae0f91e9d276b7d4f671f52525f08100a6c9835368dcc59543ccbaf240f2",
+  "fixManifest": "fbbc7f40ee10bd8496fd032aa6066caaa596b5334cadc4aea77e302591503223",
+  "baseMatches": 41,
+  "fixMatches": 3,
+  "overlaidFiles": [
+    "src/physics/kirchhoffCompositeJointLumenRows.js",
+    "tests/kirchhoffCompositeJointTipTimeStep.test.js"
+  ],
+  "sourceFiles": [
+    {
+      "path": "package.json",
+      "sha256": "bfe145902cad5b8130948a9a4545c54e7d5df04c1126d6fcae4bbe59ecef6673"
+    },
+    {
+      "path": "src/physics/collision/collisionAssetFormat.js",
+      "sha256": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca"
+    },
+    {
+      "path": "src/physics/collision/packedLumenField.js",
+      "sha256": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434"
+    },
+    {
+      "path": "src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "sha256": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174"
+    },
+    {
+      "path": "src/physics/collision/vesselContactField.js",
+      "sha256": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeChain.js",
+      "sha256": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeContactPullback.js",
+      "sha256": "7152a522a9c76037c8cb097293cca87d0126b5ba733b4ba8287135972cb91148"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeElementExact.js",
+      "sha256": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeElementExactKernelBytes.js",
+      "sha256": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointAssembly.js",
+      "sha256": "fa709ae0c21bae4a21b6c7344de056b3e4dc333099b56d5e722af6e706084f09"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointLumenRows.js",
+      "sha256": "fe3b4f5fbdf9f60e08f12dcafdc23b052c136d544a66e7df728d6bed5397a3af"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointTimeStep.js",
+      "sha256": "42470e8a658e488e8181356cfcb122e4d4f4744ad4f6475172ec9d06261d5586"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointWallRows.js",
+      "sha256": "f56b84d65a7e67989b5fcde47c6fed6da99487b7a801b3c78fee131e88a06ace"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeKinematics.js",
+      "sha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeLumenSideGeometry.js",
+      "sha256": "77b6ac3482ae0c55084b53a6c269106ec4fa6e7502ddf50fd83e8fb3f2cb1452"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeLumenTipGeometry.js",
+      "sha256": "08d0c8ef854251574e86dc29e05dcb51f23280f0094a699ea003c3638a6fc48b"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeMaterialInertia.js",
+      "sha256": "0d0b425eaa69740e3a9d04eab15e455a270040a8c635ca3922d67caf7ea3eee9"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositePiecewiseMaterialInertia.js",
+      "sha256": "8dbe6fac46a8cc7d52a7f7bb99b3a0b4f39fae4aec5eaad8c2ec9b28487eaeee"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeRelativeCluster.js",
+      "sha256": "a91c4e2fcf3b2ce2bd70137d0857a054618a9cc349318f0f4b8e00851b465a45"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeRelativeDirection.js",
+      "sha256": "c2ccc464b9c9ad553830237b4bd661605901823e6d13a9b09b77cc51528aa904"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeToolLengths.js",
+      "sha256": "16134396067409b43faf97f6dd722032a0e3c993966fd60e7eae864f5b80f532"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeWallBvhGeometry.js",
+      "sha256": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeWallContacts.js",
+      "sha256": "47b11dedba3a67c124e1d499f1c162c60439349980b2ec2878a58b2bc2c581f7"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeWallDifferentialRows.js",
+      "sha256": "3e57d869cdc4deb403fe0802a5637f0699ad9ba40ea0c0dbe52fb05fb333a80f"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeWallEnvelope.js",
+      "sha256": "83a4496c191646f2c26668a72b781110bf7400f2255dd3795a4ab1a9b06390e7"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeWallGeometry.js",
+      "sha256": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeWallSdfBranches.js",
+      "sha256": "4346836ca63da0045abb878291a1f46ced1649c6637f5cec2a9dfda5dcd7ba0f"
+    },
+    {
+      "path": "src/physics/kirchhoffContactManifold.js",
+      "sha256": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef"
+    },
+    {
+      "path": "src/physics/kirchhoffCoulombBandLU.js",
+      "sha256": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588"
+    },
+    {
+      "path": "src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637"
+    },
+    {
+      "path": "src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba"
+    },
+    {
+      "path": "src/physics/kirchhoffLumenContact.js",
+      "sha256": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointLumenTimeStep.test.js",
+      "sha256": "59f3207aee727a8789f142ac61cb15fd34dca6a0e084edd51b8e4bbf3ae86f53"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointSingleMaterial.test.js",
+      "sha256": "bd1b1ec263de3f49f0fdbc8801b5f593e3f410a96594068c427dc58e38361f6c"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointTipTimeStep.test.js",
+      "sha256": "db5a1e48f04bcd0c9f822d6d7c62e1abdf573d62749a008687428634b753aee8"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointWallTimeStep.test.js",
+      "sha256": "0a7f3484b3f4839825809cfb28ab4279cd3e880b89e71c568120be8ec3a0a8d6"
+    },
+    {
+      "path": "tests/kirchhoffCompositeLumenTipGeometry.test.js",
+      "sha256": "9da0bb91b19e32541efabbe8e79887df580b85128dff7a27efa8a5547a2a8c8e"
+    },
+    {
+      "path": "full-root-suite.txt",
+      "sha256": "fc15a73e245c1d21b30654ab4df5abdbfcbd117670eb85718463a814f7f75f2c"
+    }
+  ]
+}

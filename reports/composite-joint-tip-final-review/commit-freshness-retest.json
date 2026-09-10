@@ -1,0 +1,101 @@
+{
+  "fixture": {
+    "pair": {
+      "id": "review-rim",
+      "feature": "distal-rim",
+      "innerToolId": "wire",
+      "outerToolId": "catheter",
+      "innerEdge": 0,
+      "outerEdge": 0,
+      "innerMaterialSegmentId": "review-wire-0",
+      "outerMaterialSegmentId": "review-cat-tip",
+      "lumenRadius": 0.5,
+      "innerRadius": 0.16,
+      "openDistal": true,
+      "portalFilletRadius": 0.15
+    },
+    "toolPositions": [
+      [
+        "catheter",
+        [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            0,
+            0
+          ],
+          [
+            4,
+            0,
+            0
+          ]
+        ]
+      ],
+      [
+        "wire",
+        [
+          [
+            1.8,
+            0.45,
+            0
+          ],
+          [
+            2.3,
+            0.55,
+            0
+          ],
+          [
+            2.8,
+            0.65,
+            0
+          ]
+        ]
+      ]
+    ]
+  },
+  "cases": [
+    {
+      "trialForce": -1e-30,
+      "rejected": true,
+      "rejection": "Lumen forces or physical geometry changed after their last certified refresh",
+      "queriesAtRejectedCommit": 1,
+      "restoredExactHistory": true,
+      "refreshedForce": null,
+      "originalHistoryUntouched": true
+    },
+    {
+      "trialForce": "NaN",
+      "rejected": true,
+      "rejection": "Lumen forces or physical geometry changed after their last certified refresh",
+      "queriesAtRejectedCommit": 1,
+      "restoredExactHistory": true,
+      "refreshedForce": null,
+      "originalHistoryUntouched": true
+    },
+    {
+      "trialForce": 2,
+      "rejected": true,
+      "rejection": "Lumen forces or physical geometry changed after their last certified refresh",
+      "queriesAtRejectedCommit": 1,
+      "restoredExactHistory": true,
+      "refreshedForce": 2,
+      "originalHistoryUntouched": true
+    },
+    {
+      "mutation": "wire y += .01 after certified refresh",
+      "currentGap": -0.010000000000000009,
+      "rejected": true,
+      "rejection": "Lumen forces or physical geometry changed after their last certified refresh",
+      "queriesAtRejectedCommit": 1,
+      "restoredExactHistory": true,
+      "freshPenetrationRejected": true,
+      "restoreAfterFailedRefreshNeedsNewQuery": true
+    }
+  ],
+  "resolution": "All original independent witness cases are blocked at commit without a query; exact rollback restores the old proof, while a failed/new refresh requires a new converged certificate.",
+  "scope": "Frozen 41-file baseline plus exactly the two hash-verified fix files; no live RelativeDirection, variable ownership, friction or World claim."
+}

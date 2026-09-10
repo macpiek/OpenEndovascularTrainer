@@ -1,5 +1,7 @@
 # Przebudowa mechaniki prowadnika — 5 września 2026
 
+Aktualizacja: [przebudowa cewnika i sprzężenia](catheter-physics-rebuild.md) rozszerza tryb `direct` na cewniki; [optymalizacja sprzężenia](catheter-optimization.md) opisuje kolejne zmiany wydajności. Poniższy raport dokumentuje wcześniejszy etap prowadnika.
+
 ## Wniosek
 
 Warto zachować model pręta Kirchhoffa i istniejące wykrywanie kolizji, a przebudować sposób rozwiązywania równań mechaniki. Zwiększanie samej sztywności oraz liczby lokalnych iteracji maskuje problem zbieżności. Nie daje przewidywalnej zależności między sztywnością materiału a zachowaniem prowadnika.

@@ -1,0 +1,12 @@
+{
+  "src/physics/kirchhoffTwoChannelRows.js": "178c42da21f6653dad57d6e1ea32e00277ec92408aa52e42ccd6f1869596003f",
+  "tests/kirchhoffTwoChannelRows.test.js": "fe4fbd7a02b2d2af6f2d45eea6992293a2b8046aab5e95216c5d90d94a169de9",
+  "tests/kirchhoffTwoChannelRowsSystem.test.js": "892ad0f40426fcbabfce01641edbd47ccd18e18c091530b9e1b6fc1494aaaf63",
+  "two-channel-rows.patch": "dbb4dccd27e9281aba2f9566c9b37141e5d999edd2a4ad9ec84f67698ae14827",
+  "readOnlySystemDependencies": {
+    "kirchhoffTwoChannelSystem.js": "dc017e8b787b0b5f4dad47729268c5fdbd4d6753b821542c3d6c3dd5048030e3",
+    "kirchhoffTwoChannelCondensation.js": "991cfa60084b8e9954190ad1fe12841388ddc03e5dc634ea35afcd0f1296076a",
+    "kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "kirchhoffCoupledSystem.js": "a8fb18ce4389a310b6400f00bbe50813fb19308aa5eb32ef3e875351fe97f5ee"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "output": "/tmp/oet-two-channel-release-runtime-8996.json",
+  "sourceStable": true,
+  "state": {
+    "wireMm": 12.100000000000001,
+    "catheterMm": 7.36666666666667,
+    "wireRotation": 0,
+    "catheterRotation": 0,
+    "executedSteps": 49,
+    "fingerprints": [
+      {
+        "id": "guidewire",
+        "hash": "4e3506b0"
+      },
+      {
+        "id": "catheter",
+        "hash": "d23e5c26"
+      }
+    ],
+    "activeNodes": [
+      4,
+      18
+    ]
+  },
+  "acceptedCoupledSteps": 7,
+  "last": {
+    "wireMm": 12.100000000000001,
+    "catheterMm": 7.36666666666667,
+    "executedSteps": 49,
+    "accepted": false,
+    "status": "split-uncertified",
+    "twoChannel": true,
+    "jointPasses": 5,
+    "historyCommits": 0,
+    "physicalConeViolation": 0.0000019968466560271736,
+    "physicalFailure": {
+      "linear": null,
+      "trial": {
+        "previousMerit": 0.02900250327664501,
+        "rejectedMerit": 0.02900250327664501,
+        "trials": 8
+      }
+    },
+    "channels": {
+      "finite": true,
+      "supported": true,
+      "normalResidualMm": 0.0000031772879823671607,
+      "controlResidualMm": 0,
+      "orientationResidualRad": 0,
+      "missingLoadedRows": [],
+      "issues": [],
+      "releasePositionMm": 0.000009069102036909344,
+      "releaseAngleRad": 0,
+      "pendingReleases": [
+        {
+          "id": 1,
+          "mode": "difference",
+          "kind": "normal",
+          "key": "normal",
+          "reason": "continuous-bias-wrench-transport",
+          "carrier": 1,
+          "positionMm": 0.000009069102036909344,
+          "angleRad": 0
+        },
+        {
+          "id": 2,
+          "mode": "difference",
+          "kind": "sheath",
+          "key": "sheath:1:12:-1",
+          "side": 1,
+          "node": 12,
+          "reason": "continuous-bias-wrench-transport",
+          "carrier": 1,
+          "positionMm": 2.901038961899557e-10,
+          "angleRad": 0
+        }
+      ]
+    }
+  }
+}

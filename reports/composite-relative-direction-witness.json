@@ -1,0 +1,139 @@
+{
+  "scope": "original linear direction; manufactured constitutive/inertia controls; no nonlinear dt or FPS certificate",
+  "cases": [
+    {
+      "backend": "wasm",
+      "commonCount": 53,
+      "relativeCount": 6,
+      "dualCount": 2,
+      "count": 61,
+      "bandwidth": 21,
+      "matrixEntries": 2161,
+      "factorEntries": 3904,
+      "maxDenseIncrementError": 3.774758283725532e-15,
+      "proof": {
+        "commonForce": 6.095106310450774e-15,
+        "relativeForce": 5.079361817218395e-15,
+        "force": 6.095106310450774e-15,
+        "torque": 3.019555195837945e-16,
+        "constraints": [
+          {
+            "unit": "mm",
+            "residual": -3.469446951953614e-18,
+            "tolerance": 1e-11,
+            "converged": true
+          },
+          {
+            "unit": "N s",
+            "residual": 9.974659986866641e-18,
+            "tolerance": 3e-12,
+            "converged": true
+          }
+        ]
+      },
+      "converged": true,
+      "factorizations": 1,
+      "linearSolves": 1
+    },
+    {
+      "backend": "wasm-exact",
+      "commonCount": 53,
+      "relativeCount": 6,
+      "dualCount": 2,
+      "count": 61,
+      "bandwidth": 21,
+      "matrixEntries": 2161,
+      "factorEntries": 3904,
+      "maxDenseIncrementError": 3.1086244689504383e-15,
+      "proof": {
+        "commonForce": 1.134913526817851e-14,
+        "relativeForce": 1.2940474700910004e-14,
+        "force": 1.2940474700910004e-14,
+        "torque": 5.041051205228352e-16,
+        "constraints": [
+          {
+            "unit": "mm",
+            "residual": 1.3010426069826053e-18,
+            "tolerance": 1e-11,
+            "converged": true
+          },
+          {
+            "unit": "N s",
+            "residual": -3.0357660829594124e-18,
+            "tolerance": 3e-12,
+            "converged": true
+          }
+        ]
+      },
+      "converged": true,
+      "factorizations": 1,
+      "linearSolves": 1
+    }
+  ],
+  "storage": [
+    {
+      "nodes": 25,
+      "modes": 21,
+      "commonCount": 123,
+      "relativeCount": 42,
+      "dualCount": 21,
+      "count": 186,
+      "bandwidth": 22,
+      "matrixEntries": 7864,
+      "factorEntries": 12462,
+      "converged": true,
+      "factorizations": 1,
+      "linearSolves": 1,
+      "proof": {
+        "commonForce": 8.076113562627274e-15,
+        "relativeForce": 6.841966229687024e-15,
+        "torque": 1.7339346765446765e-15,
+        "maximumConstraintResidual": 7.548757625930325e-18
+      }
+    },
+    {
+      "nodes": 65,
+      "modes": 61,
+      "commonCount": 323,
+      "relativeCount": 122,
+      "dualCount": 61,
+      "count": 506,
+      "bandwidth": 22,
+      "matrixEntries": 22264,
+      "factorEntries": 33902,
+      "converged": true,
+      "factorizations": 1,
+      "linearSolves": 1,
+      "proof": {
+        "commonForce": 1.3188777327199919e-14,
+        "relativeForce": 7.202734502581576e-15,
+        "torque": 8.802068232269256e-15,
+        "maximumConstraintResidual": 7.548757625930325e-18
+      }
+    },
+    {
+      "nodes": 201,
+      "modes": 197,
+      "commonCount": 1003,
+      "relativeCount": 394,
+      "dualCount": 197,
+      "count": 1594,
+      "bandwidth": 22,
+      "matrixEntries": 71224,
+      "factorEntries": 106798,
+      "converged": true,
+      "factorizations": 1,
+      "linearSolves": 1,
+      "proof": {
+        "commonForce": 1.4594933334804994e-14,
+        "relativeForce": 9.710819388192293e-15,
+        "torque": 4.141961296513785e-14,
+        "maximumConstraintResidual": 9.283481101907132e-18
+      }
+    }
+  ],
+  "crossModeWitness": {
+    "maxIncrementError": 0.08118322120115948,
+    "maxOriginalRelativeForceResidual": 13.025262393594275
+  }
+}

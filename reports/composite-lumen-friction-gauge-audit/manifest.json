@@ -1,0 +1,28 @@
+{
+  "scope": "Independent normal-pressure gauge/Coulomb constitutive equivalence audit; probe/report only",
+  "finding": "Normal-only affine endpoint pressure gauge is not an exact multisample Coulomb reduction",
+  "recommendedImmediatePolicy": "Reject friction-enabled groups with normal interior redundancy/transfer; use explicitly declared pressure supports without implicit elimination",
+  "probe": "PASS: asserted counterexamples reproduced",
+  "sourceFiles": 20,
+  "sourceManifest": "source.json",
+  "sourceEdits": false,
+  "wholeStepOrWorldClaim": false,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "3600166513e9d8cb4b0032b4d9176635e47abe640b4ac06258acd32960206a61"
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "459b9cccbb9c2d802c6699e897d5476d52cb68e14676138887f940206731de10"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "343c8d1cc976daf651d53af486377c72201b26b51b4dd23a117fc04304f3b0e6"
+    },
+    {
+      "path": "source.json",
+      "sha256": "afdb348fa04a17267417c0323e84d5320c856d159c630f4f36c2e867f3ebcdee"
+    }
+  ]
+}

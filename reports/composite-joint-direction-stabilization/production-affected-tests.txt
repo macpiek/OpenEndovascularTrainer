@@ -1,0 +1,45 @@
+✔ actual World runs the production shared Coulomb timestep for two dt and publishes both own material states (84.429917ms)
+✔ ordinary accepted steps are identical with adaptive and original Newton search and never activate regularization (61.772208ms)
+✔ failed numerical budgets retain one prepared command and no geometry/history/time, then direct retry is identical (16.734ms)
+✔ a second-body publication exception restores all first-body arrays and views before retry (20.52125ms)
+✔ accepted Float64 physics and complete views are independent of subsequent Float32 view corruption (20.546417ms)
+✔ unmapped World constraints reject explicitly before advancing the shared model (2.366791ms)
+✔ the same World field and a vacuous wall certificate cannot stand in for actual surface coverage (0.743917ms)
+✔ active-range/storage changes require transfer and reset releases owned state, views and pending preparation (7.026125ms)
+✔ World preparation retains genuine immutable wall pose paths and owns their mutable declarations across retry (48.357292ms)
+✔ a structurally copied wall pose path has no preparation provenance and cannot enter World physics (0.824042ms)
+✔ unregularized Newton retains the original wall penetration failure without committing a partial World step (31.10075ms)
+✔ adaptive search resolves initial wall penetration with the unchanged full physical certificate and next-dt history (230.598292ms)
+ℹ {"directions":11,"evaluations":91,"activations":[{"reason":"tiny-newton-step","shift":0.01,"direction":1}],"force":4.543312510009988e-8}
+✔ budgets during stabilized wall search restore both bodies and prepared history; exact retry consumes dt once (723.795084ms)
+✔ numerical regularization solves its explicit scaled system while preserving the distinct original equation proof (18.743416ms)
+✔ regularization cannot hide an incompatible held physical row or move fixed coordinates (4.916417ms)
+✔ invalid numerical shifts reject and cannot contaminate a later original solve (5.234209ms)
+✔ one sliding Coulomb block retains normal-force and cross-tangent derivatives in the original joint solve (2.534125ms)
+✔ a local dual block with zero diagonal still solves its coupled equations at fully prescribed geometry (3.023208ms)
+✔ dual block support is owned, local and explicit; stale or missing derivatives cannot reuse it (5.079ms)
+✔ one original common/rho/dual LU matches an independent dense oracle for GN and exact physical operators (13.910541ms)
+✔ the common diagnostic block is never added twice, even when diagnostic bytes are poisoned (4.260083ms)
+✔ neighboring modes are solved jointly and deleting cross-mode blocks fails the full original equations (1.857166ms)
+✔ current H/C values are refreshed each direction while topology and frozen bases are checked (1.825708ms)
+✔ fixed mixed supports preserve physical force-column asymmetry and full nonsymmetric geometric tangent (6.828125ms)
+✔ boundary reactions act ON the chain and close an independently integrated translational impulse balance (2.514042ms)
+✔ fully prescribed incompatible rows retain their original residual and explicit row-specific gates (2.444708ms)
+✔ singular and stale/nonfinite inputs fail without regularization or a nonlinear certificate (1.416041ms)
+✔ unattainable original force/torque gates stay failed; each bounded correction refactors the same unshifted matrix (2.052ms)
+✔ each correction RHS satisfies the independently contracted modified system while incompatible held rows remain visible (1.963791ms)
+✔ many modes and duals retain a bounded local band and linear matrix/factor storage (37.425834ms)
+✔ nonlocal or ambiguous supports are rejected instead of silently becoming a global dense solve (4.718291ms)
+✔ full 3D and mixed 2/3 coordinates interleave with local duals and match an independent dense direction (6.878625ms)
+✔ direction workspace accepts structure-only metadata but rejects an unassembled operator and changed mode dimensions (1.059167ms)
+✔ many full three-coordinate modes keep bounded band and linear storage with one shared solve (41.150208ms)
+✔ global endpoint modes and endpoint-local physical boundary rows match an independent dense system (3.707791ms)
+✔ a held catheter permits free axial wire slip and an independent wire endpoint target while both tool lengths stay exact (7.266792ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1400.679042

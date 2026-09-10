@@ -1,0 +1,22 @@
+✔ continuous inertia assembles every wider common/relative term and its full nonlinear tangent matches independent finite differences (46.982084ms)
+✔ tool tips and declared interfaces bound support; a changed chart cannot reuse a stale scatter pattern (3.931375ms)
+✔ one joint step preserves independent translations, opposite feed and independent rotation with polynomial accepted histories (11.125209ms)
+✔ nonlinear bending commits full polynomial velocity then transports opposite feeds across old nodes into the next joint solve (18.866333ms)
+✔ polynomial history cannot be downgraded to affine inertia or certified against the old contact geometry (0.790459ms)
+✔ continuous frame elasticity and inertia solve both tools together through consecutive loaded steps with separate rotation and exact retry (58.050792ms)
+✔ continuous elastic position/spin support enters the same band and CSR and matches finite differences across its wider coupling (361.665708ms)
+✔ continuous material frame, inertia and arclength close in one loaded solve and preserve independent curved lengths through a second dt (51.876292ms)
+✔ fully prescribed continuous support suppresses only redundant length duals and checks curved targets before acceptance (8.473958ms)
+✔ four-node continuous length rows use explicitly declared wider support while arbitrary distant rows remain rejected (3.479958ms)
+✔ a loaded straight continuous root with two prescribed nodes advances both tools, retains arc lengths and balances its regular taut reactions (366.216917ms)
+✔ taut normal-form work and complete signed tangents agree with independent differences, including both prescribed endpoints and rotated relative bases (6.565584ms)
+✔ feasible taut reactions have zero resultant and moment, retain axial freedom and preserve world-vector warm starts (2.200334ms)
+✔ only exact taut endpoints are reparameterized; polynomial rank, prescribed shape and duplicate line constraints are checked (1.097791ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1179.46075

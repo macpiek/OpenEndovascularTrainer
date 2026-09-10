@@ -1,0 +1,1045 @@
+{
+  "scope": "isolated instrumented JointTimeStep prototype; NOT production acceptance",
+  "source": {
+    "root": "/private/tmp/oet-joint-lumen-plan-probe-8996/frozen-root",
+    "files": {
+      "kirchhoffCompositeJointTimeStep.js": "5999a151e1a2c567454d858db6ea5bf285a115fa344e4d9086a51ad76b2eea87",
+      "kirchhoffCompositeJointAssembly.js": "254a680d57661d88e4e2964e9d24314bec21ae522d184ef3a62fa4dfdcbdb9b3",
+      "kirchhoffCompositeRelativeDirection.js": "878b66b0752ea97b2cd0b6d08a198e00a8efd08be5133926bd92ba31ba1896fd",
+      "kirchhoffCompositeContactPullback.js": "7152a522a9c76037c8cb097293cca87d0126b5ba733b4ba8287135972cb91148",
+      "kirchhoffCompositeLumenSideGeometry.js": "77b6ac3482ae0c55084b53a6c269106ec4fa6e7502ddf50fd83e8fb3f2cb1452",
+      "kirchhoffLumenContact.js": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6"
+    }
+  },
+  "sourceUnchanged": true,
+  "uncoupledControl": {
+    "accepted": true,
+    "maximumCatheterMotion": 2.299577740823545e-19,
+    "contactPrototypeMaximumCatheterMotion": 0.01028129241056812
+  },
+  "independent": [
+    {
+      "label": "activation",
+      "rawGap": -6.012378372943772e-10,
+      "innerT": 0.25,
+      "outerT": 0.29946531572935065,
+      "maximumLengthError": 5.951905635015464e-11,
+      "contactForceSum": [
+        0,
+        0,
+        -5.293955920339377e-23
+      ]
+    },
+    {
+      "label": "second-dt",
+      "rawGap": 0,
+      "innerT": 0.25,
+      "outerT": 0.29807719448144115,
+      "maximumLengthError": 2.220446049250313e-16,
+      "contactForceSum": [
+        8.673617379884035e-19,
+        1.1102230246251565e-16,
+        -2.117582368135751e-22
+      ]
+    },
+    {
+      "label": "release",
+      "rawGap": 0.0027040783908140464,
+      "innerT": 0.25,
+      "outerT": 0.2974106604908733,
+      "maximumLengthError": 0,
+      "contactForceSum": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "signedRollback": {
+    "status": "direction-budget",
+    "privateFn": -0.030117959442982123,
+    "acceptedFn": 0.4570004700776852,
+    "sameIdentity": true,
+    "unchanged": true
+  },
+  "fixture": {
+    "n": 3,
+    "coordinates": [
+      0,
+      2,
+      4
+    ],
+    "positions": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        0
+      ],
+      [
+        4,
+        0,
+        0
+      ]
+    ],
+    "wire": [
+      [
+        0.1,
+        0.34,
+        0
+      ],
+      [
+        2.1,
+        0.30000000000000004,
+        0
+      ],
+      [
+        4.1,
+        0.26,
+        0
+      ]
+    ],
+    "dt": 0.1,
+    "contacts": {
+      "kind": "lumen-side-normal-probe",
+      "friction": "none",
+      "id": "pair-0",
+      "chartId": "fixed-chart-0",
+      "innerMaterialSegmentId": "wire:e0",
+      "outerMaterialSegmentId": "catheter:e0",
+      "quadrature": [
+        0.25,
+        0.5,
+        0.75
+      ],
+      "innerT": 0.25,
+      "lumenRadius": 0.5,
+      "innerRadius": 0.16,
+      "penalty": 10,
+      "gapTolerance": 1e-8,
+      "ncpTolerance": 1e-8,
+      "forceTolerance": 1e-7,
+      "workTolerance": 1e-9
+    },
+    "boundaries": {
+      "positions": [
+        {
+          "toolId": "wire",
+          "node": 2,
+          "value": [
+            4.1,
+            0.26,
+            0
+          ]
+        },
+        {
+          "toolId": "catheter",
+          "node": 2,
+          "value": [
+            4,
+            0,
+            0
+          ]
+        }
+      ],
+      "spins": [
+        {
+          "toolId": "wire",
+          "edge": 0,
+          "value": 0
+        },
+        {
+          "toolId": "catheter",
+          "edge": 0,
+          "value": 0
+        }
+      ]
+    },
+    "forces": [
+      0.4,
+      0.4,
+      0
+    ],
+    "torque": 0.001,
+    "declaredTestParameters": true
+  },
+  "results": [
+    {
+      "label": "activation",
+      "accepted": true,
+      "status": "accepted",
+      "certificate": {
+        "force": 1.4255813413566353e-8,
+        "torque": 2.434457623282717e-14,
+        "length": 5.951905635015464e-11,
+        "boundary": 0,
+        "merit": 0.07616681948522375,
+        "contact": {
+          "order": "gradient",
+          "Fn": 0.25975984368904714,
+          "gap": -6.012378372943772e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29946531572935065,
+          "margin": 0.016179798424951597,
+          "ncp": 6.012378372943772e-10,
+          "work": 1.5617744663552817e-10,
+          "negativeForce": 0,
+          "converged": true,
+          "merit": 0.03162113357748164
+        },
+        "converged": true
+      },
+      "directions": 3,
+      "evaluations": 8,
+      "alphas": [
+        1,
+        1,
+        1
+      ],
+      "unknowns": 30,
+      "oldFn": 0,
+      "newFn": 0.25975984368904714,
+      "physicalPositions": {
+        "wire": [
+          [
+            0.10083257591921592,
+            0.3659790073059474,
+            -8.612023666117005e-7
+          ],
+          [
+            2.099849919330753,
+            0.291617318324713,
+            9.438868414595542e-7
+          ],
+          [
+            4.1,
+            0.26,
+            0
+          ]
+        ],
+        "catheter": [
+          [
+            0.0000233639508121944,
+            0.01028129241056812,
+            -1.2459019549155098e-8
+          ],
+          [
+            2.000000100762121,
+            0.0006349225406809943,
+            -4.722123025096053e-10
+          ],
+          [
+            4,
+            0,
+            0
+          ]
+        ]
+      },
+      "delta": {
+        "wire": [
+          [
+            0.0008325759192159138,
+            0.025979007305947377,
+            -8.612023666117005e-7
+          ],
+          [
+            -0.00015008066924693253,
+            -0.008382681675287051,
+            9.438868414595542e-7
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "catheter": [
+          [
+            0.0000233639508121944,
+            0.01028129241056812,
+            -1.2459019549155098e-8
+          ],
+          [
+            1.0076212086929104e-7,
+            0.0006349225406809943,
+            -4.722123025096053e-10
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "balances": {
+        "wire": {
+          "momentumRate": [
+            0.0069227736888963975,
+            0.11980132449906808,
+            0.000013348095930563525
+          ],
+          "appliedForce": [
+            0,
+            0.4,
+            0
+          ],
+          "boundaryForce": [
+            0.008175645195111093,
+            -0.020441853241579804,
+            0.000013041705527884754
+          ],
+          "contactForce": [
+            -0.0012528697647479726,
+            -0.259756822260007,
+            3.0641017311422445e-7
+          ],
+          "residual": [
+            -1.7414667225629232e-9,
+            6.549205622263798e-13,
+            -1.977043545390316e-11
+          ]
+        },
+        "catheter": {
+          "momentumRate": [
+            0.0005655714012943914,
+            0.27722729980632255,
+            -3.2168265970018334e-7
+          ],
+          "appliedForce": [
+            0,
+            0,
+            0
+          ],
+          "boundaryForce": [
+            -0.0006873002533536185,
+            0.01747047473783694,
+            -1.529256063110201e-8
+          ],
+          "contactForce": [
+            0.0012528697647479726,
+            0.259756822260007,
+            -3.064101731142245e-7
+          ],
+          "residual": [
+            1.889900037247566e-9,
+            2.8084786163340425e-9,
+            2.0074045143176735e-11
+          ]
+        }
+      },
+      "trace": [
+        {
+          "order": "gradient",
+          "Fn": 0,
+          "gap": 0.009999999999999953,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.3,
+          "margin": 0.009999999999999953,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "full",
+          "Fn": 0,
+          "gap": 0.009999999999999953,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.3,
+          "margin": 0.009999999999999953,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": 0,
+          "gap": -0.02359135380634908,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.30033591353806327,
+          "margin": 0.024230786240495628,
+          "ncp": 0.02359135380634908,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": 0,
+          "gap": -0.02359135380634908,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.30033591353806327,
+          "margin": 0.024230786240495628,
+          "ncp": 0.02359135380634908,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.25998858484306214,
+          "gap": 0.000004811686513617186,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.2994270053681567,
+          "margin": 0.01618288932418216,
+          "ncp": 0.000004811686513617186,
+          "work": 0.0000012509835673837796,
+          "negativeForce": 0,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": 0.25998858484306214,
+          "gap": 0.000004811686513617186,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.2994270053681567,
+          "margin": 0.01618288932418216,
+          "ncp": 0.000004811686513617186,
+          "work": 0.0000012509835673837796,
+          "negativeForce": 0,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.25975984368904714,
+          "gap": -6.012378372943772e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29946531572935065,
+          "margin": 0.016179798424951597,
+          "ncp": 6.012378372943772e-10,
+          "work": 1.5617744663552817e-10,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.25975984368904714,
+          "gap": -6.012378372943772e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29946531572935065,
+          "margin": 0.016179798424951597,
+          "ncp": 6.012378372943772e-10,
+          "work": 1.5617744663552817e-10,
+          "negativeForce": 0,
+          "converged": true
+        }
+      ]
+    },
+    {
+      "label": "second-dt",
+      "accepted": true,
+      "status": "accepted",
+      "certificate": {
+        "force": 4.822325656428403e-15,
+        "torque": 2.168404344971009e-19,
+        "length": 2.220446049250313e-16,
+        "boundary": 0,
+        "merit": 3.032369901922121e-15,
+        "contact": {
+          "order": "gradient",
+          "Fn": 0.4570004700776852,
+          "gap": 0,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719448144115,
+          "margin": 0.020835154205022022,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true,
+          "merit": 0
+        },
+        "converged": true
+      },
+      "directions": 3,
+      "evaluations": 8,
+      "alphas": [
+        1,
+        1,
+        1
+      ],
+      "unknowns": 30,
+      "oldFn": 0.25975984368904714,
+      "newFn": 0.4570004700776852,
+      "physicalPositions": {
+        "wire": [
+          [
+            0.10267293955592623,
+            0.3959888640232607,
+            -0.0000027124526050310774
+          ],
+          [
+            2.0996984994059495,
+            0.27984708313745293,
+            0.000003482168160875159
+          ],
+          [
+            4.1,
+            0.26,
+            0
+          ]
+        ],
+        "catheter": [
+          [
+            0.00027344640154483297,
+            0.03678640986636259,
+            -8.348184884221899e-8
+          ],
+          [
+            2.0000039047110705,
+            0.003952066425872741,
+            -4.746609311123683e-9
+          ],
+          [
+            4,
+            0,
+            0
+          ]
+        ]
+      },
+      "delta": {
+        "wire": [
+          [
+            0.0018403636367103071,
+            0.03000985671731332,
+            -0.0000018512502384193769
+          ],
+          [
+            -0.00015141992480360855,
+            -0.011770235187260059,
+            0.0000025382813194156048
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "catheter": [
+          [
+            0.0002500824507326386,
+            0.026505117455794473,
+            -7.10228292930639e-8
+          ],
+          [
+            0.000003803948949610003,
+            0.003317143885191747,
+            -4.274397008614078e-9
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "balances": {
+        "wire": {
+          "momentumRate": [
+            0.013069032705613987,
+            -0.03568248331996928,
+            0.000028589350248617808
+          ],
+          "appliedForce": [
+            0,
+            0.4,
+            0
+          ],
+          "boundaryForce": [
+            0.02057168789913094,
+            0.021256396415679932,
+            0.00002710573216955623
+          ],
+          "contactForce": [
+            -0.007502655193516919,
+            -0.45693887973565056,
+            0.000001483618079061929
+          ],
+          "residual": [
+            -3.5561831257524545e-17,
+            1.3322676295501878e-15,
+            -3.517304313473482e-19
+          ]
+        },
+        "catheter": {
+          "momentumRate": [
+            0.005618996965870214,
+            0.5181184256219485,
+            -0.0000015880362997468255
+          ],
+          "appliedForce": [
+            0,
+            0,
+            0
+          ],
+          "boundaryForce": [
+            -0.001883658227640677,
+            0.06117954588629794,
+            -1.0441822068524016e-7
+          ],
+          "contactForce": [
+            0.00750265519351692,
+            0.45693887973565067,
+            -0.0000014836180790619292
+          ],
+          "residual": [
+            -6.029031440757393e-15,
+            -5.551115123125783e-17,
+            3.4389537658524594e-19
+          ]
+        }
+      },
+      "trace": [
+        {
+          "order": "gradient",
+          "Fn": 0.25975984368904714,
+          "gap": -6.012378372943772e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29946531572935065,
+          "margin": 0.016179798424951597,
+          "ncp": 6.012378372943772e-10,
+          "work": 1.5617744663552817e-10,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "full",
+          "Fn": 0.25975984368904714,
+          "gap": -6.012378372943772e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29946531572935065,
+          "margin": 0.016179798424951597,
+          "ncp": 6.012378372943772e-10,
+          "work": 1.5617744663552817e-10,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.4575382625920791,
+          "gap": 0.000012401201547995733,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29794521431851967,
+          "margin": 0.020844081764614164,
+          "ncp": 0.000012401201547995733,
+          "work": 0.000005674024210324169,
+          "negativeForce": 0,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": 0.4575382625920791,
+          "gap": 0.000012401201547995733,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29794521431851967,
+          "margin": 0.020844081764614164,
+          "ncp": 0.000012401201547995733,
+          "work": 0.000005674024210324169,
+          "negativeForce": 0,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.45700044553617303,
+          "gap": -7.622847353339068e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719470008076,
+          "margin": 0.020835151637676574,
+          "ncp": 7.622847353339068e-10,
+          "work": 3.4836446367301914e-10,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "full",
+          "Fn": 0.45700044553617303,
+          "gap": -7.622847353339068e-10,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719470008076,
+          "margin": 0.020835151637676574,
+          "ncp": 7.622847353339068e-10,
+          "work": 3.4836446367301914e-10,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.4570004700776852,
+          "gap": 0,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719448144115,
+          "margin": 0.020835154205022022,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": 0.4570004700776852,
+          "gap": 0,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719448144115,
+          "margin": 0.020835154205022022,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        }
+      ]
+    },
+    {
+      "label": "release",
+      "accepted": true,
+      "status": "accepted",
+      "certificate": {
+        "force": 4.3162498178827134e-16,
+        "torque": 1.0339757656912846e-25,
+        "length": 0,
+        "boundary": 0,
+        "merit": 1.973981201417072e-17,
+        "contact": {
+          "order": "gradient",
+          "Fn": 0,
+          "gap": 0.0027040783908140464,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974106604908733,
+          "margin": 0.023599380540682446,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true,
+          "merit": 0
+        },
+        "converged": true
+      },
+      "directions": 5,
+      "evaluations": 12,
+      "alphas": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "unknowns": 30,
+      "oldFn": 0.4570004700776852,
+      "newFn": 0,
+      "physicalPositions": {
+        "wire": [
+          [
+            0.10423050613888336,
+            0.41671090802863864,
+            -0.000005101863676953449
+          ],
+          [
+            2.0996625800032196,
+            0.2758179045338763,
+            0.000007535332566677042
+          ],
+          [
+            4.1,
+            0.26,
+            0
+          ]
+        ],
+        "catheter": [
+          [
+            0.0005755718277477991,
+            0.05813168556775453,
+            -1.431236971747033e-7
+          ],
+          [
+            2.000033455194999,
+            0.011568044810883539,
+            -1.8502518554276284e-8
+          ],
+          [
+            4,
+            0,
+            0
+          ]
+        ]
+      },
+      "delta": {
+        "wire": [
+          [
+            0.0015575665829571372,
+            0.020722044005377915,
+            -0.000002389411071922372
+          ],
+          [
+            -0.00003591940272995586,
+            -0.004029178603576655,
+            0.000004053164405801883
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "catheter": [
+          [
+            0.00030212542620296613,
+            0.02134527570139194,
+            -5.96418483324843e-8
+          ],
+          [
+            0.00002955048392871973,
+            0.007615978385010797,
+            -1.3755909243152601e-8
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "balances": {
+        "wire": {
+          "momentumRate": [
+            -0.0006734827810369472,
+            0.08054200949159619,
+            0.000032397346936698515
+          ],
+          "appliedForce": [
+            0,
+            0,
+            0
+          ],
+          "boundaryForce": [
+            -0.0006734827810369669,
+            0.08054200949159675,
+            0.000032397346936698535
+          ],
+          "contactForce": [
+            0,
+            0,
+            0
+          ],
+          "residual": [
+            1.962405932198763e-17,
+            -5.551115123125783e-16,
+            -2.0328790734103208e-20
+          ]
+        },
+        "catheter": {
+          "momentumRate": [
+            0.0024848650902851263,
+            0.08250785388565371,
+            -1.819690442039389e-7
+          ],
+          "appliedForce": [
+            0,
+            0,
+            0
+          ],
+          "boundaryForce": [
+            0.002484865090285128,
+            0.0825078538856538,
+            -1.8196904420394018e-7
+          ],
+          "contactForce": [
+            0,
+            0,
+            0
+          ],
+          "residual": [
+            -1.734723475976807e-18,
+            -9.71445146547012e-17,
+            1.2705494208814505e-21
+          ]
+        }
+      },
+      "trace": [
+        {
+          "order": "gradient",
+          "Fn": 0.4570004700776852,
+          "gap": 0,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719448144115,
+          "margin": 0.020835154205022022,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "full",
+          "Fn": 0.4570004700776852,
+          "gap": 0,
+          "active": true,
+          "innerT": 0.25,
+          "outerT": 0.29807719448144115,
+          "margin": 0.020835154205022022,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": -0.030117959442982123,
+          "gap": 5.356436793002572e-7,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974975926342988,
+          "margin": 0.024508448501843916,
+          "ncp": 0.0030117959442982124,
+          "work": 1.6132494609054872e-8,
+          "negativeForce": 0.030117959442982123,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": -0.030117959442982123,
+          "gap": 5.356436793002572e-7,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974975926342988,
+          "margin": 0.024508448501843916,
+          "ncp": 0.0030117959442982124,
+          "work": 1.6132494609054872e-8,
+          "negativeForce": 0.030117959442982123,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": -3.469446951953614e-18,
+          "gap": 0.002703761486153866,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.29741018545084347,
+          "margin": 0.023599600565209267,
+          "ncp": 3.4694469519536144e-19,
+          "work": 9.380557046946105e-21,
+          "negativeForce": 3.469446951953614e-18,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": -3.469446951953614e-18,
+          "gap": 0.002703761486153866,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.29741018545084347,
+          "margin": 0.023599600565209267,
+          "ncp": 3.4694469519536144e-19,
+          "work": 9.380557046946105e-21,
+          "negativeForce": 3.469446951953614e-18,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": -3.851859888774472e-34,
+          "gap": 0.002704078391682463,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974106604907639,
+          "margin": 0.023599380540024584,
+          "ncp": 3.851859888774472e-35,
+          "work": 1.0415731093023464e-36,
+          "negativeForce": 3.851859888774472e-34,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": -3.851859888774472e-34,
+          "gap": 0.002704078391682463,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974106604907639,
+          "margin": 0.023599380540024584,
+          "ncp": 3.851859888774472e-35,
+          "work": 1.0415731093023464e-36,
+          "negativeForce": 3.851859888774472e-34,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": -4.276423536147513e-50,
+          "gap": 0.0027040783908140464,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.29741066049087345,
+          "margin": 0.023599380540682446,
+          "ncp": 4.276423536147513e-51,
+          "work": 1.1563784474065081e-52,
+          "negativeForce": 4.276423536147513e-50,
+          "converged": false
+        },
+        {
+          "order": "full",
+          "Fn": -4.276423536147513e-50,
+          "gap": 0.0027040783908140464,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.29741066049087345,
+          "margin": 0.023599380540682446,
+          "ncp": 4.276423536147513e-51,
+          "work": 1.1563784474065081e-52,
+          "negativeForce": 4.276423536147513e-50,
+          "converged": false
+        },
+        {
+          "order": "gradient",
+          "Fn": 0,
+          "gap": 0.0027040783908140464,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974106604908733,
+          "margin": 0.023599380540682446,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        },
+        {
+          "order": "gradient",
+          "Fn": 0,
+          "gap": 0.0027040783908140464,
+          "active": false,
+          "innerT": 0.25,
+          "outerT": 0.2974106604908733,
+          "margin": 0.023599380540682446,
+          "ncp": 0,
+          "work": 0,
+          "negativeForce": 0,
+          "converged": true
+        }
+      ]
+    }
+  ],
+  "rollback": {
+    "accepted": false,
+    "status": "direction-budget",
+    "sameIdentity": true,
+    "unchanged": true
+  }
+}

@@ -1,0 +1,221 @@
+--- a/src/physics/kirchhoffCompositeContactPullback.js
++++ b/src/physics/kirchhoffCompositeContactPullback.js
+@@ -9,12 +9,9 @@
+  * The support must fit the joint solver's existing two-edge local stencil.
+  * An omitted relative mode remains an explicit common-axis reduction whose
+  * admissibility is the caller's responsibility.
+- * The factory validates/copies the chart once and builds independent local
+- * numeric workspaces for each points list. matches() compares only the frozen
+- * coordinate map; positions, contact identities, radii and forces are not cached.
+  */
+-export function createCompositeContactPullbackFactory({layout,modes,relativeToolId='wire'}) {
+-    if(!layout||!Array.isArray(modes))
++export function createCompositeContactPullback({layout,modes,points,relativeToolId='wire'}) {
++    if(!layout||!Array.isArray(modes)||!Array.isArray(points)||!points.length)
+         throw new RangeError('A fixed layout, explicit modes and ordered physical points are required');
+     const hasTool=(id,node)=>[node-1,node].some(edge=>edge>=0&&edge<layout.nodeCount-1&&layout.edgeToolIds[edge].includes(id));
+     const byNode=new Map();let relativeCount=0,previousNode=-1;
+@@ -28,22 +25,6 @@
+             throw new RangeError('Frozen contact bases must be orthonormal');
+         byNode.set(m.node,{basis,dofs:Array.from(m.relativeDofs)});relativeCount+=dimension;previousNode=m.node;
+     }
+-    const ownedLayout={nodeCount:layout.nodeCount,positions:Int32Array.from(layout.positions),edgeToolIds:layout.edgeToolIds.map(ids=>ids.slice())};
+-    const key=contactChartKey({layout,modes,relativeToolId});
+-    const factory=points=>createContactMapping({layout:ownedLayout,byNode,relativeToolId},points);
+-    factory.matches=args=>contactChartKey(args)===key;
+-    return Object.freeze(factory);
+-}
+-function contactChartKey({layout,modes,relativeToolId='wire'}) {
+-    return JSON.stringify({nodes:layout.nodeCount,positions:Array.from(layout.positions),edges:layout.edgeToolIds,relativeToolId,
+-        modes:modes.map(m=>[m.node,m.basis.map(v=>Array.from(v)),Array.from(m.relativeDofs)])});
+-}
+-export function createCompositeContactPullback(args) {
+-    return createCompositeContactPullbackFactory(args)(args.points);
+-}
+-function createContactMapping({layout,byNode,relativeToolId},points) {
+-    if(!Array.isArray(points)||!points.length)throw new RangeError('A fixed layout, explicit modes and ordered physical points are required');
+-    const hasTool=(id,node)=>[node-1,node].some(edge=>edge>=0&&edge<layout.nodeCount-1&&layout.edgeToolIds[edge].includes(id));
+     const ownedPoints=points.map(p=>{
+         if(!Number.isInteger(p.node)||p.node<0||p.node>=layout.nodeCount||typeof p.toolId!=='string'||!hasTool(p.toolId,p.node))
+             throw new RangeError('Each physical contact point must belong to a present tool');
+--- a/src/physics/kirchhoffCompositeJointSurfacePullback.js
++++ b/src/physics/kirchhoffCompositeJointSurfacePullback.js
+@@ -17,14 +17,10 @@
+  * Two tools must be distinct. Full 3D modes cover ALL chart overlap nodes;
+  * a one-material chart has modes:[]. Support must fit two adjacent edges.
+  * The compiled chart/bases/edge identities are owned, frozen snapshots;
+- * rebuild this mapping when they change. The factory validates/copies the
+- * full chart once; each invocation builds independent local numeric storage.
+- * matches() checks the actual layout and basis values before sequential reuse.
+- * Geometry, material maps, spins, forces and history are never cached here.
+- * Local numeric arrays are read-only scratch, overwritten/invalidated by the
+- * next pullback call on that particular mapping.
++ * rebuild this mapping when they change. Returned numeric arrays are reusable
++ * read-only scratch, overwritten/invalidated by the next pullback call.
+  */
+-export function createCompositeJointSurfacePullbackFactory({layout,modes,
++export function createCompositeJointSurfacePullback({layout,modes,tools,
+     relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire'}) {
+     if(!layout||!(layout.spins instanceof Map)||layout.nodeCount<3)throw new RangeError('A canonical joint layout with at least three nodes is required');
+     const canonical=createCompositeChainLayout(layout.edgeToolIds);
+@@ -42,18 +38,6 @@
+             throw new RangeError('Frozen surface bases must be orthonormal');
+         byNode.set(m.node,{basis,dofs:Array.from(m.relativeDofs)});
+     });
+-    const key=surfaceChartKey({layout,modes,relativeToolId});
+-    const factory=tools=>createSurfaceMapping({canonical,byNode,relativeToolId},tools);
+-    factory.matches=args=>surfaceChartKey(args)===key;
+-    return Object.freeze(factory);
+-}
+-function surfaceChartKey({layout,modes,relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire'}) {
+-    return JSON.stringify({layout:layoutKey(layout),relativeToolId,modes:modes.map(m=>[m.node,m.basis.map(v=>Array.from(v)),Array.from(m.relativeDofs)])});
+-}
+-export function createCompositeJointSurfacePullback(args) {
+-    return createCompositeJointSurfacePullbackFactory(args)(args.tools);
+-}
+-function createSurfaceMapping({canonical,byNode,relativeToolId},tools) {
+     if(!Array.isArray(tools)||![1,2].includes(tools.length)||new Set(tools.map(t=>t.id)).size!==tools.length)
+         throw new RangeError('One actual tool against a wall or two distinct actual tools are required');
+     const ownedTools=Object.freeze(tools.map(t=>{
+--- a/src/physics/kirchhoffCompositeJointLumenRows.js
++++ b/src/physics/kirchhoffCompositeJointLumenRows.js
+@@ -2,7 +2,7 @@
+ import { materialSegmentContactId } from './kirchhoffContactManifold.js';
+ import { createCompositeLumenSideGeometryWorkspace, differentiateCompositeLumenSideContact } from './kirchhoffCompositeLumenSideGeometry.js';
+ import { createCompositeLumenTipGeometryWorkspace, differentiateCompositeLumenTipContact } from './kirchhoffCompositeLumenTipGeometry.js';
+-import { createCompositeContactPullbackFactory, pullbackCompositeContact } from './kirchhoffCompositeContactPullback.js';
++import { createCompositeContactPullback, pullbackCompositeContact } from './kirchhoffCompositeContactPullback.js';
+ 
+ const positive=(v,name)=>{if(!(v>0)||!Number.isFinite(v))throw new RangeError(`${name} must be positive and finite`);return v;};
+ const nonnegative=(v,name)=>{if(!(v>=0)||!Number.isFinite(v))throw new RangeError(`${name} must be nonnegative and finite`);return v;};
+@@ -30,7 +30,6 @@
+     const chartId=text(contacts.chartId,'Contact chart id'),k=positive(contacts.forcePerLength,'NCP forcePerLength scale');
+     if(coordinates?.length!==layout.nodeCount||!coordinates.every(Number.isFinite))throw new RangeError('Explicit frozen contact chart coordinates are required');
+     if(!Array.isArray(contacts.pairs)||!contacts.pairs.length)throw new RangeError('Explicit local material pairs and quadrature are required');
+-    const createPullback=createCompositeContactPullbackFactory({layout,modes,relativeToolId});
+     const pairIds=new Set(),physicalPairs=new Set(),samples=[],provenance=[],groups=[];
+     for(const pair of contacts.pairs) {
+         const id=text(pair.id,'Contact pair id');if(pairIds.has(id))throw new RangeError('Duplicate pair id');pairIds.add(id);
+@@ -61,7 +60,7 @@
+         const metadata={id,materialPairId,points,quadrature,lumenRadius,innerRadius,openDistal,portalFilletRadius};provenance.push(metadata);
+         const group=[];groups.push(group);
+         for(const s of rim?[null]:quadrature) {
+-            const pulled=createPullback(points),size=pulled.dofCount,index=samples.length;
++            const pulled=createCompositeContactPullback({layout,modes,points,relativeToolId}),size=pulled.dofCount,index=samples.length;
+             const sampleId=JSON.stringify([chartId,materialPairId,points,s]);
+             const input={innerStart:null,innerEnd:null,outerStart:null,outerEnd:null,lumenRadius,innerRadius,
+                 innerMaterialSegmentId:structuredClone(pair.innerMaterialSegmentId),outerMaterialSegmentId:structuredClone(pair.outerMaterialSegmentId),innerSegmentIndex:innerEdge,outerSegmentIndex:outerEdge,
+--- a/src/physics/kirchhoffCompositeJointLumenFrictionRows.js
++++ b/src/physics/kirchhoffCompositeJointLumenFrictionRows.js
+@@ -1,7 +1,7 @@
+ import {evaluateKirchhoffLumenSegmentContact} from './kirchhoffLumenContact.js';
+ import {createCompositeLumenSideGeometryWorkspace,differentiateCompositeLumenSideContact} from './kirchhoffCompositeLumenSideGeometry.js';
+ import {createCompositeJointLumenSurfaceWorkspace,evaluateCompositeJointLumenSurface} from './kirchhoffCompositeJointLumenSurface.js';
+-import {createCompositeJointSurfacePullbackFactory,pullbackCompositeJointSurface,evaluateCompositeJointSurfaceLoads} from './kirchhoffCompositeJointSurfacePullback.js';
++import {createCompositeJointSurfacePullback,pullbackCompositeJointSurface,evaluateCompositeJointSurfaceLoads} from './kirchhoffCompositeJointSurfacePullback.js';
+ import {createCompositeFrictionEquationWorkspace,evaluateCompositeFrictionEquation,measureCompositeFriction} from './kirchhoffCompositeFriction.js';
+ 
+ const workspaces=new WeakMap();
+@@ -64,10 +64,10 @@
+  */
+ export function createCompositeJointLumenFrictionWorkspace() {
+     const scratch={surface:createCompositeJointLumenSurfaceWorkspace(),equation:createCompositeFrictionEquationWorkspace(),
+-        generation:0,busy:false,refreshes:0,surfaceEvaluations:0,zeroConeEliminations:0,chartBuilds:0,chartHits:0,createPullback:null};
++        generation:0,busy:false,refreshes:0,surfaceEvaluations:0,zeroConeEliminations:0};
+     const handle=Object.freeze({scope:'sequential-joint-lumen-friction-scratch',get diagnostics(){return {
+         surfaceWorkspaceBuilds:1,equationWorkspaceBuilds:1,managers:scratch.generation,refreshes:scratch.refreshes,
+-        surfaceEvaluations:scratch.surfaceEvaluations,zeroConeEliminations:scratch.zeroConeEliminations,chartBuilds:scratch.chartBuilds,chartHits:scratch.chartHits};}});
++        surfaceEvaluations:scratch.surfaceEvaluations,zeroConeEliminations:scratch.zeroConeEliminations};}});
+     workspaces.set(handle,scratch);return handle;
+ }
+ 
+@@ -145,10 +145,6 @@
+             !roundoffEqual(previousMap.dsDx,prior.dsDx,Math.abs(dsDx)+Math.abs(slopeChange))))throw failure('Derived old material map disagrees with accepted friction history');
+         edges.set(key,result);return result;
+     }
+-    const chart={layout,modes:state.modes,relativeToolId:state.relativeToolId};
+-    if(scratch.createPullback?.matches(chart))scratch.chartHits++;
+-    else {scratch.createPullback=createCompositeJointSurfacePullbackFactory(chart);scratch.chartBuilds++;}
+-    const createPullback=scratch.createPullback;
+     const rows=[],records=normal.samples.map((sample,i)=>{
+         if(sample.points?.length!==4)throw failure('An actual inner/outer affine surface pair is required');
+         const a=sample.points[0],b=sample.points[2];
+@@ -156,7 +152,7 @@
+             throw failure('Surface points must identify two actual affine edges');
+         const tools=[ownEdge(a.toolId,a.node,sample.input.innerMaterialSegmentId),ownEdge(b.toolId,b.node,sample.input.outerMaterialSegmentId)];
+         const baseInput=copy({...sample.input,innerStart:null,innerEnd:null,outerStart:null,outerEnd:null});
+-        const index=retainedIndex.get(i),mapping=index===undefined?null:createPullback(tools);
++        const index=retainedIndex.get(i),mapping=index===undefined?null:createCompositeJointSurfacePullback({layout,modes:state.modes,relativeToolId:state.relativeToolId,tools});
+         const localRows=mapping?[0,1].map(component=>{
+             const m=mapping.rows[component],size=mapping.dofCount,row={toolId:'lumen-friction',index:2*i+component,tractionIndex:2*i+component,sampleIndex:i,component,
+                 anchorNode:sample.row.anchorNode,commonDofs:m.commonDofs,relativeDofs:m.relativeDofs,unit:'mm',
+--- a/src/physics/kirchhoffCompositeJointWallRows.js
++++ b/src/physics/kirchhoffCompositeJointWallRows.js
+@@ -2,7 +2,7 @@
+ import {createCompositeWallWorkspace,refreshCompositeWallContacts} from './kirchhoffCompositeWallContacts.js';
+ import {equalCompositeWallGlobalDifferentials,isCompositeWallEndpointCombination} from './kirchhoffCompositeWallDifferentialRows.js';
+ import {createCompositeWallEnvelopeWorkspace,refreshCompositeWallEnvelope} from './kirchhoffCompositeWallEnvelope.js';
+-import {createCompositeContactPullbackFactory,pullbackCompositeContact} from './kirchhoffCompositeContactPullback.js';
++import {createCompositeContactPullback,pullbackCompositeContact} from './kirchhoffCompositeContactPullback.js';
+ import {compositeJointWallOwner,expandCompositeJointWallOwners} from './kirchhoffCompositeJointWallOwners.js';
+ import {createCompositeWallSdfBranchesWorkspace,evaluateCompositeWallSdfBranches,measureCompositeWallSdfBranches,
+     findCompositeWallSdfSeamCrossing} from './kirchhoffCompositeWallSdfBranches.js';
+@@ -118,7 +118,7 @@
+     const tol=Object.fromEntries(['force','wallGap','wallNcp','wallWork','linearConstraint'].map(name=>[name,positive(tolerances?.[name],name)]));
+     const chart=chartSignature(layout,coordinates,modes,relativeToolId,owners),source=sourceSignature(field);
+     const signature=JSON.stringify({chartId,chart,source,mode:wall.mode,friction:wall.friction,contactMode,...(nodal?{pressure:pressureSignature}:{})});
+-    const collectors=new Map(),records=[],envelopes=[],createPullback=createCompositeContactPullbackFactory({layout,modes,relativeToolId});
++    const collectors=new Map(),records=[],envelopes=[];
+     for(const [owner] of layout.spins) {
+         const selected={edges:owners.edges.map(e=>({edge:e.edge,wall:copy(compositeJointWallOwner(owners,e.edge,owner)??null)}))};
+         if(selected.edges.some(e=>e.wall!==null))collectors.set(owner,{workspace:(contactMode==='capsule'?createCompositeWallWorkspace:createCompositeWallEnvelopeWorkspace)(layout),owners:selected});
+@@ -126,7 +126,7 @@
+     function addRecord(e,roleIndex,role,site=null) {
+             const owner=e.wall.owner,edge=e.edge;
+             const points=[{toolId:owner,node:edge},{toolId:owner,node:edge+1}],base=slotCount*records.length;
+-            const pulled=createPullback(points),size=pulled.dofCount;
++            const pulled=createCompositeContactPullback({layout,modes,points,relativeToolId}),size=pulled.dofCount;
+             const rows=Array.from({length:slotCount},(_,branch)=>({toolId:'wall-normal',index:base+branch,anchorNode:pulled.anchorNode,
+                 commonDofs:pulled.commonDofs,relativeDofs:pulled.relativeDofs,unit:'mm',residual:NaN,multiplierDerivative:0,
+                 jacobian:new Float64Array(size).fill(NaN),forceColumn:new Float64Array(size).fill(NaN),geometricTangent:new Float64Array(size*size).fill(NaN),
+--- a/src/physics/kirchhoffCompositeJointWallFrictionRows.js
++++ b/src/physics/kirchhoffCompositeJointWallFrictionRows.js
+@@ -1,5 +1,5 @@
+ import {createCompositeJointWallSurfaceWorkspace,evaluateCompositeJointWallSurface} from './kirchhoffCompositeJointWallSurface.js';
+-import {createCompositeJointSurfacePullbackFactory,pullbackCompositeJointSurface,evaluateCompositeJointSurfaceLoads} from './kirchhoffCompositeJointSurfacePullback.js';
++import {createCompositeJointSurfacePullback,pullbackCompositeJointSurface,evaluateCompositeJointSurfaceLoads} from './kirchhoffCompositeJointSurfacePullback.js';
+ import {createCompositeJointPhysicalColumnPullback,pullbackCompositeJointPhysicalColumns,evaluateCompositeJointPhysicalColumnLoads} from './kirchhoffCompositeJointPhysicalColumnPullback.js';
+ import {readCompositeJointSurfacePosePath} from './kirchhoffCompositeJointSurfacePoseHistory.js';
+ import {compositeJointWallOwner,compositeJointWallSurfaces,expandCompositeJointWallOwners} from './kirchhoffCompositeJointWallOwners.js';
+@@ -30,9 +30,9 @@
+ // One heavy surface arena and equation buffer, no physical history or commit authority.
+ export function createCompositeJointWallFrictionWorkspace() {
+     const scratch={surface:createCompositeJointWallSurfaceWorkspace(),equation:createCompositeFrictionEquationWorkspace(),
+-        generation:0,busy:false,refreshes:0,chartBuilds:0,chartHits:0,createPullback:null};
++        generation:0,busy:false,refreshes:0};
+     const handle=Object.freeze({scope:'sequential-joint-wall-friction-scratch',get diagnostics(){return {
+-        surfaceWorkspaceBuilds:1,equationWorkspaceBuilds:1,managers:scratch.generation,refreshes:scratch.refreshes,chartBuilds:scratch.chartBuilds,chartHits:scratch.chartHits};}});
++        surfaceWorkspaceBuilds:1,equationWorkspaceBuilds:1,managers:scratch.generation,refreshes:scratch.refreshes};}});
+     workspaces.set(handle,scratch);return handle;
+ }
+ 
+@@ -230,10 +230,6 @@
+     if(history&&(history.signature!==signature||!same(history.sampleIds,sampleIds)||history.tractions?.length!==2*sampleIds.length))
+         throw failure('Wall friction chart/coefficient/path/sample history changed without traction transfer');
+     const tractions=history?Float64Array.from(vector(history.tractions,2*sampleIds.length,'Accepted tangential history')):new Float64Array(2*sampleIds.length);
+-    const chart={layout,modes:state.modes,relativeToolId:state.relativeToolId};
+-    if(scratch.createPullback?.matches(chart))scratch.chartHits++;
+-    else {scratch.createPullback=createCompositeJointSurfacePullbackFactory(chart);scratch.chartBuilds++;}
+-    const createPullback=scratch.createPullback;
+     const rows=[],records=views.map((view,i)=>{
+         const declared=compositeJointWallOwner(wall.contactOwners,view.edge,view.owner);
+         if(!declared||declared.owner!==view.owner||declared.radius!==view.radius)throw failure('Normal wall record differs from declared actual owner/radius');
+@@ -241,7 +237,7 @@
+         const pose=poseEntries.get(JSON.stringify([view.owner,view.edge]));
+         const mapping=pose?createCompositeJointPhysicalColumnPullback({layout,modes:state.modes,relativeToolId:state.relativeToolId,
+             currentTools:pose.surface.currentTools,configurationColumns:pose.surface.configurationColumns}):
+-            createPullback([tool]);
++            createCompositeJointSurfacePullback({layout,modes:state.modes,relativeToolId:state.relativeToolId,tools:[tool]});
+         const localRows=[0,1].map(component=>{
+             const m=mapping.rows[component],size=mapping.dofCount,row={toolId:'wall-friction',index:2*i+component,tractionIndex:2*i+component,sampleIndex:i,component,
+                 owner:view.owner,edge:view.edge,anchorNode:mapping.anchorNode,commonDofs:m.commonDofs,relativeDofs:m.relativeDofs,unit:'mm',

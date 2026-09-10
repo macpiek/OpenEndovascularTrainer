@@ -1,0 +1,31 @@
+--- a/src/physics/kirchhoffSplitMotion.js
++++ b/src/physics/kirchhoffSplitMotion.js
+@@ -15,7 +15,7 @@
+ const minus=(a,b)=>a.map((v,i)=>v-b[i]);
+ /** Prototype-only per-joint selection; physical material data never changes. */
+ export function configureKirchhoffSplitBias(joint,{materialMode='physical-compliance'}={}) {
+-    if(!['physical-compliance','preserve-strain'].includes(materialMode))throw new RangeError('Unknown split bias material mode');
++    if(!['physical-compliance','preserve-strain','coupled-compliance'].includes(materialMode))throw new RangeError('Unknown split bias material mode');
+     if(joint._splitMotion&&joint._splitMotion.phase!=='complete')throw new Error('Configure bias between physical timesteps');
+     joint._splitBiasMaterialMode=materialMode;
+ }
+@@ -481,6 +481,7 @@
+         else if(r.kind==='split-point-wall')bias=s.biasBank.pointWalls[r.side].get(r.node)?.lambda??0;
+         else if(r.kind==='tool')bias=s.biasBank.tools.find(b=>b.tool===r.owner)?.lambdas[r.node]??0;
+         else if(r.kind==='sheath')bias=s.biasBank.joints._coupledBoundaries?.sheaths.get(r.sheathWitness?.geometry.sheath)?.[r.side].lambda[r.node]??0;
++        else if(r.kind==='split-sweep'&&s.twoChannel)bias=s.biasBank.sweeps[r.side].get(r.node)?.lambda??0;
+         else if(r.kind!=='split-sweep')continue;
+         evaluate(r._splitStartGap,r._splitActualStrain,r.gradients,r.alpha,r.lambda,bias,1e-10);
+     }
+@@ -498,7 +499,10 @@
+         measurement.externalFrictionResidual.maximumConeViolation,measurement.wallPhysicalFriction?.maximumConeViolation??0);
+     d.finalPhysicalResidualSettled=measurement.settled;
+     d.physicalPhaseMaterialResidual={...s.physicalMaterialResidual};
+-    d.finalMaterialResidual={...measurement.materialResidual};
++    const material=measurement.materialResidual;
++    d.finalMaterialResidual=s.twoChannel?{adaptationMm:material.adaptationMm,bendTwistRad:material.bendTwistRad,
++        physicalResidual:{...material.physicalResidual},biasResidual:{...material.biasResidual},finite:material.finite}:{...material};
++    if(s.twoChannel)d.finalChannelResidual=structuredClone(measurement.channelResidual);
+     d.maximumOutwardContactVelocity=0;
+     for(const r of joint.kirchhoffContacts)if(r.manifoldContact&&r._splitActualGap<=world.coupledContainmentTolerance)
+         d.maximumOutwardContactVelocity=Math.max(d.maximumOutwardContactVelocity,-kirchhoffSplitRowMotion(joint,lumenGradients(r))/s.dt);

@@ -1,0 +1,24 @@
+{
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "hashes": {
+    "src/physics/endovascularPhysicsWorld.js": "10d363a468362ec383bfee6a2e5b35dca230ee96bbfb085f65523082b61759c1",
+    "src/physics/kirchhoffCoupledTrialState.js": "af83629c711fa40faa7397265c2b6258060eb2f4e63e2867eab94f66a4863269",
+    "src/physics/kirchhoffSplitStepTransaction.js": "c24fa7be020c0551962d6b32595c1d42cc0597b748285eb050970d5b5747be0a",
+    "src/physics/kirchhoffSplitMotion.js": "1d2471c4f0566142a3ac867d0b10d47e293ba80533adf89779eee5cbaba91b71"
+  },
+  "checks": {
+    "finalSettledByteIdenticalToPreFilter": true,
+    "nonConeSettledExactlyThreeConeChecksRemoved": true,
+    "previousMeasurementScalarsCopiedBeforeCandidates": true
+  },
+  "lines": {
+    "copyPreviousScalars": 2558,
+    "filterAcceptance": 2651,
+    "solverFinalGate": 2686,
+    "settled": 2786,
+    "nonConeSettled": 2800,
+    "postSolveCertificate": 1608,
+    "historyCommit": 2412,
+    "wholeStepRollback": 1377
+  }
+}

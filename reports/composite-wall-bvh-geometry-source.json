@@ -1,0 +1,70 @@
+{
+  "status": "frozen",
+  "workspace": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer",
+  "files": [
+    "src/physics/kirchhoffCompositeWallBvhGeometry.js",
+    "tests/kirchhoffCompositeWallBvhGeometry.test.js"
+  ],
+  "hashes": {
+    "src/physics/kirchhoffCompositeWallBvhGeometry.js": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b",
+    "tests/kirchhoffCompositeWallBvhGeometry.test.js": "7ad689280a2459a0186a63f5c8e601fec307eea2eb84de5b3c0d84b9c984a4d5"
+  },
+  "patch": "reports/composite-wall-bvh-geometry.patch",
+  "patchSha256": "ca92b457606d3f1481fe6aba539834e1484d894c19686cb108294022c79707d1",
+  "patchApplyVerified": true,
+  "testedAppliedCopy": true,
+  "appliedCopy": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-wall-bvh-applied-u0xlaq2k",
+  "tests": {
+    "passed": 17,
+    "failed": 0
+  },
+  "validationLog": "reports/composite-wall-bvh-geometry-tests.txt",
+  "unchangedDependencies": {
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1"
+  },
+  "providerManifest": "reports/composite-wall-bvh-provider-source.json",
+  "providerManifestSha256": "3df0c599ea089be314de7fc1ee936dd077439608c15364e5344be4ed0b991b3e",
+  "frozenProviderVerified": true,
+  "providerHashes": {
+    "package.json": "24df9a509b0332dd884ac1ec8a3dadc294b3bab489db2501799292d21fad7d1d",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+    "res/Aorta_plain.stl": "60e84c7cf241948b552d3753818229cf93601f06fc62e6123397f5e7e9dc20da",
+    "src/aortaModel.js": "8e2efafc250301cf55eb4f96741399e5d6f944b76613807983b3feed6f117fac",
+    "src/vesselGeometry.js": "c70e75098cfc8474a1463670d49c5f0981b1f0f921b24e69129b55fc5fb510b1",
+    "src/toolDimensions.js": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+    "src/aortaTransform.js": "b6e496b23d923256c3cd4f2991f933f0baa1b9937447de60cd052c7afebd0479",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca"
+  },
+  "rootProviderStillMatches": {
+    "package.json": false,
+    "res/Aorta_plain.collision.bin": true,
+    "res/Aorta_plain.stl": true,
+    "src/aortaModel.js": true,
+    "src/vesselGeometry.js": true,
+    "src/toolDimensions.js": true,
+    "src/aortaTransform.js": true,
+    "src/physics/collision/vesselContactField.js": true,
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": true,
+    "src/physics/collision/packedLumenField.js": true,
+    "src/physics/collision/collisionAssetFormat.js": true
+  },
+  "runtimeVersions": {
+    "node": "v24.6.0",
+    "three": "0.160.1",
+    "three-mesh-bvh": "0.9.1"
+  },
+  "fieldOptions": {
+    "bvhValidationDistance": 0.02,
+    "capsuleBvhValidation": -0.1
+  },
+  "report": "reports/composite-wall-bvh-geometry.md",
+  "reportSha256": "75117468fa68f922d724ee47b6afe6b9b66ff9324975144bc97c40cbd44286ab",
+  "parentSourceEdits": false,
+  "scope": "Exact derivatives of the selected BVH triangle feature with fixed sign/source/sample. No resampling; no global winner certificate; ambiguous local features rejected.",
+  "rootPackageChangedFields": [
+    "scripts"
+  ]
+}

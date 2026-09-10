@@ -1,0 +1,317 @@
+--- a/src/physics/kirchhoffCompositeJointWallSurface.js
++++ b/src/physics/kirchhoffCompositeJointWallSurface.js
+@@ -2,6 +2,8 @@
+ import { createCompositeWallBvhGeometryWorkspace, differentiateCompositeWallBvhContact } from './kirchhoffCompositeWallBvhGeometry.js';
+ import { createCompositeJointSurfaceIncrementWorkspace, evaluateCompositeJointSurfaceIncrement,
+     createCompositeJointSurfaceForceMapWorkspace, evaluateCompositeJointSurfaceForceMap } from './kirchhoffCompositeJointSurfaceMotion.js';
++import { readCompositeJointSurfacePosePath } from './kirchhoffCompositeJointSurfacePoseHistory.js';
++import { createCompositeJointReservoirSurfaceWorkspace, evaluateCompositeJointReservoirSurface } from './kirchhoffCompositeJointReservoirSurface.js';
+ 
+ const plans = new WeakMap(), N = 7, Q = 10, ROUND = 512 * Number.EPSILON;
+ const dot = (a, b) => a.reduce((s, x, k) => s + x * b[k], 0), norm = a => Math.hypot(...a);
+@@ -19,18 +21,72 @@
+     out.reason = reason; out.order = null; out.tools = []; out.identity = out.motion = out.physicalForce = null;
+     for (const key of ['increment', 'slipJacobian', 'forceMap', 'DforceMap', 'currentQueryJacobian', 'point', 'normal', 'tangent', 'center']) out[key].fill(NaN);
+     out.gap = out.fraction = NaN;
+-}
+-
+-export function createCompositeJointWallSurfaceWorkspace() {
+-    const out = { scope: 'stationary-material-wall-affine-surface', physicalDofCount: N, queryCount: 0, certified: false,
++    if ('requiredTransport' in out) out.requiredTransport = null;
++}
++
++/** Optional prepared pose path expands G/B/DB to its explicit physical N
++ * columns. physicalDofCount remains the seven coordinates of the current
++ * contact edge; configurationDofs/Columns describe the expanded packing.
++ * No path preserves the original same-edge workspace and evaluation API.
++ */
++export function createCompositeJointWallSurfaceWorkspace({ surfacePosePath } = {}) {
++    const data = surfacePosePath === undefined ? null : readCompositeJointSurfacePosePath(surfacePosePath), N = data?.configurationColumns.length ?? 7;
++    const pose = data ? createCompositeJointReservoirSurfaceWorkspace(surfacePosePath) : null;
++    const target = data?.edges[data.target], physicalColumns = data ? [
++        ...target.nodes.flatMap(j => [0, 1, 2].map(component => data.configurationColumns.findIndex(c => c.kind === 'position' && c.node === data.nodes[j].node && c.component === component))),
++        data.configurationColumns.findIndex(c => c.kind === 'angle' && c.edge === target.edge)
++    ] : [0, 1, 2, 3, 4, 5, 6];
++    const out = { scope: 'stationary-material-wall-affine-surface', physicalDofCount: 7, queryCount: 0, certified: false,
+         increment: new Float64Array(2), slipJacobian: new Float64Array(2 * N), forceMap: new Float64Array(N * 2), DforceMap: new Float64Array(N * 2 * N),
+         currentQueryJacobian: new Float64Array(Q * N), point: new Float64Array(3), normal: new Float64Array(3), tangent: new Float64Array(3), center: new Float64Array(3),
+         wallPointPolicy: 'same-current-original-wall-witness-at-both-times', previousNearestQueryUsed: false, stationaryWallVelocityKnown: true };
++    if (pose) {
++        Object.assign(out, { configurationDofs: N, configurationColumns: pose.configurationColumns, currentTools: pose.currentTools,
++            reservoirIdentity: data.reservoirIdentity, requiredTransport: null });
++        // Prepared column identities and owned storage remain stable through
++        // value calls, failed evaluations and retries.
++        for (const key of ['configurationDofs', 'configurationColumns', 'currentTools', 'reservoirIdentity',
++            'increment', 'slipJacobian', 'forceMap', 'DforceMap', 'currentQueryJacobian', 'point', 'normal', 'tangent', 'center'])
++            Object.defineProperty(out, key, { writable: false, configurable: false });
++    }
+     plans.set(out, { sdf: [createCompositeWallGeometryWorkspace(1), createCompositeWallGeometryWorkspace(2)],
+         bvh: [createCompositeWallBvhGeometryWorkspace(1), createCompositeWallBvhGeometryWorkspace(2)],
+         finite: createCompositeJointSurfaceIncrementWorkspace(1), force: createCompositeJointSurfaceForceMapWorkspace(1),
++        data, pose, physicalColumns, configurationDofs: N,
+         gapGradient: new Float64Array(6), normalJacobian: new Float64Array(18), normalColumn: new Float64Array(6), normalDerivative: new Float64Array(36), busy: false });
+     invalidate(out); return out;
++}
++
++function verifyPoseConfiguration(input, tool, geometry, plan) {
++    const { data, physicalColumns } = plan, target = data.edges[data.target], map = data.maps[data.target];
++    const configuration = vector(input.configuration, data.configurationColumns.length, 'Prepared own physical configuration');
++    if (input.dt !== data.dt || tool.id !== data.toolId || input.tool.edge !== target.edge || geometry.edge !== target.edge ||
++        tool.edgeId !== target.edgeId || tool.materialSegmentId !== target.materialSegmentId)
++        unsupported('prepared-pose-target-identity-or-dt-mismatch');
++    if (!tool.coordinates.every((x, j) => x === target.coordinates[j]) ||
++        geometry.positions.some((p, end) => p.some((x, k) => x !== configuration[physicalColumns[3 * end + k]])) ||
++        tool.angle !== configuration[physicalColumns[6]]) unsupported('prepared-pose-current-configuration-mismatch');
++    const length = target.coordinates[1] - target.coordinates[0], dsDx = (map.labels[1] - map.labels[0]) / length;
++    if (!Number.isFinite(tool.materialMap?.sStart) || !Number.isFinite(tool.materialMap?.dsDx) ||
++        !close(tool.materialMap.sStart, map.labels[0]) || !close(tool.materialMap.dsDx, dsDx)) unsupported('prepared-pose-current-material-map-mismatch');
++    const rateClose = (rate, expected, label, oldLabel) => Number.isFinite(rate) &&
++        Math.abs(rate - expected) <= ROUND * Math.max(1, Math.abs(rate), Math.abs(expected)) + 64 * Number.EPSILON * (Math.abs(label) + Math.abs(oldLabel)) / data.dt;
++    const f = geometry.fraction, expected = (1 - f) * map.rates[0] + f * map.rates[1];
++    if (!rateClose(tool.materialMap.dsDt, expected, (1-f)*map.labels[0]+f*map.labels[1], (1-f)*target.labels[0]+f*target.labels[1]) ||
++        tool.materialMap.dsDtEnds !== undefined && !tool.materialMap.dsDtEnds.every((r, j) => rateClose(r, map.rates[j], map.labels[j], target.labels[j])))
++        unsupported('prepared-pose-material-rate-mismatch');
++    // The prepared accepted pose is authoritative. Legacy previousPositions
++    // are deliberately not read or extrapolated to invent an external pose.
++    if (tool.reference !== undefined && ['tangent', 'director'].some(key => !vector(tool.reference[key], 3, 'Own accepted frame').every((x, j) => close(x, target.reference[key][j]))) ||
++        tool.previousAngle !== undefined && tool.previousAngle !== target.angle) unsupported('prepared-pose-own-frame-or-spin-mismatch');
++    if (tool.materialPath !== undefined) {
++        const p = tool.materialPath;
++        if (p.kind !== 'linear-affine-maps' || p.previousEdgeId !== target.edgeId ||
++            !Number.isFinite(p.previousMap?.sStart) || !Number.isFinite(p.previousMap?.dsDx) ||
++            !close(p.previousMap.sStart, target.labels[0]) || !close(p.previousMap.dsDx, (target.labels[1]-target.labels[0])/length))
++            unsupported('prepared-pose-accepted-material-map-mismatch');
++    }
++    return configuration;
+ }
+ 
+ function verifiedGeometry(current, tool, wall, plan) {
+@@ -119,12 +175,18 @@
+  * Analytic-plane requires current.plane={normal,offset}; SDF/BVH use their
+  * original smooth branch differentiator without detection. wall.source is
+  * the caller's prepared source expectation, never inferred after a switch.
++ * A prepared surfacePosePath additionally requires configuration in the
++ * path's declared order and the target's type-preserving materialSegmentId.
++ * It supplies the accepted frame/pose and any explicit proximal reservoir;
++ * legacy previousPositions are unused. Both of its query blocks are chained
++ * through this same current witness, including all N configuration columns.
+  */
+ export function evaluateCompositeJointWallSurface(input, out = createCompositeJointWallSurfaceWorkspace()) {
+     const plan = plans.get(out); if (!plan) throw new TypeError('Use a prepared joint wall surface workspace');
+     if (plan.busy) throw new RangeError('Joint wall surface workspace is busy'); plan.busy = true; invalidate(out);
+     try {
+         const { current, tool, dt, wall, order = 'full' } = input ?? {}, full = order === 'full';
++        const N = plan.configurationDofs;
+         if (order !== 'full' && order !== 'value') throw new RangeError('Wall surface order must be full or value');
+         if (wall?.motion !== 'stationary-material') unsupported('explicit-stationary-wall-material-required');
+         if (!(finite(dt, 'Wall surface dt') > 0) || !tool) throw new RangeError('Positive dt and one own physical tool are required');
+@@ -139,21 +201,27 @@
+             materialMap = { ...materialMap, dsDt };
+         }
+         const preparedTool = { ...tool, edge: geometry.edge, coordinates, coordinate, materialMap }, basis = wall.tangentBasis ?? 'projected-own-tangent';
++        const configuration = plan.pose ? verifyPoseConfiguration(input, preparedTool, geometry, plan) : null;
++        if (plan.pose) preparedTool.reference = plan.data.edges[plan.data.target].reference;
+         const tangent = tangentQuery(preparedTool, geometry, basis, plan, full);
+         out.point.set(geometry.point); out.normal.set(geometry.n); out.tangent.set(tangent.projected); out.center.set(geometry.center); out.gap = geometry.gap; out.fraction = geometry.fraction;
+         if (full) {
+             out.currentQueryJacobian.fill(0);
+             for (let j = 0; j < 6; j++) for (let k = 0; k < 3; k++) {
++                const column = plan.physicalColumns[j];
+                 const dn = plan.normalJacobian[k * 6 + j], dx = k === j % 3 ? geometry.weights[Math.floor(j / 3)] : 0;
+-                out.currentQueryJacobian[(1 + k) * N + j] = dx - geometry.n[k] * plan.gapGradient[j] - geometry.sd * dn;
+-                out.currentQueryJacobian[(4 + k) * N + j] = dn;
+-                out.currentQueryJacobian[(7 + k) * N + j] = tangent.derivative[k * N + j];
++                out.currentQueryJacobian[(1 + k) * N + column] = dx - geometry.n[k] * plan.gapGradient[j] - geometry.sd * dn;
++                out.currentQueryJacobian[(4 + k) * N + column] = dn;
++                out.currentQueryJacobian[(7 + k) * N + column] = tangent.derivative[k * 7 + j];
+             }
+         }
+         const query = { point: out.point, normal: out.normal, tangent: out.tangent };
+-        const motion = evaluateCompositeJointSurfaceIncrement({ tools: [preparedTool], dt, order, wall: { velocity: [0, 0, 0] },
++        const motion = plan.pose ? evaluateCompositeJointReservoirSurface({ configuration, order,
++            query: { coordinate, trace: tool.trace, previousTrace: tool.materialPath?.previousTrace },
++            finiteGeometry: { kind: 'explicit-affine-side-queries', current: query, previous: query } }, plan.pose)
++            : evaluateCompositeJointSurfaceIncrement({ tools: [preparedTool], dt, order, wall: { velocity: [0, 0, 0] },
+             rotationPath: 'short-contact-frame-own-unwrapped-spins', finiteGeometry: { kind: 'explicit-affine-side-queries', current: query, previous: query } }, plan.finite);
+-        const force = evaluateCompositeJointSurfaceForceMap({ tools: [preparedTool], order, forceGeometry: { kind: 'explicit-affine-side-query', ...query } }, plan.force);
++        const force = plan.pose ? motion.physicalForce : evaluateCompositeJointSurfaceForceMap({ tools: [preparedTool], order, forceGeometry: { kind: 'explicit-affine-side-query', ...query } }, plan.force);
+         if (full) {
+             for (let row = 0; row < 2; row++) for (let j = 0; j < N; j++) {
+                 let value = motion.configurationJacobian[row * N + j];
+@@ -161,18 +229,20 @@
+                 out.slipJacobian[row * N + j] = value;
+             }
+             for (let entry = 0; entry < N * 2; entry++) for (let j = 0; j < N; j++) {
+-                let value = force.configurationDerivative[entry * N + j];
+-                for (let k = 0; k < Q; k++) value += force.queryDerivative[entry * Q + k] * out.currentQueryJacobian[k * N + j];
++                let value = plan.pose ? motion.DforceMap[entry * N + j] : force.configurationDerivative[entry * N + j];
++                for (let k = 0; k < Q; k++) value += (plan.pose
++                    ? motion.forceMapQueryDerivative[entry * 19 + k] + (k === 0 ? 0 : motion.forceMapQueryDerivative[entry * 19 + k + 9])
++                    : force.queryDerivative[entry * Q + k]) * out.currentQueryJacobian[k * N + j];
+                 out.DforceMap[entry * N + j] = value;
+             }
+         }
+-        out.increment.set(motion.increment); out.forceMap.set(force.forceMap);
++        out.increment.set(motion.increment); out.forceMap.set(plan.pose ? motion.forceMap : force.forceMap);
+         for (const key of full ? ['increment', 'slipJacobian', 'forceMap', 'DforceMap', 'currentQueryJacobian'] : ['increment', 'forceMap']) if (!out[key].every(Number.isFinite)) unsupported('nonfinite-composed-wall-surface-operator');
+-        out.tools = [{ id: tool.id, edgeId: tool.edgeId, edge: geometry.edge }]; out.motion = motion; out.physicalForce = force;
++        out.tools = plan.pose ? out.currentTools : [{ id: tool.id, edgeId: tool.edgeId, edge: geometry.edge }]; out.motion = motion; out.physicalForce = force;
+         out.identity = { source: wall.source, branchSignature: geometry.branchSignature, role: geometry.role, fraction: geometry.fraction,
+             rawFraction: geometry.rawFraction, sampleCount: geometry.sampleCount, faceIndex: geometry.faceIndex, radius: geometry.radius, basis,
+             wallWitness: wall.source === 'sparse-sdf' ? 'provider-normal-projection-not-exact-isosurface' : 'original-geometric-wall-foot' };
+         out.supported = out.incrementValid = out.forceMapValid = true; out.operatorReady = out.slipJacobianValid = out.DforceMapValid = full; out.order = order; out.reason = null;
+         return out;
+-    } catch (error) { invalidate(out, error.message); throw error; } finally { plan.busy = false; }
+-}
++    } catch (error) { invalidate(out, error.message); if (plan.pose) out.requiredTransport = error.requiredTransport ? structuredClone(error.requiredTransport) : null; throw error; } finally { plan.busy = false; }
++}
+--- a/tests/kirchhoffCompositeJointWallSurface.test.js
++++ b/tests/kirchhoffCompositeJointWallSurface.test.js
+@@ -172,3 +172,147 @@
+     input.current.field.queryCapsuleCoordinates=()=>{throw Error('additional original query');};input.current.field.querySphere=()=>{throw Error('additional sphere query');};
+     const out=evaluateCompositeJointWallSurface(input);assert.equal(out.identity.source,'sparse-sdf');assert.equal(out.identity.wallWitness,'provider-normal-projection-not-exact-isosurface');same(out.increment,[0,0],3e-13);assert.equal(out.queryCount,0);
+ });
++
++// The prepared path owns the accepted and external poses. The candidate supplies
++// only actual physical configuration columns; no fictitious reservoir DOF exists.
++import { createCompositeJointSurfacePoseHistory, prepareCompositeJointSurfacePosePath } from '../src/physics/kirchhoffCompositeJointSurfacePoseHistory.js';
++import { createCompositeJointPhysicalColumnPullback, pullbackCompositeJointPhysicalColumns, evaluateCompositeJointPhysicalColumnLoads } from '../src/physics/kirchhoffCompositeJointPhysicalColumnPullback.js';
++function poseFixture(kind='plane',{adjacent=true,reservoir=true,permuted=false,flat=false,dt=.1}={}) {
++    const input=fixture(kind,dt),t=input.tool;
++    if(flat){t.positions=[[0,.3,0],[1,.3,0]];t.previousPositions=structuredClone(t.positions);t.reference=captureCompositeReferenceFrames(t.positions)[0];t.angle=t.previousAngle=0;t.coordinates=[0,1];}
++    t.materialSegmentId=42;t.materialMap={sStart:20-.3*dt,dsDx:1.3,dsDt:-.3};
++    if(flat)t.materialMap={sStart:-.3*dt,dsDx:1,dsDt:-.3};
++    delete t.materialPath;
++    input.current.envelope=true;input.current.collector=createCompositeWallEnvelopeWorkspace(layout);refresh(input);
++    const old=t.previousPositions,dx=t.coordinates[1]-t.coordinates[0],label=flat?0:20,metric=t.materialMap.dsDx,count=adjacent?3:2;
++    const oldOwn=[...structuredClone(old),...(adjacent?[add(old[1],sub(old[1],old[0]))]:[])];
++    const source={toolId:t.id,reservoirIdentity:reservoir?'external-pose:17':null,
++        nodes:[...(reservoir?[{id:'external',position:sub(old[0],sub(old[1],old[0]))}]:[]),...oldOwn.map((position,node)=>({id:node,node,position}))],
++        edges:[...(reservoir?[{edgeId:'wire:reservoir',materialSegmentId:'42',source:'reservoir',nodeIds:['external',0],coordinates:[t.coordinates[0]-dx,t.coordinates[0]],labels:[label-dx*metric,label],reference:t.reference,angle:t.previousAngle}]:[]),
++            ...Array.from({length:count-1},(_,edge)=>({edgeId:edge===0?t.edgeId:'wire:edge1',edge,materialSegmentId:42,source:'accepted',nodeIds:[edge,edge+1],
++                coordinates:[t.coordinates[0]+edge*dx,t.coordinates[1]+edge*dx],labels:[label+edge*dx*metric,label+(edge+1)*dx*metric],reference:t.reference,angle:t.previousAngle}))],hinges:[]};
++    for(let j=0;j<source.edges.length-1;j++)source.hinges.push({leftEdgeId:source.edges[j].edgeId,rightEdgeId:source.edges[j+1].edgeId,referenceTwist:0});
++    const columns=[...Array.from({length:count},(_,node)=>[0,1,2].map(component=>({kind:'position',toolId:t.id,node,component}))).flat(),...Array.from({length:count-1},(_,edge)=>({kind:'angle',toolId:t.id,edge}))];
++    if(permuted)columns.reverse();
++    const col=(node,k)=>columns.findIndex(c=>c.kind==='position'&&c.node===node&&c.component===k),angleCol=edge=>columns.findIndex(c=>c.kind==='angle'&&c.edge===edge);
++    const currentOwn=[...t.positions,...(adjacent?[add(add(t.positions[1],sub(t.positions[1],t.positions[0])),flat?[0,0,0]:[.01,-.015,.02])]:[])];
++    input.configuration=Float64Array.from(columns,c=>c.kind==='position'?currentOwn[c.node][c.component]:c.edge===0?t.angle:flat?0:.17);
++    const nodeBindings=source.nodes.map(n=>n.node===undefined?{nodeId:'external',offset:[0,0,0],terms:[0,1,2].flatMap(k=>
++        (adjacent?[[0,1],[1,1],[2,-1]]:[[0,2],[1,-1]]).map(([node,weight])=>({column:col(node,k),weights:[0,1,2].map(axis=>axis===k?weight:0)})))}:
++        {nodeId:n.id,offset:[0,0,0],terms:[0,1,2].map(k=>({column:col(n.node,k),weights:[0,1,2].map(axis=>axis===k?1:0)}))});
++    const angleBindings=source.edges.map(e=>({edgeId:e.edgeId,offset:0,terms:[{column:angleCol(e.source==='reservoir'&&adjacent?1:e.edge??0),weight:1}]}));
++    const preparation={history:createCompositeJointSurfacePoseHistory(source),targetEdgeId:t.edgeId,dt,
++        currentMaps:source.edges.map(e=>({edgeId:e.edgeId,labels:e.labels.map(x=>x-.3*dt),dsDt:-.3})),configurationColumns:columns,nodeBindings,angleBindings};
++    const path=prepareCompositeJointSurfacePosePath(preparation),ws=createCompositeJointWallSurfaceWorkspace({surfacePosePath:path});
++    return {input,path,ws,source,preparation,col,angleCol};
++}
++function posePerturb(f,j,h) {
++    const input=copyInput(f.input);input.configuration=Float64Array.from(f.input.configuration);input.configuration[j]+=h;
++    const c=f.path.configurationColumns[j];
++    if(c.kind==='position'&&c.node<=1)input.tool.positions[c.node][c.component]+=h;
++    else if(c.kind==='angle'&&c.edge===0)input.tool.angle+=h;
++    return refresh(input);
++}
++
++for(const kind of ['plane','sdf','bvh'])test(`${kind}: prepared proximal reservoir feed keeps all 11 physical G/DB columns through current wall re-detection`,context=>{
++    const f=poseFixture(kind,{permuted:kind==='bvh'}),{input,ws}=f,calls=input.current.field.calls,base=structuredClone(evaluateCompositeJointWallSurface(input,ws)),N=f.path.configurationDofs;
++    assert.equal(N,11);assert.equal(base.fraction,0);assert.equal(base.motion.events[0].terminal,true);assert.equal(base.currentTools[0].materialSegmentId,42);
++    assert.equal(input.current.field.calls,calls);assert.equal(base.currentQueryJacobian.length,10*N);assert.equal(base.slipJacobian.length,2*N);assert.equal(base.forceMap.length,2*N);assert.equal(base.DforceMap.length,2*N*N);
++    const extra=f.path.configurationColumns.map((c,j)=>c.kind==='position'&&c.node===2||c.kind==='angle'&&c.edge===1?j:-1).filter(j=>j>=0);
++    for(const j of extra)same(base.forceMap.slice(2*j,2*j+2),[0,0],0);
++    assert.ok(extra.some(j=>Math.abs(base.slipJacobian[j])+Math.abs(base.slipJacobian[N+j])>1e-7));
++    let maxG=0,maxDB=0,maxQuery=0,previousChain=0;
++    for(let j=0;j<N;j++){
++        const h=1e-6,a=structuredClone(evaluateCompositeJointWallSurface(posePerturb(f,j,h),ws)),b=evaluateCompositeJointWallSurface(posePerturb(f,j,-h),ws);
++        for(let r=0;r<2;r++){const error=Math.abs((a.increment[r]-b.increment[r])/(2*h)-base.slipJacobian[r*N+j]);maxG=Math.max(maxG,error);assert.ok(error<1e-7,`${kind} G ${r},${j}: ${error}`);
++            let chain=0;for(let q=1;q<10;q++)chain+=base.motion.queryJacobian[r*19+q+9]*base.currentQueryJacobian[q*N+j];previousChain=Math.max(previousChain,Math.abs(chain));}
++        for(let e=0;e<N*2;e++){const error=Math.abs((a.forceMap[e]-b.forceMap[e])/(2*h)-base.DforceMap[e*N+j]);maxDB=Math.max(maxDB,error);assert.ok(error<1e-7,`${kind} DB ${e},${j}: ${error}`);}
++        for(let q=1;q<10;q++){const key=['point','normal','tangent'][Math.floor((q-1)/3)],axis=(q-1)%3,error=Math.abs((a[key][axis]-b[key][axis])/(2*h)-base.currentQueryJacobian[q*N+j]);maxQuery=Math.max(maxQuery,error);assert.ok(error<1e-8);}
++    }
++    assert.ok(previousChain>1e-5,'previous witness derivative is necessary');
++    refresh(input);input.current.field.queryCapsuleCoordinates=()=>{throw Error('duplicate field query');};
++    if(kind==='bvh')input.current.field.fallbackGeometry.boundsTree.closestPointToPoint=()=>{throw Error('duplicate BVH query');};
++    assert.deepEqual(evaluateCompositeJointWallSurface(input,ws),base);input.current.field.fallbackGeometry?.dispose();
++    context.diagnostic(JSON.stringify({kind,N,maxG,maxDB,maxQuery,previousChain,queryCount:base.queryCount}));
++});
++
++test('prepared dsDt=-.3 enters explicit proximal pose with nodal endpoint, complete own spin and mapper virtual work',()=>{
++    const f=poseFixture('plane',{flat:true}),{input,ws}=f;
++    const base=evaluateCompositeJointWallSurface(input,ws);same(base.increment,[.03,0],2e-14);assert.equal(input.current.row.role,'proximal');assert.equal(input.current.row.rawContact.segmentT,1);
++    input.tool.angle=2*Math.PI;input.configuration[f.angleCol(0)]=input.tool.angle;
++    const spun=evaluateCompositeJointWallSurface(input,ws);same(spun.increment,[.03,-.3*2*Math.PI],3e-14);
++    const physicalLayout=createCompositeChainLayout([['wire'],['wire'],['wire']]),mapping=createCompositeJointPhysicalColumnPullback({layout:physicalLayout,modes:[],currentTools:spun.currentTools,configurationColumns:spun.configurationColumns});
++    assert.ok(pullbackCompositeJointPhysicalColumns(spun,mapping).operatorReady);
++    const traction=[.3,-.8],qdot=Array.from({length:11},(_,j)=>.1*Math.cos(j)),loads=evaluateCompositeJointPhysicalColumnLoads(traction,mapping).physical;
++    close(dot(loads,qdot),dot(traction,[0,1].map(k=>qdot.reduce((s,v,j)=>s+v*spun.forceMap[j*2+k],0))),2e-14);
++});
++
++test('prepared accepted pose is authoritative despite absent or poisoned legacy previousPositions',()=>{
++    const f=poseFixture(),base=structuredClone(evaluateCompositeJointWallSurface(f.input,f.ws));
++    for(const old of [undefined,[[NaN,Infinity,999]],[[99,3,4],[95,2,1]]]){
++        f.input.tool.previousPositions=old;assert.deepEqual(evaluateCompositeJointWallSurface(f.input,f.ws),base);
++    }
++    f.source.nodes[0].position[0]=999;f.preparation.nodeBindings[0].terms[0].weights[0]=999;f.preparation.currentMaps[0].labels[0]=999;
++    assert.deepEqual(evaluateCompositeJointWallSurface(f.input,f.ws),base);
++});
++
++test('prepared path full/value owns N buffers and revokes failures before exact retry; stale identities/maps/configurations reject',()=>{
++    const f=poseFixture('sdf',{permuted:true}),{input,ws}=f,before=structuredClone({tool:input.tool,configuration:input.configuration,row:input.current.row}),full=structuredClone(evaluateCompositeJointWallSurface(input,ws));
++    const keys=['increment','slipJacobian','forceMap','DforceMap','currentQueryJacobian','point','normal','tangent','center'],buffers=keys.map(k=>ws[k]);
++    const value=evaluateCompositeJointWallSurface({...input,order:'value'},ws);same(value.increment,full.increment,0);same(value.forceMap,full.forceMap,0);assert.equal(value.operatorReady,false);assert.equal(value.forceMapValid,true);
++    for(const k of ['slipJacobian','DforceMap','currentQueryJacobian'])assert.ok(value[k].every(Number.isNaN));
++    assert.throws(()=>{ws.forceMap=new Float64Array(22);},TypeError);assert.throws(()=>{ws.configurationColumns=[];},TypeError);
++    const changes=[x=>{x.dt*=2;},x=>{x.tool.id='catheter';},x=>{x.tool.edge=1;},x=>{delete x.tool.edge;},x=>{x.tool.edgeId='wire:edge1';},x=>{x.tool.materialSegmentId='42';},x=>{delete x.tool.materialSegmentId;},
++        x=>{x.configuration[f.col(0,0)]+=.1;},x=>{x.configuration[f.angleCol(0)]+=.1;},x=>{x.configuration[0]=NaN;},x=>{x.configuration=x.configuration.slice(1);},
++        x=>{x.tool.coordinates[1]+=.1;},x=>{x.tool.materialMap.sStart+=.1;},x=>{x.tool.materialMap.dsDx+=.1;},x=>{x.tool.materialMap.dsDt=.3;},x=>{x.tool.materialMap.dsDtEnds=[-.3,.3];},
++        x=>{x.tool.previousAngle+=.1;},x=>{x.tool.reference.director[0]+=.1;},x=>{x.tool.materialPath={kind:'linear-affine-maps',previousEdgeId:x.tool.edgeId,previousMap:{sStart:0,dsDx:1.3}};},
++        x=>{x.current.row.normalDerivative[0]+=.1;},x=>{x.current.row.rawContact.signedDistance+=.1;},x=>{x.wall.motion='moving';},x=>{delete x.tool.trace;}];
++    for(const order of ['value','full'])for(const change of changes){const bad=copyInput(input);bad.configuration=Float64Array.from(input.configuration);bad.order=order;change(bad);
++        assert.throws(()=>evaluateCompositeJointWallSurface(bad,ws));assert.equal(ws.operatorReady,false);assert.equal(ws.forceMapValid,false);assert.equal(ws.motion,null);assert.equal(ws.physicalForce,null);
++        keys.forEach(k=>assert.ok(ws[k].every(Number.isNaN),k));assert.deepEqual(evaluateCompositeJointWallSurface(input,ws),full);keys.forEach((k,j)=>assert.equal(ws[k],buffers[j]));}
++    assert.deepEqual({tool:input.tool,configuration:input.configuration,row:input.current.row},before);
++    assert.throws(()=>createCompositeJointWallSurfaceWorkspace({surfacePosePath:structuredClone(f.path)}),/prepared own surface pose path/);
++});
++
++test('same-edge history without external pose explicitly rejects proximal entering labels, then supports interior same-edge trace',()=>{
++    const f=poseFixture('plane',{reservoir:false});
++    assert.throws(()=>evaluateCompositeJointWallSurface(f.input,f.ws),{code:'surface-material-transport-required'});
++    assert.equal(f.ws.supported,false);assert.ok(f.ws.requiredTransport);assert.ok(f.ws.increment.every(Number.isNaN));
++    // Re-detect the original interior sparse-SDF capsule branch, without changing history.
++    const s=poseFixture('sdf',{reservoir:false});s.input.current.envelope=false;s.input.current.collector=createCompositeWallWorkspace(layout);refresh(s.input);
++    const pathResult=evaluateCompositeJointWallSurface(s.input,s.ws),legacy=copyInput(s.input);
++    legacy.tool.materialPath={kind:'linear-affine-maps',previousEdgeId:legacy.tool.edgeId,previousMap:{sStart:20,dsDx:1.3}};
++    const old=evaluateCompositeJointWallSurface(legacy),map=[0,1,2,3,4,5,s.angleCol(0)];same(pathResult.increment,old.increment,3e-14);
++    for(let p=0;p<7;p++){same(pathResult.forceMap.slice(map[p]*2,map[p]*2+2),old.forceMap.slice(p*2,p*2+2),0);for(let k=0;k<2;k++)close(pathResult.slipJacobian[k*11+map[p]],old.slipJacobian[k*7+p],3e-13);}
++});
++
++for(const kind of ['plane','sdf'])test(`${kind}: prepared own-reference wall basis retains all derivatives under bending and spin`,()=>{
++    const f=poseFixture(kind);f.input.wall.tangentBasis='projected-own-reference-director';
++    const r=structuredClone(evaluateCompositeJointWallSurface(f.input,f.ws)),N=f.path.configurationDofs;
++    for(let j=0;j<N;j++){const h=1e-6,a=structuredClone(evaluateCompositeJointWallSurface(posePerturb(f,j,h),f.ws)),b=evaluateCompositeJointWallSurface(posePerturb(f,j,-h),f.ws);
++        for(let k=0;k<2;k++)close((a.increment[k]-b.increment[k])/(2*h),r.slipJacobian[k*N+j],1e-7);
++        for(let e=0;e<2*N;e++)close((a.forceMap[e]-b.forceMap[e])/(2*h),r.DforceMap[e*N+j],1e-7);}
++});
++
++test('prepared proximal bending/spin and dsDt=-.3 converge to instantaneous stationary-wall virtual power',context=>{
++    const errors=[],powerErrors=[],rates=[[.04,-.03,.02],[-.02,.05,.01]],spin=.7,traction=[.3,-.8];
++    for(const dt of [1e-3,1e-4,1e-5]){
++        const f=poseFixture('plane',{flat:true,adjacent:false,dt}),{input,ws}=f;
++        const old=structuredClone(evaluateCompositeJointWallSurface(input,ws));
++        rates.forEach((v,node)=>v.forEach((x,k)=>{input.tool.positions[node][k]+=dt*x;input.configuration[f.col(node,k)]=input.tool.positions[node][k];}));
++        input.tool.angle=spin*dt;input.configuration[f.angleCol(0)]=input.tool.angle;refresh(input);
++        const r=evaluateCompositeJointWallSurface(input,ws),v=Array.from(r.increment,x=>x/dt),qdot=rates.flat().concat(spin),expected=[0,1].map(k=>qdot.reduce((s,x,j)=>s+old.forceMap[2*j+k]*x,0)+(k===0?.3:0));
++        errors.push(norm(sub(v,expected)));powerErrors.push(Math.abs(dot(traction,v)-dot(traction,expected)));
++    }
++    assert.ok(errors[1]<.11*errors[0]&&errors[2]<.11*errors[1]);assert.ok(powerErrors[1]<.11*powerErrors[0]&&powerErrors[2]<.11*powerErrors[1]);
++    context.diagnostic(JSON.stringify({dt:[1e-3,1e-4,1e-5],errors,powerErrors}));
++});
++
++test('prepared full/value equality spans N=7/11, reordered columns, all smooth wall sources and both own tangent bases',()=>{
++    for(const kind of ['plane','sdf','bvh'])for(const adjacent of [false,true])for(const basis of ['projected-own-tangent','projected-own-reference-director']){
++        const f=poseFixture(kind,{adjacent,permuted:true});f.input.wall.tangentBasis=basis;
++        const full=structuredClone(evaluateCompositeJointWallSurface(f.input,f.ws)),value=evaluateCompositeJointWallSurface({...f.input,order:'value'},f.ws);
++        for(const k of ['increment','forceMap','point','normal','tangent','center'])assert.deepEqual(value[k],full[k]);assert.equal(value.slipJacobianValid,false);assert.equal(value.DforceMapValid,false);
++        assert.deepEqual(evaluateCompositeJointWallSurface(f.input,f.ws),full);f.input.current.field.fallbackGeometry?.dispose();
++    }
++});

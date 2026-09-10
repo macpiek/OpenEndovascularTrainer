@@ -1,0 +1,67 @@
+{
+  "status": "frozen",
+  "workspace": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer",
+  "files": [
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js",
+    "tests/kirchhoffCompositeWallBvhRows.test.js",
+    "src/physics/kirchhoffCompositeWallContacts.js"
+  ],
+  "hashes": {
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": "3e57d869cdc4deb403fe0802a5637f0699ad9ba40ea0c0dbe52fb05fb333a80f",
+    "tests/kirchhoffCompositeWallBvhRows.test.js": "7dd68eedf28f9e6a051b02182706fe1c57b8ec5a8cfdeedbbcf73a9dfe734f09",
+    "src/physics/kirchhoffCompositeWallContacts.js": "47b11dedba3a67c124e1d499f1c162c60439349980b2ec2878a58b2bc2c581f7"
+  },
+  "patches": [
+    {
+      "path": "reports/composite-wall-bvh-rows.patch",
+      "sha256": "47b367a69c04dbf7bfe9c6b246804696edae8e0c52e414e2c308661703e0280c",
+      "files": [
+        "src/physics/kirchhoffCompositeWallDifferentialRows.js",
+        "tests/kirchhoffCompositeWallBvhRows.test.js"
+      ]
+    },
+    {
+      "path": "reports/composite-wall-bvh-rows-al-guard.patch",
+      "sha256": "1def664561966c918d2baf69935171871cfba0b2d9b99f07d512e9873c458476",
+      "files": [
+        "src/physics/kirchhoffCompositeWallContacts.js"
+      ]
+    }
+  ],
+  "applyBothPatches": true,
+  "patchApplyVerified": true,
+  "testedAppliedCopy": true,
+  "appliedCopy": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-wall-bvh-rows-applied-4yrce5r5",
+  "tests": {
+    "passed": 27,
+    "failed": 0,
+    "newBvhRows": 8,
+    "existingCollectorTests": 19
+  },
+  "validationLog": "reports/composite-wall-bvh-rows-tests.txt",
+  "baseManifest": "reports/composite-wall-bvh-rows-base.json",
+  "baseManifestSha256": "711b70bc49e084841cfd946054e11d365b7891aa143b9d6087d37f15e65800ff",
+  "editBaseHashes": {
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": "b63c12f0265049a68feace489d4a835c5628a658cf6f6cea0555ed5353af0355",
+    "src/physics/kirchhoffCompositeWallContacts.js": "8548d1e3b22eead1ff97299f1b27dcf34b49cabd5cddfb0e05820e14a5092c85"
+  },
+  "rootEditBasesStillMatch": {
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": true,
+    "src/physics/kirchhoffCompositeWallContacts.js": true
+  },
+  "unchangedDependencies": {
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1",
+    "src/physics/kirchhoffCompositeWallBvhGeometry.js": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "83a4496c191646f2c26668a72b781110bf7400f2255dd3795a4ab1a9b06390e7",
+    "src/physics/kirchhoffCompositeTimeStep.js": "47c569faef65cca902d7c99583fd6dfb89ee2e613f947cc2a719bbfb4c3dab6b",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5540faf6ddab4fc5770b5e637e39d577bf323d707c399d79ecad7b76a175e886",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+    "res/Aorta_plain.stl": "60e84c7cf241948b552d3753818229cf93601f06fc62e6123397f5e7e9dc20da"
+  },
+  "rootChangedDependencyPaths": [],
+  "report": "reports/composite-wall-bvh-rows.md",
+  "reportSha256": "d50d57e7a0b38c928efe3bd723bc9173e3c3d716c856c765d9bd722589276340",
+  "parentSourceEdits": false,
+  "scope": "Persist already selected BVH face/foot; route source to frozen BVH point/capsule derivatives; unchanged G/-B/DB scatter; explicit BVH AL rejection."
+}

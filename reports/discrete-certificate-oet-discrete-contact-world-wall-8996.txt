@@ -1,0 +1,24 @@
+✔ initial affine-wall overlap is repaired without physical velocity, spin or load (14.445834ms)
+✔ nested bias-only contact with positive friction preserves axial slip and has zero physical budget (11.995417ms)
+✔ nested incoming velocity creates physical load and a bounded friction impulse (12.464458ms)
+✔ nested external force creates physical load and a bounded friction impulse (8.062166ms)
+✔ wall bias preserves incoming away/tangent motion and independent wire-only axial spin (2.365125ms)
+✔ free torsional prestrain produces analytic physical recoil and dissipative total energy (2.30075ms)
+✔ hard positional and orientation controls remain exact while physical history commits once per dt (3.862083ms)
+✔ a rejected physical trial rolls back and commits the accepted physical history once (4.779125ms)
+✔ positive physical wall load and axial slip balance impulse and the surface radius moment (16.306875ms)
+ℹ {"name":"loaded","mode":"split-physical-bias","physicalPasses":1,"biasPasses":1,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":1.1438848271372315e-9,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical","bias"],"wallFrictionGroups":[3],"rawGaps":[0,0],"velocity":[[3.6999964714050293,3.6999964714050293],[-1.6666649171881431e-9,3.3333298343762863e-9],[0,0]],"omega":[[0],[0],[9.999989690478994e-9]],"contacts":[{"id":"wall:0:0","kind":"wall","normalPhysical":0.0016666651936247945,"normalBias":0,"tangentPhysical":[-0.0004999995395379534,0],"mu":[0.3,0.3]},{"id":"wall-point:0:0","kind":"wall","normalPhysical":0.0016666652372328266,"normalBias":0,"tangentPhysical":[-0.0004999995666870933,0],"mu":[0.3,0.3]},{"id":"wall-point:0:1","kind":"wall","normalPhysical":0.013333320374237331,"normalBias":0,"tangentPhysical":[-0.003999996076409166,0],"mu":[0.3,0.3]}]}
+ℹ {"wrenchAudit":[{"edge":[0.5,0,0],"fullForce":[-0.5999994219161056,-1.9999980909847022,0],"expectedForce":[-0.5999994219161056,-1.9999980909847022,0],"fullMoment":[0,0,-3.361663385225447],"expectedMoment":[0,0,-3.3616633852254463],"radialMoment":[0,0,0.2999997109580528]}]}
+✔ positive wall friction coefficient cannot turn bias-only repair into a physical friction budget (6.090833ms)
+ℹ {"name":"bias-only","mode":"split-physical-bias","physicalPasses":1,"biasPasses":2,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":0,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical","bias","bias"],"wallFrictionGroups":[3],"rawGaps":[0,0],"velocity":[[3.9999961853027344,3.9999961853027344],[0,0],[0,0]],"omega":[[0],[0],[0]],"contacts":[{"id":"wall:0:0","kind":"wall","normalPhysical":0,"normalBias":0.125,"tangentPhysical":[0,0],"mu":[0.3,0.3]},{"id":"wall-point:0:0","kind":"wall","normalPhysical":0,"normalBias":0.12499999665485907,"tangentPhysical":[0,0],"mu":[0.3,0.3]},{"id":"wall-point:0:1","kind":"wall","normalPhysical":0,"normalBias":0.24999999756944472,"tangentPhysical":[0,0],"mu":[0.3,0.3]}]}
+✔ the next physical dt releases wall normal and friction reactions when pressure stops and the wire separates (4.848666ms)
+ℹ {"name":"before-release","mode":"split-physical-bias","physicalPasses":1,"biasPasses":1,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":1.1438848271372315e-9,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical","bias"],"wallFrictionGroups":[3],"rawGaps":[0,0],"velocity":[[3.6999964714050293,3.6999964714050293],[-1.6666649171881431e-9,3.3333298343762863e-9],[0,0]],"omega":[[0],[0],[9.999989690478994e-9]],"contacts":[{"id":"wall:0:0","kind":"wall","normalPhysical":0.0016666651936247945,"normalBias":0,"tangentPhysical":[-0.0004999995395379534,0],"mu":[0.3,0.3]},{"id":"wall-point:0:0","kind":"wall","normalPhysical":0.0016666652372328266,"normalBias":0,"tangentPhysical":[-0.0004999995666870933,0],"mu":[0.3,0.3]},{"id":"wall-point:0:1","kind":"wall","normalPhysical":0.013333320374237331,"normalBias":0,"tangentPhysical":[-0.003999996076409166,0],"mu":[0.3,0.3]}]}
+ℹ {"name":"released","mode":"split-physical-bias","physicalPasses":1,"biasPasses":1,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":0,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical","bias"],"wallFrictionGroups":[3],"rawGaps":[0.016666650772094727,0.016666650772094727],"velocity":[[2.999997138977051,2.999997138977051],[-1.9999980926513672,-1.9999980926513672],[0,0]],"omega":[[0],[0],[-1.1111112030448567e-9]],"contacts":[]}
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.207458

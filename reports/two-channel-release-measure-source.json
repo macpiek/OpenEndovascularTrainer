@@ -1,0 +1,15 @@
+{
+  "before": {
+    "src/physics/kirchhoffTwoChannelRelease.js": "8b38077b5d2451d70251fd976966d6ca268ee2b5a92086b3bf900d1638d124c6"
+  },
+  "after": {
+    "src/physics/kirchhoffTwoChannelRelease.js": "afc17e5579bad01444ff2cd84278a02e1f0cc2c0213836a340b91fda19fb0939",
+    "tests/fixtures/twoChannelReleaseMeasureReference.js": "f6c38945c2c7a56eaf18ee7c7600ea2aedf73f97e89fa3309996629e15c4e201",
+    "tests/fixtures/sparseReleaseMeasureFixture.js": "030be18a79e139b0c43618eb315cdcf5a753c828ba2c8374dc342030c11d69c3",
+    "tests/kirchhoffTwoChannelReleaseMeasure.test.js": "1c338cb2fe95173e5820a92fe0b77d8ac930bfb0d1f3af746c33ea06f5a77148",
+    "scripts/physics/measure-two-channel-release-perf.mjs": "6e6345ad139e29edca95cb2cca8b99d148291824c75ee723529e9e85d37c319f",
+    "reports/two-channel-release-measure-performance.md": "90f410406de02e03d14e00eb88372644893e78f3b7960230a2e683be36f66121"
+  },
+  "patchSha256": "c481d2f7db2812e8ff702e52bdbf67a13cd5b7f9536de4ae383807c1e36da216",
+  "benchmarkAndWorldSourceStable": true
+}

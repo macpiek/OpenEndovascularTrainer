@@ -1,0 +1,55 @@
+{
+  "scope": "Observed before the author added guards; values transcribed from the bounded tool outputs, not a rerun of altered source",
+  "tiltedWall": {
+    "certified": true,
+    "historyCommits": 1,
+    "limitations": [],
+    "initialAdaptationMm": 1.87354678523761e-08,
+    "initialBendTwistRad": 0,
+    "initialElasticEnergy": 0,
+    "reportedBendTwistRad": 1.7496861847463106e-24,
+    "actualBendTwistRad": 0.07894805165337379,
+    "angularToleranceRad": 0.001,
+    "biasElasticEnergyDelta": 0.1558198714965944
+  },
+  "relabelledContact": {
+    "oldId": "f4:side|s9:inner-old|s9:outer-old",
+    "newId": "f4:side|s9:inner-new|s9:outer-new",
+    "afterRekeyFn": 0,
+    "afterRekeyFt": [
+      0,
+      0
+    ],
+    "afterFinishBiasFn": 2,
+    "afterFinishBiasFt": [
+      0.3,
+      0
+    ],
+    "limitations": []
+  },
+  "wallFootComponentObservation": {
+    "scope": "Component ownership observation only, not a complete World certificate",
+    "key": "wall:0:0",
+    "oldWallT": 0,
+    "newWallT": 1,
+    "retainedFt": [
+      0.2,
+      0
+    ],
+    "oldTranslationDof": 0,
+    "newTranslationDof": 6,
+    "oldPoint": [
+      -1,
+      0,
+      0
+    ],
+    "newPoint": [
+      0,
+      0,
+      0
+    ],
+    "displacementResidualMm": 0,
+    "coneViolation": 0,
+    "limitations": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "nodeVersion": "v24.6.0",
+  "threeVersion": "0.160.1",
+  "files": [
+    {
+      "relativePath": "res/Aorta_plain.collision.bin",
+      "resolvedPath": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/res/Aorta_plain.collision.bin",
+      "sha256": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+      "bytes": 30613480
+    },
+    {
+      "relativePath": "node_modules/three/package.json",
+      "resolvedPath": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/node_modules/three/package.json",
+      "sha256": "101789c7a14e61ed318f9e52e1dcc1c424dbf59fa13e85830e4ed0f80b5fd949",
+      "bytes": 3997
+    },
+    {
+      "relativePath": "node_modules/three/build/three.module.js",
+      "resolvedPath": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/node_modules/three/build/three.module.js",
+      "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+      "bytes": 1272972
+    }
+  ]
+}

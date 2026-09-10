@@ -169,36 +169,6 @@ assert.ok(
     'SIM 1 terminal leg must descend and move outward like the reference shape'
 );
 
-// The Pigtail hinge owns one elastic bending energy. An impossible legacy
-// chord target on the same joint must have no effect once intrinsic curvature
-// is enabled; otherwise the two solvers fight and seed the familiar zig-zag.
-const energyWorld = new EndovascularPhysicsWorld({ iterations: 6 });
-const energyRod = energyWorld.createRod('single-bend-energy', 5, 4, {
-    ...DEFAULT_TOOL_PROFILES.catheter,
-    bendCompliance: 0,
-    stretchCompliance: 0,
-    linearDamping: 1,
-    maxBendAngle: 179,
-    postStabilizationPasses: 0
-});
-for (let index = 0; index < energyRod.count; index++) {
-    energyRod.setNodePosition(index, index * 4, 0, 0);
-}
-energyRod.captureRestConfiguration();
-energyRod.copyCurrentToPrevious();
-energyRod.restBendChord[1] = 0.1;
-energyRod.setIntrinsicCurvatureTarget(1, 0, 0, 0, 1, 0, Infinity, 0, 4);
-energyWorld.stepFixed();
-const twoSegmentChord = Math.hypot(
-    energyRod.x[2] - energyRod.x[0],
-    energyRod.y[2] - energyRod.y[0],
-    energyRod.z[2] - energyRod.z[0]
-);
-assert.ok(
-    twoSegmentChord > 7.9,
-    `intrinsic joint must ignore the duplicate unsigned bend energy (${twoSegmentChord} mm)`
-);
-
 function settledProfileTurn(profile, iterations) {
     const segmentCount = Math.ceil(profile.naturalArcLength / 2.5);
     const spacing = profile.naturalArcLength / segmentCount;
@@ -227,17 +197,7 @@ function settledProfileTurn(profile, iterations) {
         const turn = profile.frameNormalSign *
             profile.integrateIntrinsicTurn(distanceFromTip, spacing);
         targetTotal += turn;
-        body.setIntrinsicCurvatureTarget(
-            joint,
-            turn,
-            0,
-            0,
-            1,
-            1e-7,
-            0.05,
-            0,
-            spacing
-        );
+        body.setKirchhoffRestRotation(joint, 0, turn, 0, 1e-7, 1e-7, 1e-7);
     }
     for (let step = 0; step < 720; step++) {
         body.wake();

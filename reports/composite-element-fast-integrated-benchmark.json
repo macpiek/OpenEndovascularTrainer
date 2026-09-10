@@ -1,0 +1,826 @@
+{
+  "scope": "Paired common-chain assembly + band factor + primal solve using explicit javascript and wasm element backends. No physics dt, contacts, adaptive admission or browser FPS claim.",
+  "date": "2026-09-06T22:11:51.892Z",
+  "node": "v24.6.0",
+  "cpu": "Apple M3",
+  "sourceBefore": {
+    "src/physics/kirchhoffCompositeElement.js": "94085636b194f8b152f10ba09e7f7f9767e3949c89625846ac3d1070920308f4",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeChain.js": "77a524d96d37c3741129023acafc94a06239cc424c9481e0dbea8f330612f061",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "scripts/physics/build-composite-element-fast.mjs": "67009a436638e5e6f16ad96d4d3fe29af960f1ea934e94c98255b1435f4dc946",
+    "scripts/physics/benchmark-composite-element-fast.mjs": "a90d7ba0826b189350590aa7c76a1927902410cd1cb81c9e2e327880bb624648",
+    "tests/helpers/compositeFastChainOverlay.js": "231b5a074adfcb30c6abaed2d7438f5fc69b2cd9e1b0511cc78ede26062c71d4"
+  },
+  "overlaySha256": "77a524d96d37c3741129023acafc94a06239cc424c9481e0dbea8f330612f061",
+  "warmups": 6,
+  "pairs": 8,
+  "measurements": [
+    {
+      "nodes": 32,
+      "dofCount": 158,
+      "band": 13,
+      "matrixEntries": 2054,
+      "factorizations": 1,
+      "maximumResidual": 3.612565203870141e-17,
+      "medianWholeOperatorSpeedup": 2.7254305790888065,
+      "candidateFasterPairs": 8,
+      "stats": {
+        "baseline": {
+          "assemblyMs": {
+            "meanMs": 1.8411301250000065,
+            "medianMs": 1.8628960000000063,
+            "minimumMs": 1.1704160000000456,
+            "maximumMs": 2.2870419999999854
+          },
+          "solveMs": {
+            "meanMs": 0.1402553749999953,
+            "medianMs": 0.12420850000000883,
+            "minimumMs": 0.08212499999996226,
+            "maximumMs": 0.28454199999998764
+          },
+          "totalMs": {
+            "meanMs": 1.9813855000000018,
+            "medianMs": 1.995354500000019,
+            "minimumMs": 1.252541000000008,
+            "maximumMs": 2.571583999999973
+          }
+        },
+        "candidate": {
+          "assemblyMs": {
+            "meanMs": 0.6912914999999984,
+            "medianMs": 0.583916500000015,
+            "minimumMs": 0.23550000000000182,
+            "maximumMs": 2.202625000000012
+          },
+          "solveMs": {
+            "meanMs": 0.13246862499999423,
+            "medianMs": 0.13597899999999186,
+            "minimumMs": 0.08424999999999727,
+            "maximumMs": 0.19412499999998545
+          },
+          "totalMs": {
+            "meanMs": 0.8237601249999926,
+            "medianMs": 0.7321244999999692,
+            "minimumMs": 0.3197499999999991,
+            "maximumMs": 2.3404580000000124
+          }
+        }
+      },
+      "rows": [
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 1.9509580000000142,
+            "solveMs": 0.13958400000001348,
+            "totalMs": 2.0905420000000277
+          },
+          "candidate": {
+            "assemblyMs": 0.6023329999999874,
+            "solveMs": 0.13412499999998317,
+            "totalMs": 0.7364579999999705
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 1.7748339999999985,
+            "solveMs": 0.1253330000000119,
+            "totalMs": 1.9001670000000104
+          },
+          "candidate": {
+            "assemblyMs": 0.6383329999999887,
+            "solveMs": 0.12258300000002009,
+            "totalMs": 0.7609160000000088
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 2.2870419999999854,
+            "solveMs": 0.28454199999998764,
+            "totalMs": 2.571583999999973
+          },
+          "candidate": {
+            "assemblyMs": 2.202625000000012,
+            "solveMs": 0.13783300000000054,
+            "totalMs": 2.3404580000000124
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 2.02879200000001,
+            "solveMs": 0.15750000000002728,
+            "totalMs": 2.186292000000037
+          },
+          "candidate": {
+            "assemblyMs": 0.586749999999995,
+            "solveMs": 0.14104099999997288,
+            "totalMs": 0.7277909999999679
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 2.2706660000000056,
+            "solveMs": 0.09449999999998226,
+            "totalMs": 2.365165999999988
+          },
+          "candidate": {
+            "assemblyMs": 0.5810830000000351,
+            "solveMs": 0.19412499999998545,
+            "totalMs": 0.7752080000000205
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 1.1704160000000456,
+            "solveMs": 0.08212499999996226,
+            "totalMs": 1.252541000000008
+          },
+          "candidate": {
+            "assemblyMs": 0.23550000000000182,
+            "solveMs": 0.08424999999999727,
+            "totalMs": 0.3197499999999991
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 1.4843329999999924,
+            "solveMs": 0.12308400000000574,
+            "totalMs": 1.607416999999998
+          },
+          "candidate": {
+            "assemblyMs": 0.3613330000000019,
+            "solveMs": 0.138417000000004,
+            "totalMs": 0.4997500000000059
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 1.7620000000000005,
+            "solveMs": 0.1153749999999718,
+            "totalMs": 1.8773749999999723
+          },
+          "candidate": {
+            "assemblyMs": 0.32237499999996544,
+            "solveMs": 0.10737499999999045,
+            "totalMs": 0.4297499999999559
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        }
+      ]
+    },
+    {
+      "nodes": 65,
+      "dofCount": 323,
+      "band": 13,
+      "matrixEntries": 4199,
+      "factorizations": 1,
+      "maximumResidual": 3.612564438728074e-17,
+      "medianWholeOperatorSpeedup": 4.1887517723487955,
+      "candidateFasterPairs": 8,
+      "stats": {
+        "baseline": {
+          "assemblyMs": {
+            "meanMs": 5.065010374999986,
+            "medianMs": 4.2789789999999925,
+            "minimumMs": 3.5823330000000055,
+            "maximumMs": 10.619791999999961
+          },
+          "solveMs": {
+            "meanMs": 0.33447400000000016,
+            "medianMs": 0.22331250000002,
+            "minimumMs": 0.2131249999999909,
+            "maximumMs": 1.0213750000000346
+          },
+          "totalMs": {
+            "meanMs": 5.399484374999986,
+            "medianMs": 4.493395499999991,
+            "minimumMs": 3.7978329999999687,
+            "maximumMs": 11.641166999999996
+          }
+        },
+        "candidate": {
+          "assemblyMs": {
+            "meanMs": 1.359614625000006,
+            "medianMs": 0.8307080000000155,
+            "minimumMs": 0.4818750000000023,
+            "maximumMs": 4.980834000000016
+          },
+          "solveMs": {
+            "meanMs": 0.22996350000001087,
+            "medianMs": 0.2161245000000065,
+            "minimumMs": 0.18066699999997127,
+            "maximumMs": 0.34816699999998946
+          },
+          "totalMs": {
+            "meanMs": 1.589578125000017,
+            "medianMs": 1.0727290000000096,
+            "minimumMs": 0.6992079999999987,
+            "maximumMs": 5.195750000000032
+          }
+        }
+      },
+      "rows": [
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 4.366333999999995,
+            "solveMs": 0.33074999999996635,
+            "totalMs": 4.697083999999961
+          },
+          "candidate": {
+            "assemblyMs": 1.4957919999999945,
+            "solveMs": 0.20408300000002555,
+            "totalMs": 1.69987500000002
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 3.5823330000000055,
+            "solveMs": 0.21549999999996317,
+            "totalMs": 3.7978329999999687
+          },
+          "candidate": {
+            "assemblyMs": 0.4818750000000023,
+            "solveMs": 0.21733299999999645,
+            "totalMs": 0.6992079999999987
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 3.9965409999999792,
+            "solveMs": 0.23091700000003357,
+            "totalMs": 4.227458000000013
+          },
+          "candidate": {
+            "assemblyMs": 0.8329580000000192,
+            "solveMs": 0.21000000000003638,
+            "totalMs": 1.0429580000000556
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 5.8104999999999905,
+            "solveMs": 0.2330840000000194,
+            "totalMs": 6.04358400000001
+          },
+          "candidate": {
+            "assemblyMs": 0.7609170000000063,
+            "solveMs": 0.34816699999998946,
+            "totalMs": 1.1090839999999957
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 4.230832999999961,
+            "solveMs": 0.2131249999999909,
+            "totalMs": 4.443957999999952
+          },
+          "candidate": {
+            "assemblyMs": 0.8284580000000119,
+            "solveMs": 0.24412499999999682,
+            "totalMs": 1.0725830000000087
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 10.619791999999961,
+            "solveMs": 1.0213750000000346,
+            "totalMs": 11.641166999999996
+          },
+          "candidate": {
+            "assemblyMs": 4.980834000000016,
+            "solveMs": 0.21491600000001654,
+            "totalMs": 5.195750000000032
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 4.327125000000024,
+            "solveMs": 0.21570800000000645,
+            "totalMs": 4.54283300000003
+          },
+          "candidate": {
+            "assemblyMs": 0.6038749999999595,
+            "solveMs": 0.22041700000005449,
+            "totalMs": 0.824292000000014
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 3.5866249999999695,
+            "solveMs": 0.2153329999999869,
+            "totalMs": 3.8019579999999564
+          },
+          "candidate": {
+            "assemblyMs": 0.8922080000000392,
+            "solveMs": 0.18066699999997127,
+            "totalMs": 1.0728750000000105
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        }
+      ]
+    },
+    {
+      "nodes": 128,
+      "dofCount": 638,
+      "band": 13,
+      "matrixEntries": 8294,
+      "factorizations": 1,
+      "maximumResidual": 3.612564438728074e-17,
+      "medianWholeOperatorSpeedup": 5.493692991616506,
+      "candidateFasterPairs": 8,
+      "stats": {
+        "baseline": {
+          "assemblyMs": {
+            "meanMs": 10.665598625000001,
+            "medianMs": 9.277228999999977,
+            "minimumMs": 6.580541000000039,
+            "maximumMs": 15.645332999999937
+          },
+          "solveMs": {
+            "meanMs": 0.550104250000004,
+            "medianMs": 0.4326880000000415,
+            "minimumMs": 0.3825409999999465,
+            "maximumMs": 1.31412499999999
+          },
+          "totalMs": {
+            "meanMs": 11.215702875000005,
+            "medianMs": 9.671874499999944,
+            "minimumMs": 7.351666000000023,
+            "maximumMs": 16.05174999999997
+          }
+        },
+        "candidate": {
+          "assemblyMs": {
+            "meanMs": 1.7672602499999925,
+            "medianMs": 1.330374500000005,
+            "minimumMs": 1.144457999999986,
+            "maximumMs": 4.351541999999995
+          },
+          "solveMs": {
+            "meanMs": 0.516744999999986,
+            "medianMs": 0.43366699999995717,
+            "minimumMs": 0.2965829999999414,
+            "maximumMs": 0.7900829999999814
+          },
+          "totalMs": {
+            "meanMs": 2.2840052499999786,
+            "medianMs": 1.760541499999988,
+            "minimumMs": 1.6328750000000127,
+            "maximumMs": 5.108208999999988
+          }
+        }
+      },
+      "rows": [
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 15.366957999999954,
+            "solveMs": 0.44116700000006404,
+            "totalMs": 15.808125000000018
+          },
+          "candidate": {
+            "assemblyMs": 1.4037080000000515,
+            "solveMs": 0.3929170000000113,
+            "totalMs": 1.7966250000000628
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 7.02270800000008,
+            "solveMs": 0.42420900000001893,
+            "totalMs": 7.446917000000099
+          },
+          "candidate": {
+            "assemblyMs": 1.1760000000000446,
+            "solveMs": 0.45687499999996817,
+            "totalMs": 1.6328750000000127
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 6.889166000000046,
+            "solveMs": 0.46249999999997726,
+            "totalMs": 7.351666000000023
+          },
+          "candidate": {
+            "assemblyMs": 1.252375000000029,
+            "solveMs": 0.4104589999999462,
+            "totalMs": 1.6628339999999753
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 6.580541000000039,
+            "solveMs": 1.31412499999999,
+            "totalMs": 7.894666000000029
+          },
+          "candidate": {
+            "assemblyMs": 1.4278749999999718,
+            "solveMs": 0.2965829999999414,
+            "totalMs": 1.7244579999999132
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 10.775750000000016,
+            "solveMs": 0.3825409999999465,
+            "totalMs": 11.158290999999963
+          },
+          "candidate": {
+            "assemblyMs": 1.144457999999986,
+            "solveMs": 0.7900829999999814,
+            "totalMs": 1.9345409999999674
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 15.645332999999937,
+            "solveMs": 0.4064170000000331,
+            "totalMs": 16.05174999999997
+          },
+          "candidate": {
+            "assemblyMs": 1.2570409999999583,
+            "solveMs": 0.40191700000002584,
+            "totalMs": 1.6589579999999842
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 7.778707999999938,
+            "solveMs": 0.4067499999999882,
+            "totalMs": 8.185457999999926
+          },
+          "candidate": {
+            "assemblyMs": 4.351541999999995,
+            "solveMs": 0.7566669999999931,
+            "totalMs": 5.108208999999988
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 15.265625,
+            "solveMs": 0.5631250000000136,
+            "totalMs": 15.828750000000014
+          },
+          "candidate": {
+            "assemblyMs": 2.125082999999904,
+            "solveMs": 0.6284590000000208,
+            "totalMs": 2.753541999999925
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        }
+      ]
+    },
+    {
+      "nodes": 201,
+      "dofCount": 1003,
+      "band": 13,
+      "matrixEntries": 13039,
+      "factorizations": 1,
+      "maximumResidual": 3.612564438728074e-17,
+      "medianWholeOperatorSpeedup": 5.759581560134244,
+      "candidateFasterPairs": 8,
+      "stats": {
+        "baseline": {
+          "assemblyMs": {
+            "meanMs": 15.29583312500003,
+            "medianMs": 14.029811999999993,
+            "minimumMs": 9.536000000000058,
+            "maximumMs": 32.216166000000044
+          },
+          "solveMs": {
+            "meanMs": 0.7518022499999688,
+            "medianMs": 0.6715209999999274,
+            "minimumMs": 0.46516699999995126,
+            "maximumMs": 1.5620420000000195
+          },
+          "totalMs": {
+            "meanMs": 16.047635375,
+            "medianMs": 14.892000000000053,
+            "minimumMs": 10.00116700000001,
+            "maximumMs": 32.82045800000003
+          }
+        },
+        "candidate": {
+          "assemblyMs": {
+            "meanMs": 1.806937375000004,
+            "medianMs": 1.9338954999999487,
+            "minimumMs": 1.3462500000000546,
+            "maximumMs": 2.0254999999999654
+          },
+          "solveMs": {
+            "meanMs": 0.6941198749999842,
+            "medianMs": 0.6545835000000011,
+            "minimumMs": 0.47137499999996635,
+            "maximumMs": 0.9146250000000009
+          },
+          "totalMs": {
+            "meanMs": 2.501057249999988,
+            "medianMs": 2.585604499999988,
+            "minimumMs": 2.0117500000000064,
+            "maximumMs": 2.896374999999921
+          }
+        }
+      },
+      "rows": [
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 15.688125000000014,
+            "solveMs": 0.6262499999999136,
+            "totalMs": 16.314374999999927
+          },
+          "candidate": {
+            "assemblyMs": 1.98174999999992,
+            "solveMs": 0.9146250000000009,
+            "totalMs": 2.896374999999921
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 14.78666700000008,
+            "solveMs": 0.5529999999999973,
+            "totalMs": 15.339667000000077
+          },
+          "candidate": {
+            "assemblyMs": 1.990000000000009,
+            "solveMs": 0.639458999999988,
+            "totalMs": 2.629458999999997
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 32.216166000000044,
+            "solveMs": 0.6042919999999867,
+            "totalMs": 32.82045800000003
+          },
+          "candidate": {
+            "assemblyMs": 1.6854580000000396,
+            "solveMs": 0.6314169999999422,
+            "totalMs": 2.316874999999982
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 9.536000000000058,
+            "solveMs": 0.46516699999995126,
+            "totalMs": 10.00116700000001
+          },
+          "candidate": {
+            "assemblyMs": 1.3462500000000546,
+            "solveMs": 0.7302079999999478,
+            "totalMs": 2.0764580000000024
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 9.946583000000032,
+            "solveMs": 0.758707999999956,
+            "totalMs": 10.705290999999988
+          },
+          "candidate": {
+            "assemblyMs": 2.0254999999999654,
+            "solveMs": 0.6534580000000005,
+            "totalMs": 2.678957999999966
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 13.716166000000044,
+            "solveMs": 0.7281669999999849,
+            "totalMs": 14.444333000000029
+          },
+          "candidate": {
+            "assemblyMs": 1.54037500000004,
+            "solveMs": 0.47137499999996635,
+            "totalMs": 2.0117500000000064
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "AB",
+          "baseline": {
+            "assemblyMs": 12.133500000000026,
+            "solveMs": 0.7167919999999413,
+            "totalMs": 12.850291999999968
+          },
+          "candidate": {
+            "assemblyMs": 2.0001250000000255,
+            "solveMs": 0.856708000000026,
+            "totalMs": 2.8568330000000515
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        },
+        {
+          "order": "BA",
+          "baseline": {
+            "assemblyMs": 14.343457999999941,
+            "solveMs": 1.5620420000000195,
+            "totalMs": 15.905499999999961
+          },
+          "candidate": {
+            "assemblyMs": 1.8860409999999774,
+            "solveMs": 0.6557090000000017,
+            "totalMs": 2.541749999999979
+          },
+          "parity": {
+            "maximumDifference": 0,
+            "maximumScaledDifference": 0,
+            "byteIdentical": true
+          }
+        }
+      ]
+    }
+  ],
+  "sourceAfter": {
+    "src/physics/kirchhoffCompositeElement.js": "94085636b194f8b152f10ba09e7f7f9767e3949c89625846ac3d1070920308f4",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeChain.js": "77a524d96d37c3741129023acafc94a06239cc424c9481e0dbea8f330612f061",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "scripts/physics/build-composite-element-fast.mjs": "67009a436638e5e6f16ad96d4d3fe29af960f1ea934e94c98255b1435f4dc946",
+    "scripts/physics/benchmark-composite-element-fast.mjs": "a90d7ba0826b189350590aa7c76a1927902410cd1cb81c9e2e327880bb624648",
+    "tests/helpers/compositeFastChainOverlay.js": "231b5a074adfcb30c6abaed2d7438f5fc69b2cd9e1b0511cc78ede26062c71d4"
+  },
+  "sourceStable": true
+}

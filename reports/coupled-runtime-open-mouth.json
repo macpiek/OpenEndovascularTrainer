@@ -1,0 +1,418 @@
+{
+  "scope": "Diagnostic Node replay, no rendering, FPS or scheduler/backlog measurement",
+  "measuredAt": "2026-09-06T14:59:10.006Z",
+  "node": "v24.6.0",
+  "sourceBefore": [
+    [
+      "src/physics/endovascularPhysicsWorld.js",
+      "24a50c42f0a6c41351d0a010e843ed099fe1bbac088bf10b059c18505b56b074"
+    ],
+    [
+      "src/physics/kirchhoffCoupledSystem.js",
+      "fd164a7151b1a0dfc1d45f53e5cedb3ffb19a3ef27cc423bc80ea501cf758f5f"
+    ],
+    [
+      "src/physics/kirchhoffActiveCondensedSolver.js",
+      "46487705c4461fb58bb705061abbc412d80cf3eb7d9122ede054b972ae02f360"
+    ],
+    [
+      "src/physics/kirchhoffCoulombNewtonSolver.js",
+      "c39eccbbb6a488733fc78d0b34e1c55a55a31166e71d15675f486f532fe497e4"
+    ],
+    [
+      "src/physics/kirchhoffCoupledFrictionSolver.js",
+      "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54"
+    ],
+    [
+      "src/physics/kirchhoffCoupledTrialState.js",
+      "2a4edde4bc8c75531ced9bee81e1d0ef00042f0b5459f584f7fb95ecdac491f8"
+    ],
+    [
+      "src/physics/kirchhoffToolContactOwnership.js",
+      "6405986a7d8a5170f532024b8db510193bab83c5472e215672e503fa6617dd5a"
+    ],
+    [
+      "src/physics/kirchhoffLinearKernelBytes.js",
+      "a78f5cd878478f1b4b8d8d6236ce0226366d7d625d25ebd78393bfd005332cd1"
+    ],
+    [
+      "tests/helpers/coupledRuntimeFixture.js",
+      "c1ee3c90dd41cdd13637d42ae40e1a91c0cc03fbecfc11f9f7e318ccaad766dd"
+    ]
+  ],
+  "notes": [
+    "Same commanded distances, speeds and held times, with exact fractional final feed commands.",
+    "Body linear/angular damping and component velocity damping are converted from per-120-Hz-step factors to preserve decay per second.",
+    "Projection-velocity retention remains part of the original numerical model; this comparison does not establish timestep-independent transient dynamics.",
+    "Preparation uses the existing independent guidewire path; its failures are recorded. A failed coupled step stops that frequency run."
+  ],
+  "runs": [
+    {
+      "hz": 120,
+      "dt": 0.008333333333333333,
+      "phases": [
+        {
+          "name": "wire-feed",
+          "plannedSteps": 2727,
+          "steps": 2727,
+          "unconverged": 740,
+          "maximumLengthError": 0.04490243710921291,
+          "maximumWallPenetration": 1.7580640302435382,
+          "maximumLinearResidual": 0,
+          "factorizationSum": 0,
+          "outerPassSum": 8389,
+          "physicsMs": {
+            "mean": 3.0148786685001867,
+            "p95": 8.451500000000124
+          },
+          "fullMs": {
+            "mean": 3.0345352280894824,
+            "p95": 8.487541999999848
+          },
+          "simulatedSeconds": 22.725,
+          "meanFactors": 0,
+          "meanOuterPasses": 3.076274294096076,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 0,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 2727,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "7abb249b"
+              },
+              {
+                "id": "catheter",
+                "hash": "738976ea"
+              }
+            ],
+            "activeNodes": [
+              201,
+              16
+            ]
+          }
+        },
+        {
+          "name": "wire-settle",
+          "plannedSteps": 360,
+          "steps": 360,
+          "unconverged": 329,
+          "maximumLengthError": 0.03316230552637069,
+          "maximumWallPenetration": 1.5955022856161896,
+          "maximumLinearResidual": 0,
+          "factorizationSum": 0,
+          "outerPassSum": 5406,
+          "physicsMs": {
+            "mean": 7.840668944444471,
+            "p95": 9.827708000000712
+          },
+          "fullMs": {
+            "mean": 7.863915638888885,
+            "p95": 9.86579200000051
+          },
+          "simulatedSeconds": 3,
+          "meanFactors": 0,
+          "meanOuterPasses": 15.016666666666667,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 0,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 3087,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "68468944"
+              },
+              {
+                "id": "catheter",
+                "hash": "2a1a0f59"
+              }
+            ],
+            "activeNodes": [
+              201,
+              16
+            ]
+          }
+        },
+        {
+          "name": "wire-only",
+          "plannedSteps": 600,
+          "steps": 600,
+          "unconverged": 0,
+          "maximumLengthError": 0.0019970707710582404,
+          "maximumWallPenetration": 0.09404505887478048,
+          "maximumLinearResidual": 0,
+          "factorizationSum": 0,
+          "outerPassSum": 677,
+          "physicsMs": {
+            "mean": 2.0001883599999988,
+            "p95": 2.2213749999991705
+          },
+          "fullMs": {
+            "mean": 2.010503341666654,
+            "p95": 2.2342919999991864
+          },
+          "simulatedSeconds": 5,
+          "meanFactors": 0,
+          "meanOuterPasses": 1.1283333333333334,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 0,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 3687,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "0ed881ec"
+              },
+              {
+                "id": "catheter",
+                "hash": "8ce256b3"
+              }
+            ],
+            "activeNodes": [
+              201,
+              16
+            ]
+          }
+        },
+        {
+          "name": "catheter-feed-100mm",
+          "plannedSteps": 231,
+          "steps": 231,
+          "unconverged": 0,
+          "maximumLengthError": 0.001918288283306957,
+          "maximumWallPenetration": 0.015517012274988862,
+          "maximumLinearResidual": 0.0001978249068519955,
+          "factorizationSum": 13737,
+          "outerPassSum": 741,
+          "physicsMs": {
+            "mean": 34.627110974026046,
+            "p95": 64.70600000000195
+          },
+          "fullMs": {
+            "mean": 34.85192240692633,
+            "p95": 65.03691600000093
+          },
+          "simulatedSeconds": 1.925,
+          "meanFactors": 59.467532467532465,
+          "meanOuterPasses": 3.207792207792208,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 100.00000000000007,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 3918,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "32d9cbe8"
+              },
+              {
+                "id": "catheter",
+                "hash": "64daf2c2"
+              }
+            ],
+            "activeNodes": [
+              201,
+              41
+            ]
+          }
+        },
+        {
+          "name": "catheter-hold-100mm",
+          "plannedSteps": 600,
+          "steps": 600,
+          "unconverged": 0,
+          "maximumLengthError": 0.000023935628494021184,
+          "maximumWallPenetration": 0.0001948027137442243,
+          "maximumLinearResidual": 0.0001991433665774209,
+          "factorizationSum": 81674,
+          "outerPassSum": 2401,
+          "physicsMs": {
+            "mean": 71.79971424833336,
+            "p95": 78.84245899999951
+          },
+          "fullMs": {
+            "mean": 71.9132568083333,
+            "p95": 78.95095800000126
+          },
+          "simulatedSeconds": 5,
+          "meanFactors": 136.12333333333333,
+          "meanOuterPasses": 4.001666666666667,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 100.00000000000007,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 4518,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "10e93874"
+              },
+              {
+                "id": "catheter",
+                "hash": "d36872be"
+              }
+            ],
+            "activeNodes": [
+              201,
+              41
+            ]
+          }
+        },
+        {
+          "name": "catheter-feed-200mm",
+          "plannedSteps": 231,
+          "steps": 102,
+          "unconverged": 1,
+          "maximumLengthError": 0.17394474267562388,
+          "maximumWallPenetration": 0.005266413755585564,
+          "maximumLinearResidual": 0.0007341423543499243,
+          "factorizationSum": 38219,
+          "outerPassSum": 470,
+          "physicsMs": {
+            "mean": 199.95851186274547,
+            "p95": 394.1325840000063
+          },
+          "fullMs": {
+            "mean": 200.25379574509776,
+            "p95": 394.5299170000071
+          },
+          "simulatedSeconds": 0.85,
+          "meanFactors": 374.69607843137254,
+          "meanOuterPasses": 4.607843137254902,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 144.20000000000044,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 4620,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "4694fd17"
+              },
+              {
+                "id": "catheter",
+                "hash": "d39b0067"
+              }
+            ],
+            "activeNodes": [
+              201,
+              55
+            ]
+          }
+        }
+      ],
+      "complete": false,
+      "failure": {
+        "phase": "catheter-feed-200mm",
+        "step": 101,
+        "state": {
+          "wireMm": 999.9000000000169,
+          "catheterMm": 144.20000000000044,
+          "wireRotation": 0,
+          "catheterRotation": 0,
+          "executedSteps": 4620,
+          "fingerprints": [
+            {
+              "id": "guidewire",
+              "hash": "4694fd17"
+            },
+            {
+              "id": "catheter",
+              "hash": "d39b0067"
+            }
+          ],
+          "activeNodes": [
+            201,
+            55
+          ]
+        },
+        "linear": {
+          "status": "coulomb-line-search",
+          "converged": false,
+          "iterations": 261,
+          "factorizations": 267,
+          "backtracks": 1804,
+          "gradientFallbacks": 0,
+          "maximumResidual": 0.0007341423543499243,
+          "frictionResidual": 4.9073023422607776e-11,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 284,
+          "band": 284,
+          "groupCount": 81,
+          "normalLoadIterations": 2,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "normalMapStart": "seed",
+          "normalMapFallback": true,
+          "seedFactorizations": 28,
+          "coldSeedRetry": true,
+          "originalCount": 2190,
+          "equalityCount": 1522,
+          "equalityBand": 27,
+          "retainedCount": 284,
+          "responseColumns": 284,
+          "expansions": 1,
+          "reconstructionResidual": 0.0007341423543497212,
+          "basis": "common-relative",
+          "individualBand": 158,
+          "pairedNodes": 29,
+          "bundleEntries": 18703,
+          "materialResidual": 0.000004198482680184412,
+          "contactResidual": 0.0007341423543497212,
+          "activeContacts": 22,
+          "dofCount": 1530
+        },
+        "trial": null,
+        "trace": []
+      }
+    }
+  ],
+  "sourceAfter": [
+    [
+      "src/physics/endovascularPhysicsWorld.js",
+      "24a50c42f0a6c41351d0a010e843ed099fe1bbac088bf10b059c18505b56b074"
+    ],
+    [
+      "src/physics/kirchhoffCoupledSystem.js",
+      "fd164a7151b1a0dfc1d45f53e5cedb3ffb19a3ef27cc423bc80ea501cf758f5f"
+    ],
+    [
+      "src/physics/kirchhoffActiveCondensedSolver.js",
+      "46487705c4461fb58bb705061abbc412d80cf3eb7d9122ede054b972ae02f360"
+    ],
+    [
+      "src/physics/kirchhoffCoulombNewtonSolver.js",
+      "c39eccbbb6a488733fc78d0b34e1c55a55a31166e71d15675f486f532fe497e4"
+    ],
+    [
+      "src/physics/kirchhoffCoupledFrictionSolver.js",
+      "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54"
+    ],
+    [
+      "src/physics/kirchhoffCoupledTrialState.js",
+      "2a4edde4bc8c75531ced9bee81e1d0ef00042f0b5459f584f7fb95ecdac491f8"
+    ],
+    [
+      "src/physics/kirchhoffToolContactOwnership.js",
+      "6405986a7d8a5170f532024b8db510193bab83c5472e215672e503fa6617dd5a"
+    ],
+    [
+      "src/physics/kirchhoffLinearKernelBytes.js",
+      "a78f5cd878478f1b4b8d8d6236ce0226366d7d625d25ebd78393bfd005332cd1"
+    ],
+    [
+      "tests/helpers/coupledRuntimeFixture.js",
+      "c1ee3c90dd41cdd13637d42ae40e1a91c0cc03fbecfc11f9f7e318ccaad766dd"
+    ]
+  ],
+  "sourceStable": true
+}

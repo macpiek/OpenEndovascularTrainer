@@ -1,0 +1,704 @@
+{
+  "first": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 1,
+    "time": 0.008333333333333333,
+    "positions": [
+      [
+        64.97836989399555,
+        -462.0296690503204,
+        -79.55471756171002
+      ],
+      [
+        65,
+        -461.81336005090367,
+        -79.6557542069334
+      ],
+      [
+        64.90596731869704,
+        -461.6053450112134,
+        -79.72892145713489
+      ]
+    ],
+    "lengthMultipliers": [
+      -0.3897464999643524,
+      0.5683561623325347
+    ],
+    "wall": {
+      "multipliers": [
+        0,
+        0
+      ],
+      "contactMode": "capsule",
+      "owners": [
+        "wire",
+        null
+      ],
+      "sdfSeams": [
+        {
+          "wallIndex": 0,
+          "edge": 0,
+          "owner": "wire",
+          "radius": 0.4445,
+          "sampleFraction": 1,
+          "sampleCount": 1,
+          "face": {
+            "axis": 0,
+            "gridIndex": 434
+          },
+          "forces": [
+            2.1924778704896255,
+            0.5980074238507306
+          ]
+        }
+      ],
+      "records": [
+        {
+          "edge": 0,
+          "fraction": 1,
+          "owner": "wire",
+          "s": 0.2397203545642866,
+          "point": [
+            65,
+            -461.81336005090367,
+            -79.6557542069334
+          ],
+          "surfacePoint": [
+            64.67085875708935,
+            -461.52793103592757,
+            -79.74393906745375
+          ],
+          "normal": [
+            0.7404752371443405,
+            -0.6421350168191381,
+            0.19839113727865423
+          ],
+          "worldForce": [
+            1.6234755710845241,
+            -1.4078668142424438,
+            0.4349681781847188
+          ],
+          "worldCouple": [
+            0,
+            0,
+            0
+          ],
+          "history": {
+            "normalForce": 2.1924778704896255,
+            "friction": "frictionless"
+          },
+          "source": "sparse-sdf-cell-polynomial",
+          "sdfCell": [
+            433,
+            60,
+            48
+          ],
+          "sdfFace": {
+            "axis": 0,
+            "gridIndex": 434
+          }
+        },
+        {
+          "edge": 0,
+          "fraction": 1,
+          "owner": "wire",
+          "s": 0.2397203545642866,
+          "point": [
+            65,
+            -461.81336005090367,
+            -79.6557542069334
+          ],
+          "surfacePoint": [
+            65.40634967013621,
+            -461.6412213211933,
+            -79.70893741211991
+          ],
+          "normal": [
+            -0.9141724862456839,
+            -0.3872637338815053,
+            0.11964725576267643
+          ],
+          "worldForce": [
+            -0.5466819334549988,
+            -0.23158658784929387,
+            0.07154994718944761
+          ],
+          "worldCouple": [
+            0,
+            0,
+            0
+          ],
+          "history": {
+            "normalForce": 0.5980074238507306,
+            "friction": "frictionless"
+          },
+          "source": "sparse-sdf-cell-polynomial",
+          "sdfCell": [
+            434,
+            60,
+            48
+          ],
+          "sdfFace": {
+            "axis": 0,
+            "gridIndex": 434
+          }
+        }
+      ]
+    },
+    "diagnostics": {
+      "torsionMode": "quasi-static",
+      "tolerance": {
+        "force": 1e-7,
+        "torque": 1e-8,
+        "length": 1e-8
+      },
+      "limits": {
+        "directions": 64,
+        "outerIterations": 64,
+        "lineSearchTrials": 30,
+        "evaluations": 1500,
+        "linearSolves": 192
+      },
+      "evaluations": 14,
+      "directions": 7,
+      "lineSearchTrials": 12,
+      "acceptedTrials": 6,
+      "rejectedTrials": 6,
+      "outerIterations": 7,
+      "dualUpdates": 6,
+      "penaltyUpdates": 0,
+      "historyCommits": 1,
+      "maximumLinearResidual": 0,
+      "linearSolves": 7,
+      "refinementSteps": 0,
+      "factorizations": 7,
+      "penalty": 10000,
+      "initialPenalty": 10000,
+      "elementBackend": "wasm-exact",
+      "constraintSolver": "mixed",
+      "inertiaBackend": "compiled",
+      "wallQueries": 14,
+      "wallDualUpdates": 6,
+      "reusedWorkspace": false,
+      "fullAssemblies": 13,
+      "gradientAssemblies": 1,
+      "tangentRebuilds": 0,
+      "certificateAssembly": "gradient",
+      "trialAssembly": "full",
+      "contactScope": "discrete-frictionless-vessel-contact",
+      "sdfChartActivations": 1,
+      "sdfChartRebuilds": 1,
+      "initialCertificate": {
+        "force": 5.291816996921356e-36,
+        "torque": 2.1286280367675507e-20,
+        "length": 0,
+        "wall": {
+          "maximumPenetration": 0.020000000000010953,
+          "maximumProjectedResidual": 200.00000000010954,
+          "maximumComplementarity": 0,
+          "converged": false,
+          "scope": "discrete-wall-KKT-only"
+        }
+      },
+      "lastLinearProof": {
+        "force": 1.0713574177262074e-23,
+        "torque": 3.2693927040721234e-27,
+        "constraint": 3.0201624671310463e-25
+      },
+      "mixedCount": 15,
+      "mixedBandwidth": 14,
+      "wallPenalty": 10000,
+      "certificate": {
+        "force": 4.194660611156283e-13,
+        "torque": 2.8196719215146345e-18,
+        "length": 1.5765166949677223e-14,
+        "wall": {
+          "maximumPenetration": 4.6629367034256575e-15,
+          "maximumProjectedResidual": 4.6629367034256575e-11,
+          "maximumComplementarity": 1.02233855337546e-14,
+          "converged": true,
+          "scope": "discrete-wall-KKT-with-sdf-cones",
+          "sdfSeams": [
+            {
+              "wallIndex": 0,
+              "face": {
+                "axis": 0,
+                "gridIndex": 434
+              },
+              "scope": "discrete-contact-cone-only",
+              "classification": "min-intersection",
+              "source": "sparse-sdf",
+              "onSeam": true,
+              "selectedRow": 1,
+              "originalGapMatches": true,
+              "converged": true,
+              "domainAdmissible": true,
+              "tieAdmissible": true,
+              "originalGap": -4.6629367034256575e-15,
+              "maximumPenetration": 4.6629367034256575e-15,
+              "maximumNegativeForce": 0,
+              "maximumProjectedResidual": 4.6629367034256575e-11,
+              "maximumComplementarity": 1.02233855337546e-14,
+              "resultant": [
+                1.0767936376295253,
+                -1.6394534020917377,
+                0.5065181253741664
+              ],
+              "moment": [
+                -364.5087346364689,
+                -118.69648747992798,
+                390.71321673916333
+              ],
+              "forces": [
+                2.1924778704896255,
+                0.5980074238507306
+              ],
+              "branchGaps": [
+                -4.6629367034256575e-15,
+                -4.6629367034256575e-15
+              ],
+              "forceMagnitude": 2.0257967832441035,
+              "scalarForceSum": 2.790485294340356
+            }
+          ],
+          "domainAdmissible": true
+        }
+      },
+      "originalResidual": [
+        3.602673714908633e-14,
+        1.1762812945903534e-13,
+        4.4825254619240695e-14,
+        -2.846776975826772e-18,
+        4.063416270128073e-14,
+        4.154454558147336e-13,
+        4.1300296516055823e-14,
+        2.8196719215146345e-18,
+        -4.9960036108132044e-15,
+        1.5304424394457783e-13,
+        5.789813073420191e-14
+      ],
+      "reactions": [
+        0,
+        0,
+        0,
+        -2.846776975826772e-18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elasticEnergy": 0.0005502985003060297,
+      "inertialEnergy": 0.04179914152862964,
+      "kineticEnergy": 0.04179914152862964,
+      "objective": 0.04234944002893566
+    }
+  },
+  "interrupted": {
+    "accepted": false,
+    "status": "direction-budget-exhausted",
+    "certificate": {
+      "force": 0.007553931304494005,
+      "torque": 2.656996613963649e-9,
+      "length": 0.000010117597630782127,
+      "wall": {
+        "maximumPenetration": 6.981389899518575e-8,
+        "maximumProjectedResidual": 2.1724187365016485,
+        "maximumComplementarity": 1.5166502224537515e-7,
+        "converged": false,
+        "scope": "discrete-wall-KKT-with-sdf-cones",
+        "sdfSeams": [
+          {
+            "wallIndex": 0,
+            "face": {
+              "axis": 0,
+              "gridIndex": 434
+            },
+            "scope": "discrete-contact-cone-only",
+            "classification": "min-intersection",
+            "source": "sparse-sdf",
+            "onSeam": true,
+            "selectedRow": 1,
+            "originalGapMatches": true,
+            "converged": false,
+            "domainAdmissible": true,
+            "tieAdmissible": true,
+            "originalGap": -6.981389899518575e-8,
+            "maximumPenetration": 6.981389899518575e-8,
+            "maximumNegativeForce": 2.1724187365016485,
+            "maximumProjectedResidual": 2.1724187365016485,
+            "maximumComplementarity": 1.5166502224537515e-7,
+            "resultant": [
+              -1.0231126165699767,
+              1.644184462836778,
+              -0.5062113727888159
+            ],
+            "moment": [
+              364.7430891026819,
+              114.40006944012269,
+              -365.61493774256803
+            ],
+            "forces": [
+              -2.1724187365016485,
+              -0.640117430338416
+            ],
+            "branchGaps": [
+              -6.981389899518575e-8,
+              -6.981389899518575e-8
+            ],
+            "forceMagnitude": 2.0015873520681695,
+            "scalarForceSum": -2.8125361668400646
+          }
+        ],
+        "domainAdmissible": true
+      }
+    },
+    "historyCommits": 0,
+    "rollbackVerified": true
+  },
+  "second": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 2,
+    "time": 0.016666666666666666,
+    "positions": [
+      [
+        64.96934865187995,
+        -462.05074231537515,
+        -79.53995104240776
+      ],
+      [
+        65.01337321578661,
+        -461.8433842109076,
+        -79.65188987694235
+      ],
+      [
+        64.92012710276462,
+        -461.63224461704743,
+        -79.71662844893282
+      ]
+    ],
+    "lengthMultipliers": [
+      -0.06743495177727771,
+      -0.005724865587598041
+    ],
+    "wall": {
+      "multipliers": [
+        0,
+        0
+      ],
+      "contactMode": "capsule",
+      "owners": [
+        "wire",
+        null
+      ],
+      "sdfSeams": [
+        {
+          "wallIndex": 0,
+          "edge": 0,
+          "owner": "wire",
+          "radius": 0.4445,
+          "sampleFraction": 1,
+          "sampleCount": 1,
+          "face": {
+            "axis": 0,
+            "gridIndex": 434
+          },
+          "forces": [
+            0,
+            0.5801722357399944
+          ]
+        }
+      ],
+      "records": [
+        {
+          "edge": 0,
+          "fraction": 1,
+          "owner": "wire",
+          "s": 0.2397203545642866,
+          "point": [
+            65.01337321578661,
+            -461.8433842109076,
+            -79.65188987694235
+          ],
+          "surfacePoint": [
+            64.67982991051497,
+            -461.55632159622564,
+            -79.77789694008656
+          ],
+          "normal": [
+            0.7286603198349918,
+            -0.6271183780961798,
+            0.27527564031709106
+          ],
+          "worldForce": [
+            0,
+            0,
+            0
+          ],
+          "worldCouple": [
+            0,
+            0,
+            0
+          ],
+          "history": {
+            "normalForce": 0,
+            "friction": "frictionless"
+          },
+          "source": "sparse-sdf-cell-polynomial",
+          "sdfCell": [
+            433,
+            60,
+            48
+          ],
+          "sdfFace": {
+            "axis": 0,
+            "gridIndex": 434
+          }
+        },
+        {
+          "edge": 0,
+          "fraction": 1,
+          "owner": "wire",
+          "s": 0.2397203545642866,
+          "point": [
+            65.01337321578661,
+            -461.8433842109076,
+            -79.65188987694235
+          ],
+          "surfacePoint": [
+            65.41672400460797,
+            -461.67101704482735,
+            -79.72384785922841
+          ],
+          "normal": [
+            -0.9074258466171995,
+            -0.38777765147400717,
+            0.16188522449056958
+          ],
+          "worldForce": [
+            -0.5264632822001579,
+            -0.2249778270256791,
+            0.09392131262596465
+          ],
+          "worldCouple": [
+            0,
+            0,
+            0
+          ],
+          "history": {
+            "normalForce": 0.5801722357399944,
+            "friction": "frictionless"
+          },
+          "source": "sparse-sdf-cell-polynomial",
+          "sdfCell": [
+            434,
+            60,
+            48
+          ],
+          "sdfFace": {
+            "axis": 0,
+            "gridIndex": 434
+          }
+        }
+      ]
+    },
+    "diagnostics": {
+      "torsionMode": "quasi-static",
+      "tolerance": {
+        "force": 1e-7,
+        "torque": 1e-8,
+        "length": 1e-8
+      },
+      "limits": {
+        "directions": 64,
+        "outerIterations": 64,
+        "lineSearchTrials": 30,
+        "evaluations": 1500,
+        "linearSolves": 192
+      },
+      "evaluations": 18,
+      "directions": 7,
+      "lineSearchTrials": 16,
+      "acceptedTrials": 7,
+      "rejectedTrials": 9,
+      "outerIterations": 7,
+      "dualUpdates": 7,
+      "penaltyUpdates": 0,
+      "historyCommits": 1,
+      "maximumLinearResidual": 0,
+      "linearSolves": 7,
+      "refinementSteps": 0,
+      "factorizations": 7,
+      "penalty": 10000,
+      "initialPenalty": 10000,
+      "elementBackend": "wasm-exact",
+      "constraintSolver": "mixed",
+      "inertiaBackend": "compiled",
+      "wallQueries": 18,
+      "wallDualUpdates": 7,
+      "reusedWorkspace": false,
+      "fullAssemblies": 17,
+      "gradientAssemblies": 1,
+      "tangentRebuilds": 0,
+      "certificateAssembly": "gradient",
+      "trialAssembly": "full",
+      "contactScope": "discrete-frictionless-vessel-contact",
+      "sdfChartActivations": 0,
+      "sdfChartRebuilds": 0,
+      "initialCertificate": {
+        "force": 2.3851299230389755,
+        "torque": 3.117302267442061e-18,
+        "length": 1.5765166949677223e-14,
+        "wall": {
+          "maximumPenetration": 4.6629367034256575e-15,
+          "maximumProjectedResidual": 4.6629367034256575e-11,
+          "maximumComplementarity": 1.02233855337546e-14,
+          "converged": true,
+          "scope": "discrete-wall-KKT-with-sdf-cones",
+          "sdfSeams": [
+            {
+              "wallIndex": 0,
+              "face": {
+                "axis": 0,
+                "gridIndex": 434
+              },
+              "scope": "discrete-contact-cone-only",
+              "classification": "min-intersection",
+              "source": "sparse-sdf",
+              "onSeam": true,
+              "selectedRow": 1,
+              "originalGapMatches": true,
+              "converged": true,
+              "domainAdmissible": true,
+              "tieAdmissible": true,
+              "originalGap": -4.6629367034256575e-15,
+              "maximumPenetration": 4.6629367034256575e-15,
+              "maximumNegativeForce": 0,
+              "maximumProjectedResidual": 4.6629367034256575e-11,
+              "maximumComplementarity": 1.02233855337546e-14,
+              "resultant": [
+                1.0767936376295253,
+                -1.6394534020917377,
+                0.5065181253741664
+              ],
+              "moment": [
+                -364.5087346364689,
+                -118.69648747992798,
+                390.71321673916333
+              ],
+              "forces": [
+                2.1924778704896255,
+                0.5980074238507306
+              ],
+              "branchGaps": [
+                -4.6629367034256575e-15,
+                -4.6629367034256575e-15
+              ],
+              "forceMagnitude": 2.0257967832441035,
+              "scalarForceSum": 2.790485294340356
+            }
+          ],
+          "domainAdmissible": true
+        }
+      },
+      "lastLinearProof": {
+        "force": 1.1290159100167865e-21,
+        "torque": 1.6771813933722888e-25,
+        "constraint": 4.477115065443262e-23
+      },
+      "mixedCount": 14,
+      "mixedBandwidth": 13,
+      "wallPenalty": 10000,
+      "certificate": {
+        "force": 1.5695015501544891e-12,
+        "torque": 1.1201400809963764e-16,
+        "length": 1.885436251569672e-13,
+        "wall": {
+          "maximumPenetration": 0,
+          "maximumProjectedResidual": 1.0880185641326534e-10,
+          "maximumComplementarity": 6.312381628794601e-15,
+          "converged": true,
+          "scope": "discrete-wall-KKT-with-sdf-cones",
+          "sdfSeams": [
+            {
+              "wallIndex": 0,
+              "face": {
+                "axis": 0,
+                "gridIndex": 434
+              },
+              "scope": "discrete-contact-cone-only",
+              "classification": "min-intersection",
+              "source": "sparse-sdf",
+              "onSeam": false,
+              "selectedRow": 1,
+              "originalGapMatches": true,
+              "converged": true,
+              "domainAdmissible": true,
+              "tieAdmissible": true,
+              "originalGap": 1.0880185641326534e-14,
+              "maximumPenetration": 0,
+              "maximumNegativeForce": 0,
+              "maximumProjectedResidual": 1.0880185641326534e-10,
+              "maximumComplementarity": 6.312381628794601e-15,
+              "resultant": [
+                -0.5264632822001579,
+                -0.2249778270256791,
+                0.09392131262596465
+              ],
+              "moment": [
+                -61.29684597570933,
+                35.82765402739219,
+                -257.77015134780015
+              ],
+              "forces": [
+                0,
+                0.5801722357399944
+              ],
+              "branchGaps": [
+                0.013248687820924254,
+                1.0880185641326534e-14
+              ],
+              "forceMagnitude": 0.5801722357399944,
+              "scalarForceSum": 0.5801722357399944
+            }
+          ],
+          "domainAdmissible": true
+        }
+      },
+      "originalResidual": [
+        -4.733713421245511e-14,
+        2.879987914816695e-13,
+        6.990588663491337e-13,
+        1.1193269293670123e-16,
+        -7.271960811294775e-14,
+        -9.052203431281214e-13,
+        -1.2800871473928055e-12,
+        -1.1201400809963764e-16,
+        -8.764820466633516e-14,
+        6.460023488363831e-14,
+        5.13696724047108e-13
+      ],
+      "reactions": [
+        0,
+        0,
+        0,
+        1.1193269293670123e-16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elasticEnergy": 0.0008426016035501542,
+      "inertialEnergy": 0.009287229129394167,
+      "kineticEnergy": 0.032349618926331355,
+      "objective": 0.01012983073294432
+    }
+  }
+}

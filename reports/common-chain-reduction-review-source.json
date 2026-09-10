@@ -1,0 +1,46 @@
+{
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "hashes": {
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffBundleDiscretization.js": "54b1f1006fece9b830dc1ed04287eec4efb612e294bd70dc40b1893f3f3ebf10",
+    "src/physics/kirchhoffBundleRuntime.js": "c7cd25cd8ba2e04dbcd1872dfda38b947dd276e734f19a3e38b072549f618308",
+    "reports/unified-catheter-guidewire-analysis.md": "fc1ad0bff3347b874d61abf49def0c148ec4c77a5042c7707707b8a10ed738b0"
+  },
+  "lines": {
+    "src/physics/kirchhoffBundleModel.js": {
+      "export function evaluateBundleSection": 138,
+      "export function condenseBundleSection": 150,
+      "export function encodeBundlePair": 206,
+      "export function evaluateBundleClearance": 257
+    },
+    "src/physics/kirchhoffBundleDiscretization.js": {
+      "export function partitionBundleCoverage": 49,
+      "export function buildAdaptiveBundleMesh": 104,
+      "export function assessBundleReduction": 241,
+      "reject('active-or-uncertain-contact')": 293
+    },
+    "src/physics/kirchhoffBundleRuntime.js": {
+      "export function assembleKirchhoffBundleColumns": 239,
+      "appendColumn(w, COMMON": 270,
+      "appendColumn(w, RELATIVE": 271,
+      "export function recoverKirchhoffBundleCorrection": 364
+    }
+  },
+  "reportSectionsAvailable": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "requestedSectionsRead": [
+    4,
+    5,
+    6
+  ],
+  "missingRequestedSections": [
+    7,
+    8
+  ]
+}

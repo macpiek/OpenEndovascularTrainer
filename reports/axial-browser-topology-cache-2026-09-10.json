@@ -1,0 +1,12 @@
+{
+  "scenario": "35 s UI joint-axial-sections topology cache",
+  "calls": 433,
+  "nonconvergedResults": 0,
+  "averageFps": 29.031587164562662,
+  "backlogSeconds": 19.083033333333347,
+  "lastStepMs": 137.79999995231628,
+  "sectionTopologyMs": 2588.0999997854233,
+  "sectionAssemblyMs": 11907.30000424385,
+  "localResponsesMs": 3131.5999898910522,
+  "performanceGatePassed": false
+}

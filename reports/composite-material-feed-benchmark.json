@@ -1,0 +1,378 @@
+{
+  "scope": "Rebuilding topology/material mesh during feed, then one constitutive assembly and direction. Real Glidewire/Berenstein profiles, synthetic smooth geometry. No dynamics, contact, admission, anatomy or FPS claim.",
+  "sourceBefore": {
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffCompositeMesh.js": "d2778a6db58af6bebd210650b521164b8a761a7761aae487965aab1f82d5e634",
+    "src/physics/kirchhoffCompositeChain.js": "cbbb6c41b229515a5bdecbb46668378ab6a255b85a2b03a416dbb07e27bddc28",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "scripts/physics/benchmark-composite-material-feed.mjs": "f61500d4cdd10a8f113a244b354c37e0b1b19e5fe9d7e0a0d053fdb62260da8c"
+  },
+  "date": "2026-09-06T22:26:30.901Z",
+  "warmups": 3,
+  "runs": 8,
+  "cases": [
+    {
+      "insertion": 9,
+      "medians": {
+        "topologyMs": 0.12004149999998504,
+        "materialMeshMs": 13.651937500000017,
+        "workspaceMs": 0.3648334999999747,
+        "assemblyMs": 0.9908334999999937,
+        "solveMs": 0.22385399999998867,
+        "totalMs": 16.786958000000013
+      },
+      "rows": [
+        {
+          "catheterInsertion": 9.03,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.25866600000000517,
+          "materialMeshMs": 13.053917000000013,
+          "workspaceMs": 0.4037079999999946,
+          "assemblyMs": 3.5090419999999938,
+          "solveMs": 0.24837500000001,
+          "totalMs": 17.473708000000016,
+          "materialEvaluations": 840,
+          "residual": 1.6967237077142316e-12
+        },
+        {
+          "catheterInsertion": 9.04,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.1419999999999959,
+          "materialMeshMs": 14.24995800000002,
+          "workspaceMs": 0.2965419999999881,
+          "assemblyMs": 1.2032920000000047,
+          "solveMs": 0.2084159999999997,
+          "totalMs": 16.10020800000001,
+          "materialEvaluations": 836,
+          "residual": 1.328364068048371e-12
+        },
+        {
+          "catheterInsertion": 9.05,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.07583300000001714,
+          "materialMeshMs": 11.106207999999981,
+          "workspaceMs": 0.5295419999999922,
+          "assemblyMs": 1.7909579999999892,
+          "solveMs": 0.512833999999998,
+          "totalMs": 14.015374999999977,
+          "materialEvaluations": 836,
+          "residual": 1.3546796063385047e-12
+        },
+        {
+          "catheterInsertion": 9.06,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.268416000000002,
+          "materialMeshMs": 16.604209000000026,
+          "workspaceMs": 0.45733300000000554,
+          "assemblyMs": 0.7783749999999827,
+          "solveMs": 0.3172079999999937,
+          "totalMs": 18.42554100000001,
+          "materialEvaluations": 832,
+          "residual": 1.6464757346141418e-12
+        },
+        {
+          "catheterInsertion": 9.07,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.09808299999997416,
+          "materialMeshMs": 22.270917000000054,
+          "workspaceMs": 0.24858299999999645,
+          "assemblyMs": 0.4965419999999767,
+          "solveMs": 0.20458300000001373,
+          "totalMs": 23.318708000000015,
+          "materialEvaluations": 840,
+          "residual": 1.5685110545463066e-12
+        },
+        {
+          "catheterInsertion": 9.08,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.09404200000000174,
+          "materialMeshMs": 10.851916000000017,
+          "workspaceMs": 0.3947499999999877,
+          "assemblyMs": 1.357958999999994,
+          "solveMs": 0.1820830000000342,
+          "totalMs": 12.880750000000035,
+          "materialEvaluations": 836,
+          "residual": 2.0050006576885493e-12
+        },
+        {
+          "catheterInsertion": 9.09,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.2072909999999979,
+          "materialMeshMs": 11.298541999999998,
+          "workspaceMs": 0.325999999999965,
+          "assemblyMs": 0.6272920000000113,
+          "solveMs": 0.1926660000000311,
+          "totalMs": 12.651791000000003,
+          "materialEvaluations": 832,
+          "residual": 1.6238024922073102e-12
+        },
+        {
+          "catheterInsertion": 9.1,
+          "nodes": 66,
+          "dofCount": 265,
+          "topologyMs": 0.04758299999997462,
+          "materialMeshMs": 18.338000000000022,
+          "workspaceMs": 0.3349169999999617,
+          "assemblyMs": 0.4320830000000342,
+          "solveMs": 0.23929199999997763,
+          "totalMs": 19.39187499999997,
+          "materialEvaluations": 828,
+          "residual": 1.6848297930416312e-12
+        }
+      ]
+    },
+    {
+      "insertion": 160,
+      "medians": {
+        "topologyMs": 0.0687499999999659,
+        "materialMeshMs": 24.006083500000017,
+        "workspaceMs": 0.25879150000000095,
+        "assemblyMs": 0.7337494999999876,
+        "solveMs": 0.2622085000000425,
+        "totalMs": 25.687249999999977
+      },
+      "rows": [
+        {
+          "catheterInsertion": 160.03,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.08704199999999673,
+          "materialMeshMs": 23.454875000000015,
+          "workspaceMs": 0.2535829999999919,
+          "assemblyMs": 1.2894999999999754,
+          "solveMs": 0.20741700000002083,
+          "totalMs": 25.292417,
+          "materialEvaluations": 1558,
+          "residual": 9.094947017729282e-12
+        },
+        {
+          "catheterInsertion": 160.04,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.09220799999997098,
+          "materialMeshMs": 25.202541999999994,
+          "workspaceMs": 0.3081250000000182,
+          "assemblyMs": 0.6959160000000111,
+          "solveMs": 0.26237500000002,
+          "totalMs": 26.561166000000014,
+          "materialEvaluations": 1558,
+          "residual": 1.546140993013978e-11
+        },
+        {
+          "catheterInsertion": 160.05,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.05925000000002001,
+          "materialMeshMs": 22.145749999999964,
+          "workspaceMs": 0.1882919999999899,
+          "assemblyMs": 0.7389160000000174,
+          "solveMs": 0.200333999999998,
+          "totalMs": 23.33254199999999,
+          "materialEvaluations": 1558,
+          "residual": 1.8189894035458565e-11
+        },
+        {
+          "catheterInsertion": 160.06,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.0634579999999687,
+          "materialMeshMs": 24.557292000000018,
+          "workspaceMs": 0.4275000000000091,
+          "assemblyMs": 0.7285829999999578,
+          "solveMs": 0.3052500000000009,
+          "totalMs": 26.082082999999955,
+          "materialEvaluations": 1558,
+          "residual": 1.0913936421275139e-11
+        },
+        {
+          "catheterInsertion": 160.07,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.08899999999994179,
+          "materialMeshMs": 19.49233300000003,
+          "workspaceMs": 0.40370900000004895,
+          "assemblyMs": 1.611915999999951,
+          "solveMs": 0.44775000000004184,
+          "totalMs": 22.044708000000014,
+          "materialEvaluations": 1558,
+          "residual": 9.094947017729282e-12
+        },
+        {
+          "catheterInsertion": 160.08,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.06508399999995618,
+          "materialMeshMs": 25.31741599999998,
+          "workspaceMs": 0.26400000000001,
+          "assemblyMs": 0.48975000000007185,
+          "solveMs": 0.25358399999993253,
+          "totalMs": 26.38983399999995,
+          "materialEvaluations": 1558,
+          "residual": 7.275957614183426e-12
+        },
+        {
+          "catheterInsertion": 160.09,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.06254200000000765,
+          "materialMeshMs": 17.924291999999923,
+          "workspaceMs": 0.24779100000000653,
+          "assemblyMs": 0.7179999999999609,
+          "solveMs": 0.26204200000006495,
+          "totalMs": 19.214666999999963,
+          "materialEvaluations": 1558,
+          "residual": 9.094947017729282e-12
+        },
+        {
+          "catheterInsertion": 160.1,
+          "nodes": 67,
+          "dofCount": 300,
+          "topologyMs": 0.07241599999997561,
+          "materialMeshMs": 52.18429200000003,
+          "workspaceMs": 0.14879199999995762,
+          "assemblyMs": 2.135208000000034,
+          "solveMs": 0.49537499999996726,
+          "totalMs": 55.03608299999996,
+          "materialEvaluations": 1558,
+          "residual": 7.73070496506989e-12
+        }
+      ]
+    },
+    {
+      "insertion": 310,
+      "medians": {
+        "topologyMs": 0.1590625000000614,
+        "materialMeshMs": 40.95429200000001,
+        "workspaceMs": 0.38849999999990814,
+        "assemblyMs": 1.2405415000000062,
+        "solveMs": 0.28927100000009887,
+        "totalMs": 43.05366650000002
+      },
+      "rows": [
+        {
+          "catheterInsertion": 310.03,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.2907079999999951,
+          "materialMeshMs": 42.26629200000002,
+          "workspaceMs": 0.2592499999999518,
+          "assemblyMs": 0.8606660000000375,
+          "solveMs": 0.24012500000003456,
+          "totalMs": 43.91704100000004,
+          "materialEvaluations": 2043,
+          "residual": 6.366462912410498e-12
+        },
+        {
+          "catheterInsertion": 310.04,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.12324999999998454,
+          "materialMeshMs": 38.53041699999994,
+          "workspaceMs": 1.4163330000000087,
+          "assemblyMs": 1.3793340000000853,
+          "solveMs": 0.7409579999999778,
+          "totalMs": 42.190292,
+          "materialEvaluations": 2059,
+          "residual": 1.5006662579253316e-11
+        },
+        {
+          "catheterInsertion": 310.05,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.1632080000000542,
+          "materialMeshMs": 25.895083,
+          "workspaceMs": 0.22091699999998582,
+          "assemblyMs": 1.2567920000000186,
+          "solveMs": 0.3358329999999796,
+          "totalMs": 27.871833000000038,
+          "materialEvaluations": 2043,
+          "residual": 1.1823431123048067e-11
+        },
+        {
+          "catheterInsertion": 310.06,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.15491700000006858,
+          "materialMeshMs": 39.19758300000001,
+          "workspaceMs": 0.4678749999999354,
+          "assemblyMs": 1.0884170000000495,
+          "solveMs": 0.24387500000000273,
+          "totalMs": 41.152667000000065,
+          "materialEvaluations": 2047,
+          "residual": 7.73070496506989e-12
+        },
+        {
+          "catheterInsertion": 310.07,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.12154199999997672,
+          "materialMeshMs": 39.642292,
+          "workspaceMs": 0.2983329999999569,
+          "assemblyMs": 1.0311670000000959,
+          "solveMs": 0.24920799999995324,
+          "totalMs": 41.34254199999998,
+          "materialEvaluations": 2059,
+          "residual": 4.547473508864641e-12
+        },
+        {
+          "catheterInsertion": 310.08,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.23345899999992525,
+          "materialMeshMs": 54.33679099999995,
+          "workspaceMs": 0.5183340000000953,
+          "assemblyMs": 1.6012499999999363,
+          "solveMs": 0.2860000000000582,
+          "totalMs": 56.97583399999996,
+          "materialEvaluations": 2055,
+          "residual": 7.275957614183426e-12
+        },
+        {
+          "catheterInsertion": 310.09,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.31066600000008293,
+          "materialMeshMs": 45.00791699999991,
+          "workspaceMs": 0.39866699999993216,
+          "assemblyMs": 1.2242909999999938,
+          "solveMs": 0.29587500000002365,
+          "totalMs": 47.23741599999994,
+          "materialEvaluations": 2043,
+          "residual": 1.0800249583553523e-11
+        },
+        {
+          "catheterInsertion": 310.1,
+          "nodes": 67,
+          "dofCount": 331,
+          "topologyMs": 0.15208300000017516,
+          "materialMeshMs": 49.265041999999994,
+          "workspaceMs": 0.3783329999998841,
+          "assemblyMs": 2.350582999999915,
+          "solveMs": 0.2925420000001395,
+          "totalMs": 52.43858300000011,
+          "materialEvaluations": 2047,
+          "residual": 1.602984411874786e-11
+        }
+      ]
+    }
+  ],
+  "sourceAfter": {
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffCompositeMesh.js": "d2778a6db58af6bebd210650b521164b8a761a7761aae487965aab1f82d5e634",
+    "src/physics/kirchhoffCompositeChain.js": "cbbb6c41b229515a5bdecbb46668378ab6a255b85a2b03a416dbb07e27bddc28",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "scripts/physics/benchmark-composite-material-feed.mjs": "f61500d4cdd10a8f113a244b354c37e0b1b19e5fe9d7e0a0d053fdb62260da8c"
+  },
+  "sourceStable": true
+}

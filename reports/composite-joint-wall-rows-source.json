@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeJointWallRows.js",
+      "status": "new",
+      "sha256": "42bce9955c3bee4e3db1b157ac981f775b7785fdc73a815f1705a5f329b1d653"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointWallRows.test.js",
+      "status": "new",
+      "sha256": "81c76d02feb6287c9cf962fbc88aff666ad175d06e990e1c630288820c72de81"
+    }
+  ],
+  "newTests": 10,
+  "passed": 10,
+  "failed": 0,
+  "scope": "normal wall rows only; no whole joint dt claim",
+  "rootHasProvisionalAdapter": true
+}

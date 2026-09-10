@@ -1,0 +1,37 @@
+{
+  "changedPhysicsSources": [
+    "kirchhoffSplitMotion.js"
+  ],
+  "sameWorldSha256": "e993cec61125fe003e58d3bd081b24b15ec91e158351427319b2216900522f62",
+  "sourceStable": true,
+  "exactlyEqualTargetObservations": 17,
+  "exactlyEqualFirstAcceptedSnapshots": 4,
+  "targetSummary": {
+    "events": 17,
+    "phases": [
+      "physical",
+      "bias"
+    ],
+    "maxPhysicalOrBiasBank": 0,
+    "maxAppliedLambda": 0,
+    "minimumObservedRadialGap": 0.05803232654464611,
+    "identityStable": true
+  },
+  "fifthStepReferenceCertified": false,
+  "fifthStepCandidateCertified": true,
+  "candidateHistoryCommits": 1,
+  "transitions": [
+    {
+      "sheath": 0,
+      "side": 1,
+      "node": 0,
+      "from": "interior",
+      "to": "proximal-exterior",
+      "startAxial": -89.99912318852675,
+      "currentAxial": -90.00342814482242,
+      "startRadialGap": 0.058183063771332776,
+      "currentRadialGap": 0.05816302730677003,
+      "reactionHistoryValid": true
+    }
+  ]
+}

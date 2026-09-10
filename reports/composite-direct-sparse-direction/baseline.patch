@@ -1,0 +1,244 @@
+--- a/src/physics/kirchhoffCompositeRelativeDirection.js
++++ b/src/physics/kirchhoffCompositeRelativeDirection.js
+@@ -1,5 +1,5 @@
++import {createCoulombBandLU} from './kirchhoffCoulombBandLU.js';
+ import {prepareCompositeZeroDualSolve} from './kirchhoffCompositeZeroDuals.js';
+-import {createCompositeSparseDirectionOperator} from './kirchhoffCompositeSparseDirection.js';
+ 
+ const finite=(v,name)=>{if(!Number.isFinite(v))throw new RangeError(`${name} must be finite`);return v;};
+ const positive=(v,name)=>{if(!(finite(v,name)>0))throw new RangeError(`${name} must be positive`);return v;};
+@@ -32,12 +32,7 @@
+         throw new RangeError('Relative coupling exceeds the local two-edge stencil');
+ }
+ 
+-/** Structure-only workspace for ONE original common/rho/local-dual system.
+- * Original equations use a complete symbolic CSR stencil. A numerical band
+- * and its factor are prepared only for the unknowns that remain in the solve.
+- * originalMatrix/matrix expose on-demand full-band diagnostic views; the
+- * compressed path never materializes them. Reading lu explicitly allocates
+- * the uncompressed factor for callers that need that path.
++/** Structure-only workspace for ONE original common/rho/local-dual band.
+  * Recreate if topology, basis/dimension, Hessian kind or row supports change.
+  * Every solve MUST supply the current cluster values; no H/C are cached here.
+  * An unassembled createCompositeRelativeClusterStructure result is sufficient
+@@ -155,13 +150,14 @@
+         structure:{relativeCount:r,relativeBand:cluster.relative.band,toolId:cluster.toolId,hessianKind:cluster.hessianKind,
+             commonDofs,rowOffsets:rowOffsets.slice(),columns:columns.slice(),modeNodes,modeOffsets,bases},
+         relativeScatter:Int32Array.from(relativeScatter),remoteRelativeSlots:Int32Array.from(remoteRelativeSlots),couplingScatter:Int32Array.from(couplingScatter),
++        lu:createCoulombBandLU(packedLayout,count),matrix:new Float64Array(entries),originalMatrix:new Float64Array(entries),
+         residual:new Float64Array(count),originalResidual:new Float64Array(count),scales:new Float64Array(count),
+         increment:new Float64Array(count),correction:new Float64Array(count),linearResidual:new Float64Array(count),originalLinearResidual:new Float64Array(count),
+         fixedMask:new Uint8Array(count),heldMultiplierRows:new Uint8Array(rows.length),freeGeometryRows:new Uint8Array(rows.length),
+         commonIncrement:new Float64Array(n),relativeIncrement:new Float64Array(r),multiplierIncrement:new Float64Array(rows.length),
+         fixedReactionIncrement:new Float64Array(n),fixedStationarity:new Float64Array(n),constraintResidual:new Float64Array(rows.length),
+         maxRowsPerNode:Math.max(0,...rowsByNode.map(a=>a.length))};
+-    validateClusterStructure(w,cluster,false);w.sparseOperator=createCompositeSparseDirectionOperator(w);return w;
++    validateClusterStructure(w,cluster,false);return w;
+ }
+ 
+ /** Original linear equations only, at the caller's already prepared branch:
+@@ -205,8 +201,7 @@
+     validateClusterStructure(w,cluster);
+     if(chain.elementBackend!==undefined&&(chain.elementBackend==='wasm-exact')!==(cluster.hessianKind==='exact'))
+         throw new RangeError('Common and relative elastic Hessian kinds must agree');
+-    const {layout,common,relative,dual,count,packedLayout:p,originalResidual:F,residual,increment,scales,sparseOperator:s}=w;
+-    const A=s.original,matrix=s.values;
++    const {layout,common,relative,dual,count,packedLayout:p,originalMatrix:A,originalResidual:F,matrix,residual,increment,scales}=w;
+     vector(chain.hessian,layout.dofCount*layout.band,'original common Hessian');
+     vector(commonResidual,common.length,'original common residual');vector(relativeResidual,relative.length,'original relative residual');
+     if(!fixed||fixed.length!==common.length||!fixed.every(v=>v===0||v===1)||rows.length!==w.rows.length)
+@@ -215,32 +210,41 @@
+     if(!Number.isFinite(numericalShift)||numericalShift<0)throw new RangeError('numericalShift must be finite and nonnegative');
+     if(typeof eliminateZeroDuals!=='boolean')throw new TypeError('eliminateZeroDuals must be boolean');
+     const tol={force:positive(tolerances?.force,'linear force tolerance'),torque:positive(tolerances?.torque,'linear torque tolerance')};
+-    s.generation++;A.fill(0);F.fill(0);increment.fill(0);w.fixedMask.fill(0);w.heldMultiplierRows.fill(0);w.freeGeometryRows.fill(0);
+-    const add=(slot,v)=>{if(v!==0)A[slot]+=v;};
+-    const scatter=(plan,values)=>{for(let i=0;i<plan.length;i+=3){const value=values[plan[i]];add(plan[i+1],value);if(plan[i+2]>=0)add(plan[i+2],value);}};
++    A.fill(0);F.fill(0);increment.fill(0);w.fixedMask.fill(0);w.heldMultiplierRows.fill(0);w.freeGeometryRows.fill(0);
++    const at=(i,j)=>p.offsets[i]+j;
++    const add=(i,j,v)=>{if(v===0)return;if(j<p.starts[i]||j>p.ends[i])throw new RangeError('Original stencil exceeds frozen local band');A[at(i,j)]+=v;};
+     for(let i=0;i<common.length;i++) {
+         F[common[i]]=commonResidual[i];w.fixedMask[common[i]]=fixed[i];
+-    }
+-    scatter(s.commonScatter,chain.hessian);
++        for(let j=Math.max(0,i-layout.band+1);j<=i;j++){
++            const value=chain.hessian[i*layout.band+i-j];add(common[i],common[j],value);if(i!==j)add(common[j],common[i],value);
++        }
++    }
+     for(let i=0;i<relative.length;i++)F[relative[i]]=relativeResidual[i];
+-    scatter(s.relativeScatter,cluster.relative.hessian);scatter(s.couplingScatter,cluster.coupling.values);
++    for(let i=0;i<w.relativeScatter.length;i+=3){
++        const slot=w.relativeScatter[i],a=w.relativeScatter[i+1],b=w.relativeScatter[i+2],v=cluster.relative.hessian[slot];
++        add(a,b,v);if(a!==b)add(b,a,v);
++    }
++    for(let i=0;i<w.couplingScatter.length;i+=3){
++        const slot=w.couplingScatter[i],a=w.couplingScatter[i+1],b=w.couplingScatter[i+2],v=cluster.coupling.values[slot];
++        add(a,b,v);add(b,a,v);
++    }
+     rows.forEach((row,index)=>{
+-        const def=w.rows[index],support=def.mixedDofs,d=dual[index],size=support.length,plan=s.rowPlans[index];
++        const def=w.rows[index],support=def.mixedDofs,d=dual[index],size=support.length;
+         vector(row.jacobian,size,'geometry Jacobian');vector(row.forceColumn,size,'signed physical force column');
+         positive(row.tolerance,`row ${index} tolerance (${def.unit})`);F[d]=finite(row.residual,'original constraint residual');
+-        const diagonal=finite(row.multiplierDerivative??0,'original multiplier derivative');add(plan.diagonal,diagonal);
++        const diagonal=finite(row.multiplierDerivative??0,'original multiplier derivative');add(d,d,diagonal);
+         if(row.multiplierDofs!==undefined&&!same(row.multiplierDofs,def.multiplierDofs))throw new RangeError('Frozen local multiplier support changed');
+         if(def.multiplierDofs.length||row.multiplierJacobian!==undefined) {
+             vector(row.multiplierJacobian,def.multiplierDofs.length,'original off-diagonal multiplier Jacobian');
+-            plan.multiplierSlots.forEach((slot,j)=>add(slot,row.multiplierJacobian[j]));
++            def.multiplierDofs.forEach((other,j)=>add(d,dual[other],row.multiplierJacobian[j]));
+         }
+         let hasFreeGeometry=false;
+-        support.forEach((a,i)=>{add(plan.jacobianSlots[i],row.jacobian[i]);add(plan.forceSlots[i],row.forceColumn[i]);if(!w.fixedMask[a]&&row.jacobian[i]!==0)hasFreeGeometry=true;});
++        support.forEach((a,i)=>{add(d,a,row.jacobian[i]);add(a,d,row.forceColumn[i]);if(!w.fixedMask[a]&&row.jacobian[i]!==0)hasFreeGeometry=true;});
+         w.freeGeometryRows[index]=hasFreeGeometry?1:0;
+         if(row.geometricTangent!==undefined){
+             if(row.geometricTangentValid===false)throw new RangeError('A fresh full physical geometric tangent is required');
+             vector(row.geometricTangent,size*size,'physical geometric tangent');
+-            plan.tangentSlots.forEach((slot,i)=>add(slot,row.geometricTangent[i]));}
++            support.forEach((a,i)=>support.forEach((b,j)=>add(a,b,row.geometricTangent[i*size+j])));}
+     });
+     // A coupling to another free dual is an equation, even when this row's
+     // own diagonal and all free geometry coefficients vanish. Only propagate
+@@ -257,28 +261,28 @@
+     }
+     if(!A.every(Number.isFinite)||!F.every(Number.isFinite))throw new RangeError('Nonfinite original joint equations');
+     matrix.set(A);residual.set(F);
+-    for(let i=0;i<count;i++)for(let k=s.offsets[i];k<s.offsets[i+1];k++)if(w.fixedMask[i]||w.fixedMask[s.columns[k]])matrix[k]=i===s.columns[k]?1:0;
++    for(let i=0;i<count;i++)for(let j=p.starts[i];j<=p.ends[i];j++)if(w.fixedMask[i]||w.fixedMask[j])matrix[at(i,j)]=i===j?1:0;
+     for(let i=0;i<count;i++)if(w.fixedMask[i])residual[i]=0;
+-    w.heldMultiplierRows.forEach((held,index)=>{if(held){const d=dual[index];for(let k=s.offsets[d];k<s.offsets[d+1];k++)matrix[k]=s.columns[k]===d?1:0;residual[d]=0;}});
++    w.heldMultiplierRows.forEach((held,index)=>{if(held){const d=dual[index];for(let j=p.starts[d];j<=p.ends[d];j++)matrix[at(d,j)]=j===d?1:0;residual[d]=0;}});
+     for(const indices of [common,relative])for(const row of indices) {
+-        let magnitude=Math.abs(matrix[s.diagonal[row]]);
+-        if(magnitude===0)for(let k=s.offsets[row];k<s.offsets[row+1];k++)magnitude=Math.max(magnitude,Math.abs(matrix[k]));
++        let magnitude=Math.abs(matrix[at(row,row)]);
++        if(magnitude===0)for(let j=p.starts[row];j<=p.ends[row];j++)magnitude=Math.max(magnitude,Math.abs(matrix[at(row,j)]));
+         scales[row]=magnitude>0?1/Math.sqrt(magnitude):1;
+     }
+     w.rows.forEach((row,index)=>{
+-        let magnitude=0;row.mixedDofs.forEach((dof,i)=>{if(!w.fixedMask[dof])magnitude=Math.max(magnitude,Math.abs(matrix[s.rowPlans[index].forceSlots[i]]*scales[dof]));});
++        let magnitude=0;for(const dof of row.mixedDofs)if(!w.fixedMask[dof])magnitude=Math.max(magnitude,Math.abs(matrix[at(dof,dual[index])]*scales[dof]));
+         scales[dual[index]]=magnitude>0?1/magnitude:1;
+     });
+     if(numericalShift>0){
+-        for(const indices of [common,relative])for(const d of indices)if(!w.fixedMask[d])matrix[s.diagonal[d]]+=numericalShift/(scales[d]*scales[d]);
+-        dual.forEach((d,index)=>{if(!w.heldMultiplierRows[index])matrix[s.diagonal[d]]+=numericalShift/(scales[d]*scales[d]);});
++        for(const indices of [common,relative])for(const d of indices)if(!w.fixedMask[d])matrix[at(d,d)]+=numericalShift/(scales[d]*scales[d]);
++        dual.forEach((d,index)=>{if(!w.heldMultiplierRows[index])matrix[at(d,d)]+=numericalShift/(scales[d]*scales[d]);});
+         if(!matrix.every(Number.isFinite))throw new RangeError('Nonfinite numerical search regularization');
+     }
+     const multiplyResidual=(operator,original,out)=>{
+         for(let i=0;i<count;i++) {
+             let sum=original[i],compensation=0;
+-            for(let k=s.offsets[i];k<s.offsets[i+1];k++){
+-                const value=operator[k]*increment[s.columns[k]],next=sum+value;
++            for(let j=p.starts[i];j<=p.ends[i];j++){
++                const value=operator[at(i,j)]*increment[j],next=sum+value;
+                 compensation+=Math.abs(sum)>=Math.abs(value)?sum-next+value:value-next+sum;sum=next;
+             }
+             out[i]=sum+compensation;
+@@ -310,11 +314,9 @@
+     };
+     const passes=proof=>proof.force<=tol.force&&proof.torque<=tol.torque&&proof.constraints.every(c=>c.converged);
+     // Remove only dual increments determined to be exactly zero by these
+-    // assembled equations. Keep every coefficient of the sparse original
+-    // operator and its full certificate,
++    // assembled equations. Keep the full original operator and certificate,
+     // and preserve the established numerical-shift policy unchanged.
+-    const compressed=eliminateZeroDuals&&numericalShift===0?prepareCompositeZeroDualSolve(w,s):null;
+-    const nativeMatrix=compressed?null:w.matrix;
++    const compressed=eliminateZeroDuals&&numericalShift===0?prepareCompositeZeroDualSolve(w):null;
+     let factorizations=0,linearSolves=0,solverAccepted=false,proof=measure(true,numericalShift>0);
+     for(let attempt=0;attempt<=maxCorrections;attempt++) {
+         factorizations++;linearSolves++;
+@@ -323,7 +325,7 @@
+             compressed.original.forEach((d,i)=>compressed.residual[i]=rhs[d]);
+             solverAccepted=compressed.lu.solve(compressed.matrix,compressed.residual,compressed.scales,0,compressed.correction);
+             w.correction.fill(0);compressed.original.forEach((d,i)=>w.correction[d]=compressed.correction[i]);
+-        } else solverAccepted=w.lu.solve(nativeMatrix,rhs,scales,0,w.correction);
++        } else solverAccepted=w.lu.solve(matrix,rhs,scales,0,w.correction);
+         if(!solverAccepted)break;
+         for(let i=0;i<count;i++)increment[i]=w.fixedMask[i]?0:increment[i]+scales[i]*w.correction[i];
+         // Held reaction increments are prescribed exactly, not a tiny LU error.
+@@ -338,8 +340,8 @@
+         // Boundary force ON THE CHAIN: R=F_fixed. The increment is
+         // dR=+(H*dq+C*drho+forceColumn*dlambda), independent of initial F.
+         let sum=0,compensation=0;
+-        for(let k=s.offsets[d];k<s.offsets[d+1];k++){
+-            const v=A[k]*increment[s.columns[k]],next=sum+v;compensation+=Math.abs(sum)>=Math.abs(v)?sum-next+v:v-next+sum;sum=next;
++        for(let j=p.starts[d];j<=p.ends[d];j++){
++            const v=A[at(d,j)]*increment[j],next=sum+v;compensation+=Math.abs(sum)>=Math.abs(v)?sum-next+v:v-next+sum;sum=next;
+         }
+         w.fixedReactionIncrement[i]=sum+compensation;
+     }});
+@@ -348,10 +350,7 @@
+         fixedReactionIncrement:w.fixedReactionIncrement,fixedStationarity:w.fixedStationarity,
+         originalLinearResidual:w.originalLinearResidual,constraintResidual:w.constraintResidual,heldMultiplierRows:w.heldMultiplierRows,
+         proof,numericalProof,numericalShift,numericalConverged,factorizations,linearSolves,converged:solverAccepted&&w.originalLinearResidual.every(Number.isFinite)&&passes(proof),
+-        count,bandwidth:p.kl,matrixEntries:compressed?.matrix.length??nativeMatrix.length,
+-        factorEntries:compressed?.lu.diagnostics.factorEntries??w.lu.diagnostics.factorEntries,maxRowsPerNode:w.maxRowsPerNode,
+-        originalStorage:'csr',originalMatrixEntries:A.length,originalBandEntries:p.entries,
+-        materializedOriginalBandEntries:s.materializedOriginalEntries,materializedNumericalBandEntries:s.materializedNumericalEntries,
++        count,bandwidth:p.kl,matrixEntries:matrix.length,factorEntries:w.lu.diagnostics.factorEntries,maxRowsPerNode:w.maxRowsPerNode,
+         solvedCount:compressed?.count??count,eliminatedZeroDuals:compressed?.removed??0,
+         solvedBandwidth:compressed?.packedLayout.kl??p.kl,solvedFactorEntries:compressed?.lu.diagnostics.factorEntries??w.lu.diagnostics.factorEntries,
+         scope:'one-common-axis-and-joint-relative-original-linear-direction',relativeRepresentation:cluster.relativeRepresentation,
+--- a/src/physics/kirchhoffCompositeZeroDuals.js
++++ b/src/physics/kirchhoffCompositeZeroDuals.js
+@@ -5,16 +5,16 @@
+ // other row: that contribution is still exactly zero. Propagate only through
+ // previously proved zero increments; an unresolved dual cycle stays present.
+ // This selects no contact branch and removes no physical certificate row.
+-export function prepareCompositeZeroDualSolve(w,operator) {
+-    const {count,dual,residual,scales}=w,{values:matrix,offsets:rowOffsets,columns,diagonal}=operator;
++export function prepareCompositeZeroDualSolve(w) {
++    const {count,dual,rows,matrix,residual,packedLayout:p,scales}=w;
+     const known=w.zeroDualKnown??=new Uint8Array(count);known.set(w.fixedMask);
+     let removed=0;
+     for(let pass=0;pass<w.maxRowsPerNode;pass++) {
+         let changed=false;
+         for(const d of dual) {
+-            if(known[d]||residual[d]!==0||matrix[diagonal[d]]===0)continue;
++            if(known[d]||residual[d]!==0||matrix[p.offsets[d]+d]===0)continue;
+             let determined=true;
+-            for(let k=rowOffsets[d];k<rowOffsets[d+1];k++)if(columns[k]!==d&&!known[columns[k]]&&matrix[k]!==0){determined=false;break;}
++            for(let j=p.starts[d];j<=p.ends[d];j++)if(j!==d&&!known[j]&&matrix[p.offsets[d]+j]!==0){determined=false;break;}
+             if(determined){known[d]=1;removed++;changed=true;}
+         }
+         if(!changed)break;
+@@ -30,23 +30,28 @@
+         const original=Int32Array.from(Array.from({length:count},(_,i)=>i).filter(i=>!excluded[i])),index=new Int32Array(count).fill(-1);
+         original.forEach((d,i)=>index[d]=i);
+         let bandwidth=0;
++        const visit=(a,b)=>{if(index[a]>=0&&index[b]>=0)bandwidth=Math.max(bandwidth,Math.abs(index[a]-index[b]));};
+         // Compile the ORIGINAL symbolic supports, including geometric
+         // tangents from eliminated rows. A currently zero matrix coefficient
+         // cannot shrink the reusable pattern or hide a future coefficient.
+-        for(const a of original)for(let k=rowOffsets[a];k<rowOffsets[a+1];k++)if(index[columns[k]]>=0)
+-            bandwidth=Math.max(bandwidth,Math.abs(index[a]-index[columns[k]]));
++        for(let i=0;i<w.common.length;i++)for(let j=Math.max(0,i-w.layout.band+1);j<=i;j++)visit(w.common[i],w.common[j]);
++        for(const scatter of [w.relativeScatter,w.couplingScatter])for(let i=0;i<scatter.length;i+=3)visit(scatter[i+1],scatter[i+2]);
++        rows.forEach((row,i)=>{
++            for(const a of row.mixedDofs){visit(a,dual[i]);for(const b of row.mixedDofs)visit(a,b);}
++            row.multiplierDofs.forEach(j=>visit(dual[i],dual[j]));
++        });
+         const size=original.length,starts=new Int32Array(size),ends=new Int32Array(size),offsets=new Int32Array(size);let entries=0;
+         for(let i=0;i<size;i++){starts[i]=Math.max(0,i-bandwidth);ends[i]=Math.min(size-1,i+bandwidth);offsets[i]=entries-starts[i];entries+=ends[i]-starts[i]+1;}
+         const packedLayout={starts,ends,offsets,entries,kl:bandwidth,ku:bandwidth};
+-        system={original,index,count:size,removed,packedLayout,matrix:new Float64Array(entries),residual:new Float64Array(size),
++        system={original,count:size,removed,packedLayout,matrix:new Float64Array(entries),residual:new Float64Array(size),
+             scales:new Float64Array(size),correction:new Float64Array(size),lu:createCoulombBandLU(packedLayout,size)};
+         cache.set(key,system);if(cache.size>4)cache.delete(cache.keys().next().value);
+     } else {cache.delete(key);cache.set(key,system);}
+-    const q=system.packedLayout;system.matrix.fill(0);
++    const q=system.packedLayout;
+     for(let i=0;i<system.count;i++) {
+         const a=system.original[i];system.scales[i]=scales[a];
+-        for(let k=rowOffsets[a];k<rowOffsets[a+1];k++) {
+-            const j=system.index[columns[k]];if(j>=0)system.matrix[q.offsets[i]+j]=matrix[k];
++        for(let j=q.starts[i];j<=q.ends[i];j++) {
++            const b=system.original[j];system.matrix[q.offsets[i]+j]=b>=p.starts[a]&&b<=p.ends[a]?matrix[p.offsets[a]+b]:0;
+         }
+     }
+     return system;

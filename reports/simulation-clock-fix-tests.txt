@@ -1,0 +1,32 @@
+✔ two rejections retry one prepared dt, defer mutable settings, and preserve the next command for a new dt (9.078625ms)
+✔ reset invalidates pending input without discarding the caller backlog; void World steps count as accepted (0.598125ms)
+✔ solver exceptions keep a prepared dt and expose their cost; mode/dt errors never re-prepare input (0.362125ms)
+✔ a partial preparation exception cannot apply input again before explicit reset (0.345209ms)
+✔ actual rAF and already queued idle callback share one rejected-attempt limit and do not consume backlog (8.0295ms)
+✔ first failure in idle blocks another idle callback; reset/dispose invalidates stale callbacks (1.246834ms)
+✔ actual executor commits counters once even when presentation throws after World success (26.677ms)
+✔ actual benchmark sampler advances no clock; lifecycle reset runs before World receives its next dt (3.673041ms)
+✔ actual post-commit credits only the originating benchmark epoch while always advancing committed contrast once (1.885459ms)
+✔ actual physics-setting UI callbacks leave pending material and friction untouched (2.510583ms)
+✔ real World.advance accepts void independent/legacy steps and prepares the first eligible split once (2012.912292ms)
+✔ real two-channel World and real tool transports retry without repeating feed, rotation, sync or path history (4955.130708ms)
+✔ uncertified tilted dt restores body/history/manifold/tools/sheath and force inputs before damping (157.979042ms)
+✔ advance keeps rejected dt queued and prepares callback inputs only once across retries (45.022792ms)
+✔ a rejected internal physical trial can still commit exactly one accepted dt (10.149625ms)
+✔ whole-step rollback reconnects original storage and topology even if a failing hook replaces them (6.685208ms)
+✔ accepted transaction retains the selected per-joint bias material mode (3.355875ms)
+✔ pending split time cannot silently switch to another dt or another physical law (10.303ms)
+✔ direct retry consumes the pending dt once and cannot fall back when the joint is unavailable (17.200666ms)
+✔ default position-history retains its return behavior and per-step callback scheduling (6.958917ms)
+✔ split configuration permits independent preparation and activates a transaction when the pair becomes eligible (11.527833ms)
+✔ leaving the eligible pair retires phase-local motion and cannot report its old certificate (14.60125ms)
+✔ losing pair eligibility cannot suppress the partitioned radial damping path (9.408542ms)
+✔ a physical-phase failure survives bias initialization and whole-step rollback as owned diagnostics (18.658ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8350.843584

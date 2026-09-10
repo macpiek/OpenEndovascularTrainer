@@ -1,0 +1,861 @@
+{
+  "scope": "paired full continuous joint steps of two synthetic loaded rods, no contact/anatomy/render, fixed initial state replay; not FPS or an advancing insertion trajectory",
+  "warmupPairs": 0,
+  "measurementPairs": 1,
+  "cases": [
+    {
+      "nodesPerTool": 3,
+      "fixedNodes": [
+        0,
+        1
+      ],
+      "benchmarkable": true,
+      "case": "curved-clamped-bending",
+      "firstStepDifference": {
+        "maximum": 5.421010862427522e-20,
+        "scalarCount": 147
+      },
+      "secondStepDifference": {
+        "maximum": 4.1378575912909277e-16,
+        "scalarCount": 147
+      },
+      "counters": [
+        {
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "acceptedAlphas": [
+            1,
+            1
+          ]
+        },
+        {
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "acceptedAlphas": [
+            1,
+            1
+          ]
+        }
+      ],
+      "secondCounters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "scratchBytes": [
+        2785280,
+        698368
+      ],
+      "stepMs": [
+        {
+          "mean": 44.303750000000036,
+          "median": 44.303750000000036,
+          "p95": 44.303750000000036
+        },
+        {
+          "mean": 17.51037500000001,
+          "median": 17.51037500000001,
+          "p95": 17.51037500000001
+        }
+      ],
+      "samples": [
+        [
+          44.303750000000036
+        ],
+        [
+          17.51037500000001
+        ]
+      ]
+    },
+    {
+      "nodesPerTool": 6,
+      "fixedNodes": [
+        0
+      ],
+      "benchmarkable": true,
+      "case": "wider-continuous-loaded-bending",
+      "firstStepDifference": {
+        "maximum": 1.5178830414797062e-18,
+        "scalarCount": 309
+      },
+      "secondStepDifference": {
+        "maximum": 2.7582103268031233e-16,
+        "scalarCount": 309
+      },
+      "counters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "secondCounters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "scratchBytes": [
+        10256384,
+        1288192
+      ],
+      "stepMs": [
+        {
+          "mean": 201.25095799999986,
+          "median": 201.25095799999986,
+          "p95": 201.25095799999986
+        },
+        {
+          "mean": 54.167166999999836,
+          "median": 54.167166999999836,
+          "p95": 54.167166999999836
+        }
+      ],
+      "samples": [
+        [
+          201.25095799999986
+        ],
+        [
+          54.167166999999836
+        ]
+      ]
+    },
+    {
+      "nodesPerTool": 6,
+      "fixedNodes": [
+        0,
+        1
+      ],
+      "benchmarkable": false,
+      "reason": "original or candidate step failed its physical acceptance",
+      "outcomes": [
+        {
+          "accepted": false,
+          "status": "line-search",
+          "diagnostics": {
+            "scope": "fixed-topology-full-relative-nonlinear-dt",
+            "contacts": "none",
+            "torsionMode": "quasi-static",
+            "materialCoordinate": "reference-arclength",
+            "inertiaGeometry": "continuous-quintic",
+            "elasticityGeometry": "continuous-material-frame",
+            "lengthGeometry": "continuous-arclength",
+            "elementBackend": "wasm-exact",
+            "assemblyPolicy": "lazy",
+            "preparationMs": 3.468667000000096,
+            "iterationMs": 1102.2470830000002,
+            "commitMs": 0,
+            "totalMs": 1105.7175000000002,
+            "directions": 4,
+            "evaluations": 76,
+            "fullAssemblies": 3,
+            "gradientAssemblies": 73,
+            "factorizations": 4,
+            "linearSolves": 4,
+            "lineSearchTrials": 72,
+            "globalization": "adaptive",
+            "numericalDirections": 3,
+            "regularizationActivations": [
+              {
+                "reason": "linear-system",
+                "shift": 0.01,
+                "direction": 1
+              },
+              {
+                "reason": "line-search",
+                "shift": 0.1,
+                "direction": 2
+              },
+              {
+                "reason": "line-search",
+                "shift": 1,
+                "direction": 3
+              }
+            ],
+            "tinyNewtonStepsAvoided": 0,
+            "directionMs": 2.7604579999999714,
+            "directionSystems": [
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              },
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              },
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              },
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              }
+            ],
+            "frictionConeTrials": 0,
+            "frictionConeAccepted": 0,
+            "unknowns": 62,
+            "bandwidth": 61,
+            "commonDofs": 28,
+            "relativeDofs": 18,
+            "originalLengthRows": 10,
+            "retainedLengthRows": 10,
+            "suppressedPrescribedLengthRows": [],
+            "acceptedAlphas": [],
+            "certificate": {
+              "force": 0.00447213595499958,
+              "torque": 0,
+              "length": 1.1102230246251565e-16,
+              "boundary": 0,
+              "merit": 3300000000.000001,
+              "converged": false,
+              "lengthGeometry": "continuous-arclength",
+              "pointwiseInextensibility": false,
+              "parameterMetricDeviationBound": 1.3322676295501878e-15
+            },
+            "workspaceReused": true,
+            "lastLinearFailure": {
+              "original": {
+                "commonForce": 0.001,
+                "relativeForce": 0.004,
+                "force": 0.004,
+                "torque": 0,
+                "constraints": [
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  }
+                ]
+              },
+              "numerical": {
+                "commonForce": 0.001,
+                "relativeForce": 0.004,
+                "force": 0.004,
+                "torque": 0,
+                "constraints": [
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  }
+                ]
+              },
+              "shift": 0
+            },
+            "invalidTrials": 72,
+            "lastInvalidTrial": "Continuous length quadrature depth exhausted"
+          }
+        },
+        {
+          "accepted": false,
+          "status": "line-search",
+          "diagnostics": {
+            "scope": "fixed-topology-full-relative-nonlinear-dt",
+            "contacts": "none",
+            "torsionMode": "quasi-static",
+            "materialCoordinate": "reference-arclength",
+            "inertiaGeometry": "continuous-quintic",
+            "elasticityGeometry": "continuous-material-frame",
+            "lengthGeometry": "continuous-arclength",
+            "elementBackend": "wasm-exact",
+            "assemblyPolicy": "lazy",
+            "preparationMs": 3.6437089999999444,
+            "iterationMs": 659.9708340000002,
+            "commitMs": 0,
+            "totalMs": 663.6165000000001,
+            "directions": 4,
+            "evaluations": 76,
+            "fullAssemblies": 3,
+            "gradientAssemblies": 73,
+            "factorizations": 4,
+            "linearSolves": 4,
+            "lineSearchTrials": 72,
+            "globalization": "adaptive",
+            "numericalDirections": 3,
+            "regularizationActivations": [
+              {
+                "reason": "linear-system",
+                "shift": 0.01,
+                "direction": 1
+              },
+              {
+                "reason": "line-search",
+                "shift": 0.1,
+                "direction": 2
+              },
+              {
+                "reason": "line-search",
+                "shift": 1,
+                "direction": 3
+              }
+            ],
+            "tinyNewtonStepsAvoided": 0,
+            "directionMs": 2.4852089999999407,
+            "directionSystems": [
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              },
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              },
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              },
+              {
+                "originalUnknowns": 62,
+                "solvedUnknowns": 62,
+                "eliminatedZeroDuals": 0,
+                "bandwidth": 61,
+                "originalStorage": "csr",
+                "originalEntries": 2324,
+                "originalBandEntries": 3844,
+                "materializedOriginalBandEntries": 0,
+                "materializedNumericalBandEntries": 3844
+              }
+            ],
+            "frictionConeTrials": 0,
+            "frictionConeAccepted": 0,
+            "unknowns": 62,
+            "bandwidth": 61,
+            "commonDofs": 28,
+            "relativeDofs": 18,
+            "originalLengthRows": 10,
+            "retainedLengthRows": 10,
+            "suppressedPrescribedLengthRows": [],
+            "acceptedAlphas": [],
+            "certificate": {
+              "force": 0.00447213595499958,
+              "torque": 0,
+              "length": 1.1102230246251565e-16,
+              "boundary": 0,
+              "merit": 3300000000.000001,
+              "converged": false,
+              "lengthGeometry": "continuous-arclength",
+              "pointwiseInextensibility": false,
+              "parameterMetricDeviationBound": 1.3322676295501878e-15
+            },
+            "workspaceReused": true,
+            "lastLinearFailure": {
+              "original": {
+                "commonForce": 0.001,
+                "relativeForce": 0.004,
+                "force": 0.004,
+                "torque": 0,
+                "constraints": [
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  }
+                ]
+              },
+              "numerical": {
+                "commonForce": 0.001,
+                "relativeForce": 0.004,
+                "force": 0.004,
+                "torque": 0,
+                "constraints": [
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": -1.1102230246251565e-16,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  },
+                  {
+                    "unit": "mm",
+                    "residual": 0,
+                    "tolerance": 5e-11,
+                    "converged": true
+                  }
+                ]
+              },
+              "shift": 0
+            },
+            "invalidTrials": 72,
+            "lastInvalidTrial": "Continuous length quadrature depth exhausted"
+          }
+        }
+      ]
+    }
+  ]
+}

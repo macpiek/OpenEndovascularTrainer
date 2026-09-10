@@ -1,0 +1,475 @@
+--- /dev/null
++++ b/src/physics/kirchhoffTwoChannelMotion.js
+@@ -0,0 +1,200 @@
++import { assembleKirchhoffDirect } from './kirchhoffDirectSolver.js';
++import { applyKirchhoffSplitPhysicalIncrement } from './kirchhoffSplitMotion.js';
++import { multiplyQuaternions, normalizeQuaternion, quaternionExp, rotateVectorByQuaternion } from './discreteKirchhoffRod.js';
++
++const XYZ = ['X', 'Y', 'Z'];
++const POSE_KEYS = ['x', 'y', 'z', ...[...XYZ, 'W'].map(a => 'orientation' + a)];
++const CONTROL_KEYS = [...XYZ, 'W'].map(a => 'orientationControl' + a);
++const bodiesOf = joint => [joint.innerBody, joint.outerBody];
++const frame = (pose, segment) => Object.fromEntries([...XYZ, 'W'].map(a => [a.toLowerCase(), pose['orientation' + a][segment]]));
++
++// This weak identity cache owns no mechanics and needs no rollback. Receipts
++// keyed by its inert ids live in s.twoChannel.applications and ARE restored.
++// Unlike retaining result objects in the snapshot, this does not retain every
++// old dense solver matrix or borrowed assembly through later outer passes.
++const resultIds = new WeakMap();
++let nextResultId = 1;
++function resultId(result) {
++    let id = resultIds.get(result);
++    if (id === undefined) { id = nextResultId++; resultIds.set(result, id); }
++    return id;
++}
++function layout(body) {
++    return { count: body.count, segmentCount: body.segmentCount, start: Math.max(0, body.activeStart),
++        end: Math.min(body.segmentCount, body.activeEnd), sleeping: Boolean(body.sleeping) };
++}
++function stateOf(joint) {
++    const split = joint._splitMotion, state = split?.twoChannel;
++    if (!state || split.dt !== state.dt || split.step !== state.step || split.phase === 'bias')
++        throw new Error('Two-channel motion requires its original split step and physical material banks');
++    for (const [side, body] of bodiesOf(joint).entries()) {
++        const current = layout(body), old = state.layout[side];
++        if (Object.keys(current).some(key => current[key] !== old[key]))
++            throw new Error('Two-channel material/active-range layout changed within the timestep');
++    }
++    return state;
++}
++function validArray(values, count, name) {
++    if (!values || values.length < count) throw new RangeError(name + ' has the wrong shape');
++    for (let i = 0; i < count; i++) if (!Number.isFinite(values[i])) throw new RangeError(name + ' must be finite');
++}
++function validateResult(joint, result, state) {
++    if (!result?.diagnostics?.converged) throw new Error('Cannot apply an unconverged two-channel result');
++    if (!(Number.isFinite(result?.scale) && result.scale >= 0 && result.scale <= 1) ||
++        result.physical?.length !== 2 || result.bias?.length !== 2) throw new RangeError('A two-channel result requires one common finite scale');
++    for (const [side, body] of bodiesOf(joint).entries()) {
++        validArray(result.physical[side].correction, body.count * 6, 'Physical correction');
++        validArray(result.bias[side].lambda, (state.layout[side].end - state.layout[side].start) * 6, 'Bias material increment');
++    }
++}
++
++/** Exactly once after beginSplit, at the predicted pose BEFORE geometric
++ * repair. qP is a separate Float64 pose; current body arrays remain qG. No
++ * force integration, velocity reconstruction or rest/EI change occurs here. */
++export function beginKirchhoffTwoChannelMotion(joint) {
++    const split = joint._splitMotion;
++    if (!split || split.phase !== 'physical' || !(Number.isFinite(split.dt) && split.dt > 0))
++        throw new Error('Begin two-channel motion immediately after physical split prediction');
++    if (split.twoChannel) throw new Error('Two-channel motion must not restart qP within an existing timestep');
++    const bodies = bodiesOf(joint);
++    const state = { dt: split.dt, step: split.step, layout: bodies.map(layout),
++        physicalPose: bodies.map(body => Object.fromEntries(POSE_KEYS.map(key => [key, Float64Array.from(body[key])]))),
++        materialLambda: bodies.map(body => new Float64Array(body.segmentCount * 6)), applications: new Map() };
++    split.twoChannel = state;
++    return state;
++}
++
++/** BEFORE applying dqP+dqB to the body. dqP's angular coordinates are LOCAL
++ * in CURRENT qG, not in qP. Thus qP <- Exp(scale*R_G*dthetaP) qP, while the
++ * physical angular velocity gets the same WORLD vector divided by dt.
++ * qG, physical material lambdas and every bias normal bank remain root-owned. */
++export function applyKirchhoffTwoChannelPhysicalMotion(joint, result) {
++    const state = stateOf(joint);
++    if (joint._splitMotion.phase !== 'physical') throw new Error('Physical two-channel increments require the physical phase');
++    validateResult(joint, result, state);
++    const id = resultId(result);
++    if (state.applications.get(id)?.physicalApplied) throw new Error('Physical two-channel result already applied');
++    const nextFrames = bodiesOf(joint).map((body, side) => {
++        const frames = [], p = state.physicalPose[side], correction = result.physical[side].correction;
++        for (let segment = state.layout[side].start; segment < state.layout[side].end; segment++) {
++            const current = frame(body, segment), previous = frame(p, segment);
++            if (![...Object.values(current), ...Object.values(previous)].every(Number.isFinite) ||
++                !(Math.hypot(...Object.values(current)) > 0 && Math.hypot(...Object.values(previous)) > 0))
++                throw new RangeError('Finite nonzero material frames required');
++            const i = segment * 6;
++            const world = rotateVectorByQuaternion(current, { x: result.scale * correction[i + 3],
++                y: result.scale * correction[i + 4], z: result.scale * correction[i + 5] });
++            if (world.x === 0 && world.y === 0 && world.z === 0) { frames.push(previous); continue; }
++            const increment = quaternionExp(world, {});
++            frames.push(normalizeQuaternion(multiplyQuaternions(increment, previous, {}), {}));
++        }
++        return frames;
++    });
++    // The existing hook applies only dqP/dt and records PHYSICAL sheath
++    // increments from additionalIncrement. It must never see dqP+dqB here.
++    applyKirchhoffSplitPhysicalIncrement(joint, { ...result, inner: result.physical[0], outer: result.physical[1] });
++    for (const [side, p] of state.physicalPose.entries()) {
++        const { start, end } = state.layout[side], correction = result.physical[side].correction;
++        for (let node = start; node <= end; node++) {
++            for (let axis = 0; axis < 3; axis++) if (correction[node * 6 + axis] !== 0)
++                p[XYZ[axis].toLowerCase()][node] += result.scale * correction[node * 6 + axis];
++            if (node === end) continue;
++            for (const a of [...XYZ, 'W']) p['orientation' + a][node] = nextFrames[side][node - start][a.toLowerCase()];
++        }
++    }
++    state.applications.set(id, { physicalApplied: true, biasApplied: false, scale: result.scale });
++    return state;
++}
++
++/** Commit beta_M once, with exactly the scale used by physical motion. Rows
++ * use native material LOCAL indexing (row zero belongs to activeStart).
++ * These arrays never alias or overwrite the body's physical multipliers. */
++export function commitKirchhoffTwoChannelBiasMaterial(joint, result) {
++    const state = stateOf(joint);
++    validateResult(joint, result, state);
++    const receipt = state.applications.get(resultId(result));
++    if (!receipt?.physicalApplied || receipt.biasApplied || receipt.scale !== result.scale)
++        throw new Error('Bias material commit requires one physical application at the same scale');
++    for (let side = 0; side < 2; side++) {
++        const count = (state.layout[side].end - state.layout[side].start) * 6;
++        for (let row = 0; row < count; row++) state.materialLambda[side][row] += result.scale * result.bias[side].lambda[row];
++    }
++    receipt.biasApplied = true;
++    return state.materialLambda;
++}
++
++function assembleAtPose(body, pose, dt) {
++    const savedPose = POSE_KEYS.map(key => body[key]);
++    const savedControls = CONTROL_KEYS.map(key => ({ key, value: body[key], own: Object.hasOwn(body, key) }));
++    try {
++        for (const key of POSE_KEYS) body[key] = pose[key];
++        const segment = body.orientationControlSegment;
++        if (body.orientationControlCompliance === 0 && segment >= body.activeStart && segment < Math.min(body.segmentCount, body.activeEnd)) {
++            // Native assembly prescribes the target frame as a side effect.
++            // For this measurement, preserve the selected pose exactly while
++            // retaining the native hard-control mobility mask.
++            for (const a of [...XYZ, 'W']) body['orientationControl' + a] = pose['orientation' + a][segment];
++        }
++        const material = assembleKirchhoffDirect(body, dt);
++        if (!material) return { start: Math.max(0, body.activeStart), end: Math.max(0, body.activeStart), rowCount: 0,
++            strain: new Float64Array(0), alpha: new Float64Array(0), lambda: new Float64Array(0), redundantAxes: new Int8Array(0) };
++        return { start: material.start, end: material.end, rowCount: material.rowCount,
++            strain: material.strain.slice(0, material.rowCount), alpha: material.alpha.slice(0, material.rowCount),
++            lambda: material.lambda.slice(0, material.rowCount), redundantAxes: material.redundantAxes.slice(material.start, material.end) };
++    } finally {
++        POSE_KEYS.forEach((key, i) => { body[key] = savedPose[i]; });
++        for (const item of savedControls) {
++            if (item.own) body[item.key] = item.value;
++            else delete body[item.key];
++        }
++    }
++}
++function residualNorm(values) {
++    let adaptationMm = 0, bendTwistRad = 0;
++    for (let row = 0; row < values.length; row += 6) {
++        bendTwistRad = Math.max(bendTwistRad, Math.hypot(values[row], values[row + 1], values[row + 2]));
++        adaptationMm = Math.max(adaptationMm, Math.hypot(values[row + 3], values[row + 4], values[row + 5]));
++    }
++    return { adaptationMm, bendTwistRad };
++}
++
++/** Fresh C(qP) and C(qG), without changing either pose, rest data, EI, physical
++ * lambda or velocity. qP assembly borrows body pose references temporarily;
++ * finally reassembles qG so native scratch/J/mobility refer to current geometry
++ * again, including after a failed qP assembly. Returned row arrays are owned.
++ * Physical material: C(qG)+alpha*lambda_M.
++ * Bias material: C(qG)-C(qP)+alpha*beta_M, with the SAME finite native alpha.
++ * Controls/folds need their own correctly transported geometric residuals;
++ * quaternion pose differences are not differences of rotation vectors. */
++export function measureKirchhoffTwoChannelMaterial(joint, out = {}) {
++    const state = stateOf(joint), measurements = [];
++    for (const [side, body] of bodiesOf(joint).entries()) {
++        const geometryPose = Object.fromEntries(POSE_KEYS.map(key => [key, body[key]]));
++        let physical, geometry;
++        try { physical = assembleAtPose(body, state.physicalPose[side], state.dt); }
++        finally { geometry = assembleAtPose(body, geometryPose, state.dt); }
++        if (physical.rowCount !== geometry.rowCount || physical.start !== geometry.start || physical.end !== geometry.end)
++            throw new Error('Physical and geometric native material row layouts differ');
++        if (physical.redundantAxes.some((axis, i) => axis !== geometry.redundantAxes[i]))
++            throw new Error('Physical and geometric redundant material row identities differ');
++        const beta = state.materialLambda[side].slice(0, geometry.rowCount);
++        const biasStrain = Float64Array.from(geometry.strain, (value, row) => value - physical.strain[row]);
++        const physicalResidual = Float64Array.from(geometry.strain, (value, row) => value + geometry.alpha[row] * geometry.lambda[row]);
++        const biasResidual = Float64Array.from(biasStrain, (value, row) => value + geometry.alpha[row] * beta[row]);
++        measurements.push({ start: geometry.start, end: geometry.end, rowCount: geometry.rowCount,
++            physicalPoseStrain: physical.strain, geometryStrain: geometry.strain, biasStrain,
++            alpha: geometry.alpha, physicalLambda: geometry.lambda, biasLambda: beta, physicalResidual, biasResidual });
++    }
++    out.bodies = measurements;
++    for (const key of ['physicalPoseStrain', 'geometryStrain', 'biasStrain', 'alpha', 'physicalLambda', 'biasLambda'])
++        out[key] = measurements.map(body => body[key]);
++    for (const key of ['physicalResidual', 'biasResidual']) {
++        const norms = measurements.map(body => residualNorm(body[key]));
++        out[key] = { adaptationMm: Math.max(...norms.map(value => value.adaptationMm)), bendTwistRad: Math.max(...norms.map(value => value.bendTwistRad)) };
++    }
++    out.adaptationMm = Math.max(out.physicalResidual.adaptationMm, out.biasResidual.adaptationMm);
++    out.bendTwistRad = Math.max(out.physicalResidual.bendTwistRad, out.biasResidual.bendTwistRad);
++    out.finite = measurements.every(body => [body.physicalPoseStrain, body.geometryStrain, body.alpha, body.physicalLambda,
++        body.biasLambda, body.physicalResidual, body.biasResidual].every(values => values.every(Number.isFinite)));
++    return out;
++}
+--- /dev/null
++++ b/tests/kirchhoffTwoChannelMotion.test.js
+@@ -0,0 +1,202 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { Quaternion, Vector3 } from 'three';
++import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
++import { assembleKirchhoffDirect } from '../src/physics/kirchhoffDirectSolver.js';
++import { applyKirchhoffCoupledCorrection } from '../src/physics/kirchhoffCoupledSystem.js';
++import { beginKirchhoffSplitMotion } from '../src/physics/kirchhoffSplitMotion.js';
++import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../src/physics/kirchhoffCoupledTrialState.js';
++import { beginKirchhoffTwoChannelMotion, applyKirchhoffTwoChannelPhysicalMotion,
++    commitKirchhoffTwoChannelBiasMaterial, measureKirchhoffTwoChannelMaterial } from '../src/physics/kirchhoffTwoChannelMotion.js';
++
++const DT = 1 / 120, XYZ = ['X', 'Y', 'Z'], Q = [...XYZ, 'W'];
++const poseKeys = ['x', 'y', 'z', ...Q.map(a => 'orientation' + a)];
++const motionKeys = XYZ.flatMap(a => ['velocity' + a, 'angularVelocity' + a]);
++const materialKeys = ['adaptationLambdaX', 'adaptationLambdaY', 'adaptationLambdaZ', 'bendTwistLambda1', 'bendTwistLambda2', 'bendTwistLambda3'];
++const near = (a, b, why, tol = 1e-11) => assert.ok(Number.isFinite(a) && Math.abs(a - b) <= tol, `${why}: ${a} vs ${b}`);
++const quat = (pose, i) => new Quaternion(...Q.map(a => pose['orientation' + a][i])).normalize();
++const putQuat = (pose, i, q) => Q.forEach((a, j) => { pose['orientation' + a][i] = q.toArray()[j]; });
++const rotation = vector => { const angle = vector.length(); return angle ? new Quaternion().setFromAxisAngle(vector.clone().divideScalar(angle), angle) : new Quaternion(); };
++const snapshot = (object, keys) => Object.fromEntries(keys.map(key => [key, object[key].slice()]));
++function fixture({ activeStart = 0 } = {}) {
++    const world = new EndovascularPhysicsWorld({ fixedDt: DT });
++    const profile = { radius: .25, mass: 1, inverseAngularInertia: 1, adaptationCompliance: DT * DT / 99,
++        kirchhoffBendCompliance: .02, kirchhoffTwistCompliance: .03, linearDamping: 1, angularDamping: 1 };
++    const a = world.createRod('two-channel-motion-a', 3, 1, profile), b = world.createRod('two-channel-motion-b', 4, 1, profile);
++    for (const body of [a, b]) {
++        for (let i = 0; i < body.count; i++) body.setNodePosition(i, 2 + i, body === a ? 0 : -4, 0);
++        body.activeStart = activeStart;
++        body.copyCurrentToPrevious();
++    }
++    const joint = { innerBody: a, outerBody: b, kirchhoffContacts: [] };
++    beginKirchhoffSplitMotion(joint, world); beginKirchhoffTwoChannelMotion(joint);
++    return { world, joint, a, b, state: joint._splitMotion.twoChannel };
++}
++function resultFor(f, scale = 1) {
++    const bodies = [f.a, f.b], responses = () => bodies.map(body => ({ correction: new Float64Array(body.count * 6), lambda: new Float64Array(body.segmentCount * 6) }));
++    return { physical: responses(), bias: responses(), scale, additionalIncrement: new Float64Array(0), diagnostics: { converged: true } };
++}
++function totalResult(f, result) {
++    [f.a, f.b].forEach((body, side) => {
++        const m = assembleKirchhoffDirect(body, DT);
++        result[side ? 'outer' : 'inner'] = { correction: Float64Array.from(result.physical[side].correction, (v, i) => v + result.bias[side].correction[i]),
++            lambda: result.physical[side].lambda, start: m.start, end: m.end, redundantAxes: m.redundantAxes.slice() };
++    });
++    return result;
++}
++function apply(f, result) {
++    totalResult(f, result);
++    applyKirchhoffTwoChannelPhysicalMotion(f.joint, result);
++    applyKirchhoffCoupledCorrection(f.joint, result);
++    commitKirchhoffTwoChannelBiasMaterial(f.joint, result);
++}
++
++test('begin captures a separate predicted pose once and outer passes retain qP and time-start history', () => {
++    const f = fixture(), physical = f.state.physicalPose[0], start = snapshot(f.joint._splitMotion.start[0], ['X', 'Y', 'Z', ...Q.map(a => 'orientation' + a)]);
++    for (const key of poseKeys) { assert.notEqual(physical[key], f.a[key]); assert.ok(physical[key] instanceof Float64Array); }
++    assert.ok(f.state.materialLambda.every(array => array.every(value => value === 0)));
++    const x = physical.x[1];
++    for (let i = 0; i < 2; i++) { const r = resultFor(f); r.physical[0].correction[6] = .01; apply(f, r); }
++    near(physical.x[1], x + .02, 'cumulative physical pose');
++    assert.throws(() => beginKirchhoffTwoChannelMotion(f.joint), /must not restart/);
++    assert.equal(f.state.physicalPose[0], physical);
++    assert.deepEqual(snapshot(f.joint._splitMotion.start[0], Object.keys(start)), start);
++});
++
++test('bias-only updates total geometry and beta without changing qP, physical velocity, or physical material lambda', () => {
++    const f = fixture(), p = snapshot(f.state.physicalPose[0], poseKeys), v = snapshot(f.joint._splitMotion.bodies[0], motionKeys), lambda = snapshot(f.a, materialKeys);
++    const r = resultFor(f, .5); r.bias[0].correction[7] = .1; r.bias[0].correction[9] = .16; r.bias[0].lambda[9] = .3;
++    apply(f, r);
++    assert.deepEqual(snapshot(f.state.physicalPose[0], poseKeys), p);
++    assert.deepEqual(snapshot(f.joint._splitMotion.bodies[0], motionKeys), v);
++    assert.deepEqual(snapshot(f.a, materialKeys), lambda);
++    near(f.a.y[1], .05, 'root applied total bias geometry', 3e-9); near(f.state.materialLambda[0][9], .15, 'bias multiplier');
++});
++
++test('physical displacement adds one impulse and leaves body qG and physical multipliers for root application', () => {
++    const f = fixture(), geometry = snapshot(f.a, poseKeys), lambda = snapshot(f.a, materialKeys);
++    const r = resultFor(f, .25); r.physical[0].correction[6] = .04; r.physical[0].lambda[3] = 7;
++    applyKirchhoffTwoChannelPhysicalMotion(f.joint, r);
++    near(f.state.physicalPose[0].x[1], geometry.x[1] + .01, 'physical pose increment');
++    near(f.joint._splitMotion.bodies[0].velocityX[1], .01 / DT, 'physical impulse once');
++    assert.deepEqual(snapshot(f.a, poseKeys), geometry); assert.deepEqual(snapshot(f.a, materialKeys), lambda);
++    assert.throws(() => applyKirchhoffTwoChannelPhysicalMotion(f.joint, r), /already applied/);
++    near(f.joint._splitMotion.bodies[0].velocityX[1], .01 / DT, 'duplicate application did not change motion');
++});
++
++test('physical local angular correction is transported from current qG before left-multiplying the separate qP', () => {
++    const f = fixture(), first = resultFor(f);
++    first.bias[0].correction[3] = .23; first.bias[0].correction[4] = -.17; apply(f, first);
++    const p0 = quat(f.state.physicalPose[0], 0), g0 = quat(f.a, 0), r = resultFor(f, .375);
++    const localP = new Vector3(.09, -.13, .04), localB = new Vector3(-.02, .05, .11);
++    localP.toArray().forEach((v, i) => { r.physical[0].correction[3 + i] = v; r.bias[0].correction[3 + i] = localB.toArray()[i]; });
++    const worldP = localP.clone().applyQuaternion(g0).multiplyScalar(r.scale);
++    const expectedP = rotation(worldP).multiply(p0).normalize();
++    const wrongP = p0.clone().multiply(rotation(localP.clone().multiplyScalar(r.scale))).normalize();
++    const expectedG = g0.clone().multiply(rotation(localP.clone().add(localB).multiplyScalar(r.scale))).normalize();
++    apply(f, r);
++    assert.ok(1 - Math.abs(quat(f.state.physicalPose[0], 0).dot(expectedP)) < 1e-14);
++    assert.ok(1 - Math.abs(quat(f.state.physicalPose[0], 0).dot(wrongP)) > 1e-7, 'qP local axes must not be substituted for qG axes');
++    assert.ok(1 - Math.abs(quat(f.a, 0).dot(expectedG)) < 1e-14);
++    XYZ.forEach((a, i) => near(f.joint._splitMotion.bodies[0]['angularVelocity' + a][0], worldP.toArray()[i] / DT, 'world angular impulse', 2e-8));
++});
++
++test('common fractional scale applies separately to each physical and bias material channel exactly once', () => {
++    const f = fixture(), r = resultFor(f, .125);
++    r.physical[0].correction[6] = .08; r.bias[0].correction[6] = -.024;
++    r.physical[0].lambda[3] = .8; r.bias[0].lambda[3] = -.4;
++    const x = f.a.x[1]; apply(f, r);
++    near(f.state.physicalPose[0].x[1], x + .01, 'physical channel scale'); near(f.a.x[1], x + .007, 'total geometry scale', 2e-7);
++    near(f.state.materialLambda[0][3], -.05, 'bias bank scale'); near(f.a.adaptationLambdaX[0], .1, 'physical bank scale', 1e-8);
++    assert.throws(() => commitKirchhoffTwoChannelBiasMaterial(f.joint, r), /one physical application/);
++    const other = resultFor(f, .5); applyKirchhoffTwoChannelPhysicalMotion(f.joint, other); other.scale = .25;
++    assert.throws(() => commitKirchhoffTwoChannelBiasMaterial(f.joint, other), /same scale/);
++});
++
++test('fresh material measurement returns C(qG)-C(qP)+alpha beta using unchanged finite compliance', () => {
++    const f = fixture(), r = resultFor(f, .5);
++    r.physical[0].correction[6] = .012; r.bias[0].correction[7] = .004; r.bias[0].correction[9] = .08;
++    r.bias[0].lambda[9] = .003; r.bias[0].lambda[10] = -.002; apply(f, r);
++    const geometry = snapshot(f.a, poseKeys), physical = snapshot(f.state.physicalPose[0], poseKeys), lambda = snapshot(f.a, materialKeys);
++    const measured = measureKirchhoffTwoChannelMaterial(f.joint), p = measured.physicalPoseStrain[0], g = measured.geometryStrain[0];
++    assert.equal(measured.finite, true); near(measured.alpha[0][3], 1 / 99, 'physical finite compliance retained');
++    for (let row = 0; row < p.length; row++) {
++        near(measured.biasStrain[0][row], g[row] - p[row], 'nonlinear strain difference');
++        near(measured.bodies[0].biasResidual[row], g[row] - p[row] + measured.alpha[0][row] * measured.biasLambda[0][row], 'bias residual');
++        near(measured.bodies[0].physicalResidual[row], g[row] + measured.alpha[0][row] * measured.physicalLambda[0][row], 'physical material residual reads qG');
++    }
++    assert.ok(measured.biasResidual.bendTwistRad > 0, 'finite rotation changes native bending strain');
++    assert.deepEqual(snapshot(f.a, poseKeys), geometry); assert.deepEqual(snapshot(f.state.physicalPose[0], poseKeys), physical);
++    assert.deepEqual(snapshot(f.a, materialKeys), lambda);
++    assert.deepEqual(f.a.kirchhoffScratch.direct.strain.slice(0, g.length), g, 'borrowed scratch restored to qG');
++    const owned = structuredClone(measured); f.a.y[1] += .001; assembleKirchhoffDirect(f.a, DT);
++    assert.deepEqual(measured, owned, 'measurement does not borrow mutable native arrays');
++});
++
++test('hard-frame measurement preserves both posed frames, control targets, pose references and native mobility mask', () => {
++    const f = fixture(); f.a.orientationControlSegment = 0; f.a.orientationControlCompliance = 0;
++    const target = rotation(new Vector3(.3, .2, -.1)); Q.forEach((a, i) => { f.a['orientationControl' + a] = target.toArray()[i]; });
++    putQuat(f.a, 0, rotation(new Vector3(.1, -.07, .02)).multiply(quat(f.a, 0)));
++    const refs = poseKeys.map(key => f.a[key]), geometry = snapshot(f.a, poseKeys), physical = snapshot(f.state.physicalPose[0], poseKeys);
++    const m = measureKirchhoffTwoChannelMaterial(f.joint);
++    assert.deepEqual(snapshot(f.a, poseKeys), geometry); assert.deepEqual(snapshot(f.state.physicalPose[0], poseKeys), physical);
++    poseKeys.forEach((key, i) => assert.equal(f.a[key], refs[i]));
++    Q.forEach((a, i) => near(f.a['orientationControl' + a], target.toArray()[i], 'external target restored'));
++    assert.deepEqual([...f.a.kirchhoffScratch.direct.weight.slice(3, 6)], [0, 0, 0]);
++    assert.ok(m.biasStrain[0].some(value => Math.abs(value) > .001), 'measurement did not snap qP onto qG/control target');
++});
++
++test('a failing qP assembly restores body references and reconstructs current geometric scratch in finally', () => {
++    const f = fixture(), refs = poseKeys.map(key => f.a[key]), current = assembleKirchhoffDirect(f.a, DT).strain.slice();
++    const compliance = f.a.adaptationCompliance;
++    Object.defineProperty(f.a, 'adaptationCompliance', { configurable: true, get() {
++        if (this.x === f.state.physicalPose[0].x) throw new Error('test physical-pose assembly failure');
++        return compliance;
++    } });
++    assert.throws(() => measureKirchhoffTwoChannelMaterial(f.joint), /test physical-pose assembly failure/);
++    poseKeys.forEach((key, i) => assert.equal(f.a[key], refs[i]));
++    assert.deepEqual(f.a.kirchhoffScratch.direct.strain, current);
++    Object.defineProperty(f.a, 'adaptationCompliance', { configurable: true, writable: true, value: compliance });
++});
++
++test('rejected combined trial restores qP, beta, physical motion, geometry and once-only receipts in place', () => {
++    const f = fixture(), r = resultFor(f, .5); r.physical[0].correction[6] = .02; r.bias[0].correction[7] = .04; r.bias[0].lambda[9] = .1;
++    totalResult(f, r);
++    const state = f.state, pose = state.physicalPose[0], px = pose.x, beta = state.materialLambda[0], velocity = f.joint._splitMotion.bodies[0].velocityX;
++    const before = { geometry: snapshot(f.a, poseKeys), physical: snapshot(pose, poseKeys), beta: beta.slice(), velocity: velocity.slice() };
++    const trial = captureKirchhoffCoupledTrialState(f.joint, { reusePropertyLayout: true, frozenFrictionBatches: true });
++    apply(f, r); restoreKirchhoffCoupledTrialState(trial);
++    assert.equal(f.joint._splitMotion.twoChannel, state); assert.equal(state.physicalPose[0], pose); assert.equal(pose.x, px);
++    assert.equal(state.materialLambda[0], beta); assert.equal(f.joint._splitMotion.bodies[0].velocityX, velocity);
++    assert.deepEqual({ geometry: snapshot(f.a, poseKeys), physical: snapshot(pose, poseKeys), beta, velocity }, before);
++    assert.equal(state.applications.size, 0);
++    r.scale = .25; apply(f, r); near(beta[9], .025, 'same result may be retried after rollback at new common scale');
++});
++
++test('native local material indexing is preserved for an active range starting after node zero', () => {
++    const f = fixture({ activeStart: 1 }), r = resultFor(f, .5); r.bias[0].lambda[3] = .08;
++    apply(f, r); const measured = measureKirchhoffTwoChannelMaterial(f.joint);
++    assert.equal(measured.bodies[0].start, 1); assert.equal(measured.bodies[0].rowCount, 6); near(measured.biasLambda[0][3], .04, 'local row3 bank');
++    f.a.activeStart = 0; assert.throws(() => measureKirchhoffTwoChannelMaterial(f.joint), /layout changed/);
++});
++
++test('the reused split hook journals physical sheath increments without recording bias normals', () => {
++    const f = fixture(), sheath = {}, split = f.joint._splitMotion;
++    const history = { reactionHistory: Object.fromEntries(['physical', 'bias', 'legacy'].map(phase =>
++        [phase, [new Float64Array(f.a.count), new Float64Array(f.b.count)]])) };
++    split.sheathHistory.set(sheath, history);
++    f.joint._coupledBoundaries = { rows: [{ kind: 'sheath', side: 0, node: 1, lambda: 0, sheathWitness: { geometry: { sheath } } }] };
++    const r = resultFor(f, .5); r.additionalIncrement = new Float64Array([.2]); r.biasAdditionalIncrement = new Float64Array([.9]);
++    applyKirchhoffTwoChannelPhysicalMotion(f.joint, r);
++    near(history.reactionHistory.physical[0][1], .1, 'actual scaled physical normal increment');
++    assert.equal(history.reactionHistory.bias[0][1], 0, 'bias normal belongs to root staging');
++    assert.deepEqual(split.diagnostics.unverifiedHistoryKinds, []);
++});
++
++test('an unconverged direction is rejected before qP, velocity or beta changes', () => {
++    const f = fixture(), r = resultFor(f); r.physical[0].correction[6] = .1; r.diagnostics.converged = false;
++    const p = snapshot(f.state.physicalPose[0], poseKeys), v = snapshot(f.joint._splitMotion.bodies[0], motionKeys);
++    assert.throws(() => applyKirchhoffTwoChannelPhysicalMotion(f.joint, r), /unconverged/);
++    assert.deepEqual(snapshot(f.state.physicalPose[0], poseKeys), p); assert.deepEqual(snapshot(f.joint._splitMotion.bodies[0], motionKeys), v);
++    assert.equal(f.state.applications.size, 0); assert.ok(f.state.materialLambda[0].every(value => value === 0));
++});
+--- /dev/null
++++ b/tests/kirchhoffTwoChannelMotionSystem.test.js
+@@ -0,0 +1,64 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { resolve } from 'node:path';
++import { pathToFileURL } from 'node:url';
++import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
++import { applyKirchhoffCoupledCorrection } from '../src/physics/kirchhoffCoupledSystem.js';
++import { beginKirchhoffSplitMotion } from '../src/physics/kirchhoffSplitMotion.js';
++import { beginKirchhoffTwoChannelMotion, applyKirchhoffTwoChannelPhysicalMotion,
++    commitKirchhoffTwoChannelBiasMaterial, measureKirchhoffTwoChannelMaterial } from '../src/physics/kirchhoffTwoChannelMotion.js';
++
++// Worker validation can read the independently owned frozen adapter in root.
++// After integration the default is the ordinary repository-relative module.
++const systemModule = process.env.OET_TWO_CHANNEL_SYSTEM_SOURCE_ROOT
++    ? pathToFileURL(resolve(process.env.OET_TWO_CHANNEL_SYSTEM_SOURCE_ROOT, 'src/physics/kirchhoffTwoChannelSystem.js'))
++    : new URL('../src/physics/kirchhoffTwoChannelSystem.js', import.meta.url);
++const { solveKirchhoffTwoChannelSystem } = await import(systemModule);
++const dt = 1 / 120, near = (a, b, message, tolerance = 1e-8) =>
++    assert.ok(Number.isFinite(a) && Math.abs(a - b) <= tolerance, `${message}: ${a} vs ${b}`);
++
++test('actual two-channel solve and motion staging close both finite-compliance material equations at the final poses', t => {
++    const world = new EndovascularPhysicsWorld({ fixedDt: dt }), gap = .01632478;
++    const a = world.createRod('two-channel-motion-native-a', 2, 1, { mass: 1, adaptationCompliance: dt * dt / 99 });
++    const b = world.createRod('two-channel-motion-native-b', 2, 1, { mass: 1, adaptationCompliance: dt * dt / 99 });
++    a.setPinned(0, true); b.inverseMass.fill(0);
++    for (const body of [a, b]) for (const axis of [1, 2, 3]) body['inverseInertia' + axis].fill(0);
++    a.restLength[0] = 10 + 100 * gap / 99; a.setNodePosition(1, 10 - 200 * gap, 0, 0);
++    a.copyCurrentToPrevious(); b.copyCurrentToPrevious();
++    const joint = { innerBody: a, outerBody: b, kirchhoffContacts: [] };
++    beginKirchhoffSplitMotion(joint, world); const state = beginKirchhoffTwoChannelMotion(joint);
++    const initialP = state.physicalPose[0].x[1], compliance = a.adaptationCompliance, rest = a.restLength.slice();
++    const normal = { kind: 'test-normal', strain: 0, alpha: 0, lambda: 0, lower: 0, upper: Infinity,
++        gradients: [{ side: 0, dof: 6, value: 1 }] };
++    const result = solveKirchhoffTwoChannelSystem(joint, dt, { basis: 'individual', tolerance: 1e-9,
++        maximumPosition: 100, maximumAngle: 100, additionalRows: [normal],
++        channels(native) {
++            const keys = ['strain', 'alpha', 'lambda', 'weight', 'degree', 'rows', 'gradients', 'rotations', 'linearizationFrames', 'redundantAxes'];
++            const before = native.material.map(m => Object.fromEntries(keys.map(key => [key, m[key].slice()])));
++            const measured = measureKirchhoffTwoChannelMaterial(joint);
++            native.material.forEach((m, side) => keys.forEach(key => assert.deepEqual(m[key], before[side][key], 'channel factory must restore qG scratch ' + key)));
++            return native.rows.slice(0, native.count).map(row => row.kind === 'material'
++                ? { physical: 'pose', bias: { channel: 'bias-motion', strain: measured.biasStrain[row.side][row.local],
++                    alpha: row.alpha, lambda: measured.biasLambda[row.side][row.local], lower: -Infinity, upper: Infinity } }
++                : { physical: 'physical-motion', bias: { channel: 'pose', strain: a.x[1] - 10, alpha: 0, lambda: 0, lower: 0, upper: Infinity } });
++        } });
++    assert.equal(result.diagnostics.converged, true, JSON.stringify(result.diagnostics)); assert.equal(result.scale, 1);
++    const expectedPhysical = 99 * (a.restLength[0] - 10), expectedBias = 10 - a.x[1] - expectedPhysical;
++    applyKirchhoffTwoChannelPhysicalMotion(joint, result);
++    near(a.x[1], initialP, 'helper did not apply qG');
++    applyKirchhoffCoupledCorrection(joint, result); commitKirchhoffTwoChannelBiasMaterial(joint, result);
++    const measured = measureKirchhoffTwoChannelMaterial(joint);
++    near(a.x[1], 10, 'total final geometric point');
++    near(state.physicalPose[0].x[1], initialP + expectedPhysical, 'physical pose has only physical response');
++    near(result.physical[0].correction[6], expectedPhysical, 'native physical response matches the analytic impulse');
++    near(joint._splitMotion.bodies[0].velocityX[1], result.physical[0].correction[6] / dt, 'actual physical response is published once; bias contributes no velocity');
++    assert.equal(state.materialLambda[0][3], result.bias[0].lambda[3], 'native bias multiplier is committed once');
++    near(measured.alpha[0][3] * state.materialLambda[0][3], -expectedBias, 'analytic bias reaction in displacement-equation units');
++    near(measured.physicalResidual.adaptationMm, 0, 'fresh physical material closure');
++    near(measured.biasResidual.adaptationMm, 0, 'fresh finite-compliance bias material closure');
++    near(measured.alpha[0][3], 1 / 99, 'alpha was not hardened');
++    assert.equal(a.adaptationCompliance, compliance); assert.deepEqual(a.restLength, rest);
++    t.diagnostic(JSON.stringify({ physicalPoseX: state.physicalPose[0].x[1], geometryX: a.x[1],
++        physicalVelocityX: joint._splitMotion.bodies[0].velocityX[1], betaMaterial: state.materialLambda[0][3],
++        physicalResidual: measured.physicalResidual, biasResidual: measured.biasResidual, alpha: measured.alpha[0][3] }));
++});

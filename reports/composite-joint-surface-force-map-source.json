@@ -1,0 +1,28 @@
+{
+  "status": "frozen",
+  "scope": "instantaneous-own-affine-surface-force-map",
+  "tests": {
+    "owned": 27,
+    "affected": 45,
+    "failures": 0,
+    "syntax": "pass"
+  },
+  "productionEdits": [
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js"
+  ],
+  "previousSourcePrefixUnchanged": true,
+  "previous22TestBodiesUnchanged": true,
+  "previousManifest": "/tmp/oet-composite-joint-surface-nonparallel-final/manifest.json",
+  "previousManifestSha256": "75a167ce99c67e773c3775a2dcb81a1c8412488b2e7fb65ceea465a5c5d2f9ba",
+  "frozenBundle": "/tmp/oet-composite-joint-surface-force-map-final",
+  "files": {
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "bd76d3b4a3d0e23de04aa621d17c6ba45cfc60a16ea5ba89d846d50b2efd497b",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "9b53aafc3bf88605e30632d1bd9c2e3f03f02f5a5577e5537a2f0342f622b035",
+    "reports/composite-joint-surface-force-map.md": "77163d70005b159b0b90e4cc8353771533c409b812a35d4f6fade6c700964439",
+    "reports/composite-joint-surface-force-map-probe.json": "48b31029631230a76eb0f3507f5795fcc6f8a80da5345cc8c1d64ce00afa4312",
+    "reports/composite-joint-surface-force-map-tests.txt": "ec689c44000b75da0c6d498a4045452c7d4e386d15495da672a40dd453098fdb"
+  },
+  "probeSha256": "3741bae3f200d447033c098b7f7292ed4011e03968f103282c19754f59e4801e",
+  "noAcceptedTimeStep": true,
+  "noFpsClaim": true
+}

@@ -1,0 +1,397 @@
+[
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 0,
+    "maxForceError": 0,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 49.345166000000006,
+      "preparationMs": 16.67225000000002,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 1030,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 1030,
+          "solvedUnknowns": 648,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 1030,
+          "solvedUnknowns": 649,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 1030,
+          "solvedUnknowns": 649,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  },
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 3.450184901118237e-09,
+    "maxForceError": 5.6562809991334007e-11,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 37.48320799999999,
+      "preparationMs": 5.226042000000007,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 530,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 530,
+          "solvedUnknowns": 148,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 530,
+          "solvedUnknowns": 149,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 530,
+          "solvedUnknowns": 149,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  },
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      16,
+      24,
+      32,
+      48,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 2.1687676068395276e-10,
+    "maxForceError": 1.64923630308067e-13,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 35.73841700000003,
+      "preparationMs": 6.844375000000014,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 550,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 550,
+          "solvedUnknowns": 168,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 550,
+          "solvedUnknowns": 169,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 550,
+          "solvedUnknowns": 169,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  },
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 5.861266625219147e-07,
+    "maxForceError": 1.2403394388238453e-06,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 34.57970900000009,
+      "preparationMs": 4.968667000000096,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 510,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 510,
+          "solvedUnknowns": 128,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 510,
+          "solvedUnknowns": 129,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 510,
+          "solvedUnknowns": 129,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  },
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 8.577509935899678e-06,
+    "maxForceError": 0.00026166898463247934,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 31.689166999999998,
+      "preparationMs": 4.819459000000052,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 460,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 460,
+          "solvedUnknowns": 78,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 460,
+          "solvedUnknowns": 79,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 460,
+          "solvedUnknowns": 79,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  },
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      8,
+      32,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 1.1855302735882882e-05,
+    "maxForceError": 0.0005416314873563643,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 30.433457999999973,
+      "preparationMs": 4.936958000000004,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 440,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 440,
+          "solvedUnknowns": 58,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 440,
+          "solvedUnknowns": 59,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 440,
+          "solvedUnknowns": 59,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  },
+  {
+    "nodes": [
+      0,
+      1,
+      2,
+      32,
+      64
+    ],
+    "accepted": true,
+    "status": "accepted",
+    "maxShapeError": 1.5088561293357091e-05,
+    "maxForceError": 0.0006895394346919659,
+    "scope": "Synthetic initial grid comparison; five repeats, last timing only, not a paired performance claim",
+    "diagnostics": {
+      "totalMs": 32.82466599999998,
+      "preparationMs": 5.10291600000005,
+      "directions": 3,
+      "evaluations": 9,
+      "contactQueries": 1280,
+      "unknowns": 430,
+      "lumenRows": 128,
+      "directionSystems": [
+        {
+          "originalUnknowns": 430,
+          "solvedUnknowns": 48,
+          "eliminatedZeroDuals": 382,
+          "bandwidth": 29
+        },
+        {
+          "originalUnknowns": 430,
+          "solvedUnknowns": 49,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        },
+        {
+          "originalUnknowns": 430,
+          "solvedUnknowns": 49,
+          "eliminatedZeroDuals": 381,
+          "bandwidth": 30
+        }
+      ]
+    }
+  }
+]

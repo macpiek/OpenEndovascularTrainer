@@ -1,0 +1,22 @@
+Niezależne review frozen normal lumen dt i affine-envelope: **brak ustaleń wymagających poprawki w zbadanym zakresie**. Sprawdzono wyłącznie `/tmp/oet-composite-joint-lumen-final`, manifest SHA-256 `3a730703b7b15eb9ee3f0c25771d3635660a1ae5d5364aea614cc7701ddac111`. Bieżący rootStep rozwijany pod wall nie uczestniczył w review. Nie zmieniono produkcyjnych źródeł, nie ponawiano replaya World ani timing probe.
+
+**Native: 73/73 PASS**, uruchomione w niezależnej kopii frozen bundle poleceniem `node --test --test-concurrency=1 tests/*.test.js`. Log: `composite-joint-lumen-review-native.txt`. Zestaw obejmuje 13 nowych lumen tests oraz Step, Assembly, RelativeDirection, ContactPullback i LumenSideGeometry.
+
+Sprawdzenie kodu potwierdza następujące zależności:
+
+- Każda deklarowana próbka jest ponownie odpytywana z `quadrature:[s]`, także redundantna. NCP i final certificate obejmują jej oryginalny gap, Fn≥0, residual i |Fn·gap|. Brak normalnej jest eliminowany wyłącznie przy dokładnie zerowym Fn i dodatnim gap; inne niewspierane branches odrzucają krok.
+- Na strict interior side gradient g wskazuje do środka na wire i na zewnątrz na catheter: B=Gᵀ. Kontakt dodaje do mechanics −Fn·B, kolumnę −B i świeże −Fn·DB. Nodal forces oraz balances używają przeciwnego znaku względem residual, bez podwójnego dodawania wire force.
+- Dla affine radial vector nierówność normy uzasadnia zachowanie ekstremalnych deklarowanych s. Redukcja nie opiera się na rank tolerance lub winner selection. Wszystkie wewnętrzne próbki nadal podlegają original acceptance.
+- Loaded interior gauge jest przygotowany na `state.toolPositions`, przed oceną zmienionej geometrii BC. Wymaga zgodnych normals, affine t i osobnego porównania fizycznych kolumn z granicą błędu arytmetycznego. Nie transferuje DB. Nowy endpoint tangent jest liczony przy aktualnej geometrii i siłach.
+- Na przygotowanej inactive branch równanie dual jest Fn/k, więc cel liniowy Fn=0 jest znany dokładnie. `(1−alpha)Fn_base` jest poprawnym back-substitution tego równania; active Newton Fn pozostaje podpisane. Kolejny trial odświeża branch oraz całą mechanikę. Native release kontroluje ujemne prywatne Fn, literalne zero po przyjęciu i odrzucenie bez zmiany input history.
+- Konstruktor kopiuje historię, a commit kopiuje contact forces i Fn. Query/evaluation/direction/late failures nie publikują candidate. Reuse nie zatrzymuje starego contact operatora jako aktualnego.
+
+**Jedna dodatkowa próba**, `probe-composite-joint-lumen-review.mjs`, pokrywa przypadek inny od natywnego pełnego dt: innerEdge0 przeciw outerEdge1, z częściowo wspólnym węzłem chart, wire dsDx1.125 i catheter1, cztery nieuporządkowane próbki `[.5,.75,.25,.625]` i dwie obciążone redundantne próbki. Niezależna geometria używa zwykłego Euclidean point-to-line projection, bez produkcyjnego detektora/derivative/pullback jako orakla.
+
+Incoming Fn `[2,3,1,4]` przechodzi do `[0,7,3,0]`, zachowując dokładnie fizyczne nodal forces, wrench każdego narzędzia względem wybranego origin i wirtualną pracę. BC przemieszcza catheter endpoint o 0.001 mm poza początkową płaszczyznę. Ten sam history transfer wykonany na zmienionej geometrii poprawnie odrzuca; cały dt akceptuje, używając transferu na geometrii incoming. To rozróżnia faktyczne miejsce prepare od samego testu sił w nieruchomej konfiguracji.
+
+Wynik: **PASS**, 2 directions, 6 evaluations, 28 original queries = 4 dla gauge + 6×4 dla original samples. Accepted Fn `[0,6.9962459133344606,3.0124767642529675,0]`; min gap −7.72993e−13 mm, max complementarity 2.32863e−12 Nmm. Każdy gap i projection t porównano z niezależną geometrią; nodal forces i oba momentum balances są zgodne. Directional FD bieżącego DB ma max error **4.02744e−9**, podczas gdy zmiana samego geometry DB względem starego stanu wynosi **0.00242117**. Błąd niezależnego finite-difference virtual work wynosi **1.00272e−10**.
+
+Cold/reuse state, reactions, balances i certificate są dokładnie równe. Odrzucenie w połowie gauge query oraz przed końcowym certificate zachowuje to samo input state; retry daje dokładnie ten sam przyjęty wynik. Surowe liczby i hashe state: `composite-joint-lumen-review-probe.json`. Probe przyjmuje ścieżkę frozen runtime jako jedyny argument.
+
+Wniosek jest ograniczony do zadeklarowanych fixed pairs/samples, strict interior normal-only contact, fixed chart i quasi-static torsion. Nie jest oceną nowego wall, portal/fillet, tarcia, remap ani integracji World. Frozen source/artifact manifest: `composite-joint-lumen-review-source.json`. Zakres zakończony.

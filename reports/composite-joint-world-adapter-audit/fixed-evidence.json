@@ -1,0 +1,10 @@
+{
+  "executed": 0,
+  "accepted": false,
+  "status": "joint-world-wall-adapter-required",
+  "queries": 0,
+  "worldStepCount": 0,
+  "adapterStateStep": 0,
+  "accumulator": 0.008333333333333333,
+  "geometryAndViewsUnchanged": true
+}

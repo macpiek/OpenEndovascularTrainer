@@ -1,0 +1,27 @@
+{
+  "scope": "own pose history and compatible proximal reservoir production domain only",
+  "workspace": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer",
+  "rootEdited": false,
+  "patchFiles": [
+    "src/physics/kirchhoffCompositeJointSurfacePoseHistory.js",
+    "src/physics/kirchhoffCompositeJointReservoirSurface.js",
+    "tests/kirchhoffCompositeJointReservoirSurface.test.js",
+    "reports/composite-proximal-reservoir-surface-production.md"
+  ],
+  "frozenExistingSurfaceMotion": "545c1b1b3fe25e6e045bf0745e1ed4c4a45d801640a4f03860083224320af92d",
+  "tests": {
+    "pass": 16,
+    "fail": 0,
+    "command": "node --test tests/kirchhoffCompositeJointReservoirSurface.test.js"
+  },
+  "sha256": {
+    "package.json": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+    "patch.diff": "701ab2cb141441d59e9285410649de867686493d916652b6214371a9b09a5bc0",
+    "reports/composite-proximal-reservoir-surface-production.md": "4078cf36e828d260023538cdf635052abab2e39f2a7ba8a77ceda711bdfe1cec",
+    "src/physics/kirchhoffCompositeJointReservoirSurface.js": "624ea034395debbffa85a177d288afcb82a260e2ebaf286bce23b23ac2b92257",
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "545c1b1b3fe25e6e045bf0745e1ed4c4a45d801640a4f03860083224320af92d",
+    "src/physics/kirchhoffCompositeJointSurfacePoseHistory.js": "57bb27f53d211c2101a90d330fa3ea96f2ce78a580907699431ca21903e6aa89",
+    "test.log": "9340c36bc27eb8e77956b3166c8c0d317c559b2b51d7670e0aac34f4999c40ef",
+    "tests/kirchhoffCompositeJointReservoirSurface.test.js": "0404959c374e90ddaf0a95d125f3851462758482dec054a598e07eb0c22946b3"
+  }
+}

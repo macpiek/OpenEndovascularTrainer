@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeLumenTipGeometry.js",
+      "status": "added",
+      "sha256": "08d0c8ef854251574e86dc29e05dcb51f23280f0094a699ea003c3638a6fc48b"
+    },
+    {
+      "path": "tests/kirchhoffCompositeLumenTipGeometry.test.js",
+      "status": "added",
+      "sha256": "9da0bb91b19e32541efabbe8e79887df580b85128dff7a27efa8a5547a2a8c8e"
+    }
+  ],
+  "newTests": 16,
+  "tests": 28,
+  "passed": 28,
+  "failed": 0,
+  "scope": "new physical12DOF fillet and strict rim geometry only",
+  "patchApplyCheck": "PASS; empty directory; exact source SHA after apply",
+  "syntaxCheck": "PASS"
+}

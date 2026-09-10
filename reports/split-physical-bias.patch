@@ -1,0 +1,1054 @@
+--- a/src/physics/endovascularPhysicsWorld.js
++++ b/src/physics/endovascularPhysicsWorld.js
+@@ -1,4 +1,11 @@
+ import { buildKirchhoffPortalSideSamples } from './kirchhoffPortalSideSamples.js';
++import { buildKirchhoffSplitWallFriction, appendKirchhoffSplitWallFriction,
++    commitKirchhoffSplitWallFriction, measureKirchhoffSplitWallFriction } from './kirchhoffSplitWallFriction.js';
++import { beginKirchhoffSplitMotion, captureKirchhoffSplitSweep, appendKirchhoffSplitSweeps, appendKirchhoffSplitPointWalls,
++    prepareKirchhoffSplitLumenRows, prepareKirchhoffSplitBoundaryRows, applyKirchhoffSplitPhysicalIncrement,
++    beginKirchhoffSplitBias, finishKirchhoffSplitBias, measureKirchhoffSplitMaterial,
++    copyKirchhoffSplitVelocity, prescribeKirchhoffSplitOrientation, syncKirchhoffSplitVelocity,
++    commitKirchhoffSplitHistory, getKirchhoffSplitMotionStats } from './kirchhoffSplitMotion.js';
+ import { measureKirchhoffFrictionMerit } from './kirchhoffFrictionMerit.js';
+ import { beginKirchhoffCoupledBoundaryStep, collectKirchhoffCoupledBoundaryRows, applyKirchhoffCoupledBoundaryMultipliers, measureKirchhoffCoupledBoundaryResidual } from './kirchhoffCoupledBoundaryRows.js';
+ import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from './kirchhoffCoupledTrialState.js';
+@@ -939,11 +946,14 @@
+         coupledLengthTolerance = 0.002,
+         coupledAngularToleranceRad = 0.001,
+         reuseDirectLinearization = true,
+-        coupledSystem = null
++        coupledSystem = null,
++        jointMotionMode = 'position-history'
+     } = {}) {
+         this.contactField = contactField;
+         this.reuseDirectLinearization = reuseDirectLinearization;
+         this.coupledSystem = coupledSystem;
++        if (!['position-history', 'split-physical-bias'].includes(jointMotionMode)) throw new RangeError('Unknown joint motion mode');
++        this.jointMotionMode = jointMotionMode;
+         this.fixedDt = fixedDt;
+         this.maxSubsteps = maxSubsteps;
+         this.iterations = iterations;
+@@ -1342,9 +1352,20 @@
+         // A load on either tool wakes their connected mechanical component
+         // before prediction captures positions and material frames.
+         const connected = this.#jointCoupledConstraint();
++        for (const body of this.bodies) body._splitPhysicalMotion = null;
++        if (connected && this.jointMotionMode !== 'split-physical-bias') {
++            delete connected._splitMotion; delete connected.surfaceMotion;
++        }
+         if (connected) {
+             if (connected.innerBody.sleeping) connected.innerBody.wake();
+             if (connected.outerBody.sleeping) connected.outerBody.wake();
++            if (this.jointMotionMode === 'split-physical-bias') {
++                // Configured damping acts once on physical incoming motion.
++                // The subsequent joint velocity solve owns normal/friction
++                // impulses; legacy post-projection velocity filters do not.
++                this.#dampKirchhoffContainedRadialVelocity(connected, connected.innerBody, connected.outerBody);
++                this.#dampKirchhoffCoupledBendingRates(connected, connected.innerBody, connected.outerBody);
++            }
+         }
+         for (
+             let constraintIndex = 0;
+@@ -1432,6 +1453,7 @@
+             body.lastMaximumReconstructedSpeed = 0;
+             this.#integrate(body);
+         }
++        if (connected && this.jointMotionMode === 'split-physical-bias') beginKirchhoffSplitMotion(connected, this);
+         recordTiming(this.timings.integrate, now() - phaseStart);
+         for (let index = 0; index < this.bodies.length; index++) {
+             const body = this.bodies[index];
+@@ -1449,6 +1471,17 @@
+         if (jointConstraint) {
+             this.lastCoupledSolver = 'joint';
+             this.#solveJointCoupledConstraints(jointConstraint);
++            if (jointConstraint._splitMotion) {
++                beginKirchhoffSplitBias(jointConstraint, this, this.lastCoupledClosureConverged);
++                this.#solveJointCoupledConstraints(jointConstraint);
++                finishKirchhoffSplitBias(jointConstraint, this.lastCoupledClosureConverged);
++                const physical = this.#measureJointCoupledConstraints(jointConstraint, false);
++                const split = jointConstraint._splitMotion;
++                split.diagnostics.finalPhysicalResidualSettled = physical.settled;
++                split.diagnostics.certified = split.diagnostics.physicalAccepted && split.diagnostics.biasAccepted &&
++                    physical.settled && split.diagnostics.unverifiedHistoryKinds.length === 0;
++                this.lastCoupledClosureConverged = split.diagnostics.certified;
++            }
+         } else {
+             if (this.containments.some(item => item.enabled)) this.lastCoupledSolver = 'partitioned';
+             const iterationCount = this.maxPenetration > this.highPenetration
+@@ -2236,13 +2269,20 @@
+         phaseStart = now();
+         for (let index = 0; index < this.bodies.length; index++) this.#updateVelocityAndFriction(this.bodies[index]);
+         for (let index = 0; index < this.containments.length; index++) {
++            if (this.containments[index]._splitMotion) continue;
+             this.#stabilizeContainmentVelocity(this.containments[index]);
+         }
+         for (let index = 0; index < this.toolContacts.length; index++) {
++            if (this.toolContacts[index].bodyA._splitPhysicalMotion && this.toolContacts[index].bodyB._splitPhysicalMotion) continue;
+             this.#stabilizeToolContactVelocity(this.toolContacts[index]);
+         }
+         for (let index = 0; index < this.bodies.length; index++) {
+             this.#limitVelocity(this.bodies[index]);
++        }
++        if (jointConstraint?._splitMotion) {
++            syncKirchhoffSplitVelocity(jointConstraint);
++            const finalPhysical = this.#measureJointCoupledConstraints(jointConstraint, false);
++            this.lastCoupledClosureConverged = commitKirchhoffSplitHistory(jointConstraint, this, finalPhysical);
+         }
+         // The connected pair sleeps atomically. Sleeping its members on
+         // different frames made each wake the other at the next step, resetting
+@@ -2309,6 +2349,7 @@
+         constraint._jointTrialFailure = null;
+         for (let pass = 0; pass < this.coupledClosureMaxPasses * 2; pass++) {
+             this.lastCoupledClosurePasses = pass + 1;
++            if (constraint._splitMotion) constraint._splitMotion.diagnostics[constraint._splitMotion.phase + 'Passes'] = pass + 1;
+             for (const body of bodies) {
+                 for (let node = body.activeStart; node <= body.activeEnd; node++) {
+                     body.postPassStartX[node] = body.x[node];
+@@ -2319,6 +2360,7 @@
+                 if (body.orientationControlCompliance === 0 && controlled >= body.activeStart &&
+                     controlled < Math.min(body.segmentCount, body.activeEnd)) {
+                     // Prescribe before any frame-dependent contact Jacobians.
++                    prescribeKirchhoffSplitOrientation(constraint, body, controlled);
+                     body.orientationX[controlled] = body.orientationControlX;
+                     body.orientationY[controlled] = body.orientationControlY;
+                     body.orientationZ[controlled] = body.orientationControlZ;
+@@ -2340,9 +2382,14 @@
+                 constraint, this.sheaths, this.fixedDt, this.contactActivation
+             );
+             for (const contact of this.toolContacts) this.#solveToolContact(contact, options.additionalRows, constraint);
++            appendKirchhoffSplitSweeps(constraint, options.additionalRows);
++            appendKirchhoffSplitPointWalls(constraint, this, options.additionalRows);
+             buildKirchhoffCoupledFoldRows(constraint, this.fixedDt, options.additionalRows);
+             const orientationBatch = buildKirchhoffCoupledOrientationRows(constraint, this.fixedDt);
+             appendKirchhoffCoupledOrientationRows(orientationBatch, options.additionalRows);
++            prepareKirchhoffSplitLumenRows(constraint);
++            prepareKirchhoffSplitBoundaryRows(constraint, options.additionalRows);
++            options.materialStrainOffsets = constraint._splitMotion?.materialStrainOffsets ?? undefined;
+             options.groups.length = 0;
+             const frictionBatch = buildKirchhoffCoupledFrictionRows(constraint, this.fixedDt,
+                 constraint._jointFrictionBatch ??= {});
+@@ -2350,6 +2397,9 @@
+             const externalBatch = buildKirchhoffExternalFrictionRows(constraint, options.additionalRows,
+                 this.fixedDt, constraint._jointExternalFrictionBatch ??= {});
+             appendKirchhoffExternalFrictionRows(externalBatch, options.additionalRows, options.groups);
++            const wallBatch = constraint._splitMotion ? buildKirchhoffSplitWallFriction(constraint, options.additionalRows,
++                this.fixedDt, constraint._jointSplitWallFrictionBatch ??= {}) : null;
++            if (wallBatch) appendKirchhoffSplitWallFriction(wallBatch, options.additionalRows, options.groups);
+             const result = this.coupledSystem.solve(constraint, this.fixedDt, options);
+             constraint._jointDiagnostics = result.diagnostics;
+             this.lastJointFactorizations += result.diagnostics.factorizations ?? 0;
+@@ -2375,6 +2425,7 @@
+                     this.lastJointBacktracks++;
+                 }
+                 result.scale = proposedScale * 2 ** -trialCount;
++                applyKirchhoffSplitPhysicalIncrement(constraint, result);
+                 this.coupledSystem.apply(constraint, result);
+                 applyKirchhoffCoupledBoundaryMultipliers(constraint, result.additionalIncrement, result.scale);
+                 applyKirchhoffCoupledFoldMultipliers(constraint, result.additionalIncrement, result.scale);
+@@ -2385,6 +2436,7 @@
+                 }
+                 commitKirchhoffCoupledFrictionMultipliers(frictionBatch, result.additionalIncrement, result.scale);
+                 commitKirchhoffExternalFrictionMultipliers(externalBatch, result.additionalIncrement, result.scale);
++                if (wallBatch) commitKirchhoffSplitWallFriction(wallBatch, result.additionalIncrement, result.scale);
+                 constraint._kirchhoffMappingLocked = true;
+                 state = this.#measureJointCoupledConstraints(constraint);
+                 this.debugJointTrial?.(constraint, state, pass, trialCount, result.scale);
+@@ -2427,7 +2479,7 @@
+         // Preserve the existing idle closure convention: operator transport
+         // retains its velocity; equilibrium corrections during hold do not
+         // become a new kinetic impulse on the following step.
+-        if (constraint.outerBody.projectionVelocityRetention < 0.5) {
++        if (!constraint._splitMotion && constraint.outerBody.projectionVelocityRetention < 0.5) {
+             for (const body of bodies) for (let node = body.activeStart; node <= body.activeEnd; node++) {
+                 body.previousX[node] += body.x[node] - body.coupledClosureStartX[node];
+                 body.previousY[node] += body.y[node] - body.coupledClosureStartY[node];
+@@ -2452,10 +2504,11 @@
+         constraint.kirchhoffContacts.length = 0;
+         this.#collectKirchhoffContainmentGeometry(constraint, true);
+         for (const record of constraint.kirchhoffContacts) buildKirchhoffContactNormalGradients(constraint, record);
++        prepareKirchhoffSplitLumenRows(constraint);
+         const frictionResidual = measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt,
+             constraint._jointFrictionResidual ??= {});
+         let coneRepair = null;
+-        if (repairCone && frictionResidual.maximumConeViolation > 1e-9) {
++        if (!constraint._splitMotion && repairCone && frictionResidual.maximumConeViolation > 1e-9) {
+             const plan = prepareKirchhoffCoupledConeRepair(constraint, this.fixedDt, {
+                 maximumPositionCorrectionMm: this.coupledContainmentTolerance,
+                 maximumAngleCorrectionRad: this.coupledAngularToleranceRad
+@@ -2481,13 +2534,18 @@
+         const boundaryRows = collectKirchhoffCoupledBoundaryRows(constraint, this.sheaths,
+             this.fixedDt, this.contactActivation);
+         for (const contact of this.toolContacts) this.#solveToolContact(contact, boundaryRows, constraint);
++        appendKirchhoffSplitSweeps(constraint, boundaryRows);
++        appendKirchhoffSplitPointWalls(constraint, this, boundaryRows);
++        prepareKirchhoffSplitBoundaryRows(constraint, boundaryRows);
+         constraint._jointBoundaryResidual = measureKirchhoffCoupledBoundaryResidual(boundaryRows);
+-        const materialResidual = measureKirchhoffCoupledMaterialResidual(constraint, this.fixedDt,
++        const materialResidual = (constraint._splitMotion ? measureKirchhoffSplitMaterial : measureKirchhoffCoupledMaterialResidual)(constraint, this.fixedDt,
+             constraint._jointMaterialResidual ??= {});
+         const foldResidual = measureKirchhoffCoupledFoldResidual(constraint);
+         const orientationResidual = measureKirchhoffCoupledOrientationResidual(constraint, this.fixedDt);
+         const externalFrictionResidual = measureKirchhoffExternalFrictionResidual(constraint, boundaryRows,
+             this.fixedDt, constraint._jointExternalFrictionResidual ??= {});
++        const wallPhysicalFriction = constraint._splitMotion ? measureKirchhoffSplitWallFriction(constraint, boundaryRows,
++            this.fixedDt, constraint._jointSplitWallFrictionResidual ??= {}) : null;
+         const toolReleaseResidual = measureKirchhoffToolReleaseRows(constraint, boundaryRows,
+             constraint._jointToolReleaseResidual ??= {});
+         const settled = lengthsSettled && toolReleaseResidual.pending === 0 &&
+@@ -2500,6 +2558,8 @@
+             frictionResidual.maximumConeViolation <= 1e-9 &&
+             externalFrictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
+             externalFrictionResidual.maximumConeViolation <= 1e-9 &&
++            (!wallPhysicalFriction || wallPhysicalFriction.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
++                wallPhysicalFriction.maximumConeViolation <= 1e-9) &&
+             Math.max(constraint.kirchhoffContactMotion, constraint.kirchhoffSolverResidual,
+                 constraint._jointBoundaryResidual) <= this.coupledContainmentTolerance;
+         let lengthResidual = 0;
+@@ -2517,11 +2577,13 @@
+             orientationResidual.maximumResidualRad / rad,
+             measureKirchhoffFrictionMerit(frictionResidual._batch, constraint._jointFrictionMerit ??= {}).maximumMm / mm,
+             measureKirchhoffFrictionMerit(externalFrictionResidual._batch, constraint._jointExternalFrictionMerit ??= {}).maximumMm / mm,
++            wallPhysicalFriction ? measureKirchhoffFrictionMerit(wallPhysicalFriction._batch, constraint._jointSplitWallFrictionMerit ??= {}).maximumMm / mm : 0,
+             constraint.kirchhoffSolverResidual / mm,
+             constraint._jointBoundaryResidual / mm);
+         return Object.assign(constraint._jointStateMeasurement ??= {}, {
++            motionPhase: constraint._splitMotion?.phase ?? 'position-history',
+             settled, merit, lengthResidual, materialResidual, foldResidual, orientationResidual,
+-            frictionResidual, externalFrictionResidual, toolReleaseResidual, coneRepair
++            frictionResidual, externalFrictionResidual, wallPhysicalFriction, toolReleaseResidual, coneRepair
+         });
+     }
+ 
+@@ -2634,6 +2696,7 @@
+         return {
+             mode: 'kirchhoff-direct',
+             coupledSolver: this.lastCoupledSolver ?? 'independent',
++            jointMotion: getKirchhoffSplitMotionStats(this),
+             jointFactorizations: this.lastJointFactorizations ?? 0,
+             jointTrialEvaluations: this.lastJointTrialEvaluations ?? 0,
+             jointBacktracks: this.lastJointBacktracks ?? 0,
+@@ -2847,6 +2910,14 @@
+             this._queryEnd.z = body.z[index];
+             const contact = this.contactField.sweepSphere(this._queryStart, this._queryEnd, radius, this._sweep);
+             if (!contact.violation || contact.timeOfImpact >= 1) continue;
++            const splitJoint = body._splitPhysicalMotion ? this.#jointCoupledConstraint() : null;
++            if (splitJoint) {
++                // Keep the existing continuous witness in the joint solve.
++                // The physical prediction has not already received a separate
++                // TOI position projection, so its normal impulse is applied once.
++                captureKirchhoffSplitSweep(splitJoint, body, index, contact);
++                continue;
++            }
+             const safeT = Math.max(0, contact.timeOfImpact - 1e-3);
+             const inwardX = contact.inward.x;
+             const inwardY = contact.inward.y;
+@@ -6401,6 +6472,20 @@
+ 
+     #updateVelocityAndFriction(body) {
+         if (body.sleeping) return;
++        if (copyKirchhoffSplitVelocity(body)) {
++            body.lastMaximumReconstructedSpeed = 0;
++            let angular = 0;
++            for (let i = body.activeStart; i <= body.activeEnd; i++) {
++                body.lastMaximumReconstructedSpeed = Math.max(body.lastMaximumReconstructedSpeed,
++                    Math.hypot(body.velocityX[i], body.velocityY[i], body.velocityZ[i]));
++                if (i < body.activeEnd) angular = Math.max(angular,
++                    Math.hypot(body.angularVelocityX[i], body.angularVelocityY[i], body.angularVelocityZ[i]));
++            }
++            if (body.lastMaximumReconstructedSpeed < body.sleepVelocity && angular < body.sleepAngularVelocity &&
++                body.settledMaxPenetration < body.sleepPenetration && this.lastCoupledClosureConverged) body.sleepCounter++;
++            else body.sleepCounter = 0;
++            return;
++        }
+         const inverseDt = 1 / this.fixedDt;
+         let maxSpeed = 0;
+         let maxAngularSpeed = 0;
+--- /dev/null
++++ b/src/physics/kirchhoffSplitMotion.js
+@@ -0,0 +1,355 @@
++import { assembleKirchhoffDirect } from './kirchhoffDirectSolver.js';
++import { rotateVectorByQuaternion, inverseRotateVectorByQuaternion, quaternionLog, conjugateQuaternion, multiplyQuaternions, normalizeQuaternion } from './discreteKirchhoffRod.js';
++import { createContactResult } from './collision/vesselContactField.js';
++
++const XYZ=['X','Y','Z'];
++const materialKeys=['adaptationLambdaX','adaptationLambdaY','adaptationLambdaZ','bendTwistLambda1','bendTwistLambda2','bendTwistLambda3'];
++const bodyBankKeys=[...materialKeys,'controlLambda','orientationControlLambda','wallLambda','wallFrictionLambda','wallProjectionX','wallProjectionY','wallProjectionZ','toolProjectionX','toolProjectionY','toolProjectionZ'];
++const jointBankKeys=['_coupledBoundaries','_coupledFoldRows','_coupledOrientationRows','_coupledExternalFriction'];
++const contactKeys=['normalLambda','twistLambda','innerTwistImpulse','outerTwistImpulse'];
++const contactVectors=['tangentLambda','normal','tangentU','tangentV'];
++const frame=(body,node)=>({x:body.orientationX[node],y:body.orientationY[node],z:body.orientationZ[node],w:body.orientationW[node]});
++const clone=v=>v.slice();
++const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
++const minus=(a,b)=>a.map((v,i)=>v-b[i]);
++function sample(body,start,record,side) {
++    const prefix=side?'_outer':'_inner', nodes=record[prefix+'NodeIndices'];
++    const count=nodes?record[prefix+'NodeCount']:2, segment=record[prefix+'SegmentIndex'];
++    const weights=nodes?record[prefix+'NodeWeights']:record[side?'outerWeights':'innerWeights'];
++    const out=[0,0,0];
++    for(let k=0;k<count;k++) for(let axis=0;axis<3;axis++) out[axis]+=weights[k]*start[XYZ[axis]][nodes?nodes[k]:segment+k];
++    return out;
++}
++function energy(joint,dt) {
++    let elastic=0, hardMaximum=0;
++    for(const body of [joint.innerBody,joint.outerBody]) {
++        const s=assembleKirchhoffDirect(body,dt);
++        for(let r=0;r<s.rowCount;r++) {
++            const c=s.strain[r], compliance=s.alpha[r]*dt*dt;
++            if(compliance>0) elastic+=.5*c*c/compliance;
++            else hardMaximum=Math.max(hardMaximum,Math.abs(c));
++        }
++    }
++    return {elastic,hardMaximum};
++}
++/** Owned state for ONE dt. Prediction is captured after force/damping
++ * integration, before any geometric repair. Angular velocities are world. */
++export function beginKirchhoffSplitMotion(joint,world) {
++    const dt=world.fixedDt;
++    const state=joint._splitMotion={phase:'physical',dt,step:world.stepCount,bodies:[],start:[],sweeps:[],pointWalls:[new Map(),new Map()],
++        physicalNormalRows:[],materialStrainOffsets:null,diagnostics:{mode:'split-physical-bias',physicalDt:dt,
++            physicalPasses:0,biasPasses:0,historyCommits:0,rejectedTrials:0,rollbackCount:0,physicalAccepted:false,biasAccepted:false,
++            sweptWitnesses:0,unverifiedHistoryKinds:[],biasElasticEnergyDelta:0,certified:false}};
++    for(const body of [joint.innerBody,joint.outerBody]) {
++        const motion={},start={};
++        for(const axis of XYZ) {
++            start[axis]=clone(body['previous'+axis]);
++            motion['velocity'+axis]=Float64Array.from(body[axis.toLowerCase()],(v,i)=>body.inverseMass[i]>0?(v-start[axis][i])/dt:0);
++            motion['angularVelocity'+axis]=clone(body['angularVelocity'+axis]);
++        }
++        for(const axis of [...XYZ,'W']) start['orientation'+axis]=clone(body['previousOrientation'+axis]);
++        state.start.push(start);state.bodies.push(motion);
++        body._splitPhysicalMotion=motion;
++    }
++    joint.surfaceMotion=state;
++    return state;
++}
++export function prescribeKirchhoffSplitOrientation(joint,body,segment) {
++    const s=joint._splitMotion;if(!s||s.phase!=='physical')return;
++    const side=body===joint.innerBody?0:1,start=s.start[side];
++    const previous={x:start.orientationX[segment],y:start.orientationY[segment],z:start.orientationZ[segment],w:start.orientationW[segment]};
++    const target={x:body.orientationControlX,y:body.orientationControlY,z:body.orientationControlZ,w:body.orientationControlW};
++    const relative=normalizeQuaternion(multiplyQuaternions(target,conjugateQuaternion(previous,{}),{}),{});
++    const rotation=quaternionLog(relative,{});
++    for(const axis of XYZ)s.bodies[side]['angularVelocity'+axis][segment]=rotation[axis.toLowerCase()]/s.dt;
++}
++export function captureKirchhoffSplitSweep(joint,body,node,contact) {
++    const s=joint._splitMotion,side=body===joint.innerBody?0:1,start=s.start[side];
++    const toi=contact.timeOfImpact,n=[contact.inward.x,contact.inward.y,contact.inward.z];
++    const point=XYZ.map(axis=>start[axis][node]+toi*(body[axis.toLowerCase()][node]-start[axis][node]));
++    s.sweeps.push({side,node,point,n,lambda:0,kind:'split-sweep',lower:0,upper:Infinity,alpha:0,
++        gradients:n.map((value,axis)=>({side,dof:node*6+axis,value})),strain:0});
++    s.diagnostics.sweptWitnesses++;
++}
++export function appendKirchhoffSplitSweeps(joint,rows) {
++    const s=joint._splitMotion;if(!s)return;
++    for(const row of s.sweeps) {
++        const body=row.side?joint.outerBody:joint.innerBody;
++        row.strain=dot(XYZ.map(a=>body[a.toLowerCase()][row.node]-row.point[XYZ.indexOf(a)]),row.n);
++        rows.push(row);
++    }
++}
++/** Endpoint sphere witnesses supplement, never replace, capsule-interior
++ * witnesses. They keep a planar initial overlap from changing which endpoint
++ * owns an old capsule multiplier as successive feet become the deepest. */
++export function appendKirchhoffSplitPointWalls(joint,world,rows) {
++    const s=joint._splitMotion;if(!s||!world.contactField)return;
++    const result=s.wallQuery??=createContactResult(),point=s.wallPoint??={x:0,y:0,z:0};
++    for(const [side,body]of [joint.innerBody,joint.outerBody].entries()) {
++        const start=Math.max(body.activeStart,body.collisionStartSegment),end=Math.min(body.activeEnd,body.collisionEndSegment+1);
++        for(let node=start;node<=end;node++) {
++            point.x=body.x[node];point.y=body.y[node];point.z=body.z[node];
++            world.contactField.querySphere(point,body.nodeRadius[node],result);
++            let row=s.pointWalls[side].get(node);
++            if(result.signedGap>world.contactActivation&&!(row?.lambda>0))continue;
++            if(!row){row={kind:'split-point-wall',side,node,owner:body,lower:0,upper:Infinity,lambda:0,gradients:[],normal:[0,0,0]};s.pointWalls[side].set(node,row);}
++            row.strain=result.signedGap;row.alpha=body.wallCompliance/(s.dt*s.dt);
++            row.normal[0]=result.inward.x;row.normal[1]=result.inward.y;row.normal[2]=result.inward.z;
++            row.gradients=row.normal.map((value,axis)=>({side,dof:node*6+axis,value}));
++            rows.push(row);
++        }
++    }
++}
++/** Pull a row into displacement-equivalent PHYSICAL velocity coordinates. */
++export function kirchhoffSplitRowMotion(joint,gradients) {
++    const state=joint._splitMotion;let value=0;
++    for(const g of gradients) {
++        const b=g.side?joint.outerBody:joint.innerBody,m=state.bodies[g.side],node=Math.floor(g.dof/6),axis=g.dof%6;
++        if(axis<3)value+=g.value*m['velocity'+XYZ[axis]][node];
++        else {
++            const w=inverseRotateVectorByQuaternion(frame(b,node),{x:m.angularVelocityX[node],y:m.angularVelocityY[node],z:m.angularVelocityZ[node]});
++            value+=g.value*w[XYZ[axis-3].toLowerCase()];
++        }
++    }
++    return state.dt*value;
++}
++function lumenGradients(record) {
++    if(record.normalGradients)return record.normalGradients;
++    const out=[];
++    for(let side=0;side<2;side++) {
++        const prefix=side?'_outer':'_inner',nodes=record[prefix+'NodeIndices'];
++        const count=nodes?record[prefix+'NodeCount']:2,weights=nodes?record[prefix+'NodeWeights']:record[side?'outerWeights':'innerWeights'];
++        for(let k=0;k<count;k++)for(let axis=0;axis<3;axis++)out.push({side,dof:(nodes?nodes[k]:record[prefix+'SegmentIndex']+k)*6+axis,value:(side?1:-1)*weights[k]*record.normal[axis]});
++    }
++    return out;
++}
++function lumenStartGap(joint,record) {
++    const s=joint._splitMotion;
++    const pi=sample(joint.innerBody,s.start[0],record,0),po=sample(joint.outerBody,s.start[1],record,1),offset=minus(pi,po);
++    if(record.kind==='sliding-rim')return record.clearance-Math.hypot(...offset);
++    const seg=record._outerSegmentIndex,start=s.start[1];
++    const axis=XYZ.map(a=>start[a][seg+1]-start[a][seg]),h=Math.hypot(...axis);
++    if(!(h>0))throw new RangeError('Split motion requires a nondegenerate historical witness');
++    for(let k=0;k<3;k++)axis[k]/=h;
++    const axial=dot(offset,axis),rho=Math.hypot(...offset.map((v,k)=>v-axial*axis[k]));
++    if(record.kind==='distal-fillet') {
++        const f=joint.portalFilletRadius,clearance=Math.max(0,joint.innerRadius-Math.max(joint.innerBody.nodeRadius[record._innerSegmentIndex],joint.innerBody.nodeRadius[record._innerSegmentIndex+1]));
++        return Math.hypot(axial+f,rho-(clearance+f))-f;
++    }
++    if(!['side','material-side','distal-rim'].includes(record.kind)&&!s.diagnostics.unverifiedHistoryKinds.includes(record.kind))s.diagnostics.unverifiedHistoryKinds.push(record.kind);
++    return record.clearance-rho;
++}
++/** Actual geometry remains available to witnesses/diagnostics. The physical
++ * row sees initial positive clearance plus physical normal motion; the bias
++ * row sees the unmodified geometric penetration. Histories are evaluated from
++ * immutable time-start positions on the existing material witness. */
++export function prepareKirchhoffSplitLumenRows(joint) {
++    const s=joint._splitMotion;if(!s)return;
++    for(const r of joint.kirchhoffContacts) {
++        r._splitActualGap=r.gap;
++        if(s.phase==='bias')continue;
++        const gradients=lumenGradients(r),startGap=lumenStartGap(joint,r);
++        r.gap=Math.max(0,startGap)+kirchhoffSplitRowMotion(joint,gradients);
++        r._splitStartGap=startGap;r._splitMotionGradients=gradients;
++    }
++}
++export function prepareKirchhoffSplitBoundaryRows(joint,rows) {
++    const s=joint._splitMotion;if(!s)return;
++    for(const row of rows) {
++        row._splitActualStrain=row.strain;
++        if(s.phase==='bias') {
++            if(row.kind==='control') {
++                const ref=s.controlStrain?.[row.side]?.[row.node*3+row.component];
++                if(ref!==undefined)row.strain-=ref;
++            }
++            continue;
++        }
++        if(!['wall','tool','sheath','split-sweep','split-point-wall'].includes(row.kind))continue;
++        let startGap=row.strain;
++        if(row.kind==='tool') {
++            const ia=row.bodyA===joint.innerBody?0:1,ib=1-ia;
++            const a=XYZ.map(k=>(1-row.tA)*s.start[ia][k][row.segmentA]+row.tA*s.start[ia][k][row.segmentA+1]);
++            const b=XYZ.map(k=>(1-row.tB)*s.start[ib][k][row.segmentB]+row.tB*s.start[ib][k][row.segmentB+1]);
++            startGap=Math.hypot(...minus(a,b))-(row.distance-row.strain);
++        } else {
++            for(const g of row.gradients) {
++                const axis=g.dof%6,node=Math.floor(g.dof/6),body=g.side?joint.outerBody:joint.innerBody;
++                if(axis<3)startGap+=g.value*(s.start[g.side][XYZ[axis]][node]-body[XYZ[axis].toLowerCase()][node]);
++            }
++            if(row.kind==='sheath'&&!s.diagnostics.unverifiedHistoryKinds.includes('sheath-tangent-plane'))s.diagnostics.unverifiedHistoryKinds.push('sheath-tangent-plane');
++        }
++        row._splitStartGap=startGap;
++        row.strain=Math.max(0,startGap)+kirchhoffSplitRowMotion(joint,row.gradients);
++    }
++}
++/** Call BEFORE the pose apply: local/right angular impulse uses that frame.
++ * All channels are owned by the joint and therefore roll back with its trial. */
++export function applyKirchhoffSplitPhysicalIncrement(joint,result) {
++    const s=joint._splitMotion;if(!s||s.phase!=='physical')return;
++    for(const [side,body]of [joint.innerBody,joint.outerBody].entries()) {
++        const m=s.bodies[side],c=(side?result.outer:result.inner).correction,f=result.scale/s.dt;
++        for(let node=body.activeStart;node<=body.activeEnd;node++) {
++            for(let axis=0;axis<3;axis++)m['velocity'+XYZ[axis]][node]+=f*c[node*6+axis];
++            if(node===body.activeEnd)continue;
++            const w=rotateVectorByQuaternion(frame(body,node),{x:c[node*6+3],y:c[node*6+4],z:c[node*6+5]});
++            for(const axis of XYZ)m['angularVelocity'+axis][node]+=f*w[axis.toLowerCase()];
++        }
++    }
++}
++export function beginKirchhoffSplitBias(joint,world,accepted) {
++    const s=joint._splitMotion;s.diagnostics.physicalAccepted=accepted;
++    s.physicalMaterialResidual={...measureKirchhoffSplitMaterial(joint,s.dt,{})};
++    s.physicalEnergy=energy(joint,s.dt);
++    s.materialStrainOffsets=[joint.innerBody,joint.outerBody].map(b=>assembleKirchhoffDirect(b,s.dt).strain.slice());
++    s.controlStrain=[joint.innerBody,joint.outerBody].map(b=>Float64Array.from({length:b.count*3},(_,i)=>{
++        const node=Math.floor(i/3),axis=XYZ[i%3];return b[axis.toLowerCase()][node]-b['control'+axis][node];
++    }));
++    s.bank={bodies:[],joints:{},contacts:[],tools:[],sweeps:s.sweeps,pointWalls:s.pointWalls};
++    for(const b of [joint.innerBody,joint.outerBody]) {
++        const bank={};for(const key of bodyBankKeys){bank[key]=b[key];b[key]=new b[key].constructor(b[key].length);}
++        bank.orientationTarget=[...XYZ,'W'].map(axis=>b['orientationControl'+axis]);
++        const controlled=b.orientationControlSegment;
++        if(b.orientationControlCompliance>0&&controlled>=b.activeStart&&controlled<b.activeEnd)
++            for(const axis of [...XYZ,'W'])b['orientationControl'+axis]=b['orientation'+axis][controlled];
++        s.bank.bodies.push(bank);
++    }
++    for(const key of jointBankKeys){s.bank.joints[key]=joint[key];delete joint[key];}
++    for(const c of joint.manifold.contacts()) {
++        const bank={contact:c,id:c.id,innerMaterialSegmentId:c.innerMaterialSegmentId,
++            outerMaterialSegmentId:c.outerMaterialSegmentId,feature:c.feature};
++        for(const key of contactKeys){bank[key]=c[key];c[key]=0;}
++        for(const key of contactVectors)bank[key]=c[key].slice();c.tangentLambda.fill(0);s.bank.contacts.push(bank);
++    }
++    for(const tool of world.toolContacts) {
++        s.bank.tools.push({tool,lambdas:tool.lambdas,reactions:tool._jointReactions});
++        tool.lambdas=new tool.lambdas.constructor(tool.lambdas.length);tool._jointReactions=new Map();
++    }
++    s.sweeps=s.sweeps.map(r=>({...r,lambda:0}));s.pointWalls=[new Map(),new Map()];s.phase='bias';
++}
++export function finishKirchhoffSplitBias(joint,accepted) {
++    const s=joint._splitMotion;s.diagnostics.biasAccepted=accepted;
++    const after=energy(joint,s.dt);s.diagnostics.biasElasticEnergyDelta=after.elastic-s.physicalEnergy.elastic;
++    s.diagnostics.biasHardStrainMaximum=after.hardMaximum;
++    s.biasBank={bodies:[],joints:{},contacts:[],tools:[],pointWalls:s.pointWalls};
++    for(const [side,b]of [joint.innerBody,joint.outerBody].entries()) {
++        const bank={};for(const key of bodyBankKeys){bank[key]=b[key];b[key]=s.bank.bodies[side][key];}s.biasBank.bodies.push(bank);
++        [...XYZ,'W'].forEach((axis,i)=>{b['orientationControl'+axis]=s.bank.bodies[side].orientationTarget[i];});
++    }
++    for(const key of jointBankKeys){s.biasBank.joints[key]=joint[key];joint[key]=s.bank.joints[key];}
++    for(const c of joint.manifold.contacts()) {
++        const bank={contact:c};for(const key of contactKeys){bank[key]=c[key];c[key]=0;}
++        for(const key of contactVectors)bank[key]=c[key].slice();c.tangentLambda.fill(0);s.biasBank.contacts.push(bank);
++    }
++    for(const bank of s.bank.contacts) {
++        const c=bank.contact;
++        if(c._manifold!==joint.manifold||c.id!==bank.id||c.innerMaterialSegmentId!==bank.innerMaterialSegmentId||
++            c.outerMaterialSegmentId!==bank.outerMaterialSegmentId||c.feature!==bank.feature) {
++            if(!s.diagnostics.unverifiedHistoryKinds.includes('contact-identity-changed-during-bias'))
++                s.diagnostics.unverifiedHistoryKinds.push('contact-identity-changed-during-bias');
++            // The phase-final reset above already cleared all live reactions.
++            // A recycled object must never receive another material contact's bank.
++            continue;
++        }
++        for(const key of contactKeys)bank.contact[key]=bank[key];
++        for(const key of contactVectors)for(let i=0;i<bank[key].length;i++)bank.contact[key][i]=bank[key][i];
++    }
++    for(const bank of s.bank.tools) {
++        s.biasBank.tools.push({tool:bank.tool,lambdas:bank.tool.lambdas,reactions:bank.tool._jointReactions});
++        bank.tool.lambdas=bank.lambdas;bank.tool._jointReactions=bank.reactions;
++    }
++    s.sweeps=s.bank.sweeps;s.pointWalls=s.bank.pointWalls;s.phase='complete';s.materialStrainOffsets=null;
++}
++export function measureKirchhoffSplitMaterial(joint,dt,out={}) {
++    const s=joint._splitMotion;out.adaptationMm=out.bendTwistRad=0;
++    // A successful physical phase does not certify the later geometric pose.
++    // Re-evaluate native material equations after bias, with physical lambda.
++    // If bias changed elastic strain too much, this bounded prototype rejects
++    // the step; the saved phase residual remains available for diagnostics.
++    for(const [side,b]of [joint.innerBody,joint.outerBody].entries()) {
++        const m=assembleKirchhoffDirect(b,dt),offset=s.phase==='bias'?s.materialStrainOffsets[side]:null;
++        for(let row=0;row<m.rowCount;row+=6) {
++            const residual=k=>m.strain[row+k]-(offset?.[row+k]??0)+m.alpha[row+k]*m.lambda[row+k];
++            out.adaptationMm=Math.max(out.adaptationMm,Math.hypot(residual(3),residual(4),residual(5)));
++            out.bendTwistRad=Math.max(out.bendTwistRad,Math.hypot(residual(0),residual(1),residual(2)));
++        }
++    }
++    return out;
++}
++export function copyKirchhoffSplitVelocity(body) {
++    const m=body._splitPhysicalMotion;if(!m)return false;
++    for(const axis of XYZ){body['velocity'+axis].set(m['velocity'+axis]);body['angularVelocity'+axis].set(m['angularVelocity'+axis]);}
++    return true;
++}
++
++export function syncKirchhoffSplitVelocity(joint) {
++    const s=joint._splitMotion;let maximum=0;
++    for(const [side,b]of [joint.innerBody,joint.outerBody].entries())for(const prefix of ['velocity','angularVelocity'])for(const axis of XYZ) {
++        const physical=s.bodies[side][prefix+axis],actual=b[prefix+axis];
++        for(let i=0;i<physical.length;i++)maximum=Math.max(maximum,Math.abs(physical[i]-actual[i]));
++        physical.set(actual);
++    }
++    s.diagnostics.finishVelocityMaximumChange=maximum;
++}
++export function commitKirchhoffSplitHistory(joint,world,measurement) {
++    const s=joint._splitMotion,d=s.diagnostics;
++    d.rejectedTrials=d.rollbackCount=world.lastJointBacktracks;
++    d.physicalKKTResidualMm=Math.max(joint.kirchhoffSolverResidual,joint._jointBoundaryResidual,
++        measurement.frictionResidual.maximumDisplacementResidualMm,measurement.externalFrictionResidual.maximumDisplacementResidualMm,
++        measurement.wallPhysicalFriction?.maximumDisplacementResidualMm??0);
++    d.physicalConeViolation=Math.max(measurement.frictionResidual.maximumConeViolation,
++        measurement.externalFrictionResidual.maximumConeViolation,measurement.wallPhysicalFriction?.maximumConeViolation??0);
++    d.finalPhysicalResidualSettled=measurement.settled;
++    d.physicalPhaseMaterialResidual={...s.physicalMaterialResidual};
++    d.finalMaterialResidual={...measurement.materialResidual};
++    d.maximumOutwardContactVelocity=0;
++    for(const r of joint.kirchhoffContacts)if(r.manifoldContact&&r._splitActualGap<=world.coupledContainmentTolerance)
++        d.maximumOutwardContactVelocity=Math.max(d.maximumOutwardContactVelocity,-kirchhoffSplitRowMotion(joint,lumenGradients(r))/s.dt);
++    for(const r of joint._coupledBoundaries?.rows??[])if(['wall','tool','split-sweep','split-point-wall'].includes(r.kind)&&r._splitActualStrain<=world.coupledContainmentTolerance)
++        d.maximumOutwardContactVelocity=Math.max(d.maximumOutwardContactVelocity,-kirchhoffSplitRowMotion(joint,r.gradients)/s.dt);
++    d.certified=d.physicalAccepted&&d.biasAccepted&&measurement.settled&&d.unverifiedHistoryKinds.length===0&&
++        d.maximumOutwardContactVelocity*s.dt<=world.coupledContainmentTolerance;
++    if(d.certified) {
++        if(d.historyCommits)throw new Error('A physical timestep cannot commit its history twice');
++        // This snapshot is the committed physical motion consumed by the next
++        // prediction via the published body velocities; pseudo poses never
++        // become an implicit velocity-history channel.
++        joint._acceptedPhysicalMotion={step:s.step,dt:s.dt,bodies:s.bodies.map(m=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,v.slice()]))) };
++        d.historyCommits++;
++    }
++    return d.certified;
++}
++export function getKirchhoffSplitMotionStats(world) {
++    const joint=world.containments.find(c=>c._splitMotion?.phase==='complete');
++    if(!joint)return null;
++    const s=joint._splitMotion,d=s.diagnostics,contacts=[];
++    const biasByContact=new Map(s.biasBank.contacts.map(c=>[c.contact,c]));
++    const friction=new Map((joint._jointFrictionResidual?._batch?.entries??[]).map(e=>[e.contact,e]));
++    for(const c of joint.manifold.contacts()) {
++        const b=biasByContact.get(c),e=friction.get(c);
++        const tangent=e?e.surface.rows.map(r=>r.lambda):[...c.tangentLambda];
++        if(c.normalLambda||b?.normalLambda||tangent.some(v=>v))contacts.push({id:c.id,kind:'lumen',feature:e?.record.kind??c.feature,
++            normalPhysical:c.normalLambda,normalBias:b?.normalLambda??0,tangentPhysical:tangent,
++            mu:e?[...e.surface.group.mu]:[joint.axialFriction,joint.torsionalFriction]});
++    }
++    const wallFriction=new Map((joint._jointSplitWallFrictionResidual?._batch?.entries??[]).map(e=>[e.contact.key,e]));
++    for(const [side,body]of [joint.innerBody,joint.outerBody].entries()) {
++        for(let node=body.activeStart;node<body.activeEnd;node++) {
++            const physical=body.wallLambda[node],bias=s.biasBank.bodies[side].wallLambda[node],e=wallFriction.get(`wall:${side}:${node}`);
++            if(physical||bias||e?.contact.tangentLambda.some(v=>v))contacts.push({id:`wall:${side}:${node}`,kind:'wall',normalPhysical:physical,normalBias:bias,
++                tangentPhysical:e?e.surface.rows.map(r=>r.lambda):[0,0],mu:[body.wallStaticFriction,body.wallStaticFriction]});
++        }
++        const nodes=new Set([...s.pointWalls[side].keys(),...s.biasBank.pointWalls[side].keys()]);
++        for(const node of nodes) {
++            const p=s.pointWalls[side].get(node),b=s.biasBank.pointWalls[side].get(node),e=wallFriction.get(`split-point-wall:${side}:${node}`);
++            if(p?.lambda||b?.lambda||e?.contact.tangentLambda.some(v=>v))contacts.push({id:`wall-point:${side}:${node}`,kind:'wall',normalPhysical:p?.lambda??0,normalBias:b?.lambda??0,
++                tangentPhysical:e?e.surface.rows.map(r=>r.lambda):[0,0],mu:[body.wallStaticFriction,body.wallStaticFriction]});
++        }
++    }
++    for(const bank of s.bank.tools)for(let index=0;index<bank.tool.lambdas.length;index++) {
++        const p=bank.tool.lambdas[index],b=s.biasBank.tools.find(t=>t.tool===bank.tool)?.lambdas[index]??0;
++        const e=joint._jointExternalFrictionResidual?._batch?.entries.find(e=>e.owner===bank.tool&&e.index===index);
++        if(p||b||e?.contact.tangentLambda.some(v=>v))contacts.push({id:`tool:${bank.tool.id??'contact'}:${index}`,kind:'tool',normalPhysical:p,normalBias:b,
++            tangentPhysical:e?e.surface.rows.map(r=>r.lambda):[0,0],mu:[bank.tool.friction,bank.tool.friction]});
++    }
++    return {...d,reactionUnits:'xpbd-multiplier',impulseScale:1/s.dt,limitations:[...d.unverifiedHistoryKinds],contacts};
++}
+--- /dev/null
++++ b/src/physics/kirchhoffSplitWallFriction.js
+@@ -0,0 +1,110 @@
++import { buildKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
++import { rotateVectorByQuaternion } from './discreteKirchhoffRod.js';
++const XYZ=['X','Y','Z'];
++const wallKinds=new Set(['wall','split-point-wall','split-sweep']);
++function fixedWitness() {
++    const body={count:2,segmentCount:1,activeStart:0,activeEnd:1,nodeRadius:new Float64Array(2),inverseMass:new Float64Array(2),orientationControlSegment:-1};
++    for(const a of XYZ) {
++        body[a.toLowerCase()]=new Float64Array(2);body['previous'+a]=new Float64Array(2);
++        body['velocity'+a]=new Float64Array(2);body['angularVelocity'+a]=new Float64Array(1);
++    }
++    for(const a of [...XYZ,'W'])for(const prefix of ['orientation','previousOrientation'])body[prefix+a]=new Float64Array([a==='W'?1:0]);
++    for(let i=1;i<=3;i++)body['inverseInertia'+i]=new Float64Array(1);
++    return body;
++}
++function normalLoad(row) {return row.kind==='wall'?row.owner.wallLambda[row.node]:row.lambda;}
++function entryFor(batch,key,contact) {
++    const pool=batch.pool??=new Map();let entry=pool.get(key);
++    if(!entry) {
++        const wall=fixedWitness();
++        entry={wall,contact,record:{kind:'side',innerWeights:new Float64Array(2),outerWeights:new Float64Array([1,0]),
++            _outerSegmentIndex:0,surfaceContactPoint:new Float64Array(3),surfaceAxialTangent:new Float64Array(3),normal:new Float64Array(3)},
++            surface:{},constraint:{},rows:[{gradients:[]},{gradients:[]}],lambda:new Float64Array(2),residual:{}};
++        pool.set(key,entry);
++    }
++    entry.contact=contact;
++    return entry;
++}
++/** Static environment witness: its zero-mobility DOFs are omitted, while the
++ * rod receives the SAME surface force and radius moment as the shared-point
++ * surface law. Normal impulse is from the physical bank only. */
++export function buildKirchhoffSplitWallFriction(joint,normalRows,dt,out={}) {
++    out.rows??=[];out.groups??=[];out.entries??=[];
++    out.rows.length=out.groups.length=out.entries.length=0;
++    out.joint=joint;out.committed=false;out.rowOffset=0;
++    const state=joint._splitMotion;if(!state||state.phase==='bias')return out;
++    const contacts=state.wallFrictionContacts??=new Map();
++    for(const normal of normalRows) {
++        if(!wallKinds.has(normal.kind))continue;
++        const side=normal.side,body=side?joint.outerBody:joint.innerBody;
++        const mu=body.wallStaticFriction;
++        if(!(mu>0||body.wallKineticFriction>0))continue;
++        if(mu!==body.wallKineticFriction&&!state.diagnostics.unverifiedHistoryKinds.includes('unequal-wall-static-kinetic'))
++            state.diagnostics.unverifiedHistoryKinds.push('unequal-wall-static-kinetic');
++        const key=`${normal.kind}:${side}:${normal.node}`;
++        let contact=contacts.get(key);
++        if(!contact) {
++            contact={key,normalRow:normal,tangentLambda:new Float64Array(2),tangentU:new Float64Array([1,0,0]),tangentV:new Float64Array([0,0,1]),twistLambda:0,
++                get normalLambda(){return normalLoad(this.normalRow);}};
++            contacts.set(key,contact);
++        }
++        contact.normalRow=normal;
++        const entry=entryFor(out,key,contact),r=entry.record;
++        const segment=Math.min(normal.node,body.activeEnd-1),t=normal.kind==='wall'?body.wallT[normal.node]:Number(normal.node===body.activeEnd);
++        r._innerSegmentIndex=segment;r.innerWeights[0]=1-t;r.innerWeights[1]=t;r.manifoldContact=contact;
++        for(let a=0;a<3;a++)r.normal[a]=normal.kind==='wall'?body['wallNormal'+XYZ[a]][normal.node]:(normal.normal??normal.n)[a];
++        const radius=Math.max(body.nodeRadius[segment],body.nodeRadius[segment+1]);
++        const q={x:body.orientationX[segment],y:body.orientationY[segment],z:body.orientationZ[segment],w:body.orientationW[segment]};
++        let tangent=rotateVectorByQuaternion(q,{x:0,y:0,z:1});
++        let alignment=XYZ.reduce((sum,a,i)=>sum+tangent[a.toLowerCase()]*r.normal[i],0);
++        if(Math.abs(alignment)>1-1e-8)tangent=rotateVectorByQuaternion(q,{x:1,y:0,z:0});
++        for(let a=0;a<3;a++) {
++            const axis=XYZ[a],center=(1-t)*body[axis.toLowerCase()][segment]+t*body[axis.toLowerCase()][segment+1];
++            r.surfaceContactPoint[a]=center-radius*r.normal[a];r.surfaceAxialTangent[a]=tangent[axis.toLowerCase()];
++            entry.wall[axis.toLowerCase()].fill(r.surfaceContactPoint[a]);entry.wall['previous'+axis].fill(r.surfaceContactPoint[a]);
++        }
++        entry.wall.z[1]+=1;entry.wall.previousZ[1]+=1;
++        Object.assign(entry.constraint,{innerBody:body,outerBody:entry.wall,axialFriction:mu,circumferentialFriction:mu,
++            surfaceMotion:{dt,bodies:[state.bodies[side],entry.wall]}});
++        const surface=buildKirchhoffSurfaceFriction(entry.constraint,r,dt,entry.surface);
++        if(!surface.supported)throw new Error('Unsupported physical wall witness: '+surface.reason);
++        entry.rowStart=out.rows.length;entry.normalRow=normal;entry.side=side;
++        for(let axis=0;axis<2;axis++) {
++            const source=surface.rows[axis],row=entry.rows[axis];
++            row.kind='split-wall-friction';row.alpha=0;row.lambda=source.lambda;row.strain=source.strain;row.lower=-Infinity;row.upper=Infinity;
++            row.gradients=source.gradients.filter(g=>g.side===0).map(g=>({side,dof:g.dof,value:g.value}));out.rows.push(row);
++        }
++        out.groups.push({kind:'coulomb-disk',mu:surface.group.mu,normalLambda:contact.normalLambda,normalContact:contact,normalRow:normal,
++            rowIndices:[entry.rowStart,entry.rowStart+1]});out.entries.push(entry);
++    }
++    return out;
++}
++export function appendKirchhoffSplitWallFriction(batch,rows,groups) {
++    batch.rowOffset=rows.length;
++    rows.push(...batch.rows);
++    for(const group of batch.groups)groups.push({...group,rowIndices:group.rowIndices.map(i=>i+batch.rowOffset)});
++}
++export function commitKirchhoffSplitWallFriction(batch,increments,scale) {
++    if(batch.committed)throw new Error('Physical wall friction batch already committed');
++    for(const e of batch.entries) {
++        for(let axis=0;axis<2;axis++) {
++            const delta=scale*increments[batch.rowOffset+e.rowStart+axis];
++            if(!Number.isFinite(delta))throw new RangeError('Nonfinite physical wall friction increment');
++            e.lambda[axis]=e.rows[axis].lambda+delta;
++        }
++    }
++    for(const e of batch.entries) {
++        e.contact.tangentLambda.set(e.lambda);e.contact.tangentU.set(e.surface.axes[0]);e.contact.tangentV.set(e.surface.axes[1]);
++    }
++    batch.committed=true;
++}
++export function measureKirchhoffSplitWallFriction(joint,normalRows,dt,out={}) {
++    const batch=buildKirchhoffSplitWallFriction(joint,normalRows,dt,out._batch??={});
++    out.maximumDisplacementResidualMm=out.maximumConeViolation=0;out.contactCount=batch.entries.length;
++    for(const e of batch.entries) {
++        const kkt=evaluateKirchhoffSurfaceFrictionKKT(e.surface.rows.map(r=>r.lambda),e.surface.rows.map(r=>r.strain),e.contact.normalLambda,e.surface.group.mu,e.residual);
++        out.maximumDisplacementResidualMm=Math.max(out.maximumDisplacementResidualMm,kkt.residualMm);
++        out.maximumConeViolation=Math.max(out.maximumConeViolation,kkt.coneViolation);
++    }
++    return out;
++}
+--- a/src/physics/kirchhoffSurfaceFriction.js
++++ b/src/physics/kirchhoffSurfaceFriction.js
+@@ -217,6 +217,20 @@
+         rotate(s.previousQ, s.localLever, s.previousLever);
+         for (let i = 0; i < 3; i++) s.displacement[i] = s.center[i] - s.previousCenter[i] + s.lever[i] - s.previousLever[i];
+     }
++    const physicalMotion = constraint.surfaceMotion;
++    if (physicalMotion) {
++        if (physicalMotion.dt !== dt || physicalMotion.bodies?.length !== 2)
++            throw new RangeError('Physical surface motion requires the same physical timestep and two channels');
++        for (let side = 0; side < 2; side++) {
++            const s = state.sides[side], motion = physicalMotion.bodies[side];
++            s.displacement.fill(0);
++            for (let i = 0; i < s.count; i++) for (let axis = 0; axis < 3; axis++)
++                s.displacement[axis] += dt * s.weights[i] * finite(motion['velocity' + XYZW[axis]][s.nodes[i]], 'physical surface velocity');
++            const omega = [0, 1, 2].map(axis => finite(motion['angularVelocity' + XYZW[axis]][s.segment], 'physical surface angular velocity'));
++            cross(omega, s.lever, state.torque);
++            for (let axis = 0; axis < 3; axis++) s.displacement[axis] += dt * state.torque[axis];
++        }
++    }
+     for (let i = 0; i < 3; i++) {
+         out.relativeSurfaceDisplacement[i] = state.sides[0].displacement[i] - state.sides[1].displacement[i];
+         out.averageRelativeSurfaceVelocity[i] = out.relativeSurfaceDisplacement[i] / dt;
+@@ -246,6 +260,7 @@
+         out.rows[axis] = row;
+     }
+     out.supported = true;
++    out.diagnostics.motionSource = physicalMotion ? 'physical-velocity' : 'finite-pose-history';
+     return out;
+ }
+ 
+--- a/src/physics/kirchhoffCoupledSystem.js
++++ b/src/physics/kirchhoffCoupledSystem.js
+@@ -80,7 +80,12 @@
+         if (!s) continue;
+         for (let i = 0; i < s.rowCount; i++) {
+             const segment = s.start + Math.floor(i / 6);
+-            addRow('material', side, i, s.rhs[i], s.alpha[i], s.lambda[i], -Infinity, Infinity,
++            // Optional stabilization channel: preserve the physical phase's
++            // strain while solving its geometric increment. Original material
++            // law, Jacobians, metric, compliance and rest data stay unchanged.
++            const strainOffset = options.materialStrainOffsets?.[side]?.[i] ?? 0;
++            if (!Number.isFinite(strainOffset)) throw new RangeError('Invalid material strain offset');
++            addRow('material', side, i, s.rhs[i] + strainOffset, s.alpha[i], s.lambda[i], -Infinity, Infinity,
+                 arcs[side][segment] + (side ? offset : 0) + (i % 6) * 1e-5);
+         }
+         for (let dof = s.start * 6; dof < (s.end + 1) * 6; dof++) {
+@@ -152,6 +157,11 @@
+         }
+         const lambda = originalRows.map(i => rows[i].lambda);
+         let normalOriginal = normalRows?.get(source.normalContact);
++        if (options.resolveNormalLoads && source.normalRow) {
++            const index = options.additionalRows.indexOf(source.normalRow);
++            if (index < 0) throw new RangeError('A friction normal row must belong to the current additional rows');
++            normalOriginal = additionalOffset + index;
++        }
+         if (options.resolveNormalLoads && normalOriginal == null && source.normalContact?.owner) {
+             const contact = source.normalContact;
+             const index = options.additionalRows.findIndex(row => row.owner === contact.owner && row.node === contact.index && row.kind === 'tool');
+--- a/src/physics/kirchhoffCoupledBoundaryRows.js
++++ b/src/physics/kirchhoffCoupledBoundaryRows.js
+@@ -154,6 +154,8 @@
+             }
+         } else if (row.kind === 'tool-release') {
+             commitKirchhoffToolRelease(constraint, row, delta);
++        } else if (row.kind === 'split-sweep' || row.kind === 'split-point-wall') {
++            row.lambda = Math.max(0, next);
+         } else if (row.kind === 'sheath') {
+             row.owner.lambda[row.node] = Math.max(0, next);
+             row.owner.active[row.node] = Number(row.activeHint);
+@@ -165,7 +167,7 @@
+ export function measureKirchhoffCoupledBoundaryResidual(rows) {
+     let maximum = 0;
+     for (const row of rows) {
+-        if (!['control', 'wall', 'tool', 'sheath'].includes(row.kind)) continue;
++        if (!['control', 'wall', 'tool', 'sheath', 'split-sweep', 'split-point-wall'].includes(row.kind)) continue;
+         const residual = row.strain + row.alpha * row.lambda;
+         maximum = Math.max(maximum, row.lower === -Infinity || row.lambda > 1e-10
+             ? Math.abs(residual) : Math.max(0, -residual));
+--- a/src/physics/kirchhoffCoupledFrictionRows.js
++++ b/src/physics/kirchhoffCoupledFrictionRows.js
+@@ -110,7 +110,7 @@
+     const radius = Math.max(finite(inner.nodeRadius?.[segment] ?? inner.radius, 'wire radius'),
+         finite(inner.nodeRadius?.[segment + 1] ?? inner.radius, 'wire radius'));
+     if (radius < 0) throw new RangeError('Wire radius must be non-negative');
+-    const gap = finite(record.gap, 'contact gap');
++    const gap = finite(constraint.surfaceMotion ? record._splitActualGap ?? record.gap : record.gap, 'contact gap');
+     out.kind = record.kind; out.gap = gap; out.wireRadius = radius;
+     out.effectiveFillet = record.kind === 'distal-fillet';
+     out.pointSource = record.surfaceContactPoint ? 'provided' : 'effective-gap-witness';
+@@ -184,6 +184,7 @@
+     out.constraint = constraint; out.dt = dt; out.rowOffset = 0;
+     out.committed = false; out.appended = false; out.version = (out.version ?? 0) + 1;
+     out.maximumNormalMomentResidual = 0; out.effectiveFilletCount = 0;
++    if (constraint.surfaceMotion?.phase === 'bias') return out;
+     for (const record of constraint.kirchhoffContacts ?? []) {
+         if (!record.manifoldContact) { out.skipped.push({ record, reason: 'no-manifold-contact' }); continue; }
+         const index = out.entries.length, entry = out._pool[index] ??= makeEntry();
+--- a/src/physics/kirchhoffExternalFrictionRows.js
++++ b/src/physics/kirchhoffExternalFrictionRows.js
+@@ -144,6 +144,7 @@
+     record.surfaceAxialTangent = g.axialTangent;
+     g.tangentSource = chooseTangent(joint.outerBody, record._outerSegmentIndex, g.normal, g.axialTangent);
+     entry.constraint.innerBody = joint.innerBody; entry.constraint.outerBody = joint.outerBody;
++    entry.constraint.surfaceMotion = joint.surfaceMotion;
+     entry.constraint.axialFriction = entry.constraint.circumferentialFriction = mu;
+     entry.normalRow = row; entry.owner = row.owner; entry.index = row.node;
+     entry.bodyA = row.bodyA; entry.bodyB = row.bodyB;
+@@ -171,6 +172,7 @@
+     out.constraint = constraint; out.dt = dt; out.rowOffset = 0;
+     out.committed = out.appended = false; out.version = (out.version ?? 0) + 1;
+     out.maximumNormalMomentResidual = 0; out.state = null;
++    if (constraint.surfaceMotion?.phase === 'bias') return out;
+     for (const row of normalRows ?? []) {
+         if (row.kind !== 'tool' || !row.owner || row.owner.enabled === false) continue;
+         const mu = finite(row.owner.friction ?? 0, 'external friction');
+--- /dev/null
++++ b/tests/kirchhoffSplitMotionCertification.test.js
+@@ -0,0 +1,142 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { createRequire } from 'node:module';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++// Small native-World regression cases for split-motion certification.
++// Fixture adapted from the independent 0827 analytic oracle.
++const sourceRoot = resolve(process.env.OET_SPLIT_MOTION_SOURCE_ROOT ?? fileURLToPath(new URL('../', import.meta.url)));
++const source = path => pathToFileURL(resolve(sourceRoot, path));
++const { EndovascularPhysicsWorld } = await import(source('src/physics/endovascularPhysicsWorld.js'));
++const { solveKirchhoffCoupledSystem, applyKirchhoffCoupledCorrection } = await import(source('src/physics/kirchhoffCoupledSystem.js'));
++const { Quaternion, Vector3 } = createRequire(source('package.json'))('three');
++
++const DT = 1 / 120, MODE = 'split-physical-bias';
++// Float32 positions/velocities at coordinates of order 1 mm, reconstructed
++// over 1/120 s. These are fixture precision bounds, not relaxed World gates.
++const POSITION = 2e-6, VELOCITY = 5e-4, ANGULAR = 2e-5, LAMBDA = 1e-10;
++const axes = ['X', 'Y', 'Z'], xyz = ['x', 'y', 'z'];
++const close = (actual, expected, tolerance, message) => assert.ok(Number.isFinite(actual) &&
++    Math.abs(actual - expected) <= tolerance, `${message}: ${actual} vs ${expected}, tolerance ${tolerance}`);
++const frame = (body, i) => new Quaternion(...['X', 'Y', 'Z', 'W'].map(a => body['orientation' + a][i])).normalize();
++const writeFrame = (body, i, q) => ['X', 'Y', 'Z', 'W'].forEach((a, j) => { body['orientation' + a][i] = q.toArray()[j]; });
++const spin = angle => new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), angle);
++
++// Analytic lumen y <= 0: finite segments attain their largest wall violation
++// at an endpoint. No production collision/constraint helper supplies the oracle.
++class AffineWall {
++    voxelSize = .5;
++    write(p, radius, out) {
++        const gap = -p.y - radius, penetration = Math.max(0, -gap);
++        Object.assign(out, { signedDistance: -p.y, signedGap: gap, penetration,
++            inside: p.y <= 0, violation: gap < 0, branchId: 0, faceIndex: 0,
++            source: 'split-motion-affine-oracle', timeOfImpact: gap < 0 ? 0 : 1 });
++        Object.assign(out.point, p); Object.assign(out.closestPoint, { x: p.x, y: 0, z: p.z });
++        Object.assign(out.inward, { x: 0, y: -1, z: 0 }); Object.assign(out.normal, out.inward);
++        Object.assign(out.target, { x: p.x, y: p.y - penetration, z: p.z });
++        return out;
++    }
++    querySphere(p, radius, out) { return this.write(p, radius, out); }
++    queryCapsule(a, b, radius, out) {
++        const p = a.y >= b.y ? a : b;
++        this.write(p, radius, out); out.segmentT = p === a ? 0 : 1; return out;
++    }
++    sweepSphere(a, b, radius, out) {
++        this.write(b, radius, out);
++        const ga = -a.y - radius, gb = -b.y - radius;
++        out.timeOfImpact = gb >= 0 ? 1 : ga <= 0 ? 0 : ga / (ga - gb);
++        return out;
++    }
++}
++
++const profile = { radius: .25, mass: 1, inverseAngularInertia: 1,
++    adaptationCompliance: 0, kirchhoffBendCompliance: .02, kirchhoffTwistCompliance: .02,
++    maxBendAngle: 179, foldLimitStrength: 0, linearDamping: 1, angularDamping: 1,
++    projectionVelocityRetention: 0, wallProjectionVelocityRetention: 0, toolProjectionVelocityRetention: 0,
++    wallStaticFriction: 0, wallKineticFriction: 0, wallCompliance: 0,
++    sleepVelocity: 0, sleepAngularVelocity: 0, sleepFrames: 1e6, postStabilizationPasses: 0 };
++
++function fixture({ wall = false, nested = false, y = 0, mu = 0, dt = DT } = {}) {
++    const calls = { solve: 0, apply: 0 };
++    const world = new EndovascularPhysicsWorld({ fixedDt: dt, jointMotionMode: MODE,
++        contactField: wall ? new AffineWall() : null,
++        coupledSystem: {
++            solve(c, physicalDt, options) {
++                calls.solve++;
++                return solveKirchhoffCoupledSystem(c, physicalDt, { ...options,
++                    activeCondensation: true, simultaneousCoulomb: true });
++            },
++            apply(c, result) { calls.apply++; applyKirchhoffCoupledCorrection(c, result); }
++        } });
++    const wire = world.createRod('proof-wire', 3, 1, { ...profile, radius: wall ? .5 : .25 });
++    const catheter = world.createRod('proof-catheter', 5, 1, { ...profile, radius: 1 });
++    for (let i = 0; i < wire.count; i++) wire.setNodePosition(i, i - 1, y, 0);
++    for (let i = 0; i < catheter.count; i++) catheter.setNodePosition(i, i - 2, wall ? -4 : 0, 0);
++    // An exact, static external support. Reaction/momentum checks below refer
++    // to the free wire; the supported catheter may exchange momentum with it.
++    catheter.inverseMass.fill(0);
++    for (const key of ['inverseInertia1', 'inverseInertia2', 'inverseInertia3']) catheter[key].fill(0);
++    const constraint = world.addContainment(wire, catheter, { innerRadius: nested ? .75 : 100,
++        openDistal: false, openProximal: false, enforceDistalPortal: false,
++        axialFriction: mu, torsionalFriction: mu, radialVelocityDamping: 0, coupledBendingRateDamping: 0 });
++    wire.copyCurrentToPrevious(); catheter.copyCurrentToPrevious();
++    return { world, wire, catheter, constraint, calls, wall, nested };
++}
++
++const { beginKirchhoffSplitMotion, beginKirchhoffSplitBias, finishKirchhoffSplitBias,
++    commitKirchhoffSplitHistory } = await import(source('src/physics/kirchhoffSplitMotion.js'));
++const { assembleKirchhoffDirect } = await import(source('src/physics/kirchhoffDirectSolver.js'));
++
++test('stationary wall bias does not become velocity on the next physical timestep', () => {
++    const f = fixture({wall:true,y:-.25});
++    for (let step=0;step<2;step++) {
++        f.world.stepFixed();
++        const d=f.world.getStats().jointMotion;
++        assert.equal(d.certified,true,JSON.stringify(d));
++        assert.equal(d.historyCommits,1);
++        for(const a of axes) for(const v of f.wire['velocity'+a]) close(v,0,VELOCITY,'next-step physical velocity');
++        for(const a of axes) for(const w of f.wire['angularVelocity'+a]) close(w,0,ANGULAR,'next-step physical spin');
++        for(let i=0;i<f.wire.count;i++)close(f.wire.y[i],-.5,POSITION,'repaired wall pose');
++        assert.ok(Math.abs(d.biasElasticEnergyDelta)<1e-9);
++    }
++});
++
++test('nonuniform bias that changes elastic strain cannot reuse the old phase certificate', () => {
++    const f=fixture({wall:true,y:-.5});
++    for(let i=0;i<f.wire.count;i++)f.wire.setNodePosition(i,i-1,-.5+.2*(i-1),0);
++    f.wire.captureRestConfiguration();f.wire.copyCurrentToPrevious();
++    f.world.stepFixed();
++    const d=f.world.getStats().jointMotion,m=assembleKirchhoffDirect(f.wire,DT);
++    let actual=0;
++    for(let i=0;i<m.rowCount;i+=6)actual=Math.max(actual,Math.hypot(...[0,1,2].map(k=>m.strain[i+k]+m.alpha[i+k]*m.lambda[i+k])));
++    assert.ok(actual>f.world.coupledAngularToleranceRad,'fixture must have a real final material residual');
++    assert.ok(d.biasElasticEnergyDelta>.1,'fixture must change elastic energy');
++    assert.equal(d.certified,false);
++    assert.equal(d.historyCommits,0);
++    assert.equal(d.finalPhysicalResidualSettled,false);
++    close(d.finalMaterialResidual.bendTwistRad,actual,1e-9,'fresh geometric material equation');
++    assert.ok(d.physicalPhaseMaterialResidual.bendTwistRad<f.world.coupledAngularToleranceRad);
++});
++
++test('a stable runtime id cannot restore physical load to new material labels during bias', () => {
++    const f=fixture({nested:true,y:.5,mu:.3});f.world.stepFixed();
++    const c=[...f.constraint.manifold.contacts()][0];assert.ok(c);
++    c.normalLambda=2;c.tangentLambda[0]=.3;c.tangentLambda[1]=.1;
++    const id=c.id,oldInner=c.innerMaterialSegmentId;
++    beginKirchhoffSplitMotion(f.constraint,f.world);
++    beginKirchhoffSplitBias(f.constraint,f.world,true);
++    f.constraint.manifold.rekeyKnownContact(c,{id,
++        innerMaterialSegmentId:String(oldInner)+':migrated',
++        outerMaterialSegmentId:String(c.outerMaterialSegmentId)+':migrated',feature:c.feature});
++    assert.equal(c.id,id);assert.notEqual(c.innerMaterialSegmentId,oldInner);
++    finishKirchhoffSplitBias(f.constraint,true);
++    assert.equal(c.normalLambda,0);assert.deepEqual([...c.tangentLambda],[0,0]);
++    const s=f.constraint._splitMotion;
++    assert.ok(s.diagnostics.unverifiedHistoryKinds.includes('contact-identity-changed-during-bias'));
++    const zero={maximumDisplacementResidualMm:0,maximumConeViolation:0};
++    const accepted=commitKirchhoffSplitHistory(f.constraint,f.world,{settled:true,
++        materialResidual:{adaptationMm:0,bendTwistRad:0},frictionResidual:zero,externalFrictionResidual:zero});
++    assert.equal(accepted,false,'even otherwise settled equations cannot certify lost impulse ownership');
++    assert.equal(s.diagnostics.historyCommits,0);
++});
+--- /dev/null
++++ b/reports/split-physical-bias-handoff.md
+@@ -0,0 +1,54 @@
++# Optional World physical/bias prototype — frozen handoff
++
++Status: bounded experimental JOINT implementation. The default remains `jointMotionMode: 'position-history'`; opt in with `'split-physical-bias'`. This checkpoint is suitable for integration and further mechanical closure work, not a claim of full runtime acceptance. No rest shape, material compliance, tolerances, retention profile, discretization or solver backend default was changed.
++
++## Implemented contract
++
++One physical timestep captures immutable start poses and postforce physical velocity before CCD. A physical JOINT solve updates physical linear velocity and world angular velocity using the same common-scale correction applied to the pose; the local angular increment is rotated by its pre-apply material frame. Hard orientation targets prescribe angular motion from the step-start frame. Existing configured damping runs once on incoming physical motion.
++
++Physical contact rows use positive initial clearance plus `dt J vphysical`. Surface strain uses weighted physical point velocity including `omega x lever`; the existing surface-force gradients remain unchanged. Physical wall friction uses the same surface law against a stationary zero-mobility witness and couples its normal unknown into the simultaneous Coulomb solve through `groups[].normalRow`. Endpoint sphere witnesses supplement existing capsule-interior wall rows. Sweep planes are retained instead of feeding a positional TOI clamp into physical velocity.
++
++A separate bias JOINT solve repairs actual geometry with zero physical-friction rows and distinct multiplier banks. Material RHS offsets preserve the physical phase strain reference while original native J/W/compliance/rest data remain unchanged. Bias pose changes never increment physical velocity. Bias elastic energy change and hard strain are reported explicitly.
++
++At finish, physical multiplier banks are restored and actual geometric material equations, current contact/friction equations, controls, folds and outward contact velocities are checked again. A successful first phase cannot certify a later elastic deformation: `physicalPhaseMaterialResidual` and `finalMaterialResidual` are distinct. Recycled manifold objects must preserve membership, id, both material labels and feature before their physical bank is restored. A mismatch leaves stored old values in `_splitMotion.bank.contacts`, does not transfer Fn/Ft, and forces explicit uncertified status. It is not a mechanically reconciled release.
++
++Published body velocities come from the physical channel; legacy pose-derived velocities and contact projection-retention corrections are bypassed for the split pair. Accepted history is recorded exactly once per accepted dt. A failed certificate has `historyCommits: 0`.
++
++## Frozen verification
++
++- Original independent native World oracle, unchanged from 0827: **8/8 PASS** after both final guards. Covers stationary wall overlap, nested bias-only positive friction, true incoming normal load and Coulomb budget, force equivalence, away motion/material spin, analytic free twist recoil, hard controls over two dt and forced trial rollback. Log `/tmp/oet-split-independent-final-8996.txt`.
++- Default SurfaceFriction, ExternalFrictionRows, CoupledSystem suite: **48/48 PASS**, log `/tmp/oet-split-default-final-8996.txt`.
++- New `tests/kirchhoffSplitMotionCertification.test.js`: **3/3 PASS**. Stationary bias remains zero physical motion on next dt. Tilted stress-free rod receiving nonuniform wall bias is rejected using fresh material equations. A contact with a stable runtime id but changed material labels cannot inherit a prior physical reaction or commit history.
++- Reviewer independent rechecks and three positive-wall-friction tests are coordinated separately by root; this handoff does not claim their pending outcome.
++- No scenes, replays, full benchmarks, commits or root edits were performed for this checkpoint.
++
++Reproduce local certification tests:
++
++```sh
++node --test --test-concurrency=1 tests/kirchhoffSplitMotionCertification.test.js
++```
++
++Independent original oracle against this source tree:
++
++```sh
++OET_SPLIT_MOTION_SOURCE_ROOT=/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer node --test --test-concurrency=1 /Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer/tests/kirchhoffSplitMotionWorld.test.js
++```
++
++## Explicitly open results
++
++The translated-mouth lifecycle proof (`reports/probe-translated-split-world.mjs`, output `/tmp/oet-translated-split-final-8996.txt`) now has physical Fn=0 and physical Ft=[0,0] on every sampled contact; geometric bias no longer creates the old spurious Coulomb force. Nevertheless its current witnesses require additional physical closure after bias. The final result is **certified=false, historyCommits=0**, physical KKT displacement residual **0.0016996188682287892 mm**, maximum outward contact velocity **0.20395426418745471 mm/s**, cone violation 0 and bias elastic energy change **1.2561989880728693e-6**. Both phaseAccepted flags are true; they are not the final certificate. No outer physical/bias reclosure loop has been added.
++
++The review's tilted stress-free 3-node wire (`y=-.5+.2*(i-1)`, radius .5) exposes a much stronger issue if the phase material residual were reused: bias changes elastic energy by about .15582 and leaves about .07895 rad actual material residual. The final guard now rejects it. Mechanical redistribution of that bias remains future work.
++
++Other prototype limits:
++
++- Changing contact material identity during bias is detected and rejected, without impulse undo/reconciliation. The old physical bank remains available for diagnosis.
++- Unequal wall static/kinetic coefficients and sheath tangent-plane history are explicitly marked unverified, so cannot certify.
++- Wall friction keys currently identify capsule segment or endpoint, not a fixed material coordinate. A reviewer component proof moved a capsule foot `wallT:0→1` while retaining Ft on the same segment key. This is not a full World false-pass proof, but wall witness/history ownership needs closure before general runtime acceptance.
++- CCD sweep reactions participate in the solve but are not included in public `contacts` reaction samples; `sweptWitnesses` counts them. Public summed wall reactions are therefore incomplete when sweeps are present. Nonlinear/new-witness CCD behavior needs further independent validation.
++- This World step is not an all-or-nothing outer transaction: final failure does not roll back the entire published pose/velocity timestep. `historyCommits:0` means the accepted-history snapshot was not committed, not that live World/body state was restored. Root must decide failed-step handling before using this as a default runtime path.
++- General moving zero-mass kinematic supports, migration and long/scaled runtime behavior have not been certified. Physical translation prediction currently uses zero velocity for inverseMass=0 nodes.
++
++## Patch boundary
++
++The handoff patch is built against a freshly captured root tree, contains exactly eight physics source paths, this new test and this report, and preserves root's `includeSystem.originalGroups` audit addition and sealed three-field surface gradients. It does not touch Direct, TrialState, ContactNormalRows, FoldRows, OrientationRows or any discretization/benchmark/profile file. The JSON manifest records root-before and 8996-after SHA256 per path. The patch is checked against a temporary copy of those exact root files; root itself is untouched.

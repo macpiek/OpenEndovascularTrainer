@@ -1,0 +1,14 @@
+{
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-composite-clearance-review-3q2op7ez",
+  "hashes": {
+    "src/physics/kirchhoffCompositeClearance.js": "c2766cd1b4334c0b098748b514b8262cee44bb0672caaa50c5f935846413762d",
+    "tests/kirchhoffCompositeClearance.test.js": "fec4feded0c7f3c1a0765708249b94dadf8a243d0748ecbe4f924dee8c6e6233",
+    "package.json": "a8198bbca4551b0e9080d1a1246a608af294e664cecf5fc1c5884824f7629f44"
+  },
+  "sourceStillMatches": {
+    "src/physics/kirchhoffCompositeClearance.js": true,
+    "tests/kirchhoffCompositeClearance.test.js": true,
+    "package.json": false
+  }
+}

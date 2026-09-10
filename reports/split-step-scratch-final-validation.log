@@ -1,0 +1,67 @@
+✔ rollback restores exact body bytes and identities without traversing static geometry (15.591333ms)
+✔ geometry basis remap, friction commit, material rekey and pooled contact replacement roll back by identity (7.54575ms)
+✔ boundary/fold/sheath/tool multipliers and branch hints restore while actual work counts remain (1.847375ms)
+✔ active topology edits fail before any rollback writes (2.343209ms)
+✔ sealed record layouts still capture changing values, hidden data and child identities (3.326459ms)
+✔ reused storage captures new values, changed array identities, keys and owner contacts (3.1535ms)
+✔ frozen solve batches retry the same correction after fresh geometry and friction measurements (5.556125ms)
+✔ rebuilding an immutable solve batch rejects rollback before touching physical state (0.645584ms)
+✔ frozen split-wall rows preserve their mechanical owner and retry after a fresh wall measurement (3.838375ms)
+✔ rebuilding frozen split-wall rows rejects restore before physical writes (8.059084ms)
+✔ reused property layout preserves accessors, hidden values and same-size key replacements (1.089ms)
+✔ reused traversal discovers same-size graph replacements, cycles, maps and sets (1.106958ms)
+✔ root and external barrier changes update a reused traversal without inspecting static geometry (3.773292ms)
+✔ filtered body state can switch between captured numeric data and external objects (2.313459ms)
+✔ shared views retain exact NaN payload, signed zero and subview bytes on repeated rollback (1.066958ms)
+✔ array holes, additional hidden keys and changed identities are captured between trials (1.3585ms)
+✔ a rejected real joint apply and contact refresh reproduce the original mechanical solve (39.244ms)
+✔ hard strain-preserving bias repairs a tilted rest rod without elastic or kinetic bias (53.791375ms)
+✔ an immobile rod penetrating the plane cannot certify an infeasible strain-preserving bias (9.521ms)
+✔ bias within the original geometry tolerance certifies without a linear solve or artificial motion (2.611416ms)
+✔ bias outside the original geometry tolerance still solves and repairs the raw gap (7.554292ms)
+✔ an initially settled bias cannot override a rejected physical phase (4.893167ms)
+✔ stationary wall bias does not become velocity on the next physical timestep (58.735333ms)
+✔ nonuniform bias that changes elastic strain cannot reuse the old phase certificate (11.460208ms)
+✔ a stable runtime id cannot restore physical load to new material labels during bias (14.120125ms)
+✔ initial affine-wall overlap is repaired without physical velocity, spin or load (29.697708ms)
+✔ nested bias-only contact with positive friction preserves axial slip and has zero physical budget (38.845459ms)
+✔ nested incoming velocity creates physical load and a bounded friction impulse (46.765625ms)
+✔ nested external force creates physical load and a bounded friction impulse (15.425ms)
+✔ wall bias preserves incoming away/tangent motion and independent wire-only axial spin (9.670458ms)
+✔ free torsional prestrain produces analytic physical recoil and dissipative total energy (1.587042ms)
+✔ hard positional and orientation controls remain exact while physical history commits once per dt (4.629208ms)
+✔ a rejected physical trial rolls back and commits the accepted physical history once (6.649625ms)
+✔ lumen: failed dt then retry matches full capture with contact/history aliases intact (105.915292ms)
+✔ external: failed dt then retry matches full capture with contact/history aliases intact (36.715166ms)
+✔ wall: failed dt then retry matches full capture with contact/history aliases intact (21.346417ms)
+✔ an uncertified dt preserves its failed certificate and matches full-capture retry physics (21.515333ms)
+✔ capture omits dense derived graphs but retains boundary rows, material and reaction owners (16.3125ms)
+✔ negative material rekey keeps the physical bank, rejects history transfer and restores its old owner (6.493042ms)
+✔ uncertified tilted dt restores body/history/manifold/tools/sheath and force inputs before damping (99.863917ms)
+✔ advance keeps rejected dt queued and prepares callback inputs only once across retries (16.660209ms)
+✔ a rejected internal physical trial can still commit exactly one accepted dt (2.597042ms)
+✔ whole-step rollback reconnects original storage and topology even if a failing hook replaces them (2.059875ms)
+✔ accepted transaction retains the selected per-joint bias material mode (2.821417ms)
+✔ pending split time cannot silently switch to another dt or another physical law (3.057125ms)
+✔ direct retry consumes the pending dt once and cannot fall back when the joint is unavailable (4.406209ms)
+✔ default position-history retains its return behavior and per-step callback scheduling (1.456042ms)
+✔ split configuration permits independent preparation and activates a transaction when the pair becomes eligible (5.389042ms)
+✔ leaving the eligible pair retires phase-local motion and cannot report its old certificate (5.103166ms)
+✔ losing pair eligibility cannot suppress the partitioned radial damping path (5.298125ms)
+✔ a physical-phase failure survives bias initialization and whole-step rollback as owned diagnostics (6.729042ms)
+✔ positive physical wall load and axial slip balance impulse and the surface radius moment (59.582917ms)
+ℹ {"name":"loaded","mode":"split-physical-bias","physicalPasses":1,"biasPasses":1,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":1.1438848271372315e-9,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical"],"wallFrictionGroups":[3],"rawGaps":[0,0],"velocity":[[3.6999964714050293,3.6999964714050293],[-1.6666649171881431e-9,3.3333298343762863e-9],[0,0]],"omega":[[0],[0],[9.999989690478994e-9]],"contacts":[{"id":"wall:0:0","kind":"wall","normalPhysical":0.0016666651936247945,"normalBias":0,"tangentPhysical":[-0.0004999995395379534,0],"mu":[0.3,0.3]},{"id":"wall-point:0:0","kind":"wall","normalPhysical":0.0016666652372328266,"normalBias":0,"tangentPhysical":[-0.0004999995666870933,0],"mu":[0.3,0.3]},{"id":"wall-point:0:1","kind":"wall","normalPhysical":0.013333320374237331,"normalBias":0,"tangentPhysical":[-0.003999996076409166,0],"mu":[0.3,0.3]}]}
+ℹ {"wrenchAudit":[{"edge":[0.5,0,0],"fullForce":[-0.5999994219161056,-1.9999980909847022,0],"expectedForce":[-0.5999994219161056,-1.9999980909847022,0],"fullMoment":[0,0,-3.361663385225447],"expectedMoment":[0,0,-3.3616633852254463],"radialMoment":[0,0,0.2999997109580528]}]}
+✔ positive wall friction coefficient cannot turn bias-only repair into a physical friction budget (13.598834ms)
+ℹ {"name":"bias-only","mode":"split-physical-bias","physicalPasses":1,"biasPasses":2,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":0,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical","bias","bias"],"wallFrictionGroups":[3],"rawGaps":[0,0],"velocity":[[3.9999961853027344,3.9999961853027344],[0,0],[0,0]],"omega":[[0],[0],[0]],"contacts":[{"id":"wall:0:0","kind":"wall","normalPhysical":0,"normalBias":0.125,"tangentPhysical":[0,0],"mu":[0.3,0.3]},{"id":"wall-point:0:0","kind":"wall","normalPhysical":0,"normalBias":0.12499999665485907,"tangentPhysical":[0,0],"mu":[0.3,0.3]},{"id":"wall-point:0:1","kind":"wall","normalPhysical":0,"normalBias":0.24999999756944472,"tangentPhysical":[0,0],"mu":[0.3,0.3]}]}
+✔ the next physical dt releases wall normal and friction reactions when pressure stops and the wire separates (6.82425ms)
+ℹ {"name":"before-release","mode":"split-physical-bias","physicalPasses":1,"biasPasses":1,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":1.1438848271372315e-9,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical"],"wallFrictionGroups":[3],"rawGaps":[0,0],"velocity":[[3.6999964714050293,3.6999964714050293],[-1.6666649171881431e-9,3.3333298343762863e-9],[0,0]],"omega":[[0],[0],[9.999989690478994e-9]],"contacts":[{"id":"wall:0:0","kind":"wall","normalPhysical":0.0016666651936247945,"normalBias":0,"tangentPhysical":[-0.0004999995395379534,0],"mu":[0.3,0.3]},{"id":"wall-point:0:0","kind":"wall","normalPhysical":0.0016666652372328266,"normalBias":0,"tangentPhysical":[-0.0004999995666870933,0],"mu":[0.3,0.3]},{"id":"wall-point:0:1","kind":"wall","normalPhysical":0.013333320374237331,"normalBias":0,"tangentPhysical":[-0.003999996076409166,0],"mu":[0.3,0.3]}]}
+ℹ {"name":"released","mode":"split-physical-bias","physicalPasses":1,"biasPasses":1,"historyCommits":1,"certified":true,"limitations":[],"physicalKKTResidualMm":0,"physicalConeViolation":0,"sweptWitnesses":0,"phases":["physical"],"wallFrictionGroups":[3],"rawGaps":[0.016666650772094727,0.016666650772094727],"velocity":[[2.999997138977051,2.999997138977051],[-1.9999980926513672,-1.9999980926513672],[0,0]],"omega":[[0],[0],[-1.1111112030448567e-9]],"contacts":[]}
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 377.741625

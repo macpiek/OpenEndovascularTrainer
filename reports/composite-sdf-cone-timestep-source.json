@@ -1,0 +1,68 @@
+{
+  "scope": "Four owned files only: full P1 SDF cone timestep plus explicit private signed SDF NCP iterates; no root source writes or shared collector edits",
+  "files": {
+    "src/physics/kirchhoffCompositeTimeStep.js": {
+      "before": "47c569faef65cca902d7c99583fd6dfb89ee2e613f947cc2a719bbfb4c3dab6b",
+      "after": "8e6854a8241058cefbba53d8c877c9bbac64ed321368638e120f756e710d4787"
+    },
+    "tests/kirchhoffCompositeSdfTimeStep.test.js": {
+      "before": "bbd1e287c399d20b94e21b50c0b3673e9a9441a20a7dd0584e093e93e1fd240c",
+      "after": "c29233be4478999c515bb98092f37488233926c8edda6ab607a97ecad9815027"
+    },
+    "src/physics/kirchhoffCompositeMixedDirection.js": {
+      "before": "5540faf6ddab4fc5770b5e637e39d577bf323d707c399d79ecad7b76a175e886",
+      "after": "ccd8cf04f52a7bb44a57fdb7a7f62ffdc3c9f2a2240432e315d53732b4fde4ec"
+    },
+    "tests/kirchhoffCompositeMixedDirection.test.js": {
+      "before": "fad606dbf89f31cd35a7bd0c9c6d3b6dafb9cdf750300dae2a8e50dd80624681",
+      "after": "c57c0294ac5de8758099df915783d49ce450af11a26f59cadf42ac07242da88f"
+    }
+  },
+  "patchSHA256": "d23b832cb950db2f8ec3b1ff03344602978058b7b2041dd715197049c9802a88",
+  "dependenciesSHA256": {
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeWallContacts.js": "47b11dedba3a67c124e1d499f1c162c60439349980b2ec2878a58b2bc2c581f7",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": "3e57d869cdc4deb403fe0802a5637f0699ad9ba40ea0c0dbe52fb05fb333a80f",
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1",
+    "src/physics/kirchhoffCompositeWallBvhGeometry.js": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "83a4496c191646f2c26668a72b781110bf7400f2255dd3795a4ab1a9b06390e7",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "4567e61ffe06c0d90598da02e535e715d833ded9d5946276369e6fd749e0fbec",
+    "src/physics/kirchhoffCompositeWallSdfBranches.js": "4346836ca63da0045abb878291a1f46ced1649c6637f5cec2a9dfda5dcd7ba0f",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8"
+  },
+  "validation": {
+    "tests": 70,
+    "pass": 70,
+    "fail": 0,
+    "bvhRows": 8,
+    "sdfTimeStep": 8,
+    "mixedDirection": 10,
+    "stage": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-sdf-timestep-test-d6np3c7_",
+    "rootBaseUnchanged": true,
+    "dependenciesUnchanged": true,
+    "rootApplyCheck": "passed"
+  },
+  "priorHelperBundle": "/tmp/oet-composite-sdf-branches-final-8996",
+  "witnessSHA256": "e37c4b4af8f19102cf43f967009285f96060712c5b62ce4f2ec521723473b359",
+  "artifactSHA256": {
+    "sdf-timestep.patch": "d23b832cb950db2f8ec3b1ff03344602978058b7b2041dd715197049c9802a88",
+    "witness.json": "e37c4b4af8f19102cf43f967009285f96060712c5b62ce4f2ec521723473b359",
+    "README.md": "27b1ed02b8fe0a2c77bab6b20a9c91a9a15e099e28f090c100676ba3b8d1bb3b",
+    "tests.log": "d1a43c70d4d1f84ccf7aba0de579d9fd9560413e445094409b8b630735f1768f",
+    "witness.mjs": "4d59491ef4462741e6aabd23532e6e856a7418a98eb583161eea2cedba2932da"
+  }
+}

@@ -381,6 +381,7 @@ export class KirchhoffContactManifold {
         outerMaterialSegmentId,
         feature = contact?.feature ?? 'lumen',
         id: suppliedId = null,
+        preserveLambdas = false,
         ...values
     } = {}) {
         if (contact?._manifold !== this) {
@@ -395,6 +396,14 @@ export class KirchhoffContactManifold {
             innerMaterialSegmentId !== contact.innerMaterialSegmentId ||
             outerMaterialSegmentId !== contact.outerMaterialSegmentId ||
             feature !== contact.feature;
+        // A moving closest point may cross an outer mesh cell inside the
+        // SAME material quadrature constraint. Its reaction remains owned by
+        // that constraint until the joint solve unloads it. This exception
+        // cannot be used to transfer force to a different inner material/feature.
+        if (preserveLambdas && (id !== contact.id ||
+            innerMaterialSegmentId !== contact.innerMaterialSegmentId || feature !== contact.feature)) {
+            throw new RangeError('Only a stable material contact may preserve its outer-slide reaction');
+        }
         if (id !== contact.id) {
             const existing = this._contacts.get(id);
             if (existing && existing !== contact) {
@@ -421,12 +430,14 @@ export class KirchhoffContactManifold {
             contact.feature = feature;
             contact.innerMaterialSegmentId = innerMaterialSegmentId;
             contact.outerMaterialSegmentId = outerMaterialSegmentId;
-            contact.normalLambda = 0;
-            contact.tangentLambda[0] = 0;
-            contact.tangentLambda[1] = 0;
-            contact.twistLambda = 0;
-            contact.innerTwistImpulse = 0;
-            contact.outerTwistImpulse = 0;
+            if (!preserveLambdas) {
+                contact.normalLambda = 0;
+                contact.tangentLambda[0] = 0;
+                contact.tangentLambda[1] = 0;
+                contact.twistLambda = 0;
+                contact.innerTwistImpulse = 0;
+                contact.outerTwistImpulse = 0;
+            }
         }
         return this.#remapContactValues(contact, values);
     }
@@ -459,7 +470,8 @@ export class KirchhoffContactManifold {
         tangentU,
         frictionCoefficient,
         twistFrictionCoefficient,
-        effectiveTwistRadius
+        effectiveTwistRadius,
+        projectFriction = true
     }) {
         const sameNormal = normal == null || (
             vectorComponent(normal, 0, 'x') === contact.normal[0] &&
@@ -544,8 +556,13 @@ export class KirchhoffContactManifold {
             );
         }
         contact.lastSeenStep = this._step;
-        this.#projectTangentialLambda(contact, contact.frictionCoefficient);
-        this.#projectTwistLambda(contact);
+        // The simultaneous surface solver owns the complete Coulomb group.
+        // Rebuilding geometry must not silently change its multipliers without
+        // applying their matching material/position direction.
+        if (projectFriction) {
+            this.#projectTangentialLambda(contact, contact.frictionCoefficient);
+            this.#projectTwistLambda(contact);
+        }
         return contact;
     }
 

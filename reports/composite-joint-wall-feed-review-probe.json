@@ -1,0 +1,199 @@
+{
+  "status": "PASS",
+  "scope": "original wall rows partial refresh failure, restore and clean retry; not a whole-dt benchmark",
+  "anatomySha256": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+  "originalQueries": 16,
+  "rejection": "Loaded wall source/sample/feature changed without traction transfer",
+  "discoveriesAfterFailure": 1,
+  "baseForces": [
+    2,
+    0,
+    0,
+    3,
+    0,
+    0
+  ],
+  "failedForces": [
+    0,
+    0,
+    2,
+    3,
+    0,
+    0
+  ],
+  "restoredForces": [
+    2,
+    0,
+    0,
+    3,
+    0,
+    0
+  ],
+  "acceptedForces": [
+    0,
+    2.1924778704896255,
+    0.5980074238507306,
+    0,
+    2.1924778704896255,
+    0.5980074238507306
+  ],
+  "acceptedRecords": [
+    {
+      "key": "[\"catheter\",0,0.4445]",
+      "provenance": {
+        "source": "sparse-sdf",
+        "sampleFraction": 1,
+        "sampleCount": 1,
+        "faceIndex": -1,
+        "branchSign": 1,
+        "cell": [
+          434,
+          60,
+          48
+        ]
+      },
+      "seam": {
+        "face": {
+          "axis": 0,
+          "gridIndex": 434
+        },
+        "sampleFraction": 1,
+        "sampleCount": 1
+      },
+      "representative": null
+    },
+    {
+      "key": "[\"catheter\",2,0.4445]",
+      "provenance": {
+        "source": "sparse-sdf",
+        "sampleFraction": 1,
+        "sampleCount": 1,
+        "faceIndex": -1,
+        "branchSign": 1,
+        "cell": [
+          434,
+          60,
+          48
+        ]
+      },
+      "seam": {
+        "face": {
+          "axis": 0,
+          "gridIndex": 434
+        },
+        "sampleFraction": 1,
+        "sampleCount": 1
+      },
+      "representative": null
+    }
+  ],
+  "certificate": {
+    "scope": "joint-original-wall-normal-rows-only",
+    "minGap": -4.6629367034256575e-15,
+    "minForce": 0.5980074238507306,
+    "penetration": 4.6629367034256575e-15,
+    "negativeForce": 0,
+    "ncp": 4.6629367034256575e-15,
+    "complementarity": 1.02233855337546e-14,
+    "domainAdmissible": true,
+    "samples": [
+      {
+        "key": "[\"catheter\",0,0.4445]",
+        "owner": "catheter",
+        "edge": 0,
+        "forceIndex": 1,
+        "source": "sparse-sdf",
+        "sdfBranch": 0,
+        "Fn": 2.1924778704896255,
+        "gap": -4.6629367034256575e-15,
+        "ncp": 4.6629367034256575e-15,
+        "complementarity": 1.02233855337546e-14,
+        "active": true,
+        "eliminated": false,
+        "representative": null
+      },
+      {
+        "key": "[\"catheter\",0,0.4445]",
+        "owner": "catheter",
+        "edge": 0,
+        "forceIndex": 2,
+        "source": "sparse-sdf",
+        "sdfBranch": 1,
+        "Fn": 0.5980074238507306,
+        "gap": -4.6629367034256575e-15,
+        "ncp": 4.6629367034256575e-15,
+        "complementarity": 2.7884707655945956e-15,
+        "active": true,
+        "eliminated": false,
+        "representative": null
+      },
+      {
+        "key": "[\"catheter\",2,0.4445]",
+        "owner": "catheter",
+        "edge": 2,
+        "forceIndex": 4,
+        "source": "sparse-sdf",
+        "sdfBranch": 0,
+        "Fn": 2.1924778704896255,
+        "gap": -4.6629367034256575e-15,
+        "ncp": 4.6629367034256575e-15,
+        "complementarity": 1.02233855337546e-14,
+        "active": true,
+        "eliminated": false,
+        "representative": null
+      },
+      {
+        "key": "[\"catheter\",2,0.4445]",
+        "owner": "catheter",
+        "edge": 2,
+        "forceIndex": 5,
+        "source": "sparse-sdf",
+        "sdfBranch": 1,
+        "Fn": 0.5980074238507306,
+        "gap": -4.6629367034256575e-15,
+        "ncp": 4.6629367034256575e-15,
+        "complementarity": 2.7884707655945956e-15,
+        "active": true,
+        "eliminated": false,
+        "representative": null
+      }
+    ],
+    "merit": 1.7618969322088025e-12,
+    "retainedRows": 4,
+    "converged": true,
+    "rowStructureChanged": false
+  },
+  "baselineOperatorSha256": "ae09b175061355f6c625ca998bf3ce5cde2be3f2365210dc13c9a489bb5b075b",
+  "acceptedOperatorSha256": "8dd228a0c30f5da7d983bf7298a3b2e0cf31d4c122bca3163351535bbbd9aec2",
+  "checks": {
+    "partialMutationObserved": true,
+    "noPartialResidual": true,
+    "failedOperatorsInvalidated": true,
+    "failedCommitRejected": true,
+    "restoreRequiresFreshQuery": true,
+    "baselineOperatorsBitExact": true,
+    "retryOperatorsAndForcesBitExact": true,
+    "retryHistoryMetadataBitExact": true,
+    "historyOwned": true
+  },
+  "diagnostics": {
+    "retry": {
+      "queries": 10,
+      "refreshes": 5,
+      "derivativeRefreshes": 0,
+      "discoveries": 3,
+      "restores": 1,
+      "structureVersion": 2,
+      "retainedRows": 4
+    },
+    "cold": {
+      "queries": 6,
+      "refreshes": 3,
+      "derivativeRefreshes": 0,
+      "discoveries": 2,
+      "restores": 0,
+      "structureVersion": 2,
+      "retainedRows": 4
+    }
+  }
+}

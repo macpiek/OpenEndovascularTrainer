@@ -1,0 +1,2330 @@
+{
+  "date": "2026-09-06T22:46:03.401Z",
+  "sourceBefore": {
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeMeshUpdate.js": "984abeb27908dce3f28a8e1dc372e7780185fc06a4fadbef4b846da34a2a2bbf",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffCompositeChain.js": "cbbb6c41b229515a5bdecbb46668378ab6a255b85a2b03a416dbb07e27bddc28",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "scripts/physics/benchmark-composite-material-cache.mjs": "8d8ecd5b3dbcc36147646bfb9019a46b97da82db1da52bc95d0cb4ffcdb57a9d",
+    "tests/kirchhoffCompositeMaterialCache.test.js": "4e0ea9522c4075c95243a37782412d3b86d16eb8fe1f6120845fbd8003d6e21b"
+  },
+  "warmups": 3,
+  "pairs": 6,
+  "scope": "Real immutable Glidewire/Berenstein profile adapters built once. Exact tip/material boundaries. Fixed optional spatial nodes. Paired full uncached Mesh build vs cached material build, topology+mesh+workspace+assembly+direction measured. Same synthetic 3D pose and independent spins per pair. Constitutive direction ONLY: no dt acceptance, remeshing history transfer, dynamics/contact/anatomy/FPS claim.",
+  "changesFromColdBaseline": "Profile adapters and optional mesh nodes persist. Both arms use identical topology, positions, frames, spins, nominal Voronoi weights and cached workspace policy. Mandatory moving boundaries still require a candidate remesh, explicitly not an accepted runtime state transfer.",
+  "cases": [
+    {
+      "insertion": 9,
+      "medians": {
+        "oracle": {
+          "topologyMs": 0.03258350000000121,
+          "materialMeshMs": 12.5595,
+          "workspaceMs": 0.01737500000000125,
+          "assemblyMs": 0.46904200000000174,
+          "solveMs": 0.2906665000000004,
+          "totalMs": 13.760666500000013,
+          "quadratureEvaluations": 916
+        },
+        "cached": {
+          "topologyMs": 0.03472900000001289,
+          "materialMeshMs": 1.1273125000000022,
+          "workspaceMs": 0.017249999999989996,
+          "assemblyMs": 0.5750210000000067,
+          "solveMs": 0.24512550000000033,
+          "totalMs": 2.157645500000001,
+          "quadratureEvaluations": 10
+        }
+      },
+      "pipelineSpeedup": 6.377630848070273,
+      "materialSpeedup": 11.141098852359018,
+      "cacheStatistics": {
+        "constantCells": 558,
+        "polynomialCells": 12,
+        "adaptiveProfileCells": 7,
+        "cacheHits": 62,
+        "fallbackCells": 0,
+        "freshEvaluations": 365,
+        "evictions": 0,
+        "entries": 19
+      },
+      "directionCounts": {
+        "oracle": {
+          "measuredConverged": 6,
+          "measuredFailed": 0,
+          "warmupConverged": 3,
+          "warmupFailed": 0
+        },
+        "cached": {
+          "measuredConverged": 6,
+          "measuredFailed": 0,
+          "warmupConverged": 3,
+          "warmupFailed": 0
+        }
+      },
+      "rows": [
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.049999999999999,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.049999999999999,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.315446445688707e-11,
+            "topologyMs": 0.1550409999999829,
+            "materialMeshMs": 19.157083999999998,
+            "workspaceMs": 0.02508299999999508,
+            "assemblyMs": 0.4259580000000085,
+            "solveMs": 0.2073750000000132,
+            "totalMs": 19.970540999999997,
+            "quadratureEvaluations": 916,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "0b2857d71da0b374a3bf4db42b6fdabcf84cb24804896904c7336560e47bab3b"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.049999999999999,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.049999999999999,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.3148663541583403e-11,
+            "topologyMs": 0.031125000000002956,
+            "materialMeshMs": 2.84537499999999,
+            "workspaceMs": 0.027874999999994543,
+            "assemblyMs": 0.6150000000000091,
+            "solveMs": 0.25329199999998764,
+            "totalMs": 3.7726669999999842,
+            "quadratureEvaluations": 20,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 2,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 20,
+              "evictions": 0,
+              "entries": 2
+            },
+            "poseInputHash": "0b2857d71da0b374a3bf4db42b6fdabcf84cb24804896904c7336560e47bab3b"
+          },
+          "parity": {
+            "energy": 5.032475130203614e-16,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 3.5941107570595933e-16,
+            "increment": 2.761679773755077e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0509999999999984,
+            9.050999999999998
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.061,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.061,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.447700292978027e-11,
+            "topologyMs": 0.050416999999981726,
+            "materialMeshMs": 12.383542000000006,
+            "workspaceMs": 0.014290999999985843,
+            "assemblyMs": 0.46170900000001325,
+            "solveMs": 0.2866249999999866,
+            "totalMs": 13.196583999999973,
+            "quadratureEvaluations": 916,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "45d24434d65fce94988afc3f3595b46a70d9add6f0b617c23ee4b55b46e407f5"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.061,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.061,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.8994548067665512e-11,
+            "topologyMs": 0.0902499999999975,
+            "materialMeshMs": 1.1366250000000093,
+            "workspaceMs": 0.031832999999977574,
+            "assemblyMs": 0.5350420000000042,
+            "solveMs": 0.22020800000001373,
+            "totalMs": 2.0139580000000024,
+            "quadratureEvaluations": 20,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 2,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 20,
+              "evictions": 0,
+              "entries": 2
+            },
+            "poseInputHash": "45d24434d65fce94988afc3f3595b46a70d9add6f0b617c23ee4b55b46e407f5"
+          },
+          "parity": {
+            "energy": 0,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 3.5941107570595933e-16,
+            "increment": 1.9872992140790302e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0619999999999994,
+            9.062
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.072,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0719999999999992,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.7807713637019162e-11,
+            "topologyMs": 0.03274999999999295,
+            "materialMeshMs": 12.735457999999994,
+            "workspaceMs": 0.02045900000001666,
+            "assemblyMs": 0.4763749999999902,
+            "solveMs": 0.2947080000000142,
+            "totalMs": 13.559750000000008,
+            "quadratureEvaluations": 924,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "eeedf4442adef17f33fa97b4f2979197ada31a5743ba584c7f8e0f03ad046ff3"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.072,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0719999999999992,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.3108181207144298e-11,
+            "topologyMs": 0.0337080000000185,
+            "materialMeshMs": 1.0748339999999814,
+            "workspaceMs": 0.009208000000000993,
+            "assemblyMs": 0.44725000000002524,
+            "solveMs": 0.23595799999998235,
+            "totalMs": 1.8009580000000085,
+            "quadratureEvaluations": 20,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 2,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 20,
+              "evictions": 0,
+              "entries": 2
+            },
+            "poseInputHash": "eeedf4442adef17f33fa97b4f2979197ada31a5743ba584c7f8e0f03ad046ff3"
+          },
+          "parity": {
+            "energy": 1.383519408750996e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 1.8189894035458565e-12,
+            "increment": 5.090372567906343e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0729999999999986,
+            9.072999999999999
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.061,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.061,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.447700292978027e-11,
+            "topologyMs": 0.023999999999972488,
+            "materialMeshMs": 16.119292,
+            "workspaceMs": 0.01345800000001418,
+            "assemblyMs": 0.5975839999999835,
+            "solveMs": 2.6957080000000246,
+            "totalMs": 19.450041999999996,
+            "quadratureEvaluations": 916,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "45d24434d65fce94988afc3f3595b46a70d9add6f0b617c23ee4b55b46e407f5"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.061,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.061,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.8994548067665512e-11,
+            "topologyMs": 0.19112499999999955,
+            "materialMeshMs": 1.6960830000000442,
+            "workspaceMs": 0.025291999999978998,
+            "assemblyMs": 0.6564159999999788,
+            "solveMs": 0.23695900000001302,
+            "totalMs": 2.8058750000000146,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 9,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "45d24434d65fce94988afc3f3595b46a70d9add6f0b617c23ee4b55b46e407f5"
+          },
+          "parity": {
+            "energy": 0,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 3.5941107570595933e-16,
+            "increment": 1.9872992140790302e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0619999999999994,
+            9.062
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.049999999999999,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.049999999999999,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.315446445688707e-11,
+            "topologyMs": 0.032417000000009466,
+            "materialMeshMs": 12.252541000000008,
+            "workspaceMs": 0.027417000000014013,
+            "assemblyMs": 1.0997079999999642,
+            "solveMs": 0.5495000000000232,
+            "totalMs": 13.961583000000019,
+            "quadratureEvaluations": 916,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "0b2857d71da0b374a3bf4db42b6fdabcf84cb24804896904c7336560e47bab3b"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.049999999999999,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.049999999999999,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.3148663541583403e-11,
+            "topologyMs": 0.03254199999997809,
+            "materialMeshMs": 1.117999999999995,
+            "workspaceMs": 0.007583000000010998,
+            "assemblyMs": 0.5011670000000095,
+            "solveMs": 0.2745830000000069,
+            "totalMs": 1.9338750000000005,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 9,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "0b2857d71da0b374a3bf4db42b6fdabcf84cb24804896904c7336560e47bab3b"
+          },
+          "parity": {
+            "energy": 5.032475130203614e-16,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 3.5941107570595933e-16,
+            "increment": 2.761679773755077e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0509999999999984,
+            9.050999999999998
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.039,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0389999999999997,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.0159596214597286e-11,
+            "topologyMs": 0.026292000000012195,
+            "materialMeshMs": 9.357041000000038,
+            "workspaceMs": 0.008999999999957708,
+            "assemblyMs": 0.36316700000003266,
+            "solveMs": 0.2847499999999741,
+            "totalMs": 10.040250000000015,
+            "quadratureEvaluations": 912,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "ec9610823894cdc09f8a00ae19693ffea6ca26593108eaac0c4443ea892f2460"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.039,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0389999999999997,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.944966135103727e-11,
+            "topologyMs": 0.035750000000007276,
+            "materialMeshMs": 1.116207999999972,
+            "workspaceMs": 0.00879200000002811,
+            "assemblyMs": 0.6190829999999892,
+            "solveMs": 0.5215000000000032,
+            "totalMs": 2.3013329999999996,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 9,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "ec9610823894cdc09f8a00ae19693ffea6ca26593108eaac0c4443ea892f2460"
+          },
+          "parity": {
+            "energy": 2.5165792055561047e-16,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 1.8189894035458565e-12,
+            "increment": 3.987782326575484e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0399999999999991,
+            9.04
+          ]
+        }
+      ],
+      "warmupRows": [
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.017,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0169999999999995,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.654930494943488e-11,
+            "topologyMs": 0.3056660000000022,
+            "materialMeshMs": 33.052625000000006,
+            "workspaceMs": 0.8962919999999883,
+            "assemblyMs": 13.21858300000001,
+            "solveMs": 3.1388749999999987,
+            "totalMs": 50.612041000000005,
+            "quadratureEvaluations": 912,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "bcc75732c3ab8c1f5728e4b53510d4ccb48df77f27f9aa405a27b3ce2a99d748"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.017,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0169999999999995,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.6671608538132432e-11,
+            "topologyMs": 0.21195899999999313,
+            "materialMeshMs": 7.831291000000007,
+            "workspaceMs": 0.3042920000000038,
+            "assemblyMs": 1.8533330000000063,
+            "solveMs": 1.405791999999991,
+            "totalMs": 11.606667000000002,
+            "quadratureEvaluations": 265,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 2,
+              "adaptiveProfileCells": 7,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 265,
+              "evictions": 0,
+              "entries": 9
+            },
+            "poseInputHash": "bcc75732c3ab8c1f5728e4b53510d4ccb48df77f27f9aa405a27b3ce2a99d748"
+          },
+          "parity": {
+            "energy": 2.5172021578119834e-16,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 3.5941107570595933e-16,
+            "increment": 6.88045540681026e-15
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.017999999999999,
+            9.017999999999999
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.027999999999999,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0279999999999987,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.0239903177933505e-11,
+            "topologyMs": 0.13408400000000142,
+            "materialMeshMs": 22.95958300000001,
+            "workspaceMs": 0.01583299999998644,
+            "assemblyMs": 0.8723750000000052,
+            "solveMs": 0.3921670000000006,
+            "totalMs": 24.374042000000003,
+            "quadratureEvaluations": 916,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "bd9ae782faaa24212513c5e5590f96463f14c9bce8530b6e7ab8f3e8632bc21d"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.027999999999999,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0279999999999987,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.319575467032292e-11,
+            "topologyMs": 0.09612500000000068,
+            "materialMeshMs": 1.6385829999999828,
+            "workspaceMs": 0.020792000000000144,
+            "assemblyMs": 2.5015420000000006,
+            "solveMs": 0.9818750000000023,
+            "totalMs": 5.2389169999999865,
+            "quadratureEvaluations": 20,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 2,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 20,
+              "evictions": 0,
+              "entries": 2
+            },
+            "poseInputHash": "bd9ae782faaa24212513c5e5590f96463f14c9bce8530b6e7ab8f3e8632bc21d"
+          },
+          "parity": {
+            "energy": 0,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 4.440892098500626e-16,
+            "increment": 1.0130785099704553e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0289999999999981,
+            9.028999999999998
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 9.039,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0389999999999997,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.0159596214597286e-11,
+            "topologyMs": 0.029167000000001053,
+            "materialMeshMs": 18.981333000000006,
+            "workspaceMs": 0.019416999999975815,
+            "assemblyMs": 0.6425000000000125,
+            "solveMs": 0.1894580000000019,
+            "totalMs": 19.861874999999998,
+            "quadratureEvaluations": 912,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "ec9610823894cdc09f8a00ae19693ffea6ca26593108eaac0c4443ea892f2460"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 9.039,
+            "nodes": 67,
+            "dofCount": 270,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 1.0389999999999997,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.944966135103727e-11,
+            "topologyMs": 0.06687500000001023,
+            "materialMeshMs": 1.3602500000000077,
+            "workspaceMs": 0.03758299999998371,
+            "assemblyMs": 0.7822920000000124,
+            "solveMs": 0.5332909999999913,
+            "totalMs": 2.7802910000000054,
+            "quadratureEvaluations": 20,
+            "cacheStatistics": {
+              "constantCells": 62,
+              "polynomialCells": 2,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 20,
+              "evictions": 0,
+              "entries": 2
+            },
+            "poseInputHash": "ec9610823894cdc09f8a00ae19693ffea6ca26593108eaac0c4443ea892f2460"
+          },
+          "parity": {
+            "energy": 2.5165792055561047e-16,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 1.8189894035458565e-12,
+            "increment": 3.987782326575484e-14
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            1.0399999999999991,
+            9.04
+          ]
+        }
+      ]
+    },
+    {
+      "insertion": 160,
+      "medians": {
+        "oracle": {
+          "topologyMs": 0.0385205000000326,
+          "materialMeshMs": 15.250895999999983,
+          "workspaceMs": 0.012708000000031916,
+          "assemblyMs": 0.4444169999999872,
+          "solveMs": 0.16960400000002096,
+          "totalMs": 15.922791500000017,
+          "quadratureEvaluations": 1936
+        },
+        "cached": {
+          "topologyMs": 0.041874999999976126,
+          "materialMeshMs": 1.4339170000000365,
+          "workspaceMs": 0.010895999999974038,
+          "assemblyMs": 0.438603999999998,
+          "solveMs": 0.16233300000001805,
+          "totalMs": 2.0576875000000143,
+          "quadratureEvaluations": 26
+        }
+      },
+      "pipelineSpeedup": 7.738197126628755,
+      "materialSpeedup": 10.635828991496435,
+      "cacheStatistics": {
+        "constantCells": 846,
+        "polynomialCells": 24,
+        "adaptiveProfileCells": 7,
+        "cacheHits": 68,
+        "fallbackCells": 0,
+        "freshEvaluations": 557,
+        "evictions": 0,
+        "entries": 31
+      },
+      "directionCounts": {
+        "oracle": {
+          "measuredConverged": 6,
+          "measuredFailed": 0,
+          "warmupConverged": 3,
+          "warmupFailed": 0
+        },
+        "cached": {
+          "measuredConverged": 6,
+          "measuredFailed": 0,
+          "warmupConverged": 3,
+          "warmupFailed": 0
+        }
+      },
+      "rows": [
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.04999999999998,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 4.8042000933001816e-11,
+            "topologyMs": 0.06075000000004138,
+            "materialMeshMs": 14.668624999999963,
+            "workspaceMs": 0.012958000000026004,
+            "assemblyMs": 0.4019999999999868,
+            "solveMs": 0.15366699999998445,
+            "totalMs": 15.298000000000002,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "7f3042b2240b2655f1c5661fb0b97bacf4053f01d02a3d699c6aeb72627aa6b4"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.04999999999998,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 3.479803944994586e-11,
+            "topologyMs": 0.01741700000002311,
+            "materialMeshMs": 2.182208000000003,
+            "workspaceMs": 0.011332999999979165,
+            "assemblyMs": 0.5632499999999823,
+            "solveMs": 0.22566700000004403,
+            "totalMs": 2.9998750000000314,
+            "quadratureEvaluations": 52,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 4,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 52,
+              "evictions": 0,
+              "entries": 4
+            },
+            "poseInputHash": "7f3042b2240b2655f1c5661fb0b97bacf4053f01d02a3d699c6aeb72627aa6b4"
+          },
+          "parity": {
+            "energy": 2.7764415903871546e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 4.547473508864641e-13,
+            "increment": 8.088529845906578e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.051,
+            144.051,
+            150.051,
+            152.051,
+            160.051
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.061,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.438696466988688e-11,
+            "topologyMs": 0.018875000000036835,
+            "materialMeshMs": 15.564874999999972,
+            "workspaceMs": 0.012458000000037828,
+            "assemblyMs": 0.441709000000003,
+            "solveMs": 0.15999999999996817,
+            "totalMs": 16.197917000000018,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "3e2cd2e39566898ab98f05251977203e9eb5b6c70a6aadbc963a76629eb051c6"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.061,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.9679279867078634e-11,
+            "topologyMs": 0.06016600000003791,
+            "materialMeshMs": 1.1757499999999936,
+            "workspaceMs": 0.01045899999996891,
+            "assemblyMs": 0.40937500000001137,
+            "solveMs": 0.15416599999997516,
+            "totalMs": 1.809915999999987,
+            "quadratureEvaluations": 52,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 4,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 52,
+              "evictions": 0,
+              "entries": 4
+            },
+            "poseInputHash": "3e2cd2e39566898ab98f05251977203e9eb5b6c70a6aadbc963a76629eb051c6"
+          },
+          "parity": {
+            "energy": 2.7647744522396348e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 2.545508341740896e-13,
+            "increment": 1.2846390617937686e-12
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.062,
+            144.062,
+            150.062,
+            152.062,
+            160.062
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.072,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 5.345920234267609e-11,
+            "topologyMs": 0.035625000000038654,
+            "materialMeshMs": 12.456582999999966,
+            "workspaceMs": 0.011292000000025837,
+            "assemblyMs": 0.3392079999999851,
+            "solveMs": 0.2087500000000091,
+            "totalMs": 13.051458000000025,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "2d2596857b306014145e85057c050380a76789702e369c992d08a6852075be6a"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.072,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 6.537448707377713e-11,
+            "topologyMs": 0.054082999999991443,
+            "materialMeshMs": 2.101333000000011,
+            "workspaceMs": 0.03495900000001484,
+            "assemblyMs": 0.7495829999999728,
+            "solveMs": 0.15583300000002964,
+            "totalMs": 3.0957910000000197,
+            "quadratureEvaluations": 52,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 4,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 52,
+              "evictions": 0,
+              "entries": 4
+            },
+            "poseInputHash": "2d2596857b306014145e85057c050380a76789702e369c992d08a6852075be6a"
+          },
+          "parity": {
+            "energy": 2.776438744441141e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 5.30638889850287e-13,
+            "increment": 7.468470286653428e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.073,
+            144.073,
+            150.073,
+            152.073,
+            160.073
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.061,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.438696466988688e-11,
+            "topologyMs": 0.02808399999997846,
+            "materialMeshMs": 24.064250000000015,
+            "workspaceMs": 0.011750000000006366,
+            "assemblyMs": 0.44712499999997135,
+            "solveMs": 0.17145800000002964,
+            "totalMs": 24.722667,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "3e2cd2e39566898ab98f05251977203e9eb5b6c70a6aadbc963a76629eb051c6"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.061,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.9679279867078634e-11,
+            "topologyMs": 0.03895799999997962,
+            "materialMeshMs": 1.1934170000000108,
+            "workspaceMs": 0.008667000000002645,
+            "assemblyMs": 0.4307499999999891,
+            "solveMs": 0.20537500000000364,
+            "totalMs": 1.8771669999999858,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 11,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "3e2cd2e39566898ab98f05251977203e9eb5b6c70a6aadbc963a76629eb051c6"
+          },
+          "parity": {
+            "energy": 2.7647744522396348e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 2.545508341740896e-13,
+            "increment": 1.2846390617937686e-12
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.062,
+            144.062,
+            150.062,
+            152.062,
+            160.062
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.04999999999998,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 4.8042000933001816e-11,
+            "topologyMs": 0.04141600000002654,
+            "materialMeshMs": 14.936916999999994,
+            "workspaceMs": 0.013750000000015916,
+            "assemblyMs": 0.48783299999996643,
+            "solveMs": 0.16775000000001228,
+            "totalMs": 15.647666000000015,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "7f3042b2240b2655f1c5661fb0b97bacf4053f01d02a3d699c6aeb72627aa6b4"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.04999999999998,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 3.479803944994586e-11,
+            "topologyMs": 0.015625,
+            "materialMeshMs": 1.2727090000000203,
+            "workspaceMs": 0.008125000000006821,
+            "assemblyMs": 0.4464580000000069,
+            "solveMs": 0.16883300000000645,
+            "totalMs": 1.9117500000000405,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 11,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "7f3042b2240b2655f1c5661fb0b97bacf4053f01d02a3d699c6aeb72627aa6b4"
+          },
+          "parity": {
+            "energy": 2.7764415903871546e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 4.547473508864641e-13,
+            "increment": 8.088529845906578e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.051,
+            144.051,
+            150.051,
+            152.051,
+            160.051
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.039,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 3.3651303965598345e-11,
+            "topologyMs": 0.08666700000003402,
+            "materialMeshMs": 20.941374999999994,
+            "workspaceMs": 0.01429200000001174,
+            "assemblyMs": 0.7933749999999691,
+            "solveMs": 0.22758299999998144,
+            "totalMs": 22.06329199999999,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "5474173af0a37ba963491b5a7c108f06e791f8f8cd58e1c513ebfcb8da34ff62"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.039,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 4.8585479389684494e-11,
+            "topologyMs": 0.04479199999997263,
+            "materialMeshMs": 1.5951250000000528,
+            "workspaceMs": 0.01599999999996271,
+            "assemblyMs": 0.4139160000000288,
+            "solveMs": 0.13379199999997127,
+            "totalMs": 2.203624999999988,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 11,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "5474173af0a37ba963491b5a7c108f06e791f8f8cd58e1c513ebfcb8da34ff62"
+          },
+          "parity": {
+            "energy": 2.7764430139185833e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 2.0531613589349587e-13,
+            "increment": 7.634726184591045e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.04,
+            144.04,
+            150.04,
+            152.04,
+            160.04
+          ]
+        }
+      ],
+      "warmupRows": [
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.017,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 3.2666383487089945e-11,
+            "topologyMs": 0.022957999999960066,
+            "materialMeshMs": 18.95912500000003,
+            "workspaceMs": 0.36941699999999855,
+            "assemblyMs": 0.7949169999999981,
+            "solveMs": 0.17633299999999963,
+            "totalMs": 20.322749999999985,
+            "quadratureEvaluations": 1940,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "ac436465f627e19b7c4d5a290bf48e7e7fe62c57520a298fc6776b291ed4d434"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.017,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 3.513460355986098e-11,
+            "topologyMs": 0.03858300000001691,
+            "materialMeshMs": 2.2422920000000204,
+            "workspaceMs": 0.2010829999999828,
+            "assemblyMs": 0.5889999999999986,
+            "solveMs": 0.174082999999996,
+            "totalMs": 3.2450410000000147,
+            "quadratureEvaluations": 297,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 4,
+              "adaptiveProfileCells": 7,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 297,
+              "evictions": 0,
+              "entries": 11
+            },
+            "poseInputHash": "ac436465f627e19b7c4d5a290bf48e7e7fe62c57520a298fc6776b291ed4d434"
+          },
+          "parity": {
+            "energy": 2.7764458620979985e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 1.1368683772161603e-13,
+            "increment": 4.812816811750054e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.018,
+            144.018,
+            150.018,
+            152.018,
+            160.018
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.028,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 5.4569682106375694e-11,
+            "topologyMs": 0.0332080000000019,
+            "materialMeshMs": 23.270707999999956,
+            "workspaceMs": 0.013584000000037122,
+            "assemblyMs": 0.6420829999999569,
+            "solveMs": 0.17400000000003502,
+            "totalMs": 24.133582999999987,
+            "quadratureEvaluations": 1940,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "8bec97590372f423aefb45d791284728aacc1645e8dbc515dd14ac5dd54df5cf"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.028,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 4.405195652701366e-11,
+            "topologyMs": 0.018875000000036835,
+            "materialMeshMs": 1.626374999999996,
+            "workspaceMs": 0.024916999999959444,
+            "assemblyMs": 0.8010830000000055,
+            "solveMs": 0.16970900000001166,
+            "totalMs": 2.6409590000000094,
+            "quadratureEvaluations": 52,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 4,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 52,
+              "evictions": 0,
+              "entries": 4
+            },
+            "poseInputHash": "8bec97590372f423aefb45d791284728aacc1645e8dbc515dd14ac5dd54df5cf"
+          },
+          "parity": {
+            "energy": 2.7297815060941136e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 3.1726779434634765e-13,
+            "increment": 6.008527009271347e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.029,
+            144.029,
+            150.029,
+            152.029,
+            160.029
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 160.039,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 3.3651303965598345e-11,
+            "topologyMs": 0.02970799999997098,
+            "materialMeshMs": 19.232500000000016,
+            "workspaceMs": 0.012584000000003925,
+            "assemblyMs": 0.419791000000032,
+            "solveMs": 0.23316699999998036,
+            "totalMs": 19.927750000000003,
+            "quadratureEvaluations": 1936,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "5474173af0a37ba963491b5a7c108f06e791f8f8cd58e1c513ebfcb8da34ff62"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 160.039,
+            "nodes": 69,
+            "dofCount": 310,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 2,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 4.8585479389684494e-11,
+            "topologyMs": 0.0417910000000461,
+            "materialMeshMs": 1.085374999999999,
+            "workspaceMs": 0.00874999999996362,
+            "assemblyMs": 0.4096670000000131,
+            "solveMs": 0.1758750000000191,
+            "totalMs": 1.721458000000041,
+            "quadratureEvaluations": 52,
+            "cacheStatistics": {
+              "constantCells": 94,
+              "polynomialCells": 4,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 7,
+              "fallbackCells": 0,
+              "freshEvaluations": 52,
+              "evictions": 0,
+              "entries": 4
+            },
+            "poseInputHash": "5474173af0a37ba963491b5a7c108f06e791f8f8cd58e1c513ebfcb8da34ff62"
+          },
+          "parity": {
+            "energy": 2.7764430139185833e-14,
+            "gradient": 2.2737367544323206e-13,
+            "hessian": 2.0531613589349587e-13,
+            "increment": 7.634726184591045e-13
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            142.04,
+            144.04,
+            150.04,
+            152.04,
+            160.04
+          ]
+        }
+      ]
+    },
+    {
+      "insertion": 310,
+      "medians": {
+        "oracle": {
+          "topologyMs": 0.030854000000033466,
+          "materialMeshMs": 24.405666499999995,
+          "workspaceMs": 0.015270500000042375,
+          "assemblyMs": 0.7721874999999727,
+          "solveMs": 0.20262499999995498,
+          "totalMs": 26.917708000000005,
+          "quadratureEvaluations": 2143
+        },
+        "cached": {
+          "topologyMs": 0.04074950000000399,
+          "materialMeshMs": 1.4233954999999696,
+          "workspaceMs": 0.012104500000020835,
+          "assemblyMs": 0.6161045000000627,
+          "solveMs": 0.18491649999998572,
+          "totalMs": 2.5302710000000275,
+          "quadratureEvaluations": 93
+        }
+      },
+      "pipelineSpeedup": 10.638270762301632,
+      "materialSpeedup": 17.146089403823826,
+      "cacheStatistics": {
+        "constantCells": 1116,
+        "polynomialCells": 30,
+        "adaptiveProfileCells": 22,
+        "cacheHits": 56,
+        "fallbackCells": 0,
+        "freshEvaluations": 1289,
+        "evictions": 0,
+        "entries": 52
+      },
+      "directionCounts": {
+        "oracle": {
+          "measuredConverged": 6,
+          "measuredFailed": 0,
+          "warmupConverged": 3,
+          "warmupFailed": 0
+        },
+        "cached": {
+          "measuredConverged": 6,
+          "measuredFailed": 0,
+          "warmupConverged": 2,
+          "warmupFailed": 1
+        }
+      },
+      "rows": [
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.05,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.05000000000001137,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.5692944294737332e-8,
+            "topologyMs": 0.02179200000000492,
+            "materialMeshMs": 23.061500000000024,
+            "workspaceMs": 0.014708000000041466,
+            "assemblyMs": 0.6382919999999785,
+            "solveMs": 0.1973329999999578,
+            "totalMs": 23.933625000000006,
+            "quadratureEvaluations": 2145,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "863c0dc83eef9bc9a3881f104039046d8f34cd0e1c2ba51098d2d357a44d8d60"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.05,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.05000000000001137,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.5461702961364066e-8,
+            "topologyMs": 0.04329099999995378,
+            "materialMeshMs": 1.2222090000000208,
+            "workspaceMs": 0.012582999999949607,
+            "assemblyMs": 0.6360420000000886,
+            "solveMs": 0.17279099999996106,
+            "totalMs": 2.086915999999974,
+            "quadratureEvaluations": 186,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 5,
+              "adaptiveProfileCells": 3,
+              "cacheHits": 4,
+              "fallbackCells": 0,
+              "freshEvaluations": 186,
+              "evictions": 0,
+              "entries": 8
+            },
+            "poseInputHash": "863c0dc83eef9bc9a3881f104039046d8f34cd0e1c2ba51098d2d357a44d8d60"
+          },
+          "parity": {
+            "energy": 2.4561953901321755e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 9.094947017729282e-13,
+            "increment": 9.135092682299728e-11
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.051,
+            294.051,
+            300.051,
+            302.051,
+            310.051
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.061,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.06099999999997863,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 8.03766697643482e-9,
+            "topologyMs": 0.0359169999999267,
+            "materialMeshMs": 20.351375000000075,
+            "workspaceMs": 0.014707999999927779,
+            "assemblyMs": 0.49450000000001637,
+            "solveMs": 0.1623339999999871,
+            "totalMs": 21.058833999999933,
+            "quadratureEvaluations": 2141,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "a0bb4bba4b15086c3a722bc18ee9ca2441dccc1c77e5f21fd76360465c691b17"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.061,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.06099999999997863,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.561881801670495e-8,
+            "topologyMs": 0.03995800000006966,
+            "materialMeshMs": 1.4312499999999773,
+            "workspaceMs": 0.011666999999988548,
+            "assemblyMs": 0.5961670000000368,
+            "solveMs": 0.17329099999994924,
+            "totalMs": 2.2523330000000215,
+            "quadratureEvaluations": 186,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 5,
+              "adaptiveProfileCells": 3,
+              "cacheHits": 4,
+              "fallbackCells": 0,
+              "freshEvaluations": 186,
+              "evictions": 0,
+              "entries": 8
+            },
+            "poseInputHash": "a0bb4bba4b15086c3a722bc18ee9ca2441dccc1c77e5f21fd76360465c691b17"
+          },
+          "parity": {
+            "energy": 2.4212726895418438e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.1368683772161603e-13,
+            "increment": 2.0701285130542146e-10
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.06199999999995,
+            294.06199999999995,
+            300.06199999999995,
+            302.06199999999995,
+            310.06199999999995
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.072,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.07200000000000273,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.0423708118878494e-8,
+            "topologyMs": 0.028292000000078588,
+            "materialMeshMs": 32.68816599999991,
+            "workspaceMs": 0.01295900000002348,
+            "assemblyMs": 0.9060829999999669,
+            "solveMs": 0.27350000000001273,
+            "totalMs": 33.90899999999999,
+            "quadratureEvaluations": 2149,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "837824f1b753b710fe3f693cd7082ce5e6f20e59c50a89fc8c21b527dbe29084"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.072,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.07200000000000273,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.141520344563219e-8,
+            "topologyMs": 0.016666999999984,
+            "materialMeshMs": 1.415540999999962,
+            "workspaceMs": 0.012542000000053122,
+            "assemblyMs": 0.5467079999999669,
+            "solveMs": 0.1965420000000222,
+            "totalMs": 2.187999999999988,
+            "quadratureEvaluations": 186,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 5,
+              "adaptiveProfileCells": 3,
+              "cacheHits": 4,
+              "fallbackCells": 0,
+              "freshEvaluations": 186,
+              "evictions": 0,
+              "entries": 8
+            },
+            "poseInputHash": "837824f1b753b710fe3f693cd7082ce5e6f20e59c50a89fc8c21b527dbe29084"
+          },
+          "parity": {
+            "energy": 7.333660983906634e-15,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.0671374205890829e-11,
+            "increment": 3.624671673918556e-10
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.073,
+            294.073,
+            300.073,
+            302.073,
+            310.073
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.061,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.06099999999997863,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 8.03766697643482e-9,
+            "topologyMs": 0.03704199999992852,
+            "materialMeshMs": 15.935958000000028,
+            "workspaceMs": 0.015833000000043285,
+            "assemblyMs": 0.5506249999999682,
+            "solveMs": 0.20791699999995217,
+            "totalMs": 16.74737499999992,
+            "quadratureEvaluations": 2141,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "a0bb4bba4b15086c3a722bc18ee9ca2441dccc1c77e5f21fd76360465c691b17"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.061,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.06099999999997863,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.561881801670495e-8,
+            "topologyMs": 0.04154099999993832,
+            "materialMeshMs": 2.4467090000000553,
+            "workspaceMs": 0.051375000000007276,
+            "assemblyMs": 0.74899999999991,
+            "solveMs": 0.369666000000052,
+            "totalMs": 3.658290999999963,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 12,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "a0bb4bba4b15086c3a722bc18ee9ca2441dccc1c77e5f21fd76360465c691b17"
+          },
+          "parity": {
+            "energy": 2.4212726895418438e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.1368683772161603e-13,
+            "increment": 2.0701285130542146e-10
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.06199999999995,
+            294.06199999999995,
+            300.06199999999995,
+            302.06199999999995,
+            310.06199999999995
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.05,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.05000000000001137,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.5692944294737332e-8,
+            "topologyMs": 0.03170799999998053,
+            "materialMeshMs": 25.749832999999967,
+            "workspaceMs": 0.027500000000031832,
+            "assemblyMs": 3.208499999999958,
+            "solveMs": 0.8842500000000655,
+            "totalMs": 29.901791000000003,
+            "quadratureEvaluations": 2145,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "863c0dc83eef9bc9a3881f104039046d8f34cd0e1c2ba51098d2d357a44d8d60"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.05,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.05000000000001137,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.5461702961364066e-8,
+            "topologyMs": 0.0242919999999458,
+            "materialMeshMs": 1.3314159999999902,
+            "workspaceMs": 0.01145900000005895,
+            "assemblyMs": 1.2692909999999529,
+            "solveMs": 0.19870900000000802,
+            "totalMs": 2.835166999999956,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 12,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "863c0dc83eef9bc9a3881f104039046d8f34cd0e1c2ba51098d2d357a44d8d60"
+          },
+          "parity": {
+            "energy": 2.4561953901321755e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 9.094947017729282e-13,
+            "increment": 9.135092682299728e-11
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.051,
+            294.051,
+            300.051,
+            302.051,
+            310.051
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.039,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.03899999999998727,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.0183699874637417e-8,
+            "topologyMs": 0.030000000000086402,
+            "materialMeshMs": 31.233791999999994,
+            "workspaceMs": 0.03737499999999727,
+            "assemblyMs": 1.3458329999999705,
+            "solveMs": 0.1960830000000442,
+            "totalMs": 32.84308300000009,
+            "quadratureEvaluations": 2141,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "9effae9cd7e91bb778628f1395217c9042e3b111e82662e0452cf13ec0fbe1b1"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.039,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.03899999999998727,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.4193435921364128e-8,
+            "topologyMs": 0.6200000000000045,
+            "materialMeshMs": 1.4739170000000286,
+            "workspaceMs": 0.011332999999922322,
+            "assemblyMs": 0.5437090000000353,
+            "solveMs": 0.15925000000004275,
+            "totalMs": 2.8082090000000335,
+            "quadratureEvaluations": 0,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 12,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "9effae9cd7e91bb778628f1395217c9042e3b111e82662e0452cf13ec0fbe1b1"
+          },
+          "parity": {
+            "energy": 2.4329144104230798e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.4504070877855255e-11,
+            "increment": 2.433591106409949e-10
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.03999999999996,
+            294.03999999999996,
+            300.03999999999996,
+            302.03999999999996,
+            310.03999999999996
+          ]
+        }
+      ],
+      "warmupRows": [
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.017,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.016999999999995907,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 6.731427957575031e-8,
+            "topologyMs": 0.015416999999956715,
+            "materialMeshMs": 18.468458,
+            "workspaceMs": 0.27545900000006895,
+            "assemblyMs": 0.5913329999999632,
+            "solveMs": 0.17062499999997272,
+            "totalMs": 19.52129199999996,
+            "quadratureEvaluations": 2125,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "b45b3eb4ffc1b6954a77fb0fb1c948c7e76f28e9b8976bfe287f3eb846196efe"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.017,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-failed",
+            "minimumCoordinateSpacing": 0.016999999999995907,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.803286977519747e-7,
+            "topologyMs": 0.042832999999973254,
+            "materialMeshMs": 1.527832999999987,
+            "workspaceMs": 0.1489169999999831,
+            "assemblyMs": 0.4845830000000433,
+            "solveMs": 0.16645900000003166,
+            "totalMs": 2.370625000000018,
+            "quadratureEvaluations": 359,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 5,
+              "adaptiveProfileCells": 7,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 359,
+              "evictions": 0,
+              "entries": 12
+            },
+            "poseInputHash": "b45b3eb4ffc1b6954a77fb0fb1c948c7e76f28e9b8976bfe287f3eb846196efe"
+          },
+          "parity": {
+            "energy": 2.7122932399574303e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.4210854715202004e-13,
+            "increment": 1.4167860773461882e-9
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.018,
+            294.018,
+            300.018,
+            302.018,
+            310.018
+          ]
+        },
+        {
+          "order": [
+            "cached",
+            "oracle"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.028,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.02800000000002001,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 5.46174187647519e-8,
+            "topologyMs": 0.020000000000095497,
+            "materialMeshMs": 17.46516699999995,
+            "workspaceMs": 0.013874999999984539,
+            "assemblyMs": 0.5945000000000391,
+            "solveMs": 0.16033300000003692,
+            "totalMs": 18.253875000000107,
+            "quadratureEvaluations": 2129,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "0d1fe863fab28f38d7fa17c24add2d0c705c525f13a3e385e619c1e8808f0a83"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.028,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.02800000000002001,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 5.746871245548846e-8,
+            "topologyMs": 0.016208000000005995,
+            "materialMeshMs": 1.184082999999987,
+            "workspaceMs": 0.00975000000005366,
+            "assemblyMs": 0.4334999999999809,
+            "solveMs": 0.16508399999997891,
+            "totalMs": 1.8086250000000064,
+            "quadratureEvaluations": 186,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 5,
+              "adaptiveProfileCells": 3,
+              "cacheHits": 4,
+              "fallbackCells": 0,
+              "freshEvaluations": 186,
+              "evictions": 0,
+              "entries": 8
+            },
+            "poseInputHash": "0d1fe863fab28f38d7fa17c24add2d0c705c525f13a3e385e619c1e8808f0a83"
+          },
+          "parity": {
+            "energy": 2.4561963855028524e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.0448657712947219e-11,
+            "increment": 1.0255656324176243e-9
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.029,
+            294.029,
+            300.029,
+            302.029,
+            310.029
+          ]
+        },
+        {
+          "order": [
+            "oracle",
+            "cached"
+          ],
+          "oracle": {
+            "kind": "oracle",
+            "catheterInsertion": 310.039,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.03899999999998727,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 2.0183699874637417e-8,
+            "topologyMs": 0.14875000000006366,
+            "materialMeshMs": 18.72454199999993,
+            "workspaceMs": 0.06400000000007822,
+            "assemblyMs": 1.664625000000001,
+            "solveMs": 0.5271669999999631,
+            "totalMs": 21.129084000000034,
+            "quadratureEvaluations": 2141,
+            "cacheStatistics": {
+              "constantCells": 0,
+              "polynomialCells": 0,
+              "adaptiveProfileCells": 0,
+              "cacheHits": 0,
+              "fallbackCells": 0,
+              "freshEvaluations": 0,
+              "evictions": 0,
+              "entries": 0
+            },
+            "poseInputHash": "9effae9cd7e91bb778628f1395217c9042e3b111e82662e0452cf13ec0fbe1b1"
+          },
+          "cached": {
+            "kind": "cached",
+            "catheterInsertion": 310.039,
+            "nodes": 69,
+            "dofCount": 341,
+            "factorBand": 13,
+            "status": "constitutive-direction-converged",
+            "minimumCoordinateSpacing": 0.03899999999998727,
+            "acceptedDt": null,
+            "factorCount": 1,
+            "residual": 1.4193435921364128e-8,
+            "topologyMs": 0.11566700000003038,
+            "materialMeshMs": 2.326082999999926,
+            "workspaceMs": 0.01079200000003766,
+            "assemblyMs": 0.453708000000006,
+            "solveMs": 0.15633300000001782,
+            "totalMs": 3.062583000000018,
+            "quadratureEvaluations": 186,
+            "cacheStatistics": {
+              "constantCells": 124,
+              "polynomialCells": 5,
+              "adaptiveProfileCells": 3,
+              "cacheHits": 4,
+              "fallbackCells": 0,
+              "freshEvaluations": 186,
+              "evictions": 0,
+              "entries": 8
+            },
+            "poseInputHash": "9effae9cd7e91bb778628f1395217c9042e3b111e82662e0452cf13ec0fbe1b1"
+          },
+          "parity": {
+            "energy": 2.4329144104230798e-14,
+            "gradient": 3.410605131648481e-13,
+            "hessian": 1.4504070877855255e-11,
+            "increment": 2.433591106409949e-10
+          },
+          "nextFeedStatus": "candidate-needs-state-transfer",
+          "missingNextBoundaries": [
+            292.03999999999996,
+            294.03999999999996,
+            300.03999999999996,
+            302.03999999999996,
+            310.03999999999996
+          ]
+        }
+      ]
+    }
+  ],
+  "sourceAfter": {
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeMeshUpdate.js": "984abeb27908dce3f28a8e1dc372e7780185fc06a4fadbef4b846da34a2a2bbf",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffCompositeChain.js": "cbbb6c41b229515a5bdecbb46668378ab6a255b85a2b03a416dbb07e27bddc28",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "scripts/physics/benchmark-composite-material-cache.mjs": "8d8ecd5b3dbcc36147646bfb9019a46b97da82db1da52bc95d0cb4ffcdb57a9d",
+    "tests/kirchhoffCompositeMaterialCache.test.js": "4e0ea9522c4075c95243a37782412d3b86d16eb8fe1f6120845fbd8003d6e21b"
+  },
+  "sourceStable": true
+}

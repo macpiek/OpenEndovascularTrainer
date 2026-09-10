@@ -1,0 +1,27 @@
+{
+  "patch": "/tmp/oet-two-channel-motion-final-8996/two-channel-motion.patch",
+  "patchSha256": "1cd3fed1a223192fad2d22833053b14ea854821f928ea124ebd9217a57906871",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffTwoChannelMotion.js",
+      "beforeSha256": null,
+      "afterSha256": "f3c08114c18f343204901dd258d1bc672188a03b24cc1a58d12ce2e01bcb72a8"
+    },
+    {
+      "path": "tests/kirchhoffTwoChannelMotion.test.js",
+      "beforeSha256": null,
+      "afterSha256": "42aaa1ad625dc4aca943c2e5bf824b5d18cfe477c0ad9a6a0f713b7723c63fed"
+    },
+    {
+      "path": "tests/kirchhoffTwoChannelMotionSystem.test.js",
+      "beforeSha256": null,
+      "afterSha256": "2de4acee295c3de7d5aad901492b6f96800a22e6107c195c7747a170eddfc00f"
+    }
+  ],
+  "readOnlyRootDependencies": {
+    "src/physics/kirchhoffTwoChannelSystem.js": "c38df7abd719a10bbdc9a4755b767971f52c9c0e27a1529a4b5ab70113fcc458",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "src/physics/kirchhoffCoupledSystem.js": "a8fb18ce4389a310b6400f00bbe50813fb19308aa5eb32ef3e875351fe97f5ee",
+    "src/physics/kirchhoffDirectSolver.js": "8bf685703ae164e352ae8dbf84c6dff55f0c19d21ee41b9d492f804f2c4d3e5d"
+  }
+}

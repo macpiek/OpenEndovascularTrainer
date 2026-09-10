@@ -1,18 +1,4 @@
-import {
-    BERENSTEIN_NATURAL_BEND_ANGLE_RAD,
-    BERENSTEIN_TIP_SHAPE_LENGTH_MM,
-    catheterMaterialProfile,
-    integrateBerensteinIntrinsicTurn,
-    integratePigtailIntrinsicTurn,
-    integrateSim1IntrinsicTurn,
-    PIGTAIL_NATURAL_ARC_LENGTH_MM,
-    PIGTAIL_NATURAL_TURNS,
-    SIM1_TIP_SHAPE_LENGTH_MM,
-    SIM1_TOTAL_TURN_RAD,
-    berensteinIntrinsicCurvature,
-    pigtailIntrinsicCurvature,
-    sim1IntrinsicCurvature
-} from './catheterMaterialProfile.js';
+import { BERENSTEIN_NATURAL_BEND_ANGLE_RAD, BERENSTEIN_TIP_SHAPE_LENGTH_MM, integrateBerensteinIntrinsicTurn, integratePigtailIntrinsicTurn, integrateSim1IntrinsicTurn, PIGTAIL_NATURAL_ARC_LENGTH_MM, PIGTAIL_NATURAL_TURNS, SIM1_TIP_SHAPE_LENGTH_MM, SIM1_TOTAL_TURN_RAD, berensteinIntrinsicCurvature, pigtailIntrinsicCurvature, sim1IntrinsicCurvature } from './catheterMaterialProfile.js';
 import {
     GUIDEWIRE_TYPE_GLIDEWIRE,
     GUIDEWIRE_TYPE_STEEL_J_035,
@@ -27,6 +13,12 @@ const TWO_PI = Math.PI * 2;
 const MINIMUM_RIGIDITY = 1e-12;
 const WIRE_POISSON_RATIO = 0.3;
 const CATHETER_POISSON_RATIO = 0.4;
+// Nominal 5 Fr catheter reference in the simulator's current rigidity scale.
+// This is a tunable mechanical preset, not measured N mm^2. In particular,
+// the old Pigtail shape-recovery compliance (1e-7) is a solver parameter;
+// interpreting its reciprocal as EI made it 200x stiffer than Berenstein.
+// Preform geometry is specified independently by kappa_0 below.
+export const CATHETER_REFERENCE_RIGIDITY = 50_000;
 // The legacy guidewire table stores relative bending weights, not EI in the
 // millimetre/radian units used by the Kirchhoff energy. For the simulator's
 // 4 mm guidewire cells, the old angular XPBD compliance was
@@ -34,7 +26,7 @@ const CATHETER_POISSON_RATIO = 0.4;
 // Kirchhoff uses L / EI, so EI = 64 * weight preserves the calibrated shaft
 // response (4 / (64 * weight) = 0.0625 / weight) instead of making the wire
 // roughly 64 times too soft during migration.
-export const LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI = 64;
+export const GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI = 64;
 
 // Five-point Gauss-Legendre quadrature is used only for the rigidity fields.
 // Rest curvature uses each device's exact, boundary-aware integral below.
@@ -196,36 +188,28 @@ export function defineKirchhoffMaterialProfile({
     return Object.freeze(profile);
 }
 
-function exactLegacyIntegral(integrator, sign = 1) {
+function exactIntrinsicIntegral(integrator, sign = 1) {
     return (start, end) => sign * integrator(
         (start + end) * 0.5,
         Math.max(0, end - start)
     );
 }
 
-function catheterRigiditySamplers(type) {
-    const legacyProfile = catheterMaterialProfile(type);
-    // This is a migration bridge, not a claim of calibrated physical units.
-    // A single inverse-compliance mapping at least gives straight and curved
-    // material one constitutive EI until force-deflection calibration replaces
-    // the legacy XPBD tuning value.
-    const EI = 1 /
-        Math.max(MINIMUM_RIGIDITY, legacyProfile.intrinsicBendCompliance);
-    const GJ = EI / (1 + CATHETER_POISSON_RATIO);
+function catheterRigiditySamplers() {
     return {
-        EI: () => EI,
-        GJ: () => GJ
+        EI: () => CATHETER_REFERENCE_RIGIDITY,
+        GJ: () => CATHETER_REFERENCE_RIGIDITY / (1 + CATHETER_POISSON_RATIO)
     };
 }
 
 function guidewireRigiditySamplers(type) {
-    const legacyProfile = guidewireMaterialProfile(type);
-    const tipEI = LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI *
-        positiveRigidity(legacyProfile.tipBendingStiffness, 'tip EI', type);
-    const bodyEI = LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI *
-        positiveRigidity(legacyProfile.bodyBendingStiffness, 'body EI', type);
-    const coreLength = Math.max(0, legacyProfile.tipCoreLength);
-    const transitionLength = Math.max(0, legacyProfile.tipTransitionLength);
+    const materialProfile = guidewireMaterialProfile(type);
+    const tipEI = GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI *
+        positiveRigidity(materialProfile.tipBendingStiffness, 'tip EI', type);
+    const bodyEI = GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI *
+        positiveRigidity(materialProfile.bodyBendingStiffness, 'body EI', type);
+    const coreLength = Math.max(0, materialProfile.tipCoreLength);
+    const transitionLength = Math.max(0, materialProfile.tipTransitionLength);
     const EI = distanceFromTipMm => geometricTransition(
         tipEI,
         bodyEI,
@@ -239,43 +223,49 @@ function guidewireRigiditySamplers(type) {
     };
 }
 
-const pigtailRigidity = catheterRigiditySamplers('pigtail');
-const berensteinRigidity = catheterRigiditySamplers('berenstein');
-const sim1Rigidity = catheterRigiditySamplers('sim1');
+function catheterProfiles() {
+    const pigtailRigidity = catheterRigiditySamplers();
+    const berensteinRigidity = catheterRigiditySamplers();
+    const sim1Rigidity = catheterRigiditySamplers();
+    return Object.freeze({
+        pigtail: defineKirchhoffMaterialProfile({
+            id: 'pigtail',
+            naturalTipLengthMm: PIGTAIL_NATURAL_ARC_LENGTH_MM,
+            sampleKappa01: s => -pigtailIntrinsicCurvature(s),
+            sampleEI1: pigtailRigidity.EI,
+            sampleGJ: pigtailRigidity.GJ,
+            integrateKappa01: exactIntrinsicIntegral(integratePigtailIntrinsicTurn, -1),
+            integrateKappa02: zeroIntegral,
+            integrateTau0: zeroIntegral
+        }),
+        berenstein: defineKirchhoffMaterialProfile({
+            id: 'berenstein',
+            naturalTipLengthMm: BERENSTEIN_TIP_SHAPE_LENGTH_MM,
+            sampleKappa01: berensteinIntrinsicCurvature,
+            sampleEI1: berensteinRigidity.EI,
+            sampleGJ: berensteinRigidity.GJ,
+            integrateKappa01: exactIntrinsicIntegral(integrateBerensteinIntrinsicTurn),
+            integrateKappa02: zeroIntegral,
+            integrateTau0: zeroIntegral
+        }),
+        sim1: defineKirchhoffMaterialProfile({
+            id: 'sim1',
+            naturalTipLengthMm: SIM1_TIP_SHAPE_LENGTH_MM,
+            sampleKappa01: s => -sim1IntrinsicCurvature(s),
+            sampleEI1: sim1Rigidity.EI,
+            sampleGJ: sim1Rigidity.GJ,
+            integrateKappa01: exactIntrinsicIntegral(integrateSim1IntrinsicTurn, -1),
+            integrateKappa02: zeroIntegral,
+            integrateTau0: zeroIntegral
+        }),
+    });
+}
+
 const glidewireRigidity = guidewireRigiditySamplers(GUIDEWIRE_TYPE_GLIDEWIRE);
 const steelJRigidity = guidewireRigiditySamplers(GUIDEWIRE_TYPE_STEEL_J_035);
 
 export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
-    pigtail: defineKirchhoffMaterialProfile({
-        id: 'pigtail',
-        naturalTipLengthMm: PIGTAIL_NATURAL_ARC_LENGTH_MM,
-        sampleKappa01: s => -pigtailIntrinsicCurvature(s),
-        sampleEI1: pigtailRigidity.EI,
-        sampleGJ: pigtailRigidity.GJ,
-        integrateKappa01: exactLegacyIntegral(integratePigtailIntrinsicTurn, -1),
-        integrateKappa02: zeroIntegral,
-        integrateTau0: zeroIntegral
-    }),
-    berenstein: defineKirchhoffMaterialProfile({
-        id: 'berenstein',
-        naturalTipLengthMm: BERENSTEIN_TIP_SHAPE_LENGTH_MM,
-        sampleKappa01: berensteinIntrinsicCurvature,
-        sampleEI1: berensteinRigidity.EI,
-        sampleGJ: berensteinRigidity.GJ,
-        integrateKappa01: exactLegacyIntegral(integrateBerensteinIntrinsicTurn),
-        integrateKappa02: zeroIntegral,
-        integrateTau0: zeroIntegral
-    }),
-    sim1: defineKirchhoffMaterialProfile({
-        id: 'sim1',
-        naturalTipLengthMm: SIM1_TIP_SHAPE_LENGTH_MM,
-        sampleKappa01: s => -sim1IntrinsicCurvature(s),
-        sampleEI1: sim1Rigidity.EI,
-        sampleGJ: sim1Rigidity.GJ,
-        integrateKappa01: exactLegacyIntegral(integrateSim1IntrinsicTurn, -1),
-        integrateKappa02: zeroIntegral,
-        integrateTau0: zeroIntegral
-    }),
+    ...catheterProfiles(),
     [GUIDEWIRE_TYPE_GLIDEWIRE]: defineKirchhoffMaterialProfile({
         id: GUIDEWIRE_TYPE_GLIDEWIRE,
         naturalTipLengthMm: 0,
@@ -291,7 +281,7 @@ export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
         sampleKappa01: steelJGuidewireIntrinsicCurvature,
         sampleEI1: steelJRigidity.EI,
         sampleGJ: steelJRigidity.GJ,
-        integrateKappa01: exactLegacyIntegral(integrateSteelJGuidewireIntrinsicTurn),
+        integrateKappa01: exactIntrinsicIntegral(integrateSteelJGuidewireIntrinsicTurn),
         integrateKappa02: zeroIntegral,
         integrateTau0: zeroIntegral
     })

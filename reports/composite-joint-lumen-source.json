@@ -1,0 +1,11 @@
+{
+  "frozenBundle": "/tmp/oet-composite-joint-lumen-final",
+  "manifestSHA256": "3a730703b7b15eb9ee3f0c25771d3635660a1ae5d5364aea614cc7701ddac111",
+  "ownedSourceSHA256": {
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "c7bcdbbdc972b54f944ed7c98139f05f82225a50980a83a61921ace6bbff01ef",
+    "src/physics/kirchhoffCompositeJointLumenRows.js": "05fdaffe9c09bbb77d3b78856c034c0a67cc3463b47f58fccc4fe3a99540d799",
+    "tests/kirchhoffCompositeJointLumenTimeStep.test.js": "59f3207aee727a8789f142ac61cb15fd34dca6a0e084edd51b8e4bbf3ae86f53"
+  },
+  "reportSHA256": "23c9961731d36495ab64b12d3a9d6e3572b208c310ecbbcd22bb8f2705963a14",
+  "testOutputSHA256": "c31c1270e2a36dd9f8f827152ef237ff6d3d18bee9634a7508db84ec2a4096e8"
+}

@@ -1,0 +1,3047 @@
+[
+  {
+    "i": 0,
+    "accepted": true,
+    "before": {
+      "x": [
+        -1,
+        0,
+        1
+      ],
+      "vx": [
+        0,
+        0,
+        0
+      ],
+      "restLength": [
+        1,
+        1
+      ]
+    },
+    "after": {
+      "x": [
+        -1,
+        -8.333308001984285e-13,
+        1
+      ],
+      "vx": [
+        -9.999961969597848e-11,
+        -9.999967520712971e-11,
+        -9.999967520712971e-11
+      ]
+    },
+    "stateKeys": [
+      "phase",
+      "dt",
+      "step",
+      "bodies",
+      "start",
+      "sweeps",
+      "pointWalls",
+      "physicalNormalRows",
+      "materialStrainOffsets",
+      "biasMaterialMode",
+      "diagnostics",
+      "contactActivation",
+      "sheathHistory",
+      "wallFrictionModes",
+      "wallQuery",
+      "wallPoint",
+      "wallFrictionContacts",
+      "physicalMaterialResidual",
+      "physicalEnergy",
+      "controlStrain",
+      "bank",
+      "biasBank"
+    ],
+    "motion": {
+      "velocityX": [
+        -9.999961969597848e-11,
+        -9.999967520712971e-11,
+        -9.999967520712971e-11
+      ],
+      "angularVelocityX": [
+        0,
+        0
+      ],
+      "velocityY": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityY": [
+        0,
+        0
+      ],
+      "velocityZ": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityZ": [
+        0,
+        0
+      ]
+    },
+    "incoming": {
+      "count": 3,
+      "activeStart": 0,
+      "activeEnd": 2,
+      "x": [
+        -1,
+        0,
+        1
+      ],
+      "y": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "z": [
+        0,
+        0,
+        0
+      ],
+      "materialCoordinate": [
+        0,
+        1,
+        2
+      ],
+      "nodeRadius": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "velocityX": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityX": [
+        0,
+        0
+      ],
+      "velocityY": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityY": [
+        0,
+        0
+      ],
+      "velocityZ": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityZ": [
+        0,
+        0
+      ],
+      "orientationX": [
+        0.5,
+        0.5
+      ],
+      "orientationY": [
+        0.5,
+        0.5
+      ],
+      "orientationZ": [
+        0.5,
+        0.5
+      ],
+      "orientationW": [
+        0.5,
+        0.5
+      ]
+    },
+    "start": {
+      "X": [
+        -1,
+        0,
+        1
+      ],
+      "Y": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "Z": [
+        0,
+        0,
+        0
+      ],
+      "orientationX": [
+        0.5,
+        0.5
+      ],
+      "orientationY": [
+        0.5,
+        0.5
+      ],
+      "orientationZ": [
+        0.5,
+        0.5
+      ],
+      "orientationW": [
+        0.5,
+        0.5
+      ]
+    },
+    "directKeys": [
+      "kernel",
+      "blockImpulse",
+      "blockCorrection",
+      "blockLambda",
+      "matrix",
+      "rhs",
+      "alpha",
+      "strain",
+      "lambda",
+      "degreeCapacity",
+      "weight",
+      "degree",
+      "rows",
+      "gradients",
+      "correction",
+      "rotations",
+      "linearizationFrames",
+      "redundantAxes",
+      "factorAge",
+      "factorizationCount",
+      "factorReuseCount",
+      "q0",
+      "q1",
+      "rest",
+      "bend",
+      "relativeRotation",
+      "rotation",
+      "increment",
+      "result",
+      "assembling",
+      "controlled",
+      "dt",
+      "start",
+      "end",
+      "rowCount"
+    ],
+    "rows": [
+      {
+        "row": 0,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 1,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 2,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 3,
+        "alpha": 0,
+        "strain": -8.333334022836425e-13,
+        "rhs": 8.333334022836425e-13,
+        "gradients": [
+          {
+            "dof": 0,
+            "value": -1
+          },
+          {
+            "dof": 6,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 4,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 1,
+            "value": -1
+          },
+          {
+            "dof": 7,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 5,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 2,
+            "value": -1
+          },
+          {
+            "dof": 8,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 6,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 7,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 8,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 9,
+        "alpha": 0,
+        "strain": 8.333334022836425e-13,
+        "rhs": -8.333334022836425e-13,
+        "gradients": [
+          {
+            "dof": 6,
+            "value": -1
+          },
+          {
+            "dof": 12,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 10,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 7,
+            "value": -1
+          },
+          {
+            "dof": 13,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 11,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 8,
+            "value": -1
+          },
+          {
+            "dof": 14,
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "certificate": {
+      "status": "accepted",
+      "accepted": true,
+      "restart": false,
+      "step": 0,
+      "dt": 0.008333333333333333,
+      "contacts": [
+        {
+          "key": "wall:0:0",
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.004999995697289705,
+          "lambda": [
+            -0.0019999988863458225,
+            0
+          ],
+          "displacement": [
+            -8.33330164133154e-13,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            8.33330164133154e-13,
+            0
+          ],
+          "residualMm": 1.3888837756186323e-12,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.0049999957147280295
+        },
+        {
+          "key": "wall:0:1",
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.004999995231628418,
+          "lambda": [
+            -0.0019999988505906563,
+            0
+          ],
+          "displacement": [
+            -8.333306267260809e-13,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            8.333306267260809e-13,
+            0
+          ],
+          "residualMm": 1.3888845884150098e-12,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.004999995231628418
+        },
+        {
+          "key": "split-point-wall:0:0",
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.004999995532224671,
+          "lambda": [
+            -0.0019999988027517854,
+            0
+          ],
+          "displacement": [
+            -8.33330164133154e-13,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            8.33330164133154e-13,
+            0
+          ],
+          "residualMm": 1.3888837707386456e-12,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.004999995532224671
+        },
+        {
+          "key": "split-point-wall:0:1",
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.004999995141911882,
+          "lambda": [
+            -0.001999998850590657,
+            0
+          ],
+          "displacement": [
+            -8.333306267260809e-13,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            8.333306267260809e-13,
+            0
+          ],
+          "residualMm": 1.3888845983834953e-12,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.004999995141911882
+        },
+        {
+          "key": "split-point-wall:0:2",
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 2,
+            "segment": 1,
+            "weights": [
+              0,
+              1
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.004999994627365625,
+          "lambda": [
+            -0.0019999983351069173,
+            0
+          ],
+          "displacement": [
+            -8.333306267260809e-13,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            8.333306267260809e-13,
+            0
+          ],
+          "residualMm": 1.3888845123655834e-12,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.004999994627365625
+        }
+      ],
+      "issues": [],
+      "attempt": 1,
+      "maximumAttempts": 23
+    },
+    "entries": [
+      {
+        "key": "wall:0:0",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 0,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 4,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 2,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 5,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "wall:0:1",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 6,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 10,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 8,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 11,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "split-point-wall:0:0",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 0,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 4,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 2,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 5,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "split-point-wall:0:1",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 6,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 10,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 8,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 11,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "split-point-wall:0:2",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 12,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 10,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 14,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 11,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      }
+    ],
+    "history": [
+      [
+        "wall:0:0",
+        {
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            -9.999961969597848e-11,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "wall:0:1",
+        {
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            -9.999967520712971e-11,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:0",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            -9.999961969597848e-11,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:1",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            -9.999967520712971e-11,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:2",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 2,
+            "segment": 1,
+            "weights": [
+              0,
+              1
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            -9.999967520712971e-11,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    ],
+    "failure": null
+  },
+  {
+    "i": 1,
+    "accepted": true,
+    "before": {
+      "x": [
+        -1,
+        -8.333308001984285e-13,
+        1
+      ],
+      "vx": [
+        -9.999961969597848e-11,
+        -9.999967520712971e-11,
+        -9.999967520712971e-11
+      ],
+      "restLength": [
+        1,
+        1
+      ]
+    },
+    "after": {
+      "x": [
+        -1,
+        2.973620655266629e-11,
+        1
+      ],
+      "vx": [
+        3.5683445087641985e-9,
+        3.6683442949936307e-9,
+        3.5683442867195936e-9
+      ]
+    },
+    "stateKeys": [
+      "phase",
+      "dt",
+      "step",
+      "bodies",
+      "start",
+      "sweeps",
+      "pointWalls",
+      "physicalNormalRows",
+      "materialStrainOffsets",
+      "biasMaterialMode",
+      "diagnostics",
+      "contactActivation",
+      "sheathHistory",
+      "wallFrictionModes",
+      "wallQuery",
+      "wallPoint",
+      "wallFrictionContacts",
+      "physicalMaterialResidual",
+      "physicalEnergy",
+      "controlStrain",
+      "bank",
+      "biasBank"
+    ],
+    "motion": {
+      "velocityX": [
+        3.5683445087641985e-9,
+        3.6683442949936307e-9,
+        3.5683442867195936e-9
+      ],
+      "angularVelocityX": [
+        0,
+        0
+      ],
+      "velocityY": [
+        -7.69723840221559e-9,
+        -7.69723840221559e-9,
+        -7.69723840221559e-9
+      ],
+      "angularVelocityY": [
+        0,
+        0
+      ],
+      "velocityZ": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityZ": [
+        0,
+        0
+      ]
+    },
+    "incoming": {
+      "count": 3,
+      "activeStart": 0,
+      "activeEnd": 2,
+      "x": [
+        -1,
+        -8.333308001984285e-13,
+        1
+      ],
+      "y": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "z": [
+        0,
+        0,
+        0
+      ],
+      "materialCoordinate": [
+        0,
+        1,
+        2
+      ],
+      "nodeRadius": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "velocityX": [
+        -9.999961969597848e-11,
+        -9.999967520712971e-11,
+        -9.999967520712971e-11
+      ],
+      "angularVelocityX": [
+        0,
+        0
+      ],
+      "velocityY": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityY": [
+        0,
+        0
+      ],
+      "velocityZ": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityZ": [
+        0,
+        0
+      ],
+      "orientationX": [
+        0.5,
+        0.5
+      ],
+      "orientationY": [
+        0.5,
+        0.5
+      ],
+      "orientationZ": [
+        0.5,
+        0.5
+      ],
+      "orientationW": [
+        0.5,
+        0.5
+      ]
+    },
+    "start": {
+      "X": [
+        -1,
+        -8.333308001984285e-13,
+        1
+      ],
+      "Y": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "Z": [
+        0,
+        0,
+        0
+      ],
+      "orientationX": [
+        0.5,
+        0.5
+      ],
+      "orientationY": [
+        0.5,
+        0.5
+      ],
+      "orientationZ": [
+        0.5,
+        0.5
+      ],
+      "orientationW": [
+        0.5,
+        0.5
+      ]
+    },
+    "directKeys": [
+      "kernel",
+      "blockImpulse",
+      "blockCorrection",
+      "blockLambda",
+      "matrix",
+      "rhs",
+      "alpha",
+      "strain",
+      "lambda",
+      "degreeCapacity",
+      "weight",
+      "degree",
+      "rows",
+      "gradients",
+      "correction",
+      "rotations",
+      "linearizationFrames",
+      "redundantAxes",
+      "factorAge",
+      "factorizationCount",
+      "factorReuseCount",
+      "q0",
+      "q1",
+      "rest",
+      "bend",
+      "relativeRotation",
+      "rotation",
+      "increment",
+      "result",
+      "assembling",
+      "controlled",
+      "dt",
+      "start",
+      "end",
+      "rowCount"
+    ],
+    "rows": [
+      {
+        "row": 0,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 1,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 2,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 3,
+        "alpha": 0,
+        "strain": 2.973621349156019e-11,
+        "rhs": -2.973621349156019e-11,
+        "gradients": [
+          {
+            "dof": 0,
+            "value": -1
+          },
+          {
+            "dof": 6,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 4,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 1,
+            "value": -1
+          },
+          {
+            "dof": 7,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 5,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 2,
+            "value": -1
+          },
+          {
+            "dof": 8,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 6,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 7,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 8,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 9,
+        "alpha": 0,
+        "strain": -2.973621349156019e-11,
+        "rhs": 2.973621349156019e-11,
+        "gradients": [
+          {
+            "dof": 6,
+            "value": -1
+          },
+          {
+            "dof": 12,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 10,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 7,
+            "value": -1
+          },
+          {
+            "dof": 13,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 11,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 8,
+            "value": -1
+          },
+          {
+            "dof": 14,
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "certificate": {
+      "status": "accepted",
+      "accepted": true,
+      "restart": false,
+      "step": 1,
+      "dt": 0.008333333333333333,
+      "contacts": [
+        {
+          "key": "wall:0:0",
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.012499988079071045,
+          "lambda": [
+            -0.004874997523223547,
+            0
+          ],
+          "displacement": [
+            2.9736204239701656e-11,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            2.9736204239701656e-11,
+            0
+          ],
+          "residualMm": 1.040766287075283e-11,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.012499988411989895
+        },
+        {
+          "key": "wall:0:1",
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0.01249998714774847,
+          "lambda": [
+            -0.0051249963072453365,
+            0
+          ],
+          "displacement": [
+            3.056953579161359e-11,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            3.056953579161359e-11,
+            0
+          ],
+          "residualMm": 9.680346574267958e-12,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 0.012499987610597068
+        },
+        {
+          "key": "split-point-wall:0:0",
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 3.279860877795023e-10,
+          "lambda": [
+            1.9679164857220014e-10,
+            0
+          ],
+          "displacement": [
+            2.9736204239701656e-11,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            2.9736204239701656e-11,
+            0
+          ],
+          "residualMm": 5.947240786055257e-11,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "maximumReaction": 3.279860877795023e-10
+        },
+        {
+          "key": "split-point-wall:0:1",
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0,
+          "lambda": [
+            0,
+            0
+          ],
+          "displacement": [
+            3.056953579161359e-11,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            3.056953579161359e-11,
+            0
+          ],
+          "residualMm": 0,
+          "coneViolation": 0,
+          "stopped": true,
+          "stopCertificate": "kinematic-equivalence-to-loaded-stop",
+          "maximumReaction": 0,
+          "kinematicStopProof": {
+            "supportKey": "wall:0:1",
+            "sourceCertificate": "interior-cone-and-solver-residual",
+            "freeJacobianDifferenceIsZero": true,
+            "prescribedDifferenceRateIsZero": true,
+            "coefficients": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            "roundoffBoundMm": [
+              8.688384636915769e-25,
+              0
+            ]
+          }
+        },
+        {
+          "key": "split-point-wall:0:2",
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 2,
+            "segment": 1,
+            "weights": [
+              0,
+              1
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "muStatic": 0.6,
+          "muKinetic": 0.2,
+          "muApplied": 0.6,
+          "normalLambda": 0,
+          "lambda": [
+            0,
+            0
+          ],
+          "displacement": [
+            2.973620238932995e-11,
+            0
+          ],
+          "arithmeticMagnitudeMm": [
+            2.973620238932995e-11,
+            0
+          ],
+          "residualMm": 0,
+          "coneViolation": 0,
+          "stopped": false,
+          "stopCertificate": null,
+          "maximumReaction": 0
+        }
+      ],
+      "issues": [],
+      "attempt": 1,
+      "maximumAttempts": 23
+    },
+    "entries": [
+      {
+        "key": "wall:0:0",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 0,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 4,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 2,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 5,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "wall:0:1",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 6,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 10,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 8,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 11,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "split-point-wall:0:0",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 0,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 4,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 2,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 5,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "split-point-wall:0:1",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 6,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 10,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 8,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 11,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      },
+      {
+        "key": "split-point-wall:0:2",
+        "axes": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ],
+        "gradients": [
+          [
+            {
+              "side": 0,
+              "dof": 12,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 10,
+              "value": -0.5
+            },
+            {
+              "side": 1,
+              "dof": 0,
+              "value": -1
+            }
+          ],
+          [
+            {
+              "side": 0,
+              "dof": 14,
+              "value": 1
+            },
+            {
+              "side": 0,
+              "dof": 11,
+              "value": 0.5
+            },
+            {
+              "side": 1,
+              "dof": 2,
+              "value": -1
+            }
+          ]
+        ],
+        "lever": [
+          0,
+          0.5,
+          0
+        ]
+      }
+    ],
+    "history": [
+      [
+        "wall:0:0",
+        {
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            3.5683445087641985e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "wall:0:1",
+        {
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            3.6683442949936307e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:0",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            3.5683445087641985e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:1",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "kinematic-equivalence-to-loaded-stop",
+          "kinematicStopProof": {
+            "supportKey": "wall:0:1",
+            "sourceCertificate": "interior-cone-and-solver-residual",
+            "freeJacobianDifferenceIsZero": true,
+            "prescribedDifferenceRateIsZero": true,
+            "coefficients": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            "roundoffBoundMm": [
+              8.688384636915769e-25,
+              0
+            ]
+          },
+          "motionSignature": [
+            3.6683442949936307e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    ],
+    "failure": null
+  },
+  {
+    "i": 2,
+    "accepted": false,
+    "before": {
+      "x": [
+        -1,
+        2.973620655266629e-11,
+        1
+      ],
+      "vx": [
+        3.5683445087641985e-9,
+        3.6683442949936307e-9,
+        3.5683442867195936e-9
+      ],
+      "restLength": [
+        1,
+        1
+      ]
+    },
+    "after": {
+      "x": [
+        -1,
+        2.973620655266629e-11,
+        1
+      ],
+      "vx": [
+        3.5683445087641985e-9,
+        3.6683442949936307e-9,
+        3.5683442867195936e-9
+      ]
+    },
+    "stateKeys": [
+      "phase",
+      "dt",
+      "step",
+      "bodies",
+      "start",
+      "sweeps",
+      "pointWalls",
+      "physicalNormalRows",
+      "materialStrainOffsets",
+      "biasMaterialMode",
+      "diagnostics",
+      "contactActivation",
+      "sheathHistory",
+      "wallFrictionModes",
+      "wallQuery",
+      "wallPoint",
+      "wallFrictionContacts",
+      "physicalMaterialResidual",
+      "physicalEnergy",
+      "controlStrain",
+      "bank",
+      "biasBank"
+    ],
+    "motion": {
+      "velocityX": [
+        3.5683445087641985e-9,
+        3.6683442949936307e-9,
+        3.5683442867195936e-9
+      ],
+      "angularVelocityX": [
+        0,
+        0
+      ],
+      "velocityY": [
+        -7.69723840221559e-9,
+        -7.69723840221559e-9,
+        -7.69723840221559e-9
+      ],
+      "angularVelocityY": [
+        0,
+        0
+      ],
+      "velocityZ": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityZ": [
+        0,
+        0
+      ]
+    },
+    "incoming": {
+      "count": 3,
+      "activeStart": 0,
+      "activeEnd": 2,
+      "x": [
+        -1,
+        -8.333308001984285e-13,
+        1
+      ],
+      "y": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "z": [
+        0,
+        0,
+        0
+      ],
+      "materialCoordinate": [
+        0,
+        1,
+        2
+      ],
+      "nodeRadius": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "velocityX": [
+        -9.999961969597848e-11,
+        -9.999967520712971e-11,
+        -9.999967520712971e-11
+      ],
+      "angularVelocityX": [
+        0,
+        0
+      ],
+      "velocityY": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityY": [
+        0,
+        0
+      ],
+      "velocityZ": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityZ": [
+        0,
+        0
+      ],
+      "orientationX": [
+        0.5,
+        0.5
+      ],
+      "orientationY": [
+        0.5,
+        0.5
+      ],
+      "orientationZ": [
+        0.5,
+        0.5
+      ],
+      "orientationW": [
+        0.5,
+        0.5
+      ]
+    },
+    "start": {
+      "X": [
+        -1,
+        -8.333308001984285e-13,
+        1
+      ],
+      "Y": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "Z": [
+        0,
+        0,
+        0
+      ],
+      "orientationX": [
+        0.5,
+        0.5
+      ],
+      "orientationY": [
+        0.5,
+        0.5
+      ],
+      "orientationZ": [
+        0.5,
+        0.5
+      ],
+      "orientationW": [
+        0.5,
+        0.5
+      ]
+    },
+    "directKeys": [
+      "kernel",
+      "blockImpulse",
+      "blockCorrection",
+      "blockLambda",
+      "matrix",
+      "rhs",
+      "alpha",
+      "strain",
+      "lambda",
+      "degreeCapacity",
+      "weight",
+      "degree",
+      "rows",
+      "gradients",
+      "correction",
+      "rotations",
+      "linearizationFrames",
+      "redundantAxes",
+      "factorAge",
+      "factorizationCount",
+      "factorReuseCount",
+      "q0",
+      "q1",
+      "rest",
+      "bend",
+      "relativeRotation",
+      "rotation",
+      "increment",
+      "result",
+      "assembling",
+      "controlled",
+      "dt",
+      "start",
+      "end",
+      "rowCount"
+    ],
+    "rows": [
+      {
+        "row": 0,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 1,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 2,
+        "alpha": 1,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 3,
+        "alpha": 0,
+        "strain": 2.973621349156019e-11,
+        "rhs": -2.973621349156019e-11,
+        "gradients": [
+          {
+            "dof": 0,
+            "value": -1
+          },
+          {
+            "dof": 6,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 4,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 1,
+            "value": -1
+          },
+          {
+            "dof": 7,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 5,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 2,
+            "value": -1
+          },
+          {
+            "dof": 8,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 6,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 7,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 8,
+        "alpha": 288,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": []
+      },
+      {
+        "row": 9,
+        "alpha": 0,
+        "strain": -2.973621349156019e-11,
+        "rhs": 2.973621349156019e-11,
+        "gradients": [
+          {
+            "dof": 6,
+            "value": -1
+          },
+          {
+            "dof": 12,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 10,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 7,
+            "value": -1
+          },
+          {
+            "dof": 13,
+            "value": 1
+          }
+        ]
+      },
+      {
+        "row": 11,
+        "alpha": 0,
+        "strain": 0,
+        "rhs": 0,
+        "gradients": [
+          {
+            "dof": 8,
+            "value": -1
+          },
+          {
+            "dof": 14,
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "certificate": {
+      "status": "unconverged",
+      "accepted": false,
+      "restart": false,
+      "step": 2,
+      "dt": 0.008333333333333333,
+      "contacts": [],
+      "issues": [],
+      "attempt": 1,
+      "maximumAttempts": 23
+    },
+    "history": [
+      [
+        "wall:0:0",
+        {
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            3.5683445087641985e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "wall:0:1",
+        {
+          "identity": {
+            "kind": "wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            3.6683442949936307e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:0",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 0,
+            "segment": 0,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              0,
+              1
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "interior-cone-and-solver-residual",
+          "kinematicStopProof": null,
+          "motionSignature": [
+            3.5683445087641985e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        "split-point-wall:0:1",
+        {
+          "identity": {
+            "kind": "split-point-wall",
+            "side": 0,
+            "node": 1,
+            "segment": 1,
+            "weights": [
+              1,
+              0
+            ],
+            "material": [
+              1,
+              2
+            ],
+            "radius": 0.5,
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "branch": 0,
+            "face": 0,
+            "plane": 0
+          },
+          "mode": "stick",
+          "stopped": true,
+          "stopCertificate": "kinematic-equivalence-to-loaded-stop",
+          "kinematicStopProof": {
+            "supportKey": "wall:0:1",
+            "sourceCertificate": "interior-cone-and-solver-residual",
+            "freeJacobianDifferenceIsZero": true,
+            "prescribedDifferenceRateIsZero": true,
+            "coefficients": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            "roundoffBoundMm": [
+              8.688384636915769e-25,
+              0
+            ]
+          },
+          "motionSignature": [
+            3.6683442949936307e-9,
+            -7.69723840221559e-9,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    ],
+    "failure": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 2,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": false,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [
+        "wall-friction-final-unconverged"
+      ],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "wallFrictionAttempts": [
+        {
+          "attempt": 1,
+          "status": "ambiguous",
+          "passes": 2,
+          "contacts": 5,
+          "staticContacts": 4,
+          "slidingContacts": 1,
+          "issues": [
+            "wall-friction-mode-ambiguous"
+          ]
+        }
+      ],
+      "wallFrictionRestarts": 0,
+      "biasInitialStateSettled": true,
+      "biasInitialMerit": 2.3873736321178285e-8,
+      "biasHardStrainMaximum": 4.774747264235657e-11,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 2.723515857283587e-16,
+      "physicalKKTResidualMm": 1.2007489046465547e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 4.774747264235657e-11
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 4.774747264235657e-11
+      },
+      "maximumOutwardContactVelocity": 0,
+      "normalCertificate": {
+        "maximumGeometryViolationMm": 0,
+        "maximumRawPenetrationMm": 0,
+        "maximumHistoryResidualMm": 0,
+        "contactCount": 5,
+        "finite": true,
+        "settled": true
+      },
+      "wallFrictionCertificate": {
+        "status": "unconverged",
+        "accepted": false,
+        "restart": false,
+        "step": 2,
+        "dt": 0.008333333333333333,
+        "contacts": [],
+        "issues": [],
+        "attempt": 1,
+        "maximumAttempts": 23
+      },
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [
+        "wall-friction-final-unconverged"
+      ],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.012499988079071045,
+          "normalBias": 0,
+          "tangentPhysical": [
+            -0.007499992847442627,
+            0
+          ],
+          "mu": [
+            0.6,
+            0.6
+          ]
+        },
+        {
+          "id": "wall:0:1",
+          "kind": "wall",
+          "normalPhysical": 0.01249998714774847,
+          "normalBias": 0,
+          "tangentPhysical": [
+            -0.0025000004216009664,
+            0
+          ],
+          "mu": [
+            0.6,
+            0.6
+          ]
+        },
+        {
+          "id": "wall-point:0:0",
+          "kind": "wall",
+          "normalPhysical": 3.65313374654037e-10,
+          "normalBias": 0,
+          "tangentPhysical": [
+            -2.1918802479242216e-10,
+            0
+          ],
+          "mu": [
+            0.6,
+            0.6
+          ]
+        }
+      ],
+      "candidateMotion": [
+        {
+          "velocityX": [
+            1.1214400075232334e-8,
+            2.161349321738726e-9,
+            1.1214413397908629e-8
+          ],
+          "velocityY": [
+            0,
+            0,
+            -4.440892098500626e-16
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0
+          ],
+          "angularVelocityX": [
+            0,
+            0
+          ],
+          "angularVelocityY": [
+            0,
+            0
+          ],
+          "angularVelocityZ": [
+            0,
+            0
+          ]
+        },
+        {
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityY": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "angularVelocityX": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "angularVelocityY": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "angularVelocityZ": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "candidatePose": [
+        {
+          "id": "proof-wire",
+          "activeStart": 0,
+          "activeEnd": 2,
+          "x": [
+            -1,
+            4.7747448356227906e-11,
+            1
+          ],
+          "y": [
+            -0.5,
+            -0.5,
+            -0.5
+          ],
+          "z": [
+            0,
+            0,
+            0
+          ],
+          "orientationX": [
+            0.5,
+            0.5
+          ],
+          "orientationY": [
+            0.5,
+            0.5
+          ],
+          "orientationZ": [
+            0.5,
+            0.5
+          ],
+          "orientationW": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "id": "proof-catheter",
+          "activeStart": 0,
+          "activeEnd": 4,
+          "x": [
+            -2,
+            -1,
+            0,
+            1,
+            2
+          ],
+          "y": [
+            -4,
+            -4,
+            -4,
+            -4,
+            -4
+          ],
+          "z": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "orientationX": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "orientationY": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "orientationZ": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "orientationW": [
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      ]
+    }
+  }
+]

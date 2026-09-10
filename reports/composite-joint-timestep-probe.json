@@ -1,0 +1,533 @@
+{
+  "scope": "declared synthetic materials, no contacts, fixed topology, no FPS claim",
+  "records": [
+    {
+      "n": 5,
+      "repeat": 0,
+      "cold": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 13.859584000000012,
+          "iterationMs": 22.855957999999987,
+          "commitMs": 1.0698340000000144,
+          "totalMs": 37.83250000000001,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 46,
+          "bandwidth": 27,
+          "commonDofs": 23,
+          "relativeDofs": 15,
+          "originalLengthRows": 8,
+          "retainedLengthRows": 8,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 7.368203137899274e-12,
+            "torque": 3.7421164265000995e-14,
+            "length": 1.3500311979441904e-13,
+            "boundary": 0,
+            "merit": 8.856271264079393e-9,
+            "converged": true
+          }
+        }
+      },
+      "warm": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 2.8797500000000014,
+          "iterationMs": 10.848124999999982,
+          "commitMs": 0.34575000000000955,
+          "totalMs": 14.080584000000016,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 46,
+          "bandwidth": 27,
+          "commonDofs": 23,
+          "relativeDofs": 15,
+          "originalLengthRows": 8,
+          "retainedLengthRows": 8,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 3.406920696157493e-13,
+            "torque": 2.839085032606964e-17,
+            "length": 8.881784197001252e-16,
+            "boundary": 0,
+            "merit": 1.879649039170366e-11,
+            "converged": true
+          }
+        }
+      }
+    },
+    {
+      "n": 5,
+      "repeat": 1,
+      "cold": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 2.909667000000013,
+          "iterationMs": 4.994334000000038,
+          "commitMs": 0.20824999999996407,
+          "totalMs": 8.119624999999985,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 46,
+          "bandwidth": 27,
+          "commonDofs": 23,
+          "relativeDofs": 15,
+          "originalLengthRows": 8,
+          "retainedLengthRows": 8,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 7.368203137899274e-12,
+            "torque": 3.7421164265000995e-14,
+            "length": 1.3500311979441904e-13,
+            "boundary": 0,
+            "merit": 8.856271264079393e-9,
+            "converged": true
+          }
+        }
+      },
+      "warm": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 3.116125000000011,
+          "iterationMs": 6.387374999999963,
+          "commitMs": 0.16195799999997007,
+          "totalMs": 9.67266699999999,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 46,
+          "bandwidth": 27,
+          "commonDofs": 23,
+          "relativeDofs": 15,
+          "originalLengthRows": 8,
+          "retainedLengthRows": 8,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 3.406920696157493e-13,
+            "torque": 2.839085032606964e-17,
+            "length": 8.881784197001252e-16,
+            "boundary": 0,
+            "merit": 1.879649039170366e-11,
+            "converged": true
+          }
+        }
+      }
+    },
+    {
+      "n": 5,
+      "repeat": 2,
+      "cold": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 3.2587910000000306,
+          "iterationMs": 4.120542,
+          "commitMs": 1.5763330000000337,
+          "totalMs": 8.965833000000032,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 46,
+          "bandwidth": 27,
+          "commonDofs": 23,
+          "relativeDofs": 15,
+          "originalLengthRows": 8,
+          "retainedLengthRows": 8,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 7.368203137899274e-12,
+            "torque": 3.7421164265000995e-14,
+            "length": 1.3500311979441904e-13,
+            "boundary": 0,
+            "merit": 8.856271264079393e-9,
+            "converged": true
+          }
+        }
+      },
+      "warm": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 1.314458000000002,
+          "iterationMs": 2.0024999999999977,
+          "commitMs": 0.6207090000000335,
+          "totalMs": 3.939625000000035,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 46,
+          "bandwidth": 27,
+          "commonDofs": 23,
+          "relativeDofs": 15,
+          "originalLengthRows": 8,
+          "retainedLengthRows": 8,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 3.406920696157493e-13,
+            "torque": 2.839085032606964e-17,
+            "length": 8.881784197001252e-16,
+            "boundary": 0,
+            "merit": 1.879649039170366e-11,
+            "converged": true
+          }
+        }
+      }
+    },
+    {
+      "n": 33,
+      "repeat": 0,
+      "cold": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 21.977750000000015,
+          "iterationMs": 21.487416999999994,
+          "commitMs": 2.1407919999999763,
+          "totalMs": 45.609667,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 326,
+          "bandwidth": 27,
+          "commonDofs": 163,
+          "relativeDofs": 99,
+          "originalLengthRows": 64,
+          "retainedLengthRows": 64,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 8.781794565396813e-12,
+            "torque": 5.094339048497789e-14,
+            "length": 1.8740564655672642e-13,
+            "boundary": 0,
+            "merit": 1.3203723017507191e-8,
+            "converged": true
+          }
+        }
+      },
+      "warm": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 11.529499999999985,
+          "iterationMs": 39.73866700000002,
+          "commitMs": 0.7297090000000139,
+          "totalMs": 52.000292,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 326,
+          "bandwidth": 27,
+          "commonDofs": 163,
+          "relativeDofs": 99,
+          "originalLengthRows": 64,
+          "retainedLengthRows": 64,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 2.1823756780873706e-12,
+            "torque": 2.0539979341259755e-15,
+            "length": 1.021405182655144e-14,
+            "boundary": 0,
+            "merit": 8.313229748402195e-10,
+            "converged": true
+          }
+        }
+      }
+    },
+    {
+      "n": 33,
+      "repeat": 1,
+      "cold": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 12.956457999999998,
+          "iterationMs": 16.215750000000014,
+          "commitMs": 0.39854099999996606,
+          "totalMs": 29.574874999999963,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 326,
+          "bandwidth": 27,
+          "commonDofs": 163,
+          "relativeDofs": 99,
+          "originalLengthRows": 64,
+          "retainedLengthRows": 64,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 8.781794565396813e-12,
+            "torque": 5.094339048497789e-14,
+            "length": 1.8740564655672642e-13,
+            "boundary": 0,
+            "merit": 1.3203723017507191e-8,
+            "converged": true
+          }
+        }
+      },
+      "warm": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 26.60758400000003,
+          "iterationMs": 28.277750000000026,
+          "commitMs": 0.498916999999949,
+          "totalMs": 55.38775000000004,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 326,
+          "bandwidth": 27,
+          "commonDofs": 163,
+          "relativeDofs": 99,
+          "originalLengthRows": 64,
+          "retainedLengthRows": 64,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 2.1823756780873706e-12,
+            "torque": 2.0539979341259755e-15,
+            "length": 1.021405182655144e-14,
+            "boundary": 0,
+            "merit": 8.313229748402195e-10,
+            "converged": true
+          }
+        }
+      }
+    },
+    {
+      "n": 33,
+      "repeat": 2,
+      "cold": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 12.133542000000034,
+          "iterationMs": 21.444166999999993,
+          "commitMs": 0.23033299999997325,
+          "totalMs": 33.810667000000024,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 326,
+          "bandwidth": 27,
+          "commonDofs": 163,
+          "relativeDofs": 99,
+          "originalLengthRows": 64,
+          "retainedLengthRows": 64,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 8.781794565396813e-12,
+            "torque": 5.094339048497789e-14,
+            "length": 1.8740564655672642e-13,
+            "boundary": 0,
+            "merit": 1.3203723017507191e-8,
+            "converged": true
+          }
+        }
+      },
+      "warm": {
+        "accepted": true,
+        "status": "accepted",
+        "diagnostics": {
+          "scope": "fixed-topology-full-relative-nonlinear-dt",
+          "contacts": "none",
+          "torsionMode": "quasi-static",
+          "materialCoordinate": "reference-arclength",
+          "elementBackend": "wasm-exact",
+          "assemblyPolicy": "lazy",
+          "preparationMs": 9.512040999999954,
+          "iterationMs": 16.273624999999925,
+          "commitMs": 1.0846669999999676,
+          "totalMs": 26.877624999999966,
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "unknowns": 326,
+          "bandwidth": 27,
+          "commonDofs": 163,
+          "relativeDofs": 99,
+          "originalLengthRows": 64,
+          "retainedLengthRows": 64,
+          "suppressedPrescribedLengthRows": [],
+          "acceptedAlphas": [
+            1,
+            1
+          ],
+          "certificate": {
+            "force": 2.1823756780873706e-12,
+            "torque": 2.0539979341259755e-15,
+            "length": 1.021405182655144e-14,
+            "boundary": 0,
+            "merit": 8.313229748402195e-10,
+            "converged": true
+          }
+        }
+      }
+    }
+  ]
+}

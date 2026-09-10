@@ -1,0 +1,79 @@
+{
+  "scope": "instantaneous affine AD/virtual power + finite parallel contact-frame control; nonlinearReady:false; no integrated friction or accepted dt claim",
+  "commonFinite": {
+    "increment": [
+      -5.204170427930421e-17,
+      6.938893903907228e-17
+    ],
+    "beta": 0.23112328782927005
+  },
+  "BEcounterexample": {
+    "incorrectRate": [
+      0,
+      -0.1426990816987241
+    ],
+    "contactFrameIncrement": [
+      0,
+      0
+    ]
+  },
+  "bothOwnTwoPi": {
+    "relativeWinding": 0,
+    "increment": [
+      0,
+      -1.5707963267948966
+    ]
+  },
+  "maxJacobianError": 2.2230686735902339e-10,
+  "powerLimits": [
+    {
+      "dt": 0.01,
+      "rate": [
+        0.9999999999988395,
+        0.5750000000000003
+      ],
+      "instantaneous": [
+        1,
+        0.575
+      ],
+      "power": 0.4699999999991875,
+      "originalPower": 0.47
+    },
+    {
+      "dt": 0.001,
+      "rate": [
+        1.0000000000034124,
+        0.5749999999999926
+      ],
+      "instantaneous": [
+        1,
+        0.575
+      ],
+      "power": 0.4700000000023915,
+      "originalPower": 0.47
+    },
+    {
+      "dt": 0.0001,
+      "rate": [
+        0.9999999999038136,
+        0.5750000000000454
+      ],
+      "instantaneous": [
+        1,
+        0.575
+      ],
+      "power": 0.4699999999326513,
+      "originalPower": 0.47
+    }
+  ],
+  "crossing": {
+    "code": "surface-material-transport-required",
+    "message": "Material crossed a physical DER hinge; its own finite orientation/surface-point path is required",
+    "requiredTransport": {
+      "toolId": "wire",
+      "materialLabel": 21,
+      "previousFraction": -0.5,
+      "currentFraction": 0.5
+    }
+  }
+}

@@ -35,7 +35,7 @@ function createKirchhoffWorldAndBody(id, count = 8, segmentLength = 2, iteration
         penetrationIterations: iterations
     });
     const body = world.createRod(id, count, segmentLength, {
-        rodModel: 'kirchhoff',
+
         adaptationCompliance: 0,
         kirchhoffBendCompliance: 0,
         kirchhoffTwistCompliance: 0,
@@ -86,12 +86,6 @@ function signedPlanarTurn(body) {
     }
     return total;
 }
-
-// Legacy remains the default; merely loading the new module cannot change
-// existing guidewire or catheter bodies.
-const legacyWorld = new EndovascularPhysicsWorld();
-const legacyBody = legacyWorld.createRod('legacy-default', 4, 2);
-assert.equal(legacyBody.rodModel, 'legacy');
 
 // A straight Kirchhoff rod starts with Bishop frames adapted to its x-directed
 // centerline and remains an exact zero-energy state.
@@ -180,54 +174,16 @@ assert.equal(legacyBody.rodModel, 'legacy');
     assert.ok(Math.max(...Array.from(body.z, value => Math.abs(value))) < EPSILON);
 }
 
-function settledArcWithLegacyPoison(poisonLegacyConstraints) {
-    const { world, body } = createKirchhoffWorldAndBody(
-        poisonLegacyConstraints ? 'single-energy-poisoned' : 'single-energy-reference',
-        8,
-        2,
-        40
-    );
-    body.setPinned(0, true);
-    const proximalFrame = quaternionAt(body, 0);
-    body.setProximalOrientationControl(
-        proximalFrame.x,
-        proximalFrame.y,
-        proximalFrame.z,
-        proximalFrame.w
-    );
-    for (let joint = 1; joint < body.segmentCount; joint++) {
-        body.setKirchhoffRestRotation(joint, 0, 0.14, 0, 0, 0, 0);
-        if (!poisonLegacyConstraints) continue;
-        body.restBendChord[joint] = 0.01;
-        body.setRestDirectionTarget(joint, -2, 3, 4, 0);
-        body.setRestShapeTarget(joint, -50, 25, 10, 0);
-    }
-    if (poisonLegacyConstraints) {
-        body.curvatureVariationEnabled = true;
-        body.longStraightSpan = 3;
-        body.setShapeClosureTarget(1, body.activeEnd, 0.01, 0);
-    }
-    settle(world, body, 220);
-    return body;
-}
-
-// Kirchhoff bodies must not also receive the legacy chord, rest-direction,
-// positional rest-shape, straightness or closure energies.
+// The direct material rod exposes one rest-strain field and no alternate
+// geometric shape energies or mutable solver switch.
 {
-    const reference = settledArcWithLegacyPoison(false);
-    const poisoned = settledArcWithLegacyPoison(true);
-    let maximumDifference = 0;
-    for (let index = 0; index < reference.count; index++) {
-        maximumDifference = Math.max(maximumDifference, Math.hypot(
-            poisoned.x[index] - reference.x[index],
-            poisoned.y[index] - reference.y[index],
-            poisoned.z[index] - reference.z[index]
-        ));
-    }
-    assert.ok(
-        maximumDifference < 1e-6,
-        `legacy energy leaked into Kirchhoff body (${maximumDifference} mm)`
-    );
+    const { body } = createKirchhoffWorldAndBody('single-energy');
+    for (const removed of [
+        'setRestShapeTarget', 'setRestDirectionTarget', 'setShapeClosureTarget',
+        'setIntrinsicCurvatureTarget', 'restBendChord', 'enableKirchhoff'
+    ]) assert.equal(removed in body, false, removed);
+    assert.equal(body.constitutiveSolver, 'direct');
+    assert.throws(() => { body.constitutiveSolver = 'local'; }, TypeError);
 }
 
 // Orientation corrections participate in the same integrate/project/velocity
@@ -236,7 +192,7 @@ function settledArcWithLegacyPoison(poisonLegacyConstraints) {
 {
     const world = new EndovascularPhysicsWorld({ iterations: 12 });
     const body = world.createRod('angular-velocity', 5, 2, {
-        rodModel: 'kirchhoff',
+
         adaptationCompliance: 0,
         kirchhoffBendCompliance: 0,
         kirchhoffTwistCompliance: 0,

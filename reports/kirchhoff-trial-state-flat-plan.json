@@ -1,0 +1,603 @@
+{
+  "baselinePath": "/tmp/oet-trial-state-baseline-8996.mjs",
+  "candidatePath": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/src/physics/kirchhoffCoupledTrialState.js",
+  "iterations": 30,
+  "warmup": 8,
+  "rollbackHashes": [
+    {
+      "name": "baseline",
+      "before": "1b97177ad306d4a8c5a7f3170091de9e9fb467060a49138d153a437fc3212b8c",
+      "rejected": "261fa81b2ecff8cf2759b238f991a187671deda8e0dc14744adbe8e98a48bf08",
+      "after": "1b97177ad306d4a8c5a7f3170091de9e9fb467060a49138d153a437fc3212b8c"
+    },
+    {
+      "name": "candidate",
+      "before": "1b97177ad306d4a8c5a7f3170091de9e9fb467060a49138d153a437fc3212b8c",
+      "rejected": "261fa81b2ecff8cf2759b238f991a187671deda8e0dc14744adbe8e98a48bf08",
+      "after": "1b97177ad306d4a8c5a7f3170091de9e9fb467060a49138d153a437fc3212b8c"
+    }
+  ],
+  "notes": "Same live graph, alternating A/B, unchanged physics. Steady state and equivalent reference replacement. Timings exclude preparation and membership verification. Restore invalidates numerical factor caches as in production.",
+  "results": [
+    {
+      "mode": "steady",
+      "objects": 15146,
+      "bytes": 903641,
+      "firstStructuralChange": null,
+      "variants": [
+        {
+          "name": "baseline",
+          "captureMs": {
+            "median": 6.513041999998677,
+            "p95": 8.117290999998659
+          },
+          "restoreMs": {
+            "median": 3.593250000001717,
+            "p95": 4.713166999998066
+          },
+          "samples": [
+            {
+              "captureMs": 7.330583999999362,
+              "restoreMs": 4.32995800000208
+            },
+            {
+              "captureMs": 6.8695000000006985,
+              "restoreMs": 3.538790999999037
+            },
+            {
+              "captureMs": 6.13091699999859,
+              "restoreMs": 3.526958000002196
+            },
+            {
+              "captureMs": 6.513041999998677,
+              "restoreMs": 3.9709580000017013
+            },
+            {
+              "captureMs": 5.412916999997833,
+              "restoreMs": 3.2867500000029395
+            },
+            {
+              "captureMs": 6.460500000001048,
+              "restoreMs": 3.7079999999987194
+            },
+            {
+              "captureMs": 5.645708000000013,
+              "restoreMs": 3.457582999999431
+            },
+            {
+              "captureMs": 6.967040999999881,
+              "restoreMs": 3.887624999999389
+            },
+            {
+              "captureMs": 4.966707999999926,
+              "restoreMs": 3.277458000000479
+            },
+            {
+              "captureMs": 8.117290999998659,
+              "restoreMs": 3.625125000002299
+            },
+            {
+              "captureMs": 4.987790999999561,
+              "restoreMs": 3.4384590000008757
+            },
+            {
+              "captureMs": 7.537499999998545,
+              "restoreMs": 3.8553329999995185
+            },
+            {
+              "captureMs": 5.8382499999970605,
+              "restoreMs": 3.591708000003564
+            },
+            {
+              "captureMs": 6.663375000000087,
+              "restoreMs": 3.207125000000815
+            },
+            {
+              "captureMs": 4.965958999997383,
+              "restoreMs": 3.907916000000114
+            },
+            {
+              "captureMs": 6.878499999998894,
+              "restoreMs": 3.84087499999805
+            },
+            {
+              "captureMs": 6.000791000002209,
+              "restoreMs": 3.1799169999976584
+            },
+            {
+              "captureMs": 6.931958000001032,
+              "restoreMs": 4.019458999999188
+            },
+            {
+              "captureMs": 5.106667000000016,
+              "restoreMs": 3.778582999999344
+            },
+            {
+              "captureMs": 7.326584000002185,
+              "restoreMs": 4.360124999999243
+            },
+            {
+              "captureMs": 4.903166000000056,
+              "restoreMs": 4.713166999998066
+            },
+            {
+              "captureMs": 6.534124999998312,
+              "restoreMs": 3.3947919999991427
+            },
+            {
+              "captureMs": 5.129165999998804,
+              "restoreMs": 4.607834000002185
+            },
+            {
+              "captureMs": 6.722915999998804,
+              "restoreMs": 3.3321670000004815
+            },
+            {
+              "captureMs": 5.281458999997994,
+              "restoreMs": 3.7689160000008997
+            },
+            {
+              "captureMs": 7.535082999998849,
+              "restoreMs": 5.819707999999082
+            },
+            {
+              "captureMs": 12.422082999997656,
+              "restoreMs": 3.4846250000009604
+            },
+            {
+              "captureMs": 7.420582999999169,
+              "restoreMs": 3.593250000001717
+            },
+            {
+              "captureMs": 5.588584000000992,
+              "restoreMs": 3.3347909999974945
+            },
+            {
+              "captureMs": 6.557624999997643,
+              "restoreMs": 3.4168339999996533
+            }
+          ]
+        },
+        {
+          "name": "candidate",
+          "captureMs": {
+            "median": 3.2201249999998254,
+            "p95": 4.644208000001527
+          },
+          "restoreMs": {
+            "median": 2.6277499999996508,
+            "p95": 3.8667500000010477
+          },
+          "samples": [
+            {
+              "captureMs": 3.9538750000028813,
+              "restoreMs": 3.090915999997378
+            },
+            {
+              "captureMs": 3.806625000001077,
+              "restoreMs": 2.6277499999996508
+            },
+            {
+              "captureMs": 4.644208000001527,
+              "restoreMs": 3.128207999998267
+            },
+            {
+              "captureMs": 4.143667000000278,
+              "restoreMs": 2.6924159999980475
+            },
+            {
+              "captureMs": 3.8167500000017753,
+              "restoreMs": 2.838832999997976
+            },
+            {
+              "captureMs": 2.941792000001442,
+              "restoreMs": 2.3320830000011483
+            },
+            {
+              "captureMs": 3.593875000002299,
+              "restoreMs": 3.0049999999973807
+            },
+            {
+              "captureMs": 2.806916999998066,
+              "restoreMs": 2.308208000002196
+            },
+            {
+              "captureMs": 3.961209000000963,
+              "restoreMs": 3.02758299999914
+            },
+            {
+              "captureMs": 3.0651250000009895,
+              "restoreMs": 2.5320839999985765
+            },
+            {
+              "captureMs": 4.051583000000392,
+              "restoreMs": 2.8093749999970896
+            },
+            {
+              "captureMs": 3.048291999999492,
+              "restoreMs": 2.602375000002212
+            },
+            {
+              "captureMs": 3.343417000000045,
+              "restoreMs": 3.0433330000014394
+            },
+            {
+              "captureMs": 2.5174579999984417,
+              "restoreMs": 2.5060000000012224
+            },
+            {
+              "captureMs": 3.2201249999998254,
+              "restoreMs": 2.6231670000015583
+            },
+            {
+              "captureMs": 2.369749999998021,
+              "restoreMs": 2.3849170000030426
+            },
+            {
+              "captureMs": 3.4885830000021087,
+              "restoreMs": 2.8143749999981083
+            },
+            {
+              "captureMs": 2.466208000001643,
+              "restoreMs": 2.428874999997788
+            },
+            {
+              "captureMs": 3.5035420000021986,
+              "restoreMs": 2.692917000000307
+            },
+            {
+              "captureMs": 2.4270830000023125,
+              "restoreMs": 2.357332999999926
+            },
+            {
+              "captureMs": 3.3230419999999867,
+              "restoreMs": 2.888707999998587
+            },
+            {
+              "captureMs": 2.5928749999984575,
+              "restoreMs": 2.469375000000582
+            },
+            {
+              "captureMs": 3.042417000000569,
+              "restoreMs": 2.5788749999992433
+            },
+            {
+              "captureMs": 2.580500000000029,
+              "restoreMs": 2.4197089999979653
+            },
+            {
+              "captureMs": 3.138875000000553,
+              "restoreMs": 2.4205000000001746
+            },
+            {
+              "captureMs": 2.5226669999974547,
+              "restoreMs": 2.2900420000005397
+            },
+            {
+              "captureMs": 5.390584000000672,
+              "restoreMs": 4.675124999997934
+            },
+            {
+              "captureMs": 3.4541250000002037,
+              "restoreMs": 2.8693750000020373
+            },
+            {
+              "captureMs": 3.4359590000021853,
+              "restoreMs": 3.8667500000010477
+            },
+            {
+              "captureMs": 2.852708000002167,
+              "restoreMs": 3.0534579999985
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "changed-reference",
+      "objects": 15146,
+      "bytes": 903641,
+      "firstStructuralChange": [
+        {
+          "name": "baseline",
+          "captureMs": 5.372042000002693,
+          "restoreMs": 3.3944999999985157
+        },
+        {
+          "name": "candidate",
+          "captureMs": 9.018292000000656,
+          "restoreMs": 3.0348329999978887
+        }
+      ],
+      "variants": [
+        {
+          "name": "baseline",
+          "captureMs": {
+            "median": 6.242624999998952,
+            "p95": 7.882041999997455
+          },
+          "restoreMs": {
+            "median": 3.43829199999891,
+            "p95": 4.365000000001601
+          },
+          "samples": [
+            {
+              "captureMs": 5.595624999998108,
+              "restoreMs": 3.313084000001254
+            },
+            {
+              "captureMs": 6.728499999997439,
+              "restoreMs": 4.365000000001601
+            },
+            {
+              "captureMs": 5.663042000000132,
+              "restoreMs": 3.30779099999927
+            },
+            {
+              "captureMs": 6.596000000001368,
+              "restoreMs": 3.4675829999978305
+            },
+            {
+              "captureMs": 5.539541999998619,
+              "restoreMs": 4.021625000001222
+            },
+            {
+              "captureMs": 6.303958000000421,
+              "restoreMs": 2.9797080000025744
+            },
+            {
+              "captureMs": 6.398708999997325,
+              "restoreMs": 3.5528750000012224
+            },
+            {
+              "captureMs": 7.434249999998428,
+              "restoreMs": 3.795125000000553
+            },
+            {
+              "captureMs": 5.879041000000143,
+              "restoreMs": 2.929833999998664
+            },
+            {
+              "captureMs": 6.714125000002241,
+              "restoreMs": 3.834499999997206
+            },
+            {
+              "captureMs": 6.034500000001572,
+              "restoreMs": 3.426791999998386
+            },
+            {
+              "captureMs": 6.695416999998997,
+              "restoreMs": 3.543499999999767
+            },
+            {
+              "captureMs": 5.21587499999805,
+              "restoreMs": 3.6363750000018626
+            },
+            {
+              "captureMs": 6.73870800000077,
+              "restoreMs": 3.053334000000177
+            },
+            {
+              "captureMs": 5.68500000000131,
+              "restoreMs": 3.866415999997116
+            },
+            {
+              "captureMs": 6.276292000002286,
+              "restoreMs": 3.3886249999995925
+            },
+            {
+              "captureMs": 5.956500000000233,
+              "restoreMs": 3.43829199999891
+            },
+            {
+              "captureMs": 6.356167000001733,
+              "restoreMs": 4.306790999999066
+            },
+            {
+              "captureMs": 5.904957999999169,
+              "restoreMs": 3.1232080000008864
+            },
+            {
+              "captureMs": 7.882041999997455,
+              "restoreMs": 3.8679580000025453
+            },
+            {
+              "captureMs": 5.60816700000214,
+              "restoreMs": 4.760874999999942
+            },
+            {
+              "captureMs": 6.39233299999978,
+              "restoreMs": 3.1725420000002487
+            },
+            {
+              "captureMs": 6.1432500000009895,
+              "restoreMs": 3.631666999997833
+            },
+            {
+              "captureMs": 6.242624999998952,
+              "restoreMs": 3.367083000001003
+            },
+            {
+              "captureMs": 5.94366699999955,
+              "restoreMs": 2.9735409999993863
+            },
+            {
+              "captureMs": 8.170792000000802,
+              "restoreMs": 3.6708330000001297
+            },
+            {
+              "captureMs": 5.110042000000249,
+              "restoreMs": 3.298917000000074
+            },
+            {
+              "captureMs": 6.496833000001061,
+              "restoreMs": 3.430499999998574
+            },
+            {
+              "captureMs": 5.9632500000006985,
+              "restoreMs": 3.6247089999997115
+            },
+            {
+              "captureMs": 6.439374999998108,
+              "restoreMs": 3.1622500000012224
+            }
+          ]
+        },
+        {
+          "name": "candidate",
+          "captureMs": {
+            "median": 5.0495000000009895,
+            "p95": 5.679374999999709
+          },
+          "restoreMs": {
+            "median": 2.772000000000844,
+            "p95": 3.421250000003056
+          },
+          "samples": [
+            {
+              "captureMs": 5.311749999997119,
+              "restoreMs": 2.9588330000005953
+            },
+            {
+              "captureMs": 4.539249999997992,
+              "restoreMs": 2.584333000002516
+            },
+            {
+              "captureMs": 6.220249999998487,
+              "restoreMs": 2.739832999999635
+            },
+            {
+              "captureMs": 4.474958999999217,
+              "restoreMs": 2.70233300000109
+            },
+            {
+              "captureMs": 5.31537500000195,
+              "restoreMs": 2.5459159999991243
+            },
+            {
+              "captureMs": 5.020125000002736,
+              "restoreMs": 3.2878749999981665
+            },
+            {
+              "captureMs": 4.7957080000014685,
+              "restoreMs": 2.620958999999857
+            },
+            {
+              "captureMs": 5.062916999999288,
+              "restoreMs": 2.8000410000022384
+            },
+            {
+              "captureMs": 4.983874999998079,
+              "restoreMs": 3.0809580000022834
+            },
+            {
+              "captureMs": 5.0495000000009895,
+              "restoreMs": 2.479332999999315
+            },
+            {
+              "captureMs": 5.41570800000045,
+              "restoreMs": 2.8116249999984575
+            },
+            {
+              "captureMs": 4.153125000000728,
+              "restoreMs": 2.4685839999983727
+            },
+            {
+              "captureMs": 5.294792000000598,
+              "restoreMs": 3.334999999999127
+            },
+            {
+              "captureMs": 4.446125000002212,
+              "restoreMs": 2.772000000000844
+            },
+            {
+              "captureMs": 5.3134160000008706,
+              "restoreMs": 2.4842089999983727
+            },
+            {
+              "captureMs": 4.732499999998254,
+              "restoreMs": 3.421250000003056
+            },
+            {
+              "captureMs": 5.000957999996899,
+              "restoreMs": 2.527209000003495
+            },
+            {
+              "captureMs": 4.83350000000064,
+              "restoreMs": 2.661915999997291
+            },
+            {
+              "captureMs": 5.679374999999709,
+              "restoreMs": 3.4979999999995925
+            },
+            {
+              "captureMs": 5.35766700000022,
+              "restoreMs": 2.8399160000008123
+            },
+            {
+              "captureMs": 5.465875000001688,
+              "restoreMs": 2.494249999999738
+            },
+            {
+              "captureMs": 4.195374999999331,
+              "restoreMs": 3.0319580000032147
+            },
+            {
+              "captureMs": 4.797334000002593,
+              "restoreMs": 3.283540999997058
+            },
+            {
+              "captureMs": 5.257499999999709,
+              "restoreMs": 2.8847920000007434
+            },
+            {
+              "captureMs": 5.105499999997846,
+              "restoreMs": 2.834208000000217
+            },
+            {
+              "captureMs": 5.277874999999767,
+              "restoreMs": 2.7347499999996217
+            },
+            {
+              "captureMs": 5.5275000000001455,
+              "restoreMs": 2.8006249999998545
+            },
+            {
+              "captureMs": 4.285917000001064,
+              "restoreMs": 2.6702079999995476
+            },
+            {
+              "captureMs": 5.2309170000007725,
+              "restoreMs": 2.5430410000008123
+            },
+            {
+              "captureMs": 4.241084000001138,
+              "restoreMs": 2.981999999999971
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "state": {
+    "wireMm": 999.9000000000169,
+    "catheterMm": 100.00000000000007,
+    "wireRotation": 0,
+    "catheterRotation": 0,
+    "executedSteps": 3918,
+    "fingerprints": [
+      {
+        "id": "guidewire",
+        "hash": "32d9cbe8"
+      },
+      {
+        "id": "catheter",
+        "hash": "64daf2c2"
+      }
+    ],
+    "activeNodes": [
+      201,
+      41
+    ]
+  }
+}

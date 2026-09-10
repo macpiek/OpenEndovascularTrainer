@@ -1,0 +1,11 @@
+{
+  "h": 2.0,
+  "radialOffset": 0.0405,
+  "transverseOnlyEdgeLength": 2.0004100204708033,
+  "lengthResidualPerEdge": 0.0004100204708032962,
+  "axialIncrementPerEdge": -0.000410104546434642,
+  "correctedEdgeLength": 2.0,
+  "wireDistalSlip": -0.000820209092869284,
+  "h1OppositeWallsLengthResidual": 0.003275136739668172,
+  "distalWireBoundary": "free to slide"
+}

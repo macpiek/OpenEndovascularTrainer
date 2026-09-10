@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ElasticRod } from '../src/physics/elasticRod.js';
+import { RodState } from '../src/physics/rodState.js';
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
@@ -13,7 +13,7 @@ const DT = 1 / 120;
 function createDeployedCatheter(type, guidewireInserted = 0) {
     const guidewireLength = 200;
     const guidewireSpacing = 2;
-    const wire = new ElasticRod(
+    const wire = new RodState(
         guidewireLength / guidewireSpacing + 1,
         guidewireSpacing
     );
@@ -42,15 +42,14 @@ function createDeployedCatheter(type, guidewireInserted = 0) {
         maxLength: 160
     });
     catheter.setType(type);
-    catheter.setExternalCollisionSolver(true);
+
     const world = new EndovascularPhysicsWorld();
     const body = world.createRod(`${type}-catheter`, 128, 4, {
-        ...DEFAULT_TOOL_PROFILES.catheter,
-        rodModel: 'kirchhoff'
+        ...DEFAULT_TOOL_PROFILES.catheter
     });
     for (let step = 0; step < 210; step++) {
         catheter.advance(1, DT, guidewireInserted);
-        catheter.stepPhysics(DT, { collisions: false });
+        catheter.stepPhysics(DT);
         catheter.syncXpbdBody(body);
     }
     return { body, catheter };
@@ -105,12 +104,8 @@ for (const type of ['pigtail', 'berenstein', 'sim1']) {
                 Math.abs(totalRestTurn - KIRCHHOFF_PROFILE_EXPECTED_TURNS[type]) < 1e-8,
                 `${type} signed rest turn ${totalRestTurn}`
             );
-            for (let segment = body.activeStart; segment < body.activeEnd; segment++) {
-                assert.equal(body.restDirectionEnabled[segment], 0);
-            }
-            for (let node = body.activeStart; node <= body.activeEnd; node++) {
-                assert.equal(body.restShapeEnabled[node], 0);
-            }
+            assert.equal('restDirectionEnabled' in body, false);
+            assert.equal('restShapeEnabled' in body, false);
         } finally {
             catheter.dispose();
         }

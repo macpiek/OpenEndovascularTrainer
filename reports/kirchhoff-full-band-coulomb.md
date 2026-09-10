@@ -1,0 +1,34 @@
+Optional full-band Coulomb Newton — frozen handoff
+
+The optional route keeps every material, normal, friction, fold, wall and sheath equation in the original local dual matrix. It removes the need to construct a globally dense material Schur complement. The default solver remains condensed: these frozen cases show no consistent end-to-end speed advantage.
+
+Enable through `solveActiveCondensedCoupledQP(..., { ...options, coulombStructure: 'full-band' })`. This uses the existing one-fixed-load seed followed by joint Coulomb Newton and the new general-band LU backend. The lower-level option `coulombLinearSolver: 'band-lu'` changes only Newton's matrix storage and linear solver; it can also be used on a retained matrix. No world, history, application, geometry or runtime harness code is changed.
+
+The Jacobian is nonsymmetric for mechanical reasons. Ordinary rows have `J_i = db_i*A_i + da_i*e_i/rho_i`. Friction rows mix ONLY their two mobility rows and contain the derivative with respect to their own normal force: `J_t = (I - D*(I-rho*A_pair) - dLoad*e_normal)/rho`. That load derivative is not transposed into normal equilibrium. The source operator, projection derivatives, bound recovery, normal maps, scaling, numerical shift, merit and acceptance tolerance are preserved.
+
+Exact row envelopes retain internal zeros and every nonzero, however small. On 200 mm, A has 102847 full nonzeros; the Jacobian envelope has 204667 entries and lower/upper bandwidth 154/154. On 1999 rows the corresponding envelope is 104898 with bandwidth 149/149. Paired friction rows are adjacent in these freezes; their normal column does not enlarge the original maximum bandwidth. Keeping this existing dual ordering was the smallest algebraically equivalent change; adding a primal saddle block is unnecessary to preserve locality here.
+
+The WASM solver uses partial row pivoting across all possible nonzeros in each remaining column, with upper fill reserved through KU+KL. It eliminates its one RHS with the row tails, so no omitted L-history permutation is needed. This general-band fill bound is the standard [LAPACK band-LU structure](https://netlib.org/lapack/explore-html/db/df8/group__gbsv_gaff55317eb3aed2278a85919a488fec07.html). No Cholesky, SPD assumption or diagonal pivot replacement is used. The unusable-pivot threshold is the existing dense Newton threshold, 1e-15 in scaled coordinates.
+
+Partial pivoting cannot guarantee small growth for all nonsymmetric matrices. Each linear solve therefore checks the original shifted scaled Newton system's normwise backward error, `||B*y+S*F||inf / (||B||inf*||y||inf+||S*F||inf)`, where `B=S*J*S+shift*I`. An error above `64*n*Number.EPSILON` rejects that linear direction and uses the existing gradient fallback. This is a floating-point linear-solve check, independent of the physical KKT tolerance. A Wilkinson-growth regression verifies actual rejection of an inaccurate factorization. Frozen maximum backward errors were 4.16e-17 and 7.99e-17; U growth was 1.58 and 1.705. Every accepted physical result is subsequently checked against all original equations and final-load cones.
+
+The matrix storage for full Newton A/J/factor at 2459 rows is about 12.38 MB rather than 145.12 MB for three full dense arrays; these numbers exclude vectors and the fixed-load seed workspace. Newton scratch is reused within a call, not cached between timesteps. Factor values and row envelopes are rebuilt from the current system.
+
+Frozen A/B used four warmups and twelve measured passes, alternating variant order, identical supplied initialFree masks, existing storage workspaces and no force warm start. Medians below are averages of the two middle samples; raw samples are in the JSON report.
+
+| Frozen system | Condensed baseline median | Full-band median | Condensed / full-band factors | Full-band original KKT |
+| --- | ---: | ---: | ---: | ---: |
+| 1999 rows | 9.660 ms | 9.374 ms | 22 / 13 | 3.3669342e-5 |
+| 200 mm, 2459 rows | 15.925 ms | 17.070 ms | 35 / 21 | 6.1691382e-5 |
+
+The patched default preserves baseline force and residual bytes on both captures. Its measured medians were 9.867 and 15.219 ms, illustrating timing variation at this scale. The full-band seed uses 12 and 20 factorizations respectively; each case then needs one joint Newton factorization and no backtracking. These are frozen-system observations, not scene, FPS, or worst-step performance claims.
+
+The 200 mm export lacks initialFree and row activeHint. Both A/B variants therefore use an explicit all-zero mask. That run has 183 retained rows under condensation and must not be compared to the captured runtime's 249 retained rows / 11 factors. The 1999 fixture contains its original mask. The zero-start full Newton probe on 200 mm did not converge; the implemented route retains the existing mechanically informed seed.
+
+Against condensed baseline, maximum force differences were 3.61e-7 / 5.98e-7 and original response differences were 2.50e-8 / 2.97e-8. At 200 mm the largest independent-coordinate `W*J^T*deltaForce` difference was 1.90e-8. An independent reconstruction of `J*W*J^T+alpha` and all original solved-load KKT equations passed for the candidate. Bounds and zero-load friction groups are all retained. A full uncondensed dense Newton reference on 200 mm produced byte-identical force/residual arrays to band LU with the same seed. The retained 144.2 mm case likewise remains byte-identical, with 2 factors, 1 backtrack and full KKT 1.2764835e-4.
+
+Validation: 68 related tests pass, including actual pivot swaps and fill, singular pivots, pathological element growth, tiny structural coefficients, distant friction/normal columns, dense Jacobian/direction parity, both full original freezes, independent J/W audit, owned outputs when the fixed-load seed returns early, 144.2 bound recovery and the original 1999 byte regression. Tolerance remains 2e-4 for all three physical freezes.
+
+Apply `reports/kirchhoff-full-band-coulomb.patch`; `git apply --check` against the current root passes. It changes only CoulombNewton, ActiveCondensed, WAT/Bytes and adds one helper plus two tests. It does NOT include or overwrite the root-owned `scripts/physics/audit-frozen-coupled-system.mjs` or `tests/fixtures/kirchhoff-coupled-full-200.json.gz`; the new tests consume those existing root artifacts plus the previously integrated 1999/144.2 fixtures. The candidate and dependencies are frozen at `/tmp/oet-full-band-coulomb-frozen`; the source baseline is `/tmp/oet-local-coulomb-source-baseline`.
+
+The JSON report records source hashes, baseline hashes, complete diagnostics, force/residual hashes, independent audit results and raw timing samples. The adjacent reproduce script uses these local baseline/capture paths. No prefix or browser replay was run and no root files were edited.

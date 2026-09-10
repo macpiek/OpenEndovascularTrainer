@@ -167,12 +167,12 @@
                                     min="1"
                                     max="50"
                                     step="0.5"
-                                    value="30"
+                                    value="1"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="catheterRelaxationRange"
                                 >
-                                <output id="catheterRelaxationValue" for="catheterRelaxation">30,00×</output>
+                                <output id="catheterRelaxationValue" for="catheterRelaxation">1,00×</output>
                             </span>
                             <span id="catheterRelaxationRange" class="guidewire-stiffness-range">
                                 <span>obecna</span>
@@ -266,12 +266,12 @@
                                     min="1"
                                     max="50"
                                     step="0.5"
-                                    value="30"
+                                    value="1"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireRelaxationRange"
                                 >
-                                <output id="guidewireRelaxationValue" for="guidewireRelaxation">30,00×</output>
+                                <output id="guidewireRelaxationValue" for="guidewireRelaxation">1,00×</output>
                             </span>
                             <span id="guidewireRelaxationRange" class="guidewire-stiffness-range">
                                 <span>obecna</span>
@@ -297,16 +297,6 @@
                 </div>
                 <div class="guidewire-resistance-meter">
                     <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
-                </div>
-            </div>
-
-            <div class="control-section">
-                <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
-                <div class="section-content compact-grid">
-                    <label class="parameter-label">Smoothing iterations
-                        <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
-                        <span></span>
-                    </label>
                 </div>
             </div>
 
@@ -640,8 +630,11 @@
                     Gotowe do ustawienia
                 </output>
                 <div class="browser-benchmark-actions">
+                    <button id="runSoloCatheterBenchmark" type="button">Sam cewnik pełny cykl</button>
                     <button id="runGuidewireBenchmark" type="button">Prowadnik 28 s</button>
                     <button id="runGuidewireBenchmarkFull" type="button">Prowadnik 10 min</button>
+                    <button id="runDeepCatheterBenchmark" type="button">Cewnik 10–60 cm</button>
+                    <button id="runShortCatheterBenchmark" type="button">Cewnik 1/2/5 cm</button>
                     <button id="runBrowserBenchmarkSmoke" type="button">Start 35 s</button>
                     <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
                     <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>

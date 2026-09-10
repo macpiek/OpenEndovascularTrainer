@@ -1,0 +1,3361 @@
+{
+  "sourceBefore": {
+    "scripts/physics/benchmark-composite-timestep-workspace.mjs": "c47e27aa88c3b32e6971e838b64da02dc06a8fb4ffc02374d28f8c3b06eca1a5",
+    "scripts/physics/helpers/compositeTimeStepBenchmark.js": "0b936ae870fd07343b309876f0e907f91c0b838a3b7a6e9c8814f1f9d1198c2d",
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeChain.js": "60e4cddeeea2135264a4aa3b86423d090fefaaf70e6eeabcce9ea0b3f0bf9706",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeElementExact.js": "3184948302eeff6008210517cb86646b96ff85eae0fd4d37c1e21aa5192884b5",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "74330455afdf18f15ff9763cf5fff2d1faf9da222f74e027b7d1a98ab34c0dbf",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeTimeStep.js": "a1a0e7b418dcd81b463cc589d2e731d65c93f2b935400cac2fafe424daecee29",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeWallContacts.js": "022405d91f8df8590b71ab83a51959b6c386c198f833ba66cc55b8aa68af729c",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5415816fe5bef2c818fa29b770d902b172c14a8f941f461392934bf1a94e064a",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "e5f4bdc38aee069f5e20a5c3a02dcc0e5e31174924b9d0dddc780bdb98048efd",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "1546ab48d64d11f4805875d591c30ce7f5d662b60ddba242d3a558de23bb7505"
+  },
+  "node": "v24.6.0",
+  "scope": "Paired full fixed-topology dt, fresh numeric scratch vs persistent numeric scratch. Same real material profiles, state/input/geometry per pair, strict force/torque/length/wall gates. No feed/remesh, finite-clearance/lumen/friction or browser FPS claim.",
+  "protocol": {
+    "warmupSteps": 3,
+    "measuredConsecutiveSteps": 8,
+    "ordering": "alternating paired arms",
+    "timing": "advance call including all per-dt copying, inertia compilation, nonlinear iterations, fresh acceptance and output ownership; reusable workspace creation separately measured and not free",
+    "cold": "first pair separately recorded; JIT and host interference make it diagnostic, not a stable runtime percentile"
+  },
+  "cases": [
+    {
+      "elementBackend": "wasm",
+      "scenario": "contact-free",
+      "catheterMm": 9,
+      "nodes": 67,
+      "workspaceCreationMs": 1.2224580000000032,
+      "cold": {
+        "step": 0,
+        "inputHash": "34c97320af9a1f9353fab244eb5f0f5391a1aa061253f2119f992e543bdb5b7b",
+        "outputHash": "fed5b0ad15dea4ab85f73861fa231ac7a917e543e93c3e348f5358ebbd3e7610",
+        "freshMs": 27.878333999999995,
+        "reuseMs": 6.344040999999976,
+        "evaluations": 4,
+        "directions": 2,
+        "linearSolves": 2,
+        "certificate": {
+          "force": 5.400943385464313e-10,
+          "torque": 4.400008082260311e-39,
+          "length": 1.0658141036401503e-14,
+          "wall": null
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 1,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "757dfc1406fef1193b82805a9c16e02133a69d2ee59ea0494b2558ec4f87861e",
+          "outputHash": "cc5b01f02d4a479d31bf6a93cb0a0c553e30544d986adcf55fae8273b613526c",
+          "freshMs": 4.861500000000007,
+          "reuseMs": 4.023708999999997,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.4693957421583586e-10,
+            "torque": 1.1591541168811277e-33,
+            "length": 2.930988785010413e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 9,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "ba0c63f4540068551047b25a207dd557fa89564cb39d1fdc8ca0cb4909060893",
+          "outputHash": "4a597ca3f0afd5d795b09b2e7ddb1f834fdaa9532a65fbbe23e3aa739978ba0b",
+          "freshMs": 3.0275000000000034,
+          "reuseMs": 3.3798340000000167,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.5434931539284255e-10,
+            "torque": 1.5355100555662877e-32,
+            "length": 4.1744385725905886e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 11,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "3985eac0fd15f133a22abbcaf3a494b14774366541358dce6f0154ce0d18bd8b",
+          "outputHash": "72ddb85928d4160c9ba16a4c21d72b4461326d2aab589c7a1867006ec6b6f363",
+          "freshMs": 3.176667000000009,
+          "reuseMs": 2.9092080000000067,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.2979273591586572e-10,
+            "torque": 3.5567311367942016e-31,
+            "length": 2.842170943040401e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 13,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "9dbfb8467ae4014ba0cea7b2d32748237817eae1808d9dd54e38452ee9a7ff22",
+          "outputHash": "ac6beaa50f42bf2f1158fdce71637f218cc2a46f594c18534e9aec7940352f19",
+          "freshMs": 3.0275000000000034,
+          "reuseMs": 3.102374999999995,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 3.308171103303851e-10,
+            "torque": 2.9389347505485488e-30,
+            "length": 4.529709940470639e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 15,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "3ccf214090211cb863079021d4dbf0d1d0ba4a467584186c64cbefce1be040f2",
+          "outputHash": "12f4f00e544bf59c8faeed98e478a4f2da1ebed1cd7a2056461be89ffac81de3",
+          "freshMs": 3.3767500000000155,
+          "reuseMs": 2.454624999999993,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.336752732464332e-10,
+            "torque": 2.692973971026523e-29,
+            "length": 3.197442310920451e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "273ad5877d2e3b9ace16176c5b66fbc5233f36c78f5ad3b94da480be9c1fa89c",
+          "outputHash": "1097645de301b4af096037e1e90055e13dee5262a80f740d584325d4899b3579",
+          "freshMs": 4.336958999999979,
+          "reuseMs": 3.0667080000000055,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.3950917559063696e-10,
+            "torque": 1.4824153453183967e-28,
+            "length": 4.263256414560601e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "ba5d32ab8d77fcf230e239b7d5161f21bf2274672eb7f41beba70979d9a9c191",
+          "outputHash": "89a1e6d13bac9ae05d700b6eaca9949efc759b808216ba502cd0080c1b1377a6",
+          "freshMs": 2.7926669999999945,
+          "reuseMs": 2.680250000000001,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.923047440547624e-10,
+            "torque": 8.181443205088315e-28,
+            "length": 3.4638958368304884e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 21,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "678a00079df8ec501df6b38f9c8c54e3f45b238e8c3a0615bf534985155b114d",
+          "outputHash": "5dc7f0b558b8146b8cd23d81d35a16338c83cfd50ff3b8a67dceef2217f39133",
+          "freshMs": 3.442542000000003,
+          "reuseMs": 2.868374999999986,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.9080041928246757e-10,
+            "torque": 3.663426665062893e-27,
+            "length": 4.3520742565306136e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 3.176667000000009,
+        "meanMs": 3.505260625000002,
+        "minimumMs": 2.7926669999999945,
+        "maximumMs": 4.861500000000007
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 2.9092080000000067,
+        "meanMs": 3.0606355,
+        "minimumMs": 2.454624999999993,
+        "maximumMs": 4.023708999999997
+      },
+      "speedup": 1.0919353308529338
+    },
+    {
+      "elementBackend": "wasm",
+      "scenario": "contact-free",
+      "catheterMm": 160,
+      "nodes": 69,
+      "workspaceCreationMs": 0.25791699999999196,
+      "cold": {
+        "step": 0,
+        "inputHash": "b1c4bd47003506fd36ccc3c167a6533278e15bd7511a83b91cedb3dc3bd8731c",
+        "outputHash": "28ecefb406a39604db1953fa6eb487def401b10f9b6596ea8f04b1cf89c80368",
+        "freshMs": 5.781958000000003,
+        "reuseMs": 5.485375000000005,
+        "evaluations": 6,
+        "directions": 4,
+        "linearSolves": 4,
+        "certificate": {
+          "force": 3.3471159177622667e-10,
+          "torque": 2.019186026963235e-21,
+          "length": 2.842170943040401e-14,
+          "wall": null
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "6129b9c5a6097bec08158428a18b0258ff38a7819abe1a31f97ac334dbb98d9c",
+          "outputHash": "b7cb734afcd4a8d4978aa77ea0032ae402874a5f1c4966172d26710ec2bc5a12",
+          "freshMs": 4.301500000000033,
+          "reuseMs": 3.3459170000000427,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 6.455104550654842e-8,
+            "torque": 1.7231362322381101e-16,
+            "length": 3.019806626980426e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 18,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "9022985bdaaa865b5557a4371e443becda97c30d90d1705b7a1f870e31a0de05",
+          "outputHash": "cec3202e7d4c84e007c4d33933bab029388ec80d44932434a71261620f9ca7e3",
+          "freshMs": 5.095666999999992,
+          "reuseMs": 3.5316669999999704,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 4.301889105891373e-8,
+            "torque": 2.1028801235741692e-16,
+            "length": 3.108624468950438e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 21,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "c5a8bb531e0c1592b0a673c044f0085565b01f9b14eedda5c695eff9a83f204d",
+          "outputHash": "227d443f2f86fc68b6695d4ade10213f38f1533eec3b58b6207264c5b51d3f66",
+          "freshMs": 4.300375000000031,
+          "reuseMs": 3.7783749999999827,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.211570669738766e-8,
+            "torque": 2.2911011953027193e-15,
+            "length": 4.529709940470639e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "a72c2f1fa94834191130a3dc283434770f5db2270a3e8e34cb1ca74a27465756",
+          "outputHash": "c8aa65e1de23b03cc8cdb42ca1e650350e24d6866bd77243a256389f76ca8795",
+          "freshMs": 4.343457999999998,
+          "reuseMs": 3.4712500000000546,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 1.6361900234253032e-8,
+            "torque": 1.3277569280671797e-14,
+            "length": 4.618527782440651e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "e79d27b9759c6ac198cf902f65a8e6f39c3d49097cf8368d437a168d42d95944",
+          "outputHash": "842ce3e247261119416383c23cf657e6b2cce1d66df34d5d02f7cc6da96a42fa",
+          "freshMs": 3.585374999999999,
+          "reuseMs": 3.5867079999999874,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 1.2291462581349105e-8,
+            "torque": 2.741581074416066e-14,
+            "length": 5.5067062021407764e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 30,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "c92e74a6dca6dce9afd41ef4826b138830e1732471dd1fe05f940cb756355c6f",
+          "outputHash": "fcb58e81387a01a8cbd5a86c267a66af8510b4d3af4f0f8e71b648a87c78e9a4",
+          "freshMs": 4.072416999999973,
+          "reuseMs": 3.8904999999999745,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 8.14661330610903e-9,
+            "torque": 2.159479896431399e-14,
+            "length": 3.4638958368304884e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 33,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "4ca1fe76c89b692d7d322751ba6e727e53a901207e9a09ec8122b4a674420494",
+          "outputHash": "e3f0292db702c8eaadbe4ba913455c633a419988b0325db0a208048d4bfee082",
+          "freshMs": 3.8304579999999646,
+          "reuseMs": 3.5656250000000114,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 6.998346626549516e-9,
+            "torque": 3.0660245140907585e-13,
+            "length": 4.618527782440651e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "dcf787dc09bec6eebff4ec5362cd90acb511d8814284f120ff1e7c7e26d27150",
+          "outputHash": "5c2db229e746698539393fb042141d48f90b8c2a92dd2e5db43c5b652ebf0fdb",
+          "freshMs": 3.533875000000023,
+          "reuseMs": 4.3336250000000405,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 5.2877560019976775e-9,
+            "torque": 9.691775487343784e-13,
+            "length": 3.730349362740526e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 39,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 4.072416999999973,
+        "meanMs": 4.132890625000002,
+        "minimumMs": 3.533875000000023,
+        "maximumMs": 5.095666999999992
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 3.5656250000000114,
+        "meanMs": 3.687958375000008,
+        "minimumMs": 3.3459170000000427,
+        "maximumMs": 4.3336250000000405
+      },
+      "speedup": 1.1421327256792175
+    },
+    {
+      "elementBackend": "wasm",
+      "scenario": "contact-free",
+      "catheterMm": 310,
+      "nodes": 68,
+      "workspaceCreationMs": 0.1360000000000241,
+      "cold": {
+        "step": 0,
+        "inputHash": "5007b43ac7489a2aa8c8dc87474285a97d16ce575310baaac62926a2ad1bf6dd",
+        "outputHash": "55493c188650cc81564f1e2055fc35950b4bcf35c315585e164806ed055dcd43",
+        "freshMs": 9.828374999999994,
+        "reuseMs": 9.029750000000035,
+        "evaluations": 13,
+        "directions": 10,
+        "linearSolves": 10,
+        "certificate": {
+          "force": 6.251395976831809e-8,
+          "torque": 4.054103796003706e-9,
+          "length": 4.796163466380676e-14,
+          "wall": null
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 9,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "385bda6de53bcad43158e7ce14d6be5772fe0acd8e2981cc0bb4603bf13d0319",
+          "outputHash": "547f6ff65842ff064d324dc1bb9689bd43c83f49c29ea4b8e28f653b3451cef9",
+          "freshMs": 7.735000000000014,
+          "reuseMs": 7.698624999999993,
+          "evaluations": 10,
+          "directions": 8,
+          "linearSolves": 8,
+          "certificate": {
+            "force": 2.396092145066912e-8,
+            "torque": 7.365811639353906e-9,
+            "length": 3.9968028886505635e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 51,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "83f93a6345997bf1106aba269113c770e3e9659a002dc4a594ab650011bd1e26",
+          "outputHash": "e0f6973f8cd5d3635d1a393a8ee05bf07bf8b8cf1f2281341637f458fb893671",
+          "freshMs": 8.055042000000014,
+          "reuseMs": 7.2733330000000365,
+          "evaluations": 10,
+          "directions": 8,
+          "linearSolves": 8,
+          "certificate": {
+            "force": 3.753257936231386e-8,
+            "torque": 8.37475188130495e-9,
+            "length": 4.1744385725905886e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 59,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "586e8035728ab933975f2820f69a84f0807c70856fdb9a529ca2d41fb9645c06",
+          "outputHash": "1001548c7e1ed38d7845fe09b23f0a4792dfd76a90a3a352bebea6aa9e3261d1",
+          "freshMs": 8.650125000000003,
+          "reuseMs": 8.317124999999976,
+          "evaluations": 11,
+          "directions": 9,
+          "linearSolves": 9,
+          "certificate": {
+            "force": 9.862804165787076e-9,
+            "torque": 2.969342515819111e-9,
+            "length": 4.973799150320701e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 68,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "94b244adf1c178971bfe77ea0e0c23b67b7f64a4c37e6fd0f33f21fc4cbe3e9f",
+          "outputHash": "92d92d11e7f71f739a146966e258ab0f32dcebc8b0c8d8c4b76ceb4078141a4c",
+          "freshMs": 8.69237499999997,
+          "reuseMs": 8.303249999999991,
+          "evaluations": 11,
+          "directions": 9,
+          "linearSolves": 9,
+          "certificate": {
+            "force": 3.6174321526068463e-9,
+            "torque": 5.381307908829125e-9,
+            "length": 3.8191672047105385e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 77,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "42fc85029071f8809dea692cc361c34d9cbc171b85d8ba757f1f38a6180061c4",
+          "outputHash": "3ff2f621df334814355005349659566039a743929bab0d484f1f30df51c7b53e",
+          "freshMs": 8.298584000000005,
+          "reuseMs": 8.012082999999961,
+          "evaluations": 11,
+          "directions": 9,
+          "linearSolves": 9,
+          "certificate": {
+            "force": 2.996290326138238e-8,
+            "torque": 7.998586296553353e-9,
+            "length": 4.085620730620576e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 86,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "5cb53c39d5354fb0a12bcb69b7570c21f9bf207feddaf719009ebfaa398a1890",
+          "outputHash": "8e0e587aa3c1e458a3d6ac3f1b1a5d2cf5523678a31fb97ef0703af2ed2e1e10",
+          "freshMs": 9.662416999999891,
+          "reuseMs": 8.542499999999905,
+          "evaluations": 12,
+          "directions": 10,
+          "linearSolves": 10,
+          "certificate": {
+            "force": 2.6683420855346857e-8,
+            "torque": 4.752904537929547e-9,
+            "length": 4.04121180963557e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 96,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "c44439b34976d38e96db863b7f0cf11d7579b3aa599f21278300ca0bcb193724",
+          "outputHash": "8c16e96d9664e1716bb422d465276f7483f9247068d73d247e6f5b502b331b41",
+          "freshMs": 9.600415999999996,
+          "reuseMs": 9.680708999999979,
+          "evaluations": 13,
+          "directions": 11,
+          "linearSolves": 11,
+          "certificate": {
+            "force": 2.254891014295678e-8,
+            "torque": 4.683053155439019e-9,
+            "length": 3.375077994860476e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 107,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "caafc55bcd8639e067e3e41d4462931a26a1b7726c4316c59696a1f52a9f4efc",
+          "outputHash": "2133632d226e55e5e802a5a9c3b0c11dc75aed5c7b3c3b242181e2ab06b4b148",
+          "freshMs": 10.541624999999954,
+          "reuseMs": 11.160708,
+          "evaluations": 14,
+          "directions": 12,
+          "linearSolves": 12,
+          "certificate": {
+            "force": 2.1202785694486852e-8,
+            "torque": 4.6787354819291296e-9,
+            "length": 4.618527782440651e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 119,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 8.650125000000003,
+        "meanMs": 8.90444799999998,
+        "minimumMs": 7.735000000000014,
+        "maximumMs": 10.541624999999954
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 8.303249999999991,
+        "meanMs": 8.62354162499998,
+        "minimumMs": 7.2733330000000365,
+        "maximumMs": 11.160708
+      },
+      "speedup": 1.0417758106765438
+    },
+    {
+      "elementBackend": "wasm",
+      "scenario": "analytic-plane",
+      "catheterMm": 9,
+      "nodes": 67,
+      "workspaceCreationMs": 0.18183299999998326,
+      "cold": {
+        "step": 0,
+        "inputHash": "4c126e373de5fd23c964aa8dd77eed2b774b1720e874160fffea6ae49a8b8ba7",
+        "outputHash": "e8ffc903ba4460870fe2c25a899360e3a9fda68bf71ee7a994fd5c9b6a59e153",
+        "freshMs": 11.910541999999964,
+        "reuseMs": 27.642583999999943,
+        "evaluations": 7,
+        "directions": 5,
+        "linearSolves": 5,
+        "certificate": {
+          "force": 1.1544615678689072e-9,
+          "torque": 1.3860821179701164e-12,
+          "length": 1.3322676295501878e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 4,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "d48c0bda576e164ed2c953086b008e4c645eb21c0a5e317b1671a61eec97ae03",
+          "outputHash": "1ff0f0b3f1a91e9edfaa948c0e7fde1199f40996efe6767fd2eb5fe64ee98774",
+          "freshMs": 7.607042000000092,
+          "reuseMs": 7.945875000000001,
+          "evaluations": 7,
+          "directions": 5,
+          "linearSolves": 5,
+          "certificate": {
+            "force": 1.1281822173790337e-9,
+            "torque": 8.744235675558038e-11,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "d5210b57316dfd82b7f38c752bcceaec8e18ba73d62df3e08554e7fd792af026",
+          "outputHash": "7ed9e3bfa9d21189ae5a75656d8fe968e368c362ba278a4f51d05dc777029081",
+          "freshMs": 7.818583999999987,
+          "reuseMs": 5.440582999999947,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 5.159840566545045e-10,
+            "torque": 6.633726863602132e-10,
+            "length": 4.440892098500626e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 28,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "911a79ed93613bac6d673eb5ceddabddbacb4897695c7cc0315d60b208c651d9",
+          "outputHash": "faaff9f2f8597eb88283909da02ac771564df03811c3ac908273b20c83c51d00",
+          "freshMs": 7.407124999999951,
+          "reuseMs": 6.777290999999991,
+          "evaluations": 7,
+          "directions": 5,
+          "linearSolves": 5,
+          "certificate": {
+            "force": 3.013042593202897e-10,
+            "torque": 1.1854750179066583e-12,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 33,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "474bb5a3899307111e4e0336de79fbca940c10247f8e436d3476bc0b5c497422",
+          "outputHash": "4f2ab7a1b12e9591ea25c7d95398e19591399b4fe7877869ad712b8e8a7c0d1d",
+          "freshMs": 6.676082999999949,
+          "reuseMs": 5.67145800000003,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 8.209924406976654e-11,
+            "torque": 5.496178540551609e-11,
+            "length": 4.440892098500626e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 37,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "43f4c04d793009227b352e9b79b2631f067a4d5896186aa1f2fba6eb1a48ebf1",
+          "outputHash": "88b8b9f5d3130d9f9d9bd1b382b649fc78a86945872d6660d30b4a836bc6fd2d",
+          "freshMs": 5.829082999999969,
+          "reuseMs": 6.159750000000031,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 9.440876905087035e-9,
+            "torque": 1.160594780858878e-10,
+            "length": 1.4210854715202004e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 41,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "36d1acc1b4ff10c566bb438e78cd5e62f6ec53c8ed2dd0075fa7932d46177cb4",
+          "outputHash": "e45eef2661c0e9fdf8899a5efccfec45bbd668a2142cc9254300f0f6308714d3",
+          "freshMs": 6.150541999999973,
+          "reuseMs": 5.075417000000016,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 4.2190223537021026e-11,
+            "torque": 2.0381050979685334e-12,
+            "length": 7.993605777301127e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 45,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "d5e6ac18dba92b7d6d6ae282566ce9c1164d29659e385b71d601f2f643650734",
+          "outputHash": "271cee46fb8ba69ddd9afdcd58b8c7c78a9bdf91f5e30041c45c35496fceb2fb",
+          "freshMs": 6.019166000000041,
+          "reuseMs": 5.053040999999894,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 1.1565939872504316e-10,
+            "torque": 2.4876666655198176e-12,
+            "length": 1.4210854715202004e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 49,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "7c8cbbc4266a14f81984db930b52160da7cd1f1679c485d217d08701532e1ddf",
+          "outputHash": "c30b322a0689f9983ece6b653d919294ebd01587743b6d034e92263f5ddb274b",
+          "freshMs": 4.487250000000017,
+          "reuseMs": 5.243249999999989,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 1.8225757035967083e-8,
+            "torque": 8.396414337235427e-10,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 52,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 6.150541999999973,
+        "meanMs": 6.499359374999997,
+        "minimumMs": 4.487250000000017,
+        "maximumMs": 7.818583999999987
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 5.440582999999947,
+        "meanMs": 5.920833124999987,
+        "minimumMs": 5.053040999999894,
+        "maximumMs": 7.945875000000001
+      },
+      "speedup": 1.130493184278235
+    },
+    {
+      "elementBackend": "wasm",
+      "scenario": "analytic-plane",
+      "catheterMm": 160,
+      "nodes": 69,
+      "workspaceCreationMs": 0.13895800000000236,
+      "cold": {
+        "step": 0,
+        "inputHash": "5869da0d9a680badef54b5b56f59545bc334f92dacb770318e096f908f4df35b",
+        "outputHash": "ec9e7433eb0d76b988b1c296ad121bd81cbc1112cf119a7f878d98d587711889",
+        "freshMs": 11.368708999999967,
+        "reuseMs": 9.949042000000077,
+        "evaluations": 10,
+        "directions": 8,
+        "linearSolves": 8,
+        "certificate": {
+          "force": 1.585958301695289e-8,
+          "torque": 2.351115912897393e-9,
+          "length": 2.3092638912203256e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 7,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [],
+      "failure": {
+        "step": 2,
+        "inputHash": "10674913aa434dea791cb8c4586fb45c6caf04d5e2fbb022926bc51429a4a829",
+        "outputHash": "dd06f9db24fcd6609f4788c0b8139e057f546ba4ccb7262c5a2b2e36f37e7169",
+        "freshMs": 33.58487500000001,
+        "reuseMs": 31.890709000000015,
+        "evaluations": 33,
+        "directions": 32,
+        "linearSolves": 32,
+        "certificate": {
+          "force": 0.00017041816583312296,
+          "torque": 0.000005211117054537695,
+          "length": 2.398081733190338e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 56,
+          "calls": 3,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": false,
+        "status": "outer-budget-exhausted"
+      },
+      "fresh": null,
+      "reuse": null,
+      "speedup": null
+    },
+    {
+      "elementBackend": "wasm",
+      "scenario": "analytic-plane",
+      "catheterMm": 310,
+      "nodes": 68,
+      "workspaceCreationMs": 0.1600420000000895,
+      "cold": {
+        "step": 0,
+        "inputHash": "accc3b2d33e82519db3f84c1b1891167961273601fa4fe2e9281123264214502",
+        "outputHash": "e3a16b1153ea048e1b84d3ade5639dd7cc9b81f49450b9b47004968b64a2cac5",
+        "freshMs": 32.91041699999994,
+        "reuseMs": 20.019834000000174,
+        "evaluations": 14,
+        "directions": 12,
+        "linearSolves": 12,
+        "certificate": {
+          "force": 9.34855616456642e-8,
+          "torque": 7.4211446159678405e-9,
+          "length": 4.618527782440651e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 11,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "7b4d6c66de365703a0afd1349b3e9d974bc548fe1efcb673c1b6021b8cdc46e6",
+          "outputHash": "0c441967b845f8be60a3965cdd860f12fb2501f5efb1e6d5715ce152f89c37dd",
+          "freshMs": 26.581416999999874,
+          "reuseMs": 24.35370799999987,
+          "evaluations": 20,
+          "directions": 18,
+          "linearSolves": 18,
+          "certificate": {
+            "force": 3.605810100639603e-8,
+            "torque": 3.990348839105051e-9,
+            "length": 4.884981308350689e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 77,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "a8cbf8e98b5ed64cfa67137f283731b49a6330d069fb365d7fd2fcf73012ede2",
+          "outputHash": "3a0143c2aa44529c15115fad3f7b80c76db55a98dcee50395942838d46f7a432",
+          "freshMs": 24.600582999999915,
+          "reuseMs": 24.909042,
+          "evaluations": 21,
+          "directions": 19,
+          "linearSolves": 19,
+          "certificate": {
+            "force": 4.364702341008192e-8,
+            "torque": 5.244863405052268e-9,
+            "length": 4.884981308350689e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 96,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "6167b37ffb458b318472fc17fc23cf69a445ca72df893971605b4cf2a5323685",
+          "outputHash": "5db4c5212b0d07f4420b7c3322beff605d1f3f37d1e21ca7bb3b783e502ee05c",
+          "freshMs": 25.57100000000014,
+          "reuseMs": 24.066583000000037,
+          "evaluations": 22,
+          "directions": 20,
+          "linearSolves": 20,
+          "certificate": {
+            "force": 3.822485875407286e-8,
+            "torque": 5.144461716664562e-9,
+            "length": 4.1744385725905886e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 116,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "2352c2aec685b2d393c706156ef76bd3c105ab5f213efe9f4a31044ea47c6906",
+          "outputHash": "b0f426a39622e6b7f5b702c583bfc6406a0f66c00d6f0e07e2859142e17fef64",
+          "freshMs": 25.25258400000007,
+          "reuseMs": 23.689708999999993,
+          "evaluations": 22,
+          "directions": 20,
+          "linearSolves": 20,
+          "certificate": {
+            "force": 4.438531372360092e-8,
+            "torque": 6.479858688085852e-9,
+            "length": 3.8191672047105385e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 136,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "d90424272e2630ce11986b97ec5b1c65049ce9622a244eae8f462d545c9d413c",
+          "outputHash": "27676ef2f84ca1230920e6bd1a93328903996e7b70f6adee2c3a80d26ba09026",
+          "freshMs": 26.867666999999983,
+          "reuseMs": 26.87620899999979,
+          "evaluations": 23,
+          "directions": 21,
+          "linearSolves": 21,
+          "certificate": {
+            "force": 2.437685192730807e-8,
+            "torque": 3.885307493113359e-9,
+            "length": 3.8191672047105385e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 157,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "807cb2617aef73ec82d124425fc7be309b08c3dc3528df8deb8e5d86b67f7183",
+          "outputHash": "1482176576784f667647cd61bc3cea9fa5d144f6c1e93e4fe62fd21bb083e620",
+          "freshMs": 25.48770800000011,
+          "reuseMs": 26.36291600000004,
+          "evaluations": 23,
+          "directions": 21,
+          "linearSolves": 21,
+          "certificate": {
+            "force": 3.6337753195436397e-8,
+            "torque": 6.234515342730998e-9,
+            "length": 3.108624468950438e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 178,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "f56a7c296d00dcb03ea3692c83ffd37d07c8f449fefe0aa605e242fb2bc67843",
+          "outputHash": "4b6181ed6d2d69910fa48951d933a694962088691d05186459da898e47af0d54",
+          "freshMs": 27.213500000000067,
+          "reuseMs": 26.236500000000206,
+          "evaluations": 24,
+          "directions": 22,
+          "linearSolves": 22,
+          "certificate": {
+            "force": 2.7700725095493885e-8,
+            "torque": 5.244836620565962e-9,
+            "length": 4.618527782440651e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 200,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "5a19ebd115775e065f00005ede933967ee53685f7ba4b32bfb9a86ac43ab9714",
+          "outputHash": "576d027df3bb64d8d297437e055c9a424862379c98d3add8b825f3eab03b6afc",
+          "freshMs": 29.57441700000004,
+          "reuseMs": 30.416541000000052,
+          "evaluations": 26,
+          "directions": 24,
+          "linearSolves": 24,
+          "certificate": {
+            "force": 1.8724388948995333e-8,
+            "torque": 4.618356056559272e-9,
+            "length": 3.730349362740526e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 224,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 25.57100000000014,
+        "meanMs": 26.393609500000025,
+        "minimumMs": 24.600582999999915,
+        "maximumMs": 29.57441700000004
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 24.909042,
+        "meanMs": 25.863901,
+        "minimumMs": 23.689708999999993,
+        "maximumMs": 30.416541000000052
+      },
+      "speedup": 1.026575008384511
+    },
+    {
+      "elementBackend": "wasm-exact",
+      "scenario": "contact-free",
+      "catheterMm": 9,
+      "nodes": 67,
+      "workspaceCreationMs": 1.1590419999999995,
+      "cold": {
+        "step": 0,
+        "inputHash": "4d09344697ca11d7411d1020031cfa65937ef81832a94fbf15578111238ba277",
+        "outputHash": "43cc16b6590cb04d475f7f578a4b92fc746db87a60e5843c55ce79a9211159c8",
+        "freshMs": 14.895749999999907,
+        "reuseMs": 5.701500000000124,
+        "evaluations": 4,
+        "directions": 2,
+        "linearSolves": 2,
+        "certificate": {
+          "force": 8.1777605964484e-11,
+          "torque": 1.4746820380601837e-46,
+          "length": 1.0658141036401503e-14,
+          "wall": null
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 1,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "50830da2f11c3724e2f599cd091ef16de5795c1c906dab787c215ff0a7e08484",
+          "outputHash": "1cfe5cf716db1c3187beadddaf4120b02d7c222a27b3946dd383daa923471094",
+          "freshMs": 5.316917000000103,
+          "reuseMs": 3.092832999999928,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.4693880565710343e-10,
+            "torque": 2.8561214548612006e-39,
+            "length": 2.930988785010413e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 9,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "d517623868b8d668d09121afa4b70666688eada136de08b6f36774640f35b0dd",
+          "outputHash": "a041383a1dd70fb86bf111b77c88a75756eb245dc199ee80ccc09392e5341c04",
+          "freshMs": 5.539707999999791,
+          "reuseMs": 3.3291249999999764,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.543489394321867e-10,
+            "torque": 5.118889281214113e-38,
+            "length": 4.1744385725905886e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 11,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "bf590bc7cae89b22b3c004748a84aea5e14809bdc9329aa478107f44064f2f2b",
+          "outputHash": "6677a70e4f73a757b07bd4a5990c7c67839f395b87b0200f0bd58821de0d77ee",
+          "freshMs": 3.746458999999959,
+          "reuseMs": 4.301124999999956,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.297929720144413e-10,
+            "torque": 4.8653665794652245e-37,
+            "length": 2.842170943040401e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 13,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "9f0d7976ab654c8c842afd9022e0df84bf630c0bdba6a7e5df64dab489c9663d",
+          "outputHash": "ff18d85db24bac52bf4cd8add27ce19d064e6ba4110a8824a5d715edb7f912f6",
+          "freshMs": 4.468375000000151,
+          "reuseMs": 5.003208000000086,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 3.3081692397636043e-10,
+            "torque": 4.7709639443412806e-36,
+            "length": 4.529709940470639e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 15,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "eef6e84e28d67c356053bb02eef3b31fec6990c518df740b5f734eeb3b041b6f",
+          "outputHash": "52a0282b32810030917d8a31ffd9d7610c371c3292a137694d17aa5b35ff8015",
+          "freshMs": 3.9049999999999727,
+          "reuseMs": 3.286750000000211,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.336754251456231e-10,
+            "torque": 2.750272091071895e-35,
+            "length": 3.197442310920451e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "c5db82108c0a55f092354845ddb25770d367d4f94682007584df31db461482a4",
+          "outputHash": "73941b5fd62e02a6c5fe47b2717166e400b6199aa4da46d5c0f9e363775813fe",
+          "freshMs": 3.4267919999999776,
+          "reuseMs": 3.229000000000042,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.3950930332998167e-10,
+            "torque": 3.2497163115069197e-34,
+            "length": 4.263256414560601e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "138b4194fc8365c0f83e1c009c53eff2a5d041619d040eb73233beea65987d55",
+          "outputHash": "20de47ed1d229179510bd812dbe2dc8afa0d01e620b2f4562c445043dde25d2c",
+          "freshMs": 3.220291999999972,
+          "reuseMs": 2.9442920000001322,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 2.9230463744888974e-10,
+            "torque": 1.75490141650729e-33,
+            "length": 3.4638958368304884e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 21,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "4f290609aef0890754883d4fed0dfd3bc1b36836553f0f04d11860aecd3750a6",
+          "outputHash": "e20705ebe85173225c261403fdd53e25fe3d5044df72c1c104844c612c2ba0df",
+          "freshMs": 3.2407919999998285,
+          "reuseMs": 3.442250000000058,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.9080032759220982e-10,
+            "torque": 4.5685550455321e-33,
+            "length": 4.3520742565306136e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 3.746458999999959,
+        "meanMs": 4.108041874999969,
+        "minimumMs": 3.220291999999972,
+        "maximumMs": 5.539707999999791
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 3.286750000000211,
+        "meanMs": 3.5785728750000487,
+        "minimumMs": 2.9442920000001322,
+        "maximumMs": 5.003208000000086
+      },
+      "speedup": 1.139867346162537
+    },
+    {
+      "elementBackend": "wasm-exact",
+      "scenario": "contact-free",
+      "catheterMm": 160,
+      "nodes": 69,
+      "workspaceCreationMs": 0.12800000000015643,
+      "cold": {
+        "step": 0,
+        "inputHash": "64b50b725b7dd988bc3e048231a079ce490856dd5e26b39a2f41e97d107c3c72",
+        "outputHash": "670157958f1d62c8902d32d4886b34f87cf59e588bc33e0672f87f530f4a932a",
+        "freshMs": 4.442625000000135,
+        "reuseMs": 5.330583000000161,
+        "evaluations": 5,
+        "directions": 3,
+        "linearSolves": 3,
+        "certificate": {
+          "force": 2.83358447816795e-10,
+          "torque": 1.6289322047795572e-29,
+          "length": 2.6201263381153694e-14,
+          "wall": null
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 2,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "7d988c4de6606a978e08c4786d488e343bd98b062638b289ae6a563c40325ea2",
+          "outputHash": "ddd5c7df652198800bf43b702d0c787917c7e282547a259f36ad3a10c2c0308f",
+          "freshMs": 4.538499999999885,
+          "reuseMs": 4.344708000000082,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 3.017876572792681e-10,
+            "torque": 1.9539927299636741e-28,
+            "length": 3.019806626980426e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 14,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "08f4f239c53d74fd6c7cce0ce028ed91c4326c3a2a2e27383fdcbbeeebf73d15",
+          "outputHash": "f19f9361600d37c794522ce98425442368c577260febadaf2c6e824dc8b0fa46",
+          "freshMs": 6.02475000000004,
+          "reuseMs": 4.647959000000128,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 3.0582121389487866e-10,
+            "torque": 1.671966785967106e-27,
+            "length": 3.108624468950438e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "7b31ccebb48e54ef6362ecd26efe726395402a0b4c52a85704a9bbe4131f0d89",
+          "outputHash": "a260e36df51879a0b549a4f72177182745bc516d528f20ea6759276a15ab0cf0",
+          "freshMs": 5.758249999999862,
+          "reuseMs": 4.691667000000052,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.7600910446068383e-10,
+            "torque": 1.3417197992299215e-26,
+            "length": 4.529709940470639e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "60a5f179c4c981feacf6594c9ebb0fa8cbddcb898ee17668ae1cc06a2a980c4f",
+          "outputHash": "920c73305f7b9845095430e478991412c14d3fe3d584fb086f1663e8079adadd",
+          "freshMs": 5.726042000000007,
+          "reuseMs": 4.305707999999868,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.4679511212433733e-10,
+            "torque": 2.718816721734681e-26,
+            "length": 2.930988785010413e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "10748ce98ad0f4f9363e618a3943944f5b9dabd4b464901b28e4a4ef7c45af7d",
+          "outputHash": "85a0c29617bb3ca126e8ca554743de755950892eb801f2a1ca90477c3d0da189",
+          "freshMs": 4.838750000000118,
+          "reuseMs": 4.2947499999997945,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.908879803698028e-10,
+            "torque": 3.0945167691947157e-25,
+            "length": 4.1744385725905886e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 26,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "0776841f5b5edad34348c8c374bd94af39e3e9616118769212f030cbc0bdc23a",
+          "outputHash": "45cedec9c9a0a9d80f387528da8dbb47704b31434ce01ad59a3a8fb11afd5e3c",
+          "freshMs": 4.786166999999978,
+          "reuseMs": 5.148208000000068,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.3607743537823467e-10,
+            "torque": 8.145793151462402e-25,
+            "length": 5.5067062021407764e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 29,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "dc57e452ede74cd200745c71633fc461e3e51095e9cf96a2ba3a83035cfaf875",
+          "outputHash": "dcccc431bc5eb9bcb44a90f37ec0d159c9c93df43210ca81d89b73071eb9f89a",
+          "freshMs": 4.5311249999999745,
+          "reuseMs": 6.080749999999853,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 3.5605518025970115e-10,
+            "torque": 2.067877807133964e-24,
+            "length": 4.618527782440651e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 32,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "1973bcb36a405d0f3feb6c5ace83d2eb7f1efd4014ec5ccb826ea6e1867a5a3b",
+          "outputHash": "04384734dd0062a373ad1d68e84adc0ed97db3042997efe94cfacb8f1eacfb45",
+          "freshMs": 4.582417000000078,
+          "reuseMs": 4.26320799999985,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 3.2245867087610267e-10,
+            "torque": 1.1530558418480162e-23,
+            "length": 3.730349362740526e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 4.786166999999978,
+        "meanMs": 5.098250124999993,
+        "minimumMs": 4.5311249999999745,
+        "maximumMs": 6.02475000000004
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 4.344708000000082,
+        "meanMs": 4.722119749999962,
+        "minimumMs": 4.26320799999985,
+        "maximumMs": 6.080749999999853
+      },
+      "speedup": 1.1016084395084518
+    },
+    {
+      "elementBackend": "wasm-exact",
+      "scenario": "contact-free",
+      "catheterMm": 310,
+      "nodes": 68,
+      "workspaceCreationMs": 0.2588749999999891,
+      "cold": {
+        "step": 0,
+        "inputHash": "38307bc292cdfaa517b10a85669e4a6a45a35d967c63dce8047c418f1265161a",
+        "outputHash": "c454a357f3a5de6d9b4fd62e25ccac5412ff075a7b2d25e19aa16df93e5b75aa",
+        "freshMs": 6.166958999999906,
+        "reuseMs": 14.00649999999996,
+        "evaluations": 6,
+        "directions": 4,
+        "linearSolves": 4,
+        "certificate": {
+          "force": 7.887672633435022e-10,
+          "torque": 2.6575658720103673e-20,
+          "length": 4.796163466380676e-14,
+          "wall": null
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "73bb2e4f5d0a162fde9d2146dc453b6289fde051e23c43a45e6a9053e8bce032",
+          "outputHash": "e2322bd280e4428729c87acf86b5ec5711b468d4ad1d19e4425668312e7dc745",
+          "freshMs": 6.881832999999915,
+          "reuseMs": 5.703500000000076,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 6.980830509966709e-10,
+            "torque": 3.7862372742267225e-19,
+            "length": 5.417888360170764e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "28cb77f08a5827131b78953459cfddf14760cba7a2f5cdcea626c3cebcca9cd1",
+          "outputHash": "ac5d604d5a83132875579f330ca3e9cbdbeb03b9e9efcb75d1f05c6d0142b62c",
+          "freshMs": 5.961333000000195,
+          "reuseMs": 6.078792000000249,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 9.416260400585465e-10,
+            "torque": 1.5111067779016718e-18,
+            "length": 4.574118861455645e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "fe3fb701d083698dc8690c89ff799366f74f56a5f4948aebd6aac132f839d376",
+          "outputHash": "1a0be4e68608dc8adf66567bb7bb2fd01e9debca3a3816a41cbd0b52b12ed234",
+          "freshMs": 9.235250000000178,
+          "reuseMs": 6.287291000000096,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 5.991630004602875e-10,
+            "torque": 2.126704261413874e-18,
+            "length": 4.973799150320701e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "d16a9540b4af47389fa16de49cbac9514b89962ceb9b4d30a88300f615be3856",
+          "outputHash": "9c5bee2ed050a4ce7e93a5398c3cd3570a89db5328dd4363b39ea618f036b304",
+          "freshMs": 6.2207500000004075,
+          "reuseMs": 6.972458000000188,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 6.700145483903408e-10,
+            "torque": 3.619567252759299e-18,
+            "length": 3.907985046680551e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 31,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "f2b21550508230821890e053603c7529fb99ab9432b86e3a60cd709603055785",
+          "outputHash": "afc6744b3dcb8ff7506c7b3df813b1c644f3440a634ed44e60614b33033f8ca1",
+          "freshMs": 6.728665999999976,
+          "reuseMs": 5.762040999999954,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 5.972697984174742e-10,
+            "torque": 3.3985568099064847e-18,
+            "length": 3.9968028886505635e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "7baa1a7e0d2afe8685ddd3a9961f320629b66f84d7dfea75137ff88f9ee1388d",
+          "outputHash": "a79dc3ba839d33ebc0419aa66144ea217db821448324776a06a0d5b601affbb8",
+          "freshMs": 6.592249999999694,
+          "reuseMs": 6.528166999999939,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 6.508326773250063e-10,
+            "torque": 9.622294280808852e-18,
+            "length": 5.46229728115577e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 39,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "b38fac540c8170fe7afca087eeace493707994783588e3ba0126cf8dde98f722",
+          "outputHash": "a5ded78a86c523acaea9b013bc31eb7ff624da63ea68b964afb558515eeef9c2",
+          "freshMs": 8.111291000000165,
+          "reuseMs": 6.059125000000222,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 6.808225416511037e-10,
+            "torque": 8.033521097282016e-18,
+            "length": 4.574118861455645e-14,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 43,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "7e8971ceb3e30adf2d436ef20b9406aef84b0c466d781e84a67df69b0b47b458",
+          "outputHash": "1726b35bfbee609b10ef09b69a41a43a11c79ee57894bdd92bcf0b2dd3b990d8",
+          "freshMs": 6.684208000000126,
+          "reuseMs": 5.338999999999942,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 9.933764192866575e-8,
+            "torque": 6.161954627104116e-14,
+            "length": 6.115108419635362e-12,
+            "wall": null
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 46,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 6.684208000000126,
+        "meanMs": 7.051947625000082,
+        "minimumMs": 5.961333000000195,
+        "maximumMs": 9.235250000000178
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 6.059125000000222,
+        "meanMs": 6.091296750000083,
+        "minimumMs": 5.338999999999942,
+        "maximumMs": 6.972458000000188
+      },
+      "speedup": 1.103163905679431
+    },
+    {
+      "elementBackend": "wasm-exact",
+      "scenario": "analytic-plane",
+      "catheterMm": 9,
+      "nodes": 67,
+      "workspaceCreationMs": 0.18308299999989686,
+      "cold": {
+        "step": 0,
+        "inputHash": "a92b89cc523329736774517cda3b10ecb176a78f97ce0ea0cfa673c3a3d738ad",
+        "outputHash": "81d7a0968a3a14f6ae91e2b77077651c3f7d478056ae48af223952a7cabc222a",
+        "freshMs": 7.00525000000016,
+        "reuseMs": 7.8058750000000146,
+        "evaluations": 6,
+        "directions": 4,
+        "linearSolves": 4,
+        "certificate": {
+          "force": 8.957425620304958e-11,
+          "torque": 1.2393312003943861e-18,
+          "length": 1.3322676295501878e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "e0205d900d2e56b90dc8be83a0f21a329627d2458a51e8ecd92f78af184fa6be",
+          "outputHash": "92bb76bd1999f8b98b893ec50a7a41f6989517ea018f3c4711695fc74eb863fc",
+          "freshMs": 6.685542000000169,
+          "reuseMs": 8.03729199999998,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 2.6807578379361985e-10,
+            "torque": 1.9418582160259848e-16,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "a5b9261a286186e1d1e4bb93f5a7d387622adb2c16d2e18651423f80aa179ea9",
+          "outputHash": "3c7ee1d4eccf6dd66594e41d970ae6fed0cf2e281c7fc4ab02fefcff995f7ad8",
+          "freshMs": 6.254750000000058,
+          "reuseMs": 5.054083999999875,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 5.3512305697722695e-11,
+            "torque": 1.3711386620773306e-15,
+            "length": 4.440892098500626e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "a7ecedfb43bae4b0defb8e8d89c3c73aebb6205691019e773b71cab87752da18",
+          "outputHash": "f58d439090523efce418b1560d9f19d11c8ebbec4bbf116339a9c32c9259ed86",
+          "freshMs": 6.558250000000044,
+          "reuseMs": 6.590582999999697,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 2.943659205278948e-10,
+            "torque": 1.7869305832913974e-16,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "595b3d61de519cf8899a196844665e6e188e5e581a5aeb1aac31850bd3f3682e",
+          "outputHash": "7060f36e98583d603a58618083ad953ee8223b8864bcf80e734f6a9a8b37b4ee",
+          "freshMs": 6.239166999999725,
+          "reuseMs": 5.566499999999905,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 7.987861760927473e-11,
+            "torque": 6.346113078080607e-16,
+            "length": 4.440892098500626e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "9d9927537498efeba0550de66239ea6f7e3330c23c01c7b1b65d4131b099e092",
+          "outputHash": "2a931a504244cfffcc629be0c52be045600e3f2f928aaabdf12ee4df005c4599",
+          "freshMs": 7.0037499999998545,
+          "reuseMs": 5.862624999999753,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 2.0921954446695423e-10,
+            "torque": 4.54791461685128e-16,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 31,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "db68640a1908a16d13a0e83b6c692a9ca3bcf2a3f012d320952054b254a94e13",
+          "outputHash": "8a38b1ff35f9e6818fea531fd7a62a27e2343c8873cacf67f52fd9c6963c810a",
+          "freshMs": 5.546875,
+          "reuseMs": 5.596915999999965,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.400798411193464e-8,
+            "torque": 1.5065308237338466e-15,
+            "length": 4.902744876744691e-13,
+            "wall": {
+              "maximumPenetration": 4.996003610813204e-16,
+              "maximumProjectedResidual": 4.9960036108132044e-11,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 34,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "52a357ede2f32474637afd7f9c1f3cb51cf2c25fcb10ce8041a1c76b11991f19",
+          "outputHash": "ae96c2f63b7aa24870e06712e21832702a8cc53c0a9bdb8ed19094382752bc26",
+          "freshMs": 4.699874999999793,
+          "reuseMs": 4.138833999999861,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.1586628190138257e-8,
+            "torque": 3.302028660603241e-13,
+            "length": 1.4210854715202004e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "e7dae83c2aa343a2c330acd2a82ddbda0d5af949e3b59efe520c88271616dcd9",
+          "outputHash": "2d373e6af341fa199b53b8b7328669ecde27dc396de3b16f6715c6cfbb877274",
+          "freshMs": 4.707416000000194,
+          "reuseMs": 4.7608329999998205,
+          "evaluations": 4,
+          "directions": 2,
+          "linearSolves": 2,
+          "certificate": {
+            "force": 1.3994725518170173e-8,
+            "torque": 1.3653924777898074e-13,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 38,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 6.239166999999725,
+        "meanMs": 5.9619531249999795,
+        "minimumMs": 4.699874999999793,
+        "maximumMs": 7.0037499999998545
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 5.566499999999905,
+        "meanMs": 5.700958374999857,
+        "minimumMs": 4.138833999999861,
+        "maximumMs": 8.03729199999998
+      },
+      "speedup": 1.1208420012574922
+    },
+    {
+      "elementBackend": "wasm-exact",
+      "scenario": "analytic-plane",
+      "catheterMm": 160,
+      "nodes": 69,
+      "workspaceCreationMs": 0.15320900000006077,
+      "cold": {
+        "step": 0,
+        "inputHash": "777d21c44f9f0d6d7f743316a1f8c1bd7164535884e8f0364c57b196f9e790f7",
+        "outputHash": "57b025db1094b273217549d2f74943909fbf28f95e16e2189e16beaaeb3a0b8c",
+        "freshMs": 7.438458999999966,
+        "reuseMs": 7.246625000000222,
+        "evaluations": 6,
+        "directions": 4,
+        "linearSolves": 4,
+        "certificate": {
+          "force": 3.111819369719711e-10,
+          "torque": 6.213816560729264e-15,
+          "length": 2.3092638912203256e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "ba7d562c326219eac9b914ea01bafa0055eefa2339fbb7a26faa489f6f588cce",
+          "outputHash": "6af67d9e0660ee930d52375842cc86591db0a2d9b7ba467c109b0d175860745d",
+          "freshMs": 13.462416999999732,
+          "reuseMs": 10.77599999999984,
+          "evaluations": 9,
+          "directions": 5,
+          "linearSolves": 5,
+          "certificate": {
+            "force": 3.447864216354901e-10,
+            "torque": 1.4033219031261979e-13,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 22,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "0d199ed34bdd9ce0abb32f07010ccbdf4aea0e0eaaabf8e7c6ee22f7b3ac1919",
+          "outputHash": "198bb7594a25ed0449cff7be2423f3f4112483b0d2424d036183016460392822",
+          "freshMs": 8.455208000000312,
+          "reuseMs": 8.451375000000098,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 3.591390599682047e-10,
+            "torque": 2.4658053376924727e-13,
+            "length": 2.6645352591003757e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 26,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "2562fa66c416d900fa359661a1ac12f73d393a8ba521e26dbb8b71781320ae12",
+          "outputHash": "02f89ece433d3832f85244bd1c03600e48435566a57818179e8d04632f02ff77",
+          "freshMs": 8.83395900000005,
+          "reuseMs": 8.006582999999864,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 6.616256333241345e-10,
+            "torque": 1.0625604543117098e-12,
+            "length": 4.263256414560601e-14,
+            "wall": {
+              "maximumPenetration": 5.551115123125783e-17,
+              "maximumProjectedResidual": 5.551115123125783e-12,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 30,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "9277dbdfa58799488d156605a0bce5990d0b6142d81e3116f463fc043b2327bb",
+          "outputHash": "5011f6dd1ab8893c54f41759d37216309f5a77a1555aff26f8cf02d7ffbcf8b6",
+          "freshMs": 9.521708000000217,
+          "reuseMs": 8.644291000000067,
+          "evaluations": 7,
+          "directions": 5,
+          "linearSolves": 5,
+          "certificate": {
+            "force": 3.7639313887893877e-10,
+            "torque": 2.275957200481571e-13,
+            "length": 4.884981308350689e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "5bc977a73a7cfb21fbb7088f7556ab03389a15f992d0363ae0abb71958fe09d2",
+          "outputHash": "ce047f04d2f062594a5cf57904f4741eedda84d616309964bb01b4f0ebebd52d",
+          "freshMs": 7.41558299999997,
+          "reuseMs": 7.241042000000107,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 2.8926713279599197e-10,
+            "torque": 2.291500322826323e-13,
+            "length": 4.3520742565306136e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 38,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "fe9fbaacec95a5e3c619630f62c434535af481bf03efcaf59268c48d24213281",
+          "outputHash": "a757a7da029c04c4402bb91cd34adcd2b7bdc56da61aaa00bcabd65ee26e1425",
+          "freshMs": 9.414707999999791,
+          "reuseMs": 9.10437499999989,
+          "evaluations": 7,
+          "directions": 5,
+          "linearSolves": 5,
+          "certificate": {
+            "force": 3.676349225045783e-10,
+            "torque": 2.948752353404416e-13,
+            "length": 4.796163466380676e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 43,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "b5821b82fbc893f5c65ca40aae83812a7d233643e3f12e8cb4ac82fe6d576b8d",
+          "outputHash": "935c83c0d7ae482a4181f0c36ffa4f3a01d9d16f855bbce02db760370cc54a80",
+          "freshMs": 8.1765419999997,
+          "reuseMs": 7.21204200000011,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 2.952070783345623e-10,
+            "torque": 1.7053025658242404e-13,
+            "length": 4.884981308350689e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 47,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "a244eed15df072d8f77e53a10dd9ef9ae71ab3888984f5ce3b509584a8d66990",
+          "outputHash": "406c7e9f9e6644009ca4d2263d450b6cf4fea277210ddc17bc9001cc538e0afd",
+          "freshMs": 6.333833000000141,
+          "reuseMs": 7.398874999999862,
+          "evaluations": 5,
+          "directions": 3,
+          "linearSolves": 3,
+          "certificate": {
+            "force": 4.159340143611882e-10,
+            "torque": 2.4868995751603507e-13,
+            "length": 4.085620730620576e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 50,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 8.455208000000312,
+        "meanMs": 8.951744749999989,
+        "minimumMs": 6.333833000000141,
+        "maximumMs": 13.462416999999732
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 8.006582999999864,
+        "meanMs": 8.35432287499998,
+        "minimumMs": 7.21204200000011,
+        "maximumMs": 10.77599999999984
+      },
+      "speedup": 1.0560320176535303
+    },
+    {
+      "elementBackend": "wasm-exact",
+      "scenario": "analytic-plane",
+      "catheterMm": 310,
+      "nodes": 68,
+      "workspaceCreationMs": 0.19350000000031287,
+      "cold": {
+        "step": 0,
+        "inputHash": "124cf5509dcc6e9a7399f50f7406027db68a56c94e03661121b20ecd2f5dbbda",
+        "outputHash": "fef46d7f0931769ab1833a2982a569cfc69d1ca4b56e71a39fde9cc758e02f3f",
+        "freshMs": 8.08441700000003,
+        "reuseMs": 8.039833000000272,
+        "evaluations": 6,
+        "directions": 4,
+        "linearSolves": 4,
+        "certificate": {
+          "force": 4.877464611414562e-10,
+          "torque": 4.2144406287452766e-14,
+          "length": 4.618527782440651e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "workspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "accepted": true,
+        "status": "accepted"
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "2257dac2d3286f4e84cf68860bdb822265e03aa134d38c11ae5817c5361860f7",
+          "outputHash": "5c2a219a75b81dca4ab0756dad5e99297519e764d5c2e0008795032784c143ed",
+          "freshMs": 10.421792000000096,
+          "reuseMs": 9.708792000000358,
+          "evaluations": 7,
+          "directions": 5,
+          "linearSolves": 5,
+          "certificate": {
+            "force": 9.023267807418026e-10,
+            "torque": 7.416289804496046e-14,
+            "length": 4.75175454539567e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 5,
+          "inputHash": "8cf0da5d05755983be9d7a06da79c6193d312f774b25c545cb07c511e4f57292",
+          "outputHash": "634397517d06919eabe49f22640a69c3d203101e3c61a5db3458749a6556590f",
+          "freshMs": 9.593624999999975,
+          "reuseMs": 12.319082999999864,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 7.047448005201909e-10,
+            "torque": 1.1168843627729075e-13,
+            "length": 3.552713678800501e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 6,
+          "inputHash": "eb92eb22d01a97550f2da6a3d7d4b254ea155c41c092621ae27ab89773e108c4",
+          "outputHash": "2a0386d1841850911e6313e875cc91a6845279b4c273edb5e6049f849bf10440",
+          "freshMs": 8.303707999999915,
+          "reuseMs": 8.459625000000415,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 7.041996226418675e-10,
+            "torque": 8.926193117986259e-14,
+            "length": 4.973799150320701e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 28,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 7,
+          "inputHash": "517b3210b2d700930f28fdaa4b7f87670a938fc9fea757b609f420b7feb33090",
+          "outputHash": "aff6117afb6afdbf9c72cea87de3c0d2309067d896d3d0a40358855ee07619bc",
+          "freshMs": 9.741500000000087,
+          "reuseMs": 8.800249999999778,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 4.599046968980791e-10,
+            "torque": 8.171241461241152e-14,
+            "length": 5.1958437552457326e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 32,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 8,
+          "inputHash": "8b3388b40316b74c9cdcd16dc844227330bc0c46bc333af8336088334bee9f87",
+          "outputHash": "3a334e4375358c48df0a857432c3efe69bb82ceeda5334b8e5da9f38977176a1",
+          "freshMs": 8.907290999999987,
+          "reuseMs": 7.986458000000312,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 7.719408926165567e-10,
+            "torque": 2.382538610845586e-13,
+            "length": 3.108624468950438e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 9,
+          "inputHash": "cf11167ae5471b62b9300c7dc23202aedf5a75f7d24b27f3a0de429139d058b4",
+          "outputHash": "1711afe2b28d1a5f4326fdc71af4dc120bd2ea7dde9273a6f85de7680ba980d9",
+          "freshMs": 8.858958999999686,
+          "reuseMs": 8.758000000000266,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 8.336256855132411e-10,
+            "torque": 1.0369483049998962e-13,
+            "length": 2.7533531010703882e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 40,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 10,
+          "inputHash": "1c6a42bb898a66943859cc878c97c37a038a0fcff307532117542df507af07ff",
+          "outputHash": "0f51996bc87d51bcbadc1f42d5ca20323ce5e3c9028876c4683a6d67068ad91c",
+          "freshMs": 8.846333999999842,
+          "reuseMs": 8.181666999999834,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 6.47610461430619e-10,
+            "torque": 1.2756462552943049e-13,
+            "length": 3.4638958368304884e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 44,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        },
+        {
+          "step": 11,
+          "inputHash": "8113e6df5cfa3e344f1bc42e2f4aaf186ecd18db6a448e789feb91a9fcfeaae3",
+          "outputHash": "f1fda44568e3e534c8fd04b1c5aa351ee7c84be9756cbd38393ca5f453e8dfa1",
+          "freshMs": 9.110000000000127,
+          "reuseMs": 7.69012500000008,
+          "evaluations": 6,
+          "directions": 4,
+          "linearSolves": 4,
+          "certificate": {
+            "force": 8.622390006941567e-10,
+            "torque": 3.3173463975799677e-13,
+            "length": 3.375077994860476e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "workspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 48,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "accepted": true,
+          "status": "accepted"
+        }
+      ],
+      "fresh": {
+        "count": 8,
+        "medianMs": 8.907290999999987,
+        "meanMs": 9.222901124999964,
+        "minimumMs": 8.303707999999915,
+        "maximumMs": 10.421792000000096
+      },
+      "reuse": {
+        "count": 8,
+        "medianMs": 8.459625000000415,
+        "meanMs": 8.988000000000113,
+        "minimumMs": 7.69012500000008,
+        "maximumMs": 12.319082999999864
+      },
+      "speedup": 1.0529179484905713
+    }
+  ],
+  "sourceAfter": {
+    "scripts/physics/benchmark-composite-timestep-workspace.mjs": "c47e27aa88c3b32e6971e838b64da02dc06a8fb4ffc02374d28f8c3b06eca1a5",
+    "scripts/physics/helpers/compositeTimeStepBenchmark.js": "0b936ae870fd07343b309876f0e907f91c0b838a3b7a6e9c8814f1f9d1198c2d",
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeChain.js": "60e4cddeeea2135264a4aa3b86423d090fefaaf70e6eeabcce9ea0b3f0bf9706",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeElementExact.js": "3184948302eeff6008210517cb86646b96ff85eae0fd4d37c1e21aa5192884b5",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "74330455afdf18f15ff9763cf5fff2d1faf9da222f74e027b7d1a98ab34c0dbf",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeTimeStep.js": "a1a0e7b418dcd81b463cc589d2e731d65c93f2b935400cac2fafe424daecee29",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeWallContacts.js": "022405d91f8df8590b71ab83a51959b6c386c198f833ba66cc55b8aa68af729c",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5415816fe5bef2c818fa29b770d902b172c14a8f941f461392934bf1a94e064a",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "e5f4bdc38aee069f5e20a5c3a02dcc0e5e31174924b9d0dddc780bdb98048efd",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "1546ab48d64d11f4805875d591c30ce7f5d662b60ddba242d3a558de23bb7505"
+  },
+  "allPairsEquivalent": true,
+  "allStepsAccepted": false
+}

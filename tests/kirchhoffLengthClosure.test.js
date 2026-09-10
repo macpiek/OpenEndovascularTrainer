@@ -22,7 +22,7 @@ function maximumSegmentError(body) {
 
 function profile(overrides = {}) {
     return {
-        rodModel: 'kirchhoff',
+
         radius: 0.45,
         innerRadius: 0.75,
         mass: 1,

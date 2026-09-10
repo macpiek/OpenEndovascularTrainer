@@ -45,7 +45,7 @@ for (const [spacing, dt, iterations] of [[5, 1 / 120, 6], [2.5, 1 / 120, 6],
     const world = new EndovascularPhysicsWorld({ fixedDt: dt, iterations, penetrationIterations: iterations });
     const body = world.createRod('cantilever', length / spacing + 1, spacing, {
         mass: 0.001 * spacing / 5,
-        rodModel: 'kirchhoff', constitutiveSolver: 'direct',
+
         foldLimitStrength: 0, sleepFrames: 100000,
         linearDamping: Math.pow(0.9, dt * 120),
         angularDamping: Math.pow(0.9, dt * 120)
@@ -74,7 +74,7 @@ for (const [spacing, dt, iterations] of [[5, 1 / 120, 6], [2.5, 1 / 120, 6],
 {
     const world = new EndovascularPhysicsWorld();
     const body = world.createRod('twist', 104, 2, {
-        rodModel: 'kirchhoff', constitutiveSolver: 'direct',
+
         kirchhoffBendCompliance: 1e-12, kirchhoffTwistCompliance: 1e-12
     });
     body.setActiveRange(3, 103);
@@ -96,7 +96,7 @@ for (const [spacing, dt, iterations] of [[5, 1 / 120, 6], [2.5, 1 / 120, 6],
 {
     const world = new EndovascularPhysicsWorld();
     const body = world.createRod('sheath', 21, 5, {
-        rodModel: 'kirchhoff', constitutiveSolver: 'direct'
+
     });
     applyKirchhoffMaterialProfile(body, beam);
     for (let node = 0; node < 8; node++) body.setPinned(node, true);
@@ -117,7 +117,7 @@ console.log('Direct Kirchhoff mechanics passed', JSON.stringify(deflections));
 {
     const world = new EndovascularPhysicsWorld();
     const body = world.createRod('single-edge', 2, 5, {
-        rodModel: 'kirchhoff', constitutiveSolver: 'direct'
+
     });
     clampBase(body);
     body.y[1] = 0.25;

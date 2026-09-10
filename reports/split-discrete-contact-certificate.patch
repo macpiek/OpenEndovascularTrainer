@@ -1,0 +1,246 @@
+--- a/src/physics/kirchhoffSplitMotion.js
++++ b/src/physics/kirchhoffSplitMotion.js
+@@ -363,6 +363,49 @@
+     }
+     s.diagnostics.finishVelocityMaximumChange=maximum;
+ }
++/** Certify the discrete normal law actually solved over this entire dt.
++ * Published physical velocity is not a terminal TOI/restitution velocity.
++ * Current geometry must have been collected before this measurement; unlike
++ * a cached row strain, J*v is recomputed from the current physical channel. */
++export function measureKirchhoffSplitNormalCertificate(joint,world,out={}) {
++    const s=joint._splitMotion;
++    if(s?.phase!=='complete')throw new Error('Normal certification requires completed physical and bias phases');
++    out.contactCount=out.maximumHistoryResidualMm=out.maximumRawPenetrationMm=out.maximumGeometryViolationMm=0;
++    out.finite=true;
++    const evaluate=(startGap,actualGap,gradients,alpha,physicalLambda,biasLambda,loadedThreshold)=>{
++        const motion=kirchhoffSplitRowMotion(joint,gradients);
++        if(![startGap,actualGap,motion,alpha,physicalLambda,biasLambda].every(Number.isFinite)||
++            alpha<0||physicalLambda<0||biasLambda<0) {
++            out.finite=false;out.maximumHistoryResidualMm=out.maximumGeometryViolationMm=Infinity;return;
++        }
++        const historyGap=Math.max(0,startGap)+motion;
++        const residual=historyGap+alpha*physicalLambda;
++        out.maximumHistoryResidualMm=Math.max(out.maximumHistoryResidualMm,
++            physicalLambda>loadedThreshold?Math.abs(residual):Math.max(0,-residual));
++        // Bias solved actual geometric compression with its OWN normal bank.
++        // Preserve that allowance; a hard contact still requires raw g>=-tol.
++        out.maximumRawPenetrationMm=Math.max(out.maximumRawPenetrationMm,-actualGap);
++        out.maximumGeometryViolationMm=Math.max(out.maximumGeometryViolationMm,-actualGap-alpha*biasLambda);
++        out.contactCount++;
++    };
++    const biasContacts=new Map(s.biasBank.contacts.map(b=>[b.contact,b]));
++    for(const r of joint.kirchhoffContacts)if(r.manifoldContact) {
++        evaluate(r._splitStartGap,r._splitActualGap,lumenGradients(r),r._normalAlpha??0,
++            r.manifoldContact.normalLambda,biasContacts.get(r.manifoldContact)?.normalLambda??0,1e-8);
++    }
++    for(const r of joint._coupledBoundaries?.rows??[]) {
++        let bias=0;
++        if(r.kind==='wall')bias=s.biasBank.bodies[r.side].wallLambda[r.node];
++        else if(r.kind==='split-point-wall')bias=s.biasBank.pointWalls[r.side].get(r.node)?.lambda??0;
++        else if(r.kind==='tool')bias=s.biasBank.tools.find(b=>b.tool===r.owner)?.lambdas[r.node]??0;
++        else if(r.kind==='sheath')bias=s.biasBank.joints._coupledBoundaries?.sheaths.get(r.sheathWitness?.geometry.sheath)?.[r.side].lambda[r.node]??0;
++        else if(r.kind!=='split-sweep')continue;
++        evaluate(r._splitStartGap,r._splitActualStrain,r.gradients,r.alpha,r.lambda,bias,1e-10);
++    }
++    out.settled=out.finite&&out.maximumHistoryResidualMm<=world.coupledContainmentTolerance&&
++        out.maximumGeometryViolationMm<=world.coupledContainmentTolerance;
++    return out;
++}
+ export function commitKirchhoffSplitHistory(joint,world,measurement) {
+     const s=joint._splitMotion,d=s.diagnostics;
+     d.rejectedTrials=d.rollbackCount=world.lastJointBacktracks;
+@@ -379,8 +422,9 @@
+         d.maximumOutwardContactVelocity=Math.max(d.maximumOutwardContactVelocity,-kirchhoffSplitRowMotion(joint,lumenGradients(r))/s.dt);
+     for(const r of joint._coupledBoundaries?.rows??[])if(['wall','tool','sheath','split-sweep','split-point-wall'].includes(r.kind)&&r._splitActualStrain<=world.coupledContainmentTolerance)
+         d.maximumOutwardContactVelocity=Math.max(d.maximumOutwardContactVelocity,-kirchhoffSplitRowMotion(joint,r.gradients)/s.dt);
++    d.normalCertificate=measureKirchhoffSplitNormalCertificate(joint,world,d.normalCertificate??{});
+     d.certified=d.physicalAccepted&&d.biasAccepted&&measurement.settled&&d.unverifiedHistoryKinds.length===0&&
+-        d.maximumOutwardContactVelocity*s.dt<=world.coupledContainmentTolerance;
++        d.normalCertificate.settled;
+     if(d.certified) {
+         if(d.historyCommits)throw new Error('A physical timestep cannot commit its history twice');
+         // This snapshot is the committed physical motion consumed by the next
+--- /dev/null
++++ b/tests/kirchhoffSplitDiscreteContactCertificate.test.js
+@@ -0,0 +1,115 @@
++import assert from 'node:assert/strict';
++import test,{after} from 'node:test';
++import {writeFileSync} from 'node:fs';
++import {source} from './fixtures/splitMotionAnalyticWorld.js';
++const {EndovascularPhysicsWorld}=await import(source('src/physics/endovascularPhysicsWorld.js'));
++const {solveKirchhoffCoupledSystem:solve,applyKirchhoffCoupledCorrection:apply}=await import(source('src/physics/kirchhoffCoupledSystem.js'));
++const {measureKirchhoffSplitNormalCertificate,commitKirchhoffSplitHistory,syncKirchhoffSplitVelocity,
++    appendKirchhoffSplitPointWalls,prepareKirchhoffSplitBoundaryRows}=await import(source('src/physics/kirchhoffSplitMotion.js'));
++const {collectKirchhoffCoupledBoundaryRows}=await import(source('src/physics/kirchhoffCoupledBoundaryRows.js'));
++const DT=1/120, RADIUS=.5, axes=['X','Y','Z'];
++const near=(a,b,tol,label)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<=tol,`${label}: ${a} vs ${b}`);
++const observations=[];
++after(()=>{if(process.env.OET_DISCRETE_CONTACT_REPORT)writeFileSync(process.env.OET_DISCRETE_CONTACT_REPORT,JSON.stringify(observations,null,2));});
++class Plane {
++    voxelSize = .5;
++    write(p, r, out) {
++        const gap = -p.y - r, penetration = Math.max(0, -gap);
++        Object.assign(out, { signedDistance: -p.y, signedGap: gap, penetration, inside: p.y <= 0,
++            violation: gap < 0, branchId: 0, faceIndex: 0, source: 'first-impact-affine', timeOfImpact: gap < 0 ? 0 : 1 });
++        Object.assign(out.point, p); Object.assign(out.closestPoint, { x: p.x, y: 0, z: p.z });
++        Object.assign(out.inward, { x: 0, y: -1, z: 0 }); Object.assign(out.normal, out.inward);
++        Object.assign(out.target, { x: p.x, y: p.y - penetration, z: p.z }); return out;
++    }
++    querySphere(p, r, out) { return this.write(p, r, out); }
++    queryCapsule(a, b, r, out) { const p = a.y >= b.y ? a : b; this.write(p, r, out); out.segmentT = p === a ? 0 : 1; return out; }
++    sweepSphere(a, b, r, out) { this.write(b, r, out); const ga = -a.y - r, gb = -b.y - r;
++        out.timeOfImpact = gb >= 0 ? 1 : ga <= 0 ? 0 : ga / (ga - gb); return out; }
++}
++
++function fixture(gap,wallCompliance=0) {
++    const world=new EndovascularPhysicsWorld({fixedDt:DT,jointMotionMode:'split-physical-bias',contactField:new Plane(),
++        coupledSystem:{solve(c,dt,o){return solve(c,dt,{...o,activeCondensation:true,simultaneousCoulomb:true});},apply}});
++    const profile={radius:RADIUS,mass:1,inverseAngularInertia:1,adaptationCompliance:0,kirchhoffBendCompliance:0,kirchhoffTwistCompliance:0,
++        foldLimitStrength:0,linearDamping:1,angularDamping:1,projectionVelocityRetention:0,wallProjectionVelocityRetention:0,
++        toolProjectionVelocityRetention:0,wallStaticFriction:0,wallKineticFriction:0,wallCompliance,sleepFrames:1e6,sleepVelocity:0,sleepAngularVelocity:0};
++    const wire=world.createRod('impact-wire',2,.5,profile),support=world.createRod('supported-pair',3,1,profile);
++    for(let i=0;i<wire.count;i++)wire.setNodePosition(i,1.25+.5*i,-RADIUS-gap,0);
++    for(let i=0;i<support.count;i++)support.setNodePosition(i,i,-4,0);
++    support.inverseMass.fill(0);for(let a=1;a<=3;a++)support['inverseInertia'+a].fill(0);
++    const joint=world.addContainment(wire,support,{innerRadius:100,openDistal:false,openProximal:false,
++        axialFriction:0,torsionalFriction:0,radialVelocityDamping:0,coupledBendingRateDamping:0});
++    wire.velocityY.fill(2);return {world,wire,support,joint};
++}
++function advance(f,name) {
++    const initial=axes.map(a=>f.wire[a.toLowerCase()].slice());let predictor;
++    const startGaps=[...f.wire.y].map(y=>-y-RADIUS);
++    f.wire.debugConstraintPhase=phase=>{if(phase==='afterIntegrate')predictor={
++        velocity:axes.map((a,k)=>Array.from(f.wire[a.toLowerCase()],(p,i)=>(p-initial[k][i])/DT)),
++        omega:axes.map(a=>[...f.wire['angularVelocity'+a]])};};
++    f.world.stepFixed();const d=structuredClone(f.world.getStats().jointMotion);
++    const velocity=axes.map(a=>[...f.wire['velocity'+a]]),omega=axes.map(a=>[...f.wire['angularVelocity'+a]]);
++    const normal=d.contacts.filter(c=>c.kind==='wall').reduce((s,c)=>s+c.normalPhysical,0);
++    const energy=v=>[...v.velocity,...v.omega].flat().reduce((s,x)=>s+.5*x*x,0);
++    const row={name,startGaps,rawGaps:[...f.wire.y].map(y=>-y-RADIUS),velocity,omega,
++        predictor,normalImpulse:normal/DT,momentumLoss:predictor.velocity[1].reduce((s,v,i)=>s+v-velocity[1][i],0),
++        predictorEnergy:energy(predictor),finalEnergy:energy({velocity,omega}),diagnostics:d};
++    observations.push(row);return row;
++}
++function accepted(f,r) {
++    const d=r.diagnostics;
++    assert.equal(d.certified,true,JSON.stringify(d));assert.equal(d.historyCommits,1);assert.equal(d.sweptWitnesses,0);
++    assert.ok(d.physicalAccepted&&d.biasAccepted&&d.finalPhysicalResidualSettled);
++    assert.ok(d.normalCertificate.settled&&d.normalCertificate.contactCount>0);
++    assert.ok(d.normalCertificate.maximumHistoryResidualMm<=f.world.coupledContainmentTolerance);
++    near(r.normalImpulse,r.momentumLoss,.002,'physical normal impulse equals predictor momentum loss');
++    assert.ok(r.finalEnergy<=r.predictorEnergy+2e-6,'contact cannot create kinetic energy');
++}
++for(const gap of [0,.0005,.01])test(`discrete first closure from gap ${gap} and the next unforced dt obey the same contact law`,()=>{
++    const f=fixture(gap),first=advance(f,'gap-'+gap+'-first');accepted(f,first);
++    assert.ok(first.rawGaps.every(g=>g>=-2e-6),'actual hard wall nonpenetration');
++    first.velocity[1].forEach((v,i)=>near(v,Math.max(0,first.startGaps[i])/DT,5e-4,'active full-step discrete velocity'));
++    if(gap===.01)assert.ok(first.diagnostics.maximumOutwardContactVelocity*DT>f.world.coupledContainmentTolerance,
++        'raw outward velocity is diagnostic, not an incompatible terminal cap');
++    const second=advance(f,'gap-'+gap+'-second');accepted(f,second);
++    assert.ok(second.rawGaps.every(g=>g>=-2e-6));
++    second.velocity[1].forEach(v=>near(v,0,5e-4,'next dt starts at contact and stops'));
++    assert.ok(second.finalEnergy<=2e-6);
++});
++
++test('manually zeroing physical velocity while keeping first-step lambda fails a fresh certificate',()=>{
++    const f=fixture(.01),first=advance(f,'manual-zero-before');accepted(f,first);
++    const oldMeasurement=f.joint._jointStateMeasurement,oldLambda=first.normalImpulse*DT;
++    assert.equal(oldMeasurement.settled,true,'exercise rejection even if the caller supplies stale settled state');
++    f.wire.velocityY.fill(0);syncKirchhoffSplitVelocity(f.joint);
++    const n=measureKirchhoffSplitNormalCertificate(f.joint,f.world);
++    assert.equal(n.settled,false);assert.ok(n.maximumHistoryResidualMm>.009);
++    assert.equal(commitKirchhoffSplitHistory(f.joint,f.world,oldMeasurement),false);
++    near(f.world.getStats().jointMotion.contacts.filter(c=>c.kind==='wall').reduce((s,c)=>s+c.normalPhysical,0),oldLambda,1e-12,'certificate never edits the reaction');
++    assert.equal(f.joint._splitMotion.diagnostics.historyCommits,1,'tampering cannot add a second accepted-history commit');
++});
++
++test('fresh hard-wall penetration cannot be hidden by a settled history equation',()=>{
++    const f=fixture(.01),first=advance(f,'geometry-tamper-before');accepted(f,first);
++    const oldMeasurement=f.joint._jointStateMeasurement;
++    f.wire.y.forEach((v,i)=>{f.wire.y[i]=v+.005;});
++    const rows=collectKirchhoffCoupledBoundaryRows(f.joint,[],DT,f.world.contactActivation);
++    appendKirchhoffSplitPointWalls(f.joint,f.world,rows);prepareKirchhoffSplitBoundaryRows(f.joint,rows);
++    const n=measureKirchhoffSplitNormalCertificate(f.joint,f.world);
++    assert.ok(n.maximumHistoryResidualMm<1e-6,'rigid geometry tampering did not change the stored physical impulse law');
++    assert.ok(n.maximumRawPenetrationMm>.0049&&n.maximumGeometryViolationMm>.0049);
++    assert.equal(n.settled,false);assert.equal(commitKirchhoffSplitHistory(f.joint,f.world,oldMeasurement),false);
++});
++
++test('compliant normal compression retains its declared alpha and multiplier allowance',()=>{
++    const f=fixture(.01,1e-4),r=advance(f,'compliant-first');accepted(f,r);
++    assert.ok(r.diagnostics.normalCertificate.maximumRawPenetrationMm>0);
++    assert.ok(r.diagnostics.normalCertificate.maximumGeometryViolationMm<=f.world.coupledContainmentTolerance);
++    for(const row of f.joint._coupledBoundaries.rows.filter(r=>['wall','split-point-wall'].includes(r.kind))) {
++        const weights=row.kind==='wall'?[1-f.wire.wallT[row.node],f.wire.wallT[row.node]]:[1];
++        const nodes=row.kind==='wall'?[row.node,row.node+1]:[row.node];
++        const v=nodes.reduce((s,n,i)=>s+weights[i]*f.wire.velocityY[n],0);
++        const residual=Math.max(0,row._splitStartGap)-DT*v+row.alpha*row.lambda;
++        near(residual,0,2e-6,'independent compliant full-step normal equation');
++    }
++});
+--- /dev/null
++++ b/reports/split-discrete-contact-certificate.md
+@@ -0,0 +1,62 @@
++# Certification of the existing discrete normal contact law
++
++The final split-motion certificate now tests the same history-aware normal equation that the joint solver already solves. Closing velocity remains an explicit diagnostic. It is not independently capped and is not reset or projected. This is a full-step discrete contact approximation, **not a terminal collision/TOI/restitution solver**.
++
++Only `kirchhoffSplitMotion.js` production source changes. The physical/bias solves, body state, impulses, coefficients and World tolerances are unchanged. Local tests use the untouched World SHA `2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5`; root is integrating its separate transaction and bias precheck work.
++
++## Certificate
++
++`measureKirchhoffSplitNormalCertificate` traverses all current lumen and boundary normal rows (wall, point-wall, sweep, tool and sheath), without filtering out rows according to their current gap. It recomputes motion from the current physical velocity channel:
++
++```text
++h = max(0, g_start) + dt * J_current * v_physical
++q = h + alpha * lambda_physical
++lambda_physical >= 0
++q = 0 when loaded, otherwise q >= 0
++```
++
++Existing loaded thresholds are retained: 1e-8 for lumen and 1e-10 for additional boundaries. The maximum residual must satisfy the existing `world.coupledContainmentTolerance` (.001 mm). A cached settled measurement cannot substitute for current `Jv`.
++
++Fresh geometric penetration is also checked explicitly. Hard rows require raw `g_actual >= -tolerance`. A compliant geometric bias may retain its already solved compression, so the admissibility condition is `g_actual + alpha*lambda_bias >= -tolerance`, using the separate bias normal bank. This does not silently demand zero raw gap for a compliant contact, and does not permit a new hard penetration hidden by an unchanged velocity/history equation. Nonfinite quantities or negative normal loads cannot certify.
++
++Final acceptance still requires both phases accepted, the existing full fresh World KKT/material/control/fold/friction gates settled, and no unverified history. The new normal certificate replaces only the independent `dt*maximumOutwardContactVelocity <= tolerance` requirement. Raw outward velocity and raw penetration remain diagnostics.
++
++## Bounded first-closure observations
++
++The independent plane fixture uses a straight two-node wire of length .5 mm, radius .5, unit node mass and segment inertia, zero material strain, zero friction/damping/force and incoming velocity +2 mm/s toward the y=0 wall, dt=1/120. A noncontacting fixed three-node companion provides the JOINT pair. Coordinates x=[1.25,1.75] avoid a nonrepresentable Float32 edge. Sweep count is zero. The same seven observations were executed with the exact pre-change SplitMotion and with the new certificate.
++
++**All seven baseline/new observations have exactly equal raw gaps, physical velocities, spin, normal impulses, momentum changes and energies. Only certification changes.** For .01 initial gap and for the compliant case, the old velocity cap rejected an otherwise World-admissible discrete solution; the new certificate accepts its existing equation. No state or force was repaired by certification.
++
++| Hard initial stored gap | First closing velocity | First raw final gaps | New certified/history |
++|---|---|---|---|
++| 0 | at most 1.12e-8 mm/s | [0,0] | true / 1 |
++| .000500023365020752 mm | approximately .06000281 mm/s | [0,0] | true / 1 |
++| .009999990463256836 mm | 1.1999988555908203 mm/s | [0,0] | true / 1 |
++
++The strict .01-mm first-impact and next-step oracle passes. First impulse is 1.600005614841436, independent momentum loss 1.6000056266784668; final energy is 1.4399972534192784 versus predictor 4.000006675723. On the next unforced dt, raw gaps stay [0,0], closing velocities are about [-5.33e-9,6.67e-9], the additional impulse is 2.39999767429286 and remaining energy about 2.28e-16. Thus the next step starts at approximately zero clearance and obeys the corresponding discrete stop; no unaccounted velocity reset is used.
++
++Manually zeroing the first step's velocity while retaining its old physical lambda produces fresh normal residual .009999990463256836 and is rejected even if a stale caller measurement says settled. The rejection changes no reaction and adds no history commit. A separate adversarial rigid translation into the wall leaves the history equation settled but creates .004999995231628418 mm raw penetration; the fresh geometric certificate rejects it.
++
++## Explicit strict-oracle failures retained
++
++The new six-test file currently has **4 PASS / 2 FAIL**. These two failures are preserved for root to classify; no tolerance or mechanics was changed to make them pass.
++
++1. **.0005-mm case, second unforced dt.** Both the exact old and new implementation return raw gaps [0,-.00010001659393310547], velocityY approximately [0,.012000570073723793], omegaZ=.024001127747644194, and physical KKT .00010000475061436493 mm. These are within the original World .001-mm criterion and both versions certify, but violate the newly written strict raw gap bound 2e-6 mm and velocity-stop bound 5e-4 mm/s. Normal impulse .10800503427162766 agrees with independent momentum loss .1080050369312287; energy decreases from about .00360034 to .0003600339. This is existing solve accuracy, not a weakened certificate or an exact analytic stop.
++2. **Compliant wall C=1e-4.** Both versions produce raw gaps about [-.0015544593,-.0016473532], with bias-supported geometric compression residual only 1.2371100581009403e-8 mm. Physical normal KKT is .00022715311497449858 mm, within the original World criterion, but outside the new strict analytic residual bound 2e-6 mm. All physical quantities are exactly equal baseline/new. The new certificate allows this declared compliant compression; it does not claim that the strict analytic residual passed.
++
++The original World .001-mm criterion remains required. The stricter failures are recorded separately and do not justify increasing that tolerance or rebuilding the solver in this delivery.
++
++## Regression and unchanged translated failure
++
++- Existing split certification/preserve-strain/sheath tests: **13/13 PASS**.
++- Unchanged independent World+wall tests: **11/11 PASS**.
++- New requested/strict tests: **4/6 PASS, 2 strict failures detailed above**.
++- Translated-mouth, same probe with preserve-strain: **certified=false, historyCommits=0**, physical and fresh history residual .0016996190233046005 mm. Raw penetration/geometry violation is about 5.94e-10 mm, outward velocity remains .20395428279655206 mm/s diagnostically, bias elastic energy change 0. The unresolved fresh physical contact still fails; removing the conflicting cap does not make it pass.
++
++Artifacts are bundled with the patch under `/tmp/oet-discrete-contact-final-8996/results/`: exact baseline/new JSON observations, the retained failing strict-test log, passing regression logs, translated output and an equality comparison. The test can export fresh observations through `OET_DISCRETE_CONTACT_REPORT`:
++
++```sh
++OET_DISCRETE_CONTACT_REPORT=/tmp/discrete-contact-observations.json node --test --test-concurrency=1 tests/kirchhoffSplitDiscreteContactCertificate.test.js
++```
++
++No World edit, terminal impulse, CCD, outer reclosure, anatomy, profile change or solver-tolerance change is included.

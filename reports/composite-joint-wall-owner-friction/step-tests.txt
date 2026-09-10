@@ -1,0 +1,17 @@
+✔ full joint dt solves stationary vessel friction with own feed, spin and physical external reaction (31.30525ms)
+✔ second wall-friction dt retains own material history and cannot discard loaded wall traction (11.575833ms)
+✔ wall Coulomb roots are independent of numerical penalty and match cold/reused complete dt (27.381ms)
+✔ late wall-friction failure preserves state, winding, traction and time; retry matches cold (17.697416ms)
+✔ unknown incoming surface orientation beyond the proximal material endpoint cannot be silently extrapolated (1.008208ms)
+✔ vessel friction unloads through signed private normal trials and can then be explicitly disabled (12.434042ms)
+✔ a physically disabled Coulomb axis has literal zero traction while the other axis retains its own law (15.979209ms)
+✔ one whole dt applies different wall laws to both exposed tools with independent feed and spin (48.365375ms)
+✔ identical per-owner wall coefficients give the same physical whole-step root as the existing common law (14.18525ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 328.509792

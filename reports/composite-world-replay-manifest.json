@@ -1,0 +1,41 @@
+{
+  "status": "frozen-complete",
+  "schema": "oet-world-physical-replay-v1",
+  "script": "scripts/physics/capture-composite-world-replay.mjs",
+  "canonicalInput": "reports/composite-world-replay/targetPrepared.json",
+  "frozenSourceRoot": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-world-replay-source-dh45ohcw",
+  "sourceManifestSha256": "a6fe5ea73fe8fa1f432f127eb17402041a41a39ad9a52a2a890e4bfb8c73f228",
+  "files": {
+    "scripts/physics/capture-composite-world-replay.mjs": "340e2048bd03abbec5f94cb885ca96dff5e6a4f4d474f5c2de1e2d8ab91e572f",
+    "reports/composite-world-replay/capture-outcome.json": "56b6cd4d3b24ca0202aa2fa9509895d38b2747090ccebead14e57c138e83941b",
+    "reports/composite-world-replay/index.json": "91604a74e5c744dd285d2ff33d8c49a7175f6f962b6526c45b6991408413e915",
+    "reports/composite-world-replay/initial.json": "e4ab430cc2f717d21cc9550bfbcc641183542c88c003e7b4e40a3b828b6ed152",
+    "reports/composite-world-replay/lastAccepted-contacts.json": "b77d9d714f138b47436f049788aa326b96ab399f6969769cb56e2a56d60679f6",
+    "reports/composite-world-replay/lastAccepted.json": "f324ee21e2172aaaad7c54dda3a7a372312d16e4f665b9a498b77c8f9563790b",
+    "reports/composite-world-replay/run.json": "9d946e724052b039ec672701a814c6cbf175a49d11eddfc08a95daa1f640bee1",
+    "reports/composite-world-replay/targetPrepared-contacts.json": "d594a0bcfd99f102e78a152603398b23d72e4ad21f0386be6b61ea1ac2e56475",
+    "reports/composite-world-replay/targetPrepared.json": "45c32348f4b4031a008fb3d0576b0b13c18a0ad09ef06b3da2093aa46fa9f290",
+    "reports/composite-world-replay/terminalAfter-contacts.json": "b77d9d714f138b47436f049788aa326b96ab399f6969769cb56e2a56d60679f6",
+    "reports/composite-world-replay/terminalAfter.json": "f324ee21e2172aaaad7c54dda3a7a372312d16e4f665b9a498b77c8f9563790b",
+    "reports/composite-world-replay/terminalPrepared-contacts.json": "d594a0bcfd99f102e78a152603398b23d72e4ad21f0386be6b61ea1ac2e56475",
+    "reports/composite-world-replay/terminalPrepared.json": "45c32348f4b4031a008fb3d0576b0b13c18a0ad09ef06b3da2093aa46fa9f290",
+    "reports/composite-world-replay.md": "a39a7753ec275a480163386f9601aeb1cbeefcd82cc926e3a2b6b86a090e788e",
+    "reports/composite-world-replay-schema.md": "a704e9acea7906b7357892beab33c2ee57fe74b88f27dec4e457d9ac582e2cdd",
+    "reports/composite-world-replay-source.json": "a6fe5ea73fe8fa1f432f127eb17402041a41a39ad9a52a2a890e4bfb8c73f228",
+    "reports/composite-world-replay-self-test.json": "65b78a7071ffc1810ee928f1fb648afd728be0b0c20f2c8df03fa5e420a58e80",
+    "reports/composite-world-replay-verification.json": "47f46cccfde17deefee73527092645b7c6c482d4e3ac30edbfd2d73f09ae0f2e",
+    "reports/composite-world-replay-capture.txt": "8cff5eacd8898e34f2e50602297f2fe54f4929317e0f6b6cfd74a8471df400b0",
+    "reports/composite-world-replay-progress.jsonl": "27336d359f3be77c5af1f7e6a58b44874c59a8f166e0f85c3c13fb23e8eabe30"
+  },
+  "checks": {
+    "referenceAccepted": 890,
+    "referenceRejected": 0,
+    "solverSourceEdits": false,
+    "rootEdits": false,
+    "importVerifySolverSteps": 0,
+    "numericRoundtrip": "PASS",
+    "independentImports": "PASS",
+    "originalQueries": "PASS",
+    "sourceStable": true
+  }
+}

@@ -1,0 +1,23 @@
+
+> openendovasculartrainer@1.0.0 build
+> vite build
+
+vite v7.3.5 building client environment for production...
+transforming...
+✓ 163 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                     47.97 kB │ gzip:   7.69 kB
+dist/assets/skeleton.worker-DkRGimbZ.js            125.31 kB
+dist/assets/skeleton-Dp2oxfet.obj               19,214.17 kB
+dist/assets/Aorta_plain.collision-DFUYJYB3.bin  30,613.48 kB
+dist/assets/Aorta_plain-_gXpsVDF.stl            37,982.48 kB
+dist/assets/index-CfD5_H2i.css                      37.80 kB │ gzip:   8.13 kB
+dist/assets/index-C6uZ-mBX.js                        2.28 kB │ gzip:   1.17 kB
+dist/assets/simulator-WrzgZysc.js                1,373.72 kB │ gzip: 390.41 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.29s

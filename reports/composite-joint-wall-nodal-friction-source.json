@@ -1,0 +1,202 @@
+{
+  "status": "complete-frozen",
+  "bundle": "/tmp/oet-composite-joint-wall-nodal-friction-final-7pm9tl_t",
+  "scope": "Only manager+tests extend to explicit nodal pressure",
+  "changedSourceAndTestFiles": [
+    "src/physics/kirchhoffCompositeJointWallFrictionRows.js",
+    "tests/kirchhoffCompositeJointWallFrictionRows.test.js"
+  ],
+  "baseBundle": "/tmp/oet-composite-joint-wall-friction-rows-final-frxy3cja",
+  "baseFiles": {
+    "src/physics/kirchhoffCompositeJointWallFrictionRows.js": "6d4b779c39510a68273b0d83b181756030ff2f33486a4374f54df3ee5c07bbc9",
+    "tests/kirchhoffCompositeJointWallFrictionRows.test.js": "a8fe837e96e4a3c1927cd952095b3bb376b6d01fd40e145d318f18cb304989cb"
+  },
+  "files": {
+    "src/physics/kirchhoffCompositeJointWallFrictionRows.js": {
+      "sha256": "cdcbfa956202f8779b47bda0267c20eb50d2c9682afc893032a197cc99cfa59b"
+    },
+    "tests/kirchhoffCompositeJointWallFrictionRows.test.js": {
+      "sha256": "81ee955924d4e6ee266d864fde32d91fc50121ce4b11a8353a5964fce2b5ec21"
+    },
+    "reports/composite-joint-wall-nodal-friction.md": {
+      "sha256": "1ec2fc9fcc1d586658145d8e2b564e31b6c4ef21c647792c0832dcae952d3ae0"
+    },
+    "reports/composite-joint-wall-nodal-friction-tests.txt": {
+      "sha256": "08a456d3a62f3144037ebb618a629524a744098958042e4b2715d3bf855d60d7"
+    },
+    "reports/composite-joint-wall-nodal-friction.patch": {
+      "sha256": "2881f616a9215371784a6e0c2ac8870cc1c0210073a1c3ba96f657ac3aafde9e"
+    },
+    "reports/composite-joint-wall-nodal-friction-capsule-ab.json": {
+      "sha256": "0354176be962b4213cbc33bcec206a078d37c755f0785d65cfcceb20aebf0877"
+    },
+    "reports/probe-composite-joint-wall-nodal-friction-capsule-ab.mjs": {
+      "sha256": "6716060a4026d28d5d5ac5fdb8a3cffbc6f71626f3619a37b4179f4dc6448e04"
+    }
+  },
+  "dependencies": {
+    "tests/kirchhoffCompositeFriction.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeFriction.test.js",
+      "sha256": "7788b84972e016f06fff8ceaa0d89c0c4e92578b3069377b37b82a68d11323b0"
+    },
+    "src/physics/kirchhoffSurfaceFriction.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSurfaceFriction.js",
+      "sha256": "f89463fcee825a725e8671ed8efb2e55af7e53379d00765d6d297c79668b18a6"
+    },
+    "src/physics/kirchhoffContinuousFrictionKKT.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffContinuousFrictionKKT.js",
+      "sha256": "628d6f72149dc8a0423157f7d819f420913b94f9e3c8758daeba9d270818c20c"
+    },
+    "src/physics/kirchhoffCompositeFriction.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeFriction.js",
+      "sha256": "9900193b587abed02443e21cdbd4d46cd34774bfc2c81197727702583f0fc4b2"
+    },
+    "tests/kirchhoffCompositeJointWallSurface.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeJointWallSurface.test.js",
+      "sha256": "dc84faa39dcb5e5b1727a7ce8a1a97be830b5a1ff968fd83000f0916329a12e2"
+    },
+    "res/Aorta_plain.collision.bin": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/res/Aorta_plain.collision.bin",
+      "sha256": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8"
+    },
+    "src/physics/kirchhoffCompositeJointWallSurface.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointWallSurface.js",
+      "sha256": "dae80edb3b75cf39e0d696317ecdab6762cf7ebb0e48482895617a8728952be8"
+    },
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointSurfaceMotion.js",
+      "sha256": "545c1b1b3fe25e6e045bf0745e1ed4c4a45d801640a4f03860083224320af92d"
+    },
+    "src/physics/kirchhoffCompositeWallBvhGeometry.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeWallBvhGeometry.js",
+      "sha256": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b"
+    },
+    "src/physics/kirchhoffCompositeWallGeometry.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeWallGeometry.js",
+      "sha256": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1"
+    },
+    "src/physics/kirchhoffCompositeJointSurfacePullback.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointSurfacePullback.js",
+      "sha256": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637"
+    },
+    "src/physics/kirchhoffCompositeChain.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeChain.js",
+      "sha256": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670"
+    },
+    "src/physics/kirchhoffLinearKernel.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637"
+    },
+    "src/physics/kirchhoffLinearKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba"
+    },
+    "src/physics/kirchhoffCompositeElementExact.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementExact.js",
+      "sha256": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687"
+    },
+    "src/physics/kirchhoffCompositeElement.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457"
+    },
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementExactKernelBytes.js",
+      "sha256": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8"
+    },
+    "src/physics/kirchhoffCompositeElementFast.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c"
+    },
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9"
+    },
+    "src/physics/collision/collisionAssetFormat.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/collisionAssetFormat.js",
+      "sha256": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca"
+    },
+    "src/physics/collision/vesselContactField.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "sha256": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9"
+    },
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "sha256": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174"
+    },
+    "src/physics/collision/packedLumenField.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/packedLumenField.js",
+      "sha256": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434"
+    },
+    "src/physics/kirchhoffCompositeWallEnvelope.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeWallEnvelope.js",
+      "sha256": "83a4496c191646f2c26668a72b781110bf7400f2255dd3795a4ab1a9b06390e7"
+    },
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeWallDifferentialRows.js",
+      "sha256": "3e57d869cdc4deb403fe0802a5637f0699ad9ba40ea0c0dbe52fb05fb333a80f"
+    },
+    "src/physics/kirchhoffCompositeWallContacts.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeWallContacts.js",
+      "sha256": "47b11dedba3a67c124e1d499f1c162c60439349980b2ec2878a58b2bc2c581f7"
+    },
+    "tests/kirchhoffCompositeJointWallRows.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeJointWallRows.test.js",
+      "sha256": "41bfe04643f8cfd379d700ba161745f9b0c706a9fafe802124233a692ff5d915"
+    },
+    "src/physics/kirchhoffCompositeJointWallRows.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointWallRows.js",
+      "sha256": "8b0daeb36b89cde773da812e690f38481e2dce64bba7d6db11afd5dd8cc8edf4"
+    },
+    "src/physics/kirchhoffCompositeWallSdfBranches.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeWallSdfBranches.js",
+      "sha256": "4346836ca63da0045abb878291a1f46ced1649c6637f5cec2a9dfda5dcd7ba0f"
+    },
+    "src/physics/kirchhoffCompositeContactPullback.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeContactPullback.js",
+      "sha256": "7152a522a9c76037c8cb097293cca87d0126b5ba733b4ba8287135972cb91148"
+    },
+    "package.json": {
+      "source": "isolated capsule A/B baseline/helper",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    "tests/capsule-ab-fixture.mjs": {
+      "source": "isolated capsule A/B baseline/helper",
+      "sha256": "f50d7bd50ad3e2dd224a7106467faddf255657c7092f61f6b6d2db8b2baa6e10"
+    },
+    "src/physics/kirchhoffCompositeJointWallFrictionRowsBaseline.js": {
+      "source": "isolated capsule A/B baseline/helper",
+      "sha256": "6d4b779c39510a68273b0d83b181756030ff2f33486a4374f54df3ee5c07bbc9"
+    }
+  },
+  "testedRuntime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-wall-nodal-friction-eu1go_2y",
+  "nodeModules": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-wall-nodal-friction-eu1go_2y/node_modules",
+  "checks": {
+    "syntax": "PASS",
+    "patchApplyByteEquality": "PASS",
+    "managerTests": {
+      "pass": 18,
+      "fail": 0,
+      "existingCapsule": 12,
+      "newNodal": 6
+    },
+    "affectedTests": {
+      "pass": 79,
+      "fail": 0,
+      "breakdown": {
+        "manager": 18,
+        "rootNormal": 23,
+        "wallSurface": 11,
+        "friction": 27
+      }
+    },
+    "capsuleAB": {
+      "pass": 24,
+      "fail": 0,
+      "result": "Bit-identical full/value rows, loads, certificates, signatures, commit histories and diagnostics"
+    }
+  },
+  "rootWrites": false,
+  "otherSourceEdits": false,
+  "pressureLaw": "nodal-endpoints-one-sided-surface; one integrated Fn/Ft per physical owner/node, explicit same-edge trace; no capsule pressure DOF frominitialdefinition",
+  "fullStepOwner": "parent"
+}

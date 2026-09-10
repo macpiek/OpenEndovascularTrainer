@@ -1,0 +1,841 @@
+diff --git a/src/physics/kirchhoffTwoChannelRows.js b/src/physics/kirchhoffTwoChannelRows.js
+--- a/src/physics/kirchhoffTwoChannelRows.js
++++ b/src/physics/kirchhoffTwoChannelRows.js
+@@ -1,5 +1,8 @@
+ import { evaluateBendTwistConstraint, rotateVectorByQuaternion } from './discreteKirchhoffRod.js';
+ import { measureKirchhoffTwoChannelMaterial } from './kirchhoffTwoChannelMotion.js';
++import { KIRCHHOFF_BIAS_RELEASE, kirchhoffBiasReleaseIssue, retireKirchhoffBiasNormal,
++    transportKirchhoffBiasNormal, refreshKirchhoffBiasReactionAnchors,
++    appendKirchhoffBiasReleaseRows, measureKirchhoffBiasReleases } from './kirchhoffTwoChannelRelease.js';
+ 
+ const XYZ = ['x', 'y', 'z'], Q = [...XYZ, 'w'];
+ const NORMALS = new Set(['normal', 'wall', 'tool', 'sheath', 'split-sweep', 'split-point-wall']);
+@@ -44,7 +47,7 @@
+         joints: { _coupledBoundaries: joint._coupledBoundaries }, contacts: [],
+         tools: tools.map(tool => ({ tool, lambdas: tool.lambdas, reactions: tool._jointReactions })), sweeps: s.sweeps, pointWalls: s.pointWalls };
+     s.biasBank = bank;
+-    m.rows = { bodies, bank, owners: new Map(), entries: [], version: 0, pending: null };
++    m.rows = { bodies, bank, owners: new Map(), entries: [], releases: [], releaseVersion: 0, historyVersion: 0, version: 0, pending: null };
+     return m.rows;
+ }
+ 
+@@ -121,13 +124,14 @@
+     const key = normal ? 'normal' : kind === 'orientation-control' ? `${kind}:${side}:${component}` : `${kind}:${side ?? -1}:${index}:${component}`;
+     const alpha = finite(normal ? row._normalAlpha ?? 0 : row.alpha ?? 0, 'Row compliance');
+     if (alpha < 0) throw new RangeError('Negative row compliance');
+-    const identity = [kind, alpha, row.feature, row.featureId], guards = [];
++    const identity = [kind, alpha, row.feature, row.featureId], semanticIdentity = identity.slice(), guards = [];
+     const guard = (object, key, at = null) => {
+         const value = at === null ? object[key] : object[key]?.[at];
+         guards.push({ object, key, at, value }); return value;
+     };
+     if (normal) {
+         identity.push(...['id', 'innerMaterialSegmentId', 'outerMaterialSegmentId', 'feature', '_manifold'].map(k => guard(owner, k)), row.kind);
++        semanticIdentity.push(...identity.slice(4));
+         for (const prefix of ['_inner', '_outer']) {
+             const nodeIds = row[prefix + 'NodeIndices'], count = nodeIds ? row[prefix + 'NodeCount'] : 2;
+             const weights = row[prefix + 'NodeWeights'] ?? row[prefix === '_inner' ? 'innerWeights' : 'outerWeights'];
+@@ -140,6 +144,13 @@
+     for (const g of gradients) nodes.set(g.side + ':' + Math.floor(g.dof / 6), [g.side, Math.floor(g.dof / 6)]);
+     for (const [s, n] of [...nodes.values()].sort((a, b) => a[0] - b[0] || a[1] - b[1]))
+         identity.push(s, n, guard(bodies[s], 'materialCoordinate', n), guard(bodies[s], 'nodeRadius', n));
++    const historyGuards = guards.filter(g => g.key === 'materialCoordinate' || g.key === 'nodeRadius').map(g => ({ ...g }));
++    const remember = (object, key, at = null) => historyGuards.push({ object, key, at, value: at === null ? object[key] : object[key]?.[at] });
++    for (const g of gradients) {
++        const b = bodies[g.side], n = Math.floor(g.dof / 6), axis = g.dof % 6;
++        remember(b, axis < 3 ? 'inverseMass' : 'inverseInertia' + (axis - 2), n);
++        if (axis >= 3) { remember(b, 'orientationControlCompliance'); remember(b, 'orientationControlSegment'); }
++    }
+     let strain;
+     if (kind === 'control') {
+         if (node >= body.count) throw new RangeError('Control node outside body');
+@@ -155,14 +166,19 @@
+         strain = normal ? row._splitActualGap : row._splitActualStrain;
+         if (kind === 'sheath') {
+             const g = row.sheathWitness.geometry;
+-            for (const k of ['origin', 'axis', 'included', 'start', 'end']) identity.push(...(g[k] ?? []));
+-            identity.push(g.minimumAxial, g.maximumAxial, g.innerRadius);
+-            for (const k of ['startX', 'startY', 'startZ', 'axisX', 'axisY', 'axisZ', 'proximalExtension', 'length', 'innerRadius']) guard(owner, k);
+-        } else if (kind === 'split-sweep') identity.push(...(row.point ?? []), ...(row.n ?? []));
++            for (const k of ['origin', 'axis', 'included', 'start', 'end']) { identity.push(...(g[k] ?? [])); semanticIdentity.push(...(g[k] ?? [])); }
++            identity.push(g.minimumAxial, g.maximumAxial, g.innerRadius); semanticIdentity.push(g.minimumAxial, g.maximumAxial, g.innerRadius);
++            for (const k of ['startX', 'startY', 'startZ', 'axisX', 'axisY', 'axisZ', 'proximalExtension', 'length', 'innerRadius']) {
++                guard(owner, k); remember(owner, k);
++            }
++        } else if (kind === 'split-sweep') { identity.push(...(row.point ?? []), ...(row.n ?? [])); semanticIdentity.push(...(row.point ?? []), ...(row.n ?? [])); }
+         else if (kind === 'wall') identity.push(body.wallT[node]);
+-        else if (kind === 'tool') identity.push(row.bodyA, row.bodyB, row.segmentA, row.segmentB, row.tA, row.tB);
+-    }
+-    return { owner, key, kind, side, node, segment, component, identity, guards, gradients, worldGradients: worldGradients(joint, gradients), alpha, strain: finite(strain, 'Raw bias strain'),
++        else if (kind === 'tool') {
++            identity.push(row.bodyA, row.bodyB, row.segmentA, row.segmentB, row.tA, row.tB);
++            semanticIdentity.push(row.bodyA, row.bodyB, row.segmentA, row.segmentB);
++        }
++    }
++    return { owner, key, kind, side, node, segment, component, identity, semanticIdentity, guards, historyGuards, gradients, worldGradients: worldGradients(joint, gradients), alpha, strain: finite(strain, 'Raw bias strain'),
+         physicalStrain: normal ? row.gap : row.strain, physicalLambda: normal ? owner.normalLambda : row.lambda ?? 0,
+         unilateral: NORMALS.has(kind) };
+ }
+@@ -190,7 +206,8 @@
+     }
+     if (storage[slot] === undefined) throw new RangeError('Bias bank row index outside owner');
+     const entry = { owner, key: spec.key, kind, side, node, segment: spec.segment, component, bank: storage, slot,
+-        identity: spec.identity.slice(), frozenGradients: spec.gradients.map(g => ({ ...g })),
++        identity: spec.identity.slice(), semanticIdentity: spec.unilateral ? spec.semanticIdentity.slice() : null, difference: null, reactionAnchor: null,
++        alpha: spec.alpha, historyGuards: spec.historyGuards.map(g => ({ ...g })), frozenGradients: spec.gradients.map(g => ({ ...g })),
+         frozenWorldGradients: spec.worldGradients.map(g => ({ ...g })) };
+     let owned = state.owners.get(owner);
+     if (!owned) { owned = new Map(); state.owners.set(owner, owned); }
+@@ -211,22 +228,21 @@
+     }
+     return indices;
+ }
++function sameWrench(a, b) {
++    const clean = gradients => gradients.filter(g => g.value !== 0);
++    a = clean(a); b = clean(b);
++    return a.length === b.length && a.every((g, i) => g.side === b[i].side && g.dof === b[i].dof && g.value === b[i].value);
++}
+ function scan(joint, additionalRows, groups, create, geometryOnly = false) {
+-    const state = stateOf(joint), targets = [], descriptors = [], issues = [], seen = new Set();
++    const state = stateOf(joint), targets = [], descriptors = [], issues = [], seen = new Map();
+     const grouped = geometryOnly ? new Set() : frictionIndices(additionalRows, groups);
+     const visit = (row, kind, source, index) => {
+         const spec = rowSpec(joint, row, kind);
+         let entry = state.owners.get(spec.owner)?.get(spec.key);
+         if (!entry && create) entry = newEntry(state, spec);
+         if (entry && seen.has(entry)) { issues.push(issue('duplicate-stable-row', entry)); return; }
+-        if (entry) seen.add(entry);
+-        if (entry && valueOf(entry) !== 0 && !same(entry.identity, spec.identity)) issues.push(issue('loaded-bias-row-identity-changed', entry));
+-        const beta = entry ? finite(valueOf(entry), 'Bias multiplier') : 0;
+-        if (spec.unilateral && beta < 0) throw new RangeError('Negative normal bias bank');
+-        targets.push({ ...spec, source, index, entry, beta });
+-        if (source === 'additional') descriptors[index] = { physical: spec.unilateral ? 'physical-motion' : 'pose',
+-            bias: { channel: spec.unilateral ? 'pose' : 'bias-motion', strain: spec.strain, alpha: spec.alpha,
+-                lambda: beta, lower: spec.unilateral ? 0 : -Infinity, upper: Infinity } };
++        if (entry) seen.set(entry, spec);
++        targets.push({ ...spec, source, index, entry });
+     };
+     (joint.kirchhoffContacts ?? []).forEach((row, index) => visit(row, 'normal', 'contact', index));
+     additionalRows.forEach((row, index) => {
+@@ -236,20 +252,58 @@
+         else if (NORMALS.has(row.kind) || ['control', 'orientation-control'].includes(row.kind)) visit(row, row.kind, 'additional', index);
+         else if (!geometryOnly) throw new Error('Unsupported two-channel runtime row: ' + row.kind);
+     });
+-    for (const entry of state.entries) if (valueOf(entry) !== 0 && !seen.has(entry)) issues.push(issue('missing-loaded-bias-row', entry));
++    for (const entry of state.entries) {
++        const beta = finite(valueOf(entry), 'Bias multiplier');
++        if (beta === 0 && !(entry.difference && valueOf(entry.difference) !== 0)) continue;
++        const spec = seen.get(entry), normal = NORMALS.has(entry.kind);
++        if (normal && beta < 0) throw new RangeError('Negative normal bias bank');
++        const historyFailure = normal ? kirchhoffBiasReleaseIssue(entry) ?? (entry.difference ? kirchhoffBiasReleaseIssue(entry.difference) : null) : null;
++        if (historyFailure) { issues.push(issue(historyFailure, entry)); continue; }
++        const reason = !spec ? 'missing-loaded-bias-row' : !same(entry.identity, spec.identity) ? 'loaded-bias-row-identity-changed'
++            : normal && !sameWrench(entry.frozenWorldGradients, spec.worldGradients) ? 'loaded-bias-wrench-changed' : null;
++        if (!reason) continue;
++        if (!normal) { issues.push(issue(reason, entry)); continue; }
++        const failure = kirchhoffBiasReleaseIssue(entry) ?? (spec && entry.alpha !== spec.alpha ? 'bias-normal-compliance-changed' : null);
++        if (failure) issues.push(issue(failure, entry));
++        else if (spec && same(entry.semanticIdentity, spec.semanticIdentity)) transportKirchhoffBiasNormal(joint, entry, spec);
++        else retireKirchhoffBiasNormal(joint, entry, reason);
++    }
++    for (const t of targets) {
++        t.beta = t.entry ? valueOf(t.entry) : 0;
++        if (t.source === 'additional') descriptors[t.index] = { physical: t.unilateral ? 'physical-motion' : 'pose',
++            bias: { channel: t.unilateral ? 'pose' : 'bias-motion', strain: t.strain, alpha: t.alpha,
++                lambda: t.beta, lower: t.unilateral ? 0 : -Infinity, upper: Infinity } };
++    }
++    for (const release of state.releases) if (valueOf(release) !== 0) {
++        const failure = kirchhoffBiasReleaseIssue(release);
++        if (failure) issues.push(issue(failure, release));
++    }
+     return { targets, descriptors, issues };
+ }
+ 
+ /** Snapshot targets before native assembly. Rows are pooled, so only copied
+  * equations, semantic owner identities and independent beta storage survive.
+- * Missing loaded rows explicitly block solving: an old-J mechanical release
+- * is not implemented here, and their forces must NEVER be zeroed or dropped. */
++ * Missing/semantically changed loaded normals retain the whole old reaction.
++ * Continuous same-contact J changes preserve beta through an explicit world
++ * wrench difference carrier. Unsupported material/history changes still block. */
+ export function prepareKirchhoffTwoChannelRows(joint, additionalRows = [], groups = []) {
+     if (joint._splitMotion?.phase !== 'physical') throw new Error('Preparing rows requires the physical phase');
+     if ([...joint._splitMotion.twoChannel.applications.values()].some(r => r.physicalApplied && !r.rowsApplied))
+         throw new Error('Commit the preceding applied row batch before preparing another solve');
+-    const state = stateOf(joint), scanned = scan(joint, additionalRows, groups, true);
+-    const pending = { ...scanned, version: ++state.version, additionalCount: additionalRows.length,
++    const state = stateOf(joint);
++    // A caller may reuse its combined array. Only our own trailing rows are
++    // replaced; all existing runtime row/group offsets remain unchanged.
++    while (additionalRows.at(-1)?.kind === KIRCHHOFF_BIAS_RELEASE) additionalRows.pop();
++    const scanned = scan(joint, additionalRows, groups, true);
++    if (!scanned.issues.length) for (const { release, row, index, beta } of appendKirchhoffBiasReleaseRows(joint, additionalRows)) {
++        scanned.targets.push({ source: 'additional', index, entry: release, beta, kind: release.kind,
++            owner: release.owner, side: release.side, node: release.node, component: release.component, segment: release.segment,
++            release: true, alpha: 0, physicalStrain: 0, physicalLambda: 0, guards: release.historyGuards,
++            gradients: row.gradients.map(g => ({ ...g })) });
++        scanned.descriptors[index] = { physical: 'physical-motion', bias: { channel: 'bias-motion',
++            strain: 0, alpha: 0, lambda: beta, lower: 0, upper: 0 } };
++    }
++    const pending = { ...scanned, version: ++state.version, historyVersion: state.historyVersion, additionalCount: additionalRows.length,
+         contactCount: (joint.kirchhoffContacts ?? []).length, applicationIds: [...joint._splitMotion.twoChannel.applications.keys()],
+         assembled: false, committed: false };
+     state.pending = pending;
+@@ -297,6 +351,7 @@
+     if (joint._splitMotion?.phase !== 'physical') throw new Error('Committing rows requires the physical phase');
+     const state = stateOf(joint), p = state.pending, m = joint._splitMotion.twoChannel;
+     if (!p?.assembled || p.committed || p.issues.length) throw new Error('No uncommitted supported two-channel rows');
++    if (p.historyVersion !== state.historyVersion) throw new Error('Bias force representation changed after preparation');
+     if (!result?.diagnostics?.converged || !Number.isFinite(result.scale) || result.scale < 0 || result.scale > 1)
+         throw new Error('Converged result with a common scale required');
+     const receipts = [...m.applications].filter(([id]) => !p.applicationIds.includes(id));
+@@ -311,33 +366,47 @@
+     p.descriptors.forEach((d, i) => { if (d?.bias === null && result.biasAdditionalIncrement[i] !== 0) throw new Error('Bias force on physical-only row'); });
+     const updates = p.targets.map(t => {
+         if (valueOf(t.entry) !== t.beta) throw new Error('Bias bank changed after row preparation');
+-        for (const g of t.guards) if (!Object.is(g.at === null ? g.object[g.key] : g.object[g.key]?.[g.at], g.value))
++        for (const g of [...t.guards, ...(t.historyGuards ?? [])]) if (!Object.is(g.at === null ? g.object[g.key] : g.object[g.key]?.[g.at], g.value))
+             throw new Error('Runtime owner changed before bias commit');
+         const delta = result.scale * result[t.source === 'contact' ? 'biasContactIncrement' : 'biasAdditionalIncrement'][t.index];
++        if (t.release && (result.additionalIncrement?.[t.index] !== 0 || result.biasAdditionalIncrement[t.index] !== -t.beta))
++            throw new Error('Release requires the full fixed physical-zero and negative-beta response');
+         const next = finite(t.beta + delta, 'Next bias multiplier');
+         // Do not clamp even a tiny negative normal: that would discard part
+         // of the response already applied by the common mechanical solve.
+-        if (t.unilateral && next < 0) throw new RangeError('Negative solved normal bias multiplier');
++        if ((t.unilateral || t.release) && next < 0) throw new RangeError('Negative solved normal bias multiplier');
+         let journal;
+         if (t.kind === 'sheath') {
+             journal = joint._splitMotion.sheathHistory.get(t.owner)?.reactionHistory?.bias?.[t.side];
+             if (!journal || !Number.isFinite(journal[t.node])) throw new Error('Missing sheath bias reaction history');
+         }
+-        return { t, delta, next, journal };
++        const journalScale = t.release && t.entry.mode === 'difference'
++            ? Math.hypot(...t.entry.frozenWorldGradients.map(g => g.value)) : 1;
++        return { t, delta, next, journal, journalScale };
+     });
+-    for (const { t, delta, next, journal } of updates) {
++    for (const { t, delta, next, journal, journalScale } of updates) {
+         t.entry.bank[t.entry.slot] = next;
+-        t.entry.identity = t.identity.slice(); t.entry.frozenGradients = t.gradients.map(g => ({ ...g }));
+-        t.entry.frozenWorldGradients = t.worldGradients.map(g => ({ ...g })); t.entry.segment = t.segment;
+-        if (journal) journal[t.node] = Math.max(journal[t.node], Math.abs(t.beta), Math.abs(delta), Math.abs(next));
+-    }
++        if (!t.release) {
++            t.entry.identity = t.identity.slice(); t.entry.frozenGradients = t.gradients.map(g => ({ ...g }));
++            t.entry.frozenWorldGradients = t.worldGradients.map(g => ({ ...g })); t.entry.segment = t.segment;
++            t.entry.historyGuards = t.historyGuards.map(g => ({ ...g })); t.entry.alpha = t.alpha;
++            t.entry.semanticIdentity = t.unilateral ? t.semanticIdentity.slice() : null;
++        }
++        // A difference uses a unit carrier multiplying an owned WORLD wrench.
++        // Its carrier is not a normal multiplier and must not enter this
++        // force-history journal as a spurious unit reaction.
++        if (journal) journal[t.node] = Math.max(journal[t.node], ...[t.beta, delta, next].map(v => Math.abs(v) * journalScale));
++    }
++    refreshKirchhoffBiasReactionAnchors(joint);
+     receipts[0][1].rowsApplied = true; p.committed = true;
+     return state.bank;
+ }
+ 
+-/** Caller freshly recollects geometry and stages _splitActual* BEFORE this
+- * read. Fresh orientation rows may be supplied as a batch or an array. This
+- * never measures the old linearized RHS as if it were the accepted pose. */
++/** Caller freshly recollects geometry and stages _splitActual* first. This
++ * measurement may re-express owned force history into canonical/retired banks
++ * when the witness changes; the total world wrench, pose and velocity remain
++ * unchanged. Fresh orientation rows may be supplied as a batch or an array.
++ * Old linearized RHS is never presented as accepted-pose geometry. */
+ export function measureKirchhoffTwoChannelRows(joint, freshBoundaryRows = [], orientationBatch = null) {
+     const orientationRows = Array.isArray(orientationBatch) ? orientationBatch : orientationBatch?.rows ?? [];
+     if (orientationBatch === null) for (const [side, body] of bodiesOf(joint).entries()) {
+@@ -349,7 +418,8 @@
+             gradients: XYZ.map((_, axis) => ({ side, dof: segment * 6 + 3 + axis, value: 0 })) });
+     }
+     const rows = [...freshBoundaryRows, ...orientationRows];
+-    const { targets, issues } = scan(joint, rows, [], false, true);
++    const { targets, issues } = scan(joint, rows, [], false, true), release = measureKirchhoffBiasReleases(joint);
++    issues.push(...release.issues);
+     let normalResidualMm = 0, controlResidualMm = 0, orientationResidualRad = 0;
+     const controls = new Map(), orientations = new Map();
+     for (const t of targets) {
+@@ -364,6 +434,8 @@
+     for (const r of controls.values()) controlResidualMm = Math.max(controlResidualMm, Math.hypot(...r));
+     for (const r of orientations.values()) orientationResidualRad = Math.max(orientationResidualRad, Math.hypot(...r));
+     const missingLoadedRows = issues.filter(i => i.reason === 'missing-loaded-bias-row');
+-    return { finite: [normalResidualMm, controlResidualMm, orientationResidualRad].every(Number.isFinite), supported: issues.length === 0,
+-        normalResidualMm, controlResidualMm, orientationResidualRad, missingLoadedRows, issues };
+-}
++    return { finite: release.finite && [normalResidualMm, controlResidualMm, orientationResidualRad].every(Number.isFinite), supported: issues.length === 0,
++        normalResidualMm, controlResidualMm, orientationResidualRad, missingLoadedRows, issues,
++        releasePositionMm: release.releasePositionMm, releaseAngleRad: release.releaseAngleRad,
++        releaseCorrection: release.releaseCorrection, pendingReleases: release.pendingReleases };
++}
+diff --git a/src/physics/kirchhoffTwoChannelRelease.js b/src/physics/kirchhoffTwoChannelRelease.js
+new file mode 100644
+--- /dev/null
++++ b/src/physics/kirchhoffTwoChannelRelease.js
+@@ -0,0 +1,190 @@
++import { inverseRotateVectorByQuaternion } from './discreteKirchhoffRod.js';
++
++export const KIRCHHOFF_BIAS_RELEASE = 'two-channel-bias-release';
++const XYZ = ['x', 'y', 'z'];
++const bodiesOf = joint => [joint.innerBody, joint.outerBody];
++const betaOf = entry => entry.bank[entry.slot];
++
++function sumWrenches(terms) {
++    const sum = new Map();
++    for (const { gradients, scale } of terms) for (const g of gradients ?? []) {
++        const key = g.side + ':' + g.dof;
++        sum.set(key, (sum.get(key) ?? 0) + scale * g.value);
++    }
++    return [...sum].filter(([, value]) => value !== 0).map(([key, value]) => ({
++        side: Number(key.split(':')[0]), dof: Number(key.split(':')[1]), value }))
++        .sort((a, b) => a.side - b.side || a.dof - b.dof);
++}
++function mergeGuards(old, current) {
++    const guards = old.map(g => ({ ...g }));
++    for (const g of current) {
++        const previous = guards.find(p => p.object === g.object && p.key === g.key && p.at === g.at);
++        if (previous && !Object.is(previous.value, g.value)) throw new Error('Bias difference material history changed');
++        if (!previous) guards.push({ ...g });
++    }
++    return guards;
++}
++function ownedWrench(entry) {
++    const difference = entry.difference;
++    return sumWrenches([{ gradients: entry.frozenWorldGradients, scale: betaOf(entry) },
++        { gradients: difference?.frozenWorldGradients, scale: difference ? betaOf(difference) : 0 }]);
++}
++
++/** Only after actual common-scale commits. Between applications this anchor
++ * remains fixed, so J0->J1->J2->J0 telescopes exactly, including zero support
++ * coefficients; no chain of successively rounded difference rows is kept. */
++export function refreshKirchhoffBiasReactionAnchors(joint) {
++    for (const entry of joint._splitMotion.twoChannel.rows.entries) if (entry.semanticIdentity)
++        entry.reactionAnchor = ownedWrench(entry);
++}
++
++/** Same semantic contact/law, changed continuous J:
++ *   beta*Jold + priorDifference = beta*Jnew + newDifference.
++ * This changes only representation. A unit carrier holds the full WORLD
++ * wrench difference. Its remaining fractional reaction is folded into the
++ * fixed anchor before another transport, never dropped or force-clamped. */
++export function transportKirchhoffBiasNormal(joint, entry, spec) {
++    const state = joint._splitMotion.twoChannel.rows;
++    const anchor = entry.reactionAnchor ?? ownedWrench(entry);
++    const defect = sumWrenches([{ gradients: anchor, scale: 1 }, { gradients: spec.worldGradients, scale: -betaOf(entry) }]);
++    if (!defect.every(g => Number.isFinite(g.value))) throw new Error('Nonfinite bias difference wrench');
++    let difference = entry.difference;
++    if (difference || defect.length) {
++        const historyGuards = mergeGuards(difference?.historyGuards ?? entry.historyGuards, spec.historyGuards);
++        if (!difference) {
++            difference = { id: ++state.releaseVersion, mode: 'difference', owner: entry.owner, key: entry.key,
++                kind: entry.kind, side: entry.side, node: entry.node, segment: entry.segment, component: entry.component,
++                reason: 'continuous-bias-wrench-transport', bank: { lambda: 0 }, slot: 'lambda', identity: entry.identity.slice() };
++            state.releases.push(difference); entry.difference = difference;
++        }
++        difference.historyGuards = historyGuards;
++        difference.frozenWorldGradients = defect;
++        // Exactly zero WORLD wrench is a zero reaction, regardless of carrier.
++        // There is no numerical force or Jacobian epsilon in this decision.
++        difference.bank.lambda = defect.length ? 1 : 0;
++    }
++    entry.reactionAnchor = anchor;
++    entry.identity = spec.identity.slice(); entry.semanticIdentity = spec.semanticIdentity.slice();
++    entry.historyGuards = spec.historyGuards.map(g => ({ ...g }));
++    entry.frozenWorldGradients = spec.worldGradients.map(g => ({ ...g }));
++    entry.frozenGradients = spec.gradients.map(g => ({ ...g }));
++    state.historyVersion++;
++}
++
++/** A force may outlive its contact record, but never its material labels,
++ * mobility or owner geometry. These guards contain copied values, not pooled
++ * geometry rows; changed topology remains an explicit unsupported case. */
++export function kirchhoffBiasReleaseIssue(entry) {
++    const beta = betaOf(entry);
++    if (!Number.isFinite(beta) || beta < 0) return 'invalid-bias-release-force';
++    if (!entry.historyGuards || !entry.frozenWorldGradients) return 'missing-bias-release-force-history';
++    for (const g of entry.historyGuards) {
++        const value = g.at === null ? g.object[g.key] : g.object[g.key]?.[g.at];
++        if (!Object.is(value, g.value)) return 'bias-release-material-or-mobility-changed';
++    }
++    if (!entry.frozenWorldGradients.every(g => Number.isFinite(g.value))) return 'invalid-bias-release-wrench';
++    return null;
++}
++
++/** A bookkeeping transfer of the WHOLE old reaction. No mechanical response
++ * is applied here. The canonical slot becomes available for a new witness,
++ * while the retired slot remains owned, measured and included in every solve. */
++export function retireKirchhoffBiasNormal(joint, entry, reason) {
++    const state = joint._splitMotion.twoChannel.rows, beta = betaOf(entry);
++    const failure = kirchhoffBiasReleaseIssue(entry);
++    if (failure) throw new Error(failure);
++    // A pending difference belongs to the OLD semantic contact. Detach it
++    // from the canonical slot; it remains an independently solved release.
++    entry.difference = null; entry.reactionAnchor = null; state.historyVersion++;
++    if (beta === 0) return null;
++    const release = { id: ++state.releaseVersion, mode: 'full', owner: entry.owner, key: entry.key, kind: entry.kind,
++        side: entry.side, node: entry.node, segment: entry.segment, component: entry.component,
++        reason, bank: { lambda: beta }, slot: 'lambda', identity: entry.identity.slice(),
++        historyGuards: entry.historyGuards.map(g => ({ ...g })),
++        frozenWorldGradients: entry.frozenWorldGradients.map(g => ({ ...g })) };
++    state.releases.push(release);
++    entry.bank[entry.slot] = 0;
++    return release;
++}
++
++/** Frozen torques are WORLD vectors. Each new assembly transports them to
++ * CURRENT local/right material coordinates; reusing old local J is wrong. */
++export function currentKirchhoffBiasReleaseGradients(joint, release) {
++    const bodies = bodiesOf(joint), result = [], angular = new Map();
++    for (const g of release.frozenWorldGradients) {
++        const axis = g.dof % 6, node = Math.floor(g.dof / 6);
++        if (axis < 3) { result.push({ ...g }); continue; }
++        const key = g.side + ':' + node;
++        if (!angular.has(key)) angular.set(key, { side: g.side, node, world: { x: 0, y: 0, z: 0 } });
++        angular.get(key).world[XYZ[axis - 3]] += g.value;
++    }
++    for (const { side, node, world } of angular.values()) {
++        const body = bodies[side], q = Object.fromEntries(['x', 'y', 'z', 'w'].map(a => [a, body['orientation' + a.toUpperCase()][node]]));
++        const norm = Math.hypot(...Object.values(q));
++        if (!(norm > 0) || !Number.isFinite(norm)) throw new Error('Invalid current bias release frame');
++        for (const a of Object.keys(q)) q[a] /= norm;
++        const local = inverseRotateVectorByQuaternion(q, world, {});
++        XYZ.forEach((a, i) => result.push({ side, dof: node * 6 + 3 + i, value: local[a] }));
++    }
++    return result.sort((a, b) => a.side - b.side || a.dof - b.dof);
++}
++
++/** Appended after every existing row/group offset. The physical row is fixed
++ * at zero; its independent bias counterpart is fixed at total beta=0, so the
++ * native full system must apply J_old^T*(-oldBeta), including all cross terms. */
++export function appendKirchhoffBiasReleaseRows(joint, rows) {
++    const appended = [];
++    for (const release of joint._splitMotion.twoChannel.rows.releases) {
++        if (betaOf(release) === 0) continue;
++        const failure = kirchhoffBiasReleaseIssue(release);
++        if (failure) throw new Error(failure);
++        const row = { kind: KIRCHHOFF_BIAS_RELEASE, releaseId: release.id, alpha: 0, strain: 0, lambda: 0,
++            lower: 0, upper: 0, gradients: currentKirchhoffBiasReleaseGradients(joint, release) };
++        appended.push({ release, row, index: rows.length, beta: betaOf(release) });
++        rows.push(row);
++    }
++    return appended;
++}
++
++// This is precisely the diagonal mobility/mask used by native Direct and
++// CoupledSystem for extra rows. Reading it does not prescribe or mutate qG.
++function mobility(body, dof) {
++    const node = Math.floor(dof / 6), axis = dof % 6;
++    const start = Math.max(0, body.activeStart), end = Math.min(body.segmentCount, body.activeEnd);
++    if (body.sleeping || end <= start || node < start || node > end || (node === end && axis >= 3)) return 0;
++    if (axis < 3) return body.inverseMass[node];
++    if (body.orientationControlCompliance === 0 && node === body.orientationControlSegment) return 0;
++    return body['inverseInertia' + (axis - 2)][node];
++}
++function norms(corrections) {
++    let positionMm = 0, angleRad = 0;
++    for (const c of corrections) for (let i = 0; i < c.length; i += 6) {
++        positionMm = Math.max(positionMm, Math.hypot(c[i], c[i + 1], c[i + 2]));
++        angleRad = Math.max(angleRad, Math.hypot(c[i + 3], c[i + 4], c[i + 5]));
++    }
++    return { positionMm, angleRad };
++}
++
++/** Exact remaining generalized response with fresh frames/mobility. No force
++ * epsilon determines whether an entry exists. Contributions are summed before
++ * measuring vector norms, matching the full native mechanical response. */
++export function measureKirchhoffBiasReleases(joint) {
++    const bodies = bodiesOf(joint), make = () => bodies.map(b => new Float64Array(b.count * 6));
++    const correction = make(), pendingReleases = [], issues = [];
++    for (const r of joint._splitMotion.twoChannel.rows.releases) {
++        const beta = betaOf(r);
++        if (beta === 0) continue;
++        const failure = kirchhoffBiasReleaseIssue(r);
++        if (failure) { issues.push({ reason: failure, kind: r.kind, key: r.key, id: r.id, beta }); continue; }
++        const own = make();
++        for (const g of currentKirchhoffBiasReleaseGradients(joint, r)) {
++            const delta = -beta * g.value * mobility(bodies[g.side], g.dof);
++            own[g.side][g.dof] += delta; correction[g.side][g.dof] += delta;
++        }
++        pendingReleases.push({ id: r.id, mode: r.mode, kind: r.kind, key: r.key, side: r.side, node: r.node,
++            reason: r.reason, ...(r.mode === 'difference' ? { carrier: beta } : { beta }), ...norms(own) });
++    }
++    const n = norms(correction);
++    return { releasePositionMm: n.positionMm, releaseAngleRad: n.angleRad, releaseCorrection: correction,
++        pendingReleases, issues, finite: !issues.length && correction.every(c => c.every(Number.isFinite)) };
++}
+diff --git a/tests/kirchhoffTwoChannelRows.test.js b/tests/kirchhoffTwoChannelRows.test.js
+--- a/tests/kirchhoffTwoChannelRows.test.js
++++ b/tests/kirchhoffTwoChannelRows.test.js
+@@ -149,41 +149,55 @@
+     assert.equal(f.joint._splitMotion.sheathHistory.get(f.sheath).reactionHistory.bias[0][1], .375);
+ });
+ 
+-test('missing loaded reactions remain in their banks with frozen old J and explicitly block both solve and certification', () => {
++test('missing loaded normals retain whole old reactions in release banks while missing controls remain unsupported', () => {
+     const f = fixture(), rows = [row(f, 'wall'), sheathRow(f), row(f, 'tool', { owner: f.tool }),
+         row(f, 'split-sweep', { node: 2 }), row(f, 'split-point-wall', { node: 1 }), control(f)];
+     assemble(f, rows); apply(f, rows, [1, 2, 3, 4, 5, -6], 7);
+-    const before = f.state.entries.map(e => [e.bank[e.slot], structuredClone(e.frozenGradients)]);
++    const before = f.state.entries.map(e => [e.bank[e.slot], structuredClone(e.frozenWorldGradients)]);
+     f.joint.kirchhoffContacts = [];
+     const measured = measureKirchhoffTwoChannelRows(f.joint, []);
+-    assert.equal(measured.supported, false); assert.equal(measured.missingLoadedRows.length, 7);
++    assert.equal(measured.supported, false); assert.equal(measured.missingLoadedRows.length, 1);
++    assert.equal(measured.missingLoadedRows[0].kind, 'control'); assert.equal(measured.pendingReleases.length, 6);
+     const prepared = prepareKirchhoffTwoChannelRows(f.joint, []);
+     assert.equal(prepared.ready, false);
+     assert.throws(() => prepared.channels(assembleKirchhoffCoupledSystem(f.joint, dt)), /missing-loaded-bias-row/);
+-    assert.deepEqual(f.state.entries.map(e => [e.bank[e.slot], e.frozenGradients]), before);
++    f.state.entries.forEach((e, i) => {
++        if (e.kind === 'control') assert.equal(e.bank[e.slot], before[i][0]);
++        else {
++            assert.equal(e.bank[e.slot], 0);
++            const retired = f.state.releases.find(r => r.owner === e.owner && r.key === e.key);
++            assert.equal(retired.bank.lambda, before[i][0]); assert.deepEqual(retired.frozenWorldGradients, before[i][1]);
++        }
++    });
+ });
+ 
+ test('a manifold object rekey or changed material label cannot inherit a loaded beta', () => {
+     const f = fixture(); assemble(f); apply(f, [], [], 1);
+     f.contact.id++;
+     let measured = measureKirchhoffTwoChannelRows(f.joint);
+-    assert.equal(measured.supported, false); assert.equal(measured.issues[0].reason, 'loaded-bias-row-identity-changed');
++    assert.equal(measured.supported, true); assert.equal(measured.pendingReleases.length, 1);
++    assert.equal(f.bank.contacts[0].normalLambda, 0); assert.equal(measured.pendingReleases[0].beta, .25);
+     f.contact.id--; f.a.materialCoordinate[1] += .1;
+     measured = measureKirchhoffTwoChannelRows(f.joint);
+-    assert.equal(measured.supported, false); assert.equal(f.bank.contacts[0].normalLambda, .25);
+-});
+-
+-test('changing an interior material foot with the same supporting nodes requires release of its loaded beta', () => {
++    assert.equal(measured.supported, false); assert.ok(measured.issues.some(i => i.reason === 'bias-release-material-or-mobility-changed'));
++    assert.equal(f.state.releases[0].bank.lambda, .25);
++});
++
++test('continuous material-foot changes preserve beta with explicit world-wrench difference releases', () => {
+     const f = fixture(), tool = row(f, 'tool', { owner: f.tool, tA: .4, tB: .3 });
+     delete tool.side; // Actual runtime tool rows have an owner and no side.
+     f.a.wallT[0] = .4;
+     const rows = [row(f, 'wall'), tool];
++    rows[0].gradients = [{ side: 0, dof: 1, value: .6 }, { side: 0, dof: 7, value: .4 }];
+     assemble(f, rows); apply(f, rows, [1, 2], 3);
+     f.a.wallT[0] = .6; tool.tA = .6; f.record.innerWeights = [.4, .6];
++    rows[0].gradients = [{ side: 0, dof: 1, value: .4 }, { side: 0, dof: 7, value: .6 }];
++    tool.gradients = [{ side: 0, dof: 1, value: .8 }, { side: 0, dof: 7, value: .2 }];
++    f.record.normalGradients = [{ side: 0, dof: 1, value: -.4 }, { side: 0, dof: 7, value: -.6 }, { side: 1, dof: 7, value: 1 }];
+     const m = measureKirchhoffTwoChannelRows(f.joint, rows);
+-    assert.equal(m.supported, false);
+-    assert.equal(m.issues.filter(i => i.reason === 'loaded-bias-row-identity-changed').length, 3);
++    assert.equal(m.supported, true); assert.equal(m.pendingReleases.length, 3);
+     assert.equal(f.bank.tools[0].lambdas[0], .5); assert.equal(f.bank.bodies[0].wallLambda[0], .25);
++    assert.ok(m.pendingReleases.every(r => r.mode === 'difference' && r.carrier === 1));
+ });
+ 
+ test('missing angular normal retains the old world wrench even after material frames rotate', () => {
+@@ -195,8 +209,9 @@
+     const expected = local.clone().applyQuaternion(new Quaternion(...Q.map(a => f.a['orientation' + a][0])).normalize());
+     frozen.forEach((g, i) => near(g.value, expected.toArray()[i], 'stored world torque gradient', 1e-7));
+     put(f.a, 0, rotation(-.8, .5, .1)); f.joint.kirchhoffContacts = [];
+-    assert.equal(measureKirchhoffTwoChannelRows(f.joint).missingLoadedRows.length, 1);
+-    assert.deepEqual(entry.frozenWorldGradients, frozen); assert.equal(entry.bank[entry.slot], .5);
++    assert.equal(measureKirchhoffTwoChannelRows(f.joint).pendingReleases.length, 1);
++    assert.deepEqual(f.state.releases[0].frozenWorldGradients, frozen); assert.equal(f.state.releases[0].bank.lambda, .5);
++    assert.equal(entry.bank[entry.slot], 0);
+ });
+ 
+ test('zero-beta rows can vanish; a released reaction can vanish only after its negative increment was actually committed', () => {
+@@ -297,3 +312,19 @@
+     assert.equal(history[1], .125); assert.equal(bank.tools[0].lambdas[0], .25); assert.equal(controls[3], -.5);
+     assert.deepEqual([...f.tool.lambdas], [.7, .8]); assert.equal(f.contact.normalLambda, .3);
+ });
++
++test('sheath history journals the actual difference wrench rather than its unit carrier', () => {
++    const f = fixture(), rows = [sheathRow(f)], history = f.joint._splitMotion.sheathHistory.get(f.sheath).reactionHistory.bias[0];
++    assemble(f, rows); apply(f, rows, [.04]);
++    const maximum = history[1]; assert.equal(maximum, .01);
++    rows[0].gradients = [{ side: 0, dof: 7, value: Math.cos(.1) }, { side: 0, dof: 8, value: Math.sin(.1) }];
++    const measured = measureKirchhoffTwoChannelRows(f.joint, rows);
++    assert.equal(measured.pendingReleases[0].mode, 'difference'); assert.equal(measured.pendingReleases[0].carrier, 1);
++    assemble(f, rows); assert.equal(rows.length, 2);
++    apply(f, rows, [0, -1], 0, .5);
++    assert.equal(f.state.releases[0].bank.lambda, .5);
++    assert.equal(history[1], maximum, 'unit carrier must not fabricate a normal force of one');
++    measureKirchhoffTwoChannelRows(f.joint, []);
++    assert.equal(f.bank.joints._coupledBoundaries.sheaths.get(f.sheath)[0].lambda[1], 0);
++    assert.equal(history[1], maximum, 'retirement cannot erase the earlier loaded-step witness');
++});
+diff --git a/tests/kirchhoffTwoChannelRelease.test.js b/tests/kirchhoffTwoChannelRelease.test.js
+new file mode 100644
+--- /dev/null
++++ b/tests/kirchhoffTwoChannelRelease.test.js
+@@ -0,0 +1,267 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { resolve } from 'node:path';
++import { pathToFileURL } from 'node:url';
++import { Quaternion, Vector3 } from 'three';
++import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
++import { applyKirchhoffCoupledCorrection } from '../src/physics/kirchhoffCoupledSystem.js';
++import { beginKirchhoffCoupledBoundaryStep } from '../src/physics/kirchhoffCoupledBoundaryRows.js';
++import { beginKirchhoffSplitMotion } from '../src/physics/kirchhoffSplitMotion.js';
++import { beginKirchhoffTwoChannelMotion, applyKirchhoffTwoChannelPhysicalMotion, commitKirchhoffTwoChannelBiasMaterial } from '../src/physics/kirchhoffTwoChannelMotion.js';
++import { beginKirchhoffTwoChannelRows, prepareKirchhoffTwoChannelRows, commitKirchhoffTwoChannelRows, measureKirchhoffTwoChannelRows } from '../src/physics/kirchhoffTwoChannelRows.js';
++import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../src/physics/kirchhoffCoupledTrialState.js';
++
++const systemModule = process.env.OET_TWO_CHANNEL_SYSTEM_SOURCE_ROOT
++    ? pathToFileURL(resolve(process.env.OET_TWO_CHANNEL_SYSTEM_SOURCE_ROOT, 'src/physics/kirchhoffTwoChannelSystem.js'))
++    : new URL('../src/physics/kirchhoffTwoChannelSystem.js', import.meta.url);
++const { solveKirchhoffTwoChannelSystem } = await import(systemModule);
++const dt = 1 / 120, Q = ['X', 'Y', 'Z', 'W'];
++const near = (a, b, reason, tolerance = 1e-8) => assert.ok(Number.isFinite(a) && Math.abs(a - b) <= tolerance, `${reason}: ${a} vs ${b}`);
++const put = (body, q) => Q.forEach((a, i) => { body['orientation' + a][0] = q.toArray()[i]; });
++const rotation = vector => new Quaternion().setFromAxisAngle(vector.clone().normalize(), vector.length());
++function fixture({ inverseMass = 1, angular = false } = {}) {
++    const world = new EndovascularPhysicsWorld({ fixedDt: dt });
++    const a = world.createRod('bias-release-a', 3, 1, { mass: 1, adaptationCompliance: dt ** 2 * .1,
++        kirchhoffBendCompliance: dt ** 2 * .1, kirchhoffTwistCompliance: dt ** 2 * .1 });
++    const b = world.createRod('bias-release-b', 2, 1, { mass: 1, adaptationCompliance: dt ** 2 * .1 });
++    a.inverseMass.fill(inverseMass); b.inverseMass.fill(0);
++    for (const body of [a, b]) for (const i of [1, 2, 3]) body['inverseInertia' + i].fill(0);
++    if (angular) for (const [i, v] of [[1, 2], [2, .5], [3, 1.25]]) a['inverseInertia' + i][0] = v;
++    a.copyCurrentToPrevious(); b.copyCurrentToPrevious();
++    const joint = { innerBody: a, outerBody: b, kirchhoffContacts: [] };
++    beginKirchhoffCoupledBoundaryStep(joint); beginKirchhoffSplitMotion(joint, world); beginKirchhoffTwoChannelMotion(joint);
++    const state = beginKirchhoffTwoChannelRows(joint, world);
++    return { world, joint, a, b, state };
++}
++function normal(f, { node = 0, alpha = 0, gap = -.12, gradients, sign = 1 } = {}) {
++    return { kind: 'wall', side: 0, node, owner: f.a, component: -1, alpha, strain: 0, lambda: 0, lower: 0, upper: Infinity,
++        _splitActualStrain: gap, gradients: gradients ?? [0, 1, 2].map(n => ({ side: 0, dof: n * 6 + 1, value: sign / 3 })) };
++}
++function solve(f, rows, groups = []) {
++    const p = prepareKirchhoffTwoChannelRows(f.joint, rows, groups);
++    assert.equal(p.ready, true, JSON.stringify(p.issues));
++    const result = solveKirchhoffTwoChannelSystem(f.joint, dt, { additionalRows: rows, groups, channels: p.channels,
++        basis: 'individual', tolerance: 1e-9, maximumPosition: 100, maximumAngle: 100, includeSystem: true });
++    assert.equal(result.diagnostics.converged, true, JSON.stringify(result.diagnostics));
++    return result;
++}
++function apply(f, result, scale = result.scale) {
++    result.scale = scale;
++    applyKirchhoffTwoChannelPhysicalMotion(f.joint, result); applyKirchhoffCoupledCorrection(f.joint, result);
++    commitKirchhoffTwoChannelBiasMaterial(f.joint, result); commitKirchhoffTwoChannelRows(f.joint, result);
++}
++const bankBeta = (f, node = 0) => f.state.bank.bodies[0].wallLambda[node];
++function ownedNormalWrench(f) {
++    const total = [f.a, f.b].map(b => new Float64Array(b.count * 6));
++    for (const e of [...f.state.entries, ...f.state.releases]) for (const g of e.frozenWorldGradients)
++        total[g.side][g.dof] += e.bank[e.slot] * g.value;
++    return total;
++}
++function sameWrench(actual, expected, reason) {
++    actual.forEach((a, side) => a.forEach((v, i) => near(v, expected[side][i], reason, 1e-12)));
++}
++function foot(f, row, weights, t) {
++    f.a.wallT[row.node] = t;
++    row.gradients = weights.map((value, n) => ({ side: 0, dof: n * 6 + 1, value }));
++    row._splitActualStrain = 0;
++}
++
++test('native release keeps fractional old beta and applies its whole old-J response at the same common scale', () => {
++    const f = fixture(), wall = normal(f), first = solve(f, [wall]); apply(f, first);
++    const beta = bankBeta(f); assert.ok(beta > 0);
++    const before = f.a.y.slice(), velocity = f.joint._splitMotion.bodies[0].velocityY.slice();
++    const rows = [], released = solve(f, rows), index = rows.findIndex(r => r.kind === 'two-channel-bias-release');
++    assert.equal(index, 0); assert.equal(bankBeta(f), 0); assert.equal(f.state.releases[0].bank.lambda, beta);
++    assert.equal(released.additionalIncrement[index], 0); assert.equal(released.biasAdditionalIncrement[index], -beta);
++    const descriptor = released.system.descriptors[released.system.native.additionalOffset + index];
++    assert.deepEqual(descriptor.bias, { channel: 'bias-motion', strain: 0, alpha: 0, lambda: beta, lower: 0, upper: 0 });
++    for (let n = 0; n < f.a.count; n++) {
++        near(released.bias[0].correction[n * 6 + 1], -beta / 3, 'old reaction releases as a rigid translation');
++        near(released.physical[0].correction[n * 6 + 1], 0, 'release has no direct physical response');
++    }
++    apply(f, released, .25);
++    assert.equal(f.state.releases[0].bank.lambda, beta * .75);
++    const measured = measureKirchhoffTwoChannelRows(f.joint, []);
++    assert.equal(measured.pendingReleases.length, 1); near(measured.releasePositionMm, beta * .75 / 3, 'remaining generalized response in mm');
++    for (let n = 0; n < f.a.count; n++) {
++        near(f.a.y[n], before[n] - beta / 12, 'actual fractional geometry', 1e-7);
++        near(f.joint._splitMotion.bodies[0].velocityY[n], velocity[n], 'bias adds no physical impulse');
++    }
++    // Reusing the combined array replaces only old trailing release rows.
++    const remainder = solve(f, rows); assert.equal(rows.length, 1);
++    assert.equal(remainder.biasAdditionalIncrement[0], -beta * .75); apply(f, remainder);
++    assert.equal(f.state.releases[0].bank.lambda, 0);
++    assert.equal(measureKirchhoffTwoChannelRows(f.joint).pendingReleases.length, 0);
++});
++
++test('new witness starts with beta zero alongside the retained old force without shifting friction indices', () => {
++    const f = fixture(), wall = normal(f); f.a.wallT[0] = .2;
++    apply(f, solve(f, [wall])); const old = bankBeta(f);
++    f.a.wallT[0] = .8;
++    const current = { ...normal(f, { gap: -.01 }), feature: 'different-surface' }, friction = () => ({ strain: 0, alpha: 0, lambda: 0, gradients: [{ side: 0, dof: 0, value: 1 }] });
++    const rows = [current, friction(), friction()], group = { type: 'coulomb-disk', rows: [1, 2], radius: 0 };
++    const result = solve(f, rows, [group]);
++    assert.equal(rows.length, 4); assert.equal(rows[3].kind, 'two-channel-bias-release');
++    assert.deepEqual(group.rows, [1, 2]);
++    const descriptors = result.system.descriptors.slice(result.system.native.additionalOffset);
++    assert.equal(descriptors[0].bias.lambda, 0); assert.equal(descriptors[3].bias.lambda, old);
++    assert.equal(descriptors[1].bias, null); assert.equal(descriptors[2].bias, null);
++    apply(f, result, .5);
++    assert.equal(f.state.releases[0].bank.lambda, old * .5);
++    assert.equal(bankBeta(f), result.biasAdditionalIncrement[0] * .5);
++    assert.notEqual(f.state.releases[0].bank, f.state.bank.bodies[0].wallLambda);
++});
++
++test('rotated angular release preserves old world torque, current anisotropic mobility and full-system force balance', () => {
++    const f = fixture({ angular: true }), q0 = rotation(new Vector3(.25, -.32, .19));
++    put(f.a, q0); put(f.joint._splitMotion.twoChannel.physicalPose[0], q0);
++    const local = new Vector3(.2, -.4, .5), wall = normal(f, { alpha: .1, gap: -1,
++        gradients: local.toArray().map((value, i) => ({ side: 0, dof: 3 + i, value })) });
++    const originalFrame = new Quaternion(...Q.map(a => f.a['orientation' + a][0])).normalize();
++    apply(f, solve(f, [wall])); const beta = bankBeta(f); assert.ok(beta > 0);
++    const world = local.clone().applyQuaternion(originalFrame);
++    const q = rotation(new Vector3(-.6, .21, .43)); put(f.a, q);
++    const currentFrame = new Quaternion(...Q.map(a => f.a['orientation' + a][0])).normalize();
++    const expected = world.clone().applyQuaternion(currentFrame.clone().invert());
++    const rows = [], r = solve(f, rows), releaseRow = rows[0];
++    for (let i = 0; i < 3; i++) near(releaseRow.gradients[i].value, expected.toArray()[i], 'world wrench transported to current local J', 1e-7);
++    assert.ok(Math.hypot(...releaseRow.gradients.map((g, i) => g.value - local.toArray()[i])) > .1);
++    const measured = measureKirchhoffTwoChannelRows(f.joint, []), expectedResponse = expected.toArray().map((v, i) => -beta * v * f.a['inverseInertia' + (i + 1)][0]);
++    for (let i = 0; i < 3; i++) near(measured.releaseCorrection[0][3 + i], expectedResponse[i], 'anisotropic pending angular response', 1e-7);
++    near(measured.releaseAngleRad, Math.hypot(...expectedResponse), 'angular gate is radians', 1e-7);
++    // Independently sum every row impulse from the frozen native J. The
++    // release participates in the same material/contact response, not a clip.
++    const native = r.system.native;
++    for (let side = 0; side < 2; side++) for (let dof = 0; dof < native.columns[side].length; dof++) {
++        const entries = native.columns[side][dof];
++        let impulse = 0;
++        for (let i = 0; i < entries.length; i += 2) impulse += entries[i + 1] * r.biasIncrement[native.order[entries[i]]];
++        near(r.bias[side].correction[dof], impulse * (native.material[side]?.weight[dof] ?? 0), 'full bias force balance', 1e-7);
++    }
++    const frozen = structuredClone(f.state.releases[0].frozenWorldGradients);
++    apply(f, r, .375);
++    assert.equal(f.state.releases[0].bank.lambda, beta * .625);
++    assert.deepEqual(f.state.releases[0].frozenWorldGradients, frozen, 'commit does not rotate the retained world wrench');
++});
++
++test('pending gate uses net generalized response, including cancellation and tiny multipliers with large mobility', () => {
++    const f = fixture(), positive = normal(f, { alpha: 1, gap: -1 }), negative = normal(f, { node: 1, alpha: 1, gap: -1, sign: -1 });
++    apply(f, solve(f, [positive, negative]));
++    const m = measureKirchhoffTwoChannelRows(f.joint, []);
++    assert.equal(m.pendingReleases.length, 2); assert.ok(m.pendingReleases.every(r => r.positionMm > .1));
++    near(m.releasePositionMm, 0, 'equal opposite pending responses cancel in the full mechanics');
++    const g = fixture({ inverseMass: 1e12 }); apply(g, solve(g, [normal(g)]));
++    assert.ok(bankBeta(g) > 0 && bankBeta(g) < 1e-10);
++    const small = measureKirchhoffTwoChannelRows(g.joint, []);
++    assert.equal(small.pendingReleases.length, 1); assert.ok(small.releasePositionMm > .1);
++});
++
++test('whole trial rollback restores retirement, old canonical beta, owned arrays and applied receipts exactly', () => {
++    const f = fixture(), wall = normal(f); apply(f, solve(f, [wall]));
++    const bank = f.state.bank.bodies[0].wallLambda, before = bank.slice(), pose = f.a.y.slice(), state = f.state;
++    const whole = captureKirchhoffCoupledTrialState(f.joint, { world: f.world, reusePropertyLayout: true, frozenFrictionBatches: true });
++    const rows = [], r = solve(f, rows), retired = f.state.releases[0], retained = retired.bank, old = retained.lambda;
++    const trial = captureKirchhoffCoupledTrialState(f.joint, { world: f.world, reusePropertyLayout: true, frozenFrictionBatches: true });
++    apply(f, r, .25); restoreKirchhoffCoupledTrialState(trial);
++    assert.equal(f.state.releases[0], retired); assert.equal(retired.bank, retained); assert.equal(retained.lambda, old);
++    r.scale = .5; apply(f, r, .5); assert.equal(retained.lambda, old * .5);
++    restoreKirchhoffCoupledTrialState(whole);
++    assert.equal(f.joint._splitMotion.twoChannel.rows, state); assert.equal(state.bank.bodies[0].wallLambda, bank);
++    assert.deepEqual(bank, before); assert.deepEqual(f.a.y, pose); assert.equal(state.releases.length, 0);
++});
++
++test('continuous transports telescope exactly through one reusable difference carrier without moving pose or velocity', () => {
++    const f = fixture(), wall = normal(f); apply(f, solve(f, [wall]));
++    const beta = bankBeta(f), force = ownedNormalWrench(f), pose = f.a.y.slice(), v = f.joint._splitMotion.bodies[0].velocityY.slice();
++    foot(f, wall, [.5, .5, 0], .25);
++    const first = measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(first.pendingReleases.length, 1); assert.equal(first.pendingReleases[0].mode, 'difference');
++    assert.equal(first.pendingReleases[0].carrier, 1); assert.equal(bankBeta(f), beta);
++    const carrier = f.state.releases[0], id = carrier.id;
++    sameWrench(ownedNormalWrench(f), force, 'canonical plus difference preserves the full old force');
++    foot(f, wall, [0, .5, .5], .75); measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(f.state.releases.length, 1); assert.equal(f.state.releases[0].id, id);
++    sameWrench(ownedNormalWrench(f), force, 'second transport retains original anchor');
++    foot(f, wall, [1 / 3, 1 / 3, 1 / 3], 0);
++    const closed = measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(closed.pendingReleases.length, 0); assert.equal(carrier.bank.lambda, 0);
++    assert.deepEqual(carrier.frozenWorldGradients, [], 'closed transport cycle has exactly zero world difference');
++    assert.equal(closed.releasePositionMm, 0); sameWrench(ownedNormalWrench(f), force, 'closed cycle preserves force');
++    foot(f, wall, [.5, .5, 0], .25); measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(f.state.releases[0], carrier); assert.equal(f.state.releases.length, 1, 'reuse zero carrier instead of appending unbounded rows');
++    assert.deepEqual(f.a.y, pose); assert.deepEqual(f.joint._splitMotion.bodies[0].velocityY, v);
++});
++
++test('native fractional difference release preserves force balance through a subsequent transport and snapshot retry', () => {
++    const f = fixture(), wall = normal(f); apply(f, solve(f, [wall]));
++    foot(f, wall, [.5, .5, 0], .25);
++    const rows = [wall], result = solve(f, rows), difference = f.state.releases[0];
++    assert.equal(difference.mode, 'difference'); assert.equal(result.biasAdditionalIncrement[1], -1);
++    const oldForce = ownedNormalWrench(f), expected = oldForce.map(v => v.slice()), scale = .25;
++    for (const target of f.state.pending.targets) {
++        const gradients = target.release ? target.entry.frozenWorldGradients : target.worldGradients;
++        const delta = scale * result.biasAdditionalIncrement[target.index];
++        for (const g of gradients) expected[g.side][g.dof] += delta * g.value;
++    }
++    const snapshot = captureKirchhoffCoupledTrialState(f.joint, { world: f.world, reusePropertyLayout: true, frozenFrictionBatches: true });
++    apply(f, result, scale);
++    assert.equal(difference.bank.lambda, .75);
++    sameWrench(ownedNormalWrench(f), expected, 'all accepted canonical/release force increments use one scale');
++    const beforeTransport = ownedNormalWrench(f), beta = bankBeta(f);
++    foot(f, wall, [0, .5, .5], .75); measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(f.state.releases.length, 1); assert.equal(f.state.releases[0], difference); assert.equal(difference.bank.lambda, 1);
++    assert.equal(bankBeta(f), beta); sameWrench(ownedNormalWrench(f), beforeTransport, 'remaining fraction is retained during the next transport');
++    restoreKirchhoffCoupledTrialState(snapshot);
++    assert.equal(f.state.releases[0], difference); assert.equal(difference.bank.lambda, 1);
++    sameWrench(ownedNormalWrench(f), oldForce, 'rollback restores old anchor and both force banks');
++    apply(f, result, .5); assert.equal(difference.bank.lambda, .5, 'same native result retries at the new common scale');
++});
++
++test('continuous angular transport retains world reaction across frame rotations, then semantic replacement fully retires both terms', () => {
++    const f = fixture({ angular: true }), local = new Vector3(.2, -.4, .5), q0 = rotation(new Vector3(.25, -.32, .19));
++    put(f.a, q0); put(f.joint._splitMotion.twoChannel.physicalPose[0], q0);
++    const wall = normal(f, { alpha: .1, gap: -1, gradients: local.toArray().map((value, i) => ({ side: 0, dof: i + 3, value })) });
++    apply(f, solve(f, [wall])); const original = ownedNormalWrench(f), beta = bankBeta(f);
++    put(f.a, rotation(new Vector3(-.4, .6, .15)));
++    const measured = measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(bankBeta(f), beta); assert.equal(measured.pendingReleases[0].mode, 'difference');
++    assert.ok(measured.releaseAngleRad > 0); sameWrench(ownedNormalWrench(f), original, 'frame transport preserves world torque');
++    const difference = f.state.releases[0];
++    put(f.a, rotation(new Vector3(.2, -.6, .8))); measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(f.state.releases.length, 1); assert.equal(f.state.releases[0], difference);
++    sameWrench(ownedNormalWrench(f), original, 'successive rotations telescope in world coordinates');
++    wall.feature = 'new-semantic-surface';
++    const replacement = measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    assert.equal(bankBeta(f), 0); assert.equal(f.state.entries[0].difference, null);
++    assert.equal(replacement.pendingReleases.length, 2); assert.ok(replacement.pendingReleases.some(r => r.mode === 'full'));
++    sameWrench(ownedNormalWrench(f), original, 'semantic replacement retires canonical AND existing difference, without losing either');
++    const rows = [wall], r = solve(f, rows);
++    assert.equal(rows.filter(row => row.kind === 'two-channel-bias-release').length, 2);
++    assert.equal(r.system.descriptors[r.system.native.additionalOffset].bias.lambda, 0);
++});
++
++test('missing force history, material/mobility changes and negative bias remain hard failures rather than releases', () => {
++    for (const failure of ['history', 'material', 'mobility', 'negative']) {
++        const f = fixture(); apply(f, solve(f, [normal(f)])); const entry = f.state.entries[0], beta = bankBeta(f);
++        if (failure === 'history') delete entry.frozenWorldGradients;
++        if (failure === 'material') f.a.materialCoordinate[0] += .25;
++        if (failure === 'mobility') f.a.inverseMass[0] *= 2;
++        if (failure === 'negative') entry.bank[entry.slot] = -beta;
++        if (failure === 'negative') assert.throws(() => prepareKirchhoffTwoChannelRows(f.joint, []), /Negative normal/);
++        else {
++            const prepared = prepareKirchhoffTwoChannelRows(f.joint, []);
++            assert.equal(prepared.ready, false); assert.ok(prepared.issues[0].reason.includes('history') || prepared.issues[0].reason.includes('mobility'));
++            assert.equal(bankBeta(f), beta);
++        }
++        assert.equal(f.state.releases.length, 0);
++    }
++});
++
++test('a force representation changed after frozen assembly cannot be committed using the old result', () => {
++    const f = fixture(), wall = normal(f); apply(f, solve(f, [wall]));
++    const r = solve(f, [wall]);
++    foot(f, wall, [.5, .5, 0], .25); measureKirchhoffTwoChannelRows(f.joint, [wall]);
++    applyKirchhoffTwoChannelPhysicalMotion(f.joint, r); applyKirchhoffCoupledCorrection(f.joint, r);
++    commitKirchhoffTwoChannelBiasMaterial(f.joint, r);
++    assert.throws(() => commitKirchhoffTwoChannelRows(f.joint, r), /representation changed/);
++});

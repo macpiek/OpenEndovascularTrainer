@@ -1,0 +1,25 @@
+✔ discrete first closure from gap 0 and the next unforced dt obey the same contact law (18.570125ms)
+✔ discrete first closure from gap 0.0005 and the next unforced dt obey the same contact law (5.012125ms)
+✔ discrete first closure from gap 0.01 and the next unforced dt obey the same contact law (3.709167ms)
+✔ manually zeroing physical velocity while keeping first-step lambda fails a fresh certificate (1.461792ms)
+✔ fresh hard-wall penetration cannot be hidden by a settled history equation (1.500833ms)
+✔ compliant normal compression retains its declared alpha and multiplier allowance (2.08425ms)
+✔ uncertified tilted dt restores body/history/manifold/tools/sheath and force inputs before damping (38.052125ms)
+✔ advance keeps rejected dt queued and prepares callback inputs only once across retries (13.660333ms)
+✔ a rejected internal physical trial can still commit exactly one accepted dt (2.301792ms)
+✔ whole-step rollback reconnects original storage and topology even if a failing hook replaces them (2.192917ms)
+✔ accepted transaction retains the selected per-joint bias material mode (1.193791ms)
+✔ pending split time cannot silently switch to another dt or another physical law (3.113458ms)
+✔ direct retry consumes the pending dt once and cannot fall back when the joint is unavailable (3.901ms)
+✔ default position-history retains its return behavior and per-step callback scheduling (1.315834ms)
+✔ split configuration permits independent preparation and activates a transaction when the pair becomes eligible (2.669333ms)
+✔ leaving the eligible pair retires phase-local motion and cannot report its old certificate (3.229917ms)
+✔ losing pair eligibility cannot suppress the partitioned radial damping path (5.057417ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 304.58875

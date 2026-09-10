@@ -1,0 +1,184 @@
+--- a/src/physics/kirchhoffWallFrictionMode.js
++++ b/src/physics/kirchhoffWallFrictionMode.js
+@@ -154,8 +154,60 @@
+     const spin = cross(XYZ.map(a => motion['angularVelocity' + a][segment]), entry.surface.levers[0]);
+     const u = velocity.map((value, i) => value + spin[i]);
+     const worldLambda = XYZ.map((_, i) => entry.contact.tangentU[i] * entry.contact.tangentLambda[0] + entry.contact.tangentV[i] * entry.contact.tangentLambda[1]);
++    const magnitude = XYZ.map((a, axis) => r.innerWeights.reduce((sum, weight, i) => sum + Math.abs(weight * motion['velocity' + a][segment + i]), 0) +
++        Math.abs(motion['angularVelocity' + XYZ[(axis + 1) % 3]][segment] * entry.surface.levers[0][(axis + 2) % 3]) +
++        Math.abs(motion['angularVelocity' + XYZ[(axis + 2) % 3]][segment] * entry.surface.levers[0][(axis + 1) % 3]));
+     return { displacement: entry.surface.axes.map(axis => joint._splitMotion.dt * dot(axis, u)),
+-        lambda: entry.surface.axes.map(axis => dot(axis, worldLambda)), normalLambda: entry.contact.normalLambda };
++        lambda: entry.surface.axes.map(axis => dot(axis, worldLambda)), normalLambda: entry.contact.normalLambda,
++        arithmeticMagnitudeMm: entry.surface.axes.map(axis => joint._splitMotion.dt * dot(axis.map(Math.abs), magnitude)) };
++}
++
++function basisCoefficients(axis, axes) {
++    for (let i = 0; i < 2; i++) for (const sign of [1, -1])
++        if (axis.every((value, j) => value === sign * axes[i][j])) return i ? [0, sign] : [sign, 0];
++    return axes.map(source => dot(axis, source));
++}
++function rowCombination(entry, coefficients) {
++    const result = new Map();
++    for (let axis = 0; axis < 2; axis++) if (coefficients[axis] !== 0)
++        for (const gradient of entry.surface.rows[axis].gradients) if (gradient.side === 0)
++            result.set(gradient.dof, (result.get(gradient.dof) ?? 0) + coefficients[axis] * gradient.value);
++    return result;
++}
++function fixedZeroMotion(body, motion, dof) {
++    const node = Math.floor(dof / 6), axis = dof % 6;
++    if (axis < 3) return body.inverseMass[node] === 0 && motion['velocity' + XYZ[axis]][node] === 0;
++    const prescribed = body.orientationControlCompliance === 0 && node === body.orientationControlSegment;
++    if (!prescribed && body['inverseInertia' + (axis - 2)][node] !== 0) return false;
++    const local = rotated(frame(body, node, true), XYZ.map(a => motion['angularVelocity' + a][node]));
++    return local[axis - 3] === 0;
++}
++
++/** A redundant zero-load witness may inherit a kinematic zero certificate,
++ * never a force, from a CURRENT loaded stop. Its two tangent functionals must
++ * be identical on every mobile DOF. Any unmatched prescribed term must have
++ * exactly zero known physical rate. This is intentionally narrower than a
++ * general material-row-space proof and uses no velocity epsilon. */
++function equivalentStop(joint, target, support, targetEvidence, supportEvidence) {
++    const a = targetEvidence.identity, b = supportEvidence.identity;
++    if (a.side !== b.side || a.branch !== b.branch || a.face !== b.face || a.plane !== b.plane || !same(a.normal, b.normal)) return null;
++    const body = bodiesOf(joint)[a.side], motion = joint._splitMotion.bodies[a.side], coefficients = [], roundoff = [];
++    for (let axis = 0; axis < 2; axis++) {
++        const combine = basisCoefficients(target.surface.axes[axis], support.surface.axes);
++        const difference = rowCombination(target, axis ? [0, 1] : [1, 0]);
++        for (const [dof, value] of rowCombination(support, combine)) difference.set(dof, (difference.get(dof) ?? 0) - value);
++        for (const [dof, value] of difference) if (value !== 0 && !fixedZeroMotion(body, motion, dof)) return null;
++        const expected = dot(combine, supportEvidence.displacement);
++        // A roundoff bound from the actual dot-product term magnitudes, not a
++        // free-standing small-speed threshold. The source is already stopped.
++        const error = 64 * Number.EPSILON * (targetEvidence.arithmeticMagnitudeMm[axis] +
++            dot(combine.map(Math.abs), supportEvidence.arithmeticMagnitudeMm));
++        if (Math.abs(targetEvidence.displacement[axis] - expected) > error) return null;
++        coefficients.push(combine); roundoff.push(error);
++    }
++    return { supportKey: supportEvidence.key, sourceCertificate: supportEvidence.stopCertificate,
++        freeJacobianDifferenceIsZero: true, prescribedDifferenceRateIsZero: true,
++        coefficients, roundoffBoundMm: roundoff };
+ }
+ 
+ function evaluate(joint, batch, converged, final) {
+@@ -171,7 +223,7 @@
+     if (!converged) return { ...base, status: 'unconverged', accepted: false };
+     if (!batch || batch.joint !== joint) return { ...base, status: 'unsupported', accepted: false, issues: ['wall-friction-fresh-batch-missing'] };
+     if (controller.issues.length) return { ...base, status: 'unsupported', accepted: false, issues: clone(controller.issues) };
+-    const overrides = new Map(controller.overrides), seen = new Set();
++    const overrides = new Map(controller.overrides), seen = new Set(), entries = new Map();
+     let ambiguous = false, unresolved = false;
+     for (const entry of batch.entries) {
+         if (!unequal(bodiesOf(joint)[entry.side])) continue;
+@@ -180,16 +232,17 @@
+             issue(joint, 'wall-friction-mode-history-missing', { key: entry.contact.key }); continue;
+         }
+         seen.add(record.key);
+-        const { displacement, lambda, normalLambda } = actualContact(joint, entry);
++        entries.set(record.key, entry);
++        const { displacement, lambda, normalLambda, arithmeticMagnitudeMm } = actualContact(joint, entry);
+         const mu = record.mode === 'stick' ? record.muStatic : record.muKinetic;
+         const residual = evaluateKirchhoffSurfaceFrictionKKT(lambda, displacement, normalLambda, [mu, mu]);
+         const radius = mu * normalLambda, slip = length(displacement), force = length(lambda);
+         const interior = radius > 0 && force < radius * (1 - controller.coneTolerance);
+         const valid = residual.residualMm <= controller.displacementToleranceMm && residual.coneViolation <= controller.coneTolerance;
+-        const stopped = normalLambda > 0 && valid && (slip === 0 || interior && slip <= controller.displacementToleranceMm);
++        const stopped = valid && (slip === 0 || normalLambda > 0 && interior && slip <= controller.displacementToleranceMm);
+         const evidence = { key: record.key, identity: clone(record.identity), mode: record.mode,
+             muStatic: record.muStatic, muKinetic: record.muKinetic, muApplied: mu,
+-            normalLambda, lambda, displacement, residualMm: residual.residualMm, coneViolation: residual.coneViolation,
++            normalLambda, lambda, displacement, arithmeticMagnitudeMm, residualMm: residual.residualMm, coneViolation: residual.coneViolation,
+             stopped, stopCertificate: stopped ? (slip === 0 ? 'exact-zero' : 'interior-cone-and-solver-residual') : null,
+             maximumReaction: record.maximumReaction };
+         base.contacts.push(evidence);
+@@ -204,6 +257,16 @@
+             else ambiguous = true;
+         } else if (record.mode === 'slide' && !stopped && radius > 0 && slip <= controller.displacementToleranceMm)
+             ambiguous = true;
++    }
++    const loadedStops = base.contacts.filter(contact => contact.normalLambda > 0 && contact.stopped);
++    for (const contact of base.contacts) if (contact.normalLambda === 0 && !contact.stopped && contact.lambda.every(value => value === 0)) {
++        for (const support of loadedStops) {
++            const proof = equivalentStop(joint, entries.get(contact.key), entries.get(support.key), contact, support);
++            if (!proof) continue;
++            contact.stopped = true; contact.stopCertificate = 'kinematic-equivalence-to-loaded-stop';
++            contact.kinematicStopProof = proof;
++            break;
++        }
+     }
+     for (const record of controller.records.values()) if (!seen.has(record.key) && record.maximumReaction > 0)
+         issue(joint, 'wall-friction-loaded-witness-missing', { key: record.key });
+@@ -259,9 +322,10 @@
+         certificate !== controller.certificate || !certificate.accepted || certificate.step !== state.step)
+         throw new Error('Wall-friction history requires one accepted fresh final certificate');
+     const records = new Map();
+-    for (const contact of certificate.contacts) if (contact.normalLambda > 0) records.set(contact.key, {
++    for (const contact of certificate.contacts) if (contact.normalLambda > 0 || contact.stopped) records.set(contact.key, {
+         identity: clone(contact.identity), mode: contact.stopped ? 'stick' : 'slide', stopped: contact.stopped,
+-        stopCertificate: contact.stopCertificate, motionSignature: motionSignature(bodiesOf(joint)[contact.identity.side], contact.identity)
++        stopCertificate: contact.stopCertificate, kinematicStopProof: clone(contact.kinematicStopProof ?? null),
++        motionSignature: motionSignature(bodiesOf(joint)[contact.identity.side], contact.identity)
+     });
+     joint._wallFrictionHistory = { step: state.step, dt: state.dt, records };
+     controller.committed = true;
+--- a/tests/kirchhoffWallFrictionMode.test.js
++++ b/tests/kirchhoffWallFrictionMode.test.js
+@@ -4,6 +4,7 @@
+ import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../src/physics/kirchhoffCoupledTrialState.js';
+ import { captureKirchhoffWallFrictionIncoming, evaluateKirchhoffWallFrictionCandidate,
+     certifyKirchhoffWallFrictionModes, commitKirchhoffWallFrictionHistory, prepareKirchhoffWallFrictionRetry } from '../src/physics/kirchhoffWallFrictionMode.js';
++import { buildKirchhoffSplitWallFriction } from '../src/physics/kirchhoffSplitWallFriction.js';
+ 
+ const near = (a, b, text) => assert.ok(Number.isFinite(a) && Math.abs(a - b) < 1e-8, `${text}: ${a} vs ${b}`);
+ const impulse = trial => trial.certificate.contacts[0].lambda[0] / DT;
+@@ -163,3 +164,49 @@
+     assert.throws(() => commitKirchhoffWallFrictionHistory(f.joint, certificate), /one accepted/);
+     assert.equal(f.joint._wallFrictionHistory, history);
+ });
++
++function zeroLoadPoint(f, node) {
++    return { kind: 'split-point-wall', side: 0, node, owner: f.joint.innerBody, lambda: 0,
++        normal: [0, -1, 0], wallFrictionWitness: { branchId: 0, faceIndex: 0, planeOffset: 0 } };
++}
++
++test('a redundant zero-load point retains a stop certificate by equal kinematics, without copying force or zeroing velocity', () => {
++    const f = fixture(); begin(f, { drive: .4 }); solveAttempt(f);
++    const tinyVelocity = 3.6e-9;
++    f.joint._splitMotion.bodies[0].velocityZ[0] = tinyVelocity;
++    const rows = [build(f).normal, zeroLoadPoint(f, 0)];
++    const fresh = buildKirchhoffSplitWallFriction(f.joint, rows, DT);
++    const d = evaluateKirchhoffWallFrictionCandidate(f.joint, fresh, { converged: true });
++    const c = d.contacts.find(c => c.key === 'split-point-wall:0:0');
++    assert.equal(c.normalLambda, 0); assert.deepEqual(c.lambda, [0, 0]);
++    assert.equal(c.stopped, true); assert.equal(c.stopCertificate, 'kinematic-equivalence-to-loaded-stop');
++    assert.equal(c.kinematicStopProof.supportKey, 'wall:0:0');
++    f.joint._splitMotion.phase = 'complete'; f.joint.innerBody.velocityZ[0] = tinyVelocity;
++    const certificate = certifyKirchhoffWallFrictionModes(f.joint, fresh, { converged: true });
++    f.joint._splitMotion.diagnostics.certified = true;
++    commitKirchhoffWallFrictionHistory(f.joint, certificate);
++    assert.equal(f.joint.innerBody.velocityZ[0], tinyVelocity, 'no epsilon velocity projection');
++    assert.equal(f.joint._wallFrictionHistory.records.get(c.key).stopped, true);
++    begin(f, { drive: .4 });
++    const next = buildKirchhoffSplitWallFriction(f.joint, [build(f).normal, zeroLoadPoint(f, 0)], DT);
++    assert.equal(next.entries[1].modeRecord.mode, 'stick');
++    assert.equal(next.entries[1].modeRecord.incomingCertificate, 'committed-stop');
++});
++
++test('the same tiny observed speed at a different mobile node is not a kinematic stop proof', () => {
++    const f = fixture(); f.joint.innerBody.inverseMass[1] = 1;
++    begin(f, { drive: .4 }); solveAttempt(f);
++    f.joint._splitMotion.bodies[0].velocityZ.fill(3.6e-9);
++    const fresh = buildKirchhoffSplitWallFriction(f.joint, [build(f).normal, zeroLoadPoint(f, 1)], DT);
++    const d = evaluateKirchhoffWallFrictionCandidate(f.joint, fresh, { converged: true });
++    const c = d.contacts.find(c => c.key === 'split-point-wall:0:1');
++    assert.equal(c.normalLambda, 0); assert.equal(c.stopped, false); assert.equal(c.stopCertificate, null);
++    assert.equal(c.kinematicStopProof, undefined);
++});
++
++test('a freely moving zero-load witness cannot preserve stop history merely because its speed is below the solve error bound', () => {
++    const f = fixture(); step(f, { drive: .4 });
++    const t = step(f, { drive: 3.6e-9, normalImpulse: 0 });
++    assert.equal(t.certificate.contacts[0].stopped, false); assert.equal(f.joint._wallFrictionHistory.records.size, 0);
++    near(f.joint.innerBody.velocityZ[0], 3.6e-9, 'tiny physical motion is preserved');
++});

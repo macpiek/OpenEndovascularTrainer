@@ -1,0 +1,65 @@
+{
+  "status": "frozen-review-complete",
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-composite-joint-current-review-nda_1sed",
+  "hashes": {
+    "package.json": "ef3e0cfd0726a6c9baa15bf25b8a658cdf548fda5f629404ec2032209c090378",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeJointAssembly.js": "e02e44ea190c58b619f9fe8abaaae8ed54e609da5d4a560858d32eb706abfd66",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeMaterialInertia.js": "0d0b425eaa69740e3a9d04eab15e455a270040a8c635ca3922d67caf7ea3eee9",
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "dab0b81c3a91741013545ba544ffb82b97d0f17d0ac13767b7465151c00fe6c9",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "aca9f0712ccc3174f84ce89f8d3693bff2c95750a88f007fc383e5cd8ab31542",
+    "src/physics/kirchhoffCompositeToolLengths.js": "054d2b7d156bb86cb0a213632c6aaf81fe98605e52b57865826c3e0464a0f5cd",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "tests/kirchhoffCompositeJointAssembly.test.js": "c184483a09fa2a2f4e5cfdb1c4cd37146a58dbd3c4c5004ab5da873954276e64",
+    "tests/kirchhoffCompositeMaterialInertia.test.js": "ff0f644fc5c7ac996d4c749f463ad73c8c27244f7a05ae6906ff9cccb741cfc9",
+    "tests/kirchhoffCompositeToolLengths.test.js": "420400d8a88a9767d7e684b5c42b4d81f772776b21d04fc3d68824c8d79dcf95"
+  },
+  "primaryFiles": [
+    "src/physics/kirchhoffCompositeJointAssembly.js",
+    "src/physics/kirchhoffCompositeMaterialInertia.js",
+    "src/physics/kirchhoffCompositeToolLengths.js",
+    "tests/kirchhoffCompositeJointAssembly.test.js",
+    "tests/kirchhoffCompositeMaterialInertia.test.js",
+    "tests/kirchhoffCompositeToolLengths.test.js"
+  ],
+  "supersedesRuntime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-composite-joint-review-bla5mztz",
+  "includesSparsePullbackAndCommonSpanGrouping": true,
+  "nativeTests": {
+    "passed": 18,
+    "failed": 0
+  },
+  "independentProbePassed": true,
+  "rootPrimaryFilesStillMatch": {
+    "src/physics/kirchhoffCompositeJointAssembly.js": true,
+    "src/physics/kirchhoffCompositeMaterialInertia.js": true,
+    "src/physics/kirchhoffCompositeToolLengths.js": true,
+    "tests/kirchhoffCompositeJointAssembly.test.js": true,
+    "tests/kirchhoffCompositeMaterialInertia.test.js": true,
+    "tests/kirchhoffCompositeToolLengths.test.js": true
+  },
+  "artifacts": {
+    "reports/composite-joint-assembly-review.md": "b7cb21059e399a5bffb373e2cf4eecbb01bae3827bd70ccce32fc6491a572be3",
+    "reports/probe-composite-joint-assembly-review.mjs": "01ef33ed959753240de3ff40bbaa0169f071db496a3a81ed033f35c49c824975",
+    "reports/composite-joint-assembly-review-checks.json": "69ae38aae716ed316d348b91f3d8ec3798a7d892eda908a586174f59d6c7e8c2",
+    "reports/composite-joint-assembly-review-native-tests.txt": "8bdcb71107749971f255cf76e09f33b3ec67497b1429a3d42078a7b06e5d941a",
+    "reports/composite-joint-assembly-review-probe.txt": "69ae38aae716ed316d348b91f3d8ec3798a7d892eda908a586174f59d6c7e8c2"
+  },
+  "openFindings": [
+    {
+      "priority": 2,
+      "kind": "physical-input-contract-gap",
+      "title": "Independent elastic, inertial and rest metrics for the same material are accepted without declaring or validating their relation",
+      "witness": "checks.metricWitness: wire mass 4 vs 2; total inertial Z residual 60 vs 40; operatorReady and all lengths satisfied"
+    }
+  ],
+  "parentSourceEdits": false
+}

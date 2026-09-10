@@ -1,0 +1,649 @@
+{
+  "scope": "old joint equations vs regular taut normal form on the same current material/inertia kernels; no timing or FPS claim",
+  "before": {
+    "accepted": false,
+    "status": "line-search",
+    "step": 0,
+    "time": 0,
+    "diagnostics": {
+      "scope": "fixed-topology-full-relative-nonlinear-dt",
+      "contacts": "none",
+      "torsionMode": "quasi-static",
+      "materialCoordinate": "reference-arclength",
+      "inertiaGeometry": "continuous-quintic",
+      "elasticityGeometry": "continuous-material-frame",
+      "lengthGeometry": "continuous-arclength",
+      "elementBackend": "wasm-exact",
+      "assemblyPolicy": "lazy",
+      "preparationMs": 11.904916999999983,
+      "iterationMs": 696.732042,
+      "commitMs": 0,
+      "totalMs": 708.6739170000001,
+      "directions": 4,
+      "evaluations": 76,
+      "fullAssemblies": 3,
+      "gradientAssemblies": 73,
+      "factorizations": 4,
+      "linearSolves": 4,
+      "lineSearchTrials": 72,
+      "globalization": "adaptive",
+      "numericalDirections": 3,
+      "regularizationActivations": [
+        {
+          "reason": "linear-system",
+          "shift": 0.01,
+          "direction": 1
+        },
+        {
+          "reason": "line-search",
+          "shift": 0.1,
+          "direction": 2
+        },
+        {
+          "reason": "line-search",
+          "shift": 1,
+          "direction": 3
+        }
+      ],
+      "tinyNewtonStepsAvoided": 0,
+      "directionMs": 6.070458000000002,
+      "directionSystems": [
+        {
+          "originalUnknowns": 62,
+          "solvedUnknowns": 62,
+          "eliminatedZeroDuals": 0,
+          "bandwidth": 61,
+          "originalStorage": "csr",
+          "originalEntries": 2324,
+          "originalBandEntries": 3844,
+          "materializedOriginalBandEntries": 0,
+          "materializedNumericalBandEntries": 3844
+        },
+        {
+          "originalUnknowns": 62,
+          "solvedUnknowns": 62,
+          "eliminatedZeroDuals": 0,
+          "bandwidth": 61,
+          "originalStorage": "csr",
+          "originalEntries": 2324,
+          "originalBandEntries": 3844,
+          "materializedOriginalBandEntries": 0,
+          "materializedNumericalBandEntries": 3844
+        },
+        {
+          "originalUnknowns": 62,
+          "solvedUnknowns": 62,
+          "eliminatedZeroDuals": 0,
+          "bandwidth": 61,
+          "originalStorage": "csr",
+          "originalEntries": 2324,
+          "originalBandEntries": 3844,
+          "materializedOriginalBandEntries": 0,
+          "materializedNumericalBandEntries": 3844
+        },
+        {
+          "originalUnknowns": 62,
+          "solvedUnknowns": 62,
+          "eliminatedZeroDuals": 0,
+          "bandwidth": 61,
+          "originalStorage": "csr",
+          "originalEntries": 2324,
+          "originalBandEntries": 3844,
+          "materializedOriginalBandEntries": 0,
+          "materializedNumericalBandEntries": 3844
+        }
+      ],
+      "frictionConeTrials": 0,
+      "frictionConeAccepted": 0,
+      "unknowns": 62,
+      "bandwidth": 61,
+      "commonDofs": 28,
+      "relativeDofs": 18,
+      "originalLengthRows": 10,
+      "retainedLengthRows": 10,
+      "suppressedPrescribedLengthRows": [],
+      "acceptedAlphas": [],
+      "certificate": {
+        "force": 0.00447213595499958,
+        "torque": 0,
+        "length": 1.1102230246251565e-16,
+        "boundary": 0,
+        "merit": 3300000000.000001,
+        "converged": false,
+        "lengthGeometry": "continuous-arclength",
+        "pointwiseInextensibility": false,
+        "parameterMetricDeviationBound": 1.3322676295501878e-15
+      },
+      "workspaceReused": true,
+      "lastLinearFailure": {
+        "original": {
+          "commonForce": 0.001,
+          "relativeForce": 0.004,
+          "force": 0.004,
+          "torque": 0,
+          "constraints": [
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            }
+          ]
+        },
+        "numerical": {
+          "commonForce": 0.001,
+          "relativeForce": 0.004,
+          "force": 0.004,
+          "torque": 0,
+          "constraints": [
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": -1.1102230246251565e-16,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            },
+            {
+              "unit": "mm",
+              "residual": 0,
+              "tolerance": 5e-11,
+              "converged": true
+            }
+          ]
+        },
+        "shift": 0
+      },
+      "invalidTrials": 72,
+      "lastInvalidTrial": "Continuous length quadrature depth exhausted"
+    },
+    "balances": null,
+    "tautLengthState": null
+  },
+  "after": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 1,
+    "time": 0.008333333333333333,
+    "diagnostics": {
+      "scope": "fixed-topology-full-relative-nonlinear-dt",
+      "contacts": "none",
+      "torsionMode": "quasi-static",
+      "materialCoordinate": "reference-arclength",
+      "inertiaGeometry": "continuous-quintic",
+      "elasticityGeometry": "continuous-material-frame",
+      "lengthGeometry": "continuous-arclength",
+      "elementBackend": "wasm-exact",
+      "assemblyPolicy": "lazy",
+      "preparationMs": 5.156082999999967,
+      "iterationMs": 59.84229199999993,
+      "commitMs": 0.9719169999999622,
+      "totalMs": 66.00370799999996,
+      "directions": 1,
+      "evaluations": 4,
+      "fullAssemblies": 1,
+      "gradientAssemblies": 3,
+      "factorizations": 1,
+      "linearSolves": 1,
+      "lineSearchTrials": 1,
+      "globalization": "adaptive",
+      "numericalDirections": 0,
+      "regularizationActivations": [],
+      "tinyNewtonStepsAvoided": 0,
+      "directionMs": 1.2962499999999864,
+      "directionSystems": [
+        {
+          "originalUnknowns": 64,
+          "solvedUnknowns": 64,
+          "eliminatedZeroDuals": 0,
+          "bandwidth": 63,
+          "originalStorage": "csr",
+          "originalEntries": 2380,
+          "originalBandEntries": 4096,
+          "materializedOriginalBandEntries": 0,
+          "materializedNumericalBandEntries": 4096
+        }
+      ],
+      "frictionConeTrials": 0,
+      "frictionConeAccepted": 0,
+      "unknowns": 64,
+      "bandwidth": 63,
+      "commonDofs": 28,
+      "relativeDofs": 18,
+      "originalLengthRows": 10,
+      "retainedLengthRows": 8,
+      "suppressedPrescribedLengthRows": [],
+      "acceptedAlphas": [
+        1
+      ],
+      "certificate": {
+        "force": 8.690164691483915e-10,
+        "torque": 2.38208314791333e-10,
+        "length": 7.90563170482983e-11,
+        "boundary": 1.5318915108714822e-23,
+        "merit": 0.0013097031223837708,
+        "converged": true,
+        "taut": {
+          "maximumResidual": 1.5279177282088194e-23,
+          "merit": 2.3345325841747994e-30,
+          "converged": true,
+          "reactionRepresentation": "normals-of-feasible-taut-subspace",
+          "axialMultiplierGauge": 0
+        },
+        "lengthGeometry": "continuous-arclength",
+        "pointwiseInextensibility": false,
+        "parameterMetricDeviationBound": 1.8065238194253652e-10
+      },
+      "tautLengthRows": 4,
+      "reparameterizedTautLengths": [
+        0,
+        1
+      ],
+      "workspaceReused": true
+    },
+    "balances": [
+      [
+        "wire",
+        {
+          "momentumRate": [
+            1.6299283630458491e-47,
+            0.0041728432690242715,
+            0.0020729564647378814
+          ],
+          "appliedForce": [
+            0,
+            0.004,
+            0.002
+          ],
+          "boundaryForce": [
+            7.793765632868595e-14,
+            0.00017284326902332578,
+            0.00007295646473788111
+          ],
+          "residual": [
+            -7.793765632868595e-14,
+            9.456140297875448e-16,
+            2.0328790734103208e-19
+          ]
+        }
+      ],
+      [
+        "catheter",
+        {
+          "momentumRate": [
+            0,
+            -0.003075502639568669,
+            -0.002033176804115574
+          ],
+          "appliedForce": [
+            0,
+            -0.003,
+            -0.002
+          ],
+          "boundaryForce": [
+            -1.937799311900735e-12,
+            -0.0000755026395686669,
+            -0.00003317680411561715
+          ],
+          "residual": [
+            1.937799311900735e-12,
+            -2.2497195079074217e-18,
+            4.3334205581530005e-17
+          ]
+        }
+      ]
+    ],
+    "tautLengthState": [
+      {
+        "toolId": "wire",
+        "edge": 0,
+        "node": 2,
+        "normalMultiplier": [
+          0,
+          0.00008616139460175561,
+          -0.00020498964794564973
+        ]
+      },
+      {
+        "toolId": "catheter",
+        "edge": 0,
+        "node": 2,
+        "normalMultiplier": [
+          0,
+          -0.00003852847901432448,
+          0.00008841665941773533
+        ]
+      }
+    ]
+  },
+  "second": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 2,
+    "time": 0.016666666666666666,
+    "diagnostics": {
+      "scope": "fixed-topology-full-relative-nonlinear-dt",
+      "contacts": "none",
+      "torsionMode": "quasi-static",
+      "materialCoordinate": "reference-arclength",
+      "inertiaGeometry": "continuous-quintic",
+      "elasticityGeometry": "continuous-material-frame",
+      "lengthGeometry": "continuous-arclength",
+      "elementBackend": "wasm-exact",
+      "assemblyPolicy": "lazy",
+      "preparationMs": 1.207749999999919,
+      "iterationMs": 65.10358299999996,
+      "commitMs": 0.2491250000000491,
+      "totalMs": 66.56445799999995,
+      "directions": 1,
+      "evaluations": 4,
+      "fullAssemblies": 1,
+      "gradientAssemblies": 3,
+      "factorizations": 1,
+      "linearSolves": 1,
+      "lineSearchTrials": 1,
+      "globalization": "adaptive",
+      "numericalDirections": 0,
+      "regularizationActivations": [],
+      "tinyNewtonStepsAvoided": 0,
+      "directionMs": 0.6827080000000478,
+      "directionSystems": [
+        {
+          "originalUnknowns": 64,
+          "solvedUnknowns": 64,
+          "eliminatedZeroDuals": 0,
+          "bandwidth": 63,
+          "originalStorage": "csr",
+          "originalEntries": 2380,
+          "originalBandEntries": 4096,
+          "materializedOriginalBandEntries": 0,
+          "materializedNumericalBandEntries": 4096
+        }
+      ],
+      "frictionConeTrials": 0,
+      "frictionConeAccepted": 0,
+      "unknowns": 64,
+      "bandwidth": 63,
+      "commonDofs": 28,
+      "relativeDofs": 18,
+      "originalLengthRows": 10,
+      "retainedLengthRows": 8,
+      "suppressedPrescribedLengthRows": [],
+      "acceptedAlphas": [
+        1
+      ],
+      "certificate": {
+        "force": 3.1951352047731724e-9,
+        "torque": 8.43925190816088e-10,
+        "length": 2.9440405668879066e-10,
+        "boundary": 2.301198526949424e-23,
+        "merit": 0.015422932675081259,
+        "converged": true,
+        "taut": {
+          "maximumResidual": 2.235155056499934e-23,
+          "merit": 4.9959181265972236e-30,
+          "converged": true,
+          "reactionRepresentation": "normals-of-feasible-taut-subspace",
+          "axialMultiplierGauge": 0
+        },
+        "lengthGeometry": "continuous-arclength",
+        "pointwiseInextensibility": false,
+        "parameterMetricDeviationBound": 1.1678800149184099e-9
+      },
+      "tautLengthRows": 4,
+      "reparameterizedTautLengths": [
+        0,
+        1
+      ],
+      "workspaceReused": true
+    },
+    "balances": [
+      [
+        "wire",
+        {
+          "momentumRate": [
+            -3.777891413037082e-7,
+            0.004060897311709599,
+            0.0019952439958500962
+          ],
+          "appliedForce": [
+            0,
+            0.004,
+            0.002
+          ],
+          "boundaryForce": [
+            -3.77788544898761e-7,
+            0.00006089731171142712,
+            -0.0000047560041499043716
+          ],
+          "residual": [
+            -5.964049472264866e-13,
+            -1.8281545981907454e-15,
+            5.692061405548898e-19
+          ]
+        }
+      ],
+      [
+        "catheter",
+        {
+          "momentumRate": [
+            -1.1104681973961304e-7,
+            -0.002911374434738562,
+            -0.0019041698562683004
+          ],
+          "appliedForce": [
+            0,
+            -0.003,
+            -0.002
+          ],
+          "boundaryForce": [
+            -1.110497848016689e-7,
+            0.00008862556525957488,
+            0.00009583014373136758
+          ],
+          "residual": [
+            2.965062055852731e-12,
+            1.8632014334163394e-15,
+            3.320098102693736e-16
+          ]
+        }
+      ]
+    ],
+    "tautLengthState": [
+      {
+        "toolId": "wire",
+        "edge": 0,
+        "node": 2,
+        "normalMultiplier": [
+          0,
+          -0.000007841417424663135,
+          -0.00006883479338755402
+        ]
+      },
+      {
+        "toolId": "catheter",
+        "edge": 0,
+        "node": 2,
+        "normalMultiplier": [
+          0,
+          0.00011410329370492358,
+          -0.000107899283679966
+        ]
+      }
+    ]
+  },
+  "inputUnchanged": true,
+  "retryMatchesCold": true
+}

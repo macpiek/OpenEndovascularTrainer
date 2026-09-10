@@ -1,0 +1,371 @@
+{
+  "primalShift": "0.01",
+  "scope": "Private numerical direction regularization experiment; original nonlinear physical certificate unchanged; not production or FPS",
+  "corrections": 1,
+  "accepted": true,
+  "status": "accepted",
+  "directions": 11,
+  "evaluations": 92,
+  "linear": {
+    "converged": true,
+    "proof": {
+      "commonForce": 6.220120930199735e-22,
+      "relativeForce": 1.7877786151391185e-21,
+      "force": 1.7877786151391185e-21,
+      "torque": 2.0958195349737258e-29,
+      "constraints": [
+        {
+          "unit": "mm",
+          "residual": -1.0346194204538333e-25,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": -8.284553420125321e-26,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 2.256692912451551e-25,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 1.702083662175094e-26,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 6.139231108792002e-26,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": -2.473867798773093e-27,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 1.0097419586828951e-26,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 0,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 0,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 0,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": -1.8932661725304283e-27,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 1.2811101100789232e-27,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 3.4912792742859334e-25,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 2.2259624734089087e-25,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": 2.0161382753245527e-26,
+          "tolerance": 5e-11,
+          "converged": true
+        },
+        {
+          "unit": "mm",
+          "residual": -4.10605891672968e-26,
+          "tolerance": 5e-11,
+          "converged": true
+        }
+      ]
+    },
+    "linearSolves": 1
+  },
+  "certificate": {
+    "force": 4.543312510009988e-08,
+    "torque": 7.840299590111677e-15,
+    "length": 2.6566304711650446e-11,
+    "boundary": 2.618600189753581e-11,
+    "merit": 0.44258307124368734,
+    "converged": true,
+    "contact": {
+      "minGap": 0.00999999994303058,
+      "minForce": 0,
+      "penetration": 0,
+      "negativeForce": 0,
+      "ncp": 0,
+      "complementarity": 0,
+      "activeCount": 0,
+      "eliminatedCount": 0,
+      "sampleCount": 1,
+      "retainedRows": 1,
+      "redundantSamples": 0,
+      "samples": [
+        {
+          "sampleId": "[\"actual-world-adapter\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.25]",
+          "Fn": 0,
+          "gap": 0.00999999994303058,
+          "innerT": 0.25,
+          "outerT": 0.2999976250111947,
+          "active": false,
+          "eliminated": false,
+          "redundant": false,
+          "ncp": 0,
+          "complementarity": 0
+        }
+      ],
+      "merit": 0,
+      "converged": true,
+      "lineSearchMerit": 0
+    },
+    "friction": {
+      "scope": "original-strict-side-finite-Coulomb-rows",
+      "converged": true,
+      "merit": 0,
+      "lineSearchMerit": 0,
+      "samples": [
+        {
+          "sampleId": "[\"actual-world-adapter\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.25]",
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "slipRequired": false,
+          "mu": [
+            0.015,
+            0.006
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "zeroConeProof": "strict-open-inactive-normal-deltaFn-zero-implies-deltaFt-zero",
+          "surfaceWitness": "not-required-for-known-zero-increments"
+        }
+      ],
+      "sampleCount": 1,
+      "retainedRows": 2
+    },
+    "wall": {
+      "scope": "joint-original-wall-normal-rows-only",
+      "contactMode": "nodal-endpoints",
+      "minGap": 4.7656323332034844e-14,
+      "minForce": 18.515356176656216,
+      "penetration": 0,
+      "negativeForce": 0,
+      "ncp": 9.922618282587337e-14,
+      "complementarity": 1.8372081170710535e-12,
+      "domainAdmissible": true,
+      "samples": [
+        {
+          "key": "[\"wire\",0,0.16,\"proximal\"]",
+          "owner": "wire",
+          "edge": 0,
+          "role": "proximal",
+          "querySampleFraction": 0,
+          "querySampleCount": 2,
+          "endpointFraction": 0,
+          "dependent": null,
+          "forceIndex": 0,
+          "source": "analytic-plane",
+          "sdfBranch": null,
+          "Fn": 18.515356176656216,
+          "gap": 9.922618282587337e-14,
+          "ncp": 9.922618282587337e-14,
+          "complementarity": 1.8372081170710535e-12,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",0,0.16,\"distal\"]",
+          "owner": "wire",
+          "edge": 0,
+          "role": "distal",
+          "querySampleFraction": 0,
+          "querySampleCount": 2,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 1,
+          "source": "analytic-plane",
+          "sdfBranch": null,
+          "Fn": 24.31744600252456,
+          "gap": 4.7656323332034844e-14,
+          "ncp": 4.7656323332034844e-14,
+          "complementarity": 1.1588800693056085e-12,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        }
+      ],
+      "merit": 4.718457850070655e-06,
+      "retainedRows": 2,
+      "converged": true,
+      "rowStructureChanged": false,
+      "structureVersion": 1,
+      "queryGeneration": 92,
+      "pressureDiscretization": "nodal-endpoints-one-sided-surface",
+      "originalInequalities": [
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "analytic-plane",
+          "gap": 9.922618282587337e-14,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "analytic-plane",
+          "gap": 4.7656323332034844e-14,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "analytic-plane",
+          "gap": 4.7656323332034844e-14,
+          "pressureDof": false
+        }
+      ],
+      "coverageMerit": 0
+    },
+    "wallFriction": {
+      "scope": "original-nodal-endpoints-stationary-wall-finite-Coulomb-rows",
+      "converged": true,
+      "merit": 0.07182716029244172,
+      "lineSearchMerit": 1.378670265711929e-08,
+      "samples": [
+        {
+          "sampleId": "[\"wire\",0,0.16,\"proximal\"]",
+          "key": "[\"wire\",0,0.16,\"proximal\"]",
+          "owner": "wire",
+          "edge": 0,
+          "node": 0,
+          "trace": "right",
+          "role": "proximal",
+          "forceIndex": 0,
+          "Fn": 18.515356176656216,
+          "traction": [
+            0.1105233492172601,
+            0.011227297135034512
+          ],
+          "slip": [
+            -0.0003147495464015229,
+            -3.1973214282699624e-05
+          ],
+          "mu": [
+            0.006,
+            0.006
+          ],
+          "equationResidual": [
+            6.299782917551511e-13,
+            -3.0981738008417636e-13
+          ],
+          "work": -3.514614681002373e-05,
+          "minimumWork": -3.514614680060475e-05,
+          "workGap": 9.418979268413508e-15,
+          "coneViolation": 2.679945154682173e-10,
+          "slipResidual": 4.141094883452698e-13,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "original-geometric-wall-foot",
+          "wallWork": 0
+        },
+        {
+          "sampleId": "[\"wire\",0,0.16,\"distal\"]",
+          "key": "[\"wire\",0,0.16,\"distal\"]",
+          "owner": "wire",
+          "edge": 0,
+          "node": 1,
+          "trace": "left",
+          "role": "distal",
+          "forceIndex": 1,
+          "Fn": 24.31744600252456,
+          "traction": [
+            0.1450393870556388,
+            0.015866653261310294
+          ],
+          "slip": [
+            -0.00031474955837458715,
+            -3.4432179840789516e-05
+          ],
+          "mu": [
+            0.006,
+            0.006
+          ],
+          "equationResidual": [
+            1.0949574580365606e-13,
+            -9.347841944951086e-13
+          ],
+          "work": -4.6197406481248005e-05,
+          "minimumWork": -4.619740648113414e-05,
+          "workGap": 1.138683331652901e-16,
+          "coneViolation": 2.4644730700629225e-12,
+          "slipResidual": 1.0369949189170495e-12,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "original-geometric-wall-foot",
+          "wallWork": 0
+        }
+      ],
+      "sampleCount": 2,
+      "retainedRows": 4
+    },
+    "lineSearchMerit": 0.37075120640126785
+  }
+}

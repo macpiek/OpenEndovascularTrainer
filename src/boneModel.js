@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { loadWorkerAsset } from './loadWorkerAsset.js';
+import { unpackSkeletonGeometry } from './skeletonGeometry.js';
 
-export function createBoneModel({ onLoaded, onError } = {}) {
+export function createBoneModel({ onLoaded, onError, signal } = {}) {
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
@@ -13,15 +14,13 @@ export function createBoneModel({ onLoaded, onError } = {}) {
     });
 
     const group = new THREE.Group();
-    const loader = new OBJLoader();
-    loader.load(
-        'res/skeleton.obj',
-        (obj) => {
-            obj.traverse(child => {
-                if (child.isMesh) {
-                    child.material = material;
-                }
-            });
+    const ready = loadWorkerAsset(
+        () => new Worker(new URL('./workers/skeleton.worker.js', import.meta.url), { type: 'module' }),
+        { url: new URL('../res/skeleton.obj', import.meta.url).href },
+        signal
+    ).then(({ meshes }) => {
+            if (signal?.aborted) return;
+            const obj = unpackSkeletonGeometry(meshes, material);
 
             const box = new THREE.Box3().setFromObject(obj);
             const center = box.getCenter(new THREE.Vector3());
@@ -35,13 +34,11 @@ export function createBoneModel({ onLoaded, onError } = {}) {
 
             group.add(obj);
             if (typeof onLoaded === 'function') onLoaded({ group, object: obj, material });
-        },
-        undefined,
-        (error) => {
+        }).catch(error => {
+            if (signal?.aborted) return;
             console.warn('Failed to load skeleton OBJ model', error);
             if (typeof onError === 'function') onError(error);
-        }
-    );
+        });
 
-    return { group, material };
+    return { group, material, ready };
 }

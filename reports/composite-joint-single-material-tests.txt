@@ -1,0 +1,17 @@
+✔ wire: explicit empty cluster has zero support/energy and a common-only direction (7.89525ms)
+✔ wire: free translation preserves original momentum/lengths for two dt, cold/reuse and late retry (8.595416ms)
+✔ wire: bending, physical position BC, independent spin and length equations use the same solve (3.504625ms)
+✔ wire: normal wall envelope retains actual ownership, zero relative columns, hold/release and retry (14.048334ms)
+✔ catheter: explicit empty cluster has zero support/energy and a common-only direction (0.722625ms)
+✔ catheter: free translation preserves original momentum/lengths for two dt, cold/reuse and late retry (3.752042ms)
+✔ catheter: bending, physical position BC, independent spin and length equations use the same solve (2.496167ms)
+✔ catheter: normal wall envelope retains actual ownership, zero relative columns, hold/release and retry (7.798291ms)
+✔ single-material admission never weakens full two-material modes or permits a fictional owner (0.42875ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.85775

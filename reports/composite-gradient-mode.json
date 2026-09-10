@@ -1,0 +1,313 @@
+{
+  "scope": "Repeated whole Chain constitutive assembly, full Exact E/g/H versus same exact E/g with explicit invalid/stale H. Declared constant anisotropic materials on one3D centerline, independent spins/dsDx/winding. No timestep/direction/physics-certificate/FPS claim. Preparation and original JS oracle parity are outside timed assembly.",
+  "sourceBefore": {
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "scripts/physics/build-composite-element-exact.mjs": "b86eec046fc59726338d69d5d24d039805eae274e2b168610f57471d941971dd",
+    "scripts/physics/benchmark-composite-gradient.mjs": "e0fd23db752dcfd79169bf8349974f54611539353f4e8bb11b3481b73271ff41"
+  },
+  "node": "v24.6.0",
+  "cases": [
+    {
+      "nodes": 65,
+      "dofs": 323,
+      "band": 13,
+      "workspaceCreationMs": 1.5000829999999894,
+      "fullMs": {
+        "mean": 1.4004115000000006,
+        "median": 1.2932295000000025,
+        "max": 2.0321249999999935,
+        "samples": [
+          1.668291999999994,
+          2.0321249999999935,
+          1.3481660000000062,
+          1.2055000000000007,
+          1.1808750000000003,
+          1.1818750000000051,
+          1.2741669999999914,
+          1.3122920000000136
+        ]
+      },
+      "gradientMs": {
+        "mean": 0.12659912500000203,
+        "median": 0.11841649999999504,
+        "max": 0.17283400000000881,
+        "samples": [
+          0.15083300000000577,
+          0.17283400000000881,
+          0.16279200000001026,
+          0.13541699999998968,
+          0.09920900000000188,
+          0.09662500000000307,
+          0.1014160000000004,
+          0.09366699999999639
+        ]
+      },
+      "medianSpeedup": 10.921024519387556,
+      "maximumGradientDifference": 0,
+      "maximumOracleDifference": 0,
+      "gradientByteIdentical": true,
+      "staleHessianNeverTouched": true,
+      "warmups": [
+        {
+          "pair": -4,
+          "full": 7.149167000000006,
+          "gradient": 0.7706670000000031,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": -3,
+          "gradient": 0.5934170000000023,
+          "full": 1.3903329999999983,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": -2,
+          "full": 1.1996249999999975,
+          "gradient": 0.14095899999999517,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": -1,
+          "gradient": 0.5824580000000026,
+          "full": 1.830042000000006,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        }
+      ],
+      "rows": [
+        {
+          "pair": 0,
+          "full": 1.668291999999994,
+          "gradient": 0.15083300000000577,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 1,
+          "gradient": 0.17283400000000881,
+          "full": 2.0321249999999935,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 2,
+          "full": 1.3481660000000062,
+          "gradient": 0.16279200000001026,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 3,
+          "gradient": 0.13541699999998968,
+          "full": 1.2055000000000007,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 4,
+          "full": 1.1808750000000003,
+          "gradient": 0.09920900000000188,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 5,
+          "gradient": 0.09662500000000307,
+          "full": 1.1818750000000051,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 6,
+          "full": 1.2741669999999914,
+          "gradient": 0.1014160000000004,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 7,
+          "gradient": 0.09366699999999639,
+          "full": 1.3122920000000136,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        }
+      ]
+    },
+    {
+      "nodes": 128,
+      "dofs": 638,
+      "band": 13,
+      "workspaceCreationMs": 0.21891600000000722,
+      "fullMs": {
+        "mean": 2.5778906249999984,
+        "median": 2.4057499999999976,
+        "max": 3.21550000000002,
+        "samples": [
+          2.2156249999999886,
+          2.565249999999992,
+          3.152124999999984,
+          2.8579170000000147,
+          3.21550000000002,
+          2.1905830000000037,
+          2.2462500000000034,
+          2.1798749999999814
+        ]
+      },
+      "gradientMs": {
+        "mean": 0.33524462500000496,
+        "median": 0.3031454999999994,
+        "max": 0.5901250000000005,
+        "samples": [
+          0.4687080000000208,
+          0.31220799999999826,
+          0.5901250000000005,
+          0.456957999999986,
+          0.29408300000000054,
+          0.18591600000002018,
+          0.1892090000000053,
+          0.18475000000000819
+        ]
+      },
+      "medianSpeedup": 7.935958145510992,
+      "maximumGradientDifference": 0,
+      "maximumOracleDifference": 0,
+      "gradientByteIdentical": true,
+      "staleHessianNeverTouched": true,
+      "warmups": [
+        {
+          "pair": -4,
+          "full": 2.8246249999999975,
+          "gradient": 0.4559589999999929,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": -3,
+          "gradient": 0.6550420000000088,
+          "full": 3.0393749999999926,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": -2,
+          "full": 2.661083000000005,
+          "gradient": 0.21625000000000227,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": -1,
+          "gradient": 0.4246249999999918,
+          "full": 2.89608299999999,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        }
+      ],
+      "rows": [
+        {
+          "pair": 0,
+          "full": 2.2156249999999886,
+          "gradient": 0.4687080000000208,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 1,
+          "gradient": 0.31220799999999826,
+          "full": 2.565249999999992,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 2,
+          "full": 3.152124999999984,
+          "gradient": 0.5901250000000005,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 3,
+          "gradient": 0.456957999999986,
+          "full": 2.8579170000000147,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 4,
+          "full": 3.21550000000002,
+          "gradient": 0.29408300000000054,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 5,
+          "gradient": 0.18591600000002018,
+          "full": 2.1905830000000037,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 6,
+          "full": 2.2462500000000034,
+          "gradient": 0.1892090000000053,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        },
+        {
+          "pair": 7,
+          "gradient": 0.18475000000000819,
+          "full": 2.1798749999999814,
+          "maximumGradientDifference": 0,
+          "maximumOracleDifference": 0,
+          "gradientByteIdentical": true
+        }
+      ]
+    }
+  ],
+  "sourceAfter": {
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "scripts/physics/build-composite-element-exact.mjs": "b86eec046fc59726338d69d5d24d039805eae274e2b168610f57471d941971dd",
+    "scripts/physics/benchmark-composite-gradient.mjs": "e0fd23db752dcfd79169bf8349974f54611539353f4e8bb11b3481b73271ff41"
+  },
+  "sourceStable": true
+}

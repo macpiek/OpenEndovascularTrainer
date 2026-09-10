@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "solverSteps": 0,
+  "sourceHashes": true,
+  "snapshots": [
+    {
+      "name": "initial",
+      "numericBuffers": 541,
+      "numericBytes": 843160,
+      "contentSha256": "f452f00a49aa38f2aefe18bc9bdea8bff71468feee9d283e0b59a614b91230c2",
+      "roundtripContentSha256": "f452f00a49aa38f2aefe18bc9bdea8bff71468feee9d283e0b59a614b91230c2",
+      "exactBufferBytes": true
+    },
+    {
+      "name": "lastAccepted",
+      "numericBuffers": 682,
+      "numericBytes": 1014228,
+      "contentSha256": "954525924ef6508bb63070fb4494681e9a992cb623576da3ee56f9f30ef92491",
+      "roundtripContentSha256": "954525924ef6508bb63070fb4494681e9a992cb623576da3ee56f9f30ef92491",
+      "exactBufferBytes": true
+    },
+    {
+      "name": "terminalPrepared",
+      "numericBuffers": 682,
+      "numericBytes": 1014228,
+      "contentSha256": "3d54457f08bd576e00ba6ea6627dd03c02ea566d9f10e147181d85ab0e9d9c39",
+      "roundtripContentSha256": "3d54457f08bd576e00ba6ea6627dd03c02ea566d9f10e147181d85ab0e9d9c39",
+      "exactBufferBytes": true
+    },
+    {
+      "name": "terminalAfter",
+      "numericBuffers": 682,
+      "numericBytes": 1014228,
+      "contentSha256": "954525924ef6508bb63070fb4494681e9a992cb623576da3ee56f9f30ef92491",
+      "roundtripContentSha256": "954525924ef6508bb63070fb4494681e9a992cb623576da3ee56f9f30ef92491",
+      "exactBufferBytes": true
+    },
+    {
+      "name": "targetPrepared",
+      "numericBuffers": 682,
+      "numericBytes": 1014228,
+      "contentSha256": "3d54457f08bd576e00ba6ea6627dd03c02ea566d9f10e147181d85ab0e9d9c39",
+      "roundtripContentSha256": "3d54457f08bd576e00ba6ea6627dd03c02ea566d9f10e147181d85ab0e9d9c39",
+      "exactBufferBytes": true
+    }
+  ]
+}

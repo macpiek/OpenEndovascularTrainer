@@ -1,0 +1,45 @@
+✔ normal chart sharing preserves physical scatter while every sample owns its numeric arrays (6.257041ms)
+✔ gradient pullback retains independent physical G/B and cannot publish a stale full normal derivative (1.987541ms)
+✔ physical wire/catheter endpoint ordering pulls back once and retains distinct G, B and nonsymmetric DB (1.031166ms)
+✔ gap and physical normal-force derivatives match independent finite changes of common and relative positions (1.014583ms)
+✔ common action/reaction cancels under rigid translation and virtual work is preserved without adding relative force twice (0.319292ms)
+✔ frozen mapping owns its basis and source ordering while a failed refresh invalidates borrowed numeric outputs (0.722459ms)
+✔ contact topology rejects absent tools and long correspondence instead of silently growing a global band (0.332084ms)
+✔ original lumen side detection and its complete physical derivative enter common/rho without additional detection (4.324667ms)
+✔ sequential friction managers reuse only the owned chart and bind fresh sample identities and force history (44.001917ms)
+✔ one/two original samples own distinct two-component rows, actual nodal forces/spin torques and original stick certificate (2.79675ms)
+✔ finite sliding rows retain all primal G/B/DB and Fn/other-Ft derivatives in the physical support (22.099042ms)
+✔ signed private normal extension and infeasible zero-load Ft remain unclamped and cannot gain authority through mutated diagnostics (2.239709ms)
+✔ failed current query/surface refresh revokes all rows and loads without partially publishing residuals, then retries identically (4.1255ms)
+✔ private commit checks positions, live own angles and forces, but permits root candidate reference-frame commit (3.115833ms)
+✔ accepted maps/Ft are owned across dt and numerical k changes; inconsistent labels or physical mu/chart cannot rebind history (4.107291ms)
+✔ old affine-map derivation supports nonuniform endpoint rates and typed semantic IDs without stale moving-foot scalars (1.9245ms)
+✔ normal-only interior endpoint gauge, tip features and pressure transfers reject explicitly before mutating original data (0.678458ms)
+✔ previous query budget failures and invalid preparation never publish data or alter incoming history (2.029458ms)
+✔ strict open exact zero cone eliminates only known-zero increments in full/value while retaining original queries and maps (1.254916ms)
+✔ active Fn=0 has nonzero normal-to-Ft response; closed gap and any nonzero Fn/Ft retain their full original operator (4.3405ms)
+✔ activation release reactivation never reuses a reduced physical B or loses accepted history; cold and reused managers match (2.488416ms)
+✔ known-zero proof cannot hide unsupported material transport or failed current query and identical retry restores it (1.19075ms)
+✔ regularity eligibility only falls back: large supported contact-frame changes retain the original surface evaluation (0.895417ms)
+✔ one owned surface chart builds independent local mappings and detects changed bases or layout before reuse (21.9605ms)
+✔ adjacent rotated tools: dense G/B/DB scatter and virtual power include actual endpoints and own spins (10.991ms)
+✔ reversed physical tool order: dense G/B/DB scatter and virtual power include actual endpoints and own spins (4.545125ms)
+✔ mixed exposed/overlap edges: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.767125ms)
+✔ wire against wall within a two-tool chart: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.343792ms)
+✔ single wire: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.44775ms)
+✔ single catheter: dense G/B/DB scatter and virtual power include actual endpoints and own spins (0.292667ms)
+✔ full physical DforceMap maps cross-tool and both spin configuration derivatives without assuming symmetry (0.741ms)
+✔ frozen instantaneous SurfaceMotion -> two distinct tools loads preserves power, including prescribed feed/wall (5.021ms)
+✔ frozen instantaneous SurfaceMotion -> wire loads preserves power, including prescribed feed/wall (0.4355ms)
+✔ frozen instantaneous SurfaceMotion -> catheter loads preserves power, including prescribed feed/wall (0.520041ms)
+✔ prepared bases, edge records and input operators are owned; arrays reuse and force-only refresh invalidate stale derivatives/loads (0.972209ms)
+✔ missing physical spin/owner, incomplete modes, forged chart and out-of-stencil pairs reject (0.50975ms)
+✔ stale validity, wrong physical identity/dimensions, nonfinite/overflow operators and failed load calls cannot publish stale data (5.441208ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 223.050416

@@ -1,0 +1,31 @@
+✔ hard strain-preserving bias repairs a tilted rest rod without elastic or kinetic bias (24.440791ms)
+✔ an immobile rod penetrating the plane cannot certify an infeasible strain-preserving bias (2.563917ms)
+✔ stationary wall bias does not become velocity on the next physical timestep (16.190083ms)
+✔ nonuniform bias that changes elastic strain cannot reuse the old phase certificate (4.438375ms)
+✔ a stable runtime id cannot restore physical load to new material labels during bias (8.674083ms)
+✔ stable sheath interior bias repairs overlap without physical pressure or axial drag (14.40875ms)
+✔ stable sheath radial input produces the independent physical momentum impulse (2.669ms)
+✔ away and axial motion unload sheath pressure on the next physical step (3.388167ms)
+✔ historical sheath gap uses exact distance to the frozen oblique axis rather than a tangent plane (0.411667ms)
+✔ an entering distal-end feature is explicitly unsupported despite zero geometric penetration (2.507167ms)
+✔ a loaded row disappearing beyond the distal end cannot masquerade as a certified release (1.51875ms)
+✔ changing sheath geometry during the physical step invalidates the frozen history (1.293709ms)
+✔ changing material labels at the same runtime node invalidates sheath history (1.369625ms)
+✔ strictly clear unloaded sheath distal entry certifies without an impulse (14.174417ms)
+✔ strictly clear unloaded sheath distal exit certifies without an impulse (2.712625ms)
+✔ strictly clear unloaded sheath proximal entry certifies without an impulse (2.414042ms)
+✔ strictly clear unloaded sheath proximal exit certifies without an impulse (1.821917ms)
+✔ touching an end with zero reaction is outside the strictly-clear transition proof (2.015ms)
+✔ positive endpoint gaps cannot erase a physical reaction applied earlier in the dt (1.659125ms)
+✔ positive endpoint gaps cannot erase a bias reaction applied earlier in the dt (1.413708ms)
+✔ missing reaction history cannot certify an otherwise clear unloaded transition (1.353417ms)
+✔ relabelled material cannot use a zero journal to certify an unloaded crossing (1.205959ms)
+✔ a rejected actual scaled trial restores its sheath reaction journal with mechanics (2.0445ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 443.47025

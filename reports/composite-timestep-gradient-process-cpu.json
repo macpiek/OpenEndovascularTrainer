@@ -1,0 +1,3018 @@
+{
+  "sourceBefore": {
+    "scripts/physics/benchmark-composite-timestep-gradient.mjs": "66e7a108cd394f1b67e8c1bcf42c61d7bdb2c16a251cfc0ef5c1c48a6f6cd150",
+    "scripts/physics/helpers/compositeTimeStepBenchmark.js": "0b936ae870fd07343b309876f0e907f91c0b838a3b7a6e9c8814f1f9d1198c2d",
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeTimeStep.js": "1ee7001a9d70fe101a46ca22755e2e96f573f8c396aa1fc112321daa941ca9a0",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeWallContacts.js": "022405d91f8df8590b71ab83a51959b6c386c198f833ba66cc55b8aa68af729c",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "fb50012fd5a73b3cd5250e8f5b2269d0c250755037cf1a309a6ab6f643f1b930",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "e5f4bdc38aee069f5e20a5c3a02dcc0e5e31174924b9d0dddc780bdb98048efd",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "4567e61ffe06c0d90598da02e535e715d833ded9d5946276369e6fd749e0fbec"
+  },
+  "node": "v24.6.0",
+  "scope": "Paired full fixed-topology dt, full Exact tangent every evaluation vs lazy Exact tangent. Both arms retain their own numeric workspace. Identical prepared state/materials/loads and strict original gates. No feed/remesh, lumen/clearance/friction, anatomy or browser FPS claim.",
+  "protocol": {
+    "coldPairs": 1,
+    "warmupPairs": 3,
+    "measuredConsecutivePairs": 8,
+    "order": "alternating",
+    "timing": "whole advance call includes material/inertia preparation, all original residual/contact checks, nonlinear trials, tangent rebuilds and owned output; workspace creation is separately timed",
+    "budget": "every constitutive gradient/full assembly consumes budget.evaluations, including lazy tangent rebuilds"
+  },
+  "cases": [
+    {
+      "scenario": "contact-free",
+      "catheterMm": 9,
+      "nodes": 67,
+      "workspaceCreationMs": {
+        "full": 3.0529999999999973,
+        "lazy": 0.9341249999999945
+      },
+      "cold": {
+        "step": 0,
+        "inputHash": "901ef35dee4d49ad493a65bd6d0c41d1288f2c14054a8ccf3be33964fb3ed136",
+        "outputHash": "43cc16b6590cb04d475f7f578a4b92fc746db87a60e5843c55ce79a9211159c8",
+        "fullMs": 77.80829200000005,
+        "lazyMs": 22.812749999999937,
+        "fullCpuMs": 116.673,
+        "lazyCpuMs": 70.575,
+        "accepted": true,
+        "status": "accepted",
+        "directions": 2,
+        "linearSolves": 2,
+        "assemblies": {
+          "full": {
+            "full": 4,
+            "gradient": 0
+          },
+          "lazy": {
+            "full": 2,
+            "gradient": 4
+          }
+        },
+        "certificate": {
+          "force": 8.1777605964484e-11,
+          "torque": 1.4746820380601837e-46,
+          "length": 1.0658141036401503e-14,
+          "wall": null
+        },
+        "fullWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 1,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "lazyWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 1,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        }
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "9995a37d91125006305ff9ea47a9ad68ae37509d26707ff3d20b46360e70fd3c",
+          "outputHash": "1cfe5cf716db1c3187beadddaf4120b02d7c222a27b3946dd383daa923471094",
+          "fullMs": 9.816374999999994,
+          "lazyMs": 9.731625000000008,
+          "fullCpuMs": 18.027,
+          "lazyCpuMs": 17.429,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 1.4693880565710343e-10,
+            "torque": 2.8561214548612006e-39,
+            "length": 2.930988785010413e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 9,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 9,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 5,
+          "inputHash": "ff89a15fcadf2cfa1bdfbe1032cc33d51c2989156cfe03511a55e6a27058cfa8",
+          "outputHash": "a041383a1dd70fb86bf111b77c88a75756eb245dc199ee80ccc09392e5341c04",
+          "fullMs": 11.196124999999938,
+          "lazyMs": 12.39308399999993,
+          "fullCpuMs": 26.206,
+          "lazyCpuMs": 29.291,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 2.543489394321867e-10,
+            "torque": 5.118889281214113e-38,
+            "length": 4.1744385725905886e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 11,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 11,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 6,
+          "inputHash": "81e461c167ffb11b9c6161b54209c8effba740513d13640b1b453189afd4dcf5",
+          "outputHash": "6677a70e4f73a757b07bd4a5990c7c67839f395b87b0200f0bd58821de0d77ee",
+          "fullMs": 12.40908300000001,
+          "lazyMs": 13.21975000000009,
+          "fullCpuMs": 25.096,
+          "lazyCpuMs": 21.705,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 2.297929720144413e-10,
+            "torque": 4.8653665794652245e-37,
+            "length": 2.842170943040401e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 13,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 13,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 7,
+          "inputHash": "b4286126a0e30f1426f24f9aa7b3774c05b5c1370d4cdfad945168795319d986",
+          "outputHash": "ff18d85db24bac52bf4cd8add27ce19d064e6ba4110a8824a5d715edb7f912f6",
+          "fullMs": 18.69779200000005,
+          "lazyMs": 10.611750000000029,
+          "fullCpuMs": 22.157,
+          "lazyCpuMs": 18.727,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 3.3081692397636043e-10,
+            "torque": 4.7709639443412806e-36,
+            "length": 4.529709940470639e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 15,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 15,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 8,
+          "inputHash": "e84d7c6b39ec96a786c166e53a1609b09ac26acaa539abb83d3541f16f4f5136",
+          "outputHash": "52a0282b32810030917d8a31ffd9d7610c371c3292a137694d17aa5b35ff8015",
+          "fullMs": 17.939750000000004,
+          "lazyMs": 14.084707999999978,
+          "fullCpuMs": 27.709,
+          "lazyCpuMs": 24.291,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 2.336754251456231e-10,
+            "torque": 2.750272091071895e-35,
+            "length": 3.197442310920451e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 9,
+          "inputHash": "606352e401b1b6b4e408a00cc6a88aa8d8a23cb71fb6e2cb45d8820f7fec45ac",
+          "outputHash": "73941b5fd62e02a6c5fe47b2717166e400b6199aa4da46d5c0f9e363775813fe",
+          "fullMs": 8.390209000000027,
+          "lazyMs": 15.849916000000007,
+          "fullCpuMs": 13.921,
+          "lazyCpuMs": 22.799,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 1.3950930332998167e-10,
+            "torque": 3.2497163115069197e-34,
+            "length": 4.263256414560601e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 10,
+          "inputHash": "985c1fbbe435c61d60588d0efb5b114491bed6cc4ad0c1617bc4220eff4062e2",
+          "outputHash": "20de47ed1d229179510bd812dbe2dc8afa0d01e620b2f4562c445043dde25d2c",
+          "fullMs": 15.435165999999981,
+          "lazyMs": 10.944667000000095,
+          "fullCpuMs": 14.65,
+          "lazyCpuMs": 7.098,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 2.9230463744888974e-10,
+            "torque": 1.75490141650729e-33,
+            "length": 3.4638958368304884e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 21,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 21,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 11,
+          "inputHash": "0b1777f6b6fa89ba9d6ba12270fed35e996d2b9d9a91b57479350ddaa5bc53fa",
+          "outputHash": "e20705ebe85173225c261403fdd53e25fe3d5044df72c1c104844c612c2ba0df",
+          "fullMs": 8.064833000000021,
+          "lazyMs": 14.876625000000104,
+          "fullCpuMs": 8.884,
+          "lazyCpuMs": 13.032,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 1.9080032759220982e-10,
+            "torque": 4.5685550455321e-33,
+            "length": 4.3520742565306136e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        }
+      ],
+      "full": {
+        "count": 8,
+        "medianMs": 11.802603999999974,
+        "meanMs": 12.743666625000003,
+        "minimumMs": 8.064833000000021,
+        "maximumMs": 18.69779200000005
+      },
+      "lazy": {
+        "count": 8,
+        "medianMs": 12.80641700000001,
+        "meanMs": 12.71401562500003,
+        "minimumMs": 9.731625000000008,
+        "maximumMs": 15.849916000000007
+      },
+      "fullCpu": {
+        "count": 8,
+        "medianMs": 20.092,
+        "meanMs": 19.581250000000004,
+        "minimumMs": 8.884,
+        "maximumMs": 27.709
+      },
+      "lazyCpu": {
+        "count": 8,
+        "medianMs": 20.216,
+        "meanMs": 19.2965,
+        "minimumMs": 7.098,
+        "maximumMs": 29.291
+      },
+      "speedup": 0.9216164052755712
+    },
+    {
+      "scenario": "contact-free",
+      "catheterMm": 160,
+      "nodes": 69,
+      "workspaceCreationMs": {
+        "full": 0.5842499999999973,
+        "lazy": 0.44333400000004985
+      },
+      "cold": {
+        "step": 0,
+        "inputHash": "b583684fb8f1fd69f8978fc3cbfdb931af5b322484fb7f7c640dc56bd91d30a5",
+        "outputHash": "670157958f1d62c8902d32d4886b34f87cf59e588bc33e0672f87f530f4a932a",
+        "fullMs": 37.58979199999999,
+        "lazyMs": 26.185375000000022,
+        "fullCpuMs": 60.143,
+        "lazyCpuMs": 44.435,
+        "accepted": true,
+        "status": "accepted",
+        "directions": 3,
+        "linearSolves": 3,
+        "assemblies": {
+          "full": {
+            "full": 5,
+            "gradient": 0
+          },
+          "lazy": {
+            "full": 3,
+            "gradient": 5
+          }
+        },
+        "certificate": {
+          "force": 2.83358447816795e-10,
+          "torque": 1.6289322047795572e-29,
+          "length": 2.6201263381153694e-14,
+          "wall": null
+        },
+        "fullWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 2,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "lazyWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 2,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        }
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "17730ddb6a8c9cb63381a13525262f545c7031a213bf1fc2fab2b9a8312ad06b",
+          "outputHash": "ddd5c7df652198800bf43b702d0c787917c7e282547a259f36ad3a10c2c0308f",
+          "fullMs": 17.31183299999998,
+          "lazyMs": 20.166500000000042,
+          "fullCpuMs": 12.499,
+          "lazyCpuMs": 18.925,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 3.017876572792681e-10,
+            "torque": 1.9539927299636741e-28,
+            "length": 3.019806626980426e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 14,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 14,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 5,
+          "inputHash": "13a92b5e95c39f614ce2a964cfc2ec14ede6e99ca93f0dac432d6dd9035bca55",
+          "outputHash": "f19f9361600d37c794522ce98425442368c577260febadaf2c6e824dc8b0fa46",
+          "fullMs": 14.778583000000026,
+          "lazyMs": 15.13737500000002,
+          "fullCpuMs": 14.522,
+          "lazyCpuMs": 23.549,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 3.0582121389487866e-10,
+            "torque": 1.671966785967106e-27,
+            "length": 3.108624468950438e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 6,
+          "inputHash": "afa964c4bc1da379b8818486db40bf25e468e62e04aa224db1c7595dcfb32a73",
+          "outputHash": "a260e36df51879a0b549a4f72177182745bc516d528f20ea6759276a15ab0cf0",
+          "fullMs": 22.071416,
+          "lazyMs": 20.57529199999999,
+          "fullCpuMs": 14.184,
+          "lazyCpuMs": 13.366,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 2.7600910446068383e-10,
+            "torque": 1.3417197992299215e-26,
+            "length": 4.529709940470639e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 7,
+          "inputHash": "3e18a0a63929fe75d93654e7bd983e42e6e7612f0a4b21f01273401b138c4b0d",
+          "outputHash": "920c73305f7b9845095430e478991412c14d3fe3d584fb086f1663e8079adadd",
+          "fullMs": 14.117624999999862,
+          "lazyMs": 19.01695799999993,
+          "fullCpuMs": 12.958,
+          "lazyCpuMs": 22.486,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 2.4679511212433733e-10,
+            "torque": 2.718816721734681e-26,
+            "length": 2.930988785010413e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 8,
+          "inputHash": "c589e391c3f6cf3f715d781adf9e834b87b5b05006a588e93afa5d73f8942f00",
+          "outputHash": "85a0c29617bb3ca126e8ca554743de755950892eb801f2a1ca90477c3d0da189",
+          "fullMs": 16.460959000000003,
+          "lazyMs": 16.33787499999994,
+          "fullCpuMs": 13.602,
+          "lazyCpuMs": 22.133,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 2.908879803698028e-10,
+            "torque": 3.0945167691947157e-25,
+            "length": 4.1744385725905886e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 26,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 26,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 9,
+          "inputHash": "9c2afe46cb885531090b1c4225d133b50992d00953d8dcc47e583ac220fb6557",
+          "outputHash": "45cedec9c9a0a9d80f387528da8dbb47704b31434ce01ad59a3a8fb11afd5e3c",
+          "fullMs": 16.622959000000037,
+          "lazyMs": 17.57483400000001,
+          "fullCpuMs": 20.769,
+          "lazyCpuMs": 24.666,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 2.3607743537823467e-10,
+            "torque": 8.145793151462402e-25,
+            "length": 5.5067062021407764e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 29,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 29,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 10,
+          "inputHash": "b075a8113d5416b8d1ca94b874d3c9343cdf8d24bb23b86c97b41929b7e89ff0",
+          "outputHash": "dcccc431bc5eb9bcb44a90f37ec0d159c9c93df43210ca81d89b73071eb9f89a",
+          "fullMs": 31.39945899999998,
+          "lazyMs": 19.135500000000093,
+          "fullCpuMs": 17.074,
+          "lazyCpuMs": 16.918,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 3.5605518025970115e-10,
+            "torque": 2.067877807133964e-24,
+            "length": 4.618527782440651e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 32,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 32,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 11,
+          "inputHash": "b96b17fe8e6e958598e5d0ef6432c66c74108544340deb4f2a16a6a1c61682ff",
+          "outputHash": "04384734dd0062a373ad1d68e84adc0ed97db3042997efe94cfacb8f1eacfb45",
+          "fullMs": 12.641292000000021,
+          "lazyMs": 18.40691700000002,
+          "fullCpuMs": 12.83,
+          "lazyCpuMs": 16.055,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 3.2245867087610267e-10,
+            "torque": 1.1530558418480162e-23,
+            "length": 3.730349362740526e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        }
+      ],
+      "full": {
+        "count": 8,
+        "medianMs": 16.54195900000002,
+        "meanMs": 18.175515749999988,
+        "minimumMs": 12.641292000000021,
+        "maximumMs": 31.39945899999998
+      },
+      "lazy": {
+        "count": 8,
+        "medianMs": 18.711937499999976,
+        "meanMs": 18.293906375000006,
+        "minimumMs": 15.13737500000002,
+        "maximumMs": 20.57529199999999
+      },
+      "fullCpu": {
+        "count": 8,
+        "medianMs": 13.893,
+        "meanMs": 14.804749999999999,
+        "minimumMs": 12.499,
+        "maximumMs": 20.769
+      },
+      "lazyCpu": {
+        "count": 8,
+        "medianMs": 20.529,
+        "meanMs": 19.76225,
+        "minimumMs": 13.366,
+        "maximumMs": 24.666
+      },
+      "speedup": 0.8840323991035156
+    },
+    {
+      "scenario": "contact-free",
+      "catheterMm": 310,
+      "nodes": 68,
+      "workspaceCreationMs": {
+        "full": 0.44412499999998545,
+        "lazy": 0.290958000000046
+      },
+      "cold": {
+        "step": 0,
+        "inputHash": "411722b0c12f620a2f5098b176b7dcd8c0db9760cb415050135569a4acc44525",
+        "outputHash": "c454a357f3a5de6d9b4fd62e25ccac5412ff075a7b2d25e19aa16df93e5b75aa",
+        "fullMs": 27.179832999999917,
+        "lazyMs": 14.36762500000009,
+        "fullCpuMs": 21.575,
+        "lazyCpuMs": 12.719,
+        "accepted": true,
+        "status": "accepted",
+        "directions": 4,
+        "linearSolves": 4,
+        "assemblies": {
+          "full": {
+            "full": 6,
+            "gradient": 0
+          },
+          "lazy": {
+            "full": 4,
+            "gradient": 6
+          }
+        },
+        "certificate": {
+          "force": 7.887672633435022e-10,
+          "torque": 2.6575658720103673e-20,
+          "length": 4.796163466380676e-14,
+          "wall": null
+        },
+        "fullWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "lazyWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 0,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        }
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "530d5da98e7c50e1c0fc49a1fe2a3cd6591496c8e06062e8e8579afe67b3b546",
+          "outputHash": "e2322bd280e4428729c87acf86b5ec5711b468d4ad1d19e4425668312e7dc745",
+          "fullMs": 15.326125000000047,
+          "lazyMs": 13.436791999999969,
+          "fullCpuMs": 13.833,
+          "lazyCpuMs": 16.514,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 6.980830509966709e-10,
+            "torque": 3.7862372742267225e-19,
+            "length": 5.417888360170764e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 19,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 5,
+          "inputHash": "c697e5907b690912b485ffff87837d87ca23d00c22b086c8db85e5c142d13df6",
+          "outputHash": "ac5d604d5a83132875579f330ca3e9cbdbeb03b9e9efcb75d1f05c6d0142b62c",
+          "fullMs": 27.205874999999878,
+          "lazyMs": 15.913457999999991,
+          "fullCpuMs": 30.886,
+          "lazyCpuMs": 16.335,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 9.416260400585465e-10,
+            "torque": 1.5111067779016718e-18,
+            "length": 4.574118861455645e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 23,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 6,
+          "inputHash": "519e244bc9a52914c8c881a0487c1d7760e60daa9066c7828074133d6de5c48b",
+          "outputHash": "1a0be4e68608dc8adf66567bb7bb2fd01e9debca3a3816a41cbd0b52b12ed234",
+          "fullMs": 25.458958000000166,
+          "lazyMs": 14.950708000000077,
+          "fullCpuMs": 34.263,
+          "lazyCpuMs": 13.029,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 5.991630004602875e-10,
+            "torque": 2.126704261413874e-18,
+            "length": 4.973799150320701e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 7,
+          "inputHash": "e38ea3b96fa57a44ea69e14404ed861a8f2f2a9b47f01d49d19819020372a887",
+          "outputHash": "9c5bee2ed050a4ce7e93a5398c3cd3570a89db5328dd4363b39ea618f036b304",
+          "fullMs": 13.265375000000176,
+          "lazyMs": 20.10895800000003,
+          "fullCpuMs": 13.475,
+          "lazyCpuMs": 16.461,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 6.700145483903408e-10,
+            "torque": 3.619567252759299e-18,
+            "length": 3.907985046680551e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 31,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 31,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 8,
+          "inputHash": "3cfd5ca40f631b49517a765acce5e3699dbfacaa509ae77c7f8ff7edcf15c614",
+          "outputHash": "afc6744b3dcb8ff7506c7b3df813b1c644f3440a634ed44e60614b33033f8ca1",
+          "fullMs": 13.9865420000001,
+          "lazyMs": 18.81483400000002,
+          "fullCpuMs": 12.949,
+          "lazyCpuMs": 14.166,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 5.972697984174742e-10,
+            "torque": 3.3985568099064847e-18,
+            "length": 3.9968028886505635e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 9,
+          "inputHash": "bbb8fe16728d4ae9584ecc815be74b1e9a57479db361d854f692898fd81ea8c6",
+          "outputHash": "a79dc3ba839d33ebc0419aa66144ea217db821448324776a06a0d5b601affbb8",
+          "fullMs": 19.200458000000026,
+          "lazyMs": 16.329541999999947,
+          "fullCpuMs": 15.905,
+          "lazyCpuMs": 15.277,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 6.508326773250063e-10,
+            "torque": 9.622294280808852e-18,
+            "length": 5.46229728115577e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 39,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 39,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 10,
+          "inputHash": "0323d23284e5373ae4560297a6276c5e53e9c68a37c13ae20f19d6131eefbe5b",
+          "outputHash": "a5ded78a86c523acaea9b013bc31eb7ff624da63ea68b964afb558515eeef9c2",
+          "fullMs": 14.831833999999844,
+          "lazyMs": 23.955790999999863,
+          "fullCpuMs": 13.563,
+          "lazyCpuMs": 32.267,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 6.808225416511037e-10,
+            "torque": 8.033521097282016e-18,
+            "length": 4.574118861455645e-14,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 43,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 43,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 11,
+          "inputHash": "6db2d9558e4163657e60dc389a15ebd9583688a067fed92203e3ad9d160a238c",
+          "outputHash": "1726b35bfbee609b10ef09b69a41a43a11c79ee57894bdd92bcf0b2dd3b990d8",
+          "fullMs": 12.321791999999732,
+          "lazyMs": 13.529708000000028,
+          "fullCpuMs": 12.385,
+          "lazyCpuMs": 25.123,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 9.933764192866575e-8,
+            "torque": 6.161954627104116e-14,
+            "length": 6.115108419635362e-12,
+            "wall": null
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 46,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 0,
+            "mixedBuilds": 1,
+            "mixedHits": 46,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        }
+      ],
+      "full": {
+        "count": 8,
+        "medianMs": 15.078979499999946,
+        "meanMs": 17.699619874999996,
+        "minimumMs": 12.321791999999732,
+        "maximumMs": 27.205874999999878
+      },
+      "lazy": {
+        "count": 8,
+        "medianMs": 16.12149999999997,
+        "meanMs": 17.12997387499999,
+        "minimumMs": 13.436791999999969,
+        "maximumMs": 23.955790999999863
+      },
+      "fullCpu": {
+        "count": 8,
+        "medianMs": 13.698,
+        "meanMs": 18.407375,
+        "minimumMs": 12.385,
+        "maximumMs": 34.263
+      },
+      "lazyCpu": {
+        "count": 8,
+        "medianMs": 16.398,
+        "meanMs": 18.6465,
+        "minimumMs": 13.029,
+        "maximumMs": 32.267
+      },
+      "speedup": 0.9353335297583956
+    },
+    {
+      "scenario": "analytic-plane",
+      "catheterMm": 9,
+      "nodes": 67,
+      "workspaceCreationMs": {
+        "full": 0.32841599999983373,
+        "lazy": 0.3052090000001044
+      },
+      "cold": {
+        "step": 0,
+        "inputHash": "049d6497cd508f39be06cccf2723f019d1abe94302ec69a5329c12fd24022f6e",
+        "outputHash": "81d7a0968a3a14f6ae91e2b77077651c3f7d478056ae48af223952a7cabc222a",
+        "fullMs": 150.67937500000016,
+        "lazyMs": 65.27137500000026,
+        "fullCpuMs": 44.719,
+        "lazyCpuMs": 30.974,
+        "accepted": true,
+        "status": "accepted",
+        "directions": 4,
+        "linearSolves": 4,
+        "assemblies": {
+          "full": {
+            "full": 6,
+            "gradient": 0
+          },
+          "lazy": {
+            "full": 4,
+            "gradient": 6
+          }
+        },
+        "certificate": {
+          "force": 8.957425620304958e-11,
+          "torque": 1.2393312003943861e-18,
+          "length": 1.3322676295501878e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "fullWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "lazyWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        }
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "e143282050e5c0a009a5dd01e61975c7f44a36685d5708d8c9f5475008b470b0",
+          "outputHash": "92bb76bd1999f8b98b893ec50a7a41f6989517ea018f3c4711695fc74eb863fc",
+          "fullMs": 19.157666000000063,
+          "lazyMs": 26.57916699999987,
+          "fullCpuMs": 16.561,
+          "lazyCpuMs": 22.613,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 2.6807578379361985e-10,
+            "torque": 1.9418582160259848e-16,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 17,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 5,
+          "inputHash": "d8fd23d8058ccf3b48f26c88b027e3580258b9f73a90d9b370fd2a91ce6f626f",
+          "outputHash": "3c7ee1d4eccf6dd66594e41d970ae6fed0cf2e281c7fc4ab02fefcff995f7ad8",
+          "fullMs": 18.923833000000286,
+          "lazyMs": 19.010541999999987,
+          "fullCpuMs": 13.27,
+          "lazyCpuMs": 16.796,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 5.3512305697722695e-11,
+            "torque": 1.3711386620773306e-15,
+            "length": 4.440892098500626e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 6,
+          "inputHash": "39d56e6a65250cb4d300e91b37a79899d38e1e5fbe8ef7578a00de983643ddbc",
+          "outputHash": "f58d439090523efce418b1560d9f19d11c8ebbec4bbf116339a9c32c9259ed86",
+          "fullMs": 46.61283300000014,
+          "lazyMs": 29.536917000000358,
+          "fullCpuMs": 29.149,
+          "lazyCpuMs": 17.695,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 2.943659205278948e-10,
+            "torque": 1.7869305832913974e-16,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 7,
+          "inputHash": "1a6154390a1159b0c16d96173a8538389643263c9d7a23813342afb392eca61c",
+          "outputHash": "7060f36e98583d603a58618083ad953ee8223b8864bcf80e734f6a9a8b37b4ee",
+          "fullMs": 72.06791699999985,
+          "lazyMs": 25.184584000000086,
+          "fullCpuMs": 35.657,
+          "lazyCpuMs": 26.666,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 7.987861760927473e-11,
+            "torque": 6.346113078080607e-16,
+            "length": 4.440892098500626e-15,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 27,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 8,
+          "inputHash": "9a103daa67e933e2412558532d49b20f6eb66f0d7c02c8545c86819e98d65a76",
+          "outputHash": "2a931a504244cfffcc629be0c52be045600e3f2f928aaabdf12ee4df005c4599",
+          "fullMs": 25.01587500000005,
+          "lazyMs": 20.23679200000015,
+          "fullCpuMs": 23.552,
+          "lazyCpuMs": 19.069,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 2.0921954446695423e-10,
+            "torque": 4.54791461685128e-16,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 31,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 31,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 9,
+          "inputHash": "cdeb58fc4ac7947d860c034546cdaf2b2dc04d3482529aba66d24ba5ab527190",
+          "outputHash": "8a38b1ff35f9e6818fea531fd7a62a27e2343c8873cacf67f52fd9c6963c810a",
+          "fullMs": 20.689124999999876,
+          "lazyMs": 23.32091700000001,
+          "fullCpuMs": 18.041,
+          "lazyCpuMs": 16.839,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 2.400798411193464e-8,
+            "torque": 1.5065308237338466e-15,
+            "length": 4.902744876744691e-13,
+            "wall": {
+              "maximumPenetration": 4.996003610813204e-16,
+              "maximumProjectedResidual": 4.9960036108132044e-11,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 34,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 34,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 10,
+          "inputHash": "e16566d2a8a3af847a7f3ea98153f67f087c014e941ce5190a72a05522aeabe2",
+          "outputHash": "ae96c2f63b7aa24870e06712e21832702a8cc53c0a9bdb8ed19094382752bc26",
+          "fullMs": 18.111790999999812,
+          "lazyMs": 13.984332999999879,
+          "fullCpuMs": 12.797,
+          "lazyCpuMs": 13.292,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 1.1586628190138257e-8,
+            "torque": 3.302028660603241e-13,
+            "length": 1.4210854715202004e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 11,
+          "inputHash": "413077e3c8c9c9863346251d10ae2c5f6e9f77492708c0c9f655db9708cc88eb",
+          "outputHash": "2d373e6af341fa199b53b8b7328669ecde27dc396de3b16f6715c6cfbb877274",
+          "fullMs": 48.93795799999998,
+          "lazyMs": 9.30095799999981,
+          "fullCpuMs": 25.344,
+          "lazyCpuMs": 9.458,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 2,
+          "linearSolves": 2,
+          "assemblies": {
+            "full": {
+              "full": 4,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 2,
+              "gradient": 4
+            }
+          },
+          "certificate": {
+            "force": 1.3994725518170173e-8,
+            "torque": 1.3653924777898074e-13,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 38,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 38,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        }
+      ],
+      "full": {
+        "count": 8,
+        "medianMs": 22.852499999999964,
+        "meanMs": 33.68962475000001,
+        "minimumMs": 18.111790999999812,
+        "maximumMs": 72.06791699999985
+      },
+      "lazy": {
+        "count": 8,
+        "medianMs": 21.77885450000008,
+        "meanMs": 20.89427625000002,
+        "minimumMs": 9.30095799999981,
+        "maximumMs": 29.536917000000358
+      },
+      "fullCpu": {
+        "count": 8,
+        "medianMs": 20.7965,
+        "meanMs": 21.796374999999998,
+        "minimumMs": 12.797,
+        "maximumMs": 35.657
+      },
+      "lazyCpu": {
+        "count": 8,
+        "medianMs": 17.267,
+        "meanMs": 17.8035,
+        "minimumMs": 9.458,
+        "maximumMs": 26.666
+      },
+      "speedup": 1.0492976111300931
+    },
+    {
+      "scenario": "analytic-plane",
+      "catheterMm": 160,
+      "nodes": 69,
+      "workspaceCreationMs": {
+        "full": 1.7882500000000618,
+        "lazy": 0.5414169999999103
+      },
+      "cold": {
+        "step": 0,
+        "inputHash": "2e56a20ca8b3b9aace085d3d1e4221c85a7008aaf64a9064a1edb1b8b4a27579",
+        "outputHash": "57b025db1094b273217549d2f74943909fbf28f95e16e2189e16beaaeb3a0b8c",
+        "fullMs": 62.267292,
+        "lazyMs": 44.40124999999989,
+        "fullCpuMs": 26.126,
+        "lazyCpuMs": 22.69,
+        "accepted": true,
+        "status": "accepted",
+        "directions": 4,
+        "linearSolves": 4,
+        "assemblies": {
+          "full": {
+            "full": 6,
+            "gradient": 0
+          },
+          "lazy": {
+            "full": 4,
+            "gradient": 6
+          }
+        },
+        "certificate": {
+          "force": 3.111819369719711e-10,
+          "torque": 6.213816560729264e-15,
+          "length": 2.3092638912203256e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "fullWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "lazyWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        }
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "abcc4ab2c19067066a109f0462bcbefae9e5c9fcc08c191accc42d4d75cf5f15",
+          "outputHash": "6af67d9e0660ee930d52375842cc86591db0a2d9b7ba467c109b0d175860745d",
+          "fullMs": 22.453541000000314,
+          "lazyMs": 38.622249999999894,
+          "fullCpuMs": 22.896,
+          "lazyCpuMs": 29.286,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 5,
+          "linearSolves": 5,
+          "assemblies": {
+            "full": {
+              "full": 9,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 5,
+              "gradient": 9
+            }
+          },
+          "certificate": {
+            "force": 3.447864216354901e-10,
+            "torque": 1.4033219031261979e-13,
+            "length": 2.842170943040401e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 22,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 22,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 5,
+          "inputHash": "f1a9f4999677899b0770e1fc615cf00bfbc2474f13f4042bcbeddafb68022407",
+          "outputHash": "198bb7594a25ed0449cff7be2423f3f4112483b0d2424d036183016460392822",
+          "fullMs": 23.022707999999966,
+          "lazyMs": 21.77658399999973,
+          "fullCpuMs": 18.687,
+          "lazyCpuMs": 17.358,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 3.591390599682047e-10,
+            "torque": 2.4658053376924727e-13,
+            "length": 2.6645352591003757e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 26,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 26,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 6,
+          "inputHash": "ac01781a5a6d027865ca57b40ae6aa8f4f606c129b5e28d118cb3d305b2851d5",
+          "outputHash": "02f89ece433d3832f85244bd1c03600e48435566a57818179e8d04632f02ff77",
+          "fullMs": 17.596208999999817,
+          "lazyMs": 15.238624999999956,
+          "fullCpuMs": 18.694,
+          "lazyCpuMs": 15.619,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 6.616256333241345e-10,
+            "torque": 1.0625604543117098e-12,
+            "length": 4.263256414560601e-14,
+            "wall": {
+              "maximumPenetration": 5.551115123125783e-17,
+              "maximumProjectedResidual": 5.551115123125783e-12,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 30,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 30,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 7,
+          "inputHash": "994d5625d2f9a3208b2447baf597de7bfcbbb84bb1eb02fb927983781cca411f",
+          "outputHash": "5011f6dd1ab8893c54f41759d37216309f5a77a1555aff26f8cf02d7ffbcf8b6",
+          "fullMs": 24.701624999999694,
+          "lazyMs": 31.923416999999972,
+          "fullCpuMs": 18.31,
+          "lazyCpuMs": 21.528,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 5,
+          "linearSolves": 5,
+          "assemblies": {
+            "full": {
+              "full": 7,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 5,
+              "gradient": 7
+            }
+          },
+          "certificate": {
+            "force": 3.7639313887893877e-10,
+            "torque": 2.275957200481571e-13,
+            "length": 4.884981308350689e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 35,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 8,
+          "inputHash": "5a437cb44b3a3b8cbf7e8ce253c6aeb1cc3f5042740ee4a6ff663f3cdfad4608",
+          "outputHash": "ce047f04d2f062594a5cf57904f4741eedda84d616309964bb01b4f0ebebd52d",
+          "fullMs": 18.057374999999865,
+          "lazyMs": 17.786625000000186,
+          "fullCpuMs": 14.05,
+          "lazyCpuMs": 12.893,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 2.8926713279599197e-10,
+            "torque": 2.291500322826323e-13,
+            "length": 4.3520742565306136e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 38,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 38,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 9,
+          "inputHash": "cf20dcdb98d895e3314da7f1837e0c1da6c2ee383175962e5efe5f7e2f595c0c",
+          "outputHash": "a757a7da029c04c4402bb91cd34adcd2b7bdc56da61aaa00bcabd65ee26e1425",
+          "fullMs": 37.51279099999965,
+          "lazyMs": 22.379999999999654,
+          "fullCpuMs": 22.688,
+          "lazyCpuMs": 18.714,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 5,
+          "linearSolves": 5,
+          "assemblies": {
+            "full": {
+              "full": 7,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 5,
+              "gradient": 7
+            }
+          },
+          "certificate": {
+            "force": 3.676349225045783e-10,
+            "torque": 2.948752353404416e-13,
+            "length": 4.796163466380676e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 43,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 43,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 10,
+          "inputHash": "5852ef3ae31935889a39cccedbd94c795bd721c87245f533bf9b6c98f36210dd",
+          "outputHash": "935c83c0d7ae482a4181f0c36ffa4f3a01d9d16f855bbce02db760370cc54a80",
+          "fullMs": 29.314124999999876,
+          "lazyMs": 25.886124999999993,
+          "fullCpuMs": 19.255,
+          "lazyCpuMs": 34.045,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 2.952070783345623e-10,
+            "torque": 1.7053025658242404e-13,
+            "length": 4.884981308350689e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 47,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 47,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 11,
+          "inputHash": "e70d5a2b6598ac44f79ab0764b3a499cf6ff3d41f5fe7b8917c96205f1b3bbc5",
+          "outputHash": "406c7e9f9e6644009ca4d2263d450b6cf4fea277210ddc17bc9001cc538e0afd",
+          "fullMs": 15.98783400000002,
+          "lazyMs": 19.677291000000423,
+          "fullCpuMs": 15.143,
+          "lazyCpuMs": 16.174,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 3,
+          "linearSolves": 3,
+          "assemblies": {
+            "full": {
+              "full": 5,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 3,
+              "gradient": 5
+            }
+          },
+          "certificate": {
+            "force": 4.159340143611882e-10,
+            "torque": 2.4868995751603507e-13,
+            "length": 4.085620730620576e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 50,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 50,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        }
+      ],
+      "full": {
+        "count": 8,
+        "medianMs": 22.73812450000014,
+        "meanMs": 23.5807759999999,
+        "minimumMs": 15.98783400000002,
+        "maximumMs": 37.51279099999965
+      },
+      "lazy": {
+        "count": 8,
+        "medianMs": 22.078291999999692,
+        "meanMs": 24.161364624999976,
+        "minimumMs": 15.238624999999956,
+        "maximumMs": 38.622249999999894
+      },
+      "fullCpu": {
+        "count": 8,
+        "medianMs": 18.6905,
+        "meanMs": 18.715375,
+        "minimumMs": 14.05,
+        "maximumMs": 22.896
+      },
+      "lazyCpu": {
+        "count": 8,
+        "medianMs": 18.036,
+        "meanMs": 20.702125,
+        "minimumMs": 12.893,
+        "maximumMs": 34.045
+      },
+      "speedup": 1.0298860301331487
+    },
+    {
+      "scenario": "analytic-plane",
+      "catheterMm": 310,
+      "nodes": 68,
+      "workspaceCreationMs": {
+        "full": 0.6352920000003905,
+        "lazy": 0.6424589999996897
+      },
+      "cold": {
+        "step": 0,
+        "inputHash": "24d86a5e42c683a9f16afb6a21c33efd31437374380d8b21e80bfdf4dbc2e1ad",
+        "outputHash": "fef46d7f0931769ab1833a2982a569cfc69d1ca4b56e71a39fde9cc758e02f3f",
+        "fullMs": 33.272457999999915,
+        "lazyMs": 17.342375000000175,
+        "fullCpuMs": 25.657,
+        "lazyCpuMs": 15.52,
+        "accepted": true,
+        "status": "accepted",
+        "directions": 4,
+        "linearSolves": 4,
+        "assemblies": {
+          "full": {
+            "full": 6,
+            "gradient": 0
+          },
+          "lazy": {
+            "full": 4,
+            "gradient": 6
+          }
+        },
+        "certificate": {
+          "force": 4.877464611414562e-10,
+          "torque": 4.2144406287452766e-14,
+          "length": 4.618527782440651e-14,
+          "wall": {
+            "maximumPenetration": 0,
+            "maximumProjectedResidual": 0,
+            "maximumComplementarity": 0,
+            "converged": true,
+            "scope": "discrete-wall-KKT-only"
+          }
+        },
+        "fullWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        },
+        "lazyWorkspace": {
+          "chainBuilds": 1,
+          "wallBuilds": 1,
+          "mixedBuilds": 1,
+          "mixedHits": 3,
+          "calls": 1,
+          "retainedMixedSystems": 1,
+          "mixedCacheCapacity": 2
+        }
+      },
+      "samples": [
+        {
+          "step": 4,
+          "inputHash": "e86de1b7835e0ea1ad0ae7f99a16ea8c52f13b51bf9b5bcdb030dc38fafc68db",
+          "outputHash": "5c2a219a75b81dca4ab0756dad5e99297519e764d5c2e0008795032784c143ed",
+          "fullMs": 39.16687499999989,
+          "lazyMs": 17.76245800000015,
+          "fullCpuMs": 30.239,
+          "lazyCpuMs": 16.798,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 5,
+          "linearSolves": 5,
+          "assemblies": {
+            "full": {
+              "full": 7,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 5,
+              "gradient": 7
+            }
+          },
+          "certificate": {
+            "force": 9.023267807418026e-10,
+            "torque": 7.416289804496046e-14,
+            "length": 4.75175454539567e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 20,
+            "calls": 5,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 5,
+          "inputHash": "1503355195f3462105fef328b8ff02402616be98af69b7dde8e8e5387e017c55",
+          "outputHash": "634397517d06919eabe49f22640a69c3d203101e3c61a5db3458749a6556590f",
+          "fullMs": 21.685833999999886,
+          "lazyMs": 19.300333999999566,
+          "fullCpuMs": 18.605,
+          "lazyCpuMs": 16.672,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 7.047448005201909e-10,
+            "torque": 1.1168843627729075e-13,
+            "length": 3.552713678800501e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 24,
+            "calls": 6,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 6,
+          "inputHash": "b1525733682eedfb85d156ba86fc48476420f8da5659ba580a3903040a58d7c8",
+          "outputHash": "2a0386d1841850911e6313e875cc91a6845279b4c273edb5e6049f849bf10440",
+          "fullMs": 26.98479100000077,
+          "lazyMs": 16.914708000000246,
+          "fullCpuMs": 22.867,
+          "lazyCpuMs": 16.593,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 7.041996226418675e-10,
+            "torque": 8.926193117986259e-14,
+            "length": 4.973799150320701e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 28,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 28,
+            "calls": 7,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 7,
+          "inputHash": "55106f7e5740118365fcead70e5f9a67a7813081fc3c1986d912c127dd049077",
+          "outputHash": "aff6117afb6afdbf9c72cea87de3c0d2309067d896d3d0a40358855ee07619bc",
+          "fullMs": 29.01641700000073,
+          "lazyMs": 22.950582999999824,
+          "fullCpuMs": 21.474,
+          "lazyCpuMs": 20.678,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 4.599046968980791e-10,
+            "torque": 8.171241461241152e-14,
+            "length": 5.1958437552457326e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 32,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 32,
+            "calls": 8,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 8,
+          "inputHash": "b1ad65d225ab616e5d7f08e586523a1f021d6aa2dca236b0dda047adcefa7de2",
+          "outputHash": "3a334e4375358c48df0a857432c3efe69bb82ceeda5334b8e5da9f38977176a1",
+          "fullMs": 26.480290999999852,
+          "lazyMs": 23.6436249999997,
+          "fullCpuMs": 18.921,
+          "lazyCpuMs": 22.394,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 7.719408926165567e-10,
+            "torque": 2.382538610845586e-13,
+            "length": 3.108624468950438e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 36,
+            "calls": 9,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 9,
+          "inputHash": "6041b4fabd1c65cc2f7ac9a9c9583e273eec9bcfbe4b05c44b81b14d41c6f087",
+          "outputHash": "1711afe2b28d1a5f4326fdc71af4dc120bd2ea7dde9273a6f85de7680ba980d9",
+          "fullMs": 22.357458000000406,
+          "lazyMs": 16.34254200000032,
+          "fullCpuMs": 18.369,
+          "lazyCpuMs": 15.159,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 8.336256855132411e-10,
+            "torque": 1.0369483049998962e-13,
+            "length": 2.7533531010703882e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 40,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 40,
+            "calls": 10,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 10,
+          "inputHash": "48ccd9eb23c6d4752514b193001b188ea08e032d0a76b6412b8e068cd2678668",
+          "outputHash": "0f51996bc87d51bcbadc1f42d5ca20323ce5e3c9028876c4683a6d67068ad91c",
+          "fullMs": 26.533040999999685,
+          "lazyMs": 27.400542000000314,
+          "fullCpuMs": 20.976,
+          "lazyCpuMs": 19.696,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 6.47610461430619e-10,
+            "torque": 1.2756462552943049e-13,
+            "length": 3.4638958368304884e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 44,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 44,
+            "calls": 11,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        },
+        {
+          "step": 11,
+          "inputHash": "6537cd4ba7cba99c7362266a2df71c9da3611abb58d246465d2319fb6aad909d",
+          "outputHash": "f1fda44568e3e534c8fd04b1c5aa351ee7c84be9756cbd38393ca5f453e8dfa1",
+          "fullMs": 18.955167000000074,
+          "lazyMs": 19.972625000000335,
+          "fullCpuMs": 17.035,
+          "lazyCpuMs": 20.322,
+          "accepted": true,
+          "status": "accepted",
+          "directions": 4,
+          "linearSolves": 4,
+          "assemblies": {
+            "full": {
+              "full": 6,
+              "gradient": 0
+            },
+            "lazy": {
+              "full": 4,
+              "gradient": 6
+            }
+          },
+          "certificate": {
+            "force": 8.622390006941567e-10,
+            "torque": 3.3173463975799677e-13,
+            "length": 3.375077994860476e-14,
+            "wall": {
+              "maximumPenetration": 0,
+              "maximumProjectedResidual": 0,
+              "maximumComplementarity": 0,
+              "converged": true,
+              "scope": "discrete-wall-KKT-only"
+            }
+          },
+          "fullWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 48,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          },
+          "lazyWorkspace": {
+            "chainBuilds": 1,
+            "wallBuilds": 1,
+            "mixedBuilds": 1,
+            "mixedHits": 48,
+            "calls": 12,
+            "retainedMixedSystems": 1,
+            "mixedCacheCapacity": 2
+          }
+        }
+      ],
+      "full": {
+        "count": 8,
+        "medianMs": 26.50666599999977,
+        "meanMs": 26.39748425000016,
+        "minimumMs": 18.955167000000074,
+        "maximumMs": 39.16687499999989
+      },
+      "lazy": {
+        "count": 8,
+        "medianMs": 19.63647949999995,
+        "meanMs": 20.535927125000057,
+        "minimumMs": 16.34254200000032,
+        "maximumMs": 27.400542000000314
+      },
+      "fullCpu": {
+        "count": 8,
+        "medianMs": 19.9485,
+        "meanMs": 21.06075,
+        "minimumMs": 17.035,
+        "maximumMs": 30.239
+      },
+      "lazyCpu": {
+        "count": 8,
+        "medianMs": 18.247,
+        "meanMs": 18.538999999999998,
+        "minimumMs": 15.159,
+        "maximumMs": 22.394
+      },
+      "speedup": 1.3498685444098997
+    }
+  ],
+  "sourceAfter": {
+    "scripts/physics/benchmark-composite-timestep-gradient.mjs": "66e7a108cd394f1b67e8c1bcf42c61d7bdb2c16a251cfc0ef5c1c48a6f6cd150",
+    "scripts/physics/helpers/compositeTimeStepBenchmark.js": "0b936ae870fd07343b309876f0e907f91c0b838a3b7a6e9c8814f1f9d1198c2d",
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeTimeStep.js": "1ee7001a9d70fe101a46ca22755e2e96f573f8c396aa1fc112321daa941ca9a0",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeWallContacts.js": "022405d91f8df8590b71ab83a51959b6c386c198f833ba66cc55b8aa68af729c",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "fb50012fd5a73b3cd5250e8f5b2269d0c250755037cf1a309a6ab6f643f1b930",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "e5f4bdc38aee069f5e20a5c3a02dcc0e5e31174924b9d0dddc780bdb98048efd",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "4567e61ffe06c0d90598da02e535e715d833ded9d5946276369e6fd749e0fbec"
+  },
+  "allPairsEquivalent": true,
+  "allStepsAccepted": true
+}

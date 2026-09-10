@@ -1,0 +1,58 @@
+{
+  "previousAnchor": [
+    {
+      "before": 3.1315926535897933,
+      "gamma": 3.1515926535897933,
+      "energy": 2.465190328815662e-31,
+      "returned": 3.151592653589793
+    },
+    {
+      "before": 15.697963267948966,
+      "gamma": 15.717963267948965,
+      "energy": 3.944304526105059e-30,
+      "returned": 15.717963267948964
+    },
+    {
+      "before": -3.1315926535897933,
+      "gamma": -3.1515926535897933,
+      "energy": 2.465190328815662e-31,
+      "returned": -3.151592653589793
+    },
+    {
+      "before": -15.697963267948966,
+      "gamma": -15.717963267948965,
+      "energy": 3.944304526105059e-30,
+      "returned": -15.717963267948964
+    }
+  ],
+  "denseComparison": [
+    {
+      "nodes": 3,
+      "dofs": 12,
+      "band": 12,
+      "incrementError": 4.163336342344337e-17,
+      "reactionError": 4.163336342344337e-17,
+      "maximumResidual": 2.222614453595284e-16
+    },
+    {
+      "nodes": 7,
+      "dofs": 30,
+      "band": 13,
+      "incrementError": 8.049116928532385e-16,
+      "reactionError": 1.6792123247455493e-15,
+      "maximumResidual": 2.546574062733953e-15
+    },
+    {
+      "nodes": 25,
+      "dofs": 111,
+      "band": 13,
+      "incrementError": 7.216449660063518e-16,
+      "reactionError": 1.887379141862766e-15,
+      "maximumResidual": 1.7832957333041577e-15
+    }
+  ],
+  "coordinateRescaling": {
+    "energyError": 1.1102230246251565e-16,
+    "gradientError": 2.220446049250313e-16
+  }
+}

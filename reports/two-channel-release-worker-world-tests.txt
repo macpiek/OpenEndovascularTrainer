@@ -1,0 +1,13 @@
+✔ joint World repairs initial wall overlap at requested 0.001 mm accuracy without changing physical motion (99.954041ms)
+✔ joint World repairs initial wall overlap at requested 0.000002 mm accuracy without changing physical motion (12.695625ms)
+✔ joint World retains independent axial sliding with positive friction but no physical normal budget (35.738125ms)
+✔ joint World normal and friction impulses balance the momentum of both tools after one force prediction (27.813292ms)
+✔ rejected joint World trial restores physical pose, geometry, velocity and pending input before retry (59.697166ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 427.400458

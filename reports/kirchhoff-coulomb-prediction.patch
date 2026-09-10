@@ -1,0 +1,419 @@
+diff --git a/src/physics/kirchhoffCoulombNewtonSolver.js b/src/physics/kirchhoffCoulombNewtonSolver.js
+--- a/src/physics/kirchhoffCoulombNewtonSolver.js
++++ b/src/physics/kirchhoffCoulombNewtonSolver.js
+@@ -1,6 +1,48 @@
+ import { projectCoupledEllipse } from './kirchhoffCoupledFrictionSolver.js';
+ import { measureCoupledLoadKKT, solveCoupledLoadQP } from './kirchhoffCoupledLoadSolver.js';
+ import { createCoulombBandLayout, createCoulombBandLU } from './kirchhoffCoulombBandLU.js';
++
++/** One optional NUMERICAL prediction attempt before the caller's unchanged
++ * seeded path. The caller supplies an owned increment, an independent
++ * reconstructed-response certificate, and the exact existing fallback.
++ * This wrapper publishes no history and writes no mechanical state. Full
++ * original load KKT remains mandatory inside Newton. A failed attempt never
++ * supplies iterates or working-set hints to the fallback.
++ */
++export function solveCoulombWithPrediction(matrix, rhs, lower, upper, count, band, groups, options, fallback) {
++    if (typeof fallback !== 'function') throw new TypeError('The unchanged seeded fallback is required');
++    const prediction = options.prediction;
++    const limit = options.maxPredictionNewtonIterations ?? 4;
++    if (!Number.isInteger(limit) || limit < 0 || limit > 4) throw new RangeError('Prediction Newton budget must be between 0 and 4');
++    let attempt, accepted = false, reason = prediction?.diagnostics?.reason ?? 'no-prediction';
++    if (prediction?.eligible) {
++        if (prediction.increment?.length !== count || !prediction.increment.every(Number.isFinite)) reason = 'invalid-prediction-increment';
++        else if (typeof options.certifyPrediction !== 'function') reason = 'missing-reconstruction-certificate';
++        else {
++            attempt = solveCoulombNewton(matrix, rhs, lower, upper, count, band, groups, { ...options,
++                initialIncrement: prediction.increment, coulombLinearSolver: 'band-lu',
++                normalMap: options.predictionNormalMap ?? 'projection', maxCoulombNewtonIterations: limit });
++            accepted = attempt.diagnostics.converged && options.certifyPrediction(attempt) === true;
++            reason = accepted ? 'converged' : attempt.diagnostics.converged ? 'prediction-reconstruction-residual' : attempt.diagnostics.status;
++        }
++    }
++    const result = accepted ? attempt : fallback();
++    // Diagnostic aggregation preserves the root's all-attempt LU accounting.
++    // Copy the final diagnostic object so a callback's stored result remains
++    // a valid snapshot of its own solve, rather than acquiring hidden costs.
++    const diagnostics = { ...result.diagnostics };
++    if (attempt && !accepted) {
++        for (const key of ['factorizations', 'iterations', 'backtracks', 'gradientFallbacks', 'boundRecoveries', 'rowSwaps', 'linearResidualFailures'])
++            if (key in diagnostics || key in attempt.diagnostics) diagnostics[key] = (diagnostics[key] ?? 0) + (attempt.diagnostics[key] ?? 0);
++        for (const key of ['maximumLinearBackwardError', 'maximumPivotGrowth'])
++            if (key in diagnostics || key in attempt.diagnostics) diagnostics[key] = Math.max(diagnostics[key] ?? 0, attempt.diagnostics[key] ?? 0);
++    }
++    diagnostics.prediction = { attempted: Boolean(attempt), accepted, reason, budget: limit,
++        mappedRows: prediction?.diagnostics?.mappedRows ?? 0, factorizations: attempt?.diagnostics.factorizations ?? 0,
++        iterations: attempt?.diagnostics.iterations ?? 0, backtracks: attempt?.diagnostics.backtracks ?? 0,
++        maximumResidual: attempt?.diagnostics.maximumResidual ?? null };
++    return { ...result, diagnostics };
++}
+ 
+ /** One fixed-load QP supplies a mechanically informed starting point, then
+  * the joint Newton equations close normal load and friction simultaneously.
+diff --git a/src/physics/kirchhoffCoulombPrediction.js b/src/physics/kirchhoffCoulombPrediction.js
+new file mode 100644
+--- /dev/null
++++ b/src/physics/kirchhoffCoulombPrediction.js
+@@ -0,0 +1,159 @@
++const MATERIAL_FIELDS = ['bendTwistLambda1', 'bendTwistLambda2', 'bendTwistLambda3',
++    'adaptationLambdaX', 'adaptationLambdaY', 'adaptationLambdaZ'];
++const LAW_FILES = ['src/physics/endovascularPhysicsWorld.js', 'src/physics/kirchhoffSurfaceFriction.js'];
++const finite = value => typeof value === 'number' && Number.isFinite(value);
++const keyOf = parts => JSON.stringify(parts);
++
++/** Versions describe the residual law and this numerical history format.
++ * Context is an explicit run/constraint namespace: run-local object IDs from
++ * unrelated captures must never match just because their numbers coincide.
++ */
++export function coulombPredictionContract(system, contextId, historyVersion = 'accepted-total-strict-material-v1') {
++    const hashes = new Map(system.source ?? []);
++    const residualLawVersion = system.residualLawVersion ??
++        (LAW_FILES.every(file => hashes.has(file)) ? LAW_FILES.map(file => `${file}:${hashes.get(file)}`).join('|') : null);
++    return { contextId, historyVersion, residualLawVersion, dt: system.dt };
++}
++
++function validContract(contract) {
++    return ['contextId', 'historyVersion', 'residualLawVersion'].every(key =>
++        typeof contract?.[key] === 'string' && contract[key].length > 0) && finite(contract.dt) && contract.dt > 0;
++}
++
++function contractMatchesSystem(system, contract) {
++    const current = coulombPredictionContract(system, contract.contextId, contract.historyVersion);
++    return current.dt === contract.dt && current.residualLawVersion === contract.residualLawVersion;
++}
++
++function contactKey(contact, bodyIds) {
++    // Exact material labels, feature and quadrature sample are required.
++    // The outer cell is deliberately retained in this first conservative
++    // mapping: a cell migration is a miss, never an inferred force transfer.
++    if (!contact || contact.objectId == null || !contact.id || !contact.kind || !contact.feature ||
++        contact.innerMaterialSegmentId == null || contact.outerMaterialSegmentId == null || !finite(contact.innerT)) return null;
++    return keyOf(['contact', bodyIds, contact.objectId, contact.id, contact.kind, contact.feature,
++        contact.innerMaterialSegmentId, contact.outerMaterialSegmentId, contact.innerT, contact.generation ?? null]);
++}
++
++function materialDescription(system, row) {
++    const body = system.bodies?.[row.side], start = body?.materialRowStart;
++    if (body?.objectId == null || !Number.isInteger(start) || !Number.isInteger(row.local)) return null;
++    const segment = start + Math.floor(row.local / 6), component = row.local % 6;
++    const coordinates = body.materialCoordinate;
++    const samples = component < 3 && segment > start ? [segment - 1, segment, segment + 1] : [segment, segment + 1];
++    if (!samples.every(index => finite(coordinates?.[index]))) return null;
++    return { key: keyOf(['material', body.objectId, component, component < 3 && segment === start ? 'boundary' : 'interior',
++        samples.map(index => coordinates[index])]), bodyId: body.objectId, segment, component };
++}
++
++/** Read-only descriptors in ORIGINAL sorted row coordinates. The input uses
++ * the owned frozen-system metadata contract; no world or assembly dependency
++ * is imported. Live callers can supply the same metadata after assembly.
++ */
++export function describeCoulombPrediction(system) {
++    const bodyIds = (system.bodies ?? []).map(body => body.objectId);
++    const rows = system.rows.map(row => {
++        const family = row.kind === 'material' ? 'material' : row.kind === 'normal' ? 'normal' : row.sourceKind ?? 'additional';
++        const material = family === 'material' ? materialDescription(system, row) : null;
++        return { family, lambda: row.lambda, key: material?.key ?? (family === 'normal' ? contactKey(row.identity, bodyIds) : null),
++            material, reason: family === 'material' || family === 'normal' ? 'missing-identity' : 'accepted-value-unavailable' };
++    });
++    const metadata = new Map((system.frictionMetadata ?? []).map(group => [keyOf(group.additionalRows), group]));
++    const groups = [];
++    for (const group of system.groups ?? []) {
++        const localRows = Array.from(group.rows, index => system.rows[index]?.local);
++        const source = metadata.get(keyOf(localRows));
++        const key = source?.scope === 'lumen' ? contactKey(source.contact, bodyIds) : null;
++        const axes = source?.axes, validAxes = axes?.length === 2 && axes.every(axis => axis?.length === 3 && axis.every(finite));
++        const validSide = source?.forceSide === 0 || source?.forceSide === 1;
++        const descriptor = { key: validAxes && validSide ? key : null, rows: Array.from(group.rows),
++            axes: validAxes ? axes.map(axis => Array.from(axis)) : null, forceSide: source?.forceSide,
++            source, normalRow: group.normalRow };
++        groups.push(descriptor);
++        for (const index of group.rows) rows[index] = { ...rows[index], family: source?.scope === 'external' ? 'external-friction' : 'friction',
++            key: descriptor.key, reason: source?.scope === 'external' ? 'external-identity-unavailable' : 'missing-identity' };
++    }
++    return { rows, groups, bodyIds };
++}
++
++/** Publish ONLY an explicitly accepted trial. Actual post-remap/cone-repair
++ * multipliers are read from trial.mechanics, never fabricated from an
++ * unscaled linear target. Owned scalar/vector snapshots survive later edits
++ * to source metadata. The caller owns acceptance/rollback timing.
++ */
++export function createAcceptedCoulombHistory(system, trial, outcome, contract) {
++    if (!validContract(contract) || !contractMatchesSystem(system, contract))
++        throw new TypeError('Explicit prediction context and current law/history versions and dt are required');
++    if (!outcome?.accepted || outcome.solveId !== system.solveId || trial?.solveId !== system.solveId ||
++        trial.trial !== outcome.trial || trial.scale !== outcome.scale || !finite(outcome.scale) || outcome.scale < 0 || outcome.scale > 1)
++        throw new Error('Prediction history requires a matching accepted trial and actual scale');
++    const described = describeCoulombPrediction(system), scalars = new Map(), forces = new Map();
++    const duplicate = new Set(), put = (map, key, value) => {
++        if (!key || duplicate.has(key)) return;
++        if (map.has(key)) { map.delete(key); duplicate.add(key); return; }
++        map.set(key, value);
++    };
++    const material = new Map((trial.mechanics?.material ?? []).map(body => [body.bodyId, body]));
++    for (const row of described.rows) if (row.material) {
++        const identity = row.material, value = material.get(identity.bodyId)?.[MATERIAL_FIELDS[identity.component]]?.[identity.segment];
++        if (finite(value)) put(scalars, identity.key, value);
++    }
++    for (const contact of trial.mechanics?.contacts ?? []) {
++        const key = contactKey(contact, described.bodyIds);
++        if (finite(contact.normalLambda)) put(scalars, key, contact.normalLambda);
++        const u = contact.tangentU, v = contact.tangentV, lambda = contact.tangentLambda;
++        if (u?.length === 3 && v?.length === 3 && lambda?.length === 2 && [...u, ...v, ...lambda].every(finite))
++            put(forces, key, Float64Array.from(u, (component, i) => component * lambda[0] + v[i] * lambda[1]));
++    }
++    for (const key of duplicate) { scalars.delete(key); forces.delete(key); }
++    // No extrapolation or data imputation for boundary/fold/external rows.
++    return { contract: { ...contract }, solveId: system.solveId, physicalStep: trial.physicalStep,
++        acceptedScale: outcome.scale, scalars, forces, duplicateKeys: duplicate.size };
++}
++
++/** Predict a NUMERICAL increment without writing any mechanical state. Exact
++ * misses stay at zero increment; no force is clipped, transferred, or dropped
++ * from the current solve. Every row/cone remains in the subsequent KKT check.
++ */
++export function predictCoulombIncrement(system, history, contract) {
++    const increment = new Float64Array(system.count), described = describeCoulombPrediction(system);
++    const diagnostics = { mappedRows: 0, rowCount: system.count, families: {}, reason: null };
++    let compatible = validContract(contract) && history && validContract(history.contract);
++    if (!compatible) diagnostics.reason = history ? 'invalid-contract' : 'no-history';
++    else if (['contextId', 'historyVersion', 'residualLawVersion', 'dt'].some(key => history.contract[key] !== contract[key])) {
++        compatible = false; diagnostics.reason = 'contract-mismatch';
++    } else if (!contractMatchesSystem(system, contract)) {
++        compatible = false; diagnostics.reason = 'current-system-contract-mismatch';
++    } else if (!(history.solveId < system.solveId) || !(history.physicalStep <= system.state.executedSteps)) {
++        compatible = false; diagnostics.reason = 'history-not-earlier';
++    }
++    const mapped = new Uint8Array(system.count), reasons = [];
++    if (compatible) {
++        const keys = new Map();
++        for (const row of described.rows) if (row.family !== 'friction' && row.key) keys.set(row.key, (keys.get(row.key) ?? 0) + 1);
++        described.rows.forEach((row, i) => {
++            if (row.family === 'friction' || row.family === 'external-friction') return;
++            if (row.key && keys.get(row.key) === 1 && history.scalars.has(row.key) && finite(row.lambda)) {
++                increment[i] = history.scalars.get(row.key) - row.lambda; mapped[i] = 1;
++            } else reasons[i] = row.key ? 'no-exact-history' : row.reason;
++        });
++        const groupKeys = new Map();
++        for (const group of described.groups) if (group.key) groupKeys.set(group.key, (groupKeys.get(group.key) ?? 0) + 1);
++        for (const group of described.groups) {
++            const force = group.key && groupKeys.get(group.key) === 1 ? history.forces.get(group.key) : null;
++            if (force && group.forceSide === 0 && group.rows.every(i => finite(described.rows[i].lambda))) {
++                group.rows.forEach((row, axis) => {
++                    const direction = group.axes[axis];
++                    increment[row] = direction[0] * force[0] + direction[1] * force[1] + direction[2] * force[2] - described.rows[row].lambda;
++                    mapped[row] = 1;
++                });
++            } else for (const row of group.rows) reasons[row] = group.key ? 'no-exact-history' : described.rows[row].reason;
++        }
++    }
++    described.rows.forEach((row, i) => {
++        const family = diagnostics.families[row.family] ??= { rows: 0, mapped: 0, misses: {} };
++        family.rows++; family.mapped += mapped[i]; diagnostics.mappedRows += mapped[i];
++        if (!mapped[i]) { const reason = diagnostics.reason ?? reasons[i] ?? 'no-exact-history'; family.misses[reason] = (family.misses[reason] ?? 0) + 1; }
++    });
++    return { increment, eligible: diagnostics.mappedRows > 0, contract: { ...contract }, diagnostics };
++}
+diff --git a/tests/kirchhoffCoulombPrediction.test.js b/tests/kirchhoffCoulombPrediction.test.js
+new file mode 100644
+--- /dev/null
++++ b/tests/kirchhoffCoulombPrediction.test.js
+@@ -0,0 +1,128 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { coulombPredictionContract, createAcceptedCoulombHistory, predictCoulombIncrement } from '../src/physics/kirchhoffCoulombPrediction.js';
++import { solveCoulombWithPrediction, solveSeededCoulombNewton } from '../src/physics/kirchhoffCoulombNewtonSolver.js';
++
++function fixture() {
++    const contact = { objectId: 10, id: 'contact', kind: 'side', feature: 'lumen',
++        innerMaterialSegmentId: 0, outerMaterialSegmentId: 0, innerT: .5,
++        normalLambda: 3, tangentLambda: [2, 1], tangentU: [0, 1, 0], tangentV: [-1, 0, 0] };
++    const system = { solveId: 1, state: { executedSteps: 10 }, dt: 1 / 120, count: 5, residualLawVersion: 'law-1',
++        bodies: [1, 2].map(objectId => ({ objectId, materialRowStart: 0, materialCoordinate: [0, 1, 2] })),
++        rows: [{ kind: 'material', side: 0, local: 9, lambda: 2 }, { kind: 'normal', identity: contact, lambda: 1 },
++            { kind: 'additional', local: 0, lambda: .25 }, { kind: 'additional', local: 1, lambda: .5 },
++            { kind: 'additional', sourceKind: 'wall', local: 2, lambda: 8 }],
++        groups: [{ rows: [2, 3], normalRow: 1 }], frictionMetadata: [{ scope: 'lumen', additionalRows: [0, 1],
++            contact, axes: [[0, 1, 0], [-1, 0, 0]], forceSide: 0 }] };
++    const trial = { solveId: 1, physicalStep: 10, trial: 2, scale: .5, provisional: true,
++        mechanics: { contacts: [contact], material: [{ bodyId: 1, adaptationLambdaX: [0, 7, 0] }] } };
++    return { system, trial, outcome: { solveId: 1, accepted: true, trial: 2, scale: .5 },
++        contract: coulombPredictionContract(system, 'run-1') };
++}
++
++test('accepted actual totals and world Ft are converted to current increments without mutating sources', () => {
++    const { system, trial, outcome, contract } = fixture();
++    system.increment = [100, 100, 100, 100, 100]; // Unscaled linear target is deliberately unrelated.
++    const before = structuredClone({ system, trial, outcome });
++    const history = createAcceptedCoulombHistory(system, trial, outcome, contract);
++    assert.deepEqual({ system, trial, outcome }, before);
++    const current = structuredClone(system); current.solveId = 2; current.rows[0].lambda = 4;
++    const prediction = predictCoulombIncrement(current, history, contract);
++    assert.deepEqual(prediction.increment, Float64Array.of(3, 2, 1.75, .5, 0));
++    assert.equal(prediction.diagnostics.mappedRows, 4);
++    assert.equal(prediction.diagnostics.families.wall.misses['accepted-value-unavailable'], 1);
++    trial.mechanics.contacts[0].tangentLambda.fill(999); trial.mechanics.material[0].adaptationLambdaX.fill(999);
++    assert.deepEqual(predictCoulombIncrement(current, history, contract).increment, prediction.increment, 'owned accepted snapshot');
++});
++
++for (const field of ['residualLawVersion', 'historyVersion', 'contextId', 'dt']) test(`changed ${field} invalidates numerical history`, () => {
++    const f = fixture(), history = createAcceptedCoulombHistory(f.system, f.trial, f.outcome, f.contract);
++    f.system.solveId = 2;
++    const changed = { ...f.contract, [field]: field === 'dt' ? 1 / 60 : 'different' };
++    const prediction = predictCoulombIncrement(f.system, history, changed);
++    assert.equal(prediction.eligible, false); assert.equal(prediction.diagnostics.reason, 'contract-mismatch');
++    assert.ok(prediction.increment.every(value => value === 0));
++});
++
++test('rejected, unmatched and future trials cannot supply accepted history', () => {
++    const f = fixture();
++    for (const outcome of [{ ...f.outcome, accepted: false }, { ...f.outcome, solveId: 2 }, { ...f.outcome, trial: 1 }, { ...f.outcome, scale: .25 }])
++        assert.throws(() => createAcceptedCoulombHistory(f.system, f.trial, outcome, f.contract), /matching accepted trial/);
++    const history = createAcceptedCoulombHistory(f.system, f.trial, f.outcome, f.contract);
++    assert.equal(predictCoulombIncrement(f.system, history, f.contract).diagnostics.reason, 'history-not-earlier');
++});
++
++test('a stale supplied contract cannot conceal a changed law on the current system', () => {
++    const f = fixture(), history = createAcceptedCoulombHistory(f.system, f.trial, f.outcome, f.contract);
++    f.system.solveId = 2; f.system.residualLawVersion = 'split-physical-motion-v2';
++    const prediction = predictCoulombIncrement(f.system, history, f.contract);
++    assert.equal(prediction.eligible, false); assert.equal(prediction.diagnostics.reason, 'current-system-contract-mismatch');
++    assert.throws(() => createAcceptedCoulombHistory(f.system, f.trial, f.outcome, f.contract), /current law/);
++});
++
++test('material/feature relabelling in reused contact objects is a miss, with no interpolation or force cutoff', () => {
++    const f = fixture(); f.trial.mechanics.material[0].adaptationLambdaX[1] = 1e-30;
++    const history = createAcceptedCoulombHistory(f.system, f.trial, f.outcome, f.contract);
++    f.system.solveId = 2; f.system.rows[0].lambda = 0;
++    assert.equal(predictCoulombIncrement(f.system, history, f.contract).increment[0], 1e-30);
++    f.system.frictionMetadata[0].contact.outerMaterialSegmentId = 1; // Same pooled object and ID, different owner label.
++    const changed = predictCoulombIncrement(f.system, history, f.contract);
++    assert.equal(changed.diagnostics.mappedRows, 1); assert.deepEqual(Array.from(changed.increment).slice(1), [0, 0, 0, 0]);
++    f.system.bodies[0].materialCoordinate[1] = 1.01;
++    assert.equal(predictCoulombIncrement(f.system, history, f.contract).eligible, false);
++});
++
++test('duplicate accepted contact keys are rejected for both Fn and Ft', () => {
++    const f = fixture(); f.trial.mechanics.contacts.push(structuredClone(f.trial.mechanics.contacts[0]));
++    const history = createAcceptedCoulombHistory(f.system, f.trial, f.outcome, f.contract); f.system.solveId = 2;
++    assert.equal(history.duplicateKeys, 1);
++    assert.equal(predictCoulombIncrement(f.system, history, f.contract).diagnostics.mappedRows, 1);
++});
++
++function solveFixture(prediction, extra = {}, certify = () => true) {
++    const args = [Float64Array.of(2), Float64Array.of(1), Float64Array.of(-Infinity), Float64Array.of(Infinity), 1, 1, []];
++    const baseOptions = { tolerance: 1e-12, initialFree: Uint8Array.of(1) };
++    const options = { ...baseOptions, prediction, certifyPrediction: certify, ...extra };
++    let calls = 0, fallbackResult;
++    const result = solveCoulombWithPrediction(...args, options, () => { calls++;
++        return fallbackResult = solveSeededCoulombNewton(...args, baseOptions); });
++    return { result, calls, fallbackResult, args };
++}
++
++test('a certified numerical start avoids the seed and requires the independent reconstruction gate', () => {
++    const prediction = { eligible: true, increment: Float64Array.of(.5), diagnostics: { mappedRows: 1 } };
++    let gates = 0;
++    const { result, calls } = solveFixture(prediction, {}, () => { gates++; return true; });
++    assert.ok(result.diagnostics.converged); assert.equal(calls, 0); assert.equal(gates, 1);
++    assert.equal(result.diagnostics.factorizations, 0); assert.equal(result.diagnostics.prediction.accepted, true);
++    const refused = solveFixture(prediction, {}, () => false);
++    assert.equal(refused.calls, 1); assert.equal(refused.result.diagnostics.prediction.reason, 'prediction-reconstruction-residual');
++});
++
++test('failed prediction has one bounded attempt and leaves exact seeded fallback/hints intact, including rejected costs', () => {
++    const prediction = { eligible: true, increment: Float64Array.of(100), diagnostics: { mappedRows: 1 } };
++    const before = prediction.increment.slice();
++    const { result, fallbackResult, calls } = solveFixture(prediction, { maxPredictionNewtonIterations: 1 });
++    assert.equal(calls, 1); assert.ok(result.diagnostics.converged);
++    assert.deepEqual(result.increment, fallbackResult.increment); assert.deepEqual(prediction.increment, before);
++    assert.equal(result.diagnostics.prediction.factorizations, 1);
++    assert.equal(result.diagnostics.factorizations, fallbackResult.diagnostics.factorizations + 1);
++    assert.equal(fallbackResult.diagnostics.prediction, undefined, 'fallback diagnostics remain an owned snapshot');
++    assert.ok(result.diagnostics.maximumLinearBackwardError >= 0);
++});
++
++test('four-factor cap has no hidden map/cold retries, and unusable guesses skip straight to fallback', () => {
++    const args = [Float64Array.of(0), Float64Array.of(1), Float64Array.of(-Infinity), Float64Array.of(Infinity), 1, 1, []];
++    let calls = 0;
++    const result = solveCoulombWithPrediction(...args, { tolerance: 1e-10,
++        prediction: { eligible: true, increment: Float64Array.of(0) }, certifyPrediction: () => true },
++    () => { calls++; return { diagnostics: { converged: false, factorizations: 2, rowSwaps: 7, linearResidualFailures: 3, maximumPivotGrowth: 4 } }; });
++    assert.equal(calls, 1); assert.equal(result.diagnostics.prediction.factorizations, 4);
++    assert.equal(result.diagnostics.factorizations, 6); assert.equal(result.diagnostics.rowSwaps, 7);
++    assert.equal(result.diagnostics.linearResidualFailures, 3); assert.equal(result.diagnostics.maximumPivotGrowth, 4);
++    for (const increment of [Float64Array.of(NaN), new Float64Array(2)]) {
++        const out = solveFixture({ eligible: true, increment });
++        assert.equal(out.calls, 1); assert.equal(out.result.diagnostics.prediction.attempted, false);
++    }
++    assert.throws(() => solveFixture({ eligible: false }, { maxPredictionNewtonIterations: 5 }), /between 0 and 4/);
++});
+diff --git a/tests/kirchhoffCoulombPredictionSequence.test.js b/tests/kirchhoffCoulombPredictionSequence.test.js
+new file mode 100644
+--- /dev/null
++++ b/tests/kirchhoffCoulombPredictionSequence.test.js
+@@ -0,0 +1,65 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import fs from 'node:fs';
++import { gunzipSync } from 'node:zlib';
++import { createHash } from 'node:crypto';
++import { coulombPredictionContract, createAcceptedCoulombHistory, predictCoulombIncrement } from '../src/physics/kirchhoffCoulombPrediction.js';
++import { solveCoulombWithPrediction } from '../src/physics/kirchhoffCoulombNewtonSolver.js';
++import { solveActiveCondensedCoupledQP } from '../src/physics/kirchhoffActiveCondensedSolver.js';
++import { measureCoupledLoadKKT } from '../src/physics/kirchhoffCoupledLoadSolver.js';
++
++const fixture = JSON.parse(gunzipSync(fs.readFileSync(new URL('./fixtures/kirchhoff-coulomb-prediction-pairs.json.gz', import.meta.url))),
++    (_, value) => value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value);
++const hash = input => createHash('sha256').update(JSON.stringify(input)).digest('hex');
++
++function certify(p, x, lower, upper, reconstructed) {
++    const residual = Float64Array.from(p.rhs);
++    if (reconstructed) {
++        for (let i = 0; i < p.count; i++) residual[i] -= p.rows[i].alpha * x[i];
++        for (let side = 0; side < p.columns.length; side++) for (let dof = 0; dof < p.columns[side].length; dof++) {
++            const column = p.columns[side][dof]; let response = 0;
++            for (let k = 0; k < column.length; k += 2) response += column[k + 1] * x[column[k]];
++            const correction = p.weights[side][dof] * response;
++            for (let k = 0; k < column.length; k += 2) residual[column[k]] -= column[k + 1] * correction;
++        }
++    } else for (let i = 0; i < p.count; i++) for (let j = Math.max(0, i - p.band + 1); j <= i; j++) {
++        const a = p.matrix[i * p.band + i - j]; residual[i] -= a * x[j]; if (i !== j) residual[j] -= a * x[i];
++    }
++    const groups = p.groups.map(g => ({ ...g, radii: g.mu.map(mu => mu * Math.max(0, g.normalLambda + x[g.normalRow])) }));
++    const kkt = measureCoupledLoadKKT(residual, x, lower, upper, groups);
++    return x.every((v, i) => Number.isFinite(v) && v >= lower[i] && v <= upper[i]) &&
++        kkt.maximumResidual <= p.options.tolerance && kkt.coneViolation <= 1e-9;
++}
++
++for (const pair of fixture.cases) test(`real consecutive solve ${pair.current.solveId}: original input bounds/hints, accepted history, full KKT and independent Jdx`, () => {
++    const before = hash(pair), p = pair.current;
++    const contract = coulombPredictionContract(p, 'frozen-sequence-test');
++    const history = createAcceptedCoulombHistory(pair.previous, pair.trial, pair.outcome, contract);
++    const prediction = predictCoulombIncrement(p, history, contract);
++    assert.ok(prediction.diagnostics.mappedRows > 2000);
++    assert.equal(prediction.diagnostics.families.wall.mapped, 0);
++    assert.equal(prediction.diagnostics.families.fold.mapped, 0);
++    const matrix = Float64Array.from(p.matrix), rhs = Float64Array.from(p.rhs);
++    // Top-level exported bounds are this captured solve's final bounds,
++    // tightened on zero-load cones. Original input bounds remain on each row.
++    const lower = Float64Array.from(p.rows, r => r.lower), upper = Float64Array.from(p.rows, r => r.upper);
++    assert.ok(p.rows.some((r, i) => r.lower !== p.lower[i] || r.upper !== p.upper[i]));
++    const options = { ...p.options, initialFree: Uint8Array.from(p.initialFree),
++        workspace: {}, frictionWorkspace: {}, loadWorkspace: {} };
++    let fallback, calls = 0, gates = 0;
++    const result = solveCoulombWithPrediction(matrix, rhs, lower, upper, p.count, p.band, p.groups, { ...options, prediction,
++        certifyPrediction(r) { gates++; return certify(p, r.increment, lower, upper, true); } },
++    () => { calls++; return fallback = solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, p.count, p.band, p.groups, options); });
++    assert.ok(result.diagnostics.converged);
++    assert.ok(certify(p, result.increment, lower, upper, false)); assert.ok(certify(p, result.increment, lower, upper, true));
++    assert.ok(result.diagnostics.prediction.factorizations <= 4);
++    if (p.solveId === 13) {
++        assert.equal(result.diagnostics.prediction.accepted, true); assert.equal(gates, 1); assert.equal(calls, 0);
++        assert.equal(result.diagnostics.factorizations, 1);
++    } else {
++        assert.equal(result.diagnostics.prediction.accepted, false); assert.equal(calls, 1);
++        assert.deepEqual(result.increment, fallback.increment); assert.deepEqual(result.residual, fallback.residual);
++        assert.equal(result.diagnostics.factorizations, fallback.diagnostics.factorizations + 4);
++    }
++    assert.equal(hash(pair), before, 'all frozen mechanics, source lambdas and unaccepted solve outputs remain unchanged');
++});

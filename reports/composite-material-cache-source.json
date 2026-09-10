@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-06T22:49:43.199Z",
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeMeshUpdate.js": "984abeb27908dce3f28a8e1dc372e7780185fc06a4fadbef4b846da34a2a2bbf",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "tests/kirchhoffCompositeMaterialCache.test.js": "4e0ea9522c4075c95243a37782412d3b86d16eb8fe1f6120845fbd8003d6e21b",
+    "scripts/physics/benchmark-composite-material-cache.mjs": "8d8ecd5b3dbcc36147646bfb9019a46b97da82db1da52bc95d0cb4ffcdb57a9d"
+  },
+  "benchmarkSourceStable": true,
+  "scope": "Only new MaterialCache/MeshUpdate/test/benchmark plus parent-approved optional Mesh materialIntegrator hook. No Simulator/World/Element/Chain changes.",
+  "validation": {
+    "tests": 67,
+    "passed": 67,
+    "syntax": true,
+    "diffCheck": true,
+    "build": "not run; isolated modules not integrated in app by this worker"
+  },
+  "handoff": "Frozen source files; root may now integrate. No further worker edits."
+}

@@ -24,7 +24,7 @@ function createScenario({
     });
     const wire = world.createRod('benchmark-wire', wireCount, wireSpacing, {
         ...DEFAULT_TOOL_PROFILES.guidewire,
-        rodModel: 'kirchhoff',
+
         postStabilizationPasses: 0
     });
     const catheter = world.createRod(
@@ -33,7 +33,7 @@ function createScenario({
         catheterSpacing,
         {
         ...DEFAULT_TOOL_PROFILES.catheter,
-        rodModel: 'kirchhoff',
+
         postStabilizationPasses: catheterPostStabilization
         }
     );
@@ -58,8 +58,7 @@ function createScenario({
             friction: 0.04,
             innerResponse: 1,
             outerResponse: 0,
-            portalInnerResponse: 1,
-            portalOuterResponse: 0
+
         });
     }
     return { world, wire, catheter };

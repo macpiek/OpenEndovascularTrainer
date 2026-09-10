@@ -1,0 +1,335 @@
+--- a/src/physics/kirchhoffSplitMotion.js
++++ b/src/physics/kirchhoffSplitMotion.js
+@@ -36,6 +36,51 @@
+     const issues=s.diagnostics.sheathHistoryIssues??=[];
+     if(!issues.some(i=>i.reason===reason&&i.sheath===detail.sheath&&i.side===detail.side&&i.node===detail.node))issues.push({reason,...detail});
+ }
++function sameSheathGeometry(a,b) {
++    return ['origin','axis','included','start','end'].every(k=>a[k].every((v,i)=>v===b[k][i]))&&
++        ['minimumAxial','maximumAxial','innerRadius'].every(k=>a[k]===b[k]);
++}
++function noteSheathReaction(h,phase,side,node,...values) {
++    const maximum=h.reactionHistory?.[phase]?.[side];
++    if(!maximum||node>=maximum.length||!values.every(Number.isFinite))return false;
++    maximum[node]=Math.max(maximum[node],...values.map(Math.abs));
++    return Number.isFinite(maximum[node]);
++}
++function observeSheathReactionBanks(joint,h,side,node) {
++    const s=joint._splitMotion,b=side?joint.outerBody:joint.innerBody;
++    const read=state=>state?.sheaths.get(h.sheath)?.[side].lambda[node]??0;
++    const currentPhase=s.phase==='bias'?'bias':'physical';
++    const results=[noteSheathReaction(h,currentPhase,side,node,read(joint._coupledBoundaries)),
++        noteSheathReaction(h,'physical',side,node,read(s.bank?.joints._coupledBoundaries)),
++        noteSheathReaction(h,'bias',side,node,read(s.biasBank?.joints._coupledBoundaries)),
++        noteSheathReaction(h,'legacy',side,node,h.sheath.lambdas?.get(b)?.[node]??0)];
++    return results.every(Boolean);
++}
++/** With a fixed cylinder, the radial norm along the straight start/end chord
++ * cannot exceed its endpoint maximum. Strictly positive endpoint clearance
++ * plus an identically zero reaction history certifies a free transition in
++ * this discrete model. Touching/loaded transitions and missing history do not. */
++function unloadedSheathTransition(joint,h,g,side,node,before,now) {
++    const b=side?joint.outerBody:joint.innerBody;
++    if(!sameSheathGeometry(h,g)||b.nodeRadius[node]!==h.nodeRadii[side][node]||
++        b.materialCoordinate[node]!==h.materialCoordinates[side][node]||
++        !observeSheathReactionBanks(joint,h,side,node))return false;
++    const clearance=Math.max(0,h.innerRadius-h.nodeRadii[side][node]);
++    return clearance-before.radius>0&&clearance-now.radius>0&&
++        ['physical','bias','legacy'].every(phase=>h.reactionHistory[phase][side][node]===0);
++}
++function recordSheathAppliedReactions(joint,result) {
++    const s=joint._splitMotion;
++    for(const [index,row]of (joint._coupledBoundaries?.rows??[]).entries()) {
++        if(row.kind!=='sheath')continue;
++        const h=s.sheathHistory.get(row.sheathWitness?.geometry.sheath);
++        const delta=result.scale*result.additionalIncrement[index];
++        // This hook runs before pose application and normal-bank commit, so
++        // a later collector cannot erase evidence by dropping the loaded row.
++        if(!h||!noteSheathReaction(h,s.phase,row.side,row.node,row.lambda,delta,Math.max(0,row.lambda+delta)))
++            unverifiedSheath(s,'sheath-reaction-history-missing',{side:row.side,node:row.node});
++    }
++}
+ /** Observe all supported material nodes, including nodes whose CURRENT row
+  * vanished outside the axial slab. Dropping a row is not a proof of release. */
+ function auditKirchhoffSplitSheathHistory(joint) {
+@@ -52,14 +97,29 @@
+         for(const [side,b]of [joint.innerBody,joint.outerBody].entries()) {
+             if(!h.included[side])continue;
+             for(let node=h.start[side];node<=h.end[side];node++) {
++                const historyPresent=observeSheathReactionBanks(joint,h,side,node);
++                const priorProof=s.diagnostics.sheathUnloadedTransitions?.find(t=>t.sheath===index&&t.side===side&&t.node===node);
++                if(priorProof&&(!historyPresent||['physical','bias','legacy'].some(phase=>h.reactionHistory[phase][side][node]!==0))) {
++                    priorProof.reactionHistoryValid=false;
++                    unverifiedSheath(s,historyPresent?'sheath-axial-feature-changed':'sheath-reaction-history-missing',
++                        {sheath:index,side,node,detail:'earlier-free-transition-has-reaction-history'});
++                }
+                 if(b.nodeRadius[node]!==h.nodeRadii[side][node]||b.materialCoordinate[node]!==h.materialCoordinates[side][node])
+                     unverifiedSheath(s,'sheath-material-support-changed',{sheath:index,side,node});
+                 const before=sheathCoordinates(h,XYZ.map(a=>s.start[side][a][node]));
+                 const now=sheathCoordinates(h,XYZ.map(a=>b[a.toLowerCase()][node]));
+                 const clearance=Math.max(0,h.innerRadius-h.nodeRadii[side][node]);
+                 const from=sheathAxialFeature(h,before.axial),to=sheathAxialFeature(h,now.axial);
+-                if(from!==to&&clearance-Math.max(before.radius,now.radius)<=s.contactActivation)
+-                    unverifiedSheath(s,'sheath-axial-feature-changed',{sheath:index,side,node,from,to,startAxial:before.axial,currentAxial:now.axial});
++                if(from!==to) {
++                    if(historyPresent&&unloadedSheathTransition(joint,h,g,side,node,before,now)) {
++                        const transitions=s.diagnostics.sheathUnloadedTransitions??=[];
++                        const entry=transitions.find(t=>t.sheath===index&&t.side===side&&t.node===node&&t.from===from&&t.to===to);
++                        const detail={sheath:index,side,node,from,to,startAxial:before.axial,currentAxial:now.axial,
++                            startRadialGap:clearance-before.radius,currentRadialGap:clearance-now.radius,reactionHistoryValid:true};
++                        if(entry)Object.assign(entry,detail);else transitions.push(detail);
++                    } else unverifiedSheath(s,historyPresent?'sheath-axial-feature-changed':'sheath-reaction-history-missing',
++                        {sheath:index,side,node,from,to,startAxial:before.axial,currentAxial:now.axial});
++                }
+             }
+         }
+     }
+@@ -110,6 +170,8 @@
+         const geometry=captureKirchhoffSplitSheathGeometry(sheath,bodies);
+         geometry.nodeRadii=bodies.map(b=>b.nodeRadius.slice());
+         geometry.materialCoordinates=bodies.map(b=>b.materialCoordinate.slice());
++        geometry.reactionHistory=Object.fromEntries(['physical','bias','legacy'].map(phase=>
++            [phase,bodies.map(b=>new Float64Array(b.count))]));
+         return [sheath,geometry];
+     }));
+     joint.surfaceMotion=state;
+@@ -234,7 +296,9 @@
+                 const p=sheathCoordinates(h,XYZ.map(a=>s.start[row.side][a][row.node]));
+                 startGap=Math.max(0,h.innerRadius-h.nodeRadii[row.side][row.node])-p.radius;
+                 row._splitSheathStartAxial=p.axial;
+-                if(sheathAxialFeature(h,p.axial)!=='interior')
++                const now={axial:witness.axial,radius:witness.radius};
++                if(sheathAxialFeature(h,p.axial)!=='interior'&&
++                    !unloadedSheathTransition(joint,h,witness.geometry,row.side,row.node,p,now))
+                     unverifiedSheath(s,'sheath-axial-feature-changed',{sheath:witness.geometry.sheath.id,side:row.side,node:row.node});
+                 if(witness.radius<=1e-12)
+                     unverifiedSheath(s,'sheath-degenerate-radial-witness',{sheath:witness.geometry.sheath.id,side:row.side,node:row.node});
+@@ -257,7 +321,9 @@
+ /** Call BEFORE the pose apply: local/right angular impulse uses that frame.
+  * All channels are owned by the joint and therefore roll back with its trial. */
+ export function applyKirchhoffSplitPhysicalIncrement(joint,result) {
+-    const s=joint._splitMotion;if(!s||s.phase!=='physical')return;
++    const s=joint._splitMotion;if(!s)return;
++    recordSheathAppliedReactions(joint,result);
++    if(s.phase!=='physical')return;
+     for(const [side,body]of [joint.innerBody,joint.outerBody].entries()) {
+         const m=s.bodies[side],c=(side?result.outer:result.inner).correction,f=result.scale/s.dt;
+         for(let node=body.activeStart;node<=body.activeEnd;node++) {
+--- /dev/null
++++ b/tests/kirchhoffSplitSheathUnloadedTransition.test.js
+@@ -0,0 +1,91 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import {fixture,DT,source,axes,close,VELOCITY} from './fixtures/splitMotionAnalyticWorld.js';
++const {configureKirchhoffSplitBias,beginKirchhoffSplitMotion,prepareKirchhoffSplitBoundaryRows,applyKirchhoffSplitPhysicalIncrement}=
++    await import(source('src/physics/kirchhoffSplitMotion.js'));
++const {collectKirchhoffCoupledBoundaryRows,applyKirchhoffCoupledBoundaryMultipliers}=await import(source('src/physics/kirchhoffCoupledBoundaryRows.js'));
++const {solveKirchhoffCoupledSystem,applyKirchhoffCoupledCorrection}=await import(source('src/physics/kirchhoffCoupledSystem.js'));
++const {captureKirchhoffCoupledTrialState,restoreKirchhoffCoupledTrialState}=await import(source('src/physics/kirchhoffCoupledTrialState.js'));
++function setup({y=.45,end=5,extension=2}={}) {
++    const f=fixture({y});configureKirchhoffSplitBias(f.constraint,{materialMode:'preserve-strain'});
++    f.sheath=f.world.addSheath({start:{x:0,y:0,z:0},end:{x:end,y:0,z:0},innerRadius:.75,proximalExtension:extension,bodies:[f.wire]});
++    return f;
++}
++function free(f,vx) {
++    const d=f.world.getStats().jointMotion,h=f.constraint._splitMotion.sheathHistory.get(f.sheath);
++    assert.equal(d.certified,true,JSON.stringify(d));assert.equal(d.historyCommits,1);assert.deepEqual(d.limitations,[]);
++    assert.ok(d.sheathUnloadedTransitions.length>0);
++    for(const t of d.sheathUnloadedTransitions)assert.ok(t.startRadialGap>0&&t.currentRadialGap>0&&t.reactionHistoryValid);
++    for(const phase of ['physical','bias','legacy'])assert.ok(h.reactionHistory[phase][0].every(v=>v===0));
++    for(const v of f.wire.velocityX)close(v,vx,VELOCITY,'unloaded axial velocity');
++    for(const a of ['Y','Z'])for(const v of f.wire['velocity'+a])close(v,0,VELOCITY,'no invented radial impulse');
++    for(const c of d.contacts.filter(c=>c.kind==='sheath'))assert.equal(c.normalPhysical+c.normalBias,0);
++}
++for(const [name,options,vx]of [
++    ['distal entry',{end:.99},-4],['distal exit',{end:1.01},4],
++    ['proximal entry',{extension:.99},4],['proximal exit',{extension:1.01},-4]
++])test(`strictly clear unloaded sheath ${name} certifies without an impulse`,()=>{
++    const f=setup(options);f.wire.velocityX.fill(vx);f.world.stepFixed();free(f,vx);
++});
++
++test('touching an end with zero reaction is outside the strictly-clear transition proof',()=>{
++    const f=setup({y:.5,end:1.01});f.wire.velocityX.fill(4);f.world.stepFixed();
++    const d=f.world.getStats().jointMotion;
++    assert.ok(d.limitations.includes('sheath-axial-feature-changed'));
++    assert.equal(d.certified,false);assert.equal(d.historyCommits,0);
++});
++
++for(const phase of ['physical','bias'])test(`positive endpoint gaps cannot erase a ${phase} reaction applied earlier in the dt`,()=>{
++    const f=setup({end:1.01});let injected=false,exited=false;
++    if(phase==='physical')f.wire.velocityY.fill(20);
++    f.world.debugJointTrial=(c,state,pass)=>{
++        if(phase==='bias'&&c._splitMotion.phase==='physical'&&pass===0&&!injected) {
++            f.wire.y.fill(.75);injected=true;
++        }
++        if(c._splitMotion.phase===phase&&pass===0&&!exited) {
++            f.wire.y.fill(.4);for(let i=0;i<f.wire.count;i++)f.wire.x[i]+=.1;exited=true;
++        }
++    };
++    f.world.stepFixed();const s=f.constraint._splitMotion,d=f.world.getStats().jointMotion,h=s.sheathHistory.get(f.sheath);
++    assert.ok(exited);assert.ok(h.reactionHistory[phase][0][2]>0,'actual apply hook records the load before the collector drops the row');
++    const before=Math.max(0,h.innerRadius-h.nodeRadii[0][2])-Math.hypot(s.start[0].Y[2],s.start[0].Z[2]);
++    const now=.5-Math.hypot(f.wire.y[2],f.wire.z[2]);assert.ok(before>0&&now>0);
++    assert.ok(d.limitations.includes('sheath-axial-feature-changed'));
++    assert.equal(d.certified,false);assert.equal(d.historyCommits,0);
++});
++
++test('missing reaction history cannot certify an otherwise clear unloaded transition',()=>{
++    const f=setup({end:1.01});f.wire.velocityX.fill(4);let erased=false;
++    f.world.debugJointTrial=c=>{if(!erased){delete c._splitMotion.sheathHistory.get(f.sheath).reactionHistory;erased=true;}};
++    f.world.stepFixed();const d=f.world.getStats().jointMotion;
++    assert.ok(d.limitations.includes('sheath-reaction-history-missing'));
++    assert.equal(d.certified,false);assert.equal(d.historyCommits,0);
++});
++
++test('relabelled material cannot use a zero journal to certify an unloaded crossing',()=>{
++    const f=setup({end:1.01});f.wire.velocityX.fill(4);let changed=false;
++    f.world.debugJointTrial=()=>{if(!changed){f.wire.materialCoordinate[2]+=.1;changed=true;}};
++    f.world.stepFixed();const d=f.world.getStats().jointMotion;
++    assert.ok(d.limitations.includes('sheath-material-support-changed'));
++    assert.equal(d.certified,false);assert.equal(d.historyCommits,0);
++});
++
++test('a rejected actual scaled trial restores its sheath reaction journal with mechanics',()=>{
++    const f=setup();f.wire.y.fill(.7);beginKirchhoffSplitMotion(f.constraint,f.world);
++    const rows=collectKirchhoffCoupledBoundaryRows(f.constraint,[f.sheath],DT,f.world.contactActivation);
++    prepareKirchhoffSplitBoundaryRows(f.constraint,rows);
++    const result=solveKirchhoffCoupledSystem(f.constraint,DT,{additionalRows:rows,activeCondensation:true,simultaneousCoulomb:true});
++    assert.equal(result.diagnostics.converged,true);result.scale*=.5;
++    const s=f.constraint._splitMotion,h=s.sheathHistory.get(f.sheath),journal=h.reactionHistory.physical[0];
++    const before={journal:journal.slice(),y:f.wire.y.slice(),v:s.bodies[0].velocityY.slice()};
++    const snapshot=captureKirchhoffCoupledTrialState(f.constraint,{world:f.world,reusePropertyLayout:true,frozenFrictionBatches:true});
++    applyKirchhoffSplitPhysicalIncrement(f.constraint,result);
++    applyKirchhoffCoupledCorrection(f.constraint,result);
++    applyKirchhoffCoupledBoundaryMultipliers(f.constraint,result.additionalIncrement,result.scale);
++    assert.ok(journal.some(v=>v>0));
++    for(const [i,row]of rows.entries())if(row.kind==='sheath')
++        close(journal[row.node],Math.abs(result.scale*result.additionalIncrement[i]),1e-12,'journal uses actual common apply scale');
++    restoreKirchhoffCoupledTrialState(snapshot);
++    assert.equal(h.reactionHistory.physical[0],journal,'journal identity survives rollback');
++    assert.deepEqual(journal,before.journal);assert.deepEqual(f.wire.y,before.y);assert.deepEqual(s.bodies[0].velocityY,before.v);
++});
+--- /dev/null
++++ b/reports/probe-sheath-unloaded-boundary.mjs
+@@ -0,0 +1,60 @@
++import fs from 'node:fs';
++import {createHash} from 'node:crypto';
++import {resolve} from 'node:path';
++import {pathToFileURL} from 'node:url';
++const root=resolve(process.env.OET_SHEATH_TRANSITION_SOURCE_ROOT??'/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer');
++const source=p=>pathToFileURL(resolve(root,p));
++const {createCoupledRuntimeFixture}=await import(source('tests/helpers/coupledRuntimeFixture.js'));
++const {createCoupledSolverSelection}=await import(source('src/physics/coupledSolverSelection.js'));
++const {solveKirchhoffCoupledSystem:solve,applyKirchhoffCoupledCorrection:apply}=await import(source('src/physics/kirchhoffCoupledSystem.js'));
++const {configureKirchhoffSplitBias}=await import(source('src/physics/kirchhoffSplitMotion.js'));
++const output=process.argv[2]??'/tmp/oet-sheath-unloaded-boundary-proof-8996.json';
++const paths=fs.readdirSync(resolve(root,'src/physics')).filter(p=>p.endsWith('.js')).sort();
++const hashes=()=>Object.fromEntries(paths.map(p=>[p,createHash('sha256').update(fs.readFileSync(resolve(root,'src/physics',p))).digest('hex')]));
++const report={sourceRoot:root,sourceBefore:hashes(),events:[],steps:[],target:{sheath:0,side:1,node:0}};
++let f,attempt=0,pending;
++function inspect(stage,extra={}) {
++    if(!f?.containment._splitMotion)return;
++    const c=f.containment,s=c._splitMotion,b=c.outerBody,sh=f.world.sheaths[0],h=s.sheathHistory.get(sh);
++    const p=[b.x[0],b.y[0],b.z[0]],origin=[sh.startX,sh.startY,sh.startZ],axis=[sh.axisX,sh.axisY,sh.axisZ];
++    const v=p.map((x,i)=>x-origin[i]),axial=v.reduce((a,x,i)=>a+x*axis[i],0),radius=Math.hypot(...v.map((x,i)=>x-axial*axis[i]));
++    const bank=state=>state?.sheaths?.get(sh)?.[1].lambda[0]??0;
++    report.events.push({attempt,step:f.world.stepCount,phase:s.phase,stage,axial,radialGap:Math.max(0,sh.innerRadius-b.nodeRadius[0])-radius,
++        material:b.materialCoordinate[0],startMaterial:h.materialCoordinates[1][0],
++        currentLambda:bank(c._coupledBoundaries),physicalBank:bank(s.bank?.joints?._coupledBoundaries),
++        biasBank:bank(s.biasBank?.joints?._coupledBoundaries),legacyLambda:sh.lambdas.get(b)?.[0]??0,
++        controlLambda:b.controlLambda[0],...extra});
++}
++const selection=createCoupledSolverSelection('joint-active-coulomb',{
++    solve(c,dt,o) {
++        pending=o.additionalRows.map((r,index)=>({kind:r.kind,side:r.side,node:r.node,lambda:r.lambda,index})).filter(r=>r.kind==='sheath'&&r.side===1&&r.node===0);
++        inspect('before-solve',{rows:pending});
++        return solve(c,dt,o);
++    },
++    apply(c,result) {
++        inspect('actual-apply',{scale:result.scale,applied:pending.map(r=>({...r,delta:result.scale*result.additionalIncrement[r.index],
++            next:Math.max(0,r.lambda+result.scale*result.additionalIncrement[r.index])}))});
++        apply(c,result);
++    }
++});
++f=createCoupledRuntimeFixture({coupledSystem:selection.coupledSystem,jointMotionMode:'split-physical-bias'});
++configureKirchhoffSplitBias(f.containment,{materialMode:'preserve-strain'});
++f.world.debugJointTrial=(c,s,pass,trial)=>inspect('after-trial',{pass,trial,settled:s.settled});
++f.containment.outerBody.debugConstraintPhase=phase=>{if(phase==='closureEnd')inspect('phase-end');};
++try {
++    for(let i=0;i<33;i++)f.step({guidewireAdvance:1});
++    for(attempt=1;attempt<=14;attempt++) {
++        const r=f.step({catheterAdvance:1});
++        if(f.world.getStats().jointMotion)report.steps.push({attempt,state:f.snapshot(),accepted:r.accepted!==false,diagnostics:structuredClone(f.world.getStats().jointMotion)});
++        if(r.accepted===false)break;
++    }
++    report.sourceAfter=hashes();report.sourceStable=JSON.stringify(report.sourceBefore)===JSON.stringify(report.sourceAfter);
++    const target=report.events.filter(e=>e.attempt===14);
++    report.targetSummary={events:target.length,phases:[...new Set(target.map(e=>e.phase))],
++        maxPhysicalOrBiasBank:Math.max(0,...target.flatMap(e=>[Math.abs(e.currentLambda),Math.abs(e.physicalBank),Math.abs(e.biasBank),Math.abs(e.legacyLambda)])),
++        maxAppliedLambda:Math.max(0,...target.flatMap(e=>(e.applied??[]).flatMap(r=>[Math.abs(r.lambda),Math.abs(r.delta),Math.abs(r.next)]))),
++        minimumObservedRadialGap:Math.min(...target.map(e=>e.radialGap)),identityStable:target.every(e=>e.material===e.startMaterial)};
++    fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
++    console.log(JSON.stringify({output,sourceStable:report.sourceStable,targetSummary:report.targetSummary,
++        candidateIssues:report.steps.at(-1)?.diagnostics.sheathHistoryIssues},null,2));
++} finally {f.dispose();}
+--- /dev/null
++++ b/reports/split-sheath-unloaded-transition.md
+@@ -0,0 +1,58 @@
++# Certified unloaded sheath boundary transitions
++
++A strictly clear, reaction-free material node may now cross an end of the existing open analytic sheath without an unsupported-history rejection. Loaded, touching, relabelled or history-lost transitions remain rejected. Only SplitMotion production source changes; World, geometry, numerical thresholds and profiles remain untouched.
++
++## Whole-step proof of the reported node
++
++Before changing production code, the regular root adapter was observed through 33 guidewire commands followed by 14 catheter commands, ending at the fifth actual coupled step. No force or geometry was injected. The observer recorded every target row's base lambda, every actually applied common-scale increment and resulting lambda, current/physical/bias/legacy sheath banks, geometry and material identity. This records load before a collector can erase it by dropping a row.
++
++For sheath0/side1/node0 in the failed step:
++
++- Start axial coordinate: -89.99912318852675 mm, inside the unchanged lower limit -90.00001 mm.
++- End axial coordinate: -90.00342814482242 mm, outside the proximal slab.
++- Start radial clearance: .058183063771332776 mm; final reported clearance .05816302730677003 mm.
++- Minimum radial clearance among all 17 phase observations: .05803232654464611 mm.
++- Every observed current, physical, bias and legacy sheath lambda: exactly 0.
++- Every actual applied sheath delta-lambda and resulting lambda: exactly 0.
++- Material identity unchanged; observed target control lambda also 0.
++
++This is a free sheath witness, not a loaded contact whose reaction merely vanished from the final row set. Other loaded sheath nodes remain in the same mechanical system and retain their reactions.
++
++## Implemented proof and reaction journal
++
++At physical-step start, each captured sheath/material node receives separate physical, bias and legacy reaction-activity arrays. The existing SplitMotion apply hook records `abs(lambda_before)`, `abs(actual_scale * delta_lambda)` and `abs(lambda_after)` for sheath rows before pose application and normal-bank commit. This happens for both physical and bias phases. Current and stored phase banks are also observed. Collecting/preparing rows never resets the journal.
++
++The journal belongs to the owned split trial state and is restored with rejected trial mechanics. An unloading increment cannot erase an earlier load; any nonzero activity remains nonzero for the accepted path of the physical dt. Missing/nonfinite journal data cannot prove a free transition.
++
++A boundary transition is accepted only if:
++
++1. Sheath origin/axis/radius/axial limits, selected support range, node radius and material label still match the captured witness.
++2. Both start and current radial gaps are strictly positive (`>0`), without adding a skin or tuning epsilon.
++3. Physical, bias and legacy reaction journals and observed banks are identically zero for that material witness throughout the step.
++
++The radial cross-section of the fixed cylinder is convex. The radial norm on the straight start/end chord is bounded by its endpoint maximum, so strictly positive endpoint clearance proves that this chord cannot require a sheath radial impulse. This is a free-path check for the existing discrete model; it is not a terminal impact, general trajectory, end-cap or TOI/CCD treatment.
++
++The check is independent of contact activation distance. Any physical or bias reaction, a touching endpoint, changed material/geometry or missing history preserves an unsupported guard. An earlier provisional free-transition observation is invalidated if later reaction activity appears. Existing physical normal, material, friction and raw geometric certificates are unchanged.
++
++## Tests
++
++New `tests/kirchhoffSplitSheathUnloadedTransition.test.js`: **10/10 PASS**:
++
++- Strictly clear unloaded entry and exit at both proximal and distal ends.
++- Zero-load touching transition remains unsupported.
++- Positive endpoint gaps do not erase an earlier physically applied reaction.
++- Positive endpoint gaps do not erase an earlier bias reaction.
++- Missing reaction history and changed material labels remain unsupported.
++- An actual half-scale solved trial records the applied delta and restores the journal, identity and body mechanics on rejection, using the production `reusePropertyLayout` and `frozenFrictionBatches` settings.
++
++The new tests plus existing split/sheath/preserve-strain checks give **23/23 PASS**. The unchanged independent World+wall oracles give **11/11 PASS**. Existing strict-accuracy failures from the previous handoff were neither modified nor investigated further.
++
++## Same-World adapter comparison
++
++The root World changed during the initial observation/implementation interval. For a valid final comparison, an isolated reference and candidate tree were built from the **same frozen World** (`e993cec61125fe003e58d3bd081b24b15ec91e158351427319b2216900522f62`), with only SplitMotion differing. Root files were never edited.
++
++Both reference and candidate source sets remained stable during execution. All 17 fifth-step target observations (axial/radial geometry, material identity, control and reaction banks) are exactly equal, and the first four accepted fixture snapshots are exactly equal. The fifth step changes from rejected to accepted with `historyCommits=1`, while its normal-history residual remains 6.938737638677306e-6 mm and geometric violation remains 0. All five coupled steps certify. The run stops there; no sixth step, long replay or anatomy was added.
++
++Reproducer: `reports/probe-sheath-unloaded-boundary.mjs`. It uses the normal adapter and can select a source snapshot via `OET_SHEATH_TRANSITION_SOURCE_ROOT`. The patch bundle's `results/` contains the initial whole-dt audit, the matched-World reference/candidate JSON, their source hashes, regression logs and a compact equality comparison.
++
++Scope remains narrow: no loaded-end release mechanism, remeshing migration, geometry change, CCD, terminal impulse, World transaction change, tolerance adjustment or material-profile adjustment is included.

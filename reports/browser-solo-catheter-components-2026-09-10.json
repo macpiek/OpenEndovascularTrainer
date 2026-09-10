@@ -1,0 +1,11 @@
+{
+  "scenario": "catheter-only 28 s, zero-overlap containment disabled",
+  "solver": "joint-components",
+  "solveCalls": 5438,
+  "nonconvergedResults": 0,
+  "averageFps": 28.792084845896504,
+  "backlogSeconds": 18.606333333333385,
+  "lastStepMs": 95.20000004768372,
+  "simulationElapsedMs": 9491.666666666642,
+  "performanceGatePassed": false
+}

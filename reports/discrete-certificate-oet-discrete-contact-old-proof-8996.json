@@ -1,0 +1,925 @@
+[
+  {
+    "name": "gap-0-first",
+    "startGaps": [
+      0,
+      0
+    ],
+    "rawGaps": [
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        0,
+        0
+      ],
+      [
+        5.555560012027172e-09,
+        1.1111120912232764e-08
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1.1111120044871026e-08
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          2.0000016689300537,
+          2.0000016689300537
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ]
+    },
+    "normalImpulse": 4.000003290647443,
+    "momentumLoss": 4.000003321193427,
+    "predictorEnergy": 4.000006675723,
+    "finalEnergy": 1.3888912181251315e-16,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 4.629630012686903e-11,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 4.440892098500626e-16,
+      "physicalKKTResidualMm": 9.259267426860636e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 4.629630012686903e-11
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 4.629630012686903e-11
+      },
+      "maximumOutwardContactVelocity": 1.1111120912232764e-08,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.008333340287208557,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.008333340171547693,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:1",
+          "kind": "wall",
+          "normalPhysical": 0.016666680296639112,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "gap-0-second",
+    "startGaps": [
+      0,
+      0
+    ],
+    "rawGaps": [
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        -1.1431186286024767e-19,
+        1.1431186286024767e-19
+      ],
+      [
+        -4.938272013532696e-09,
+        4.938272013532696e-09
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        8.641984038104678e-09
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          1.1111120044871026e-08
+        ]
+      ]
+    },
+    "normalImpulse": 0,
+    "momentumLoss": 0,
+    "predictorEnergy": 6.172849432576736e-17,
+    "finalEnergy": 6.172847453706829e-17,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 8.230455206259535e-11,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 8.271806125530277e-25,
+      "physicalKKTResidualMm": 4.115226677943914e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 8.230455206261406e-11
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 8.230455206261406e-11
+      },
+      "maximumOutwardContactVelocity": 4.938272013532696e-09,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": []
+    }
+  },
+  {
+    "name": "gap-0.0005-first",
+    "startGaps": [
+      0.000500023365020752,
+      0.000500023365020752
+    ],
+    "rawGaps": [
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        0,
+        0
+      ],
+      [
+        0.06000280752778053,
+        0.06000281497836113
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1.077777075919606e-08
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          2.0000016689300537,
+          2.0000016689300537
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ]
+    },
+    "normalImpulse": 3.879997697291197,
+    "momentumLoss": 3.8799977153539658,
+    "predictorEnergy": 4.000006675723,
+    "finalEnergy": 0.0036003373582717156,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 4.490741112306296e-11,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 1.6635957056365669e-09,
+      "physicalKKTResidualMm": 9.313225743986381e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 4.490741112306296e-11
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 4.490741112306296e-11
+      },
+      "maximumOutwardContactVelocity": 0.06000281497836113,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.008083328604698181,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.00808332859944304,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:1",
+          "kind": "wall",
+          "normalPhysical": 0.01616665693995209,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "gap-0.0005-second",
+    "startGaps": [
+      0,
+      0
+    ],
+    "rawGaps": [
+      0,
+      -0.00010001659393310547
+    ],
+    "velocity": [
+      [
+        1.077828039493245e-12,
+        -1.077828039493245e-12
+      ],
+      [
+        6.000279717532919e-10,
+        0.012000570073723793
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0.024001127747644194
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          0.060002803802490234,
+          0.060002803802490234
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          1.077777075919606e-08
+        ]
+      ]
+    },
+    "normalImpulse": 0.10800503427162766,
+    "momentumLoss": 0.1080050369312287,
+    "predictorEnergy": 0.0036003364641601946,
+    "finalEnergy": 0.00036003390762654575,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 1.18507439139659e-08,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 2.1098042757294877e-10,
+      "physicalKKTResidualMm": 0.00010000475061436493,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 1.5506743953560028e-08
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 1.5506743953560028e-08
+      },
+      "maximumOutwardContactVelocity": 0.012000570073723793,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.0009000419522635639,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "gap-0.01-first",
+    "startGaps": [
+      0.009999990463256836,
+      0.009999990463256836
+    ],
+    "rawGaps": [
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        0,
+        0
+      ],
+      [
+        1.1999988555908203,
+        1.1999988555908203
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        4.444459904273668e-09
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          2.0000016689300537,
+          2.0000016689300537
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ]
+    },
+    "normalImpulse": 1.600005614841436,
+    "momentumLoss": 1.6000056266784668,
+    "predictorEnergy": 4.000006675723,
+    "finalEnergy": 1.4399972534192784,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "biasHardStrainMaximum": 1.8518575561898842e-11,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 4.4444599112125616e-09,
+      "physicalKKTResidualMm": 0,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 1.851857556206524e-11
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 1.851857556206524e-11
+      },
+      "maximumOutwardContactVelocity": 1.1999988555908203,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.003333345055580139,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.0033333450680497153,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:1",
+          "kind": "wall",
+          "normalPhysical": 0.00666669000004878,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "gap-0.01-second",
+    "startGaps": [
+      0,
+      0
+    ],
+    "rawGaps": [
+      0,
+      0
+    ],
+    "velocity": [
+      [
+        2.7983530462426583e-19,
+        -2.7983530462426583e-19
+      ],
+      [
+        -5.333328001455584e-09,
+        6.666660112841782e-09
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        -3.1019272970738538e-24
+      ],
+      [
+        1.9555519859687512e-08
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          1.1999988555908203,
+          1.1999988555908203
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          4.444459904273668e-09
+        ]
+      ]
+    },
+    "normalImpulse": 2.39999767429286,
+    "momentumLoss": 2.3999977098483085,
+    "predictorEnergy": 1.4399972534192784,
+    "finalEnergy": 2.2765355080694925e-16,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 1,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": true,
+      "biasHardStrainMaximum": 9.999989725173464e-11,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 8.582806648804608e-28,
+      "physicalKKTResidualMm": 5.555550094034819e-11,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 9.999989725173464e-11
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 9.999989725173464e-11
+      },
+      "maximumOutwardContactVelocity": 6.666660112841782e-09,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.009999990463256836,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:1",
+          "kind": "wall",
+          "normalPhysical": 0.009999990155850335,
+          "normalBias": 0,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "compliant-first",
+    "startGaps": [
+      0.009999990463256836,
+      0.009999990463256836
+    ],
+    "rawGaps": [
+      -0.0015544593334197998,
+      -0.001647353172302246
+    ],
+    "velocity": [
+      [
+        0,
+        0
+      ],
+      [
+        1.5805256366729736,
+        1.6077840328216553
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "omega": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0.05451673567588787
+      ]
+    ],
+    "predictor": {
+      "velocity": [
+        [
+          0,
+          0
+        ],
+        [
+          2.0000016689300537,
+          2.0000016689300537
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "omega": [
+        [
+          0
+        ],
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ]
+    },
+    "normalImpulse": 0.8116936112319393,
+    "momentumLoss": 0.8116936683654785,
+    "predictorEnergy": 4.000006675723,
+    "finalEnergy": 2.5430014294227643,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "physical-compliance",
+      "physicalPasses": 1,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "biasHardStrainMaximum": 1.684397329948517e-08,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 3.883114718661318e-08,
+      "physicalKKTResidualMm": 0.00022715311497449858,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 5.1599089907269017e-08
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0,
+        "adaptationMm": 1.89243140977588e-08
+      },
+      "maximumOutwardContactVelocity": 1.6077840328216553,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [],
+      "contacts": [
+        {
+          "id": "wall:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.0022021227050572634,
+          "normalBias": 0.00114398670848459,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:0",
+          "kind": "wall",
+          "normalPhysical": 0.0022021227699071193,
+          "normalBias": 0.0010794885814345253,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "wall-point:0:1",
+          "kind": "wall",
+          "normalPhysical": 0.002359867951968444,
+          "normalBias": 0.0011439866675011562,
+          "tangentPhysical": [
+            0,
+            0
+          ],
+          "mu": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  }
+]

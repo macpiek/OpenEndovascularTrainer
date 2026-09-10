@@ -1,0 +1,46 @@
+{
+  "createdAt": "2026-09-07T15:43:43.752546+00:00",
+  "origin": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "sourceStable": true,
+  "supersedes": {
+    "manifest": "/tmp/oet-composite-relative-direction-final/manifest.json",
+    "sha256": "432017ff50fa7c8d31f0b0a957263c523d5c06da98f0aac0824335cff52f2daa",
+    "previousBundlePreserved": true
+  },
+  "change": "fixedReactionIncrement now +A_fixed,*delta, force ON chain; impulse balance test establishes physical sign",
+  "owned": {
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "adc0431f17697aedc6562fecceac37637c33339a9ae35f75c73c4c340044cd95",
+    "tests/kirchhoffCompositeRelativeDirection.test.js": "1940668b233c8d2c335ed89cac73d8c6e2351fba3528120671dd50561d056e94",
+    "reports/composite-relative-direction.md": "ef6530d961573a59dcba0f181187ae2990e8605dc07649dbd5609c5a8956497f"
+  },
+  "dependencyHashes": {
+    "reports/composite-relative-direction-witness.json": "4e8d3a868c65bd8acd468ebb0112e89ef908f3c335a5a533b0aca6a7e1ca018b",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeClearance.js": "65a2330bd1ad5d82bf5f7f9a9db6fb5c88a7d3e2f11085aded4cd3055f9fc5bd",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5540faf6ddab4fc5770b5e637e39d577bf323d707c399d79ecad7b76a175e886",
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "c4e46982a14810fb49594337e2c88328622d8a52094c5f08efd2adcccb7bf2cc",
+    "src/physics/kirchhoffCompositeRelativePatch.js": "1209803e98f92115d52c3dfb67a468ad47ef0324c3772c108e44a2486321172f",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "tests/kirchhoffCompositeMixedDirection.test.js": "fad606dbf89f31cd35a7bd0c9c6d3b6dafb9cdf750300dae2a8e50dd80624681",
+    "tests/kirchhoffCompositeRelativeCluster.test.js": "9bfb1967c49a0cdfc23e9b5cb4baa5872e887bdaf552ee5d7aa46485d966e5e2"
+  },
+  "artifactHashes": {
+    "tests.txt": "176e54562a1298c4cbfd68870e00a4bce8bd7be35f5fd8e74e09457885b26a64",
+    "package.json": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+  },
+  "validation": {
+    "testCommand": "node --test tests/kirchhoffCompositeRelativeDirection.test.js tests/kirchhoffCompositeRelativeCluster.test.js tests/kirchhoffCompositeMixedDirection.test.js",
+    "testsPassed": 28,
+    "newModuleTestsPassed": 11,
+    "syntaxPassed": true
+  },
+  "scope": "one original linear direction; no nonlinear dt/FPS certificate"
+}

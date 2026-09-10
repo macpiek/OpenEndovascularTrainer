@@ -1,0 +1,95 @@
+{
+  "scope": "instantaneous-own-affine-surface-force-map",
+  "finiteDifferencesInRuntime": false,
+  "repeatedUnitRateEvaluations": false,
+  "noAcceptedTimeStep": true,
+  "noFpsClaim": true,
+  "results": [
+    {
+      "toolCount": 1,
+      "configurationDofs": 7,
+      "queryDofs": 10,
+      "totalDerivativeColumns": 17,
+      "maxParityError": 2.7755575615628914e-17,
+      "maxConfigurationDerivativeError": 7.501945245569352e-11,
+      "maxQueryDerivativeError": 7.638073723850725e-11,
+      "virtualPowerError": 0,
+      "secondOrderArenaNodes": 106,
+      "firstOrderArenaNodes": 705
+    },
+    {
+      "toolCount": 2,
+      "configurationDofs": 14,
+      "queryDofs": 11,
+      "totalDerivativeColumns": 25,
+      "maxParityError": 2.7755575615628914e-17,
+      "maxConfigurationDerivativeError": 1.1691320134232797e-10,
+      "maxQueryDerivativeError": 1.1398126886774662e-10,
+      "virtualPowerError": 2.220446049250313e-16,
+      "secondOrderArenaNodes": 212,
+      "firstOrderArenaNodes": 1355
+    }
+  ],
+  "wrench": [
+    {
+      "toolId": "wire",
+      "appliedForce": [
+        0.6414834189050467,
+        0.04403202185986714,
+        -0.48637455147327
+      ],
+      "totalForce": [
+        0.6414834189050467,
+        0.044032021859867154,
+        -0.4863745514732699
+      ],
+      "spinTorque": -0.03581521812844844,
+      "physicalMoment": [
+        -0.11082540515207828,
+        0.5209267961855343,
+        -0.09900846904015428
+      ],
+      "expectedMoment": [
+        -0.11082540515207835,
+        0.5209267961855344,
+        -0.0990084690401543
+      ],
+      "maxForceError": 1.1102230246251565e-16,
+      "maxMomentError": 1.1102230246251565e-16,
+      "naiveGeneralizedWrenchError": 0.0003905173617128828,
+      "rigidPowerError": 2.7755575615628914e-17
+    },
+    {
+      "toolId": "catheter",
+      "appliedForce": [
+        -0.6414834189050467,
+        -0.04403202185986714,
+        0.48637455147327
+      ],
+      "totalForce": [
+        -0.6414834189050467,
+        -0.04403202185986718,
+        0.48637455147327
+      ],
+      "spinTorque": 0.19999999999999998,
+      "physicalMoment": [
+        0.11082540515207837,
+        -0.5209267961855345,
+        0.09900846904015435
+      ],
+      "expectedMoment": [
+        0.11082540515207835,
+        -0.5209267961855344,
+        0.0990084690401543
+      ],
+      "maxForceError": 4.163336342344337e-17,
+      "maxMomentError": 1.1102230246251565e-16,
+      "naiveGeneralizedWrenchError": 0.002542317727378409,
+      "rigidPowerError": 8.326672684688674e-17
+    }
+  ],
+  "queryChainRule": {
+    "maxFullChainError": 1.5121712799011888e-10,
+    "maxFrozenQueryError": 0.08039061214774648
+  }
+}

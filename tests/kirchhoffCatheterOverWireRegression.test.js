@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ElasticRod } from '../src/physics/elasticRod.js';
+import { RodState } from '../src/physics/rodState.js';
 import { applyKirchhoffMaterialProfile } from '../src/physics/applyKirchhoffMaterialProfile.js';
 import {
     DEFAULT_TOOL_PROFILES,
@@ -14,7 +14,8 @@ import {
     INTRODUCER_SHEATH_INNER_RADIUS_MM,
     PIGTAIL_CATHETER_INNER_RADIUS_MM
 } from '../src/toolDimensions.js';
-import { guidewireRelaxationPasses } from '../src/physics/guidewireRelaxationRate.js';
+
+import { evaluateKirchhoffSlidingPortal } from '../src/physics/kirchhoffSlidingPortal.js';
 
 const DT = 1 / 120;
 const CATHETER_SHAFT_STIFFNESS = 25;
@@ -43,8 +44,8 @@ function maximumBendDegrees(body) {
     return maximum;
 }
 
-for (const constitutiveSolver of ['local', 'direct']) {
-test(`a catheter advances over a held guidewire without dragging or kinking it (${constitutiveSolver})`, () => {
+for (const catheterType of ['berenstein', 'pigtail', 'sim1']) {
+test(`a catheter advances over a held guidewire without dragging or kinking it (direct, ${catheterType})`, () => {
     // Match the first full browser-benchmark feed cycle.  The previous
     // 180-step fixture stopped after only 78 mm of catheter travel and could
     // not see the late portal/topology instability which starts after several
@@ -56,7 +57,7 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         start: { x: -20, y: 0, z: 0 },
         end: { x: 0, y: 0, z: 0 }
     };
-    const wire = new ElasticRod(
+    const wire = new RodState(
         guidewireLength / guidewireSpacing + 1,
         guidewireSpacing
     );
@@ -79,12 +80,11 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         vessel: { sheath, segments: [] },
         maxLength: 650
     });
-    catheter.setType('berenstein');
+    catheter.setType(catheterType);
     catheter.setStiffnessScales({
         shaftStiffnessScale: CATHETER_SHAFT_STIFFNESS,
         tipStiffnessScale: CATHETER_TIP_STIFFNESS
     });
-    catheter.setExternalCollisionSolver(true);
 
     const world = new EndovascularPhysicsWorld({
         fixedDt: DT,
@@ -101,9 +101,9 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         'catheter-over-wire-guidewire',
         wire.nodes.length,
         guidewireSpacing,
-        { ...DEFAULT_TOOL_PROFILES.guidewire, rodModel: 'kirchhoff' }
+        { ...DEFAULT_TOOL_PROFILES.guidewire }
     );
-    wireBody.syncFromElasticRod(wire);
+    wireBody.syncFromRodState(wire);
     wireBody.captureKirchhoffRestConfiguration({ captureRestRotation: false });
     const materialCoordinates = Float64Array.from(
         { length: wireBody.count },
@@ -122,15 +122,11 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         'catheter-over-wire-catheter',
         320,
         4,
-        { ...DEFAULT_TOOL_PROFILES.catheter, rodModel: 'kirchhoff' }
+        { ...DEFAULT_TOOL_PROFILES.catheter, }
     );
-    // Match the accepted application defaults. These extra constitutive
-    // sweeps must be interleaved with lumen contact; running them body-local
-    // is precisely the unstable configuration covered by this regression.
-    const relaxationPasses = guidewireRelaxationPasses(30);
-    wireBody.constitutiveSolver = constitutiveSolver;
-    wireBody.relaxationPasses = constitutiveSolver === 'direct' ? 0 : relaxationPasses;
-    catheterBody.relaxationPasses = relaxationPasses;
+    // Both rods use the direct solve at the application relaxation rate.
+    wireBody.relaxationPasses = 0;
+    catheterBody.relaxationPasses = 0;
     if (process.env.OET_UNLIMITED_CATHETER_SPEED === '1') {
         catheterBody.maxSpeed = Infinity;
     }
@@ -196,7 +192,7 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         );
         for (let step = 0; step < totalSteps; step++) {
             catheter.advance(1, DT, guidewireInserted);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             const catheterCount = catheter.syncXpbdBody(catheterBody);
             if (process.env.OET_ZERO_CATHETER_CURVATURE === '1') {
                 catheterBody.restRotation1.fill(0);
@@ -531,7 +527,7 @@ test(`a catheter advances over a held guidewire without dragging or kinking it (
         assert.ok(inletError < 0.5,
             `catheter slipped backwards through the introducer (${inletError} mm)`);
         assert.ok(finalTipGuideDistance < 0.75,
-            `catheter tip left the guidewire path (${finalTipGuideDistance} mm)`);
+            `catheter tip left the guidewire path (${finalTipGuideDistance} mm; spatial ${evaluateKirchhoffSlidingPortal(containment).distance} mm)`);
         assert.ok(maximumTipGuideDistance < 1.25,
             `catheter failed to track the guidewire (${maximumTipGuideDistance} mm)`);
         assert.ok(catheterMaximumSegmentError < 0.02,

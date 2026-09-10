@@ -1,0 +1,162 @@
+{
+  "scope": "Local release-measurement microbenchmark only; not whole solver, browser or FPS performance.",
+  "timestamp": "2026-09-06T21:19:35.791Z",
+  "node": "v24.6.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M3",
+  "logicalCpus": 8,
+  "explicitGc": true,
+  "fixture": {
+    "nodesPerBody": [
+      200,
+      200
+    ],
+    "releases": 400,
+    "activeStart": [
+      7,
+      11
+    ],
+    "rotatedFrames": true,
+    "anisotropicInertia": true,
+    "duplicateDofs": true,
+    "support": "two active nodes per body, plus inactive/end-node samples"
+  },
+  "methodology": {
+    "warmupPairs": 24,
+    "rounds": 9,
+    "iterationsPerVariantPerRound": 20,
+    "alternatingOrder": true,
+    "timedIncludesAllocationAndIncidentalGc": true,
+    "allocationInstrumentationOutsideTiming": true
+  },
+  "parity": {
+    "entireOutputBytesEqual": true,
+    "entireInputStateBytesUnchanged": true,
+    "outputSha256": "0bfb01e84175f75d537e4353757efa1ce8b8ec69c023d683bc6b7fabc60b2c32",
+    "stateSha256": "f8a3f5e70a2404efc44a4aef519e22be1c4d9e94e4c7248805a4c0415e0a7ba7"
+  },
+  "allocation": {
+    "baseline": {
+      "arrays": 802,
+      "doubles": 962400,
+      "bytes": 7699200
+    },
+    "optimized": {
+      "arrays": 3,
+      "doubles": 2406,
+      "bytes": 19248
+    }
+  },
+  "baseline": {
+    "medianMsPerCall": 14.25236874999996,
+    "minimumMsPerCall": 11.0036521,
+    "maximumMsPerCall": 83.71452500000001
+  },
+  "optimized": {
+    "medianMsPerCall": 10.897010449999993,
+    "minimumMsPerCall": 5.679293750000033,
+    "maximumMsPerCall": 17.794068750000044
+  },
+  "medianSpeedup": 1.3079154888761229,
+  "medianTimeReductionPercent": 23.54246061729196,
+  "rounds": [
+    {
+      "round": 1,
+      "order": [
+        "baseline",
+        "optimized"
+      ],
+      "baselineMsPerCall": 12.8272604,
+      "optimizedMsPerCall": 10.897010449999993
+    },
+    {
+      "round": 2,
+      "order": [
+        "optimized",
+        "baseline"
+      ],
+      "optimizedMsPerCall": 10.854837499999984,
+      "baselineMsPerCall": 15.082702100000006
+    },
+    {
+      "round": 3,
+      "order": [
+        "baseline",
+        "optimized"
+      ],
+      "baselineMsPerCall": 13.116718749999995,
+      "optimizedMsPerCall": 8.51603329999998
+    },
+    {
+      "round": 4,
+      "order": [
+        "optimized",
+        "baseline"
+      ],
+      "optimizedMsPerCall": 7.766287500000044,
+      "baselineMsPerCall": 13.327758350000021
+    },
+    {
+      "round": 5,
+      "order": [
+        "baseline",
+        "optimized"
+      ],
+      "baselineMsPerCall": 14.25236874999996,
+      "optimizedMsPerCall": 11.15882704999999
+    },
+    {
+      "round": 6,
+      "order": [
+        "optimized",
+        "baseline"
+      ],
+      "optimizedMsPerCall": 11.478022899999996,
+      "baselineMsPerCall": 24.43308750000001
+    },
+    {
+      "round": 7,
+      "order": [
+        "baseline",
+        "optimized"
+      ],
+      "baselineMsPerCall": 83.71452500000001,
+      "optimizedMsPerCall": 12.344402100000025
+    },
+    {
+      "round": 8,
+      "order": [
+        "optimized",
+        "baseline"
+      ],
+      "optimizedMsPerCall": 17.794068750000044,
+      "baselineMsPerCall": 31.685383300000012
+    },
+    {
+      "round": 9,
+      "order": [
+        "baseline",
+        "optimized"
+      ],
+      "baselineMsPerCall": 11.0036521,
+      "optimizedMsPerCall": 5.679293750000033
+    }
+  ],
+  "sourceBefore": {
+    "src/physics/kirchhoffTwoChannelRelease.js": "afc17e5579bad01444ff2cd84278a02e1f0cc2c0213836a340b91fda19fb0939",
+    "tests/fixtures/twoChannelReleaseMeasureReference.js": "f6c38945c2c7a56eaf18ee7c7600ea2aedf73f97e89fa3309996629e15c4e201",
+    "tests/fixtures/sparseReleaseMeasureFixture.js": "030be18a79e139b0c43618eb315cdcf5a753c828ba2c8374dc342030c11d69c3",
+    "tests/kirchhoffTwoChannelReleaseMeasure.test.js": "1c338cb2fe95173e5820a92fe0b77d8ac930bfb0d1f3af746c33ea06f5a77148",
+    "scripts/physics/measure-two-channel-release-perf.mjs": "6e6345ad139e29edca95cb2cca8b99d148291824c75ee723529e9e85d37c319f"
+  },
+  "sourceAfter": {
+    "src/physics/kirchhoffTwoChannelRelease.js": "afc17e5579bad01444ff2cd84278a02e1f0cc2c0213836a340b91fda19fb0939",
+    "tests/fixtures/twoChannelReleaseMeasureReference.js": "f6c38945c2c7a56eaf18ee7c7600ea2aedf73f97e89fa3309996629e15c4e201",
+    "tests/fixtures/sparseReleaseMeasureFixture.js": "030be18a79e139b0c43618eb315cdcf5a753c828ba2c8374dc342030c11d69c3",
+    "tests/kirchhoffTwoChannelReleaseMeasure.test.js": "1c338cb2fe95173e5820a92fe0b77d8ac930bfb0d1f3af746c33ea06f5a77148",
+    "scripts/physics/measure-two-channel-release-perf.mjs": "6e6345ad139e29edca95cb2cca8b99d148291824c75ee723529e9e85d37c319f"
+  },
+  "sourceStable": true,
+  "sink": 169248.98926589845
+}

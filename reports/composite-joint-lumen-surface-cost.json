@@ -1,0 +1,15 @@
+{
+  "scope": "one strict-side physical14 finite-slip/force-map and full geometry derivatives; no complete dt or FPS",
+  "warmup": 30,
+  "samples": 200,
+  "meanMs": 0.421930445,
+  "medianMs": 0.3909590000000094,
+  "p95Ms": 0.5703749999999985,
+  "minMs": 0.3742499999999893,
+  "maxMs": 1.2040000000000077,
+  "reusedSurfaceWorkspace": true,
+  "detectorQueriesInMeasuredCall": 0,
+  "sourceSha256": "6608be7d567ded40d7cc11d222e8bc0e1d0c97211ffce2fa00de30ed296f5a68",
+  "fixture": "tests/kirchhoffCompositeJointLumenSurface.test.js:fixture, dt=.02",
+  "command": "node /tmp/oet-joint-lumen-surface-cost.mjs"
+}

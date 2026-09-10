@@ -905,6 +905,11 @@ export class VesselContactField {
         this.fallbackGeometry = geometry;
     }
 
+    certifyInsideBallCoordinates(x, y, z, radius) {
+        return this.packedLumenField?.certifyInsideBallCoordinates(x, y, z, radius)
+            ?? {supported:false,reason:'missing-packed-lumen-field'};
+    }
+
     querySphere(position, radius = 0, out = null) {
         if (!out) this.stats[STAT_RESULT_ALLOCATIONS]++;
         const target = out || createContactResult();
@@ -1015,7 +1020,9 @@ export class VesselContactField {
         hintBranchId = -1,
         knownNearWall = false,
         precomputedLength = -1,
-        precomputedSampleCount = 0
+        precomputedSampleCount = 0,
+        physicalGap = false,
+        finiteMeshContacts = false
     ) {
         // Reuse the exact closest triangle from this material segment's
         // previous query as a branch-and-bound upper bound. The BVH still
@@ -1025,6 +1032,16 @@ export class VesselContactField {
             this._bvhClosest.faceIndex = hintFaceIndex;
         }
         this._capsuleBranchHint = hintBranchId;
+        const previousPhysicalGap = this._physicalCapsuleGap;
+        // A finite-wall constraint needs an actual closest triangle at each
+        // sample. Refining only the SDF-selected winner can miss a different
+        // exact winner and make the contact gap discontinuous. This explicit
+        // mode shares the existing sample grid, sign and BVH implementation.
+        const previousFiniteMesh = this._finiteMeshContacts;
+        if (finiteMeshContacts && !this.fallbackGeometry?.boundsTree) throw new Error('Finite wall contacts require mesh BVH');
+        this._finiteMeshContacts = finiteMeshContacts === true;
+        this._physicalCapsuleGap = physicalGap === true || this._finiteMeshContacts;
+        try {
         return this.#queryCapsuleStored(
             x[index],
             y[index],
@@ -1040,9 +1057,28 @@ export class VesselContactField {
             precomputedLength,
             precomputedSampleCount
         );
+        } finally {
+            this._physicalCapsuleGap = previousPhysicalGap;
+            this._finiteMeshContacts = previousFiniteMesh;
+        }
     }
 
-    #queryCapsuleStored(
+    #queryCapsuleStored(ax, ay, az, bx, by, bz, radius, out,
+        knownInside = false, measureInsideClearance = false, knownNearWall = false,
+        precomputedLength = -1, precomputedSampleCount = 0) {
+        const previousSkip = this._skipBvhValidation;
+        try {
+            return this.#queryCapsuleStoredImpl(ax, ay, az, bx, by, bz, radius, out,
+                knownInside, measureInsideClearance, knownNearWall, precomputedLength, precomputedSampleCount);
+        } catch (error) {
+            this._capsuleEndpointX = NaN;
+            throw error;
+        } finally {
+            this._skipBvhValidation = previousSkip;
+        }
+    }
+
+    #queryCapsuleStoredImpl(
         ax,
         ay,
         az,
@@ -1088,6 +1124,8 @@ export class VesselContactField {
 
         this._skipBvhValidation = true;
         const reusesPreviousEndpoint =
+            this._capsuleEndpointFiniteMesh === (this._finiteMeshContacts === true) &&
+            this._capsuleEndpointPhysicalGap === (this._physicalCapsuleGap === true) &&
             ax === this._capsuleEndpointX &&
             ay === this._capsuleEndpointY &&
             az === this._capsuleEndpointZ &&
@@ -1106,7 +1144,8 @@ export class VesselContactField {
                 this._capsuleBranchHint,
                 knownNearWall
             );
-            this.stats[STAT_CAPSULE_SAMPLES]++;
+            if (this._finiteMeshContacts) this.#refineContactWithBvh(ax, ay, az, toolRadius, contact);
+            this.stats[STAT_CAPSULE_SAMPLES] += 1;
         }
         bestGap = contact.values[CONTACT_SIGNED_GAP];
         if (measureInsideClearance) allSamplesInside = contact.inside;
@@ -1129,7 +1168,8 @@ export class VesselContactField {
                 this._capsuleBranchHint,
                 knownNearWall
             );
-            this.stats[STAT_CAPSULE_SAMPLES]++;
+            if (this._finiteMeshContacts) this.#refineContactWithBvh(bx, by, bz, toolRadius, contact);
+            this.stats[STAT_CAPSULE_SAMPLES] += 1;
             if (measureInsideClearance) {
                 allSamplesInside = allSamplesInside && contact.inside;
             }
@@ -1138,6 +1178,8 @@ export class VesselContactField {
             this._capsuleEndpointY = by;
             this._capsuleEndpointZ = bz;
             this._capsuleEndpointRadius = toolRadius;
+            this._capsuleEndpointPhysicalGap = this._physicalCapsuleGap === true;
+            this._capsuleEndpointFiniteMesh = this._finiteMeshContacts === true;
             endGap = contact.values[CONTACT_SIGNED_GAP];
             normalAgreement =
                 startNormalX * contact.inward.values[0] +
@@ -1156,10 +1198,12 @@ export class VesselContactField {
             this._capsuleEndpointY = by;
             this._capsuleEndpointZ = bz;
             this._capsuleEndpointRadius = toolRadius;
+            this._capsuleEndpointPhysicalGap = this._physicalCapsuleGap === true;
+            this._capsuleEndpointFiniteMesh = this._finiteMeshContacts === true;
         }
 
         const needsInteriorSamples = sampleCount > 1 &&
-            (Math.min(startGap, endGap) <= this.voxelSize || normalAgreement < 0.85);
+            (this._physicalCapsuleGap === true || Math.min(startGap, endGap) <= this.voxelSize || normalAgreement < 0.85);
         for (let sampleIndex = 1; needsInteriorSamples && sampleIndex < sampleCount; sampleIndex++) {
             const t = sampleIndex / sampleCount;
             contact = this.#querySphereCoordinates(
@@ -1172,7 +1216,8 @@ export class VesselContactField {
                 this._capsuleBranchHint,
                 knownNearWall
             );
-            this.stats[STAT_CAPSULE_SAMPLES]++;
+            if (this._finiteMeshContacts) this.#refineContactWithBvh(ax + dx * t, ay + dy * t, az + dz * t, toolRadius, contact);
+            this.stats[STAT_CAPSULE_SAMPLES] += 1;
             if (measureInsideClearance) {
                 allSamplesInside = allSamplesInside && contact.inside;
             }
@@ -1186,7 +1231,7 @@ export class VesselContactField {
         }
         this._skipBvhValidation = false;
         const winnerRefinedWithBvh =
-            bestGap <= this.capsuleBvhValidationGap;
+            !this._finiteMeshContacts && bestGap <= this.capsuleBvhValidationGap;
         if (winnerRefinedWithBvh) {
             bestT = bestSampleIndex / sampleCount;
             this.#refineContactWithBvh(
@@ -1587,6 +1632,7 @@ export class VesselContactField {
         const centerlineValues = centerline.values;
         state.faceIndex = -1;
         if (
+            this._physicalCapsuleGap !== true &&
             centerline.found &&
             centerlineValues[CENTERLINE_SAFE_DISTANCE] > safeCoreThreshold
         ) {
@@ -2660,7 +2706,7 @@ export class VesselContactField {
             : this.bvhValidationDistance;
         if (
             !boundsTree ||
-            (Math.abs(signedGap) > validationDistance && (radius <= 0 || signedGap >= -0.2))
+            (!this._finiteMeshContacts && Math.abs(signedGap) > validationDistance && (radius <= 0 || signedGap >= -0.2))
         ) return false;
         this._bvhPoint.set(x, y, z);
         const hintedFace = this._bvhClosest.faceIndex;

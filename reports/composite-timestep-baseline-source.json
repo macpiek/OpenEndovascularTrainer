@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-06T23:20:09.372Z",
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "scripts/physics/benchmark-composite-timestep.mjs": "2a62eac8258e5a0213a8f4d87a4c960f6f8f6e1d158f09c082668512de466adc",
+    "scripts/physics/helpers/compositeTimeStepBenchmark.js": "0b936ae870fd07343b309876f0e907f91c0b838a3b7a6e9c8814f1f9d1198c2d"
+  },
+  "immutableBaseline": {
+    "path": "/tmp/oet-composite-timestep-initial.json",
+    "sha256": "818defbee7a2e39fcb9d835ef23e81b62e8d9e146f273e4221766336014a1db9",
+    "snapshot": "/tmp/oet-composite-timestep-snapshot-KhSyxw",
+    "snapshotManifestSha": "d0974346e8451089c98b104cebceeff3027bd9827935b06c8e52a7fbe46c491e",
+    "snapshotIntact": true
+  },
+  "profile": {
+    "path": "/tmp/oet-composite-timestep-initial.json.cpuprofile",
+    "sha256": "2f14e3acc2a747c1d23e87238499d3709a6fefe9b17cb8f1fbacb9c316344ddc"
+  },
+  "trace": {
+    "root": "/tmp/oet-composite-timestep-trace-ucJBlC",
+    "path": "/tmp/oet-composite-timestep-cold310-trace.json",
+    "sha256": "67538e390b1968b1276aad9bfaea934859bdbfe03dbb9c9ceaa88ab88494515f",
+    "originalTimeStepSha": "72a69161026fa0e6fcdf6c38041cf06f7660fe59858d04f68d4c302da81c6619",
+    "instrumentedTimeStepSha": "ad2db20f1a72bd75a0deccb598b6533da867235e6111c5a9320fac91070677fd"
+  },
+  "validation": {
+    "frozenTimeStepAndWallTests": 18,
+    "passed": 18,
+    "syntax": true,
+    "diffCheck": true,
+    "allPairedHashesMatch": true,
+    "allOriginalStatesUnchanged": true
+  },
+  "sourceScope": "No production source changes. Only new benchmark/helper. Diagnostic TimeStep edits exist solely in a separate copied trace snapshot.",
+  "harnessRevision": "Executed timing baseline preserves snapshot v1. Frozen harness v2 adds explicit per-cell material hash, pair comparison fields, directory sealing, source-mass convention guard and correct even-N summary median; numerical fixture and execution loop are unchanged. Trace v2 was executed separately. Baseline raw rows and immutable snapshot remain unchanged.",
+  "handoff": "Frozen; parent may adopt the harness. No further harness edits by this worker."
+}

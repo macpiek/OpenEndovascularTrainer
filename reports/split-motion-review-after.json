@@ -1,0 +1,67 @@
+{
+  "scope": "Two bounded post-guard review proofs; no full-scene or performance claim",
+  "tiltedWall": {
+    "initial": {
+      "adaptationMm": 1.87354678523761e-8,
+      "bendTwistRad": 0,
+      "elasticEnergy": 0
+    },
+    "actual": {
+      "adaptationMm": 2.386899020579232e-7,
+      "bendTwistRad": 0.07894805165337379,
+      "elasticEnergy": 0.1558198714965944
+    },
+    "independentFrameAngleRad": 0.07894805165336531,
+    "worldConverged": false,
+    "diagnostics": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "physicalPasses": 1,
+      "biasPasses": 2,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": true,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [],
+      "biasElasticEnergyDelta": 0.1558198714965944,
+      "certified": false,
+      "biasHardStrainMaximum": 2.3760927647664687e-7,
+      "finalPhysicalResidualSettled": false,
+      "finishVelocityMaximumChange": 1.963480393492355e-14,
+      "physicalKKTResidualMm": 4.1359030627651384e-25,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 1.7496861847463106e-24,
+        "adaptationMm": 1.87354678523761e-8
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 0.07894805165337379,
+        "adaptationMm": 2.386899020579232e-7
+      },
+      "maximumOutwardContactVelocity": 0
+    }
+  },
+  "relabelledContact": {
+    "id": "stable-runtime-slot",
+    "currentInner": "inner-new",
+    "currentOuter": "outer-new",
+    "currentFn": 0,
+    "currentFt": [
+      0,
+      0
+    ],
+    "savedInner": "inner-old",
+    "savedFn": 2,
+    "savedFt": [
+      0.3,
+      0
+    ],
+    "limitations": [
+      "contact-identity-changed-during-bias"
+    ],
+    "historyCommits": 0
+  },
+  "checksPassed": 2
+}
