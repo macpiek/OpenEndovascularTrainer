@@ -2,6 +2,7 @@ import { projectCoupledEllipse } from './kirchhoffCoupledFrictionSolver.js';
 import { measureCoupledLoadKKT, solveCoupledLoadQP } from './kirchhoffCoupledLoadSolver.js';
 import { createCoulombBandLayout, createCoulombBandLU } from './kirchhoffCoulombBandLU.js';
 import { createCoulombSectionLU } from './kirchhoffCoulombSectionLU.js';
+import { fillKirchhoffGramMobilities } from './kirchhoffGramScaling.js';
 
 /** One fixed-load QP supplies a mechanically informed starting point, then
  * the joint Newton equations close normal load and friction simultaneously.
@@ -181,10 +182,12 @@ export function solveCoulombNewton(matrix, rhs, lower, upper, count, band, group
         if (group.mu) group.mu = [...group.mu];
     }
     const frictionRows = new Uint8Array(n);
-    const mobilities = general ? new Float64Array(n) : null, zeroRows = general ? new Uint8Array(n) : null;
+    const mobilities = new Float64Array(n), zeroRows = general ? new Uint8Array(n) : null;
+    if (!general) fillKirchhoffGramMobilities(matrix, n, band, options.gramDiagonalRoundoff, mobilities);
+    const initialIncrement = options.initialIncrement?.every(Number.isFinite) ? options.initialIncrement : undefined;
     for (const group of groups) for (const row of group.rows) frictionRows[row] = 1;
     for (let i = 0; i < n; i++) {
-        x[i] = Math.max(lower[i], Math.min(upper[i], options.initialIncrement?.[i] ?? 0));
+        x[i] = Math.max(lower[i], Math.min(upper[i], initialIncrement?.[i] ?? 0));
         if (general) {
             let maximum = 0;
             for (let j = starts[i]; j <= ends[i]; j++) {
@@ -198,7 +201,7 @@ export function solveCoulombNewton(matrix, rhs, lower, upper, count, band, group
             zeroRows[i] = Number(maximum === 0);
             scales[i] = 1 / Math.sqrt(mobilities[i]);
         } else {
-            scales[i] = 1 / Math.sqrt(matrix[i * band] || 1);
+            scales[i] = 1 / Math.sqrt(mobilities[i]);
             for (let j = Math.max(0, i - band + 1); j <= i; j++) {
                 const value = matrix[i * band + i - j];
                 if (!layout || value !== 0) A[offsets[i] + j] = A[offsets[j] + i] = value;
@@ -210,7 +213,7 @@ export function solveCoulombNewton(matrix, rhs, lower, upper, count, band, group
         let recovered = 0;
         for (let i = 0; i < n; i++) {
             out[i] = Math.max(lower[i], Math.min(upper[i], input[i]));
-            const mobility = general ? mobilities[i] : A[offsets[i] + i];
+            const mobility = mobilities[i];
             if (recoverBounds && !frictionRows[i] && mobility > 0) {
                 // Use the exact natural-map branch, not a small-force cutoff.
                 // FB cancellation can leave positive force at a separated
@@ -237,7 +240,7 @@ export function solveCoulombNewton(matrix, rhs, lower, upper, count, band, group
         for (let i = 0; i < n; i++) {
             let v = rhs[i]; for (let j = starts[i]; j <= ends[i]; j++) v -= A[offsets[i] + j] * input[j];
             r[i] = v;
-            const rho = 1 / (general ? mobilities[i] : A[offsets[i] + i] || 1), target = input[i] + rho * v;
+            const rho = 1 / mobilities[i], target = input[i] + rho * v;
             let da, db;
             if (options.normalMap !== 'projection' && (Number.isFinite(lower[i]) && upper[i] === Infinity || lower[i] === -Infinity && Number.isFinite(upper[i]))) {
                 // Fischer-Burmeister complementarity has a continuously
@@ -267,8 +270,7 @@ export function solveCoulombNewton(matrix, rhs, lower, upper, count, band, group
             const group = groups[g], [i, j] = group.rows;
             const dynamic = group.normalRow != null;
             const rawLoad = dynamic ? group.normalLambda + input[group.normalRow] : 1, load = Math.max(0, rawLoad);
-            const mu = dynamic ? group.mu : group.radii, rho = general ? 1 / Math.max(mobilities[i], mobilities[j])
-                : 1 / Math.max(A[offsets[i] + i], A[offsets[j] + j], 1e-30);
+            const mu = dynamic ? group.mu : group.radii, rho = 1 / Math.max(mobilities[i], mobilities[j]);
             const u = input[i] + group.lambda[0], v = input[j] + group.lambda[1];
             const p = projectLoadEllipseDerivative(u + rho * r[i], v + rho * r[j], load, mu, scratch);
             finalGroups[g].radii[0] = load * mu[0]; finalGroups[g].radii[1] = load * mu[1];
@@ -346,6 +348,7 @@ export function solveCoulombNewton(matrix, rhs, lower, upper, count, band, group
     const result = { increment: x, residual, free, lower: lo, upper: hi, allGroups: finalGroups,
         groups: finalGroups.filter(group => group.radii.every(radius => radius > 0)), diagnostics: {
             status, converged: status === 'converged', iterations, factorizations, backtracks, gradientFallbacks, boundRecoveries,
+            discardedNonfiniteInitialIncrement: options.initialIncrement != null && initialIncrement == null,
             maximumResidual: kkt.maximumResidual, frictionResidual: kkt.groupResidual, coneViolation: kkt.coneViolation,
             rowCount: n, band, groupCount: groups.length, normalLoadIterations: 0, method: 'simultaneous-coulomb-newton',
             normalMap: options.normalMap ?? 'fischer-burmeister', ...(general ? { matrixFormat, linearSolver: bandLU?'band-lu':'dense-lu' } : {}),

@@ -261,7 +261,18 @@ export function solveActiveCondensedCoupledQP(matrix, rhs, lower, upper, count, 
             lambda: Array.from(group.rows, (row, i) => group.lambda[i] + base[row]),
             normalRow: group.normalRow == null ? undefined : map[group.normalRow],
             normalLambda: group.normalRow == null ? group.normalLambda : group.normalLambda + base[group.normalRow] }));
-        const localOptions = { ...options, initialFree };
+        if (!workspace.diagonalRoundoff || workspace.diagonalRoundoff.length < nr)
+            workspace.diagonalRoundoff = new Float64Array(grownCapacity(nr));
+        const gramDiagonalRoundoff = workspace.diagonalRoundoff.subarray(0, nr);
+        for (let i = 0; i < nr; i++) {
+            const row = rows[i], c = couplings.get(row), column = responses.get(row);
+            let magnitude = Math.abs(valueAt(matrix, band, row, row));
+            for (let k = 0; k < c.length; k += 2) magnitude += Math.abs(c[k + 1] * column[c[k]]);
+            // Include the eliminated solve and the cancellation in the Schur
+            // diagonal. This bounds numerical scaling only, never edits A.
+            gramDiagonalRoundoff[i] = 32 * Number.EPSILON * Math.max(1, ne + c.length) * magnitude;
+        }
+        const localOptions = { ...options, initialFree, gramDiagonalRoundoff };
         schurMs+=performance.now()-schurStarted;
         const contactStarted=performance.now();
         result = dynamic && options.simultaneousCoulomb ? solveSeededCoulombNewton(A, b, lo, hi, nr, nr, localGroups, localOptions)

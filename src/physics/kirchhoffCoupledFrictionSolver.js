@@ -174,6 +174,18 @@ export function solveCoupledFrictionQP(matrix, rhs, lower, upper, count, band, g
         }
         reducedFree.fill(0, 0, reducedCount);
         for (let i = 0; i < count; i++) if (rowGroup[i] < 0) reducedFree[map[i]] = fullFree[i];
+        // Tangent reduction changes row indices and can combine a friction
+        // pair. Source scaling bounds must follow that transformation.
+        if (options.gramDiagonalRoundoff) {
+            if (!workspace.reducedRoundoff || workspace.reducedRoundoff.length < reducedCount)
+                workspace.reducedRoundoff = new Float64Array(grownCapacity(reducedCount));
+            const bounds = workspace.reducedRoundoff.subarray(0, reducedCount);
+            bounds.fill(0);
+            for (let i = 0; i < count; i++) bounds[map[i]] += Math.abs(coefficients[i]) * Math.sqrt(options.gramDiagonalRoundoff[i]);
+            for (let i = 0; i < reducedCount; i++) bounds[i] = bounds[i] ** 2 +
+                32 * Number.EPSILON * count * Math.abs(reducedMatrix[i * reducedBand]);
+            innerOptions.gramDiagonalRoundoff = bounds;
+        }
         const stepResult = solveCoupledBandQP(reducedMatrix, reducedRhs, reducedLower, reducedUpper, reducedCount, reducedBand, innerOptions);
         for (let i = 0; i < count; i++) if (rowGroup[i] < 0) fullFree[i] = stepResult.free[map[i]];
         factorizations += stepResult.diagnostics.factorizations; factorUpdates += stepResult.diagnostics.factorUpdates ?? 0; innerIterations += stepResult.diagnostics.iterations;

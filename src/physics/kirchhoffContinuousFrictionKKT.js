@@ -11,7 +11,10 @@ export function evaluateKirchhoffContinuousFrictionKKT(lambda, displacement, nor
     out.coneViolation = out.residualMm = 0;
     for (let i = 0; i < 2; i++) {
         if (!Number.isFinite(lambda[i]) || !Number.isFinite(displacement[i]) || !Number.isFinite(mu[i]) || mu[i] < 0)
-            throw new RangeError('Invalid friction data');
+            throw new RangeError('Invalid friction data', { cause: {
+                axis: i, lambda: Array.from(lambda), displacement: Array.from(displacement),
+                normalLambda, mu: Array.from(mu)
+            } });
         out.axes[i] = normalLambda * mu[i];
         if (!Number.isFinite(out.axes[i])) throw new RangeError('Non-finite friction radius');
         out.displacementResidual[i] = 0;

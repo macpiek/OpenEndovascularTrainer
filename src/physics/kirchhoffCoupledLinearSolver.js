@@ -1,5 +1,6 @@
 import { deleteKirchhoffCholeskyRow } from './kirchhoffCholeskyDelete.js';
 import { createKirchhoffLinearKernel } from './kirchhoffLinearKernel.js';
+import { fillKirchhoffGramMobilities } from './kirchhoffGramScaling.js';
 
 function grownCapacity(required, current = 0) {
     let capacity = Math.max(16, current);
@@ -42,8 +43,9 @@ export function solveCoupledBandQP(matrix, rhs, lower, upper, count, band, optio
         workspace.deleteScratch={};
     }
     const { kernel, scale, x, lo, hi, free, residual, factor, direction, scaled, b, solveRhs, freeRows, rowMap, factorStarts, sourceStarts } = workspace;
+    fillKirchhoffGramMobilities(matrix, count, band, options.gramDiagonalRoundoff, scale);
     for (let i = 0; i < count; i++) {
-        scale[i] = 1 / Math.sqrt(matrix[i * band] || 1);
+        scale[i] = 1 / Math.sqrt(scale[i]);
         lo[i] = lower[i] / scale[i]; hi[i] = upper[i] / scale[i];
         x[i] = Math.max(lo[i], Math.min(hi[i], 0));
         b[i] = rhs[i] * scale[i];

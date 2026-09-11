@@ -4,6 +4,48 @@ import fs from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { projectLoadEllipseDerivative, solveSeededCoulombNewton, solveCoulombNewton } from '../src/physics/kirchhoffCoulombNewtonSolver.js';
 import { measureCoupledLoadKKT } from '../src/physics/kirchhoffCoupledLoadSolver.js';
+import { fillKirchhoffGramMobilities } from '../src/physics/kirchhoffGramScaling.js';
+
+test('captured Schur roundoff case converges against its untouched original equations', () => {
+    const p = JSON.parse(fs.readFileSync(new URL('../reports/friction-roundoff-reproducer-2026-09-10.json', import.meta.url)),
+        (_, v) => v === 'Infinity' ? Infinity : v === '-Infinity' ? -Infinity : v);
+    const args = ['matrix', 'rhs', 'lower', 'upper'].map(key => Float64Array.from(p[key]));
+    const before = args.map(a => a.slice());
+    const result = solveSeededCoulombNewton(...args, p.count, p.band, p.groups);
+    assert.ok(result.diagnostics.converged, JSON.stringify(result.diagnostics));
+    assert.ok(result.increment.every(Number.isFinite));
+    const residual = args[1].slice();
+    for (let i = 0; i < p.count; i++) {
+        residual[i] -= args[0][i * p.band] * result.increment[i];
+        for (let j = 0; j < i; j++) {
+            const a = args[0][i * p.band + i - j];
+            residual[i] -= a * result.increment[j]; residual[j] -= a * result.increment[i];
+        }
+    }
+    const finalGroups = p.groups.map(g => ({ ...g, radii: g.mu.map(mu =>
+        mu * Math.max(0, g.normalLambda + result.increment[g.normalRow])) }));
+    assert.ok(measureCoupledLoadKKT(residual, result.increment, args[2], args[3], finalGroups).maximumResidual <= 1e-8);
+    assert.deepEqual(args, before, 'roundoff handling must not clamp the matrix or change bounds');
+});
+
+test('Gram scaling preserves tiny positive mobilities and rejects genuinely negative diagonals', () => {
+    const out = new Float64Array(2);
+    fillKirchhoffGramMobilities([1e-25, 0, 2, 0], 2, 2, null, out);
+    assert.deepEqual([...out], [1e-25, 2]);
+    fillKirchhoffGramMobilities([-1e-18, 0, 2, 0], 2, 2, null, out);
+    assert.deepEqual([...out], [1, 2]);
+    assert.throws(() => fillKirchhoffGramMobilities([-0.01, 0, 2, 0], 2, 2, null, out), /exceeds roundoff/);
+    assert.throws(() => fillKirchhoffGramMobilities([NaN], 1, 1, null, out), /Non-finite/);
+});
+
+test('Newton discards a nonfinite initial guess without changing physical contact data', () => {
+    const p = problem(), before = structuredClone(p);
+    const r = solveCoulombNewton(p.matrix, p.rhs, p.lower, p.upper, 3, 3, p.groups,
+        { initialIncrement: new Float64Array([NaN, Infinity, 0]) });
+    assert.equal(r.diagnostics.discardedNonfiniteInitialIncrement, true);
+    assert.ok(r.diagnostics.converged);
+    assert.deepEqual(p, before);
+});
 
 for (const [u, v, load, mu] of [[3, 4, .3, [.2, .4]], [.08, .01, .3, [.2, .4]], [0, 3, .04, [.015, .006]],
     [.001, .002, .5, [.2, .3]], [.2, .3, .4, [0, .2]]])
