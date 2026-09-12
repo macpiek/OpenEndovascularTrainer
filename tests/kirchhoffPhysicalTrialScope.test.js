@@ -64,6 +64,12 @@ test('physical rollback agrees with a complete snapshot after real coupled apply
         restore(trial);
         const fold = c._coupledFoldRows;
         const derived = new Set([fold.geometry, fold.measurement, ...fold.storage.map(storage => storage.frames)]);
+        const omitDerived = object => {
+            if (!object || typeof object !== 'object' || derived.has(object)) return;
+            derived.add(object);
+            if (!ArrayBuffer.isView(object)) for (const value of Object.values(object)) omitDerived(value);
+        };
+        for (const object of trial.contactTrial?.derived ?? []) omitDerived(object);
         assertCompleteState(base, derived);
         // Continue the real solver with exactly the candidate it just measured.
         restore(candidate);

@@ -3,6 +3,7 @@ import test from 'node:test';
 import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
 import { prepareKirchhoffCoupledConeRepair as prepare, applyKirchhoffCoupledConeRepair as apply } from '../src/physics/kirchhoffCoupledConeRepair.js';
 import { measureRodSystemCorrection } from './helpers/rodSystemMomentum.js';
+import { measureKirchhoffCoupledFrictionResidual } from '../src/physics/kirchhoffCoupledFrictionRows.js';
 
 const dt = 1 / 120;
 function fixture(lambda = [.2000000001, 0], mu = [.2, .2]) {
@@ -25,6 +26,43 @@ const state = f => JSON.stringify([...[f.inner, f.outer].map(b => Object.fromEnt
     'previousX', 'previousY', 'previousZ', 'velocityX', 'velocityY', 'velocityZ',
     'angularVelocityX', 'angularVelocityY', 'angularVelocityZ', 'adaptationLambdaX'
 ].map(key => [key, [...b[key]]]))), f.contact]);
+
+test('repair from the immediate residual batch matches a fresh build including reciprocal reactions', () => {
+    for (const mu of [[.2, .2], [.2, .4], [0, .2], [0, 0]]) {
+        const a = fixture([.3, -.5], mu), b = fixture([.3, -.5], mu);
+        const limits = { maximumPositionCorrectionMm: 10, maximumAngleCorrectionRad: 10 };
+        const residual = measureKirchhoffCoupledFrictionResidual(b.constraint, dt);
+        const reference = prepare(a.constraint, dt, limits);
+        const reused = prepare(b.constraint, dt, { ...limits, preparedBatch: residual._batch });
+        assert.equal(reused.batch, residual._batch);
+        assert.deepEqual(reused.increment, reference.increment);
+        for (let i = 0; i < 2; i++) {
+            assert.deepEqual(reused.responses[i].correction, reference.responses[i].correction);
+            assert.deepEqual(reused.responses[i].after, reference.responses[i].after);
+        }
+        apply(reference); apply(reused);
+        assert.equal(state(a), state(b));
+        assert.throws(() => prepare(b.constraint, dt, { ...limits, preparedBatch: residual._batch }), /fresh/);
+    }
+});
+
+test('residual promotion rejects load, material, identity and timestep changes before mutation', () => {
+    for (const change of ['load', 'mu', 'identity', 'dt', 'tangent', 'normal', 'kind', 'segment']) {
+        const f = fixture();
+        const batch = measureKirchhoffCoupledFrictionResidual(f.constraint, dt)._batch;
+        if (change === 'load') f.contact.normalLambda = 2;
+        if (change === 'mu') f.constraint.axialFriction = .5;
+        if (change === 'identity') f.record.id = 'replacement';
+        if (change === 'tangent') f.contact.tangentLambda[0] = 7;
+        if (change === 'normal') f.contact.normal[0] = .1;
+        if (change === 'kind') f.record.kind = 'distal-rim';
+        if (change === 'segment') f.record._innerSegmentIndex = 1;
+        const before = state(f);
+        assert.throws(() => prepare(f.constraint, change === 'dt' ? dt * 2 : dt, { preparedBatch: batch }), /changed|fresh/);
+        assert.equal(state(f), before);
+        assert.ok(batch.kinematicsOnly);
+    }
+});
 
 test('numerical cone excess receives reciprocal positions and local-frame moments with exactly the projected force', () => {
     const f = fixture(), before = state(f), velocities = [f.inner, f.outer].map(b => [...b.velocityX]);

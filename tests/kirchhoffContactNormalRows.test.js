@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
 import { buildKirchhoffContactNormalGradients } from '../src/physics/kirchhoffContactNormalRows.js';
+import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../src/physics/kirchhoffCoupledTrialState.js';
 
 const radius = 0.4445, lumen = 0.485, fillet = 0.15;
 const v = values => new THREE.Vector3(...values);
@@ -52,6 +53,26 @@ function updateRecord(f) {
     f.record.gap = g.gap; f.record.normal = g.normal; f.record.innerT = g.t;
     f.record.innerWeights = [1 - g.t, g.t];
 }
+
+test('compact rollback rebuilds exactly the original fillet Jacobian after changed candidate geometry', () => {
+    const f = fixture();
+    f.constraint._kirchhoffRuntimeRecordPool = [[f.record]];
+    f.constraint.kirchhoffContacts = [f.record];
+    const expected = structuredClone(buildKirchhoffContactNormalGradients(f.constraint, f.record));
+    const snapshot = captureKirchhoffCoupledTrialState(f.constraint,
+        { physicalStateOnly: true, frozenFrictionBatches: true, reusePropertyLayout: true });
+    assert.ok(snapshot.contactTrial.derived.size > 0);
+    for (const shift of [.02, -.03, .05]) {
+        f.inner.y[0] += shift;
+        updateRecord(f);
+        const trial = buildKirchhoffContactNormalGradients(f.constraint, f.record);
+        assert.notDeepEqual(trial, expected);
+        f.record.manifoldContact.normalLambda = 99;
+        restoreKirchhoffCoupledTrialState(snapshot);
+        assert.equal(f.record.manifoldContact.normalLambda, 2);
+        assert.deepEqual(buildKirchhoffContactNormalGradients(f.constraint, f.record), expected);
+    }
+});
 
 test('near-axis fillet Jacobian retains the radial branch selected by the runtime collector', () => {
     const f = fixture();

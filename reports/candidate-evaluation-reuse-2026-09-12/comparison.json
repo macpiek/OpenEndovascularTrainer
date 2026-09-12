@@ -1,0 +1,1052 @@
+{
+  "scope": "Node physics replay; same depths and defaults, not the exact browser contact history or rendered FPS",
+  "complete": true,
+  "steps": 2578,
+  "poseMismatches": 0,
+  "physicalMismatches": 0,
+  "decisionMismatches": 0,
+  "phases": [
+    {
+      "scenario": "wire-alone",
+      "phase": "wire-feed-309",
+      "steps": 843,
+      "before": {
+        "fullMs": {
+          "mean": 1.6450674042553146,
+          "p50": 1.7813750000000255,
+          "p95": 2.4314589999999043,
+          "max": 2.5532499999999345
+        },
+        "costs": {
+          "assemblyMs": 0.07078653191486875,
+          "solveMs": 0.7484195106383091,
+          "applyMs": 0.017615106382968503,
+          "snapshotMs": 0.2307109361702308,
+          "restoreMs": 0,
+          "measureMs": 0.3151845531914892,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 2.6382978723404253,
+          "applyCalls": 2.6382978723404253,
+          "measureCalls": 4.276595744680851,
+          "fullMeasureCalls": 4.276595744680851,
+          "snapshotObjects": 309,
+          "snapshotBytes": 463301.93617021275,
+          "snapshots": 1.6382978723404256,
+          "restores": 0,
+          "condensedSetupMs": 0.15230227659576293,
+          "schurMs": 0.0871435957446678,
+          "contactSolveMs": 0.01114993617022961,
+          "reconstructionMs": 0.027072787234083854,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 1.608853723404246,
+          "p50": 1.742082999999866,
+          "p95": 2.421542000000045,
+          "max": 2.4361249999999472
+        },
+        "costs": {
+          "assemblyMs": 0.06912057446807206,
+          "solveMs": 0.7409930212765892,
+          "applyMs": 0.01753082978720197,
+          "snapshotMs": 0.21384299999997294,
+          "restoreMs": 0,
+          "measureMs": 0.3067740212766045,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 2.6382978723404253,
+          "applyCalls": 2.6382978723404253,
+          "measureCalls": 4.276595744680851,
+          "fullMeasureCalls": 4.276595744680851,
+          "snapshotObjects": 309,
+          "snapshotBytes": 463301.93617021275,
+          "snapshots": 1.6382978723404256,
+          "restores": 0,
+          "condensedSetupMs": 0.14994510638295672,
+          "schurMs": 0.08436080851065816,
+          "contactSolveMs": 0.010811127659571092,
+          "reconstructionMs": 0.025983893617010718,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "wire-alone",
+      "phase": "wire-hold",
+      "steps": 60,
+      "before": {
+        "fullMs": {
+          "mean": 0.7418999833333373,
+          "p50": 0.5036669999999503,
+          "p95": 1.1480000000001382,
+          "max": 1.473792000000003
+        },
+        "costs": {
+          "assemblyMs": 0.03978193333332835,
+          "solveMs": 0.41133259999996125,
+          "applyMs": 0.00961733333333541,
+          "snapshotMs": 0.06173609999999977,
+          "restoreMs": 0,
+          "measureMs": 0.13126810000000358,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.4333333333333333,
+          "applyCalls": 1.4333333333333333,
+          "measureCalls": 1.8666666666666667,
+          "fullMeasureCalls": 1.8666666666666667,
+          "snapshotObjects": 133.9,
+          "snapshotBytes": 200768.96666666667,
+          "snapshots": 0.43333333333333335,
+          "restores": 0,
+          "condensedSetupMs": 0.08449725000001915,
+          "schurMs": 0.04991588333333539,
+          "contactSolveMs": 0.005327783333310284,
+          "reconstructionMs": 0.014745766666658255,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 0.7242139166666789,
+          "p50": 0.5072500000001128,
+          "p95": 1.0887499999998909,
+          "max": 1.4920420000000831
+        },
+        "costs": {
+          "assemblyMs": 0.037936166666687164,
+          "solveMs": 0.4004562000000078,
+          "applyMs": 0.009670150000018415,
+          "snapshotMs": 0.06148823333332227,
+          "restoreMs": 0,
+          "measureMs": 0.12720545000003464,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.4333333333333333,
+          "applyCalls": 1.4333333333333333,
+          "measureCalls": 1.8666666666666667,
+          "fullMeasureCalls": 1.8666666666666667,
+          "snapshotObjects": 133.9,
+          "snapshotBytes": 200768.96666666667,
+          "snapshots": 0.43333333333333335,
+          "restores": 0,
+          "condensedSetupMs": 0.08296403333335244,
+          "schurMs": 0.04852019999999963,
+          "contactSolveMs": 0.005250733333336181,
+          "reconstructionMs": 0.014003583333339975,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-20",
+      "steps": 47,
+      "before": {
+        "fullMs": {
+          "mean": 0.8051205319148973,
+          "p50": 0.505666999999903,
+          "p95": 2.0581249999995634,
+          "max": 7.6068750000004
+        },
+        "costs": {
+          "assemblyMs": 0.10461517021279546,
+          "solveMs": 0.44703627659569933,
+          "applyMs": 0.013221617021246586,
+          "snapshotMs": 0,
+          "restoreMs": 0,
+          "measureMs": 0.07442640425534457,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.0212765957446808,
+          "applyCalls": 1.0212765957446808,
+          "measureCalls": 1.0212765957446808,
+          "fullMeasureCalls": 1.0212765957446808,
+          "snapshotObjects": 0,
+          "snapshotBytes": 0,
+          "snapshots": 0,
+          "restores": 0,
+          "condensedSetupMs": 0.028829765957420643,
+          "schurMs": 0.009053170212755117,
+          "contactSolveMs": 0.016774914893582543,
+          "reconstructionMs": 0.004556787234039493,
+          "seedMs": 0.00818172340426285
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 0.7841542765957727,
+          "p50": 0.49295800000027157,
+          "p95": 2.1402499999999236,
+          "max": 7.3699579999997695
+        },
+        "costs": {
+          "assemblyMs": 0.10405410638301699,
+          "solveMs": 0.4347907021276714,
+          "applyMs": 0.013531042553214766,
+          "snapshotMs": 0,
+          "restoreMs": 0,
+          "measureMs": 0.07137768085108968,
+          "geometryReuseCount": 0.9787234042553191,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.0212765957446808,
+          "applyCalls": 1.0212765957446808,
+          "measureCalls": 1.0212765957446808,
+          "fullMeasureCalls": 1.0212765957446808,
+          "snapshotObjects": 0,
+          "snapshotBytes": 0,
+          "snapshots": 0,
+          "restores": 0,
+          "condensedSetupMs": 0.027802297872341945,
+          "schurMs": 0.008773936170171586,
+          "contactSolveMs": 0.015830680851011376,
+          "reconstructionMs": 0.00472880851066293,
+          "seedMs": 0.007931765957437165
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-50",
+      "steps": 70,
+      "before": {
+        "fullMs": {
+          "mean": 0.46963036170211825,
+          "p50": 0.4396670000000995,
+          "p95": 0.5362500000001091,
+          "max": 1.5801249999999527
+        },
+        "costs": {
+          "assemblyMs": 0.009572659574432497,
+          "solveMs": 0.2933128723404015,
+          "applyMs": 0.005843914893598303,
+          "snapshotMs": 0,
+          "restoreMs": 0,
+          "measureMs": 0.024179914893601506,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1,
+          "applyCalls": 1,
+          "measureCalls": 1,
+          "fullMeasureCalls": 1,
+          "snapshotObjects": 0,
+          "snapshotBytes": 0,
+          "snapshots": 0,
+          "restores": 0,
+          "condensedSetupMs": 0.03148408510641604,
+          "schurMs": 0.010280999999975664,
+          "contactSolveMs": 0.004206723404258036,
+          "reconstructionMs": 0.001189765957415728,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 0.44349553191493235,
+          "p50": 0.4275830000001406,
+          "p95": 0.5632089999999152,
+          "max": 0.6480420000002596
+        },
+        "costs": {
+          "assemblyMs": 0.009824382978761006,
+          "solveMs": 0.29129600000003925,
+          "applyMs": 0.006230382978725523,
+          "snapshotMs": 0,
+          "restoreMs": 0,
+          "measureMs": 0.02519855319151441,
+          "geometryReuseCount": 1,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1,
+          "applyCalls": 1,
+          "measureCalls": 1,
+          "fullMeasureCalls": 1,
+          "snapshotObjects": 0,
+          "snapshotBytes": 0,
+          "snapshots": 0,
+          "restores": 0,
+          "condensedSetupMs": 0.03159842553192535,
+          "schurMs": 0.011182617021278658,
+          "contactSolveMs": 0.004230446808542957,
+          "reconstructionMs": 0.0012393404255353164,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-100",
+      "steps": 116,
+      "before": {
+        "fullMs": {
+          "mean": 1.3362977872339952,
+          "p50": 1.2570419999997284,
+          "p95": 1.7673750000003565,
+          "max": 2.5980839999997443
+        },
+        "costs": {
+          "assemblyMs": 0.026147085106419988,
+          "solveMs": 0.7526355957447293,
+          "applyMs": 0.014992765957434498,
+          "snapshotMs": 0.2354999999999873,
+          "restoreMs": 0,
+          "measureMs": 0.1069858297872262,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.851063829787234,
+          "applyCalls": 1.851063829787234,
+          "measureCalls": 2.702127659574468,
+          "fullMeasureCalls": 2.702127659574468,
+          "snapshotObjects": 255.27659574468086,
+          "snapshotBytes": 562757.2765957447,
+          "snapshots": 0.851063829787234,
+          "restores": 0,
+          "condensedSetupMs": 0.07355478723405774,
+          "schurMs": 0.04319493617025186,
+          "contactSolveMs": 0.03731468085100053,
+          "reconstructionMs": 0.004773106383022132,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 1.2931604468085038,
+          "p50": 1.280334000000039,
+          "p95": 1.9139160000004267,
+          "max": 2.1976250000002437
+        },
+        "costs": {
+          "assemblyMs": 0.027344914893653385,
+          "solveMs": 0.7045433829786932,
+          "applyMs": 0.015231553191486145,
+          "snapshotMs": 0.23931476595740567,
+          "restoreMs": 0,
+          "measureMs": 0.11231565957449617,
+          "geometryReuseCount": 2.702127659574468,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.851063829787234,
+          "applyCalls": 1.851063829787234,
+          "measureCalls": 2.702127659574468,
+          "fullMeasureCalls": 2.702127659574468,
+          "snapshotObjects": 255.27659574468086,
+          "snapshotBytes": 562757.2765957447,
+          "snapshots": 0.851063829787234,
+          "restores": 0,
+          "condensedSetupMs": 0.07269844680849154,
+          "schurMs": 0.043618680851048995,
+          "contactSolveMs": 0.015520404255331665,
+          "reconstructionMs": 0.004699404255335778,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-hold-100",
+      "steps": 60,
+      "before": {
+        "fullMs": {
+          "mean": 0.5516138833333116,
+          "p50": 0.5067500000000109,
+          "p95": 0.7671249999998508,
+          "max": 1.955000000000382
+        },
+        "costs": {
+          "assemblyMs": 0.014311850000005203,
+          "solveMs": 0.3665478999999853,
+          "applyMs": 0.006981216666645196,
+          "snapshotMs": 0.004961816666665678,
+          "restoreMs": 0,
+          "measureMs": 0.04140553333331809,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.0166666666666666,
+          "applyCalls": 1.0166666666666666,
+          "measureCalls": 1.0333333333333334,
+          "fullMeasureCalls": 1.0333333333333334,
+          "snapshotObjects": 5.266666666666667,
+          "snapshotBytes": 11020.866666666667,
+          "snapshots": 0.016666666666666666,
+          "restores": 0,
+          "condensedSetupMs": 0.04808060000001054,
+          "schurMs": 0.022565216666650182,
+          "contactSolveMs": 0.009188200000024457,
+          "reconstructionMs": 0.0032242333333139567,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 0.5309500666666509,
+          "p50": 0.5032089999999698,
+          "p95": 0.6771670000002814,
+          "max": 1.2609160000001793
+        },
+        "costs": {
+          "assemblyMs": 0.014836050000038388,
+          "solveMs": 0.3444624166666548,
+          "applyMs": 0.006753549999977319,
+          "snapshotMs": 0.004971533333332445,
+          "restoreMs": 0,
+          "measureMs": 0.04581385000002077,
+          "geometryReuseCount": 1.0333333333333334,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.0166666666666666,
+          "applyCalls": 1.0166666666666666,
+          "measureCalls": 1.0333333333333334,
+          "fullMeasureCalls": 1.0333333333333334,
+          "snapshotObjects": 5.266666666666667,
+          "snapshotBytes": 11020.866666666667,
+          "snapshots": 0.016666666666666666,
+          "restores": 0,
+          "condensedSetupMs": 0.0462055500000209,
+          "schurMs": 0.022940283333324867,
+          "contactSolveMs": 0.00900476666671087,
+          "reconstructionMs": 0.0032554833333127437,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-withdraw-80",
+      "steps": 76,
+      "before": {
+        "fullMs": {
+          "mean": 0.7666072765957344,
+          "p50": 0.8251669999999649,
+          "p95": 1.1559169999995902,
+          "max": 1.5856669999998303
+        },
+        "costs": {
+          "assemblyMs": 0.01581827659579853,
+          "solveMs": 0.43905412765956925,
+          "applyMs": 0.008276510638281368,
+          "snapshotMs": 0.12061257446811531,
+          "restoreMs": 0,
+          "measureMs": 0.04571710638305028,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.7446808510638299,
+          "applyCalls": 1.7446808510638299,
+          "measureCalls": 2.4893617021276597,
+          "fullMeasureCalls": 2.4893617021276597,
+          "snapshotObjects": 228.59574468085106,
+          "snapshotBytes": 478338.55319148937,
+          "snapshots": 0.7446808510638298,
+          "restores": 0,
+          "condensedSetupMs": 0.028220872340451487,
+          "schurMs": 0.01187676595743548,
+          "contactSolveMs": 0.0029335531914918473,
+          "reconstructionMs": 0.003783595744704492,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 0.7494290851063852,
+          "p50": 0.8325420000001031,
+          "p95": 1.032959000000119,
+          "max": 1.6960829999998168
+        },
+        "costs": {
+          "assemblyMs": 0.015681702127620427,
+          "solveMs": 0.4497605531914621,
+          "applyMs": 0.007846510638336576,
+          "snapshotMs": 0.11268617021276325,
+          "restoreMs": 0,
+          "measureMs": 0.04431204255318702,
+          "geometryReuseCount": 2.4893617021276597,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.7446808510638299,
+          "applyCalls": 1.7446808510638299,
+          "measureCalls": 2.4893617021276597,
+          "fullMeasureCalls": 2.4893617021276597,
+          "snapshotObjects": 228.59574468085106,
+          "snapshotBytes": 478338.55319148937,
+          "snapshots": 0.7446808510638298,
+          "restores": 0,
+          "condensedSetupMs": 0.028803276595778138,
+          "schurMs": 0.011714531914955667,
+          "contactSolveMs": 0.0027908297872001756,
+          "reconstructionMs": 0.0036348510638975874,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-refeed-100",
+      "steps": 47,
+      "before": {
+        "fullMs": {
+          "mean": 0.8678447659574673,
+          "p50": 0.8457079999998314,
+          "p95": 1.3284160000002885,
+          "max": 1.6494159999997464
+        },
+        "costs": {
+          "assemblyMs": 0.016331553191543828,
+          "solveMs": 0.49885104255327917,
+          "applyMs": 0.009697744680927807,
+          "snapshotMs": 0.1540124255318702,
+          "restoreMs": 0,
+          "measureMs": 0.05467476595752854,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.9787234042553192,
+          "applyCalls": 1.9787234042553192,
+          "measureCalls": 2.9574468085106385,
+          "fullMeasureCalls": 2.9574468085106385,
+          "snapshotObjects": 282.3829787234043,
+          "snapshotBytes": 590895.1489361703,
+          "snapshots": 0.9787234042553191,
+          "restores": 0,
+          "condensedSetupMs": 0.03382351063823699,
+          "schurMs": 0.015325468085083753,
+          "contactSolveMs": 0.0033687021276180415,
+          "reconstructionMs": 0.004573531914899077,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 0.8611923191489582,
+          "p50": 0.8465830000000096,
+          "p95": 1.3322910000001684,
+          "max": 1.7169169999997393
+        },
+        "costs": {
+          "assemblyMs": 0.017094085106372347,
+          "solveMs": 0.5030264468084673,
+          "applyMs": 0.008849340425522895,
+          "snapshotMs": 0.1575168936170156,
+          "restoreMs": 0,
+          "measureMs": 0.05545551063835561,
+          "geometryReuseCount": 2.9574468085106385,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.9787234042553192,
+          "applyCalls": 1.9787234042553192,
+          "measureCalls": 2.9574468085106385,
+          "fullMeasureCalls": 2.9574468085106385,
+          "snapshotObjects": 282.3829787234043,
+          "snapshotBytes": 590895.1489361703,
+          "snapshots": 0.9787234042553191,
+          "restores": 0,
+          "condensedSetupMs": 0.033634723404209074,
+          "schurMs": 0.015545148936122674,
+          "contactSolveMs": 0.003844702127664393,
+          "reconstructionMs": 0.004687042553174019,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "wire-feed-309",
+      "steps": 843,
+      "before": {
+        "fullMs": {
+          "mean": 1.6869174893615908,
+          "p50": 1.8178330000000642,
+          "p95": 2.2844169999998485,
+          "max": 2.765915999999379
+        },
+        "costs": {
+          "assemblyMs": 0.0748839361703118,
+          "solveMs": 0.7557509361700756,
+          "applyMs": 0.02137338297880559,
+          "snapshotMs": 0.22863823404243683,
+          "restoreMs": 0,
+          "measureMs": 0.32833497872325873,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 2.6382978723404253,
+          "applyCalls": 2.6382978723404253,
+          "measureCalls": 4.276595744680851,
+          "fullMeasureCalls": 4.276595744680851,
+          "snapshotObjects": 309,
+          "snapshotBytes": 463301.93617021275,
+          "snapshots": 1.6382978723404256,
+          "restores": 0,
+          "condensedSetupMs": 0.15446985106365824,
+          "schurMs": 0.08708865957462276,
+          "contactSolveMs": 0.010914872340435977,
+          "reconstructionMs": 0.02819238297865439,
+          "seedMs": 0
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 1.6598590425532012,
+          "p50": 1.8042089999999007,
+          "p95": 2.2408329999998386,
+          "max": 2.506000000000313
+        },
+        "costs": {
+          "assemblyMs": 0.07199104255323618,
+          "solveMs": 0.7474963191489997,
+          "applyMs": 0.021068340425428805,
+          "snapshotMs": 0.23153106382983907,
+          "restoreMs": 0,
+          "measureMs": 0.31482629787238847,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 2.6382978723404253,
+          "applyCalls": 2.6382978723404253,
+          "measureCalls": 4.276595744680851,
+          "fullMeasureCalls": 4.276595744680851,
+          "snapshotObjects": 309,
+          "snapshotBytes": 463301.93617021275,
+          "snapshots": 1.6382978723404256,
+          "restores": 0,
+          "condensedSetupMs": 0.15761172340419163,
+          "schurMs": 0.08716472340419135,
+          "contactSolveMs": 0.010626893617108122,
+          "reconstructionMs": 0.026493787234048407,
+          "seedMs": 0
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-20",
+      "steps": 47,
+      "before": {
+        "fullMs": {
+          "mean": 3.152551489361785,
+          "p50": 2.2819589999999152,
+          "p95": 6.90820900000017,
+          "max": 7.847791000000143
+        },
+        "costs": {
+          "assemblyMs": 0.2928306382977911,
+          "solveMs": 1.7221816595744732,
+          "applyMs": 0.06863302127658244,
+          "snapshotMs": 0.22987412765956214,
+          "restoreMs": 0,
+          "measureMs": 0.563880255319186,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.6808510638297873,
+          "applyCalls": 1.6808510638297873,
+          "measureCalls": 2.1702127659574466,
+          "fullMeasureCalls": 2.1702127659574466,
+          "snapshotObjects": 277.4255319148936,
+          "snapshotBytes": 287224.1914893617,
+          "snapshots": 0.48936170212765956,
+          "restores": 0,
+          "condensedSetupMs": 0.43316844680852074,
+          "schurMs": 0.07595655319154831,
+          "contactSolveMs": 0.03576763829792942,
+          "reconstructionMs": 0.04268082978736895,
+          "seedMs": 0.03178368085101535
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 3.132638234042501,
+          "p50": 2.201000000000022,
+          "p95": 6.477458999999726,
+          "max": 7.43079200000011
+        },
+        "costs": {
+          "assemblyMs": 0.27990244680845633,
+          "solveMs": 1.7651408936170172,
+          "applyMs": 0.06636885106388249,
+          "snapshotMs": 0.23371725531922763,
+          "restoreMs": 0,
+          "measureMs": 0.5131443617020968,
+          "geometryReuseCount": 3.404255319148936,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.6808510638297873,
+          "applyCalls": 1.6808510638297873,
+          "measureCalls": 2.1702127659574466,
+          "fullMeasureCalls": 2.1702127659574466,
+          "snapshotObjects": 277.4255319148936,
+          "snapshotBytes": 287224.1914893617,
+          "snapshots": 0.48936170212765956,
+          "restores": 0,
+          "condensedSetupMs": 0.38168002127651485,
+          "schurMs": 0.1462835957446124,
+          "contactSolveMs": 0.03544685106394451,
+          "reconstructionMs": 0.057325425531919966,
+          "seedMs": 0.03126231914898489
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-50",
+      "steps": 70,
+      "before": {
+        "fullMs": {
+          "mean": 3.7418723191488406,
+          "p50": 4.5107080000007045,
+          "p95": 5.620582999999897,
+          "max": 5.903665999999248
+        },
+        "costs": {
+          "assemblyMs": 0.586455744680821,
+          "solveMs": 1.2243635106383117,
+          "applyMs": 0.07521185106382658,
+          "snapshotMs": 0.5410931276596107,
+          "restoreMs": 0,
+          "measureMs": 1.0716887234043206,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.5957446808510638,
+          "applyCalls": 1.5957446808510638,
+          "measureCalls": 2.1914893617021276,
+          "fullMeasureCalls": 2.1914893617021276,
+          "snapshotObjects": 1061.468085106383,
+          "snapshotBytes": 406713.5319148936,
+          "snapshots": 0.5957446808510638,
+          "restores": 0,
+          "condensedSetupMs": 0.29479253191497495,
+          "schurMs": 0.07697787234047475,
+          "contactSolveMs": 0.03832712765953592,
+          "reconstructionMs": 0.04550355319145425,
+          "seedMs": 0.03639108510638022
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 4.415863489361731,
+          "p50": 4.8327909999998155,
+          "p95": 7.344374999999673,
+          "max": 8.268165999999837
+        },
+        "costs": {
+          "assemblyMs": 0.565172851063893,
+          "solveMs": 1.9056151914893873,
+          "applyMs": 0.08473753191483797,
+          "snapshotMs": 0.5966914042552703,
+          "restoreMs": 0,
+          "measureMs": 0.9970700638297127,
+          "geometryReuseCount": 17.872340425531913,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 1.5957446808510638,
+          "applyCalls": 1.5957446808510638,
+          "measureCalls": 2.1914893617021276,
+          "fullMeasureCalls": 2.1914893617021276,
+          "snapshotObjects": 1061.468085106383,
+          "snapshotBytes": 406713.5319148936,
+          "snapshots": 0.5957446808510638,
+          "restores": 0,
+          "condensedSetupMs": 0.736937021276622,
+          "schurMs": 0.09006212765967923,
+          "contactSolveMs": 0.04311882978726452,
+          "reconstructionMs": 0.05719504255306132,
+          "seedMs": 0.04062663829786965
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-100",
+      "steps": 116,
+      "before": {
+        "fullMs": {
+          "mean": 50.55213831914898,
+          "p50": 48.79341699999986,
+          "p95": 73.87462499999947,
+          "max": 76.7183329999998
+        },
+        "costs": {
+          "assemblyMs": 5.753736702127714,
+          "solveMs": 12.192912234042602,
+          "applyMs": 0.724355510638274,
+          "snapshotMs": 8.614900851063794,
+          "restoreMs": 0.2089060425531646,
+          "measureMs": 22.47824889361711,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 6.48936170212766,
+          "applyCalls": 6.702127659574468,
+          "measureCalls": 12.191489361702128,
+          "fullMeasureCalls": 12.191489361702128,
+          "snapshotObjects": 3649.2340425531916,
+          "snapshotBytes": 711867.1489361703,
+          "snapshots": 5.48936170212766,
+          "restores": 0.2127659574468085,
+          "condensedSetupMs": 1.9324077446806072,
+          "schurMs": 1.6251390638299585,
+          "contactSolveMs": 3.026352021276831,
+          "reconstructionMs": 0.5180247234041591,
+          "seedMs": 1.6735442765956519
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 46.22608417021271,
+          "p50": 44.69054099999994,
+          "p95": 66.19475000000057,
+          "max": 72.03900000000067
+        },
+        "costs": {
+          "assemblyMs": 4.999635446808614,
+          "solveMs": 12.438014255319162,
+          "applyMs": 0.7409867872342573,
+          "snapshotMs": 9.116357468085049,
+          "restoreMs": 0.20436168085106668,
+          "measureMs": 18.172789808510526,
+          "geometryReuseCount": 218.2340425531915,
+          "frictionBatchReuseCount": 5.638297872340425,
+          "solveCalls": 6.48936170212766,
+          "applyCalls": 6.702127659574468,
+          "measureCalls": 12.191489361702128,
+          "fullMeasureCalls": 12.191489361702128,
+          "snapshotObjects": 3649.2340425531916,
+          "snapshotBytes": 711867.1489361703,
+          "snapshots": 5.48936170212766,
+          "restores": 0.2127659574468085,
+          "condensedSetupMs": 1.9986163829789416,
+          "schurMs": 1.696131191489393,
+          "contactSolveMs": 3.0270361489363187,
+          "reconstructionMs": 0.5056435531915145,
+          "seedMs": 1.6775628510638543
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-hold-100",
+      "steps": 60,
+      "before": {
+        "fullMs": {
+          "mean": 55.11758819999997,
+          "p50": 52.8326249999991,
+          "p95": 81.06462499999907,
+          "max": 96.40037500000017
+        },
+        "costs": {
+          "assemblyMs": 6.513457433333512,
+          "solveMs": 15.58033225000016,
+          "applyMs": 0.7324549000000843,
+          "snapshotMs": 9.917909750000186,
+          "restoreMs": 0.4094722166666846,
+          "measureMs": 21.5217722166669,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 6.916666666666667,
+          "applyCalls": 7.45,
+          "measureCalls": 13.366666666666667,
+          "fullMeasureCalls": 13.366666666666667,
+          "snapshotObjects": 4111,
+          "snapshotBytes": 719044,
+          "snapshots": 5.916666666666667,
+          "restores": 0.5333333333333333,
+          "condensedSetupMs": 2.111614116666836,
+          "schurMs": 2.326593116666739,
+          "contactSolveMs": 4.900400000000081,
+          "reconstructionMs": 0.6943747499996638,
+          "seedMs": 2.277586983333261
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 50.53343690000032,
+          "p50": 47.063083000000915,
+          "p95": 76.51791699999922,
+          "max": 89.41708400000061
+        },
+        "costs": {
+          "assemblyMs": 5.583634849999635,
+          "solveMs": 15.810435433332971,
+          "applyMs": 0.7170154499997958,
+          "snapshotMs": 10.273679166666792,
+          "restoreMs": 0.4042409500000758,
+          "measureMs": 17.32209513333352,
+          "geometryReuseCount": 267.3333333333333,
+          "frictionBatchReuseCount": 3.3666666666666667,
+          "solveCalls": 6.916666666666667,
+          "applyCalls": 7.45,
+          "measureCalls": 13.366666666666667,
+          "fullMeasureCalls": 13.366666666666667,
+          "snapshotObjects": 4111,
+          "snapshotBytes": 719044,
+          "snapshots": 5.916666666666667,
+          "restores": 0.5333333333333333,
+          "condensedSetupMs": 2.1614786666668198,
+          "schurMs": 2.4627355999996174,
+          "contactSolveMs": 4.958463866666382,
+          "reconstructionMs": 0.6813464999999723,
+          "seedMs": 2.1346076499999374
+        },
+        "failures": 0
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-withdraw-80",
+      "steps": 76,
+      "before": {
+        "fullMs": {
+          "mean": 40.54802295744671,
+          "p50": 39.4424999999992,
+          "p95": 57.98370799999975,
+          "max": 61.53125
+        },
+        "costs": {
+          "assemblyMs": 4.450417319149137,
+          "solveMs": 8.772959234042379,
+          "applyMs": 0.4998947872338365,
+          "snapshotMs": 8.479261446808295,
+          "restoreMs": 0.37911617021281346,
+          "measureMs": 17.520008063829433,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 5.914893617021277,
+          "applyCalls": 6.468085106382978,
+          "measureCalls": 11.404255319148936,
+          "fullMeasureCalls": 11.404255319148936,
+          "snapshotObjects": 4177.04255319149,
+          "snapshotBytes": 720016.2553191489,
+          "snapshots": 4.914893617021277,
+          "restores": 0.574468085106383,
+          "condensedSetupMs": 1.512196638297842,
+          "schurMs": 1.2358752127662964,
+          "contactSolveMs": 1.5938535319147242,
+          "reconstructionMs": 0.38793327659546545,
+          "seedMs": 0.8306790851067413
+        },
+        "failures": 1
+      },
+      "after": {
+        "fullMs": {
+          "mean": 38.560827127659536,
+          "p50": 36.9564160000009,
+          "p95": 55.059291999999914,
+          "max": 71.46308299999873
+        },
+        "costs": {
+          "assemblyMs": 4.06405225531911,
+          "solveMs": 9.363147787234103,
+          "applyMs": 0.5889407872339476,
+          "snapshotMs": 9.205675319148446,
+          "restoreMs": 0.4061205957446447,
+          "measureMs": 14.463152382978961,
+          "geometryReuseCount": 193.17021276595744,
+          "frictionBatchReuseCount": 4.787234042553192,
+          "solveCalls": 5.914893617021277,
+          "applyCalls": 6.468085106382978,
+          "measureCalls": 11.404255319148936,
+          "fullMeasureCalls": 11.404255319148936,
+          "snapshotObjects": 4177.04255319149,
+          "snapshotBytes": 720016.2553191489,
+          "snapshots": 4.914893617021277,
+          "restores": 0.574468085106383,
+          "condensedSetupMs": 1.6018748297872352,
+          "schurMs": 1.2846223404253676,
+          "contactSolveMs": 1.7075213617026361,
+          "reconstructionMs": 0.466713638298159,
+          "seedMs": 0.8413768297872826
+        },
+        "failures": 1
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-refeed-100",
+      "steps": 47,
+      "before": {
+        "fullMs": {
+          "mean": 52.48416395744653,
+          "p50": 50.306916000001365,
+          "p95": 81.79608299999745,
+          "max": 101.92204199999833
+        },
+        "costs": {
+          "assemblyMs": 5.772827425532013,
+          "solveMs": 11.748669553191112,
+          "applyMs": 0.5941499787228516,
+          "snapshotMs": 10.154643574468517,
+          "restoreMs": 0.23219861702118386,
+          "measureMs": 23.557339404254385,
+          "geometryReuseCount": 0,
+          "frictionBatchReuseCount": 0,
+          "solveCalls": 7,
+          "applyCalls": 7.319148936170213,
+          "measureCalls": 13.319148936170214,
+          "fullMeasureCalls": 13.319148936170214,
+          "snapshotObjects": 4203.936170212766,
+          "snapshotBytes": 720426.4680851063,
+          "snapshots": 6,
+          "restores": 0.3191489361702128,
+          "condensedSetupMs": 1.8853778297872579,
+          "schurMs": 1.6698838936173026,
+          "contactSolveMs": 2.635600489361403,
+          "reconstructionMs": 0.5032774042550219,
+          "seedMs": 1.4087695319140814
+        },
+        "failures": 0
+      },
+      "after": {
+        "fullMs": {
+          "mean": 49.58545123404238,
+          "p50": 47.765166000001045,
+          "p95": 73.3739999999998,
+          "max": 89.63483300000007
+        },
+        "costs": {
+          "assemblyMs": 5.296596999999623,
+          "solveMs": 12.501824468084918,
+          "applyMs": 0.7082790425536858,
+          "snapshotMs": 11.38267825531906,
+          "restoreMs": 0.2587836808511093,
+          "measureMs": 18.995569085107025,
+          "geometryReuseCount": 239.17021276595744,
+          "frictionBatchReuseCount": 6.404255319148936,
+          "solveCalls": 7,
+          "applyCalls": 7.319148936170213,
+          "measureCalls": 13.319148936170214,
+          "fullMeasureCalls": 13.319148936170214,
+          "snapshotObjects": 4203.936170212766,
+          "snapshotBytes": 720426.4680851063,
+          "snapshots": 6,
+          "restores": 0.3191489361702128,
+          "condensedSetupMs": 2.087447680850791,
+          "schurMs": 1.7288412978731627,
+          "contactSolveMs": 2.7009953829791753,
+          "reconstructionMs": 0.6040407659571777,
+          "seedMs": 1.4137409787227684
+        },
+        "failures": 0
+      }
+    }
+  ],
+  "sourceHashes": {
+    "src/physics/endovascularPhysicsWorld.js": "c2d0cdef86c1f575c18df31b7c19875fea126f84d74c9c26dc52ec2fbb5e8e79",
+    "src/physics/kirchhoffSurfaceFriction.js": "c4019a9824b511674c7438c0812911685bf09bd26b3dd038f6e0a641979e98f1",
+    "src/physics/kirchhoffCoupledFrictionRows.js": "a360e0c3a2219d33a1095a9b051e23196a4a4c4cea3620c95c9b08ce5d1d40a7",
+    "src/physics/kirchhoffCoupledConeRepair.js": "d8f94675eaab19abae06ba547418a2aa5aa759100c916e88d3a9204433c3c2e8",
+    "scripts/physics/profile-overlap-309.mjs": "288bb6102af958cc9021cc2e29d5187237f3ee9b504676f5e7ca39805ae05cc8"
+  }
+}

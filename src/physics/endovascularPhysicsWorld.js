@@ -1562,6 +1562,8 @@ export class EndovascularPhysicsWorld {
         this.lastJointTrialEvaluations = this.lastJointBacktracks = 0;
         this.lastJointMaximumBand = this.lastJointMaximumRows = 0;
         this.lastJointCosts = { assemblyMs:0, solveMs:0, applyMs:0, snapshotMs:0, restoreMs:0, measureMs:0,
+            geometryReuseCount:0, frictionBatchReuseCount:0,
+            acceptedFrictionReuseCount:0,
             solveCalls:0, applyCalls:0, measureCalls:0, fullMeasureCalls:0,
             snapshotObjects:0, snapshotBytes:0, snapshots:0, restores:0,
             condensedSetupMs:0,schurMs:0,contactSolveMs:0,reconstructionMs:0,seedMs:0 };
@@ -2689,6 +2691,7 @@ export class EndovascularPhysicsWorld {
 
     #solveJointCoupledConstraints(constraint) {
         const began = now();
+        constraint._reuseCandidateEvaluation = this.coupledSystem.reuseCandidateEvaluation !== false;
         const bodies = kirchhoffComponentBodies(constraint);
         const hasLumen = !constraint.bodies || constraint.containment === constraint;
         for (const body of bodies) {
@@ -2773,7 +2776,7 @@ export class EndovascularPhysicsWorld {
             // trial must decrease the merit of THIS base state, evaluated
             // with the same fresh geometry, not a stale previous feature set.
             if (pass > 0) {
-                const previous = this.#measureJointCoupledConstraints(constraint, false);
+                const previous = this.#measureJointCoupledConstraints(constraint, false, null, true);
                 // Measurement scratch is borrowed: retain scalar values before
                 // evaluating candidates, which overwrite that same object.
                 previousMerit = previous.merit;
@@ -2860,6 +2863,7 @@ export class EndovascularPhysicsWorld {
             if (startLevel) this.lastJointLineSearch.predictedStarts++;
             const snapshot = pass === 0 ? null : this.#captureJointTrial(constraint,
                 { world: this, reusePropertyLayout: true, frozenFrictionBatches: true,
+                    compactContactState: this.coupledSystem.compactContactTrial !== false,
                     physicalStateOnly: this.coupledSystem.physicalTrialState === true && !constraint._splitMotion },
                 constraint._jointTrialState ??= {});
             const knownWallWitnesses = constraint._usesWallWitnesses ? new Set(constraint._wallWitnessRows.witnesses) : null;
@@ -3027,31 +3031,42 @@ export class EndovascularPhysicsWorld {
         this.lastJointCosts.restores++;
     }
 
-    #measureJointCoupledConstraints(constraint, repairCone = true, rejectionThreshold = null) {
+    #measureJointCoupledConstraints(constraint, repairCone = true, rejectionThreshold = null, reuseAccepted = false) {
         const started = now();
         this.lastJointCosts.measureCalls++;
         try {
-            const result = this.#measureJointCoupledConstraintsImpl(constraint, repairCone, rejectionThreshold);
+            const result = this.#measureJointCoupledConstraintsImpl(constraint, repairCone, rejectionThreshold, reuseAccepted);
             if (!result.earlyRejected) this.lastJointCosts.fullMeasureCalls++;
             return result;
         }
         finally { this.lastJointCosts.measureMs += now() - started; }
     }
 
-    #measureJointCoupledConstraintsImpl(constraint, repairCone = true, rejectionThreshold = null) {
+    #measureJointCoupledConstraintsImpl(constraint, repairCone = true, rejectionThreshold = null, reuseAccepted = false) {
         const bodies = kirchhoffComponentBodies(constraint);
         const hasLumen = !constraint.bodies || constraint.containment === constraint;
+        // This bank lives only across the synchronous collect/measure pair.
+        // Never carry a geometry certificate across apply, rollback or a new
+        // measurement. A cone repair below recollects into a fresh bank too.
+        const sideMeasurements = constraint._reuseCandidateEvaluation && !constraint._splitMotion
+            ? (this._jointCandidateSideMeasurements ??= []) : null;
+        if (sideMeasurements) sideMeasurements.length = 0;
         // Refresh the actual nonlinear gap and surface kinematics before
         // testing normal complementarity and the final-load friction cone.
         constraint.kirchhoffContacts.length = 0;
-        if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true);
+        if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true, sideMeasurements);
         for (const record of constraint.kirchhoffContacts) buildKirchhoffContactNormalGradients(constraint, record);
         prepareKirchhoffSplitLumenRows(constraint);
+        const cacheFriction = this.coupledSystem.reuseAcceptedEvaluation !== false && hasLumen &&
+            constraint.kirchhoffContacts.length > 0 && !constraint._splitMotion && !constraint._usesWallWitnesses;
         const frictionResidual = measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt,
-            constraint._jointFrictionResidual ??= {});
+            constraint._jointFrictionResidual ??= {}, { cacheInputs: cacheFriction, reuseInputs: reuseAccepted });
+        if (frictionResidual.reusedEvaluation) this.lastJointCosts.acceptedFrictionReuseCount++;
         let coneRepair = null;
         if (!constraint._splitMotion && repairCone && frictionResidual.maximumConeViolation > 1e-9) {
+            if (constraint._reuseCandidateEvaluation) this.lastJointCosts.frictionBatchReuseCount++;
             const plan = prepareKirchhoffCoupledConeRepair(constraint, this.fixedDt, {
+                preparedBatch: constraint._reuseCandidateEvaluation ? frictionResidual._batch : null,
                 maximumPositionCorrectionMm: this.coupledContainmentTolerance,
                 maximumAngleCorrectionRad: this.coupledAngularToleranceRad
             }, constraint._jointConeRepair ??= {});
@@ -3062,14 +3077,15 @@ export class EndovascularPhysicsWorld {
                 coneRepair = { contacts: plan.changedContacts, positionMm: plan.maximumPositionCorrectionMm,
                     angleRad: plan.maximumAngleCorrectionRad, multiplier: plan.maximumMultiplierCorrection };
                 constraint.kirchhoffContacts.length = 0;
-                if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true);
+                if (sideMeasurements) sideMeasurements.length = 0;
+                if (hasLumen) this.#collectKirchhoffContainmentGeometry(constraint, true, sideMeasurements);
                 for (const record of constraint.kirchhoffContacts) buildKirchhoffContactNormalGradients(constraint, record);
-                measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt, frictionResidual);
+                measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt, frictionResidual, { cacheInputs: cacheFriction });
             }
         }
         const lengthsSettled = bodies.every(body => !this.#hasLengthErrorOver(body, this.coupledLengthTolerance));
         constraint.kirchhoffContactMotion = measureKirchhoffContactMotion(constraint, false);
-        constraint.kirchhoffMaxViolation = hasLumen ? this.#measureKirchhoffCoupledContainmentViolation(constraint) : 0;
+        constraint.kirchhoffMaxViolation = hasLumen ? this.#measureKirchhoffCoupledContainmentViolation(constraint, sideMeasurements) : 0;
         constraint.kirchhoffSolverResidual = hasLumen ? this.#kirchhoffContactSolverResidual(constraint) : 0;
         this.lastCoupledContainmentResidual = constraint.kirchhoffMaxViolation;
         for (const body of bodies) this.#prepareWallContacts(body, true);
@@ -5454,7 +5470,8 @@ export class EndovascularPhysicsWorld {
         outerLast,
         expectedOuterSegment,
         emitRecord = true,
-        applyFriction = false
+        applyFriction = false,
+        sideMeasurements = null
     ) {
         const inner = constraint.innerBody;
         const outer = constraint.outerBody;
@@ -5702,6 +5719,10 @@ export class EndovascularPhysicsWorld {
                 scratch.outerWeights[index] = outerSample.weights[index];
             }
         }
+        if (sideMeasurements) sideMeasurements[innerSegment] = Number.isFinite(worstGap) ? {
+            violation: Math.max(0, -worstGap), innerSegment, outerSegment: worstOuterSegment,
+            innerT: worstInnerT, outerT: worstOuterT, radialDistance: worstRadius
+        } : { violation: 0 };
         if (!Number.isFinite(worstGap)) {
             return emitRecord ? emittedRecords : { violation: 0 };
         }
@@ -6364,7 +6385,7 @@ export class EndovascularPhysicsWorld {
         return Math.max(0, maximumViolation);
     }
 
-    #measureKirchhoffCoupledContainmentViolation(constraint) {
+    #measureKirchhoffCoupledContainmentViolation(constraint, sideMeasurements = null) {
         const inner = constraint.innerBody;
         const outer = constraint.outerBody;
         const innerStart = clamp(
@@ -6434,7 +6455,8 @@ export class EndovascularPhysicsWorld {
                     1
                 )
                 : 1;
-            const measurement = this.#kirchhoffSmoothMaterialSideRecord(
+            if (sideMeasurements?.[innerSegment]) this.lastJointCosts.geometryReuseCount++;
+            const measurement = sideMeasurements?.[innerSegment] ?? this.#kirchhoffSmoothMaterialSideRecord(
                 constraint,
                 innerSegment,
                 innerArcStart,
@@ -6537,7 +6559,7 @@ export class EndovascularPhysicsWorld {
     // Freeze every lumen/portal sample before computing a mechanical update.
     // The collector is shared by the contact-only reference and the upcoming
     // simultaneous material/contact solve; it applies no tool correction.
-    #collectKirchhoffContainmentGeometry(constraint, applyFriction) {
+    #collectKirchhoffContainmentGeometry(constraint, applyFriction, sideMeasurements = null) {
         const inner = constraint.innerBody;
         const outer = constraint.outerBody;
         constraint._collectContactBlock = true;
@@ -6623,7 +6645,8 @@ export class EndovascularPhysicsWorld {
                     outerLast,
                     expectedOuterSegment,
                     true,
-                    applyFriction
+                    applyFriction,
+                    sideMeasurements
                 );
             innerArcStart += innerRestLength;
             constraint.kirchhoffOuterSegmentByInner[innerSegment] =

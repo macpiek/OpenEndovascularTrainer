@@ -1,4 +1,4 @@
-import { buildKirchhoffCoupledFrictionRows, commitKirchhoffCoupledFrictionMultipliers } from './kirchhoffCoupledFrictionRows.js';
+import { buildKirchhoffCoupledFrictionRows, materializeKirchhoffCoupledFrictionRows, commitKirchhoffCoupledFrictionMultipliers } from './kirchhoffCoupledFrictionRows.js';
 import { projectKirchhoffSurfaceFriction } from './kirchhoffSurfaceFriction.js';
 import { quaternionExp, multiplyQuaternions, normalizeQuaternion } from './discreteKirchhoffRod.js';
 
@@ -13,11 +13,15 @@ const poseFields = ['x', 'y', 'z', 'orientationX', 'orientationY', 'orientationZ
  * claim. Oversized corrections are rejected before any state is committed.
  */
 export function prepareKirchhoffCoupledConeRepair(constraint, dt, {
-    maximumPositionCorrectionMm = .001, maximumAngleCorrectionRad = .005
+    maximumPositionCorrectionMm = .001, maximumAngleCorrectionRad = .005, preparedBatch = null
 } = {}, out = {}) {
     if (!(Number.isFinite(maximumPositionCorrectionMm) && maximumPositionCorrectionMm >= 0) ||
         !(Number.isFinite(maximumAngleCorrectionRad) && maximumAngleCorrectionRad >= 0)) throw new RangeError('Invalid cone repair limits');
-    const batch = buildKirchhoffCoupledFrictionRows(constraint, dt, out.batch ??= {});
+    // The world passes its just-measured batch with no intervening state edit.
+    // Standalone callers retain the fresh-build path by default.
+    const batch = out.batch = preparedBatch
+        ? materializeKirchhoffCoupledFrictionRows(constraint, dt, preparedBatch)
+        : buildKirchhoffCoupledFrictionRows(constraint, dt, out._buildBatch ??= {});
     out.constraint = constraint; out.applied = false; out.changedContacts = 0;
     out.maximumPositionCorrectionMm = out.maximumAngleCorrectionRad = 0;
     out.maximumMultiplierCorrection = 0;

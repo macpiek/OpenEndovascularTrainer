@@ -8,7 +8,7 @@ import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } 
 import { measureKirchhoffFrictionMerit } from '../src/physics/kirchhoffFrictionMerit.js';
 import { prepareKirchhoffCoupledSurfaceGeometry, buildKirchhoffCoupledFrictionRows,
     appendKirchhoffCoupledFrictionRows, commitKirchhoffCoupledFrictionMultipliers,
-    measureKirchhoffCoupledFrictionResidual } from '../src/physics/kirchhoffCoupledFrictionRows.js';
+    measureKirchhoffCoupledFrictionResidual, materializeKirchhoffCoupledFrictionRows } from '../src/physics/kirchhoffCoupledFrictionRows.js';
 
 const dt = 1 / 120, radius = 0.4445, lumen = 0.485;
 const norm = v => Math.hypot(...v);
@@ -16,6 +16,30 @@ const sub = (a, b) => a.map((value, i) => value - b[i]);
 const add = (a, b) => a.map((value, i) => value + b[i]);
 const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+
+test('shared previous node positions are read once per batch and refreshed after history changes', () => {
+    const f = fixture();
+    for (let i = 0; i < 6; i++) f.record();
+    const source = f.outer.previousX;
+    let reads = 0;
+    f.outer.previousX = new Proxy(source, { get(target, key) {
+        if (key === '0' || key === '1') reads++;
+        return Reflect.get(target, key, target);
+    } });
+    const batch = buildKirchhoffCoupledFrictionRows(f.constraint, dt);
+    assert.equal(reads, 2);
+    source[0] -= .02;
+    buildKirchhoffCoupledFrictionRows(f.constraint, dt, batch);
+    assert.equal(reads, 4);
+    f.outer.previousX = source;
+    for (const entry of batch.entries) {
+        const uncached = buildKirchhoffSurfaceFriction(f.constraint, entry.view, dt);
+        assert.deepEqual(entry.surface.rows, uncached.rows);
+        assert.deepEqual(entry.surface.relativeSurfaceDisplacement, uncached.relativeSurfaceDisplacement);
+    }
+    source[0] = NaN;
+    assert.throws(() => buildKirchhoffCoupledFrictionRows(f.constraint, dt, batch), /finite/);
+});
 
 test('shared segment orientations are read once per evaluation and refreshed on the next call', () => {
     const f = fixture();
@@ -124,6 +148,110 @@ test('residual-only contact evaluation matches full rows through motion, load ch
     f.constraint.kirchhoffContacts.length = 0;
     assert.equal(measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out).contactCount, 0);
     assert.equal(measureKirchhoffFrictionMerit(out._batch).maximumMm, 0);
+});
+
+function compareCachedResidual(constraint, out, expectedReuse, timestep = dt) {
+    const cached = measureKirchhoffCoupledFrictionResidual(constraint, timestep, out,
+        { cacheInputs: true, reuseInputs: true });
+    assert.equal(cached.reusedEvaluation, expectedReuse);
+    const fresh = measureKirchhoffCoupledFrictionResidual(constraint, timestep);
+    for (const key of Object.keys(fresh)) if (!key.startsWith('_') && key !== 'reusedEvaluation')
+        assert.deepEqual(cached[key], fresh[key], key);
+    assert.equal(measureKirchhoffFrictionMerit(cached._batch).maximumMm,
+        measureKirchhoffFrictionMerit(fresh._batch).maximumMm);
+    for (let i = 0; i < fresh._batch.entries.length; i++) {
+        const a = cached._batch.entries[i].surface, b = fresh._batch.entries[i].surface;
+        for (const key of ['relativeSurfaceDisplacement', 'averageRelativeSurfaceVelocity',
+            'point', 'axes', 'levers', 'centers', 'diagnostics']) assert.deepEqual(a[key], b[key], key);
+        assert.deepEqual(a.rows.map(({ gradientPool, ...row }) => row),
+            b.rows.map(({ gradientPool, ...row }) => row));
+        assert.deepEqual(a.group.mu, b.group.mu);
+        assert.equal(a.group.normalLambda, b.group.normalLambda);
+    }
+    return cached;
+}
+
+test('accepted kinematics reuse refreshes forces, tangent basis and legacy diagnostics exactly', () => {
+    const f = fixture(), out = {};
+    for (const kind of ['side', 'material-side', 'distal-fillet', 'distal-rim', 'sliding-rim']) f.record(kind);
+    measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out, { cacheInputs: true });
+    compareCachedResidual(f.constraint, out, true);
+    for (const record of f.constraint.kirchhoffContacts) {
+        record.manifoldContact.normalLambda = 0.17;
+        record.manifoldContact.tangentLambda[0] = -0.03;
+        record.manifoldContact.tangentLambda[1] = 0.012;
+        record.manifoldContact.tangentU = [0.8, 0, 0.6];
+        record.manifoldContact.tangentV = [0.6, 0, -0.8];
+        record.manifoldContact.twistLambda = 0;
+    }
+    compareCachedResidual(f.constraint, out, true);
+    materializeKirchhoffCoupledFrictionRows(f.constraint, dt, out._batch);
+    assert.ok(out._batch.rows.length > 0);
+    compareCachedResidual(f.constraint, out, true);
+    assert.equal(out._batch.rows.length, 0);
+    assert.throws(() => commitKirchhoffCoupledFrictionMultipliers(out._batch, []), /cannot apply/);
+});
+
+test('accepted kinematics guard invalidates pose, history, radii, features, stencils and contact order', () => {
+    const edits = [
+        f => { f.inner.x[0] += .01; },
+        f => { f.outer.previousX[0] += .01; },
+        f => { f.inner.orientationY[0] += .1; },
+        f => { f.outer.previousOrientationZ[0] += .1; },
+        f => { f.inner.nodeRadius[0] += .01; },
+        f => { f.constraint.kirchhoffContacts[0].gap += .01; },
+        f => { f.constraint.kirchhoffContacts[0].kind = 'distal-fillet'; },
+        f => { f.constraint.kirchhoffContacts[0].normal[0] = .1; },
+        f => { f.constraint.kirchhoffContacts[0].innerWeights = [.4, .6]; },
+        f => { f.constraint.kirchhoffContacts[0]._innerSegmentIndex = 1; },
+        f => { f.constraint.kirchhoffContacts[0].surfaceContactPoint = [2.5, .5, 0]; },
+        f => { f.constraint.kirchhoffContacts[0].surfaceAxialTangent = [1, 0, .2]; },
+        f => { f.constraint.axialFriction = .3; },
+        f => { f.constraint.kirchhoffContacts.reverse(); },
+        f => { f.constraint.kirchhoffContacts[0].manifoldContact = { ...f.constraint.kirchhoffContacts[0].manifoldContact }; },
+        f => { f.record(); },
+        f => { f.constraint.kirchhoffContacts.length = 0; },
+        f => { f.inner.previousZ[0] = -0; }
+    ];
+    for (const edit of edits) {
+        const f = fixture(), out = {}; f.record(); f.record();
+        measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out, { cacheInputs: true });
+        edit(f);
+        compareCachedResidual(f.constraint, out, false);
+        compareCachedResidual(f.constraint, out, true);
+    }
+});
+
+test('accepted kinematics guard refreshes after rollback and timestep changes', () => {
+    const f = fixture(); f.record();
+    const out = f.constraint._jointFrictionResidual = {};
+    measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out, { cacheInputs: true });
+    const snapshot = captureKirchhoffCoupledTrialState(f.constraint, { world: f.world, frozenFrictionBatches: true });
+    f.inner.x[0] += .02;
+    compareCachedResidual(f.constraint, out, false);
+    restoreKirchhoffCoupledTrialState(snapshot);
+    compareCachedResidual(f.constraint, out, false);
+    compareCachedResidual(f.constraint, out, true);
+    compareCachedResidual(f.constraint, out, false, dt * 2);
+    compareCachedResidual(f.constraint, out, true, dt * 2);
+});
+
+test('accepted kinematics reuse cannot bypass input validation or disabled caching', () => {
+    const f = fixture(), out = {}; const record = f.record();
+    measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out, { cacheInputs: true });
+    record.manifoldContact.normalLambda = NaN;
+    assert.throws(() => compareCachedResidual(f.constraint, out, true), /finite/);
+    record.manifoldContact.normalLambda = 2;
+    compareCachedResidual(f.constraint, out, false);
+    f.inner.previousX[0] = NaN;
+    assert.throws(() => compareCachedResidual(f.constraint, out, false), /finite/);
+    f.inner.previousX[0] = 0;
+    compareCachedResidual(f.constraint, out, false);
+    measureKirchhoffCoupledFrictionResidual(f.constraint, dt, out);
+    compareCachedResidual(f.constraint, out, false);
+    f.constraint._splitMotion = {};
+    compareCachedResidual(f.constraint, out, false);
+    compareCachedResidual(f.constraint, out, false);
 });
 
 function fixture(count = 6) {

@@ -1,5 +1,6 @@
 import { kirchhoffComponentBodies } from './kirchhoffComponentBodies.js';
 import { captureFrozenFoldTrial, validateFrozenFoldTrial, restoreFrozenFoldTrial } from './kirchhoffFrozenFoldTrial.js';
+import { captureCompactContactTrial, restoreCompactContactTrial } from './kirchhoffCompactContactTrial.js';
 // Factorization workspaces are reassembled from restored mechanics. They contain
 // large borrowed matrices, not retained physical multipliers/contact identity.
 const linearWorkspaces = new Set(['_bundleRuntime', '_coupledSystemAssembly', '_coupledSystemQP', '_coupledSystemFriction', '_coupledSystemLoad', '_jointConeRepair', '_jointTrialState']);
@@ -94,11 +95,16 @@ function removeTrialProperties(record) {
  * physicalStateOnly is the built-in position-history apply/measure contract:
  * calibration/targets and fold operators are frozen until the next solve.
  * It keeps fold forces but omits derived fold measurements (always rebuilt).
+ * compactContactState packs pooled contact metadata/vectors and omits normal
+ * Jacobian/portal sample workspaces under that same built-in contract. Custom
+ * fields outside those derived workspaces retain the complete graph fallback.
+ * Requires reusePropertyLayout (owned runtime descriptors stay fixed). Set
+ * false for diagnostic comparison with the previous physical snapshot.
  * Custom kernels and whole-candidate retries must use the complete snapshot.
  */
 export function captureKirchhoffCoupledTrialState(constraint, {
     world = null, toolContacts = world?.toolContacts ?? [], sheaths = world?.sheaths ?? [], external = [],
-    reusePropertyLayout = false, frozenFrictionBatches = false, physicalStateOnly = false
+    reusePropertyLayout = false, frozenFrictionBatches = false, physicalStateOnly = false, compactContactState = true
 } = {}, out = {}) {
     if (physicalStateOnly && (!frozenFrictionBatches || constraint._splitMotion))
         throw new Error('Physical trial snapshots require frozen position-history equations');
@@ -110,6 +116,8 @@ export function captureKirchhoffCoupledTrialState(constraint, {
     if (constraint._jointTrialState) barriers.add(constraint._jointTrialState);
     if (physicalStateOnly) captureFrozenFoldTrial(constraint, barriers, out.foldTrial ??= {});
     else if (out.foldTrial) out.foldTrial.state = null;
+    if (physicalStateOnly && compactContactState && reusePropertyLayout) captureCompactContactTrial(constraint, barriers, out.contactTrial ??= {});
+    else out.contactTrial = null;
     // Measurement banks are rebuilt from restored mechanics. They own no
     // contact history: that remains reachable through _wallWitnessRows.
     if (constraint._wallWitnessFrictionMeasure) barriers.add(constraint._wallWitnessFrictionMeasure);
@@ -137,6 +145,7 @@ export function captureKirchhoffCoupledTrialState(constraint, {
     const roots = [...bodies, constraint, ...toolContacts];
     const filters = [...bodies.map(() => physicalStateOnly ? physicalBodyFilter : bodyFilter), constraintFilter];
     for (let i = bodies.length + 1; i < roots.length; i++) filters.push(null);
+    for (const root of out.contactTrial?.roots ?? []) if (!barriers.has(root)) { roots.push(root); filters.push(null); }
     for (const sheath of sheaths) if (sheath.lambdas) { roots.push(sheath.lambdas); filters.push(null); }
     if (world) { roots.push(world); filters.push(worldFilter); }
     let sameGraph = reusePropertyLayout && out._reusePropertyLayout &&
@@ -322,7 +331,11 @@ export function captureKirchhoffCoupledTrialState(constraint, {
     out._reusePropertyLayout = reusePropertyLayout;
     out.constraint = constraint; out.bodies = bodies;
     out.topology = bodies.map(body => ({ count: body.count, segmentCount: body.segmentCount, activeStart: body.activeStart, activeEnd: body.activeEnd }));
-    out.records = records; out.bytes = bytes + (out.foldTrial?.state ? out.foldTrial.bytes : 0); out.objectCount = records.length;
+    out.records = records;
+    out.bytes = bytes + (out.foldTrial?.state ? out.foldTrial.bytes : 0) + (out.contactTrial?.bytes ?? 0);
+    out.genericObjectCount = records.length;
+    out.compactObjectCount = (out.contactTrial?.metadata.length ?? 0) + (out.contactTrial?.copies.length ?? 0);
+    out.objectCount = out.genericObjectCount + out.compactObjectCount;
     out.manifold = constraint.manifold;
     out.contacts = new Set(constraint.manifold?.contacts() ?? []);
     out.restoreCount = 0; out.needsReassembly = false;
@@ -375,6 +388,7 @@ export function restoreKirchhoffCoupledTrialState(snapshot) {
         batch.committed = committed; batch.commitScale = commitScale;
     }
     restoreFrozenFoldTrial(snapshot.foldTrial);
+    restoreCompactContactTrial(snapshot.contactTrial);
     // Keep allocated matrices/WASM memory. Coupled assembly rewrites J, Gram,
     // RHS and bounds; the QP starts from zero clamped to new bounds, and resets
     // its local factor-valid flag. Working-set hints are not retained forces.

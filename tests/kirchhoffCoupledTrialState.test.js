@@ -45,6 +45,69 @@ function physicalFoldFixture() {
     return { world, body, c, rows };
 }
 
+test('compact pooled contact state restores metadata, aliased vectors and history through repeated rejected trials', () => {
+    const { world, inner, c, contact, record } = fixture();
+    record.normal = new Float64Array([0, 1, -0]);
+    record.innerWeights = new Float64Array([.5, .5]);
+    record.custom = { impulse: new Float64Array([.125]) };
+    c._kirchhoffRuntimeRecordPool = [[record]];
+    c.vectorAlias = record.normal;
+    const options = { world, reusePropertyLayout: true, frozenFrictionBatches: true, physicalStateOnly: true };
+    const snapshot = capture(c, options);
+    assert.equal(snapshot.contactTrial.metadata.length, 1);
+    assert.ok(snapshot.contactTrial.bytes > 0);
+    assert.ok(!snapshot.records.some(r => r.object === record || r.object === record.normal));
+    const originalNormal = record.normal;
+    for (const scale of [1, .5, .125]) {
+        inner.x[0] += scale;
+        record.id = 'candidate'; record.newCandidateField = 3;
+        record.normal.fill(scale);
+        record.custom.impulse[0] = 9;
+        contact.normalLambda = scale;
+        contact.tangentLambda.fill(scale);
+        record.manifoldContact = null;
+        record.normal = new Float64Array([9, 9, 9]);
+        restore(snapshot);
+        assert.equal(inner.x[0], 0);
+        assert.equal(record.id, 'record');
+        assert.ok(!Object.hasOwn(record, 'newCandidateField'));
+        assert.equal(record.normal, originalNormal);
+        assert.equal(c.vectorAlias, originalNormal);
+        assert.deepEqual(record.normal, new Float64Array([0, 1, -0]));
+        assert.equal(record.custom.impulse[0], .125);
+        assert.equal(record.manifoldContact, contact);
+        assert.equal(contact.normalLambda, 1);
+        assert.deepEqual(contact.tangentLambda, new Float64Array([.1, .02]));
+    }
+    // Reusing the bank after pool/layout growth must retain the new state.
+    const buffer = snapshot.contactTrial.buffer;
+    record.extra = new Float64Array([42]);
+    const next = capture(c, options, snapshot);
+    assert.equal(next.contactTrial.buffer, buffer);
+    record.extra[0] = 0;
+    restore(next);
+    assert.equal(record.extra[0], 42);
+    // Switching back to complete capture must not inherit narrowed barriers.
+    capture(c, { world }, snapshot);
+    assert.equal(snapshot.contactTrial, null);
+    record.normal[0] = 99;
+    restore(snapshot);
+    assert.equal(record.normal[0], 0);
+});
+
+test('compact contact bank falls back for custom property descriptors', () => {
+    const { world, c, record } = fixture();
+    c._kirchhoffRuntimeRecordPool = [[record]];
+    Object.defineProperty(record, 'custom', { value: 17, writable: false });
+    const snapshot = capture(c, { world, frozenFrictionBatches: true, physicalStateOnly: true, reusePropertyLayout: true });
+    assert.equal(snapshot.contactTrial.metadata.length, 0);
+    assert.ok(snapshot.records.some(r => r.object === record));
+    record.gap = 23;
+    restore(snapshot);
+    assert.equal(record.gap, 0);
+    assert.equal(record.custom, 17);
+});
+
 test('physical trial snapshot omits calibration and frozen fold equations but restores forces exactly', () => {
     const { world, body, c, rows } = physicalFoldFixture();
     const options = { world, reusePropertyLayout: true, frozenFrictionBatches: true, physicalStateOnly: true };

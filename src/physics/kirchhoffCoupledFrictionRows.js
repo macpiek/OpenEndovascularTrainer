@@ -1,4 +1,5 @@
-import { buildKirchhoffSurfaceFriction, measureKirchhoffSurfaceFrictionState, beginKirchhoffSurfaceEvaluation, evaluateKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
+import { buildKirchhoffSurfaceFriction, measureKirchhoffSurfaceFrictionState, materializeKirchhoffSurfaceFrictionGradients, refreshKirchhoffSurfaceFrictionLoads, beginKirchhoffSurfaceEvaluation, evaluateKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
+import { updateKirchhoffFrictionInputStamp } from './kirchhoffFrictionInputStamp.js';
 
 const EPSILON = 1e-12;
 const XYZ = ['x', 'y', 'z'];
@@ -186,6 +187,35 @@ export function buildKirchhoffCoupledFrictionRows(constraint, dt, out = {}) {
     return prepareCoupledFrictionBatch(constraint, dt, out, true);
 }
 
+/** Promote the current residual evaluation for an immediate cone repair.
+ * No geometry/history edits are allowed between evaluation and this call.
+ * This bank must not be shared with a frozen nonlinear solve batch. */
+export function materializeKirchhoffCoupledFrictionRows(constraint, dt, batch) {
+    if (batch.constraint !== constraint || batch.dt !== dt || !batch.kinematicsOnly || batch.committed || batch.appended)
+        throw new Error('A fresh friction residual batch is required');
+    for (const entry of batch.entries) {
+        const muU = constraint.axialFriction,
+            muV = constraint.circumferentialFriction ?? constraint.torsionalFriction ?? muU;
+        if (entry.record.manifoldContact !== entry.contact || entry.record.id !== entry.recordId ||
+            entry.record.kind !== entry.geometry.kind ||
+            segmentIndex(entry.record, 0) !== entry.innerSegment || segmentIndex(entry.record, 1) !== entry.outerSegment ||
+            entry.contact.normalLambda !== entry.surface.group.normalLambda ||
+            entry.contact.tangentLambda[0] !== entry.sourceTangentU || entry.contact.tangentLambda[1] !== entry.sourceTangentV ||
+            muU !== entry.surface.group.mu[0] || muV !== entry.surface.group.mu[1])
+            throw new Error('Contact identity, load or friction changed after evaluation');
+        for (let axis = 0; axis < 3; axis++) if (entry.contact.normal[axis] !== entry.manifoldNormal[axis])
+            throw new Error('Contact normal changed after evaluation');
+    }
+    batch.rows.length = 0;
+    for (const entry of batch.entries) {
+        materializeKirchhoffSurfaceFrictionGradients(entry.surface);
+        for (const row of entry.surface.rows) batch.rows.push(row);
+    }
+    batch.kinematicsOnly = false;
+    batch.version++;
+    return batch;
+}
+
 function prepareCoupledFrictionBatch(constraint, dt, out, buildRows) {
     if (!Number.isFinite(dt) || dt <= 0) throw new RangeError('Positive finite dt is required');
     batchStorage(out);
@@ -200,6 +230,8 @@ function prepareCoupledFrictionBatch(constraint, dt, out, buildRows) {
         if (!record.manifoldContact) { out.skipped.push({ record, reason: 'no-manifold-contact' }); continue; }
         const index = out.entries.length, entry = out._pool[index] ??= makeEntry();
         entry.record = record; entry.contact = record.manifoldContact;
+        entry.sourceTangentU = entry.contact.tangentLambda?.[0];
+        entry.sourceTangentV = entry.contact.tangentLambda?.[1];
         (entry.manifoldNormal ??= vector()).set(entry.contact.normal);
         entry.innerSegment = segmentIndex(record, 0); entry.outerSegment = segmentIndex(record, 1);
         entry.recordId = record.id;
@@ -210,6 +242,7 @@ function prepareCoupledFrictionBatch(constraint, dt, out, buildRows) {
         const evaluation = entry.evaluation ??= { epoch: 0,
             currentCenters: [entry.geometry.innerCenter, entry.geometry.outerCenter], stencils: entry.geometry.stencils };
         evaluation.epoch = epoch;
+        evaluation.cachePreviousNodes = constraint._reuseCandidateEvaluation !== false;
         const surface = (buildRows ? buildKirchhoffSurfaceFriction : measureKirchhoffSurfaceFrictionState)(constraint, entry.view, dt, entry.surface, evaluation);
         if (!surface.supported) throw new RangeError(`Surface feature ${record.kind}: ${surface.reason}`);
         entry.rowStart = out.entries.length * 2;
@@ -314,13 +347,40 @@ export function commitKirchhoffCoupledFrictionMultipliers(batch, additionalIncre
  * units. inverseMobility is multiplier/mm. Does not clip lambda or apply any
  * mechanics. Optional diagnostic refresh expresses committed TOTAL reactions
  * at the new contact geometry; actual increment diagnostics stay untouched.
- * Recomputes fresh kinematics without solver gradient rows. The borrowed
+ * Optionally reuses exactly guarded kinematics; loads and KKT stay fresh.
+ * Does not assemble solver gradient rows. The borrowed
  * _batch supports diagnostics/merit only and cannot be appended or committed.
  */
 export function measureKirchhoffCoupledFrictionResidual(constraint, dt, out = {},
-    { inverseMobility = 1, updateDiagnostics = true } = {}) {
+    { inverseMobility = 1, updateDiagnostics = true, cacheInputs = false, reuseInputs = false } = {}) {
     if (!Number.isFinite(inverseMobility) || inverseMobility <= 0) throw new RangeError('inverseMobility must be positive and finite');
-    const batch = prepareCoupledFrictionBatch(constraint, dt, out._batch ??= {}, false);
+    const stamp = out._inputStamp ??= {};
+    const same = cacheInputs && updateKirchhoffFrictionInputStamp(constraint, dt, inverseMobility, stamp, reuseInputs);
+    stamp.valid = false;
+    out.reusedEvaluation = false;
+    let batch;
+    if (reuseInputs && same && out._batch) {
+        // Cone preparation may have materialized Jacobians in this bank.
+        // Restore the residual-only representation used by a fresh evaluation
+        // so downstream merit follows exactly the same arithmetic path.
+        out._batch.kinematicsOnly = true;
+        out._batch.committed = false; out._batch.appended = false;
+        out._batch.rowOffset = 0; out._batch.version++;
+        out._batch.rows.length = 0;
+        for (const entry of out._batch.entries) {
+            entry.surface.kinematicsOnly = true;
+            for (const row of entry.surface.rows) row.gradients.length = 0;
+            refreshKirchhoffSurfaceFrictionLoads(constraint, entry.record, entry.surface);
+            entry.manifoldNormal.set(entry.contact.normal);
+            entry.sourceTangentU = entry.contact.tangentLambda[0];
+            entry.sourceTangentV = entry.contact.tangentLambda[1];
+        }
+        out.reusedEvaluation = true;
+        batch = out._batch;
+    } else {
+        stamp.valid = false;
+        batch = prepareCoupledFrictionBatch(constraint, dt, out._batch ??= {}, false);
+    }
     out.maximumResidual = out.maximumFeasibilityResidual = out.maximumStationarityResidual = 0;
     out.maximumDisplacementResidualMm = out.maximumConeViolation = 0;
     out.maximumNormalMomentResidual = batch.maximumNormalMomentResidual;
@@ -342,5 +402,6 @@ export function measureKirchhoffCoupledFrictionResidual(constraint, dt, out = {}
         out.maximumStationarityResidual = Math.max(out.maximumStationarityResidual, residual.stationarityResidual);
         if (updateDiagnostics) writeReactionDiagnostics(entry, entry.lambda, 'refreshed-total-reaction');
     }
+    stamp.valid = cacheInputs && !constraint.surfaceMotion && !constraint._splitMotion;
     return out;
 }

@@ -1,9 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildKirchhoffPortalSideSamples as build } from '../src/physics/kirchhoffPortalSideSamples.js';
+import { captureKirchhoffCoupledTrialState as capture, restoreKirchhoffCoupledTrialState as restore } from '../src/physics/kirchhoffCoupledTrialState.js';
 
 const body = (a, b) => Object.fromEntries(['x', 'y', 'z'].map((key, k) => [key, new Float64Array([a[k], b[k]])]));
 const xyz = ['x', 'y', 'z'];
+
+test('compact rollback rebuilds portal geometry after its clipped interval disappears', () => {
+    const inner = { ...body([1, .2, -.1], [12, .4, .15]), count: 2 },
+        outer = { ...body([0, 0, 0], [10, .03, -.02]), count: 2 };
+    const samples = build(inner, outer, 0, 0, .0405, .15);
+    const expected = structuredClone(samples.samples);
+    const record = { portalSideGradients: samples.samples[0].gradients, normalGradients: samples.samples[0].gradients };
+    const constraint = { innerBody: inner, outerBody: outer, kirchhoffContacts: [record],
+        _kirchhoffRuntimeRecordPool: [[record]], _jointPortalSideSamples: [samples] };
+    const snapshot = capture(constraint, { physicalStateOnly: true, frozenFrictionBatches: true, reusePropertyLayout: true });
+    assert.ok(!snapshot.records.some(r => r.object === samples || r.object === record.portalSideGradients));
+    inner.x.fill(20);
+    build(inner, outer, 0, 0, .0405, .15, samples);
+    assert.equal(samples.samples.length, 0);
+    restore(snapshot);
+    assert.deepEqual(build(inner, outer, 0, 0, .0405, .15, samples).samples, expected);
+    assert.equal(record.portalSideGradients, samples.samples[0].gradients);
+});
 
 for (const [a, b] of [[[1, .2, -.1], [12, .4, .15]], [[-2, .2, -.1], [8, .4, .15]]])
 test(`clipped side endpoint Jacobians match finite differences and conserve moment (${a[0]})`, () => {

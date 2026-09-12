@@ -7,6 +7,7 @@ const XYZW = ['X', 'Y', 'Z', 'W'];
 // resurrect a token for stale trial quaternions.
 let evaluationEpoch = 0;
 const quaternionCache = new WeakMap();
+const previousNodeCache = new WeakMap();
 /** Start a synchronous contact batch. Never reuse its token after pose edits,
  * history edits or rollback; each subsequent build/measure starts a new one. */
 export function beginKirchhoffSurfaceEvaluation() { return ++evaluationEpoch; }
@@ -135,16 +136,35 @@ function readStencil(body, record, contact, sideIndex, out, evaluation) {
     if (currentCenter) out.center.set(currentCenter);
     else out.center.fill(0);
     out.previousCenter.fill(0);
+    // Adjacent contacts repeatedly interpolate the same material nodes.
+    // Validate/read each previous position once per synchronous batch, using
+    // the same epoch contract as quaternion evaluation. Loads and friction
+    // multipliers are deliberately read afresh by prepareSurfaceFriction.
+    let nodeCache;
+    if (evaluation?.epoch && evaluation.cachePreviousNodes !== false) {
+        nodeCache = previousNodeCache.get(body);
+        if (!nodeCache || nodeCache.stamps.length !== body.count) {
+            nodeCache = { stamps: new Float64Array(body.count), values: new Float64Array(body.count * 3) };
+            previousNodeCache.set(body, nodeCache);
+        }
+    }
     let total = 0;
     for (let i = 0; i < count; i++) {
         const node = nodes ? nodes[i] : segment + i;
         if (!prepared && (!Number.isInteger(node) || node < 0 || node >= body.count)) throw new RangeError('Contact interpolation node is outside body');
         const weight = prepared ? weights[i] : finite(weights[i], 'contact interpolation weight');
         total += weight; out.nodes[i] = node; out.weights[i] = weight;
+        if (nodeCache && nodeCache.stamps[node] !== evaluation.epoch) {
+            nodeCache.values[node * 3] = finite(body.previousX?.[node], `previous x[${node}]`);
+            nodeCache.values[node * 3 + 1] = finite(body.previousY?.[node], `previous y[${node}]`);
+            nodeCache.values[node * 3 + 2] = finite(body.previousZ?.[node], `previous z[${node}]`);
+            nodeCache.stamps[node] = evaluation.epoch;
+        }
         for (let axis = 0; axis < 3; axis++) {
             const key = XYZ[axis];
             if (!currentCenter) out.center[axis] += finite(body[key]?.[node], `${key}[${node}]`) * weight;
-            out.previousCenter[axis] += finite(body['previous' + key.toUpperCase()]?.[node], `previous ${key}[${node}]`) * weight;
+            out.previousCenter[axis] += (nodeCache ? nodeCache.values[node * 3 + axis]
+                : finite(body['previous' + key.toUpperCase()]?.[node], `previous ${key}[${node}]`)) * weight;
         }
     }
     // Negative cubic weights are allowed. Renormalizing malformed stencils
@@ -217,15 +237,8 @@ function prepareSurfaceFriction(constraint, record, dt, out, buildGradients, eva
     out.kinematicsOnly = !buildGradients;
     out.group.normalContact = contact ?? null;
     if (!contact) return unsupported(out, 'no-manifold-contact');
-    const normalLambda = nonNegative(contact.normalLambda, 'normalLambda');
-    const muU = nonNegative(constraint.axialFriction, 'axialFriction');
-    const muV = nonNegative(constraint.circumferentialFriction ?? constraint.torsionalFriction ?? constraint.axialFriction, 'circumferentialFriction');
-    out.group.normalLambda = normalLambda;
-    out.group.mu[0] = muU; out.group.mu[1] = muV;
-    out.group.kind = muU === muV ? 'coulomb-disk' : 'coulomb-ellipse';
+    refreshFrictionLoadParameters(constraint, contact, out);
     out.diagnostics.replacesLegacyTwist = true;
-    out.diagnostics.ignoredLegacyTwistLambda = finite(contact.twistLambda ?? 0, 'twistLambda');
-    out.diagnostics.requiresLegacyTwistRetirement = out.diagnostics.ignoredLegacyTwistLambda !== 0;
     vector(record.normal ?? contact.normal, state.normal, 'contact normal');
     if (!normalize(state.normal)) throw new RangeError('Contact normal must be nonzero');
     for (let side = 0; side < 2; side++) readStencil(bodies[side], record, contact, side, state.sides[side], evaluation);
@@ -287,17 +300,30 @@ function prepareSurfaceFriction(constraint, record, dt, out, buildGradients, eva
     }
     // Existing manifold lambdas are components in its stored tangent basis.
     // Re-express that force; never rotate an anisotropic ellipse with history.
-    const oldU = finite(contact.tangentLambda?.[0], 'old tangent lambda U');
-    const oldV = finite(contact.tangentLambda?.[1], 'old tangent lambda V');
-    for (let i = 0; i < 3; i++) state.oldForce[i] =
-        finite(contact.tangentU?.[i], 'old tangent U') * oldU + finite(contact.tangentV?.[i], 'old tangent V') * oldV;
+    refreshFrictionForce(record.manifoldContact, out);
     for (let axis = 0; axis < 2; axis++) {
         const direction = out.axes[axis], row = state.rows[axis];
         row.strain = dot(direction, out.relativeSurfaceDisplacement);
-        row.lambda = dot(direction, state.oldForce);
         row.alpha = 0; row.lower = -Infinity; row.upper = Infinity;
+        row.gradients.length = 0;
+        out.rows[axis] = row;
+    }
+    out.supported = true;
+    out.diagnostics.motionSource = physicalMotion ? 'physical-velocity' : 'finite-pose-history';
+    if (buildGradients) materializeKirchhoffSurfaceFrictionGradients(out);
+    return out;
+}
+
+/** Materialize J from a just-evaluated surface without repeating geometry or
+ * finite-pose kinematics. The caller owns the same synchronous evaluation:
+ * no pose, history, feature or load edits may occur before this promotion. */
+export function materializeKirchhoffSurfaceFrictionGradients(out) {
+    if (!out.supported || !out._surfaceScratch) throw new Error('A supported surface evaluation is required');
+    const state = out._surfaceScratch;
+    for (let axis = 0; axis < 2; axis++) {
+        const direction = out.axes[axis], row = state.rows[axis];
         let count = 0;
-        if (buildGradients) for (let side = 0; side < 2; side++) {
+        for (let side = 0; side < 2; side++) {
             const s = state.sides[side], sign = side === 0 ? 1 : -1;
             for (let i = 0; i < s.count; i++) for (let component = 0; component < 3; component++)
                 count = appendGradient(row, count, side, s.nodes[i] * 6 + component, sign * s.weights[i] * direction[component]);
@@ -309,8 +335,37 @@ function prepareSurfaceFriction(constraint, record, dt, out, buildGradients, eva
         row.gradients.length = count;
         out.rows[axis] = row;
     }
-    out.supported = true;
-    out.diagnostics.motionSource = physicalMotion ? 'physical-velocity' : 'finite-pose-history';
+    out.kinematicsOnly = false;
+    return out;
+}
+
+/** Geometry/kinematics may be reused; current loads and the manifold force
+ * basis must always be read again, even after roundoff-sized reprojections. */
+export function refreshKirchhoffSurfaceFrictionLoads(constraint, record, out) {
+    const contact = record.manifoldContact;
+    refreshFrictionLoadParameters(constraint, contact, out);
+    return refreshFrictionForce(contact, out);
+}
+
+function refreshFrictionLoadParameters(constraint, contact, out) {
+    const normalLambda = nonNegative(contact.normalLambda, 'normalLambda');
+    const muU = nonNegative(constraint.axialFriction, 'axialFriction');
+    const muV = nonNegative(constraint.circumferentialFriction ?? constraint.torsionalFriction ?? constraint.axialFriction, 'circumferentialFriction');
+    out.group.normalLambda = normalLambda; out.group.normalContact = contact;
+    out.group.mu[0] = muU; out.group.mu[1] = muV;
+    out.group.kind = muU === muV ? 'coulomb-disk' : 'coulomb-ellipse';
+    out.diagnostics.ignoredLegacyTwistLambda = finite(contact.twistLambda ?? 0, 'twistLambda');
+    out.diagnostics.requiresLegacyTwistRetirement = out.diagnostics.ignoredLegacyTwistLambda !== 0;
+    return out;
+}
+
+function refreshFrictionForce(contact, out) {
+    const state = out._surfaceScratch;
+    const oldU = finite(contact.tangentLambda?.[0], 'old tangent lambda U');
+    const oldV = finite(contact.tangentLambda?.[1], 'old tangent lambda V');
+    for (let i = 0; i < 3; i++) state.oldForce[i] =
+        finite(contact.tangentU?.[i], 'old tangent U') * oldU + finite(contact.tangentV?.[i], 'old tangent V') * oldV;
+    for (let axis = 0; axis < 2; axis++) state.rows[axis].lambda = dot(out.axes[axis], state.oldForce);
     return out;
 }
 
