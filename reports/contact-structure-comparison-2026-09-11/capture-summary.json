@@ -1,0 +1,31 @@
+{
+  "captured": [
+    100,
+    200,
+    400
+  ],
+  "steps": 2561,
+  "failures": 3,
+  "snapshot": {
+    "wireMm": 600,
+    "catheterMm": 400,
+    "wireRotation": 0,
+    "catheterRotation": 0,
+    "executedSteps": 2561,
+    "fingerprints": [
+      {
+        "id": "guidewire",
+        "hash": "3ff4f53e"
+      },
+      {
+        "id": "catheter",
+        "hash": "a35c800a"
+      }
+    ],
+    "activeNodes": [
+      122,
+      82
+    ]
+  },
+  "elapsedMs": 1021507.6826660001
+}
