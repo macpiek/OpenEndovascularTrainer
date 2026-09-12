@@ -1,21 +1,17 @@
+import { applyProximalTwistBoundary } from '../src/physics/kirchhoffOrientationBoundary.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import * as THREE from 'three';
-import { ElasticRod } from '../src/physics/elasticRod.js';
-import { GuidewireSolver } from '../src/physics/guidewireSolver.js';
+
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
 } from '../src/physics/endovascularPhysicsWorld.js';
-import { PigtailCatheter } from '../src/pigtailCatheter.js';
-import { generateVessel } from '../src/vesselGeometry.js';
 
 const args = new Map(process.argv.slice(2).map(value => {
     const [key, raw = 'true'] = value.replace(/^--/, '').split('=');
     return [key, raw];
 }));
-const requestedMode = args.get('mode') || 'all';
 const disableToolContact = args.get('disable-tool-contact') === 'true';
 const disableContainment = args.get('disable-containment') === 'true';
 const outputDirectory = path.resolve(args.get('output') || 'reports');
@@ -103,9 +99,7 @@ function segmentErrorDetails(body, index) {
         restLength: body.restLength[index],
         start: [body.x[index], body.y[index], body.z[index]],
         end: [body.x[index + 1], body.y[index + 1], body.z[index + 1]],
-        targetStart: [body.restShapeX[index], body.restShapeY[index], body.restShapeZ[index]],
-        targetEnd: [body.restShapeX[index + 1], body.restShapeY[index + 1], body.restShapeZ[index + 1]],
-        shapeEnabled: [body.restShapeEnabled[index], body.restShapeEnabled[index + 1]]
+        restRotation: [body.restRotation1[index], body.restRotation2[index], body.restRotation3[index]]
     };
 }
 
@@ -140,7 +134,7 @@ function bodyIsFinite(body) {
     return true;
 }
 
-function xpbdPhase(step) {
+function benchmarkPhase(step) {
     if (step < 600) return 'full-insert';
     if (step < 1200) return 'branch-stenosis-taper-contact';
     if (step < 1600) return 'pigtail-deploy-rotate';
@@ -152,152 +146,6 @@ function xpbdPhase(step) {
 function heapUsed() {
     globalThis.gc?.();
     return process.memoryUsage().heapUsed;
-}
-
-function buildProceduralSampler(vessel) {
-    const origin = new THREE.Vector3(vessel.sheath.end.x, vessel.sheath.end.y, vessel.sheath.end.z);
-    const forward = new THREE.Vector3().subVectors(vessel.sheath.end, vessel.sheath.start).normalize();
-    const side = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0));
-    if (side.lengthSq() < EPSILON) side.set(1, 0, 0);
-    side.normalize();
-    const up = new THREE.Vector3().crossVectors(side, forward).normalize();
-    const center = new THREE.Vector3();
-    const ahead = new THREE.Vector3();
-    const behind = new THREE.Vector3();
-    const tangent = new THREE.Vector3();
-    const point = { x: 0, y: 0, z: 0 };
-    const tangentPoint = { x: 1, y: 0, z: 0 };
-    const result = { point, tangent: tangentPoint, radius: 0 };
-
-    const setCenter = (target, distance) => {
-        const d = Math.max(0, distance);
-        const fade = Math.min(1, d / 120);
-        target.copy(origin)
-            .addScaledVector(forward, d)
-            .addScaledVector(side, Math.sin(d * 0.034) * 12 * fade)
-            .addScaledVector(up, (Math.sin(d * 0.021 + 0.5) - Math.sin(0.5)) * 10 * fade);
-        return target;
-    };
-
-    return distance => {
-        const d = Math.max(0, distance);
-        setCenter(center, d);
-        setCenter(ahead, d + 0.5);
-        setCenter(behind, Math.max(0, d - 0.5));
-        tangent.subVectors(ahead, behind).normalize();
-        point.x = center.x;
-        point.y = center.y;
-        point.z = center.z;
-        tangentPoint.x = tangent.x;
-        tangentPoint.y = tangent.y;
-        tangentPoint.z = tangent.z;
-        result.radius = 7.2 + Math.sin(d * 0.017) * 1.1 - Math.exp(-((d - 310) ** 2) / 520) * 2.2;
-        return result;
-    };
-}
-
-function benchmarkLegacy() {
-    const dt = 1 / 60;
-    const segmentLength = 5;
-    const nodeCount = 201;
-    const guidewireLength = segmentLength * (nodeCount - 1);
-    const { vessel } = generateVessel(140, 0);
-    const sampler = buildProceduralSampler(vessel);
-    const wire = new ElasticRod(nodeCount, segmentLength, { constraintIterations: 28 });
-    const solver = new GuidewireSolver({
-        rod: wire,
-        segmentLength,
-        guidewireLength,
-        sheath: vessel.sheath,
-        lumenSampler: sampler,
-        advanceRate: 44,
-        minInsert: 0,
-        maxInsert: guidewireLength,
-        lumenClearance: DEFAULT_TOOL_PROFILES.guidewire.radius,
-        meshClearance: DEFAULT_TOOL_PROFILES.guidewire.radius,
-        straightening: 0.72,
-        routeBlend: 0.018,
-        relaxationIterations: 4,
-        lengthIterations: 10,
-        finalCollisionPasses: 3,
-        finalLengthPasses: 2,
-        finalProjectionPasses: 2
-    });
-    solver.initialize();
-    const physicsTimes = [];
-    const narrowTimes = [];
-    let queryCount = 0;
-    let maximumContacts = 0;
-    let maximumPenetration = 0;
-    let stabilityRepairs = 0;
-    const heapStart = heapUsed();
-
-    const step = command => {
-        const start = performance.now();
-        solver.advance(command, dt);
-        solver.solve(dt, null, { iterations: command === 0 ? 3 : 4 });
-        physicsTimes.push(performance.now() - start);
-        const stats = solver.getPerformanceStats();
-        narrowTimes.push(stats.projectMs);
-        queryCount += stats.pointContactCount;
-        stabilityRepairs += stats.stabilityRepaired ? 1 : 0;
-        maximumContacts = Math.max(maximumContacts, stats.pointContactCount);
-        for (let index = solver.firstLumenNodeIndex(); index < wire.nodes.length; index++) {
-            const inserted = solver.insertedCoordinate(index);
-            const route = solver.routeSample(inserted);
-            const node = wire.nodes[index];
-            const radial = Math.hypot(node.x - route.point.x, node.y - route.point.y, node.z - route.point.z);
-            maximumPenetration = Math.max(
-                maximumPenetration,
-                radial + DEFAULT_TOOL_PROFILES.guidewire.radius - route.radius
-            );
-        }
-    };
-
-    while (solver.progress < solver.maxInsert - 1e-6) step(1);
-    for (let index = 0; index < 120; index++) step(0);
-    const fullyInserted = solver.progress;
-    while (solver.progress > solver.minInsert + 1e-6) step(-1);
-    for (let index = 0; index < 120; index++) step(0);
-
-    const catheter = new PigtailCatheter({
-        wire,
-        segmentLength,
-        guidewireLength,
-        tailProgressRef: () => solver.progress,
-        vessel,
-        maxLength: 260
-    });
-    const catheterTimes = [];
-    for (const type of ['pigtail', 'berenstein']) {
-        catheter.setType(type);
-        for (let frame = 0; frame < 240; frame++) {
-            const start = performance.now();
-            catheter.advance(frame < 180 ? 1 : 0, dt, fullyInserted);
-            catheter.rotate(frame % 80 < 40 ? 1 : -1, dt);
-            catheter.stepPhysics(dt);
-            catheterTimes.push(performance.now() - start);
-        }
-    }
-    catheter.dispose();
-    const heapEnd = heapUsed();
-
-    return {
-        mode: 'legacy',
-        scenarios: ['full-insert', 'full-withdraw', 'stenosis', 'pigtail-deploy-rotate', 'berenstein-deploy-rotate'],
-        steps: physicsTimes.length,
-        insertedMm: fullyInserted,
-        physicsMs: summarize(physicsTimes),
-        narrowPhaseMs: summarize(narrowTimes),
-        catheterPhysicsMs: summarize(catheterTimes),
-        contactQueries: queryCount,
-        maxContactsPerStep: maximumContacts,
-        maxPenetrationMm: Math.max(0, maximumPenetration),
-        maxSegmentErrorMm: maxSegmentError(wire, segmentLength),
-        maxSegmentErrorPercent: maxSegmentError(wire, segmentLength) / segmentLength * 100,
-        stabilityRepairs,
-        heapDeltaBytes: heapEnd - heapStart
-    };
 }
 
 function setVector(target, x, y, z) {
@@ -450,58 +298,25 @@ function smoothRamp(value) {
     return t * t * (3 - 2 * t);
 }
 
-function setArcRestShape(body, end, segmentCount, targetAngle, deployment, rotation, compliance) {
-    const start = Math.max(0, end - segmentCount);
-    const angleStep = targetAngle / Math.max(1, segmentCount);
+// Manufactured planar curvature is stored in material frames. No world-space
+// pose targets or chord springs participate in this benchmark.
+function setIntrinsicArc(body, end, segmentCount, targetAngle, deployment, rotation, compliance) {
+    const start = Math.max(1, end - segmentCount);
     const curlFront = smoothRamp(deployment) * segmentCount;
-    let x = start * body.segmentLength;
-    let radial = 0;
-    let direction = 0;
-    for (let index = start; index <= end; index++) {
-        const centerY = benchmarkCenterlineY(x);
-        body.setRestShapeTarget(
-            index,
-            x,
-            centerY + Math.cos(rotation) * radial,
-            Math.sin(rotation) * radial,
-            compliance
-        );
-        if (index === end) continue;
-        const segment = index - start;
-        const localCurl = smoothRamp(curlFront - (segmentCount - 1 - segment));
-        direction += angleStep * localCurl;
-        x += Math.cos(direction) * body.segmentLength;
-        radial += Math.sin(direction) * body.segmentLength;
+    for (let joint = start; joint < end; joint++) {
+        const turn = targetAngle / segmentCount * smoothRamp(curlFront - (end - 1 - joint));
+        body.setKirchhoffRestRotation(joint, 0, turn, 0, compliance, compliance, compliance);
     }
-    for (let index = start; index < end; index++) {
-        body.restLength[index] = Math.max(0.5, Math.hypot(
-            body.restShapeX[index + 1] - body.restShapeX[index],
-            body.restShapeY[index + 1] - body.restShapeY[index],
-            body.restShapeZ[index + 1] - body.restShapeZ[index]
-        ));
-    }
-    for (let index = start + 1; index < end; index++) {
-        const targetChord = Math.hypot(
-            body.restShapeX[index + 1] - body.restShapeX[index - 1],
-            body.restShapeY[index + 1] - body.restShapeY[index - 1],
-            body.restShapeZ[index + 1] - body.restShapeZ[index - 1]
-        );
-        body.restBendChord[index] = targetChord;
+    applyProximalTwistBoundary(body, { twist: rotation });
+}
+
+function clearIntrinsicArc(body, end, span = 24) {
+    for (let joint = Math.max(1, end - span); joint < end; joint++) {
+        body.setKirchhoffRestRotation(joint, 0, 0, 0);
     }
 }
 
-function clearBenchmarkRestShape(body, end, span = 24) {
-    const start = Math.max(0, end - span);
-    for (let index = start; index <= end; index++) body.clearRestShapeTarget(index);
-    for (let index = Math.max(0, start - 1); index < Math.min(end, body.segmentCount); index++) {
-        body.restLength[index] = body.segmentLength;
-    }
-    for (let index = Math.max(1, start); index < Math.min(end, body.count - 1); index++) {
-        body.restBendChord[index] = body.segmentLength * 2;
-    }
-}
-
-function configureXpbdScenario(step, wire, catheter, containment, externalContact) {
+function configureKirchhoffScenario(step, wire, catheter, containment, externalContact) {
     const fullWireEnd = wire.count - 1;
     const shapeSupportEnd = 106;
     let wireEnd;
@@ -540,10 +355,10 @@ function configureXpbdScenario(step, wire, catheter, containment, externalContac
     externalContact.endSegmentB = catheterEnd - 1;
 
     if (step === 2000) {
-        clearBenchmarkRestShape(catheter, catheterEnd);
+        clearIntrinsicArc(catheter, catheterEnd);
     }
     if (step === 1600) {
-        clearBenchmarkRestShape(catheter, catheterEnd);
+        clearIntrinsicArc(catheter, catheterEnd);
     }
     if (step >= 1280 && step < 1600) {
         const deployment = step < 1480
@@ -553,7 +368,7 @@ function configureXpbdScenario(step, wire, catheter, containment, externalContac
         const pigtailRadius = 2.85;
         const pigtailSegments = 12;
         const pigtailAngleStep = 2 * Math.asin(catheter.segmentLength / (2 * pigtailRadius));
-        setArcRestShape(
+        setIntrinsicArc(
             catheter,
             catheterEnd,
             pigtailSegments,
@@ -567,7 +382,7 @@ function configureXpbdScenario(step, wire, catheter, containment, externalContac
             ? smoothRamp((step - 1600) / 120)
             : smoothRamp((2000 - step) / 120);
         const rotation = Math.max(0, step - 1720) * 0.018;
-        setArcRestShape(
+        setIntrinsicArc(
             catheter,
             catheterEnd,
             4,
@@ -580,7 +395,7 @@ function configureXpbdScenario(step, wire, catheter, containment, externalContac
     return { wireEnd, catheterEnd, settling: step >= 2280 };
 }
 
-function benchmarkXpbd() {
+function benchmarkKirchhoff() {
     const field = new AnalyticBenchmarkField();
     const world = new EndovascularPhysicsWorld({ contactField: field });
     const wire = world.createRod('guidewire', 201, 2.5, {
@@ -631,7 +446,7 @@ function benchmarkXpbd() {
     let previousWireTip = -1;
     let previousCatheterTip = -1;
     for (let step = 0; step < 2400; step++) {
-        const active = configureXpbdScenario(step, wire, catheter, containment, externalContact);
+        const active = configureKirchhoffScenario(step, wire, catheter, containment, externalContact);
         const phase = step * 0.006;
         const wireTip = active.wireEnd;
         const catheterTip = active.catheterEnd;
@@ -699,7 +514,7 @@ function benchmarkXpbd() {
     const heapEnd = heapUsed();
     const stats = world.getStats();
     const result = {
-        mode: 'xpbd-contact-v1',
+        mode: 'kirchhoff-direct',
         scenarios: [
             'full-insert',
             'small-branch',
@@ -725,7 +540,7 @@ function benchmarkXpbd() {
         maxSegmentErrorPercent: maximumLengthErrorPercent,
         maxSegmentErrorAt: {
             step: maximumLengthErrorStep,
-            phase: xpbdPhase(maximumLengthErrorStep),
+            phase: benchmarkPhase(maximumLengthErrorStep),
             body: maximumLengthErrorBody,
             segment: maximumLengthErrorSegment,
             details: maximumLengthErrorDetails
@@ -787,9 +602,7 @@ function markdown(report) {
     return lines.join('\n');
 }
 
-const results = [];
-if (requestedMode === 'all' || requestedMode === 'legacy') results.push(benchmarkLegacy());
-if (requestedMode === 'all' || requestedMode === 'xpbd') results.push(benchmarkXpbd());
+const results = [benchmarkKirchhoff()];
 const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -812,6 +625,6 @@ if (failedAcceptance) {
         .filter(([, passed]) => !passed)
         .map(([name]) => name)
         .join(', ');
-    console.error(`XPBD acceptance failed: ${failedChecks}`);
+    console.error(`Kirchhoff acceptance failed: ${failedChecks}`);
     process.exitCode = 1;
 }

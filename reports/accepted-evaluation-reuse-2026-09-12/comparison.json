@@ -1,0 +1,4056 @@
+{
+  "node": "v24.6.0",
+  "order": [
+    "before-1",
+    "after-1",
+    "after-2",
+    "before-2"
+  ],
+  "stepsPerRun": 2578,
+  "comparedSteps": 7734,
+  "comparedFields": [
+    "physicalHash",
+    "poseHashes",
+    "passes",
+    "trials",
+    "backtracks",
+    "rows",
+    "factorizations",
+    "failure",
+    "rejected",
+    "penetrationMm",
+    "wireMm",
+    "catheterMm"
+  ],
+  "differences": [],
+  "sourceSHA256": {
+    "src/physics/kirchhoffFrictionInputStamp.js": "c10cf3a4445a6145f81eb820833566acaa2292da12923baa6062de5752142449",
+    "src/physics/kirchhoffCoupledFrictionRows.js": "a2cf6b83fa80dd8e5bbb4e83fcfde5400b8b7d5411ab2d827ff0328e749548ff",
+    "src/physics/kirchhoffSurfaceFriction.js": "ef73c7d05c8db8c749283b9b891bd9b1652b569aaf84bf680a97f744be882430",
+    "src/physics/endovascularPhysicsWorld.js": "959a729ed15bcbcb7378c2a0349ed8b117096874f448d03ad340af5fa64d32fa",
+    "scripts/physics/profile-overlap-309.mjs": "5bc8b392ede3709877c7324df3a5aaf2f2bf257fb499982f51d54e4f998ba887",
+    "scripts/physics/benchmark-accepted-evaluation.mjs": "3712720d15d078f3f86306b7982581e345c6bcbfd09d9fbb06df087762a9b905"
+  },
+  "phases": [
+    {
+      "scenario": "wire-alone",
+      "phase": "wire-feed-309",
+      "steps": 843,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 2.1887314680851055,
+            "p50": 1.993458000000146,
+            "p95": 4.370292000000063,
+            "max": 6.276708000000099
+          },
+          "meanCosts": {
+            "assemblyMs": 0.08793978723404391,
+            "solveMs": 0.9459150851064158,
+            "applyMs": 0.02784300000000277,
+            "snapshotMs": 0.333290765957464,
+            "restoreMs": 0,
+            "measureMs": 0.40046270212762486,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.19247604255317244,
+            "schurMs": 0.10977936170213476,
+            "contactSolveMs": 0.020475170212774445,
+            "reconstructionMs": 0.03622059574469975,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 1.8803598936170127,
+            "p50": 1.8810839999998734,
+            "p95": 2.6755420000001777,
+            "max": 2.818708000000015
+          },
+          "meanCosts": {
+            "assemblyMs": 0.08189559574467684,
+            "solveMs": 0.840144680851086,
+            "applyMs": 0.020946808510667866,
+            "snapshotMs": 0.2772252127659719,
+            "restoreMs": 0,
+            "measureMs": 0.33798434042550785,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.16929959574468603,
+            "schurMs": 0.09474389361702998,
+            "contactSolveMs": 0.013602787234044336,
+            "reconstructionMs": 0.030688787234044442,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 1.730960936170214,
+            "p50": 1.8114579999999023,
+            "p95": 2.424166000000014,
+            "max": 2.6575419999999212
+          },
+          "meanCosts": {
+            "assemblyMs": 0.07088568085104019,
+            "solveMs": 0.7751072978724047,
+            "applyMs": 0.018889255319160664,
+            "snapshotMs": 0.25073670212765486,
+            "restoreMs": 0,
+            "measureMs": 0.32883951063834194,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.1584582127659408,
+            "schurMs": 0.08934308510637531,
+            "contactSolveMs": 0.012105404255373984,
+            "reconstructionMs": 0.027374957446807728,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 1.8103120851064016,
+            "p50": 1.8207080000001952,
+            "p95": 2.6979999999998654,
+            "max": 4.214582999999948
+          },
+          "meanCosts": {
+            "assemblyMs": 0.07510014893616844,
+            "solveMs": 0.8041187659574229,
+            "applyMs": 0.021249978723430336,
+            "snapshotMs": 0.25446280851064756,
+            "restoreMs": 0,
+            "measureMs": 0.34378627659578614,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.16435455319148612,
+            "schurMs": 0.09184219148936733,
+            "contactSolveMs": 0.013105446808488503,
+            "reconstructionMs": 0.02696280851066942,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "wire-alone",
+      "phase": "wire-hold",
+      "steps": 60,
+      "measuredSteps": 60,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 1.4114055333333453,
+            "p50": 1.148916999999983,
+            "p95": 3.0585000000000946,
+            "max": 9.273584000000028
+          },
+          "meanCosts": {
+            "assemblyMs": 0.08882560000001831,
+            "solveMs": 0.6586096166666796,
+            "applyMs": 0.022000533333281662,
+            "snapshotMs": 0.14265415000003637,
+            "restoreMs": 0,
+            "measureMs": 0.22832633333335556,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.12336319999997158,
+            "schurMs": 0.07577156666668543,
+            "contactSolveMs": 0.012006949999954487,
+            "reconstructionMs": 0.02014228333329508,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 0.8991611833333347,
+            "p50": 0.7779169999998885,
+            "p95": 1.5449169999999413,
+            "max": 2.3784169999998994
+          },
+          "meanCosts": {
+            "assemblyMs": 0.045937450000000504,
+            "solveMs": 0.4805818666666861,
+            "applyMs": 0.012320900000008805,
+            "snapshotMs": 0.07706663333334518,
+            "restoreMs": 0,
+            "measureMs": 0.1505215000000059,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.09572780000001255,
+            "schurMs": 0.05479934999998098,
+            "contactSolveMs": 0.007436116666694185,
+            "reconstructionMs": 0.017943016666652056,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 0.7911910666666283,
+            "p50": 0.5791249999999764,
+            "p95": 1.3900409999998828,
+            "max": 1.6228340000000117
+          },
+          "meanCosts": {
+            "assemblyMs": 0.03971750000000611,
+            "solveMs": 0.4306959666666709,
+            "applyMs": 0.011511183333323061,
+            "snapshotMs": 0.07183821666667806,
+            "restoreMs": 0,
+            "measureMs": 0.1389167999999889,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.0885950666666569,
+            "schurMs": 0.052965883333320106,
+            "contactSolveMs": 0.0059666333333325385,
+            "reconstructionMs": 0.015261166666653026,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 0.9196145666666553,
+            "p50": 0.8266670000000431,
+            "p95": 1.875291999999945,
+            "max": 2.610832999999957
+          },
+          "meanCosts": {
+            "assemblyMs": 0.058641683333352526,
+            "solveMs": 0.47539444999997993,
+            "applyMs": 0.013107733333352673,
+            "snapshotMs": 0.08100696666665878,
+            "restoreMs": 0,
+            "measureMs": 0.16903276666668413,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.09813335000000052,
+            "schurMs": 0.057148549999984276,
+            "contactSolveMs": 0.008713799999986805,
+            "reconstructionMs": 0.015384033333339176,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-20",
+      "steps": 47,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 1.7478962978723642,
+            "p50": 1.1866249999998217,
+            "p95": 4.03295799999978,
+            "max": 13.234625000000051
+          },
+          "meanCosts": {
+            "assemblyMs": 0.21598397872343839,
+            "solveMs": 0.9299112978723354,
+            "applyMs": 0.03777834042556548,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.17926417021276683,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.06639797872344873,
+            "schurMs": 0.023885702127699915,
+            "contactSolveMs": 0.05276685106384243,
+            "reconstructionMs": 0.012149723404278081,
+            "seedMs": 0.026429957446791687
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 1.7087845106382586,
+            "p50": 0.7434580000003734,
+            "p95": 6.132333000000017,
+            "max": 14.937207999999828
+          },
+          "meanCosts": {
+            "assemblyMs": 0.22077565957448664,
+            "solveMs": 0.8541196808510575,
+            "applyMs": 0.03843882978724728,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.265788148936184,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.05947159574468079,
+            "schurMs": 0.028238382978784973,
+            "contactSolveMs": 0.058662212765942426,
+            "reconstructionMs": 0.03018091489367238,
+            "seedMs": 0.04234306382977593
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 0.9231479787233784,
+            "p50": 0.5912500000004002,
+            "p95": 2.0819579999997586,
+            "max": 8.987165999999888
+          },
+          "meanCosts": {
+            "assemblyMs": 0.12110736170213018,
+            "solveMs": 0.4935718297872282,
+            "applyMs": 0.016874106382988915,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.09601951063824983,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.03441940425531395,
+            "schurMs": 0.009937893616997245,
+            "contactSolveMs": 0.01937404255318626,
+            "reconstructionMs": 0.006781893616983112,
+            "seedMs": 0.010164021276591
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 1.1325248085106572,
+            "p50": 0.7396250000001601,
+            "p95": 3.2823339999999916,
+            "max": 7.702749999999924
+          },
+          "meanCosts": {
+            "assemblyMs": 0.1408918510638285,
+            "solveMs": 0.5990336382978193,
+            "applyMs": 0.02242297872336418,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.1283670212766044,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.05153823404258374,
+            "schurMs": 0.012260617021280616,
+            "contactSolveMs": 0.019397170212733784,
+            "reconstructionMs": 0.005392680851062014,
+            "seedMs": 0.00854963829786047
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-50",
+      "steps": 70,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 0.8961613191489127,
+            "p50": 0.6820419999999103,
+            "p95": 1.9934579999999187,
+            "max": 2.0421659999997246
+          },
+          "meanCosts": {
+            "assemblyMs": 0.02569593617020841,
+            "solveMs": 0.5326099574468243,
+            "applyMs": 0.018680042553230723,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.08270663829789361,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.0638227021276315,
+            "schurMs": 0.021565595744611546,
+            "contactSolveMs": 0.010885553191472238,
+            "reconstructionMs": 0.002887382978702164,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 0.5901479574468272,
+            "p50": 0.479750000000422,
+            "p95": 0.9331250000000182,
+            "max": 2.453874999999698
+          },
+          "meanCosts": {
+            "assemblyMs": 0.014825276595768221,
+            "solveMs": 0.33198225531918496,
+            "applyMs": 0.0095709361702033,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.0773483617020905,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.03605497872342041,
+            "schurMs": 0.01284136170208048,
+            "contactSolveMs": 0.006711872340464981,
+            "reconstructionMs": 0.0015398297872552382,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 0.5017960851063571,
+            "p50": 0.4627500000001419,
+            "p95": 0.7668749999997999,
+            "max": 1.1974579999996422
+          },
+          "meanCosts": {
+            "assemblyMs": 0.012171106382983781,
+            "solveMs": 0.30872963829788785,
+            "applyMs": 0.006808489361688733,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.03336170212762536,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.03307174468087164,
+            "schurMs": 0.012334191489349286,
+            "contactSolveMs": 0.004985893616999129,
+            "reconstructionMs": 0.0013527872340788197,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 0.6647242340425479,
+            "p50": 0.5084580000002461,
+            "p95": 1.596042000000125,
+            "max": 3.382292000000234
+          },
+          "meanCosts": {
+            "assemblyMs": 0.032881255319188445,
+            "solveMs": 0.3738085531914642,
+            "applyMs": 0.013875021276604418,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.049203829787191046,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.039879425531928955,
+            "schurMs": 0.013515042553206784,
+            "contactSolveMs": 0.007687936170199502,
+            "reconstructionMs": 0.0016364680851109641,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-100",
+      "steps": 116,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 1.6908581489361842,
+            "p50": 1.5467499999999745,
+            "p95": 2.8407499999998436,
+            "max": 4.060333000000355
+          },
+          "meanCosts": {
+            "assemblyMs": 0.03725091489362038,
+            "solveMs": 0.8490212765958123,
+            "applyMs": 0.022964531914896454,
+            "snapshotMs": 0.34345212765960087,
+            "restoreMs": 0,
+            "measureMs": 0.15884310638294336,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 255.27659574468086,
+            "snapshotBytes": 562757.2765957447,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.09614185106382603,
+            "schurMs": 0.057561234042555524,
+            "contactSolveMs": 0.024299659574459856,
+            "reconstructionMs": 0.005384702127617431,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 1.6019991702127823,
+            "p50": 1.434374999999818,
+            "p95": 2.9939170000002377,
+            "max": 3.239082999999937
+          },
+          "meanCosts": {
+            "assemblyMs": 0.041100191489418805,
+            "solveMs": 0.7939787021276622,
+            "applyMs": 0.02403821276592235,
+            "snapshotMs": 0.32731468085108995,
+            "restoreMs": 0,
+            "measureMs": 0.15123419148933842,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 255.27659574468086,
+            "snapshotBytes": 562757.2765957447,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.0936551276595697,
+            "schurMs": 0.054472531914907835,
+            "contactSolveMs": 0.02393355319149355,
+            "reconstructionMs": 0.010778382978747067,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 1.3614485319149026,
+            "p50": 1.3245409999999538,
+            "p95": 1.9588330000001406,
+            "max": 2.2522079999998823
+          },
+          "meanCosts": {
+            "assemblyMs": 0.028145425531894287,
+            "solveMs": 0.7268236808510393,
+            "applyMs": 0.016980595744681002,
+            "snapshotMs": 0.2624565531914704,
+            "restoreMs": 0,
+            "measureMs": 0.1163048297871973,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 255.27659574468086,
+            "snapshotBytes": 562757.2765957447,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.07792110638294926,
+            "schurMs": 0.04385821276595225,
+            "contactSolveMs": 0.016210042553192326,
+            "reconstructionMs": 0.004981319148855425,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 1.4817039999999926,
+            "p50": 1.431250000000091,
+            "p95": 2.478541999999834,
+            "max": 2.774667000000136
+          },
+          "meanCosts": {
+            "assemblyMs": 0.03185295744678831,
+            "solveMs": 0.7855274042553321,
+            "applyMs": 0.018476085106438868,
+            "snapshotMs": 0.2848005744681359,
+            "restoreMs": 0,
+            "measureMs": 0.13039989361702303,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 255.27659574468086,
+            "snapshotBytes": 562757.2765957447,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.09332080851062857,
+            "schurMs": 0.0477020638297116,
+            "contactSolveMs": 0.01819593617025756,
+            "reconstructionMs": 0.005260510638329814,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-hold-100",
+      "steps": 60,
+      "measuredSteps": 60,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 0.6632089833333187,
+            "p50": 0.5967909999999392,
+            "p95": 0.9767499999998108,
+            "max": 1.6500409999998737
+          },
+          "meanCosts": {
+            "assemblyMs": 0.01895830000002358,
+            "solveMs": 0.4177388999999948,
+            "applyMs": 0.010874266666670943,
+            "snapshotMs": 0.008156950000003842,
+            "restoreMs": 0,
+            "measureMs": 0.05502571666664456,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.266666666666667,
+            "snapshotBytes": 11020.866666666667,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.0579923999999816,
+            "schurMs": 0.02700279999999111,
+            "contactSolveMs": 0.013377849999968324,
+            "reconstructionMs": 0.0042174333333150574,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 0.8661646333333465,
+            "p50": 0.6306660000000193,
+            "p95": 2.2810420000000704,
+            "max": 3.0801669999996193
+          },
+          "meanCosts": {
+            "assemblyMs": 0.02655701666666725,
+            "solveMs": 0.5162513999999949,
+            "applyMs": 0.01513131666663412,
+            "snapshotMs": 0.005418749999997393,
+            "restoreMs": 0,
+            "measureMs": 0.08015351666667811,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.266666666666667,
+            "snapshotBytes": 11020.866666666667,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.09518683333333987,
+            "schurMs": 0.032422933333373295,
+            "contactSolveMs": 0.018179200000008677,
+            "reconstructionMs": 0.005044566666689813,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 0.5957624833333284,
+            "p50": 0.5205829999999878,
+            "p95": 1.164541999999983,
+            "max": 1.3395419999997102
+          },
+          "meanCosts": {
+            "assemblyMs": 0.01706254999999904,
+            "solveMs": 0.3874472833333281,
+            "applyMs": 0.007894433333346267,
+            "snapshotMs": 0.005452083333337517,
+            "restoreMs": 0,
+            "measureMs": 0.04493058333330282,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.266666666666667,
+            "snapshotBytes": 11020.866666666667,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.04949581666661137,
+            "schurMs": 0.024207700000018425,
+            "contactSolveMs": 0.011002816666624919,
+            "reconstructionMs": 0.003604166666612703,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 0.6532666833333602,
+            "p50": 0.5794160000000375,
+            "p95": 1.1385000000000218,
+            "max": 1.61587499999996
+          },
+          "meanCosts": {
+            "assemblyMs": 0.024792366666648982,
+            "solveMs": 0.3820187166666528,
+            "applyMs": 0.0095257666666915,
+            "snapshotMs": 0.006169450000000628,
+            "restoreMs": 0,
+            "measureMs": 0.05413754999995793,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.266666666666667,
+            "snapshotBytes": 11020.866666666667,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.052915950000002945,
+            "schurMs": 0.026427750000016202,
+            "contactSolveMs": 0.01124861666664098,
+            "reconstructionMs": 0.0036764666666689056,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-withdraw-80",
+      "steps": 76,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 0.8502889787234109,
+            "p50": 0.8783339999999953,
+            "p95": 1.4295420000003105,
+            "max": 1.5884579999997186
+          },
+          "meanCosts": {
+            "assemblyMs": 0.01801140425533881,
+            "solveMs": 0.47326499999996696,
+            "applyMs": 0.009681659574430632,
+            "snapshotMs": 0.14414885106383193,
+            "restoreMs": 0,
+            "measureMs": 0.05316214893614512,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 228.59574468085106,
+            "snapshotBytes": 478338.55319148937,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.03172697872341427,
+            "schurMs": 0.012955638297897051,
+            "contactSolveMs": 0.0036232127659651327,
+            "reconstructionMs": 0.004011680851024412,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 0.9537402765957441,
+            "p50": 0.9038340000001881,
+            "p95": 1.5831250000001091,
+            "max": 3.56570899999997
+          },
+          "meanCosts": {
+            "assemblyMs": 0.02176687234049631,
+            "solveMs": 0.5044974468084276,
+            "applyMs": 0.011364382978772096,
+            "snapshotMs": 0.19431293617018572,
+            "restoreMs": 0,
+            "measureMs": 0.05607182978729589,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 228.59574468085106,
+            "snapshotBytes": 478338.55319148937,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.036171936170269856,
+            "schurMs": 0.01767372340425433,
+            "contactSolveMs": 0.00627476595746749,
+            "reconstructionMs": 0.004706638297890056,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 0.8134378936170213,
+            "p50": 0.8584999999998217,
+            "p95": 1.42450000000008,
+            "max": 1.8577500000001237
+          },
+          "meanCosts": {
+            "assemblyMs": 0.017796063829695064,
+            "solveMs": 0.47168268085102255,
+            "applyMs": 0.009828829787219296,
+            "snapshotMs": 0.13132182978728102,
+            "restoreMs": 0,
+            "measureMs": 0.050624936170239145,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 228.59574468085106,
+            "snapshotBytes": 478338.55319148937,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.03066670212767852,
+            "schurMs": 0.012459148936236585,
+            "contactSolveMs": 0.003204808510592092,
+            "reconstructionMs": 0.00398942553187845,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 0.8155700425532485,
+            "p50": 0.8530840000003082,
+            "p95": 1.3383749999998145,
+            "max": 1.345582999999806
+          },
+          "meanCosts": {
+            "assemblyMs": 0.017657808510648465,
+            "solveMs": 0.44907008510637675,
+            "applyMs": 0.009443191489384497,
+            "snapshotMs": 0.1301924042553513,
+            "restoreMs": 0,
+            "measureMs": 0.04923306382983007,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 228.59574468085106,
+            "snapshotBytes": 478338.55319148937,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.030747319148903964,
+            "schurMs": 0.013458255319135864,
+            "contactSolveMs": 0.0034637021276176577,
+            "reconstructionMs": 0.004061148936119586,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-refeed-100",
+      "steps": 47,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 1.337927382978715,
+            "p50": 1.100500000000011,
+            "p95": 2.6017080000001442,
+            "max": 3.6936249999998836
+          },
+          "meanCosts": {
+            "assemblyMs": 0.03500534042552046,
+            "solveMs": 0.6902694255319108,
+            "applyMs": 0.016576170212819635,
+            "snapshotMs": 0.25508063829785044,
+            "restoreMs": 0,
+            "measureMs": 0.11615874468084934,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 282.3829787234043,
+            "snapshotBytes": 590895.1489361703,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.05191400000001793,
+            "schurMs": 0.024727851063841066,
+            "contactSolveMs": 0.011420276595751427,
+            "reconstructionMs": 0.008953680851062289,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 1.3100887021276593,
+            "p50": 1.1142919999997503,
+            "p95": 3.1335840000001554,
+            "max": 3.7239159999999174
+          },
+          "meanCosts": {
+            "assemblyMs": 0.0262011914893129,
+            "solveMs": 0.679950148936159,
+            "applyMs": 0.01944502127654677,
+            "snapshotMs": 0.27719863829789826,
+            "restoreMs": 0,
+            "measureMs": 0.10284304255319125,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 282.3829787234043,
+            "snapshotBytes": 590895.1489361703,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.06317821276595768,
+            "schurMs": 0.024065382978781774,
+            "contactSolveMs": 0.007969063829826135,
+            "reconstructionMs": 0.006507851063796555,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 0.9447766382979276,
+            "p50": 0.8880420000000413,
+            "p95": 1.521708000000217,
+            "max": 2.016957999999704
+          },
+          "meanCosts": {
+            "assemblyMs": 0.018394553191489863,
+            "solveMs": 0.5260753617021982,
+            "applyMs": 0.011061999999970368,
+            "snapshotMs": 0.17691134042552029,
+            "restoreMs": 0,
+            "measureMs": 0.06057880851064143,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 282.3829787234043,
+            "snapshotBytes": 590895.1489361703,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.036710212765915747,
+            "schurMs": 0.016335212765915593,
+            "contactSolveMs": 0.004228595744628345,
+            "reconstructionMs": 0.005061978723393197,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 0.992635680851126,
+            "p50": 0.9188749999998436,
+            "p95": 1.726083000000017,
+            "max": 2.1602920000000267
+          },
+          "meanCosts": {
+            "assemblyMs": 0.02055059574464162,
+            "solveMs": 0.5457243617020721,
+            "applyMs": 0.01171814893616024,
+            "snapshotMs": 0.19330144680853142,
+            "restoreMs": 0,
+            "measureMs": 0.06653440425531912,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 282.3829787234043,
+            "snapshotBytes": 590895.1489361703,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.039054957446790065,
+            "schurMs": 0.017968127659592124,
+            "contactSolveMs": 0.005232361702121821,
+            "reconstructionMs": 0.005105510638288174,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "wire-feed-309",
+      "steps": 843,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 2.9665719361702476,
+            "p50": 2.6474170000001322,
+            "p95": 5.309541999999965,
+            "max": 5.665791999999783
+          },
+          "meanCosts": {
+            "assemblyMs": 0.13899012765960697,
+            "solveMs": 1.2356505957447572,
+            "applyMs": 0.04442374468082098,
+            "snapshotMs": 0.49164706382989026,
+            "restoreMs": 0,
+            "measureMs": 0.49340599999990487,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.23450529787233074,
+            "schurMs": 0.11911259574469327,
+            "contactSolveMs": 0.02767017021260278,
+            "reconstructionMs": 0.04898308510628533,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 1.9245903404255047,
+            "p50": 1.898457999999664,
+            "p95": 2.963166999999885,
+            "max": 3.424833000000035
+          },
+          "meanCosts": {
+            "assemblyMs": 0.09874202127651942,
+            "solveMs": 0.8342056595743572,
+            "applyMs": 0.025972510638352337,
+            "snapshotMs": 0.27661604255311606,
+            "restoreMs": 0,
+            "measureMs": 0.3501985319149521,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.16538391489362728,
+            "schurMs": 0.09160895744677892,
+            "contactSolveMs": 0.012451191489336898,
+            "reconstructionMs": 0.02884031914897044,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 1.7769494468084883,
+            "p50": 1.8631249999998545,
+            "p95": 2.498540999999932,
+            "max": 2.9635419999995065
+          },
+          "meanCosts": {
+            "assemblyMs": 0.07642563829790076,
+            "solveMs": 0.8039158723403431,
+            "applyMs": 0.022820936170106467,
+            "snapshotMs": 0.24388110638295635,
+            "restoreMs": 0,
+            "measureMs": 0.3323475106383333,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.16153987234049944,
+            "schurMs": 0.09043699999997347,
+            "contactSolveMs": 0.013184382978830941,
+            "reconstructionMs": 0.030117936170117512,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 1.8805770851064114,
+            "p50": 1.8949170000005324,
+            "p95": 2.851082999999562,
+            "max": 3.749124999999367
+          },
+          "meanCosts": {
+            "assemblyMs": 0.09038217021283189,
+            "solveMs": 0.8294884680850334,
+            "applyMs": 0.02577044680850683,
+            "snapshotMs": 0.2552847446807952,
+            "restoreMs": 0,
+            "measureMs": 0.3561470000002644,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.16513117021268625,
+            "schurMs": 0.09914008510640222,
+            "contactSolveMs": 0.014023978723421447,
+            "reconstructionMs": 0.030636553191586844,
+            "seedMs": 0
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-20",
+      "steps": 47,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 6.559132127659549,
+            "p50": 3.94695800000045,
+            "p95": 22.217874999999367,
+            "max": 38.463832999999795
+          },
+          "meanCosts": {
+            "assemblyMs": 0.6582571276595502,
+            "solveMs": 3.208635702127546,
+            "applyMs": 0.2159778510639181,
+            "snapshotMs": 0.5715753404255474,
+            "restoreMs": 0,
+            "measureMs": 1.3957632127659305,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 277.4255319148936,
+            "snapshotBytes": 287224.1914893617,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.6964485531914645,
+            "schurMs": 0.13168704255320413,
+            "contactSolveMs": 0.1071214468084168,
+            "reconstructionMs": 0.08438306382974607,
+            "seedMs": 0.08195038297874797
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 3.607337680851007,
+            "p50": 2.680916000000252,
+            "p95": 7.398207999999613,
+            "max": 9.931375000000116
+          },
+          "meanCosts": {
+            "assemblyMs": 0.3268705957446768,
+            "solveMs": 1.8752987446807814,
+            "applyMs": 0.08274038297872237,
+            "snapshotMs": 0.2591196808510544,
+            "restoreMs": 0,
+            "measureMs": 0.716534531914844,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.2978723404255319,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 277.4255319148936,
+            "snapshotBytes": 287224.1914893617,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.4404813191488737,
+            "schurMs": 0.08216397872332735,
+            "contactSolveMs": 0.046695851063924106,
+            "reconstructionMs": 0.04394417021264049,
+            "seedMs": 0.041109914893647154
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 3.459821829787251,
+            "p50": 2.75683300000037,
+            "p95": 8.00262500000008,
+            "max": 10.511416000000281
+          },
+          "meanCosts": {
+            "assemblyMs": 0.30935636170221537,
+            "solveMs": 1.8666321276596136,
+            "applyMs": 0.0786250638296785,
+            "snapshotMs": 0.2577083617021499,
+            "restoreMs": 0,
+            "measureMs": 0.6317527446808333,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.2978723404255319,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 277.4255319148936,
+            "snapshotBytes": 287224.1914893617,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.43902314893614647,
+            "schurMs": 0.08159044680849818,
+            "contactSolveMs": 0.045476085106318044,
+            "reconstructionMs": 0.04573857446810004,
+            "seedMs": 0.0401675531915355
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 4.0578759574468,
+            "p50": 3.1008750000000873,
+            "p95": 9.391749999999774,
+            "max": 11.139208999999937
+          },
+          "meanCosts": {
+            "assemblyMs": 0.4074113404254565,
+            "solveMs": 2.1859388723402864,
+            "applyMs": 0.09620214893621255,
+            "snapshotMs": 0.3208696595745115,
+            "restoreMs": 0,
+            "measureMs": 0.6566161702127075,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 277.4255319148936,
+            "snapshotBytes": 287224.1914893617,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.4701606382978811,
+            "schurMs": 0.11371712765966105,
+            "contactSolveMs": 0.047308553191466304,
+            "reconstructionMs": 0.0626338085107141,
+            "seedMs": 0.0401231489361809
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-50",
+      "steps": 70,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 5.497128468085124,
+            "p50": 4.809374999999818,
+            "p95": 13.071165999999721,
+            "max": 20.177708000000166
+          },
+          "meanCosts": {
+            "assemblyMs": 0.8246719787234628,
+            "solveMs": 1.6858101914893153,
+            "applyMs": 0.16435817021275842,
+            "snapshotMs": 0.8986205531914783,
+            "restoreMs": 0,
+            "measureMs": 1.4889698085107932,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 1061.468085106383,
+            "snapshotBytes": 406713.5319148936,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.39356380851069767,
+            "schurMs": 0.09809844680845306,
+            "contactSolveMs": 0.06386519148940777,
+            "reconstructionMs": 0.0576888297872698,
+            "seedMs": 0.05923931914895412
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 4.4500017872340205,
+            "p50": 4.927040999999917,
+            "p95": 7.772041999999601,
+            "max": 10.101167000000714
+          },
+          "meanCosts": {
+            "assemblyMs": 0.6298891063830099,
+            "solveMs": 1.581743787233926,
+            "applyMs": 0.10461721276612693,
+            "snapshotMs": 0.6890469999999813,
+            "restoreMs": 0,
+            "measureMs": 1.1402658297872048,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.5957446808510638,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 1061.468085106383,
+            "snapshotBytes": 406713.5319148936,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.5166233404255415,
+            "schurMs": 0.11744585106401807,
+            "contactSolveMs": 0.05165072340419778,
+            "reconstructionMs": 0.05107538297867924,
+            "seedMs": 0.047773085106316705
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 7.820612553191475,
+            "p50": 4.871915999999146,
+            "p95": 20.60541699999976,
+            "max": 88.79966700000023
+          },
+          "meanCosts": {
+            "assemblyMs": 1.0852082553191917,
+            "solveMs": 3.1458280425533034,
+            "applyMs": 0.2390718085106663,
+            "snapshotMs": 1.0404175319148867,
+            "restoreMs": 0,
+            "measureMs": 1.8741969148935476,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.5957446808510638,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 1061.468085106383,
+            "snapshotBytes": 406713.5319148936,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.5033315957445782,
+            "schurMs": 0.16312068085108936,
+            "contactSolveMs": 0.11386174468095711,
+            "reconstructionMs": 0.07610119148933123,
+            "seedMs": 0.10963657446808746
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 4.807225212766037,
+            "p50": 4.803333999999268,
+            "p95": 8.483374999999796,
+            "max": 10.414042000000336
+          },
+          "meanCosts": {
+            "assemblyMs": 0.7531117234042385,
+            "solveMs": 1.6378758723404896,
+            "applyMs": 0.15821538297879012,
+            "snapshotMs": 0.7170230638297885,
+            "restoreMs": 0,
+            "measureMs": 1.2144963829788198,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 1061.468085106383,
+            "snapshotBytes": 406713.5319148936,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.3361560851063258,
+            "schurMs": 0.09434838297882844,
+            "contactSolveMs": 0.056257978723400076,
+            "reconstructionMs": 0.05608700000003081,
+            "seedMs": 0.052334063829821004
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-100",
+      "steps": 116,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 49.23158780851068,
+            "p50": 47.004917000000205,
+            "p95": 72.11154100000022,
+            "max": 77.92958400000043
+          },
+          "meanCosts": {
+            "assemblyMs": 5.3723369787236885,
+            "solveMs": 12.93856119148917,
+            "applyMs": 0.9090141276595378,
+            "snapshotMs": 9.946716255318936,
+            "restoreMs": 0.24072255319140126,
+            "measureMs": 19.197428276595407,
+            "geometryReuseCount": 218.2340425531915,
+            "frictionBatchReuseCount": 5.638297872340425,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 3649.2340425531916,
+            "snapshotBytes": 711867.1489361703,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.0235219999998892,
+            "schurMs": 1.7231045957441313,
+            "contactSolveMs": 3.1391703191490143,
+            "reconstructionMs": 0.5233837021275403,
+            "seedMs": 1.6851649574472252
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 52.40653285106397,
+            "p50": 50.72791700000016,
+            "p95": 80.15254099999947,
+            "max": 88.94645800000035
+          },
+          "meanCosts": {
+            "assemblyMs": 5.694863297872639,
+            "solveMs": 13.616939957447222,
+            "applyMs": 1.1098174255319928,
+            "snapshotMs": 10.804726893617277,
+            "restoreMs": 0.2501001489361907,
+            "measureMs": 20.2560941063826,
+            "geometryReuseCount": 218.2340425531915,
+            "frictionBatchReuseCount": 5.638297872340425,
+            "acceptedFrictionReuseCount": 5.48936170212766,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 3649.2340425531916,
+            "snapshotBytes": 711867.1489361703,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.110180999999934,
+            "schurMs": 1.7809751063830148,
+            "contactSolveMs": 3.381254468085009,
+            "reconstructionMs": 0.6078563829789074,
+            "seedMs": 1.861654978723562
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 49.663821829787246,
+            "p50": 47.4724159999987,
+            "p95": 73.34024999999929,
+            "max": 79.82429200000024
+          },
+          "meanCosts": {
+            "assemblyMs": 5.353836042553338,
+            "solveMs": 13.11631880851069,
+            "applyMs": 0.9846185957447504,
+            "snapshotMs": 10.064952851063703,
+            "restoreMs": 0.20582095744685694,
+            "measureMs": 19.300652978723733,
+            "geometryReuseCount": 218.2340425531915,
+            "frictionBatchReuseCount": 5.638297872340425,
+            "acceptedFrictionReuseCount": 5.48936170212766,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 3649.2340425531916,
+            "snapshotBytes": 711867.1489361703,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.063217999999711,
+            "schurMs": 1.7302739999999408,
+            "contactSolveMs": 3.2044983829783305,
+            "reconstructionMs": 0.5327658936166892,
+            "seedMs": 1.7483428510640806
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 61.42771891489359,
+            "p50": 56.1967910000003,
+            "p95": 88.83279200000015,
+            "max": 193.46516699999938
+          },
+          "meanCosts": {
+            "assemblyMs": 6.77087148936168,
+            "solveMs": 15.22551253191486,
+            "applyMs": 1.3822757234039331,
+            "snapshotMs": 12.78376129787236,
+            "restoreMs": 0.24459753191488146,
+            "measureMs": 24.299451936170236,
+            "geometryReuseCount": 218.2340425531915,
+            "frictionBatchReuseCount": 5.638297872340425,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 3649.2340425531916,
+            "snapshotBytes": 711867.1489361703,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.3269931276595828,
+            "schurMs": 1.8983956808507039,
+            "contactSolveMs": 3.332679255319508,
+            "reconstructionMs": 0.6139186170211496,
+            "seedMs": 1.8110635319154291
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-hold-100",
+      "steps": 60,
+      "measuredSteps": 60,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 88.19570081666683,
+            "p50": 76.3588749999999,
+            "p95": 215.95208300000013,
+            "max": 286.4576670000006
+          },
+          "meanCosts": {
+            "assemblyMs": 10.032920216666813,
+            "solveMs": 26.0326354666664,
+            "applyMs": 1.888204999999804,
+            "snapshotMs": 19.08019238333357,
+            "restoreMs": 0.6226214999999381,
+            "measureMs": 29.673629416666426,
+            "geometryReuseCount": 267.3333333333333,
+            "frictionBatchReuseCount": 3.3666666666666667,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 4111,
+            "snapshotBytes": 719044,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 3.548295749999943,
+            "schurMs": 3.3968159166670073,
+            "contactSolveMs": 7.019649166666235,
+            "reconstructionMs": 1.21787594999981,
+            "seedMs": 3.1790973166666543
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 66.58522851666666,
+            "p50": 57.07654199999888,
+            "p95": 103.51891700000124,
+            "max": 295.77399999999943
+          },
+          "meanCosts": {
+            "assemblyMs": 7.5557357333334645,
+            "solveMs": 19.70328416666677,
+            "applyMs": 1.36072291666657,
+            "snapshotMs": 14.062507049999658,
+            "restoreMs": 0.5225999833332632,
+            "measureMs": 22.730061233332737,
+            "geometryReuseCount": 267.3333333333333,
+            "frictionBatchReuseCount": 3.3666666666666667,
+            "acceptedFrictionReuseCount": 5.916666666666667,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 4111,
+            "snapshotBytes": 719044,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 2.513910383332859,
+            "schurMs": 2.894953349999772,
+            "contactSolveMs": 5.924788350000229,
+            "reconstructionMs": 1.0198380833337979,
+            "seedMs": 2.6394298333333004
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 56.59422571666667,
+            "p50": 55.04804200000035,
+            "p95": 83.8094170000004,
+            "max": 93.66058299999895
+          },
+          "meanCosts": {
+            "assemblyMs": 6.265750600000137,
+            "solveMs": 17.123113066666733,
+            "applyMs": 1.0842956333334162,
+            "snapshotMs": 11.912443050000062,
+            "restoreMs": 0.46621596666655024,
+            "measureMs": 19.1956303666665,
+            "geometryReuseCount": 267.3333333333333,
+            "frictionBatchReuseCount": 3.3666666666666667,
+            "acceptedFrictionReuseCount": 5.916666666666667,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 4111,
+            "snapshotBytes": 719044,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 2.2731973666661967,
+            "schurMs": 2.4524465166664715,
+            "contactSolveMs": 5.268467399999918,
+            "reconstructionMs": 0.7281205333332158,
+            "seedMs": 2.3906646166668906
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 63.73988613333328,
+            "p50": 58.56929200000013,
+            "p95": 99.41237499999988,
+            "max": 113.89091700000063
+          },
+          "meanCosts": {
+            "assemblyMs": 7.108222100000058,
+            "solveMs": 18.935362583333607,
+            "applyMs": 1.2897158500001449,
+            "snapshotMs": 14.155200850000075,
+            "restoreMs": 0.5645930666666269,
+            "measureMs": 21.117746533333623,
+            "geometryReuseCount": 267.3333333333333,
+            "frictionBatchReuseCount": 3.3666666666666667,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 4111,
+            "snapshotBytes": 719044,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 2.460620116667057,
+            "schurMs": 2.6193049500000294,
+            "contactSolveMs": 5.443345849999817,
+            "reconstructionMs": 0.8590403166666268,
+            "seedMs": 2.3634978833328204
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-withdraw-80",
+      "steps": 76,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 50.59163912765987,
+            "p50": 44.06829099999959,
+            "p95": 76.25075000000288,
+            "max": 134.03845799999908
+          },
+          "meanCosts": {
+            "assemblyMs": 5.481462723404083,
+            "solveMs": 11.318748319148305,
+            "applyMs": 1.0842004255320445,
+            "snapshotMs": 12.66202563829737,
+            "restoreMs": 0.5403954468086514,
+            "measureMs": 18.76021097872341,
+            "geometryReuseCount": 193.17021276595744,
+            "frictionBatchReuseCount": 4.787234042553192,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 5.914893617021277,
+            "applyCalls": 6.468085106382978,
+            "measureCalls": 11.404255319148936,
+            "fullMeasureCalls": 11.404255319148936,
+            "snapshotObjects": 4177.04255319149,
+            "snapshotBytes": 720016.2553191489,
+            "snapshots": 4.914893617021277,
+            "restores": 0.574468085106383,
+            "condensedSetupMs": 1.8209031914897849,
+            "schurMs": 1.457459319148295,
+            "contactSolveMs": 2.062165872340785,
+            "reconstructionMs": 0.5574567021284701,
+            "seedMs": 1.0722271063830393
+          },
+          "failures": 1,
+          "counters": {
+            "passes": {
+              "mean": 5.914893617021277,
+              "p50": 6,
+              "p95": 8,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.468085106382978,
+              "p50": 6,
+              "p95": 10,
+              "max": 20
+            },
+            "backtracks": {
+              "mean": 0.5531914893617021,
+              "p50": 0,
+              "p95": 2,
+              "max": 14
+            },
+            "rows": {
+              "mean": 52.06382978723404,
+              "p50": 55,
+              "p95": 66,
+              "max": 67
+            },
+            "factorizations": {
+              "mean": 157.91489361702128,
+              "p50": 153,
+              "p95": 279,
+              "max": 294
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 42.7120602127661,
+            "p50": 42.81366599999819,
+            "p95": 67.89862500000163,
+            "max": 74.89704199999869
+          },
+          "meanCosts": {
+            "assemblyMs": 4.584057638297267,
+            "solveMs": 9.947977829787286,
+            "applyMs": 0.8138093404261568,
+            "snapshotMs": 10.47693610638329,
+            "restoreMs": 0.5413430851063783,
+            "measureMs": 15.766344829787178,
+            "geometryReuseCount": 193.17021276595744,
+            "frictionBatchReuseCount": 4.787234042553192,
+            "acceptedFrictionReuseCount": 4.914893617021277,
+            "solveCalls": 5.914893617021277,
+            "applyCalls": 6.468085106382978,
+            "measureCalls": 11.404255319148936,
+            "fullMeasureCalls": 11.404255319148936,
+            "snapshotObjects": 4177.04255319149,
+            "snapshotBytes": 720016.2553191489,
+            "snapshots": 4.914893617021277,
+            "restores": 0.574468085106383,
+            "condensedSetupMs": 1.6750345957447899,
+            "schurMs": 1.2728633829786478,
+            "contactSolveMs": 1.8386870851063577,
+            "reconstructionMs": 0.4490425319144127,
+            "seedMs": 0.9506055744672306
+          },
+          "failures": 1,
+          "counters": {
+            "passes": {
+              "mean": 5.914893617021277,
+              "p50": 6,
+              "p95": 8,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.468085106382978,
+              "p50": 6,
+              "p95": 10,
+              "max": 20
+            },
+            "backtracks": {
+              "mean": 0.5531914893617021,
+              "p50": 0,
+              "p95": 2,
+              "max": 14
+            },
+            "rows": {
+              "mean": 52.06382978723404,
+              "p50": 55,
+              "p95": 66,
+              "max": 67
+            },
+            "factorizations": {
+              "mean": 157.91489361702128,
+              "p50": 153,
+              "p95": 279,
+              "max": 294
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 47.87404253191481,
+            "p50": 46.00200000000041,
+            "p95": 85.31462500000089,
+            "max": 92.19529200000034
+          },
+          "meanCosts": {
+            "assemblyMs": 5.004460893617006,
+            "solveMs": 11.003380361701854,
+            "applyMs": 0.94086178723375,
+            "snapshotMs": 12.218939702127559,
+            "restoreMs": 0.5615656808509967,
+            "measureMs": 17.451361936169903,
+            "geometryReuseCount": 193.17021276595744,
+            "frictionBatchReuseCount": 4.787234042553192,
+            "acceptedFrictionReuseCount": 4.914893617021277,
+            "solveCalls": 5.914893617021277,
+            "applyCalls": 6.468085106382978,
+            "measureCalls": 11.404255319148936,
+            "fullMeasureCalls": 11.404255319148936,
+            "snapshotObjects": 4177.04255319149,
+            "snapshotBytes": 720016.2553191489,
+            "snapshots": 4.914893617021277,
+            "restores": 0.574468085106383,
+            "condensedSetupMs": 1.8812172765957509,
+            "schurMs": 1.432382893617111,
+            "contactSolveMs": 1.995535404254971,
+            "reconstructionMs": 0.4676221063828246,
+            "seedMs": 1.0294761063832993
+          },
+          "failures": 1,
+          "counters": {
+            "passes": {
+              "mean": 5.914893617021277,
+              "p50": 6,
+              "p95": 8,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.468085106382978,
+              "p50": 6,
+              "p95": 10,
+              "max": 20
+            },
+            "backtracks": {
+              "mean": 0.5531914893617021,
+              "p50": 0,
+              "p95": 2,
+              "max": 14
+            },
+            "rows": {
+              "mean": 52.06382978723404,
+              "p50": 55,
+              "p95": 66,
+              "max": 67
+            },
+            "factorizations": {
+              "mean": 157.91489361702128,
+              "p50": 153,
+              "p95": 279,
+              "max": 294
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 46.2367997021278,
+            "p50": 42.92695900000035,
+            "p95": 68.2000420000004,
+            "max": 123.66783299999952
+          },
+          "meanCosts": {
+            "assemblyMs": 4.651508617021233,
+            "solveMs": 11.048552234042717,
+            "applyMs": 0.8870807872340362,
+            "snapshotMs": 11.362749276594842,
+            "restoreMs": 0.6621285106384482,
+            "measureMs": 17.037389106383497,
+            "geometryReuseCount": 193.17021276595744,
+            "frictionBatchReuseCount": 4.787234042553192,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 5.914893617021277,
+            "applyCalls": 6.468085106382978,
+            "measureCalls": 11.404255319148936,
+            "fullMeasureCalls": 11.404255319148936,
+            "snapshotObjects": 4177.04255319149,
+            "snapshotBytes": 720016.2553191489,
+            "snapshots": 4.914893617021277,
+            "restores": 0.574468085106383,
+            "condensedSetupMs": 1.7094771276595255,
+            "schurMs": 1.3906382127666763,
+            "contactSolveMs": 2.009419382978407,
+            "reconstructionMs": 0.4940408297870237,
+            "seedMs": 0.8989654893614878
+          },
+          "failures": 1,
+          "counters": {
+            "passes": {
+              "mean": 5.914893617021277,
+              "p50": 6,
+              "p95": 8,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.468085106382978,
+              "p50": 6,
+              "p95": 10,
+              "max": 20
+            },
+            "backtracks": {
+              "mean": 0.5531914893617021,
+              "p50": 0,
+              "p95": 2,
+              "max": 14
+            },
+            "rows": {
+              "mean": 52.06382978723404,
+              "p50": 55,
+              "p95": 66,
+              "max": 67
+            },
+            "factorizations": {
+              "mean": 157.91489361702128,
+              "p50": 153,
+              "p95": 279,
+              "max": 294
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-refeed-100",
+      "steps": 47,
+      "measuredSteps": 47,
+      "runs": {
+        "before-1": {
+          "fullMs": {
+            "mean": 72.25528459574467,
+            "p50": 58.998083999998926,
+            "p95": 131.89337499999965,
+            "max": 372.91433400000096
+          },
+          "meanCosts": {
+            "assemblyMs": 7.117166659574534,
+            "solveMs": 16.963616914893134,
+            "applyMs": 1.5868996595748652,
+            "snapshotMs": 18.15943508510649,
+            "restoreMs": 0.5479557021275507,
+            "measureMs": 27.125892212764736,
+            "geometryReuseCount": 239.17021276595744,
+            "frictionBatchReuseCount": 6.404255319148936,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7,
+            "applyCalls": 7.319148936170213,
+            "measureCalls": 13.319148936170214,
+            "fullMeasureCalls": 13.319148936170214,
+            "snapshotObjects": 4203.936170212766,
+            "snapshotBytes": 720426.4680851063,
+            "snapshots": 6,
+            "restores": 0.3191489361702128,
+            "condensedSetupMs": 2.770851999999534,
+            "schurMs": 2.2499167446803767,
+            "contactSolveMs": 3.672650510639211,
+            "reconstructionMs": 0.7431564042559098,
+            "seedMs": 1.876706787233877
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 7,
+              "p50": 7,
+              "p95": 10,
+              "max": 12
+            },
+            "trials": {
+              "mean": 7.319148936170213,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "backtracks": {
+              "mean": 0.3191489361702128,
+              "p50": 0,
+              "p95": 2,
+              "max": 5
+            },
+            "rows": {
+              "mean": 61.1063829787234,
+              "p50": 60,
+              "p95": 81,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 228.53191489361703,
+              "p50": 234,
+              "p95": 387,
+              "max": 419
+            }
+          }
+        },
+        "after-1": {
+          "fullMs": {
+            "mean": 52.077242893617175,
+            "p50": 48.98058400000082,
+            "p95": 83.61708400000134,
+            "max": 135.96604099999968
+          },
+          "meanCosts": {
+            "assemblyMs": 5.476687744680369,
+            "solveMs": 13.220348382978935,
+            "applyMs": 0.8958219999992852,
+            "snapshotMs": 12.284880617020889,
+            "restoreMs": 0.29577923404251627,
+            "measureMs": 19.393024808510166,
+            "geometryReuseCount": 239.17021276595744,
+            "frictionBatchReuseCount": 6.404255319148936,
+            "acceptedFrictionReuseCount": 6,
+            "solveCalls": 7,
+            "applyCalls": 7.319148936170213,
+            "measureCalls": 13.319148936170214,
+            "fullMeasureCalls": 13.319148936170214,
+            "snapshotObjects": 4203.936170212766,
+            "snapshotBytes": 720426.4680851063,
+            "snapshots": 6,
+            "restores": 0.3191489361702128,
+            "condensedSetupMs": 2.09064014893715,
+            "schurMs": 1.8921010212757887,
+            "contactSolveMs": 2.8886907446807952,
+            "reconstructionMs": 0.6370843191485774,
+            "seedMs": 1.5471426808506565
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 7,
+              "p50": 7,
+              "p95": 10,
+              "max": 12
+            },
+            "trials": {
+              "mean": 7.319148936170213,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "backtracks": {
+              "mean": 0.3191489361702128,
+              "p50": 0,
+              "p95": 2,
+              "max": 5
+            },
+            "rows": {
+              "mean": 61.1063829787234,
+              "p50": 60,
+              "p95": 81,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 228.53191489361703,
+              "p50": 234,
+              "p95": 387,
+              "max": 419
+            }
+          }
+        },
+        "after-2": {
+          "fullMs": {
+            "mean": 56.04768525531944,
+            "p50": 51.779624999999214,
+            "p95": 99.54854100000011,
+            "max": 113.6314999999995
+          },
+          "meanCosts": {
+            "assemblyMs": 5.8551647446811526,
+            "solveMs": 14.202723446808104,
+            "applyMs": 0.9957225106385947,
+            "snapshotMs": 13.185797872340157,
+            "restoreMs": 0.2795895106381145,
+            "measureMs": 20.974916723404487,
+            "geometryReuseCount": 239.17021276595744,
+            "frictionBatchReuseCount": 6.404255319148936,
+            "acceptedFrictionReuseCount": 6,
+            "solveCalls": 7,
+            "applyCalls": 7.319148936170213,
+            "measureCalls": 13.319148936170214,
+            "fullMeasureCalls": 13.319148936170214,
+            "snapshotObjects": 4203.936170212766,
+            "snapshotBytes": 720426.4680851063,
+            "snapshots": 6,
+            "restores": 0.3191489361702128,
+            "condensedSetupMs": 2.124494829788207,
+            "schurMs": 2.0310425531911567,
+            "contactSolveMs": 3.1482607446809237,
+            "reconstructionMs": 0.6775125957448178,
+            "seedMs": 1.6362494680860378
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 7,
+              "p50": 7,
+              "p95": 10,
+              "max": 12
+            },
+            "trials": {
+              "mean": 7.319148936170213,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "backtracks": {
+              "mean": 0.3191489361702128,
+              "p50": 0,
+              "p95": 2,
+              "max": 5
+            },
+            "rows": {
+              "mean": 61.1063829787234,
+              "p50": 60,
+              "p95": 81,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 228.53191489361703,
+              "p50": 234,
+              "p95": 387,
+              "max": 419
+            }
+          }
+        },
+        "before-2": {
+          "fullMs": {
+            "mean": 64.74033606382999,
+            "p50": 58.10112500000105,
+            "p95": 130.0087089999979,
+            "max": 159.38174999999683
+          },
+          "meanCosts": {
+            "assemblyMs": 6.986176468084329,
+            "solveMs": 15.481607255318059,
+            "applyMs": 1.1985152340429852,
+            "snapshotMs": 16.898770489361887,
+            "restoreMs": 0.34653540425542234,
+            "measureMs": 23.291109765956904,
+            "geometryReuseCount": 239.17021276595744,
+            "frictionBatchReuseCount": 6.404255319148936,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7,
+            "applyCalls": 7.319148936170213,
+            "measureCalls": 13.319148936170214,
+            "fullMeasureCalls": 13.319148936170214,
+            "snapshotObjects": 4203.936170212766,
+            "snapshotBytes": 720426.4680851063,
+            "snapshots": 6,
+            "restores": 0.3191489361702128,
+            "condensedSetupMs": 2.351077829787484,
+            "schurMs": 2.019867000000538,
+            "contactSolveMs": 3.0965593404262304,
+            "reconstructionMs": 0.708071872340023,
+            "seedMs": 1.623730319149082
+          },
+          "failures": 0,
+          "counters": {
+            "passes": {
+              "mean": 7,
+              "p50": 7,
+              "p95": 10,
+              "max": 12
+            },
+            "trials": {
+              "mean": 7.319148936170213,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "backtracks": {
+              "mean": 0.3191489361702128,
+              "p50": 0,
+              "p95": 2,
+              "max": 5
+            },
+            "rows": {
+              "mean": 61.1063829787234,
+              "p50": 60,
+              "p95": 81,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 228.53191489361703,
+              "p50": 234,
+              "p95": 387,
+              "max": 419
+            }
+          }
+        }
+      }
+    }
+  ]
+}

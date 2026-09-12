@@ -183,3 +183,11 @@ assert.deepEqual(sampleCatheterAortaSetup(
     catheterType: 'berenstein'
 });
 assert.equal(iliacBugSetup.phase, 'ready');
+
+const {sampleCatheterBrowserBenchmarkCommands}=await import('../src/benchmark/browserBenchmarkScenario.js');
+for(const [time,advance] of [[0,1],[11999,1],[12000,0],[13999,0],[14000,-1],[25999,-1],[26000,0],[28000,1]]){
+ const command={guidewireAdvance:99,catheterAdvance:99,catheterRotation:99};
+ sampleCatheterBrowserBenchmarkCommands(time,command);
+ assert.equal(command.guidewireAdvance,0);assert.equal(command.catheterAdvance,advance);
+ assert.equal(command.catheterRotation,0);assert.equal(command.catheterType,'berenstein');
+}

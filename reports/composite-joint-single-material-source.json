@@ -1,0 +1,139 @@
+{
+  "status": "complete-frozen",
+  "scope": "Single actual material in existing JointTimeStep, plus coordinated lumen lineSearchMerit integration",
+  "bundleKind": "changed-files-only",
+  "base": "/tmp/oet-composite-joint-single-material-base",
+  "baseManifestSha256": "42c4be353b96b14a40b79d1fdd3f0850f7e7093eecccf96892bfc70d6f765d1e",
+  "allowedSourceEdits": [
+    "src/physics/kirchhoffCompositeJointTimeStep.js",
+    "src/physics/kirchhoffCompositeJointWallRows.js",
+    "src/physics/kirchhoffCompositeJointAssembly.js",
+    "src/physics/kirchhoffCompositeRelativeCluster.js",
+    "src/physics/kirchhoffCompositeRelativeDirection.js"
+  ],
+  "changedSources": [
+    {
+      "path": "src/physics/kirchhoffCompositeJointTimeStep.js",
+      "baseSha256": "fe59c19c5c3102d1baf05693aa40983fcb34dcd9d192f60670b59baa8e67c9c1",
+      "sha256": "42470e8a658e488e8181356cfcb122e4d4f4744ad4f6475172ec9d06261d5586"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointWallRows.js",
+      "baseSha256": "39d315a17a682bfdcfbf2e7c4f1c8304a171462220f2a0e3c6ea273f99c6a0b4",
+      "sha256": "f56b84d65a7e67989b5fcde47c6fed6da99487b7a801b3c78fee131e88a06ace"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointAssembly.js",
+      "baseSha256": "c92a23fd361a7042043eafc0e8eb222f3bdd9750a4fb9aeeb6f9820a45cb3eb1",
+      "sha256": "fa709ae0c21bae4a21b6c7344de056b3e4dc333099b56d5e722af6e706084f09"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeRelativeCluster.js",
+      "baseSha256": "dab0b81c3a91741013545ba544ffb82b97d0f17d0ac13767b7465151c00fe6c9",
+      "sha256": "a91c4e2fcf3b2ce2bd70137d0857a054618a9cc349318f0f4b8e00851b465a45"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeRelativeDirection.js",
+      "baseSha256": "878b66b0752ea97b2cd0b6d08a198e00a8efd08be5133926bd92ba31ba1896fd",
+      "sha256": "c2ccc464b9c9ad553830237b4bd661605901823e6d13a9b09b77cc51528aa904"
+    }
+  ],
+  "newTest": "tests/kirchhoffCompositeJointSingleMaterial.test.js",
+  "baseFilesVerified": 45,
+  "unchangedBaseFilesVerified": 40,
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeJointTimeStep.js",
+      "sha256": "42470e8a658e488e8181356cfcb122e4d4f4744ad4f6475172ec9d06261d5586"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointWallRows.js",
+      "sha256": "f56b84d65a7e67989b5fcde47c6fed6da99487b7a801b3c78fee131e88a06ace"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeJointAssembly.js",
+      "sha256": "fa709ae0c21bae4a21b6c7344de056b3e4dc333099b56d5e722af6e706084f09"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeRelativeCluster.js",
+      "sha256": "a91c4e2fcf3b2ce2bd70137d0857a054618a9cc349318f0f4b8e00851b465a45"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeRelativeDirection.js",
+      "sha256": "c2ccc464b9c9ad553830237b4bd661605901823e6d13a9b09b77cc51528aa904"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointSingleMaterial.test.js",
+      "sha256": "bd1b1ec263de3f49f0fdbc8801b5f593e3f410a96594068c427dc58e38361f6c"
+    },
+    {
+      "path": "reports/composite-joint-single-material.md",
+      "sha256": "ad847a07dbb8587efdb3914b1a92f0199b223c5f534322f0707bd38acb4c7d44"
+    },
+    {
+      "path": "reports/composite-joint-single-material-tests.txt",
+      "sha256": "f4ff2cb97b1abf6abb79807520519d2c225c5837b436d4c7ff0ddf46e8ae0607"
+    },
+    {
+      "path": "reports/composite-joint-single-material-affected-tests.txt",
+      "sha256": "9105a4f095cc60e6762fc21452d8bb3cd674f3002dc0a5a577899f24d88d4758"
+    },
+    {
+      "path": "reports/composite-joint-single-material.patch",
+      "sha256": "6b9b9b89d6b9ac26b8f4217813da0d3b5e230b9ea83eabc4a7f468def472c0e4"
+    },
+    {
+      "path": "base-manifest.json",
+      "sha256": "42c4be353b96b14a40b79d1fdd3f0850f7e7093eecccf96892bfc70d6f765d1e"
+    }
+  ],
+  "tests": {
+    "nativeNew": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0
+    },
+    "finalAffected": {
+      "tests": 105,
+      "pass": 105,
+      "fail": 0,
+      "existing": 96,
+      "new": 9
+    },
+    "testFiles": [
+      "tests/kirchhoffCompositeJointAssembly.test.js",
+      "tests/kirchhoffCompositeJointFeedHistoryTimeStep.test.js",
+      "tests/kirchhoffCompositeJointLumenTimeStep.test.js",
+      "tests/kirchhoffCompositeJointTimeStep.test.js",
+      "tests/kirchhoffCompositeJointWallRows.test.js",
+      "tests/kirchhoffCompositeJointWallTimeStep.test.js",
+      "tests/kirchhoffCompositeRelativeCluster.test.js",
+      "tests/kirchhoffCompositeRelativeDirection.test.js",
+      "tests/kirchhoffCompositeJointSingleMaterial.test.js"
+    ],
+    "command": "/opt/homebrew/bin/node --test --test-concurrency=1 <all eight test files from base manifest> tests/kirchhoffCompositeJointSingleMaterial.test.js",
+    "fullApplicationSuiteRerun": false
+  },
+  "coordinatedLumenMerit": {
+    "implemented": true,
+    "oldLumenFallbackTested": true,
+    "liveRootLumenImported": false,
+    "currentTipRimVerification": "root after handoff"
+  },
+  "patchCheck": {
+    "gitApplyCheck": true,
+    "appliedBytesMatchAllChangedFiles": true,
+    "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-single-material-patch-check-i8yakg4y"
+  },
+  "anatomySha256": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer",
+  "frozenBundle": "/tmp/oet-composite-joint-single-material-final-fqhmb900",
+  "limitations": [
+    "At least three nodes, fixed chart/topology, reference-arclength",
+    "Explicit physical inertia and quasi-static torsion with spin BC; no angular inertia",
+    "No World/UI/topology switching/friction; existing workspace cannot change material count",
+    "Current root tip/rim and complete application suite require root integration validation"
+  ],
+  "noBenchmark": true,
+  "noWorldReplay": true
+}

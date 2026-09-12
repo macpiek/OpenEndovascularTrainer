@@ -1,0 +1,268 @@
+{
+  "findings": [
+    {
+      "id": "P1-known-open-Dirichlet",
+      "trigger": "Second accepted-loaded step: all catheter nodes translated down 1e-4 by exact position BC and spins held",
+      "accepted": false,
+      "status": "original-linear-equations",
+      "directions": 1,
+      "Fn": [
+        0.38615348816463735,
+        0.16255508872752597,
+        0
+      ],
+      "allOriginalGaps": [
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899
+      ],
+      "normalRows": [
+        {
+          "key": "[\"catheter\",0,0.8,\"proximal\"]",
+          "owner": "catheter",
+          "edge": 0,
+          "role": "proximal",
+          "querySampleFraction": 0,
+          "querySampleCount": 2,
+          "endpointFraction": 0,
+          "dependent": null,
+          "forceIndex": 0,
+          "source": "analytic-plane",
+          "sdfBranch": null,
+          "Fn": 0.38615348816463735,
+          "gap": 0.00009999999999998899,
+          "ncp": 0.00009999999999998899,
+          "complementarity": 0.000038615348816459483,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"catheter\",0,0.8,\"distal\"]",
+          "owner": "catheter",
+          "edge": 0,
+          "role": "distal",
+          "querySampleFraction": 0,
+          "querySampleCount": 2,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 1,
+          "source": "analytic-plane",
+          "sdfBranch": null,
+          "Fn": 0.16255508872752597,
+          "gap": 0.00009999999999998899,
+          "ncp": 0.00009999999999998899,
+          "complementarity": 0.000016255508872750808,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"catheter\",1,0.8,\"distal\"]",
+          "owner": "catheter",
+          "edge": 1,
+          "role": "distal",
+          "querySampleFraction": 0,
+          "querySampleCount": 2,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 2,
+          "source": "analytic-plane",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.00009999999999998899,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        }
+      ],
+      "rollback": true
+    }
+  ],
+  "checks": [
+    {
+      "name": "actual SDF coverage, query:false, new geometry, restore and partial-query retry",
+      "initialGaps": [
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.11249999999999982,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.11249999999999982,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "capsule",
+          "endpointFraction": 0.5,
+          "querySampleFraction": 0.5,
+          "source": "sparse-sdf",
+          "gap": -0.16875000000000018,
+          "pressureDof": false
+        }
+      ],
+      "coverageMerit": 284765625000000.6,
+      "clearGaps": [
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.3624999999999998,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.3624999999999998,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 0,
+          "role": "capsule",
+          "endpointFraction": 0.5,
+          "querySampleFraction": 0.5,
+          "source": "sparse-sdf",
+          "gap": 0.08124999999999982,
+          "pressureDof": false
+        }
+      ],
+      "stale": {
+        "name": "RangeError",
+        "message": "A matching original wall query is required; raw geometry is stale",
+        "code": "unsupported-joint-wall-contact"
+      },
+      "partial": {
+        "name": "Error",
+        "message": "audit-query-budget",
+        "code": null
+      },
+      "requests": 2
+    },
+    {
+      "name": "malformed node, duplicate/missing sites, wrong trace and nonpositive/nonfinite radii reject",
+      "errors": [
+        {
+          "name": "RangeError",
+          "message": "Each unique pressure site needs an explicit incident own edge and matching one-sided trace",
+          "code": "unsupported-joint-wall-contact"
+        },
+        {
+          "name": "RangeError",
+          "message": "Each unique pressure site needs an explicit incident own edge and matching one-sided trace",
+          "code": "unsupported-joint-wall-contact"
+        },
+        {
+          "name": "RangeError",
+          "message": "One pressure site must cover every owned material endpoint",
+          "code": "unsupported-joint-wall-contact"
+        },
+        {
+          "name": "RangeError",
+          "message": "Each unique pressure site needs an explicit incident own edge and matching one-sided trace",
+          "code": "unsupported-joint-wall-contact"
+        },
+        {
+          "name": "RangeError",
+          "message": "Owner radius must be positive",
+          "code": "unsupported-joint-wall-contact"
+        },
+        {
+          "name": "RangeError",
+          "message": "Owner radius must be finite",
+          "code": "unsupported-joint-wall-contact"
+        }
+      ]
+    },
+    {
+      "name": "P2 typed-ID issue resolved by root before this snapshot: bigint/number/string now have three distinct normal history signatures",
+      "distinctSignatures": 3
+    },
+    {
+      "name": "one shared Fn per node, six Ft rows and explicit offset7/10; no surface/provider requery",
+      "normalIndices": [
+        0,
+        1,
+        2
+      ],
+      "dualColumns": [
+        [
+          7,
+          11
+        ],
+        [
+          7,
+          10
+        ],
+        [
+          8,
+          13
+        ],
+        [
+          8,
+          12
+        ],
+        [
+          9,
+          15
+        ],
+        [
+          9,
+          14
+        ]
+      ],
+      "callsBefore": 5,
+      "callbacksBefore": 5,
+      "stale": {
+        "name": "RangeError",
+        "message": "A matching original wall query is required; raw geometry is stale",
+        "code": "unsupported-joint-wall-contact"
+      }
+    },
+    {
+      "name": "closed fixed positions retain physical pressure, held length gauge and exact zero-load Ft",
+      "Fn": [
+        0.38615348816463735,
+        0.16255508872752597,
+        0
+      ],
+      "Ft": [
+        -6.391848058275052e-10,
+        -0.0023169209289877362,
+        -2.734376815973057e-10,
+        -0.0009753305323651174,
+        0,
+        0
+      ],
+      "suppressed": [
+        1,
+        3
+      ]
+    }
+  ]
+}

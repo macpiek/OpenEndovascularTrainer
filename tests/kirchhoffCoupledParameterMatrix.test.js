@@ -41,7 +41,7 @@ const parameterSets = Object.freeze([
 function createMaterialRod(world, id, profile) {
     const body = world.createRod(id, NODE_COUNT, SEGMENT_LENGTH, {
         ...profile,
-        rodModel: 'kirchhoff',
+
         sleepFrames: 10000
     });
     for (let node = 0; node < NODE_COUNT; node++) {

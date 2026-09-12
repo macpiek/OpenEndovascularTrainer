@@ -1,0 +1,376 @@
+--- a/src/physics/kirchhoffCompositeJointTimeStep.js
++++ b/src/physics/kirchhoffCompositeJointTimeStep.js
+@@ -23,7 +23,7 @@
+  * from EACH call; no numeric tangent or factor is reused as current. The LRU
+  * retains only 1..4 local row patterns and their matrix/factor STORAGE.
+  */
+-export function createCompositeJointTimeStepWorkspace({layout,coordinates,modes,relativeToolId='wire',elementBackend='wasm-exact',rowCacheCapacity=2}) {
++export function createCompositeJointTimeStepWorkspace({layout,coordinates,modes,relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire',elementBackend='wasm-exact',rowCacheCapacity=2}) {
+     if(!Number.isInteger(rowCacheCapacity)||rowCacheCapacity<1||rowCacheCapacity>4)throw new RangeError('rowCacheCapacity must be 1..4');
+     const assembly=createCompositeJointAssemblyWorkspace({layout,coordinates,modes,relativeToolId,elementBackend,physicalInertia:true});
+     const scratch={assembly,busy:false,lengths:null,rows:new Map(),rowCacheCapacity,slots:null,fixed:null,cg:null,rg:null,commonLoad:null,relativeLoad:null,
+@@ -58,20 +58,22 @@
+ 
+ /** Owned initial state of the full change of variables on this FIXED chart.
+  * Every overlap node, including both material tips, has all three relative
+- * coordinates. Each material owns frames, winding, spins and rest lengths.
++ * coordinates. A single material uses q only, with explicit modes:[] and
++ * zero relative coordinates. Each material owns frames, winding, spins and rest lengths.
+  * Only immutable material providers may be borrowed. Reference arclength is
+  * the sole supported material measure; no remesh/history interpolation occurs.
+  */
+ export function createCompositeJointTimeStepState({ layout, coordinates, positions, relative, modes, angles,
+-    tools, restLengths, materialCoordinate, relativeToolId='wire', lengthMultipliers=null, lumenContactState=undefined, wallContactState=undefined, time=0, step=0 }) {
++    tools, restLengths, materialCoordinate, relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire', lengthMultipliers=null, lumenContactState=undefined, wallContactState=undefined, time=0, step=0 }) {
+     if (materialCoordinate !== 'reference-arclength') throw new RangeError('materialCoordinate must be reference-arclength');
+     const ownLayout = createCompositeChainLayout(layout.edgeToolIds), n = ownLayout.nodeCount;
+-    if (n<3 || ownLayout.spins.size!==2 || !ownLayout.spins.has(relativeToolId)) throw new RangeError('A joint step needs two materials and at least three common nodes');
++    const materialCount=ownLayout.spins.size;
++    if (n<3 || ![1,2].includes(materialCount) || !ownLayout.spins.has(relativeToolId)) throw new RangeError('A joint step needs one or two actual materials and at least three common nodes');
+     const x = Float64Array.from(vec(coordinates, n, 'chart coordinates'));
+     x.forEach((v, i) => { if (i && v<=x[i-1]) throw new RangeError('Chart coordinates must increase'); });
+     if (positions?.length!==n || !(angles instanceof Map) || !(restLengths instanceof Map) || !Array.isArray(tools)) throw new RangeError('Explicit independent state maps are required');
+     const overlap = Array.from({length:n}, (_,i) => i).filter(i => nodeIds(ownLayout,i).length===2);
+-    if (!Array.isArray(modes) || modes.length!==overlap.length || !modes.length) throw new RangeError('Full three-coordinate modes are required at EVERY overlap node');
++    if (!Array.isArray(modes) || modes.length!==overlap.length || (materialCount===2&&!modes.length)) throw new RangeError('Full three-coordinate modes are required at EVERY overlap node; one material requires modes:[]');
+     const ownedModes = modes.map((m,i) => {
+         if (m.node!==overlap[i] || m.basis?.length!==3) throw new RangeError('Ordered full modes must cover every overlap node including endpoints');
+         const basis = m.basis.map(b => vec(b,3,'fixed complete basis'));
+@@ -79,7 +81,7 @@
+         return {node:m.node,basis,dimension:3,relativeDofs:[3*i,3*i+1,3*i+2]};
+     });
+     const byId = new Map(tools.map(t => [t.id,t]));
+-    if (byId.size!==2 || tools.length!==2 || [...ownLayout.spins.keys()].some(id => !byId.has(id))) throw new RangeError('Exactly one own material record per tool is required');
++    if (byId.size!==materialCount || tools.length!==materialCount || [...ownLayout.spins.keys()].some(id => !byId.has(id))) throw new RangeError('Exactly one own material record per tool is required');
+     const ownAngles = new Map(), ownRest = new Map();
+     const ownTools = [...ownLayout.spins].map(([id,spins]) => {
+         const t = byId.get(id), a = angles.get(id), r = restLengths.get(id);
+@@ -362,8 +364,11 @@
+             boundary=Math.max(boundary,r);merit+=(r/tol.boundary)**2;
+         }
+         if(!Number.isFinite(merit)||!cg.every(Number.isFinite)||!rg.every(Number.isFinite))throw new RangeError('Nonfinite original joint certificate');
+-        if(contactCertificate)merit+=contactCertificate.merit;
+         let lineSearchMerit=merit;
++        if(contactCertificate) {
++            merit+=contactCertificate.merit;
++            lineSearchMerit+=contactCertificate.lineSearchMerit??contactCertificate.merit;
++        }
+         if(wallCertificate)for(const sample of wallCertificate.samples)lineSearchMerit+=
+             (Math.max(0,-sample.gap)/tol.wallGap)**2+(Math.max(0,-sample.Fn)/tol.force)**2+(sample.ncp/tol.wallNcp)**2;
+         if(wallCertificate)merit+=wallCertificate.merit;
+@@ -375,7 +380,7 @@
+         // equation in this Newton system. At Fn=0 its redundant product can
+         // initially grow while both solved equations improve. Globalize the
+         // actual force/NCP equations; keep the work gate unchanged at commit.
+-        if(wallCertificate)certificate.lineSearchMerit=lineSearchMerit;
++        if(wallCertificate||contactCertificate)certificate.lineSearchMerit=lineSearchMerit;
+         diagnostics.certificate=certificate;
+         return {certificate,physical};
+     }
+--- a/src/physics/kirchhoffCompositeJointWallRows.js
++++ b/src/physics/kirchhoffCompositeJointWallRows.js
+@@ -62,7 +62,7 @@
+  * Caller checkpoints BEFORE trials; restore restores dual AND chart choices,
+  * invalidates raw queries/operators and requires a new original refresh.
+  */
+-export function createCompositeJointWallRows({layout,coordinates,modes,relativeToolId='wire',wall,history=null,tolerances}) {
++export function createCompositeJointWallRows({layout,coordinates,modes,relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire',wall,history=null,tolerances}) {
+     if(wall?.mode!=='wall-normal'||wall.friction!=='none')throw failure('Explicit wall-normal with friction:none is required');
+     const contactMode=wall.contactMode??'capsule';
+     if(contactMode!=='capsule'&&contactMode!=='envelope')throw failure('Wall contactMode must be capsule or envelope');
+@@ -75,7 +75,7 @@
+         JSON.stringify(Array.from(layout.spins,([id,d])=>[id,Array.from(d)]))!==JSON.stringify(Array.from(expected.spins,([id,d])=>[id,Array.from(d)])))throw failure('Layout indices do not match the actual chart');
+     const x=vector(coordinates,layout.nodeCount,'Chart coordinates');if(x.some((v,i)=>i&&v<=x[i-1]))throw failure('Chart coordinates must increase');
+     const overlap=Array.from({length:layout.nodeCount},(_,i)=>i).filter(i=>new Set([...(layout.edgeToolIds[i-1]??[]),...(layout.edgeToolIds[i]??[])]).size>1);
+-    if(layout.spins.size!==2||!layout.spins.has(relativeToolId)||!Array.isArray(modes)||modes.length!==overlap.length||
++    if(![1,2].includes(layout.spins.size)||!layout.spins.has(relativeToolId)||!Array.isArray(modes)||modes.length!==overlap.length||
+         modes.some((m,i)=>m.node!==overlap[i]||m.basis?.length!==3||m.relativeDofs?.length!==3||m.relativeDofs.some((d,j)=>d!==3*i+j)))throw failure('Full ordered modes must cover every overlap node');
+     const owners=copy(wall.contactOwners);
+     if(owners?.edges?.length!==layout.nodeCount-1)throw failure('Frozen wall ownership must cover actual edges');
+--- a/src/physics/kirchhoffCompositeJointAssembly.js
++++ b/src/physics/kirchhoffCompositeJointAssembly.js
+@@ -14,7 +14,7 @@
+     return {tangent:Array.from(frame.tangent),director:Array.from(frame.director)};
+ };
+ const assemblyWorkspaces=new WeakMap();
+-function structureKey({layout,coordinates,modes,relativeToolId='wire',elementBackend='wasm-exact'},physicalInertia) {
++function structureKey({layout,coordinates,modes,relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire',elementBackend='wasm-exact'},physicalInertia) {
+     return JSON.stringify({edges:layout.edgeToolIds,positions:Array.from(layout.positions),spins:[...layout.spins].map(([id,v])=>[id,Array.from(v)]),
+         hinges:layout.hinges.map(h=>[h.vertex,h.tools,Array.from(h.dofs)]),band:layout.band,dofs:layout.dofCount,n:layout.nodeCount,
+         coordinates:Array.from(coordinates),modes:modes.map(m=>({node:m.node,basis:m.basis.map(b=>Array.from(b))})),relativeToolId,elementBackend,physicalInertia});
+@@ -27,7 +27,7 @@
+  * assembly handles. The physical-inertia presence, chart, modes/bases and
+  * backend cannot change in this handle. No H or factor is cached as current.
+  */
+-export function createCompositeJointAssemblyWorkspace({layout,coordinates,modes,relativeToolId='wire',elementBackend='wasm-exact',physicalInertia=true}) {
++export function createCompositeJointAssemblyWorkspace({layout,coordinates,modes,relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire',elementBackend='wasm-exact',physicalInertia=true}) {
+     if(!['wasm-exact','wasm','javascript'].includes(elementBackend)||typeof physicalInertia!=='boolean')throw new RangeError('Explicit backend and inertia presence are required');
+     const owned={layout:createCompositeChainLayout(layout.edgeToolIds),coordinates:Float64Array.from(coordinates),
+         modes:modes.map(m=>({node:m.node,basis:m.basis.map(b=>Array.from(b))})),relativeToolId,elementBackend};
+@@ -53,6 +53,8 @@
+  * frames, winding, profile, feed map and old physical velocities/positions.
+  * Every material hinge/edge is evaluated exactly once at its CURRENT physical
+  * geometry. There is no rho=0 wire energy plus a second correction energy.
++ * One material has explicit modes:[] and an empty relative cluster; its
++ * physical hinges and inertia still use this same common assembly.
+  *
+  * This is a nonlinear operator, not a timestep solver. Lengths, clearance,
+  * walls, friction, boundary conditions and acceptance belong to its caller.
+@@ -72,7 +74,7 @@
+         return prepareAssembly({...args,layout:cache.layout,coordinates:cache.coordinates,modes:cache.modes},cache,cache.generation);
+     } finally {cache.busy=false;}
+ }
+-function prepareAssembly({layout,coordinates,modes,tools,inertia,relativeToolId='wire',elementBackend='wasm-exact'},cache,generation) {
++function prepareAssembly({layout,coordinates,modes,tools,inertia,relativeToolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire',elementBackend='wasm-exact'},cache,generation) {
+     const implementation=elementBackend==='wasm-exact'?exact:elementBackend==='wasm'?gn:elementBackend==='javascript'?oracle:null;
+     if(!implementation)throw new TypeError('Joint assembly backend must be wasm-exact, wasm or javascript');
+     if(!layout||coordinates?.length!==layout.nodeCount||!Array.isArray(tools)||inertia===undefined)
+@@ -98,7 +100,7 @@
+     const toolPositions=cache?.toolPositions??new Map([...byId.keys()].map(id=>[id,Array.from({length:n},()=>[0,0,0])]));
+     // The symbolic compiler requires a chart only to validate reduced 2D
+     // bases. Complete 3D bases do not depend on current chord directions.
+-    if(!Array.isArray(modes)||modes.some(m=>m.basis?.length!==3))
++    if(!Array.isArray(modes)||modes.some(m=>m.basis?.length!==3)||(layout.spins.size===1&&modes.length!==0))
+         throw new RangeError('Nonlinear joint assembly currently requires complete three-coordinate modes');
+     if(inertia!==null&&(!(inertia.previousPositions instanceof Map)||inertia.inertiaEdges?.length!==n-1))
+         throw new RangeError('Inertia needs independent old tool geometries and prepared material edges');
+--- a/src/physics/kirchhoffCompositeRelativeCluster.js
++++ b/src/physics/kirchhoffCompositeRelativeCluster.js
+@@ -7,12 +7,13 @@
+ const finiteVector=(v,n,name)=>{if(!v||v.length!==n||!v.every(Number.isFinite))throw new TypeError(`${name} needs ${n} finite entries`);};
+ const packed=(row,col,band)=>Math.max(row,col)*band+Math.abs(row-col);
+ 
+-function prepareStructure({data,layout,modes,toolId='wire',elementBackend='wasm',inertia=null}) {
++function prepareStructure({data,layout,modes,toolId=layout?.spins?.size===1?layout.spins.keys().next().value:'wire',elementBackend='wasm',inertia=null}) {
+     const implementation=elementBackend==='wasm'?gn:elementBackend==='wasm-exact'?exact:elementBackend==='javascript'?oracle:null;
+     if(!implementation)throw new TypeError('Relative cluster backend must be wasm, wasm-exact or javascript');
+     if(!layout||data?.positions?.length!==layout.nodeCount||data?.coordinates?.length!==layout.nodeCount||
+         data?.reference?.length!==layout.nodeCount-1)throw new RangeError('Cluster needs matching common data/layout');
+-    if(!Array.isArray(modes)||!modes.length)throw new RangeError('At least one relative mode is required');
++    const empty=Array.isArray(modes)&&modes.length===0&&layout.spins.size===1&&data.tools?.length===1;
++    if(!Array.isArray(modes)||(!modes.length&&!empty))throw new RangeError('At least one relative mode is required unless the chart has one material');
+     const tool=data.tools.find(t=>t.id===toolId),spin=layout.spins.get(toolId);
+     if(!tool||!spin)throw new RangeError('The relative material must exist in the common layout');
+     let relativeCount=0;
+@@ -59,7 +60,7 @@
+         }
+     }
+     const dofs=Int32Array.from([...new Set(descriptors.flatMap(d=>d.dofs))].sort((a,b)=>a-b)),n=dofs.length,r=relativeCount;
+-    if(!n)throw new RangeError('The cluster has no affected wire energy support');
++    if(!n&&!empty)throw new RangeError('The cluster has no affected wire energy support');
+     const localIndex=new Map(Array.from(dofs,(dof,index)=>[dof,index])),columnSets=Array.from({length:n},()=>new Set());
+     let commonBand=1,relativeBand=1;
+     for(const descriptor of descriptors) {
+@@ -85,8 +86,8 @@
+         stencils:descriptors.map(d=>({kind:d.kind,vertex:d.vertex,edge:d.edge,commonDofs:Int32Array.from(d.dofs),commonIndices:d.commonIndices,
+             relativeDofs:Int32Array.from(d.columns,column=>column.relativeDof)})),
+         commonContributionRole:'diagnostic-only-already-in-common',scope:'joint-uncondensed-relative-linearization-at-zero-offset',
+-        relativeRepresentation:fullRank?'full-rank-on-represented-nodes':reduced?'transverse-reduced':'mixed-full-and-transverse-reduced',
+-        fullRankOnRepresentedNodes:fullRank,operatorReady:false,hessianValid:false,
++        relativeRepresentation:empty?'none-single-material':fullRank?'full-rank-on-represented-nodes':reduced?'transverse-reduced':'mixed-full-and-transverse-reduced',
++        fullRankOnRepresentedNodes:!empty&&fullRank,operatorReady:false,hessianValid:false,
+         certified:false,condensed:false,relativeDofCount:r};
+     return {operator,descriptors,couplingIndex,commonBand,relativeBand,implementation,tool,spin,data,layout,inertia};
+ }
+@@ -101,6 +102,9 @@
+  * edge. Reduced 2D modes keep their interior/two-sided support requirements.
+  * All returned H/g bytes are scratch, NOT an assembled physical operator:
+  * operatorReady and hessianValid remain false until the caller assembles it.
++ * One actual material with explicit modes:[] produces an empty cluster:
++ * zero relative DOFs, zero common support/energy and CSR offsets [0]. Its
++ * physical energies remain exclusively in the common material assembly.
+  */
+ export function createCompositeRelativeClusterStructure(args) {
+     return prepareStructure(args).operator;
+--- a/src/physics/kirchhoffCompositeRelativeDirection.js
++++ b/src/physics/kirchhoffCompositeRelativeDirection.js
+@@ -36,6 +36,8 @@
+  * Every solve MUST supply the current cluster values; no H/C are cached here.
+  * An unassembled createCompositeRelativeClusterStructure result is sufficient
+  * to create this workspace, but solve requires an assembled valid operator.
++ * The explicit single-material empty cluster contributes no rho unknowns or
++ * support. Common equations and local duals use the identical band solve.
+  *
+  * Row definition (owned copies):
+  * {anchorNode, commonDofs:Int32Array, relativeDofs:Int32Array, unit:string}.
+@@ -51,9 +53,11 @@
+         !Number.isInteger(layout.dofCount)||!Number.isInteger(layout.band)||layout.band<1)
+         throw new RangeError('A valid common Chain layout is required');
+     const n=layout.dofCount,r=cluster?.relative?.dofCount;
+-    if(!Number.isInteger(r)||r<2||!Array.isArray(cluster.modes)||!cluster.modes.length||
++    const empty=r===0&&layout.spins?.size===1&&layout.spins.has(cluster.toolId)&&cluster.modes?.length===0&&
++        cluster.relativeRepresentation==='none-single-material';
++    if(!Number.isInteger(r)||(!empty&&r<2)||!Array.isArray(cluster.modes)||(!empty&&!cluster.modes.length)||
+         !Number.isInteger(cluster.relative.band)||cluster.relative.band<1)
+-        throw new RangeError('A joint transverse Cluster is required');
++        throw new RangeError('A joint relative Cluster or explicit empty single-material Cluster is required');
+     const commonNode=new Int32Array(n),positionMask=new Uint8Array(n),relativeNode=new Int32Array(r);
+     for(let node=0;node<layout.nodeCount;node++) {
+         const start=layout.positions[node],end=node+1<layout.nodeCount?layout.positions[node+1]:n;
+@@ -79,6 +83,8 @@
+     if(relativeOffset!==r)throw new RangeError('Relative DOF count must equal the sum of mode dimensions');
+     const commonDofs=indexList(cluster.coupling?.commonDofs,n,'Cluster common support'),
+         rowOffsets=cluster.coupling?.rowOffsets,columns=cluster.coupling?.columns;
++    if(empty&&(commonDofs.length!==0||cluster.common?.dofs?.length!==0))
++        throw new RangeError('An empty single-material Cluster must have zero common support');
+     if(!(rowOffsets instanceof Int32Array)||rowOffsets.length!==commonDofs.length+1||rowOffsets[0]!==0||
+         !(columns instanceof Int32Array)||rowOffsets.at(-1)!==columns.length||
+         rowOffsets.some((v,i)=>v<0||v>columns.length||(i&&v<rowOffsets[i-1]))||columns.some(v=>v<0||v>=r))
+--- /dev/null
++++ b/tests/kirchhoffCompositeJointSingleMaterial.test.js
+@@ -0,0 +1,155 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import {createCompositeChainLayout} from '../src/physics/kirchhoffCompositeChain.js';
++import {captureCompositeReferenceFrames,compileCompositeMaterial} from '../src/physics/kirchhoffCompositeElement.js';
++import {createCompositeJointTimeStepState,createCompositeJointTimeStepWorkspace,advanceCompositeJointTimeStep} from '../src/physics/kirchhoffCompositeJointTimeStep.js';
++import {createCompositeJointAssembly,createCompositeJointAssemblyWorkspace} from '../src/physics/kirchhoffCompositeJointAssembly.js';
++import {createCompositeRelativeDirectionWorkspace} from '../src/physics/kirchhoffCompositeRelativeDirection.js';
++import {createCompositeRelativeClusterStructure,assembleCompositeRelativeCluster} from '../src/physics/kirchhoffCompositeRelativeCluster.js';
++import {createCompositeJointWallRows} from '../src/physics/kirchhoffCompositeJointWallRows.js';
++
++const close=(a,b,t=1e-9)=>assert.ok(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=t,`${a} != ${b} (${t})`);
++const vector=(a,b,t)=>{assert.equal(a.length,b.length);a.forEach((v,i)=>close(v,b[i],t));};
++const accepted=r=>assert.equal(r.accepted,true,JSON.stringify({status:r.status,error:r.error,diagnostics:r.diagnostics}));
++function fixture(id,{n=5,dsDx=1.125,y=0,EI=.8,GJ=.4}={}) {
++    const layout=createCompositeChainLayout(Array.from({length:n-1},()=>[id])),coordinates=Array.from({length:n},(_,i)=>2*i);
++    const positions=coordinates.map(x=>[dsDx*x,y,0]),tools=[{id,dsDx,reference:captureCompositeReferenceFrames(positions),
++        referenceTwists:new Float64Array(n-2),material:compileCompositeMaterial({EI1:EI,EI2:1.5*EI,GJ})}];
++    // The default relativeToolId must resolve to the sole actual material.
++    return createCompositeJointTimeStepState({layout,coordinates,positions,modes:[],relative:new Float64Array(0),tools,
++        angles:new Map([[id,new Float64Array(n-1)]]),restLengths:new Map([[id,new Float64Array(n-1).fill(2*dsDx)]]),
++        materialCoordinate:'reference-arclength'});
++}
++function inertia(state,velocity, density=.13) {
++    const id=state.tools[0].id,dsDx=state.tools[0].dsDx;
++    return {previousPositions:structuredClone(state.toolPositions),inertiaEdges:state.layout.edgeToolIds.map((_,e)=>({tools:[{id,
++        massPerMaterialLength:density,materialMap:{sStart:20+state.coordinates[e]*dsDx,dsDx,dsDt:0},
++        oldMaterialVelocities:velocity?[Array.from(velocity),Array.from(velocity)]:structuredClone(state.materialVelocities?.[e].tools[0].velocities??[[0,0,0],[0,0,0]])}]}))};
++}
++function config(state,velocity,extra={}) {
++    return {dt:.06,torsionMode:'quasi-static',contacts:'none',inertia:inertia(state,velocity),
++        boundaries:{positions:[],spins:[{toolId:state.tools[0].id,edge:0,value:0}]},...extra};
++}
++function physical(r) {
++    accepted(r);const state=r.state,id=state.tools[0].id,p=state.toolPositions.get(id);
++    assert.equal(state.tools.length,1);assert.equal(state.layout.spins.size,1);assert.equal(state.toolPositions.size,1);
++    assert.equal(state.relativeToolId,id);assert.deepEqual(state.modes,[]);assert.deepEqual(state.relative,new Float64Array(0));
++    assert.equal(r.diagnostics.relativeDofs,0);assert.equal(r.diagnostics.originalLengthRows,p.length-1);
++    assert.equal(r.perTool.size,1);assert.equal(r.balances.size,1);
++    p.forEach(v=>assert.ok(v.every(Number.isFinite)));
++    for(let e=0;e<p.length-1;e++)close(Math.hypot(...p[e+1].map((v,k)=>v-p[e][k])),state.restLengths.get(id)[e],1e-8);
++    const b=r.balances.get(id);vector(b.momentumRate,b.appliedForce.map((v,k)=>v+b.boundaryForce[k]+(b.contactForce?.[k]??0)),4e-7);
++    assert.ok(r.diagnostics.certificate.converged);assert.ok(r.diagnostics.certificate.torque<=1e-8);
++}
++function samePhysical(a,b) {
++    for(const key of ['accepted','status','state','perTool','boundaryForces','spinReactions','balances','contactForces'])assert.deepEqual(a[key],b[key],key);
++    for(const key of ['certificate','directions','evaluations','linearSolves','acceptedAlphas','unknowns'])assert.deepEqual(a.diagnostics[key],b.diagnostics[key],key);
++}
++function plane(state) {
++    const id=state.tools[0].id,field={queryCapsuleCoordinates(ax,ay,az,bx,by,bz,radius,out) {
++        const t=ay===by?.5:ay<by?0:1;out.signedDistance=(1-t)*ay+t*by;out.signedGap=out.signedDistance-radius;
++        out.segmentT=t;out.inward.values.set([0,1,0]);out.closestPoint.values.set([(1-t)*ax+t*bx,0,(1-t)*az+t*bz]);
++        out.faceIndex=1;out.branchId=0;out.source='analytic-plane';out.capsuleSampleCount=2;return out;
++    }};
++    return {mode:'wall-normal',contactMode:'envelope',friction:'none',chartId:`single-${id}-plane`,field,forcePerLength:1,
++        contactOwners:{edges:state.layout.edgeToolIds.map((_,edge)=>({edge,wall:{owner:id,radius:.8}}))}};
++}
++
++for(const id of ['wire','catheter']) {
++    test(`${id}: explicit empty cluster has zero support/energy and a common-only direction`,()=>{
++        const state=fixture(id),prepared=inertia(state,[.02,-.03,.04]);
++        const args={...state,inertia:{...prepared,dt:.06}},cache=createCompositeJointAssemblyWorkspace({...state,relativeToolId:undefined});
++        const a=createCompositeJointAssembly({...args,relativeToolId:undefined}),b=createCompositeJointAssembly({...args,relativeToolId:undefined},{workspace:cache});
++        const ao=a.evaluate(state),bo=b.evaluate(state),c=ao.cluster;
++        assert.equal(c.relativeRepresentation,'none-single-material');assert.equal(c.relative.dofCount,0);assert.equal(c.relativeDofCount,0);
++        assert.equal(c.common.dofs.length,0);assert.deepEqual(c.coupling.rowOffsets,Int32Array.of(0));
++        for(const v of [c.common.gradient,c.common.hessian,c.relative.gradient,c.relative.hessian,c.coupling.values,c.coupling.columns,c.coupling.commonDofs])assert.equal(v.length,0);
++        assert.equal(c.energy,0);assert.equal(c.elasticEnergy,0);assert.equal(c.inertialEnergy,0);
++        assert.deepEqual(c.modes,[]);assert.deepEqual(c.stencils,[]);assert.deepEqual(c.affectedHinges,[]);assert.deepEqual(c.affectedInertiaEdges,[]);
++        assert.equal(ao.statistics.materialHinges,state.layout.nodeCount-2);assert.equal(ao.statistics.sharedGeometryHinges,0);
++        assert.equal(ao.statistics.materialInertiaEdges,state.layout.nodeCount-1);assert.equal(ao.perTool.size,1);
++        close(ao.energy,ao.perTool.get(id).elasticEnergy+ao.perTool.get(id).inertialEnergy,0);
++        assert.deepEqual(ao.chain.gradient,bo.chain.gradient);assert.deepEqual(ao.chain.hessian,bo.chain.hessian);
++        assert.ok(ao.chain.hessian.every(Number.isFinite));assert.ok(ao.chain.gradient.every(Number.isFinite));
++        const direction=createCompositeRelativeDirectionWorkspace(a.layout,c);
++        assert.equal(direction.count,state.layout.dofCount);assert.equal(direction.relativeIncrement.length,0);assert.equal(direction.couplingScatter.length,0);
++        const symbolic={layout:state.layout,modes:[],data:{positions:state.positions,coordinates:state.coordinates,reference:state.tools[0].reference,tools:state.tools},elementBackend:'wasm-exact'};
++        const empty=createCompositeRelativeClusterStructure(symbolic),assembled=assembleCompositeRelativeCluster(symbolic);
++        assert.equal(empty.operatorReady,false);assert.equal(assembled.operatorReady,true);assert.equal(assembled.energy,0);
++        assert.equal(assembled.common.dofs.length,0);assert.equal(assembled.relative.dofCount,0);
++        a.evaluate(state,{order:'gradient'});assert.equal(c.hessianValid,false);
++        assert.throws(()=>createCompositeJointAssembly({...args,modes:[{node:1,basis:[[1,0,0],[0,1,0],[0,0,1]]}]}),/complete three-coordinate modes/);
++    });
++
++    test(`${id}: free translation preserves original momentum/lengths for two dt, cold/reuse and late retry`,()=>{
++        const state=fixture(id),v=[.09,-.03,.025],before=structuredClone(state),options=config(state,v),workspace=createCompositeJointTimeStepWorkspace({...state,relativeToolId:undefined});
++        const cold=advanceCompositeJointTimeStep(state,options),first=advanceCompositeJointTimeStep(state,{...options,workspace});physical(first);samePhysical(first,cold);
++        assert.deepEqual(state,before);const mass=.13*8*1.125;
++        close(first.perTool.get(id).mass,mass,1e-14);vector(first.perTool.get(id).momentum,v.map(v=>v*mass),1e-9);
++        state.positions.forEach((p,i)=>vector(first.state.positions[i],p.map((x,k)=>x+options.dt*v[k]),2e-10));
++        assert.equal(first.diagnostics.unknowns,state.layout.dofCount+state.positions.length-1);
++        const late=advanceCompositeJointTimeStep(state,{...options,workspace,budget:{evaluations:first.diagnostics.evaluations-1}});
++        assert.equal(late.accepted,false);assert.equal(late.status,'evaluation-budget');assert.equal(late.state,state);assert.deepEqual(state,before);
++        const retry=advanceCompositeJointTimeStep(state,{...options,workspace});samePhysical(retry,first);
++        const secondOptions=config(first.state),second=advanceCompositeJointTimeStep(first.state,{...secondOptions,workspace});physical(second);
++        samePhysical(second,advanceCompositeJointTimeStep(first.state,secondOptions));
++        assert.equal(second.state.step,2);close(second.state.time,2*options.dt,0);
++        state.positions.forEach((p,i)=>vector(second.state.positions[i],p.map((x,k)=>x+2*options.dt*v[k]),5e-10));
++        second.state.materialVelocities.forEach(e=>{assert.equal(e.tools.length,1);e.tools[0].velocities.forEach(w=>vector(w,v,1e-8));});
++        const saved=structuredClone(first.state);second.state.positions[0][0]+=1;assert.deepEqual(first.state,saved);
++    });
++
++    test(`${id}: bending, physical position BC, independent spin and length equations use the same solve`,()=>{
++        const state=fixture(id),before=structuredClone(state),last=state.positions.length-1;
++        const boundaries={positions:[0,1].map(node=>({toolId:id,node,value:state.positions[node].slice()})),spins:[{toolId:id,edge:0,value:.4}]};
++        const options=config(state,[0,0,0],{boundaries,loads:{forces:[{toolId:id,node:last,value:[0,.05,.015]}],torques:[{toolId:id,edge:last-1,value:.01}]}});
++        const workspace=createCompositeJointTimeStepWorkspace(state),r=advanceCompositeJointTimeStep(state,{...options,workspace});physical(r);
++        samePhysical(r,advanceCompositeJointTimeStep(state,options));assert.deepEqual(state,before);
++        assert.deepEqual(r.state.positions[0],state.positions[0]);assert.deepEqual(r.state.positions[1],state.positions[1]);
++        assert.ok(r.state.positions[last][1]>1e-5);assert.ok(r.perTool.get(id).elasticEnergy>0);
++        close(r.state.angles.get(id)[0],.4,0);assert.ok(r.state.angles.get(id).every(Number.isFinite));
++        assert.deepEqual(r.diagnostics.suppressedPrescribedLengthRows,[0]);assert.equal(r.state.lengthMultipliers[0],0);
++        assert.ok(Math.hypot(...r.balances.get(id).boundaryForce)>0);
++        const failed=advanceCompositeJointTimeStep(state,{...options,workspace,budget:{directions:0}});
++        assert.equal(failed.accepted,false);assert.equal(failed.state,state);assert.deepEqual(state,before);
++        samePhysical(advanceCompositeJointTimeStep(state,{...options,workspace}),r);
++    });
++
++    test(`${id}: normal wall envelope retains actual ownership, zero relative columns, hold/release and retry`,()=>{
++        const state=fixture(id,{n:3,dsDx:1,y:.82,EI:.001,GJ:.001}),wall=plane(state),before=structuredClone(state),dt=1/120;
++        const options=config(state,[0,-10,0],{dt,wall,inertia:inertia(state,[0,-10,0],.01)}),workspace=createCompositeJointTimeStepWorkspace(state);
++        const rows=createCompositeJointWallRows({...state,relativeToolId:undefined,wall,tolerances:{force:1e-7,wallGap:1e-8,wallNcp:1e-8,wallWork:1e-9,linearConstraint:5e-11}});
++        assert.ok(rows.rows.every(r=>r.owner===id&&r.relativeDofs.length===0&&r.forceColumn.length===6));
++        const r=advanceCompositeJointTimeStep(state,{...options,workspace});physical(r);samePhysical(r,advanceCompositeJointTimeStep(state,options));assert.deepEqual(state,before);
++        r.state.positions.forEach(p=>close(p[1],.8));
++        assert.equal(r.contactForces.size,1);assert.equal(r.diagnostics.certificate.wall.contactMode,'envelope');
++        assert.equal(r.diagnostics.certificate.wall.samples.length,6);assert.equal(r.diagnostics.certificate.wall.retainedRows,3);
++        assert.equal(r.diagnostics.wallQueries,5*r.diagnostics.evaluations);
++        close(r.balances.get(id).contactForce[1],.01*4*(10-.02/dt)/dt,1e-7);
++        assert.ok(r.state.wallContactState.normalForces.every(Fn=>Fn>=0));
++        assert.ok(r.diagnostics.certificate.wall.samples.every(s=>s.owner===id&&(s.role!=='capsule'||s.Fn===0)));
++        const late=advanceCompositeJointTimeStep(state,{...options,workspace,budget:{evaluations:r.diagnostics.evaluations-1}});
++        assert.equal(late.accepted,false);assert.equal(late.state,state);assert.deepEqual(state,before);
++        const budget=advanceCompositeJointTimeStep(state,{...options,workspace,budget:{contactQueries:1}});
++        assert.equal(budget.status,'contact-query-budget');assert.equal(budget.state,state);assert.deepEqual(state,before);
++        samePhysical(advanceCompositeJointTimeStep(state,{...options,workspace}),r);
++        const holdOptions=config(r.state,[0,0,0],{dt,wall,inertia:inertia(r.state,[0,0,0],.01)});
++        const hold=advanceCompositeJointTimeStep(r.state,{...holdOptions,workspace});physical(hold);samePhysical(hold,advanceCompositeJointTimeStep(r.state,holdOptions));
++        hold.state.positions.forEach(p=>close(p[1],.8));assert.equal(hold.state.step,2);
++        const release=advanceCompositeJointTimeStep(hold.state,config(hold.state,[0,1,0],{dt,wall,inertia:inertia(hold.state,[0,1,0],.01),workspace}));physical(release);
++        release.state.positions.forEach(p=>close(p[1],.8+dt));assert.ok(release.state.wallContactState.normalForces.every(Fn=>Fn===0));
++    });
++}
++
++test('single-material admission never weakens full two-material modes or permits a fictional owner',()=>{
++    const single=fixture('catheter');
++    assert.throws(()=>createCompositeJointTimeStepState({...single,relativeToolId:'wire'}),/actual materials/);
++    assert.throws(()=>createCompositeJointTimeStepState({...single,relative:Float64Array.of(0)}),/relative coordinates/);
++    assert.throws(()=>createCompositeJointTimeStepState({...single,tools:[...single.tools,{...single.tools[0],id:'wire'}]}),/Exactly one/);
++    const layout=createCompositeChainLayout(Array.from({length:4},()=>['wire','catheter']));
++    assert.throws(()=>createCompositeJointTimeStepState({...single,layout,relativeToolId:'wire'}),/EVERY overlap/);
++    const empty=createCompositeJointAssembly({...single,inertia:null}).cluster;
++    assert.throws(()=>createCompositeRelativeDirectionWorkspace(layout,empty),/empty single-material/);
++    const wall=plane(single);wall.contactOwners.edges[0].wall.owner='wire';
++    assert.throws(()=>createCompositeJointWallRows({...single,wall}),/occupy its physical edge/);
++});

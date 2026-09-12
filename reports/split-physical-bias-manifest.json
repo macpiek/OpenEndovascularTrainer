@@ -1,0 +1,72 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "source": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer",
+  "files": [
+    {
+      "path": "src/physics/endovascularPhysicsWorld.js",
+      "beforeSha256": "cf7f36eea9364cd872c083115ccf11234190d9f5c71ec902b8eb38da53373b9d",
+      "afterSha256": "2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5"
+    },
+    {
+      "path": "src/physics/kirchhoffSplitMotion.js",
+      "beforeSha256": null,
+      "afterSha256": "e46caddba849f081d91bb5df291186cc65a8c06c91d40fb0ec204a84997d3e9b"
+    },
+    {
+      "path": "src/physics/kirchhoffSplitWallFriction.js",
+      "beforeSha256": null,
+      "afterSha256": "be714ab7ba2acb116b4d43ce9a2e447308540f5d89407b62a052bef131e1ba55"
+    },
+    {
+      "path": "src/physics/kirchhoffSurfaceFriction.js",
+      "beforeSha256": "865fb6567377aa03943f937bea6c60ece1ef6e9acb5c8f75e6cc12279c689803",
+      "afterSha256": "f89463fcee825a725e8671ed8efb2e55af7e53379d00765d6d297c79668b18a6"
+    },
+    {
+      "path": "src/physics/kirchhoffCoupledSystem.js",
+      "beforeSha256": "0914eaf75cd15288cbd5aed50929b4fca439b1f6ac3e90eb8a1a7114014669a7",
+      "afterSha256": "13921ed8e96770164078b75eaf1816fa656d1cf7db33b52ae37d4bcfe86170b5"
+    },
+    {
+      "path": "src/physics/kirchhoffCoupledBoundaryRows.js",
+      "beforeSha256": "fa26728623ec158f8d432725713bc84434736209cc6bf34dea02f69c1d3bbab1",
+      "afterSha256": "a1478e70c525748b963ce07fd215fa6185e5327377922c048140606c490dd04a"
+    },
+    {
+      "path": "src/physics/kirchhoffCoupledFrictionRows.js",
+      "beforeSha256": "d866149972945122236f39f0605af5b55b1798b4ced885e80a6fa2f11e2e1b94",
+      "afterSha256": "63fdf51bbf6ce32a251b344853f24ce8079943aa1a45dc6619e9db0ce30b6757"
+    },
+    {
+      "path": "src/physics/kirchhoffExternalFrictionRows.js",
+      "beforeSha256": "6497448ff064ec035bb989d8c01b82bfb9f3529eaa4930fef0ca2d7a99362ecf",
+      "afterSha256": "69831d63aa8ef321b377516dd6ffc8cab3afd23509987e85d63570257d8f0f88"
+    },
+    {
+      "path": "tests/kirchhoffSplitMotionCertification.test.js",
+      "beforeSha256": null,
+      "afterSha256": "12fc060fe7de23962cfb1860df558e0f8b031a217417adfa2b0edf1eb2702b0f"
+    },
+    {
+      "path": "reports/split-physical-bias-handoff.md",
+      "beforeSha256": null,
+      "afterSha256": "ca2a9877cb88795cfe423370f0cc0c770e8fbd7b4ef51046b3d46a0d591f3940"
+    }
+  ],
+  "tests": {
+    "independent": {
+      "passed": 8,
+      "failed": 0
+    },
+    "default": {
+      "passed": 48,
+      "failed": 0
+    },
+    "certification": {
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "status": "experimental; translated final certificate rejected; default unchanged",
+  "patchSha256": "355a06ba08e8f17b69aebefd264f2cc5ffa94fdb761d4c8a9f0c22522ce15c9a"
+}

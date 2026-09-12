@@ -1,0 +1,18 @@
+{
+  "base": "/tmp/oet-composite-joint-tip-single-integrated",
+  "scope": "final review P2 fix with private acceptance authority; 7/7 tests",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeJointLumenRows.js",
+      "sha256": "fe3b4f5fbdf9f60e08f12dcafdc23b052c136d544a66e7df728d6bed5397a3af"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointTipTimeStep.test.js",
+      "sha256": "db5a1e48f04bcd0c9f822d6d7c62e1abdf573d62749a008687428634b753aee8"
+    },
+    {
+      "path": "tests.txt",
+      "sha256": "7c0d655adb11bb75cb6bbee7bf4ccf423ace283e721681b61c4b3f2306356bdb"
+    }
+  ]
+}

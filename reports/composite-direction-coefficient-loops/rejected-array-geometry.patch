@@ -1,0 +1,177 @@
+--- a/src/physics/kirchhoffCompositeLumenSideGeometry.js
++++ b/src/physics/kirchhoffCompositeLumenSideGeometry.js
+@@ -5,6 +5,22 @@
+ const DETECTOR_EPSILON = 1e-12;
+ const PORTAL_TOLERANCE = 1e-9;
+ const ROUND_OFF = 128 * Number.EPSILON;
++const coordinateNames = ['x', 'y', 'z'];
++const pointNames = ['innerStart', 'innerEnd', 'outerStart', 'outerEnd'];
++const scratchByOutput = new WeakMap();
++const scratchVector = () => [NaN, NaN, NaN];
++function localScratch(out) {
++    let scratch = scratchByOutput.get(out);
++    if (!scratch) {
++        scratch = { points: Array.from({length:4}, scratchVector),
++            p: scratchVector(), d: scratchVector(), v: scratchVector(),
++            q: scratchVector(), radial: scratchVector(), n: scratchVector(),
++            axis: scratchVector(), distalOffset: scratchVector(), dr: scratchVector(),
++            iw: [NaN,NaN], ow: [NaN,NaN], coefficients: [NaN,NaN,NaN,NaN] };
++        scratchByOutput.set(out, scratch);
++    }
++    return scratch;
++}
+ const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+ const close = (a, b) => Math.abs(a - b) <= ROUND_OFF * Math.max(1, Math.abs(a), Math.abs(b));
+ function nonnegative(value, name) {
+@@ -14,13 +30,13 @@
+ function readVector(value, target, name) {
+     if (value == null) throw new TypeError(`${name} is required`);
+     for (let i = 0; i < 3; i++) {
+-        const v = Array.isArray(value) || ArrayBuffer.isView(value) ? value[i] : value[['x', 'y', 'z'][i]];
++        const v = Array.isArray(value) || ArrayBuffer.isView(value) ? value[i] : value[coordinateNames[i]];
+         if (!Number.isFinite(v)) throw new TypeError(`${name} needs three finite components`);
+         target[i] = v;
+     }
+ }
+ function weights(value, name) {
+-    if (!value || value.length !== 2 || !Array.from(value).every(Number.isFinite)) throw new TypeError(`${name} needs two finite entries`);
++    if (!value || value.length !== 2 || !Number.isFinite(value[0]) || !Number.isFinite(value[1])) throw new TypeError(`${name} needs two finite entries`);
+ }
+ function rawWorkspace() {
+     return { id: null, kind: null, feature: null, gap: NaN, clearance: NaN, radialDistance: NaN,
+@@ -30,10 +46,12 @@
+ 
+ /** One selected lumen-side row in physical coordinates:
+  * [wire0.xyz, wire1.xyz, catheter0.xyz, catheter1.xyz]. Every numeric buffer is
+- * owned and reused. Output is a branch derivative, never a winner/CCD proof.
++ * owned and reused. Intermediate vectors are private per-output scratch;
++ * failed validation cannot expose partially written values in public arrays.
++ * Output is a branch derivative, never a winner/CCD proof.
+  */
+ export function createCompositeLumenSideGeometryWorkspace() {
+-    return { dofCount: 12, dofs: Int32Array.from({ length: 12 }, (_, i) => i),
++    const out = { dofCount: 12, dofs: Int32Array.from({ length: 12 }, (_, i) => i),
+         supported: false, reason: 'not-evaluated', certified: false, queryCount: 0, hessianValid: false, witnessJacobianValid: false,
+         derivativeScope: 'fixed-inner-quadrature-strict-interior-outer-side', selectionCertified: false,
+         branchSignature: null, gap: NaN, clearance: NaN, radialDistance: NaN, innerT: NaN, outerT: NaN,
+@@ -44,6 +62,7 @@
+         outerTGradient: new Float64Array(12), normalJacobian: new Float64Array(36),
+         gapJacobian: new Float64Array(12), normalForceColumn: new Float64Array(12), forceColumn: new Float64Array(12),
+         normalDerivative: new Float64Array(144), gapHessian: new Float64Array(144), rawContact: rawWorkspace() };
++    localScratch(out); return out;
+ }
+ const geometryArrays = ['innerPoint', 'outerPoint', 'outerDirection', 'offsetFromOuterStart', 'radial', 'normal',
+     'innerWeights', 'outerWeights', 'outerTGradient', 'normalJacobian', 'gapJacobian', 'normalForceColumn',
+@@ -56,7 +75,7 @@
+     out.branchSignature = null;
+     out.gap = out.clearance = out.radialDistance = out.innerT = out.outerT = NaN;
+     for (const key of geometryArrays) out[key].fill(NaN);
+-    out.positions.forEach(p => p.fill(NaN));
++    for (const p of out.positions) p.fill(NaN);
+     return out;
+ }
+ function resetRaw(raw) {
+@@ -94,9 +113,8 @@
+     }
+     // Read into local scratch first: any malformed input throws while every
+     // public differential/value array remains invalid from the reset above.
+-    const points = [input.innerStart, input.innerEnd, input.outerStart, input.outerEnd].map((p, i) => {
+-        const v = [0, 0, 0]; readVector(p, v, ['innerStart', 'innerEnd', 'outerStart', 'outerEnd'][i]); return v;
+-    });
++    const {points,p,d,v,q,radial,n,axis,distalOffset,dr,iw,ow,coefficients} = localScratch(out);
++    for (let i=0;i<4;i++) readVector(input[pointNames[i]], points[i], pointNames[i]);
+     readVector(contact.normal, raw.normal, 'original normal');
+     weights(contact.innerWeights, 'original inner weights'); weights(contact.outerWeights, 'original outer weights');
+     raw.innerWeights.set(contact.innerWeights); raw.outerWeights.set(contact.outerWeights);
+@@ -104,42 +122,50 @@
+     const filletRadius = nonnegative(input.portalFilletRadius === undefined ? 0 : input.portalFilletRadius, 'portalFilletRadius');
+     nonnegative(input.activationDistance === undefined ? 0 : input.activationDistance, 'activationDistance');
+     const quadrature = input.quadrature === undefined ? DEFAULT_LUMEN_QUADRATURE : input.quadrature;
+-    if ((!Array.isArray(quadrature) && !ArrayBuffer.isView(quadrature)) || !quadrature.length ||
+-        !Array.from(quadrature).every(v => Number.isFinite(v) && v >= 0 && v <= 1))
++    if ((!Array.isArray(quadrature) && !ArrayBuffer.isView(quadrature)) || !quadrature.length)
+         throw new RangeError('Original quadrature must contain coordinates in [0,1]');
++    let recognized = false;
++    for (let i=0;i<quadrature.length;i++) {
++        const coordinate=quadrature[i];
++        if (!Number.isFinite(coordinate) || coordinate<0 || coordinate>1) throw new RangeError('Original quadrature must contain coordinates in [0,1]');
++        if (coordinate===raw.innerT) recognized=true;
++    }
+     const featurePrefix = input.featurePrefix === undefined ? 'lumen' : input.featurePrefix;
+     if (typeof featurePrefix !== 'string' || !featurePrefix.length) throw new TypeError('A nonempty original feature prefix is required');
+     const feature = `${featurePrefix}:side`;
+     if (raw.feature !== feature || raw.id !== materialSegmentContactId(input.innerMaterialSegmentId, input.outerMaterialSegmentId, feature))
+         return unsupported(out, 'original-material-or-feature-mismatch');
+     const s = raw.innerT;
+-    if (s < 0 || s > 1 || !Array.from(quadrature).some(v => v === s)) return unsupported(out, 'unrecognized-inner-quadrature-sample');
++    if (s < 0 || s > 1 || !recognized) return unsupported(out, 'unrecognized-inner-quadrature-sample');
+     if (!(raw.outerT > 0 && raw.outerT < 1)) return unsupported(out, 'outer-endpoint-or-clamped-projection');
+     if (!(raw.radialDistance > DETECTOR_EPSILON)) return unsupported(out, 'zero-or-fallback-radial-normal');
+     const [A, W, C, D] = points;
+-    const p = A.map((v, i) => v + (W[i] - v) * s), d = D.map((v, i) => v - C[i]), v = p.map((x, i) => x - C[i]);
++    for (let i=0;i<3;i++) { p[i]=A[i]+(W[i]-A[i])*s; d[i]=D[i]-C[i]; v[i]=p[i]-C[i]; }
+     const lengthSquared = dot(d, d);
+     // pointToSegment uses its squared-length <= EPSILON fallback, even when
+     // the outer segment passes the detector's separate length > EPSILON test.
+     if (!(lengthSquared > DETECTOR_EPSILON) || !Number.isFinite(lengthSquared)) return unsupported(out, 'degenerate-detector-projection-branch');
+     const t = dot(v, d) / lengthSquared;
+     if (!(t > 0 && t < 1)) return unsupported(out, 'outer-endpoint-or-clamped-projection');
+-    const q = C.map((x, i) => x + d[i] * t), radial = p.map((x, i) => x - q[i]);
+-    const distance = Math.hypot(...radial), clearance = Math.max(0, lumenRadius - innerRadius), gap = clearance - distance;
++    for (let i=0;i<3;i++) { q[i]=C[i]+d[i]*t; radial[i]=p[i]-q[i]; }
++    const distance = Math.hypot(radial[0],radial[1],radial[2]), clearance = Math.max(0, lumenRadius - innerRadius), gap = clearance - distance;
+     if (!(distance > DETECTOR_EPSILON) || !Number.isFinite(distance)) return unsupported(out, 'zero-or-fallback-radial-normal');
+-    const inverseDistance = 1 / distance, n = radial.map(x => x * inverseDistance);
++    const inverseDistance = 1 / distance;
++    for (let i=0;i<3;i++) n[i]=radial[i]*inverseDistance;
+     if (input.openDistal) {
+-        const outerLength = Math.hypot(...d), axis = d.map(x => x / outerLength);
+-        const distalAxial = dot(p.map((x, i) => x - D[i]), axis);
++        const outerLength = Math.hypot(d[0],d[1],d[2]);
++        for (let i=0;i<3;i++) { axis[i]=d[i]/outerLength; distalOffset[i]=p[i]-D[i]; }
++        const distalAxial = dot(distalOffset, axis);
+         if (distalAxial >= -Math.max(PORTAL_TOLERANCE, filletRadius)) return unsupported(out, 'distal-portal-or-fillet-owned-sample');
+     }
+     if (![t, distance, clearance, gap].every(Number.isFinite) || !close(raw.outerT, t) ||
+         !close(raw.radialDistance, distance) || !close(raw.clearance, clearance) || !close(raw.gap, gap))
+         return unsupported(out, 'original-contact-does-not-match-current-geometry');
+-    if (!close(dot(raw.normal, raw.normal), 1) || !n.every((x, i) => close(x, raw.normal[i])))
++    if (!close(dot(raw.normal, raw.normal), 1) || !close(n[0],raw.normal[0]) || !close(n[1],raw.normal[1]) || !close(n[2],raw.normal[2]))
+         return unsupported(out, 'original-normal-does-not-match-radial-direction');
+-    const iw = [1 - s, s], ow = [1 - t, t], coefficients = [-iw[0], -iw[1], ow[0], ow[1]];
+-    if (!iw.every((x, i) => close(x, raw.innerWeights[i])) || !ow.every((x, i) => close(x, raw.outerWeights[i])))
++    iw[0]=1-s; iw[1]=s; ow[0]=1-t; ow[1]=t;
++    coefficients[0]=-iw[0]; coefficients[1]=-iw[1]; coefficients[2]=ow[0]; coefficients[3]=ow[1];
++    if (!close(iw[0],raw.innerWeights[0]) || !close(iw[1],raw.innerWeights[1]) || !close(ow[0],raw.outerWeights[0]) || !close(ow[1],raw.outerWeights[1]))
+         return unsupported(out, 'original-contact-weights-mismatch');
+     if (contact.gradients !== undefined) {
+         const gradients = [...(contact.gradients?.inner ?? []), ...(contact.gradients?.outer ?? [])];
+@@ -148,7 +174,7 @@
+             return unsupported(out, 'original-contact-gradients-mismatch');
+     }
+     out.gap = gap; out.clearance = clearance; out.radialDistance = distance; out.innerT = s; out.outerT = t;
+-    points.forEach((point, i) => out.positions[i].set(point));
++    for (let i=0;i<4;i++) out.positions[i].set(points[i]);
+     out.innerPoint.set(p); out.outerPoint.set(q); out.outerDirection.set(d); out.offsetFromOuterStart.set(v);
+     out.radial.set(radial); out.normal.set(n); out.innerWeights.set(iw); out.outerWeights.set(ow);
+     for (let i = 0; i < 12; i++) {
+@@ -160,7 +186,7 @@
+         const dp = block < 2 ? iw[block] : 0, dC = block === 2 ? 1 : 0, dd = block === 3 ? 1 : block === 2 ? -1 : 0;
+         const dt = (d[axis] * (dp - dC) + (v[axis] - 2 * t * d[axis]) * dd) / lengthSquared;
+         out.outerTGradient[j] = dt;
+-        const dr = [0, 1, 2].map(i => (i === axis ? dp - dC - t * dd : 0) - d[i] * dt);
++        for (let i=0;i<3;i++) dr[i]=(i===axis?dp-dC-t*dd:0)-d[i]*dt;
+         const radialPart = dot(n, dr);
+         for (let i = 0; i < 3; i++) out.normalJacobian[12 * i + j] = (dr[i] - n[i] * radialPart) / distance;
+         if(full)for (let i = 0; i < 12; i++) {
+@@ -171,7 +197,9 @@
+         }
+     }
+     const required=full?geometryArrays:witness?witnessArrays:gradientArrays;
+-    if ([...required.map(key => out[key]), ...out.positions].some(array => !array.every(Number.isFinite)))
++    for (const key of required) for (let i=0;i<out[key].length;i++) if (!Number.isFinite(out[key][i]))
++        return unsupported(out, 'nonfinite-side-differential');
++    for (const point of out.positions) for (let i=0;i<3;i++) if (!Number.isFinite(point[i]))
+         return unsupported(out, 'nonfinite-side-differential');
+     out.hessianValid=full;out.witnessJacobianValid=witness;
+     out.supported = true; out.reason = null;

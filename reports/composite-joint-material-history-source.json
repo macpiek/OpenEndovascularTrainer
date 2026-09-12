@@ -1,0 +1,10 @@
+{
+  "frozenBundle": "/tmp/oet-composite-joint-material-history-final-v2",
+  "manifestSHA256": "1be98b22aeb35c11ceb44143887f6bb9bb43e7325fc9113beb8fb3525a0e4134",
+  "ownedSourceSHA256": {
+    "src/physics/kirchhoffCompositeJointMaterialHistory.js": "cc7786883efa67204ac8c6a3510b0fe8d17e4ab33d66e6b3394113f3c70f6f9b",
+    "tests/kirchhoffCompositeJointMaterialHistory.test.js": "200fd7398ef8fa389a841105747b38b87ff1e99eccd56559bf170255140af56e"
+  },
+  "reportSHA256": "e2d664cf89ec684a28f8c0a1cca3cb1f8feb1d9efc1f7a81e75489f58767650f",
+  "testOutputSHA256": "fb6fbfc2bc2a16e7fbbd896979fedc7112af123a73a092d0525021a3d034f07c"
+}

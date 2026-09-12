@@ -1,0 +1,103 @@
+{
+  "status": "complete-frozen",
+  "bundle": "/tmp/oet-joint-physical-column-pullback-final-h38y3n2h",
+  "newFiles": [
+    "src/physics/kirchhoffCompositeJointPhysicalColumnPullback.js",
+    "tests/kirchhoffCompositeJointPhysicalColumnPullback.test.js"
+  ],
+  "existingSourceEdits": false,
+  "rootWrites": false,
+  "old7TPullbackSha256": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637",
+  "files": {
+    "src/physics/kirchhoffCompositeJointPhysicalColumnPullback.js": {
+      "sha256": "301139195282294726d46a20046158b03fc4bb8368dd575a210e5e04a8872aea"
+    },
+    "tests/kirchhoffCompositeJointPhysicalColumnPullback.test.js": {
+      "sha256": "684da36571eb98167a54d6f23253c3670015f7df54c66107ebbc170f66cac580"
+    },
+    "reports/composite-joint-physical-column-pullback.md": {
+      "sha256": "b3e119cf23c153eb206cb2a0b861c6849fea0c78590a5d111183eb88c35a266a"
+    },
+    "reports/composite-joint-physical-column-pullback-tests.txt": {
+      "sha256": "76a3e23eebcdbfb59defe37c99e28757ae0110a0f34a0cb4dc602232416c8d78"
+    }
+  },
+  "dependencies": {
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeJointSurfaceMotion.test.js",
+      "sha256": "667905134964e16342ef6815c0793aed6e4d19ee46b522d4697452073afceefc"
+    },
+    "src/physics/kirchhoffCompositeElement.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457"
+    },
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointSurfaceMotion.js",
+      "sha256": "545c1b1b3fe25e6e045bf0745e1ed4c4a45d801640a4f03860083224320af92d"
+    },
+    "tests/kirchhoffCompositeJointSurfacePullback.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeJointSurfacePullback.test.js",
+      "sha256": "b35f68bf939ff98643fcbf98c4f9576351d416054f7f11aa37af9d21308d2292"
+    },
+    "src/physics/kirchhoffCompositeJointSurfacePullback.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointSurfacePullback.js",
+      "sha256": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637"
+    },
+    "src/physics/kirchhoffCompositeChain.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeChain.js",
+      "sha256": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670"
+    },
+    "src/physics/kirchhoffLinearKernel.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637"
+    },
+    "src/physics/kirchhoffLinearKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba"
+    },
+    "src/physics/kirchhoffCompositeElementExact.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementExact.js",
+      "sha256": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687"
+    },
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementExactKernelBytes.js",
+      "sha256": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8"
+    },
+    "src/physics/kirchhoffCompositeElementFast.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c"
+    },
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9"
+    }
+  },
+  "runtimePackageSha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+  "testedRuntime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-physical-column-pullback-wy665v0t",
+  "checks": {
+    "syntax": "PASS",
+    "newTests": {
+      "pass": 12,
+      "fail": 0
+    },
+    "affectedTests": {
+      "pass": 58,
+      "fail": 0,
+      "breakdown": {
+        "newPhysicalColumnPullback": 12,
+        "old7TPullback": 13,
+        "surfaceMotion": 33
+      }
+    }
+  },
+  "api": {
+    "create": "createCompositeJointPhysicalColumnPullback",
+    "pullback": "pullbackCompositeJointPhysicalColumns",
+    "loads": "evaluateCompositeJointPhysicalColumnLoads",
+    "columnIdentity": "kind/toolId/node/component or kind/toolId/edge; exact ordered canonical physical descriptors",
+    "operatorReady": "G and DB both valid; independent derivative flags, force-only value permitted",
+    "maxStencil": "two adjacent physical edges including all angle endpoints",
+    "loadAuthority": "private current physical B snapshot"
+  },
+  "scope": "constant exact own-physical-coordinate T scatter; no transport/contact/solver/timestep/World implementation"
+}

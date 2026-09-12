@@ -1,0 +1,22 @@
+{
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-wall-bvh-provider-aw36h4vt",
+  "hashes": {
+    "package.json": "24df9a509b0332dd884ac1ec8a3dadc294b3bab489db2501799292d21fad7d1d",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+    "res/Aorta_plain.stl": "60e84c7cf241948b552d3753818229cf93601f06fc62e6123397f5e7e9dc20da",
+    "src/aortaModel.js": "8e2efafc250301cf55eb4f96741399e5d6f944b76613807983b3feed6f117fac",
+    "src/vesselGeometry.js": "c70e75098cfc8474a1463670d49c5f0981b1f0f921b24e69129b55fc5fb510b1",
+    "src/toolDimensions.js": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+    "src/aortaTransform.js": "b6e496b23d923256c3cd4f2991f933f0baa1b9937447de60cd052c7afebd0479",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca"
+  },
+  "fieldOptions": {
+    "bvhValidationDistance": 0.02,
+    "capsuleBvhValidation": -0.1
+  },
+  "aortaModelCopiedForConfigurationOnly": true
+}

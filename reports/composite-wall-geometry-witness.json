@@ -1,0 +1,56 @@
+{
+  "gap": -0.020000000000010953,
+  "source": "sparse-sdf",
+  "t": 1,
+  "sampleCount": 1,
+  "gradientNorm": 0.4108786387754788,
+  "normal": [
+    0.7628062018748522,
+    -0.6410349338678644,
+    0.08485818724369008
+  ],
+  "pointGapGradient": [
+    0.31342077387583234,
+    -0.2633875610351572,
+    0.03486641646364208
+  ],
+  "energy": 0.042000000000024074,
+  "gapConjugateTranslationGradient": [
+    -0.6895257025268654,
+    0.5794526342773747,
+    -0.0767061162200164
+  ],
+  "physicalMixedNormalForce": 2,
+  "physicalTranslationGradient": [
+    -1.5256124037497043,
+    1.2820698677357287,
+    -0.16971637448738017
+  ],
+  "effectiveGapConjugateNormalForce": 0.8217572775509576,
+  "effectiveGapConjugateTrialNormalForce": 0.9039330053060983,
+  "ncpResidual": -0.20000000000010942,
+  "maximumForceJacobianAsymmetry": 4.180933387382595,
+  "checks": [
+    {
+      "eps": 0.001,
+      "maxGapError": 6.235623128958423e-12,
+      "maxForceError": 0.000014205604030870234,
+      "maxNcpError": 6.252287576558047e-11,
+      "maxEnergyError": 1.3752776695241664e-11
+    },
+    {
+      "eps": 0.0001,
+      "maxGapError": 6.62154220343325e-11,
+      "maxForceError": 1.421038886562087e-7,
+      "maxNcpError": 6.615992198533149e-10,
+      "maxEnergyError": 1.4553624971824775e-10
+    },
+    {
+      "eps": 0.00001,
+      "maxGapError": 6.676787456250111e-10,
+      "maxForceError": 1.3606004323207799e-8,
+      "maxNcpError": 6.687889797518665e-9,
+      "maxEnergyError": 1.4712813189987628e-9
+    }
+  ]
+}

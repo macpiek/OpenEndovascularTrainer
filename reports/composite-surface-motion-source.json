@@ -1,0 +1,98 @@
+{
+  "status": "frozen",
+  "scope": "Explicit quadratic-hinge material surface motion and complete analytic slip Jacobian",
+  "patch": "/tmp/oet-composite-surface-motion-final-8996/composite-surface-motion.patch",
+  "patchSha256": "c1462d43dea9d32213cb8f61c4908b40df80d082bdfc3dfe22f56de1bad8fbba",
+  "files": {
+    "src/physics/kirchhoffCompositeSurfaceMotion.js": "b795b851e0f6057ad27a84adb6e5287aedf8d31636954a51e0526691599e4de0",
+    "tests/kirchhoffCompositeSurfaceMotion.test.js": "41d3e1955b88d8e63108d16464ba8c5c595f6fe555ce44b914ad36faf3450570",
+    "reports/composite-surface-motion.md": "1dda44ccbd653671afb4163868ad6e2ea0d06bc406da8917dcb851619d23f72a"
+  },
+  "tests": {
+    "passed": 36,
+    "failed": 0,
+    "newSurfaceMotionTests": 11,
+    "snapshot": "/tmp/oet-composite-surface-test-qz4h_7a4",
+    "command": "node --test --test-concurrency=1 tests/kirchhoffCompositeSurfaceMotion.test.js tests/kirchhoffCompositeElement.test.js tests/kirchhoffCompositeKinematics.test.js"
+  },
+  "ownedSourcesMatchTestedSnapshot": true,
+  "dependenciesMatchCurrentSources": true,
+  "gitApplyCheck": {
+    "target": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+    "passed": true
+  },
+  "testDependencies": {
+    "src/physics/kirchhoffCompositeElement.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "currentSha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeKinematics.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeKinematics.js",
+      "sha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+      "currentSha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+      "matchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeElement.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeElement.test.js",
+      "sha256": "f458b6b85cad82a49c65b4484b84affd52298307b979f78c2175cc0510f40fb8",
+      "currentSha256": "f458b6b85cad82a49c65b4484b84affd52298307b979f78c2175cc0510f40fb8",
+      "matchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeKinematics.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeKinematics.test.js",
+      "sha256": "2e6ea80284e0faf1be2439ffd9b8f26f2ee19eea3210e9bf4cc34be67eba42f9",
+      "currentSha256": "2e6ea80284e0faf1be2439ffd9b8f26f2ee19eea3210e9bf4cc34be67eba42f9",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeChain.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeChain.js",
+      "sha256": "60e4cddeeea2135264a4aa3b86423d090fefaaf70e6eeabcce9ea0b3f0bf9706",
+      "currentSha256": "60e4cddeeea2135264a4aa3b86423d090fefaaf70e6eeabcce9ea0b3f0bf9706",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementFast.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+      "currentSha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+      "currentSha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffLinearKernel.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+      "currentSha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffLinearKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+      "currentSha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementExact.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementExact.js",
+      "sha256": "3184948302eeff6008210517cb86646b96ff85eae0fd4d37c1e21aa5192884b5",
+      "currentSha256": "3184948302eeff6008210517cb86646b96ff85eae0fd4d37c1e21aa5192884b5",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementExactKernelBytes.js",
+      "sha256": "74330455afdf18f15ff9763cf5fff2d1faf9da222f74e027b7d1a98ab34c0dbf",
+      "currentSha256": "74330455afdf18f15ff9763cf5fff2d1faf9da222f74e027b7d1a98ab34c0dbf",
+      "matchesTestedSnapshot": true
+    }
+  },
+  "limitations": [
+    "Quadratic surface reconstruction is not the affine-edge inertia field. No integration/contact/interval-error certificate is claimed.",
+    "Previous angles are fixed-mesh-coordinate history; accepted time-reference tangents must match previous geometry.",
+    "One stationary wall or two tools on one reconstructed common centerline foot; this does not implement contact search, history transport, friction solve or angular inertia.",
+    "Forward second-order derivatives and fixed reusable arenas; no runtime FD, app integration or FPS claim."
+  ]
+}

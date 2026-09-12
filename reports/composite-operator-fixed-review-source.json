@@ -1,0 +1,16 @@
+{
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-composite-review-fixed-pu7yuf37",
+  "hashes": {
+    "src/physics/kirchhoffCompositeElement.js": "94085636b194f8b152f10ba09e7f7f9767e3949c89625846ac3d1070920308f4",
+    "src/physics/kirchhoffCompositeChain.js": "ceaf018c580c838f21b2471f0d461ee4e3ff768d8ab28fddcf5eda7fec03ec8b",
+    "tests/kirchhoffCompositeElement.test.js": "4888528b47a6c39ba94cda4101137358718cc6fe02abaf0facc31564cfec709b",
+    "tests/kirchhoffCompositeChain.test.js": "7d71a935600d00895631e60ba0af78567b7f45f1b235dd06f254d551c0eeaf3d"
+  },
+  "sourceStillMatches": {
+    "src/physics/kirchhoffCompositeElement.js": true,
+    "src/physics/kirchhoffCompositeChain.js": true,
+    "tests/kirchhoffCompositeElement.test.js": true,
+    "tests/kirchhoffCompositeChain.test.js": true
+  }
+}

@@ -109,8 +109,6 @@ export const GUIDEWIRE_MATERIAL_PROFILES = Object.freeze({
         tipMaxBendAngle: GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES,
         naturalArcLength: 0,
         naturalTurn: 0,
-        intrinsicBendCompliance: 2e-5,
-        intrinsicBendMaxCorrection: 0.08,
         frameNormalSign: 1,
         intrinsicCurvature: ZERO_INTRINSIC_CURVATURE,
         integrateIntrinsicTurn: ZERO_INTRINSIC_TURN
@@ -125,8 +123,6 @@ export const GUIDEWIRE_MATERIAL_PROFILES = Object.freeze({
         tipMaxBendAngle: STEEL_J_GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES,
         naturalArcLength: STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM,
         naturalTurn: STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD,
-        intrinsicBendCompliance: 2e-5,
-        intrinsicBendMaxCorrection: 0.08,
         frameNormalSign: 1,
         intrinsicCurvature: steelJGuidewireIntrinsicCurvature,
         integrateIntrinsicTurn: integrateSteelJGuidewireIntrinsicTurn
@@ -238,79 +234,4 @@ export function applyGuidewireMaterialProfile(
             tipMaxBendAngle + (bodyMaxBendAngle - tipMaxBendAngle) * transition;
     }
     return rod;
-}
-
-export function applyGuidewireIntrinsicCurvatureProfile(
-    body,
-    {
-        type = GUIDEWIRE_TYPE_GLIDEWIRE,
-        axisX = 0,
-        axisY = 0,
-        axisZ = 1
-    } = {}
-) {
-    const profile = guidewireMaterialProfile(type);
-    const axisLength = Math.hypot(axisX, axisY, axisZ) || 1;
-    const normalizedAxisX = axisX / axisLength * profile.frameNormalSign;
-    const normalizedAxisY = axisY / axisLength * profile.frameNormalSign;
-    const normalizedAxisZ = axisZ / axisLength * profile.frameNormalSign;
-    const naturalTurns = new Float64Array(body.segmentCount);
-    let representedTurn = 0;
-
-    for (let segment = 1; segment < body.segmentCount; segment++) {
-        const outgoingLength = Math.max(
-            0.5,
-            body.restLength?.[segment] ?? body.segmentLength
-        );
-        const incomingLength = Math.max(
-            0.5,
-            body.restLength?.[segment - 1] ?? body.segmentLength
-        );
-        const voronoiLength = (incomingLength + outgoingLength) * 0.5;
-        const distanceFromTip = Math.max(
-            0,
-            (body.count - 1 - segment) * body.segmentLength
-        );
-        naturalTurns[segment] = profile.integrateIntrinsicTurn(
-            distanceFromTip,
-            voronoiLength
-        );
-        representedTurn += naturalTurns[segment];
-    }
-    const turnScale = Math.abs(representedTurn) > 1e-8
-        ? profile.naturalTurn / representedTurn
-        : 1;
-
-    for (let segment = 1; segment < body.segmentCount; segment++) {
-        const outgoingLength = Math.max(
-            0.5,
-            body.restLength?.[segment] ?? body.segmentLength
-        );
-        const incomingLength = Math.max(
-            0.5,
-            body.restLength?.[segment - 1] ?? body.segmentLength
-        );
-        const voronoiLength = (incomingLength + outgoingLength) * 0.5;
-        const naturalTurn = naturalTurns[segment] * turnScale;
-        if (Math.abs(naturalTurn) <= 1e-8) {
-            body.clearRestDirectionTarget(segment);
-            continue;
-        }
-        body.maxBendAngleByNode[segment] = Math.max(
-            body.maxBendAngleByNode[segment],
-            Math.abs(naturalTurn) * 180 / Math.PI + 0.5
-        );
-        body.setIntrinsicCurvatureTarget(
-            segment,
-            naturalTurn,
-            normalizedAxisX,
-            normalizedAxisY,
-            normalizedAxisZ,
-            profile.intrinsicBendCompliance,
-            profile.intrinsicBendMaxCorrection,
-            0,
-            voronoiLength
-        );
-    }
-    return body;
 }

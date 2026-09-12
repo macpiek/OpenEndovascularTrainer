@@ -1,0 +1,214 @@
+{
+  "status": "PASS",
+  "scope": "One saved linear system, first cold + 3 warmed paired solves; no anatomy/FPS claim",
+  "sourceRoot": "file:///tmp/oet-two-channel-condensation-o0k_egvj/",
+  "tolerance": 0.0002,
+  "nativeRows": 155,
+  "fullRows": 298,
+  "retainedRows": 62,
+  "warmDenseMedianMs": 53.16058300000003,
+  "warmCondensedMedianMs": 12.656334000000072,
+  "runs": [
+    {
+      "run": 0,
+      "cold": true,
+      "fullMs": 95.40204200000002,
+      "assemblyMs": 12.984541000000036,
+      "solveMs": 4.782958000000008,
+      "recoveryMs": 0.9473749999999654,
+      "condensedTotalMs": 18.71487400000001,
+      "dense": {
+        "iterations": 3,
+        "factors": 3,
+        "kkt": {
+          "maximumResidual": 0.000010829509797401556,
+          "frictionResidual": 9.79518957715253e-8,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        }
+      },
+      "condensed": {
+        "iterations": 2,
+        "factors": 2,
+        "kkt": {
+          "maximumResidual": 0.00010861483123968979,
+          "frictionResidual": 3.032352711412195e-7,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        },
+        "equalityCount": 118,
+        "eliminatedRows": 236,
+        "equalityBand": 15,
+        "equalityMatrixEntries": 1770,
+        "factorEntries": 1770,
+        "factorizations": 1,
+        "factorization": "wasm-skyline",
+        "minimumScaledPivot": 0.04212477436537726,
+        "maximumEqualityBackwardError": 6.355534446518197e-16,
+        "equalitySolves": 126,
+        "fullExpandedMatrixEntries": 0,
+        "retainedZeroEqualityOriginalRows": [
+          3,
+          5
+        ],
+        "retainedRows": 62,
+        "schurEntries": 3844,
+        "responseEntries": 14632
+      },
+      "maximumIncrementDifferenceVsFreshDense": 0.00025412303904590386,
+      "maximumPhysicalIncrementDifferenceVsSavedOracle": 0.00013597523814634768,
+      "maximumBiasIncrementDifferenceVsSavedOracle": 0.00025412303904590386
+    },
+    {
+      "run": 1,
+      "cold": false,
+      "fullMs": 61.22987499999999,
+      "assemblyMs": 11.914250000000038,
+      "solveMs": 0.6593750000000114,
+      "recoveryMs": 0.08270900000002257,
+      "condensedTotalMs": 12.656334000000072,
+      "dense": {
+        "iterations": 3,
+        "factors": 3,
+        "kkt": {
+          "maximumResidual": 0.000010829509797401556,
+          "frictionResidual": 9.79518957715253e-8,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        }
+      },
+      "condensed": {
+        "iterations": 2,
+        "factors": 2,
+        "kkt": {
+          "maximumResidual": 0.00010861483123968979,
+          "frictionResidual": 3.032352711412195e-7,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        },
+        "equalityCount": 118,
+        "eliminatedRows": 236,
+        "equalityBand": 15,
+        "equalityMatrixEntries": 1770,
+        "factorEntries": 1770,
+        "factorizations": 1,
+        "factorization": "wasm-skyline",
+        "minimumScaledPivot": 0.04212477436537726,
+        "maximumEqualityBackwardError": 6.355534446518197e-16,
+        "equalitySolves": 126,
+        "fullExpandedMatrixEntries": 0,
+        "retainedZeroEqualityOriginalRows": [
+          3,
+          5
+        ],
+        "retainedRows": 62,
+        "schurEntries": 3844,
+        "responseEntries": 14632
+      },
+      "maximumIncrementDifferenceVsFreshDense": 0.00025412303904590386,
+      "maximumPhysicalIncrementDifferenceVsSavedOracle": 0.00013597523814634768,
+      "maximumBiasIncrementDifferenceVsSavedOracle": 0.00025412303904590386
+    },
+    {
+      "run": 2,
+      "cold": false,
+      "fullMs": 53.16058300000003,
+      "assemblyMs": 8.22033399999998,
+      "solveMs": 0.6702920000000177,
+      "recoveryMs": 0.11320799999998599,
+      "condensedTotalMs": 9.003833999999983,
+      "dense": {
+        "iterations": 3,
+        "factors": 3,
+        "kkt": {
+          "maximumResidual": 0.000010829509797401556,
+          "frictionResidual": 9.79518957715253e-8,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        }
+      },
+      "condensed": {
+        "iterations": 2,
+        "factors": 2,
+        "kkt": {
+          "maximumResidual": 0.00010861483123968979,
+          "frictionResidual": 3.032352711412195e-7,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        },
+        "equalityCount": 118,
+        "eliminatedRows": 236,
+        "equalityBand": 15,
+        "equalityMatrixEntries": 1770,
+        "factorEntries": 1770,
+        "factorizations": 1,
+        "factorization": "wasm-skyline",
+        "minimumScaledPivot": 0.04212477436537726,
+        "maximumEqualityBackwardError": 6.355534446518197e-16,
+        "equalitySolves": 126,
+        "fullExpandedMatrixEntries": 0,
+        "retainedZeroEqualityOriginalRows": [
+          3,
+          5
+        ],
+        "retainedRows": 62,
+        "schurEntries": 3844,
+        "responseEntries": 14632
+      },
+      "maximumIncrementDifferenceVsFreshDense": 0.00025412303904590386,
+      "maximumPhysicalIncrementDifferenceVsSavedOracle": 0.00013597523814634768,
+      "maximumBiasIncrementDifferenceVsSavedOracle": 0.00025412303904590386
+    },
+    {
+      "run": 3,
+      "cold": false,
+      "fullMs": 49.239374999999995,
+      "assemblyMs": 14.630165999999917,
+      "solveMs": 5.896417000000042,
+      "recoveryMs": 0.06762500000002092,
+      "condensedTotalMs": 20.59420799999998,
+      "dense": {
+        "iterations": 3,
+        "factors": 3,
+        "kkt": {
+          "maximumResidual": 0.000010829509797401556,
+          "frictionResidual": 9.79518957715253e-8,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        }
+      },
+      "condensed": {
+        "iterations": 2,
+        "factors": 2,
+        "kkt": {
+          "maximumResidual": 0.00010861483123968979,
+          "frictionResidual": 3.032352711412195e-7,
+          "coneViolation": 0,
+          "boundsViolation": 0
+        },
+        "equalityCount": 118,
+        "eliminatedRows": 236,
+        "equalityBand": 15,
+        "equalityMatrixEntries": 1770,
+        "factorEntries": 1770,
+        "factorizations": 1,
+        "factorization": "wasm-skyline",
+        "minimumScaledPivot": 0.04212477436537726,
+        "maximumEqualityBackwardError": 6.355534446518197e-16,
+        "equalitySolves": 126,
+        "fullExpandedMatrixEntries": 0,
+        "retainedZeroEqualityOriginalRows": [
+          3,
+          5
+        ],
+        "retainedRows": 62,
+        "schurEntries": 3844,
+        "responseEntries": 14632
+      },
+      "maximumIncrementDifferenceVsFreshDense": 0.00025412303904590386,
+      "maximumPhysicalIncrementDifferenceVsSavedOracle": 0.00013597523814634768,
+      "maximumBiasIncrementDifferenceVsSavedOracle": 0.00025412303904590386
+    }
+  ],
+  "warmSpeedRatio": 4.200314482851016
+}

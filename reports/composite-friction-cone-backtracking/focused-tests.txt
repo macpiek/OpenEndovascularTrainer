@@ -1,0 +1,15 @@
+✔ affine cone exit follows changing normal load, the opposite boundary and a disabled axis without mutating forces (1.664208ms)
+✔ two-axis anisotropic intersections stay on the original force cone over widely different force scales (0.152ms)
+✔ no numerical hint invents an exit for open, apex, negative-load or unresolved paths (0.216042ms)
+✔ backtracking matches the same law and samples, safeguards contraction and combines multiple crossings (0.144209ms)
+✔ loaded short/deep shafts cross stick-slide in a bounded common solve while retaining the original physical root (586.2125ms)
+✔ fresh-certificate budget failure publishes nothing and retry keeps the same histories through the next dt (76.55675ms)
+✔ an open lumen keeps the original trial path, exact zero reactions and every declared normal query (16.644458ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 804.824

@@ -122,7 +122,6 @@ function assertBodyContract(body) {
         }
     }
     if (
-        typeof body.enableKirchhoff !== 'function' ||
         typeof body.setKirchhoffRestRotation !== 'function' ||
         typeof body.setActiveRange !== 'function'
     ) {
@@ -134,8 +133,6 @@ function assertBodyContract(body) {
  * Applies a manufactured Kirchhoff profile using material coordinates only.
  *
  * The live x/y/z pose is never sampled to define restRotation or compliance.
- * When a legacy body is migrated, its current geometry is used only to
- * initialize the current material frames, with rest rotation capture disabled.
  */
 export function applyKirchhoffMaterialProfile(
     body,
@@ -196,15 +193,8 @@ export function applyKirchhoffMaterialProfile(
     if (!Number.isFinite(resolvedTipCoordinate)) {
         throw new TypeError('Material tip coordinate must be finite');
     }
-    const wasKirchhoff = body.rodModel === 'kirchhoff';
+    const wasKirchhoff = true;
     body.setActiveRange(activeStart, activeEnd);
-    if (!wasKirchhoff) {
-        body.enableKirchhoff(true, { captureRest: false });
-        // This initializes current directors, angular history and adaptation
-        // state. Passing false prevents the deformed live pose from becoming
-        // the manufactured bend/twist rest state.
-        body.captureKirchhoffRestConfiguration({ captureRestRotation: false });
-    }
 
     let materialCoordinateChanges = 0;
     for (let local = 0; local < coordinates.length; local++) {

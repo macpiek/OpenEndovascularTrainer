@@ -1,0 +1,59 @@
+{
+  "scope": "3D joint linear direction only, manufactured material/inertia controls, no accepted dt",
+  "storage": [
+    {
+      "nodes": 25,
+      "modes": 21,
+      "common": 123,
+      "relative": 63,
+      "dual": 21,
+      "total": 207,
+      "relativeBand": 9,
+      "mixedHalfBand": 25,
+      "matrixEntries": 9907,
+      "factorEntries": 15732,
+      "converged": true,
+      "factorizations": 1,
+      "commonForce": 2.6524409838663e-14,
+      "relativeForce": 1.2689935907639338e-14,
+      "torque": 2.0016811558970504e-15,
+      "maxConstraintResidual": 2.974779710757103e-17
+    },
+    {
+      "nodes": 65,
+      "modes": 61,
+      "common": 323,
+      "relative": 183,
+      "dual": 61,
+      "total": 567,
+      "relativeBand": 9,
+      "mixedHalfBand": 25,
+      "matrixEntries": 28267,
+      "factorEntries": 43092,
+      "converged": true,
+      "factorizations": 1,
+      "commonForce": 2.731631110544641e-14,
+      "relativeForce": 2.0357034200696456e-14,
+      "torque": 1.0782932706454584e-14,
+      "maxConstraintResidual": 3.581932927348985e-17
+    },
+    {
+      "nodes": 201,
+      "modes": 197,
+      "common": 1003,
+      "relative": 591,
+      "dual": 197,
+      "total": 1791,
+      "relativeBand": 9,
+      "mixedHalfBand": 25,
+      "matrixEntries": 90691,
+      "factorEntries": 136116,
+      "converged": true,
+      "factorizations": 1,
+      "commonForce": 3.765688932552691e-14,
+      "relativeForce": 2.4187032585110124e-14,
+      "torque": 2.6018792155524384e-14,
+      "maxConstraintResidual": 3.581932927348985e-17
+    }
+  ]
+}

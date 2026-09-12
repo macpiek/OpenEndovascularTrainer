@@ -1,0 +1,1542 @@
+{
+  "measuredOn": "2026-09-06",
+  "kind": "Diagnostic CPU profile, separate from browser FPS benchmark",
+  "runtime": "v24.6.0",
+  "method": {
+    "fixture": "Temporary real-aorta coupled fixture; current physics source snapshot, extra counter instrumentation only in copied kirchhoffContactBlock.js",
+    "inputs": "DEEP_CATHETER_BENCHMARK_PHASES, fixed 1/120 s, complete phases from wire-feed through catheter-hold-600mm; 600-step holds",
+    "parameters": {
+      "wireMm": 999.9,
+      "wireShaft": 10,
+      "wireTip": 4.55,
+      "catheterType": "berenstein",
+      "catheterShaft": 25,
+      "catheterTip": 5,
+      "relaxation": 1
+    },
+    "cpuProfiler": "Node inspector, 500 microsecond sampling interval, active only in the two 600 mm phases",
+    "timingScope": "Physics phases include counter/profiler overhead; CPU percentages use all recorded sample time deltas; disjoint buckets assigned by ancestors with contact block first, then direct material solver, vessel queries, lumen geometry, remaining contact projection, contact measurement, GC, other",
+    "limit": "Node fixture pose fingerprints differ from browser including preparation. This is component-level supporting evidence, not a bit-identical browser replay or independent FPS measurement.",
+    "conditioning": "Two end-of-phase snapshots. Reconstruct symmetric local mass Gram from lower band, subtract compliance and 0.001*diagonal shift. Normalize each matrix by its own diagonal. Loaded subset uses final normalLambda > 1e-10; this need not equal every intermediate working set. These are local mass operators, not the complete material-constrained Schur spectrum."
+  },
+  "sourceSha256": {
+    "src/physics/endovascularPhysicsWorld.js": "b1cf37675b5afdaf945c06d24025e611add73866bd1ce7228c0e3b7c53656df6",
+    "src/physics/kirchhoffDirectSolver.js": "dbbd12f17b62027bdd4efbd697b46f3d8268b3d6d7065b77890f932726dfd1e2",
+    "src/physics/kirchhoffContactBlock.js": "3a13921f73a56359f4c2d073d05a6d9d86c46c9d42c8869718613ccf55891c4e",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "b66714a71933d2ca21539d3dcc5cdb0f2492e6a9f2680a40a38087093ed0ce0d",
+    "src/physics/kirchhoffCenterlineSearch.js": "b6fd089ace12ab289583baf1201fb136e4b08a1906b890a6744457f07444ffec",
+    "src/physics/kirchhoffCoupledConvergence.js": "680c2c78bc6ed9df55eab26cdfb675e6e049c276058da15e18dc0e61e66be628",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/toolDimensions.js": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+    "src/benchmark/shortCatheterBenchmark.js": "eab3a767d893639431be8affc93316a12c03a8d5e87786f8a8da37cfe4b6e63a"
+  },
+  "temporaryInstrumentation": {
+    "path": "/tmp/oet-unified-analysis-901c/src/physics/kirchhoffContactBlock.js",
+    "sha256": "a4b8b85b98a9c7007fd18c6f2336597f394b269fedea605ab8e11b69cc9ce499"
+  },
+  "phases": [
+    {
+      "name": "wire-feed",
+      "steps": 2727,
+      "averageStepMs": 2.9128934092409247,
+      "p95StepMs": 8.044042000001355,
+      "averageOuterPasses": 3.0616061606160616,
+      "maxRelativeLengthError": 0.03800893172835007,
+      "maxSolverResidual": 0,
+      "unconvergedSteps": 749,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "80261d4a"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "10bca8d7"
+        }
+      ],
+      "counts": {
+        "sweeps": 0,
+        "records": 0,
+        "iterations": 0,
+        "factors": 0,
+        "globalProducts": 0,
+        "localProducts": 0,
+        "maxBand": 0,
+        "rodFactorizations": 15.55042170883755,
+        "rodFactorReuses": 3.777044371103777
+      },
+      "phases": {
+        "total": 2.9128934092409247,
+        "integrate": 0.012005281994862215,
+        "narrowPhase": 0.4351192244224414,
+        "constraints": 2.4481492185551916,
+        "constraintPrimary": 1.2021315441877558,
+        "constraintBodyClosure": 1.0713617246057898,
+        "constraintBodyLengthPolish": 0.016677089108903854,
+        "constraintBodyWallRepair": 1.018692286028607,
+        "constraintBodyPrePost": 0.00012443527686373127,
+        "constraintBodyPostStabilization": 0.03580526879354258,
+        "constraintCoupledClosure": 0.5460170524385799,
+        "constraintMovingClosure": 0.0000939820315353336,
+        "velocity": 0.016999861386135434
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 15,
+          "count": 16
+        }
+      ],
+      "contactCount": 0
+    },
+    {
+      "name": "wire-settle",
+      "steps": 360,
+      "averageStepMs": 7.335633836111209,
+      "p95StepMs": 9.889250000000175,
+      "averageOuterPasses": 13.6,
+      "maxRelativeLengthError": 0.03526000015246211,
+      "maxSolverResidual": 0,
+      "unconvergedSteps": 291,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "ff19303a"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "3a34ec28"
+        }
+      ],
+      "counts": {
+        "sweeps": 0,
+        "records": 0,
+        "iterations": 0,
+        "factors": 0,
+        "globalProducts": 0,
+        "localProducts": 0,
+        "maxBand": 0,
+        "rodFactorizations": 30.605555555555554,
+        "rodFactorReuses": 11.916666666666666
+      },
+      "phases": {
+        "total": 7.335633836111209,
+        "integrate": 0.019207413888847846,
+        "narrowPhase": 0.5152781916667816,
+        "constraints": 6.77673543611111,
+        "constraintPrimary": 2.043418505555544,
+        "constraintBodyClosure": 1.9606221277777878,
+        "constraintBodyLengthPolish": 0.03042893611115384,
+        "constraintBodyWallRepair": 1.8846149138888753,
+        "constraintBodyPrePost": 0.00009054722220045935,
+        "constraintBodyPostStabilization": 0.0454516888889379,
+        "constraintCoupledClosure": 3.169855183333301,
+        "constraintMovingClosure": 0.00006086944448624207,
+        "velocity": 0.02395534166666443
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 15,
+          "count": 16
+        }
+      ],
+      "contactCount": 0
+    },
+    {
+      "name": "wire-only",
+      "steps": 600,
+      "averageStepMs": 2.3131200799999565,
+      "p95StepMs": 3.349333000000115,
+      "averageOuterPasses": 2.37,
+      "maxRelativeLengthError": 0.001999101772444867,
+      "maxSolverResidual": 0,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "ce2f5163"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "6ddeb775"
+        }
+      ],
+      "counts": {
+        "sweeps": 0,
+        "records": 0,
+        "iterations": 0,
+        "factors": 0,
+        "globalProducts": 0,
+        "localProducts": 0,
+        "maxBand": 0,
+        "rodFactorizations": 14.595,
+        "rodFactorReuses": 2.145
+      },
+      "phases": {
+        "total": 2.3131200799999565,
+        "integrate": 0.018668523333362826,
+        "narrowPhase": 0.10750362999994953,
+        "constraints": 2.163321803333323,
+        "constraintPrimary": 1.3241945083332909,
+        "constraintBodyClosure": 0.3276290766666686,
+        "constraintBodyLengthPolish": 0.02636436833330966,
+        "constraintBodyWallRepair": 0.25732355833332804,
+        "constraintBodyPrePost": 0.00005964500002240432,
+        "constraintBodyPostStabilization": 0.04384999499997927,
+        "constraintCoupledClosure": 0.5444563483332998,
+        "constraintMovingClosure": 0.000041304999995190884,
+        "velocity": 0.023308031666626147
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 15,
+          "count": 16
+        }
+      ],
+      "contactCount": 0
+    },
+    {
+      "name": "catheter-feed-100mm",
+      "steps": 231,
+      "averageStepMs": 4.873649839826785,
+      "p95StepMs": 6.613790999999765,
+      "averageOuterPasses": 5.112554112554113,
+      "maxRelativeLengthError": 0.0019997215986048643,
+      "maxSolverResidual": 0.00019575418992571342,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "e89a3e0a"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "007a622b"
+        }
+      ],
+      "counts": {
+        "sweeps": 10.614718614718615,
+        "records": 413.83116883116884,
+        "iterations": 8.619047619047619,
+        "factors": 8.904761904761905,
+        "globalProducts": 2.7662337662337664,
+        "localProducts": 8.441558441558442,
+        "maxBand": 17,
+        "rodFactorizations": 19.476190476190474,
+        "rodFactorReuses": 4.653679653679654
+      },
+      "phases": {
+        "total": 4.873649839826785,
+        "integrate": 0.02626051082255429,
+        "narrowPhase": 0.10254043290062319,
+        "constraints": 4.667621203463167,
+        "constraintPrimary": 2.369052116883159,
+        "constraintBodyClosure": 0.38162411255410467,
+        "constraintBodyLengthPolish": 0.033293125541100275,
+        "constraintBodyWallRepair": 0.2797339264069749,
+        "constraintBodyPrePost": 0.00023253679653043553,
+        "constraintBodyPostStabilization": 0.06830753246750643,
+        "constraintCoupledClosure": 1.9222449480519461,
+        "constraintMovingClosure": 0.00020400432897698905,
+        "velocity": 0.07351893073582412
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 40,
+          "count": 41
+        }
+      ],
+      "contactCount": 79
+    },
+    {
+      "name": "catheter-hold-100mm",
+      "steps": 600,
+      "averageStepMs": 5.602726441666597,
+      "p95StepMs": 6.285957999998573,
+      "averageOuterPasses": 6.26,
+      "maxRelativeLengthError": 0.001999393775417424,
+      "maxSolverResidual": 0.0009985123156189685,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "17de60fd"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "06761fbe"
+        }
+      ],
+      "counts": {
+        "sweeps": 12.31,
+        "records": 972.49,
+        "iterations": 18.483333333333334,
+        "factors": 19.126666666666665,
+        "globalProducts": 2.6083333333333334,
+        "localProducts": 18.53,
+        "maxBand": 16,
+        "rodFactorizations": 22.993333333333332,
+        "rodFactorReuses": 3.526666666666667
+      },
+      "phases": {
+        "total": 5.602726441666597,
+        "integrate": 0.021584911666717138,
+        "narrowPhase": 0.08395076333337177,
+        "constraints": 5.451206306666675,
+        "constraintPrimary": 2.5582255716666746,
+        "constraintBodyClosure": 0.35327393499999743,
+        "constraintBodyLengthPolish": 0.0291711066666691,
+        "constraintBodyWallRepair": 0.25744548333337663,
+        "constraintBodyPrePost": 0.00006581666661380344,
+        "constraintBodyPostStabilization": 0.06654757333333691,
+        "constraintCoupledClosure": 2.542211668333384,
+        "constraintMovingClosure": 0.00006898833328402058,
+        "velocity": 0.042077268333335575
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 40,
+          "count": 41
+        }
+      ],
+      "contactCount": 79
+    },
+    {
+      "name": "catheter-feed-200mm",
+      "steps": 231,
+      "averageStepMs": 6.579995471861559,
+      "p95StepMs": 8.866249999999127,
+      "averageOuterPasses": 5.1688311688311686,
+      "maxRelativeLengthError": 0.0019999480250923797,
+      "maxSolverResidual": 0.0004190498293317052,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "9456d228"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "0fa7bd37"
+        }
+      ],
+      "counts": {
+        "sweeps": 11.177489177489177,
+        "records": 1288.6796536796537,
+        "iterations": 28.142857142857142,
+        "factors": 28.432900432900432,
+        "globalProducts": 5.523809523809524,
+        "localProducts": 30.034632034632036,
+        "maxBand": 16,
+        "rodFactorizations": 23.896103896103895,
+        "rodFactorReuses": 0.4588744588744589
+      },
+      "phases": {
+        "total": 6.579995471861559,
+        "integrate": 0.0226906580085782,
+        "narrowPhase": 0.11222357142859835,
+        "constraints": 6.400173515151456,
+        "constraintPrimary": 3.3282456926406203,
+        "constraintBodyClosure": 0.42611238095226234,
+        "constraintBodyLengthPolish": 0.031170294372273158,
+        "constraintBodyWallRepair": 0.30771572727275215,
+        "constraintBodyPrePost": 0.00008997835490227177,
+        "constraintBodyPostStabilization": 0.08709309523808896,
+        "constraintCoupledClosure": 2.6724085757577445,
+        "constraintMovingClosure": 0.00009070995675555624,
+        "velocity": 0.03883008225098718
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 71,
+          "count": 72
+        }
+      ],
+      "contactCount": 159
+    },
+    {
+      "name": "catheter-hold-200mm",
+      "steps": 600,
+      "averageStepMs": 8.08927336833327,
+      "p95StepMs": 8.87695800000074,
+      "averageOuterPasses": 6.335,
+      "maxRelativeLengthError": 0.00199821111508669,
+      "maxSolverResidual": 0.0009910299075121254,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "d467296b"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "5ea98f57"
+        }
+      ],
+      "counts": {
+        "sweeps": 12.348333333333333,
+        "records": 1962.84,
+        "iterations": 37.56166666666667,
+        "factors": 38.43833333333333,
+        "globalProducts": 4.845,
+        "localProducts": 40.425,
+        "maxBand": 16,
+        "rodFactorizations": 25.678333333333335,
+        "rodFactorReuses": 0.9916666666666667
+      },
+      "phases": {
+        "total": 8.08927336833327,
+        "integrate": 0.02396013333332424,
+        "narrowPhase": 0.09265263166650281,
+        "constraints": 7.919354105000068,
+        "constraintPrimary": 3.6771676666665734,
+        "constraintBodyClosure": 0.40477386666668586,
+        "constraintBodyLengthPolish": 0.032575810000053024,
+        "constraintBodyWallRepair": 0.28011519833329657,
+        "constraintBodyPrePost": 0.00005078166673532299,
+        "constraintBodyPostStabilization": 0.09199112166662719,
+        "constraintCoupledClosure": 3.846051470000099,
+        "constraintMovingClosure": 0.000055823333368607564,
+        "velocity": 0.04636813166673771
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 71,
+          "count": 72
+        }
+      ],
+      "contactCount": 159
+    },
+    {
+      "name": "catheter-feed-400mm",
+      "steps": 462,
+      "averageStepMs": 9.962738766233693,
+      "p95StepMs": 15.955540999999357,
+      "averageOuterPasses": 3.898268398268398,
+      "maxRelativeLengthError": 0.0019990097545281808,
+      "maxSolverResidual": 0.0003693037783192091,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "14b8c0c5"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "59130375"
+        }
+      ],
+      "counts": {
+        "sweeps": 9.898268398268398,
+        "records": 2388.2056277056276,
+        "iterations": 66.7987012987013,
+        "factors": 68.0995670995671,
+        "globalProducts": 9.742424242424242,
+        "localProducts": 83.02813852813853,
+        "maxBand": 16,
+        "rodFactorizations": 21.285714285714285,
+        "rodFactorReuses": 0.5108225108225108
+      },
+      "phases": {
+        "total": 9.962738766233693,
+        "integrate": 0.027577634199111516,
+        "narrowPhase": 0.1556889458874241,
+        "constraints": 9.716764670995687,
+        "constraintPrimary": 5.302519547619045,
+        "constraintBodyClosure": 0.5051303398267998,
+        "constraintBodyLengthPolish": 0.03619320562774235,
+        "constraintBodyWallRepair": 0.34821716450226503,
+        "constraintBodyPrePost": 0.0000702597401620799,
+        "constraintBodyPostStabilization": 0.12060596103889049,
+        "constraintCoupledClosure": 3.982947517316087,
+        "constraintMovingClosure": 0.00007333766231343586,
+        "velocity": 0.05301502813858565
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 133,
+          "count": 134
+        }
+      ],
+      "contactCount": 318
+    },
+    {
+      "name": "catheter-hold-400mm",
+      "steps": 600,
+      "averageStepMs": 10.796993138333375,
+      "p95StepMs": 12.383082999996986,
+      "averageOuterPasses": 3.6633333333333336,
+      "maxRelativeLengthError": 0.00199250284952317,
+      "maxSolverResidual": 0.0009906276637479394,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "e4fadf23"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "0ee0feb8"
+        }
+      ],
+      "counts": {
+        "sweeps": 9.671666666666667,
+        "records": 3081.9683333333332,
+        "iterations": 45.361666666666665,
+        "factors": 46.52166666666667,
+        "globalProducts": 6.15,
+        "localProducts": 54.95333333333333,
+        "maxBand": 16,
+        "rodFactorizations": 20.778333333333332,
+        "rodFactorReuses": 0.5483333333333333
+      },
+      "phases": {
+        "total": 10.796993138333375,
+        "integrate": 0.02977182333344293,
+        "narrowPhase": 0.09294693333344792,
+        "constraints": 10.588496378333287,
+        "constraintPrimary": 5.9158822933333495,
+        "constraintBodyClosure": 0.40307644833346784,
+        "constraintBodyLengthPolish": 0.03965556833332812,
+        "constraintBodyWallRepair": 0.21229117333340886,
+        "constraintBodyPrePost": 0.0000750766666654575,
+        "constraintBodyPostStabilization": 0.15100438833329463,
+        "constraintCoupledClosure": 4.2758559316665075,
+        "constraintMovingClosure": 0.0000825033333482376,
+        "velocity": 0.07272287000001597
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 133,
+          "count": 134
+        }
+      ],
+      "contactCount": 318
+    },
+    {
+      "name": "catheter-feed-600mm",
+      "steps": 462,
+      "averageStepMs": 24.67213698484859,
+      "p95StepMs": 43.60904099999607,
+      "averageOuterPasses": 11.645021645021645,
+      "maxRelativeLengthError": 0.001999973594838522,
+      "maxSolverResidual": 0.00039244430177694245,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "38311c18"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "0bf39082"
+        }
+      ],
+      "counts": {
+        "sweeps": 17.645021645021647,
+        "records": 7214.497835497836,
+        "iterations": 121.38311688311688,
+        "factors": 123.02164502164503,
+        "globalProducts": 10.738095238095237,
+        "localProducts": 164.61688311688312,
+        "maxBand": 16,
+        "rodFactorizations": 34.696969696969695,
+        "rodFactorReuses": 2.593073593073593
+      },
+      "phases": {
+        "total": 24.67213698484859,
+        "integrate": 0.03556720129880025,
+        "narrowPhase": 0.2367085497837677,
+        "constraints": 24.305238632034932,
+        "constraintPrimary": 7.8038648441560055,
+        "constraintBodyClosure": 0.7838050974024747,
+        "constraintBodyLengthPolish": 0.045017590908858665,
+        "constraintBodyWallRepair": 0.5570978398270684,
+        "constraintBodyPrePost": 0.00013806926386339643,
+        "constraintBodyPostStabilization": 0.18147927056284593,
+        "constraintCoupledClosure": 15.820725383116699,
+        "constraintMovingClosure": 0.00020545887468771776,
+        "velocity": 0.07681334632010657
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 196,
+          "count": 197
+        }
+      ],
+      "contactCount": 479
+    },
+    {
+      "name": "catheter-hold-600mm",
+      "steps": 600,
+      "averageStepMs": 18.226030554999756,
+      "p95StepMs": 24.448875000001863,
+      "averageOuterPasses": 5.026666666666666,
+      "maxRelativeLengthError": 0.001998030124369686,
+      "maxSolverResidual": 0.000997725378362145,
+      "unconvergedSteps": 0,
+      "hash": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "hash": "82609c19"
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "hash": "d2486455"
+        }
+      ],
+      "counts": {
+        "sweeps": 11.238333333333333,
+        "records": 5379.593333333333,
+        "iterations": 64.00833333333334,
+        "factors": 64.51,
+        "globalProducts": 8.015,
+        "localProducts": 81.41166666666666,
+        "maxBand": 16,
+        "rodFactorizations": 23.68166666666667,
+        "rodFactorReuses": 0.37166666666666665
+      },
+      "phases": {
+        "total": 18.226030554999756,
+        "integrate": 0.03883523166664721,
+        "narrowPhase": 0.1442969333330499,
+        "constraints": 17.91854545833326,
+        "constraintPrimary": 8.475768628333183,
+        "constraintBodyClosure": 0.583312771666618,
+        "constraintBodyLengthPolish": 0.0478133933333811,
+        "constraintBodyWallRepair": 0.32520761499998724,
+        "constraintBodyPrePost": 0.00012628333330212628,
+        "constraintBodyPostStabilization": 0.21009033499998622,
+        "constraintCoupledClosure": 8.8691318200001,
+        "constraintMovingClosure": 0.00021476833319563108,
+        "velocity": 0.10188318833326776
+      },
+      "nodes": [
+        {
+          "id": "real-aorta-coupled-guidewire",
+          "start": 0,
+          "end": 200,
+          "count": 201
+        },
+        {
+          "id": "real-aorta-coupled-catheter",
+          "start": 0,
+          "end": 196,
+          "count": 197
+        }
+      ],
+      "contactCount": 479
+    }
+  ],
+  "cpuProfiles": [
+    {
+      "phase": "feed",
+      "totalMs": 11746.166,
+      "samples": 15477,
+      "maximumSampleDeltaMs": 128.166,
+      "buckets": [
+        {
+          "name": "Normal contact block (including full rod responses)",
+          "ms": 3972.472,
+          "percent": 33.81930750850959
+        },
+        {
+          "name": "Direct material rod solve",
+          "ms": 2762.291,
+          "percent": 23.51653296914074
+        },
+        {
+          "name": "Lumen contact geometry and interpolation",
+          "ms": 2070.866,
+          "percent": 17.63014416789274
+        },
+        {
+          "name": "Other",
+          "ms": 1576.499,
+          "percent": 13.421392137655811
+        },
+        {
+          "name": "Remaining per-contact projections",
+          "ms": 935.17,
+          "percent": 7.961491434737088
+        },
+        {
+          "name": "Vessel geometry/contact queries",
+          "ms": 339.202,
+          "percent": 2.8877678044052844
+        },
+        {
+          "name": "Contact convergence measurement",
+          "ms": 51.792,
+          "percent": 0.44092685221714045
+        },
+        {
+          "name": "Garbage collection",
+          "ms": 37.874,
+          "percent": 0.3224371254416122
+        }
+      ],
+      "topExclusive": [
+        {
+          "name": "solveKirchhoffContactBlock",
+          "ms": 2050.79,
+          "percent": 17.45922882411163
+        },
+        {
+          "name": "solveKirchhoffDirect",
+          "ms": 1465.311,
+          "percent": 12.47480241637995
+        },
+        {
+          "name": "wasm-function[1]",
+          "ms": 1046.341,
+          "percent": 8.907936427937422
+        },
+        {
+          "name": "wasm-function[0]",
+          "ms": 956.605,
+          "percent": 8.143976511144148
+        },
+        {
+          "name": "#kirchhoffSmoothMaterialSideRecord",
+          "ms": 906.822,
+          "percent": 7.720153112087808
+        },
+        {
+          "name": "#solveKirchhoffLumenRecord",
+          "ms": 794.546,
+          "percent": 6.764300793978222
+        },
+        {
+          "name": "#solveKirchhoffContainment",
+          "ms": 469.966,
+          "percent": 4.001016161358523
+        },
+        {
+          "name": "multiply",
+          "ms": 380.711,
+          "percent": 3.2411511977610394
+        },
+        {
+          "name": "wasm-function[3]",
+          "ms": 378.379,
+          "percent": 3.2212979111652262
+        },
+        {
+          "name": "closestKirchhoffCenterlinePoint",
+          "ms": 286.922,
+          "percent": 2.4426864050789
+        },
+        {
+          "name": "#kirchhoffRuntimeContactRecord",
+          "ms": 285.249,
+          "percent": 2.428443459763807
+        },
+        {
+          "name": "solveAdaptationXPBDArraySweep",
+          "ms": 211.582,
+          "percent": 1.801285628008322
+        },
+        {
+          "name": "applyKirchhoffDirectCorrection",
+          "ms": 170.586,
+          "percent": 1.4522696171669973
+        },
+        {
+          "name": "#solveKirchhoffBendTwist",
+          "ms": 156.578,
+          "percent": 1.333013682932797
+        },
+        {
+          "name": "#kirchhoffSmoothCenterlineSample",
+          "ms": 155.291,
+          "percent": 1.3220569162737867
+        },
+        {
+          "name": "post",
+          "ms": 128.166,
+          "percent": 1.0911305016462394
+        },
+        {
+          "name": "#applyKirchhoffContactVector",
+          "ms": 107.377,
+          "percent": 0.914145092109204
+        },
+        {
+          "name": "#applyKirchhoffTwistCorrection",
+          "ms": 106.542,
+          "percent": 0.9070363895759689
+        },
+        {
+          "name": "#applyKirchhoffFrameTwist",
+          "ms": 99.704,
+          "percent": 0.8488216495493083
+        },
+        {
+          "name": "#queryKnownInsideCenterline",
+          "ms": 93.746,
+          "percent": 0.7980987157852187
+        },
+        {
+          "name": "#queryCenterline",
+          "ms": 81.082,
+          "percent": 0.6902848129338544
+        },
+        {
+          "name": "wasm-function[2]",
+          "ms": 80.125,
+          "percent": 0.6821374736233082
+        },
+        {
+          "name": "evaluateBendTwistLocalConstraintNormalized",
+          "ms": 76.337,
+          "percent": 0.6498886530294226
+        },
+        {
+          "name": "#solveLengthsGlobal",
+          "ms": 74.833,
+          "percent": 0.6370844750533919
+        },
+        {
+          "name": "writeContactBasisInPlace",
+          "ms": 67.249,
+          "percent": 0.5725187265359608
+        },
+        {
+          "name": "#kirchhoffFrameIncrement",
+          "ms": 62.211,
+          "percent": 0.529628135682741
+        },
+        {
+          "name": "#remapContactValues",
+          "ms": 49.996,
+          "percent": 0.4256367567085294
+        },
+        {
+          "name": "integrateScaledRigidity",
+          "ms": 46.542,
+          "percent": 0.39623141712793775
+        },
+        {
+          "name": "normalizeQuaternion",
+          "ms": 43.623,
+          "percent": 0.371380755218341
+        },
+        {
+          "name": "factor",
+          "ms": 42.955,
+          "percent": 0.36569379319175294
+        }
+      ],
+      "topInclusive": [
+        {
+          "name": "(root)",
+          "ms": 11746.166,
+          "percent": 100
+        },
+        {
+          "name": "",
+          "ms": 11657.249,
+          "percent": 99.24301257108064
+        },
+        {
+          "name": "step",
+          "ms": 11523.917,
+          "percent": 98.10790176130662
+        },
+        {
+          "name": "stepFixed",
+          "ms": 11306.33,
+          "percent": 96.25549306897247
+        },
+        {
+          "name": "#solveKirchhoffContainment",
+          "ms": 7551.139,
+          "percent": 64.28598914743756
+        },
+        {
+          "name": "solveKirchhoffContactBlock",
+          "ms": 3972.472,
+          "percent": 33.81930750850959
+        },
+        {
+          "name": "#solveKirchhoffBendTwist",
+          "ms": 2800.829,
+          "percent": 23.84462300294411
+        },
+        {
+          "name": "#solveBending",
+          "ms": 2800.829,
+          "percent": 23.84462300294411
+        },
+        {
+          "name": "solveKirchhoffDirect",
+          "ms": 2762.291,
+          "percent": 23.51653296914074
+        },
+        {
+          "name": "#solveContainment",
+          "ms": 2503.248,
+          "percent": 21.311192094509817
+        },
+        {
+          "name": "#kirchhoffSmoothMaterialSideRecord",
+          "ms": 2066.365,
+          "percent": 17.59182528154293
+        },
+        {
+          "name": "#solveKirchhoffLumenRecord",
+          "ms": 1222.465,
+          "percent": 10.407353344061374
+        },
+        {
+          "name": "wasm-function[1]",
+          "ms": 1046.341,
+          "percent": 8.907936427937422
+        },
+        {
+          "name": "multiply",
+          "ms": 1041.258,
+          "percent": 8.864662733354866
+        },
+        {
+          "name": "js-to-wasm:iiiii:",
+          "ms": 957.355,
+          "percent": 8.150361573299747
+        },
+        {
+          "name": "wasm-function[0]",
+          "ms": 956.605,
+          "percent": 8.143976511144148
+        },
+        {
+          "name": "factorAndSolve",
+          "ms": 952.683,
+          "percent": 8.11058689277846
+        },
+        {
+          "name": "js-to-wasm:iiii:",
+          "ms": 849.465,
+          "percent": 7.231849098676113
+        },
+        {
+          "name": "precondition",
+          "ms": 514.004,
+          "percent": 4.375929984302963
+        },
+        {
+          "name": "#kirchhoffRuntimeContactRecord",
+          "ms": 434.536,
+          "percent": 3.699385825127961
+        },
+        {
+          "name": "wasm-function[3]",
+          "ms": 378.379,
+          "percent": 3.2212979111652262
+        },
+        {
+          "name": "js-to-wasm:iiiiiid:",
+          "ms": 378.379,
+          "percent": 3.2212979111652262
+        },
+        {
+          "name": "factor",
+          "ms": 357.42,
+          "percent": 3.042865220872921
+        },
+        {
+          "name": "#queryCapsuleStored",
+          "ms": 338.452,
+          "percent": 2.881382742249684
+        },
+        {
+          "name": "queryCapsuleSoA",
+          "ms": 338.452,
+          "percent": 2.881382742249684
+        },
+        {
+          "name": "closestKirchhoffCenterlinePoint",
+          "ms": 286.922,
+          "percent": 2.4426864050789
+        },
+        {
+          "name": "#solveLengthsGlobal",
+          "ms": 286.415,
+          "percent": 2.4383701030617138
+        },
+        {
+          "name": "#refreshActiveWallContacts",
+          "ms": 284.284,
+          "percent": 2.420228013123601
+        },
+        {
+          "name": "kirchhoffDirectBlockResponse",
+          "ms": 282.168,
+          "percent": 2.402213624428601
+        },
+        {
+          "name": "wasm-function[2]",
+          "ms": 277.001,
+          "percent": 2.3582248028846178
+        }
+      ]
+    },
+    {
+      "phase": "hold",
+      "totalMs": 11135.834,
+      "samples": 14691,
+      "maximumSampleDeltaMs": 95.792,
+      "buckets": [
+        {
+          "name": "Normal contact block (including full rod responses)",
+          "ms": 3595.453,
+          "percent": 32.287235962748724
+        },
+        {
+          "name": "Direct material rod solve",
+          "ms": 2564.14,
+          "percent": 23.026025711230968
+        },
+        {
+          "name": "Lumen contact geometry and interpolation",
+          "ms": 2195.449,
+          "percent": 19.71517355592765
+        },
+        {
+          "name": "Other",
+          "ms": 1422.496,
+          "percent": 12.774040992349562
+        },
+        {
+          "name": "Remaining per-contact projections",
+          "ms": 827.792,
+          "percent": 7.4335878210828215
+        },
+        {
+          "name": "Vessel geometry/contact queries",
+          "ms": 261.373,
+          "percent": 2.347134484942933
+        },
+        {
+          "name": "Contact convergence measurement",
+          "ms": 239.672,
+          "percent": 2.15225909437946
+        },
+        {
+          "name": "Garbage collection",
+          "ms": 29.459,
+          "percent": 0.26454237733788055
+        }
+      ],
+      "topExclusive": [
+        {
+          "name": "solveKirchhoffContactBlock",
+          "ms": 1929.078,
+          "percent": 17.323156936427033
+        },
+        {
+          "name": "solveKirchhoffDirect",
+          "ms": 1379.852,
+          "percent": 12.391097065563297
+        },
+        {
+          "name": "wasm-function[1]",
+          "ms": 978.213,
+          "percent": 8.784371246913343
+        },
+        {
+          "name": "#kirchhoffSmoothMaterialSideRecord",
+          "ms": 918.621,
+          "percent": 8.249233959486105
+        },
+        {
+          "name": "wasm-function[0]",
+          "ms": 797.574,
+          "percent": 7.162229609385341
+        },
+        {
+          "name": "#solveKirchhoffLumenRecord",
+          "ms": 784.454,
+          "percent": 7.044411761166699
+        },
+        {
+          "name": "#solveKirchhoffContainment",
+          "ms": 424.872,
+          "percent": 3.815358598197495
+        },
+        {
+          "name": "closestKirchhoffCenterlinePoint",
+          "ms": 391.95,
+          "percent": 3.5197184153427576
+        },
+        {
+          "name": "multiply",
+          "ms": 384.461,
+          "percent": 3.4524670536575885
+        },
+        {
+          "name": "wasm-function[3]",
+          "ms": 281.164,
+          "percent": 2.5248580393709172
+        },
+        {
+          "name": "#kirchhoffRuntimeContactRecord",
+          "ms": 279.421,
+          "percent": 2.5092058663949195
+        },
+        {
+          "name": "#kirchhoffSmoothCenterlineSample",
+          "ms": 200.673,
+          "percent": 1.8020473365533287
+        },
+        {
+          "name": "solveAdaptationXPBDArraySweep",
+          "ms": 189.629,
+          "percent": 1.7028720076107455
+        },
+        {
+          "name": "#kirchhoffContactSolverResidual",
+          "ms": 152.797,
+          "percent": 1.3721199507823123
+        },
+        {
+          "name": "applyKirchhoffDirectCorrection",
+          "ms": 131.291,
+          "percent": 1.1789956639080648
+        },
+        {
+          "name": "stepFixed",
+          "ms": 125.412,
+          "percent": 1.1262021326826532
+        },
+        {
+          "name": "#solveKirchhoffBendTwist",
+          "ms": 116.665,
+          "percent": 1.0476539071972517
+        },
+        {
+          "name": "#queryKnownInsideCenterline",
+          "ms": 103.917,
+          "percent": 0.9331766260165157
+        },
+        {
+          "name": "#applyKirchhoffContactVector",
+          "ms": 96.54,
+          "percent": 0.8669310264502865
+        },
+        {
+          "name": "post",
+          "ms": 95.792,
+          "percent": 0.8602139722987968
+        },
+        {
+          "name": "#applyKirchhoffTwistCorrection",
+          "ms": 90.916,
+          "percent": 0.8164274000492464
+        },
+        {
+          "name": "measureKirchhoffContactMotion",
+          "ms": 86.875,
+          "percent": 0.7801391435971478
+        },
+        {
+          "name": "wasm-function[2]",
+          "ms": 84.878,
+          "percent": 0.7622060458156973
+        },
+        {
+          "name": "#applyKirchhoffFrameTwist",
+          "ms": 71.169,
+          "percent": 0.6390989664537026
+        },
+        {
+          "name": "#solveLengthsGlobal",
+          "ms": 66.336,
+          "percent": 0.5956985350176736
+        },
+        {
+          "name": "evaluateBendTwistLocalConstraintNormalized",
+          "ms": 61.794,
+          "percent": 0.5549112890871039
+        },
+        {
+          "name": "writeContactBasisInPlace",
+          "ms": 56.584,
+          "percent": 0.5081253905185728
+        },
+        {
+          "name": "#kirchhoffFrameIncrement",
+          "ms": 53.001,
+          "percent": 0.47594998273142364
+        },
+        {
+          "name": "normalizeQuaternion",
+          "ms": 42.831,
+          "percent": 0.3846231903241374
+        },
+        {
+          "name": "#remapContactValues",
+          "ms": 40.625,
+          "percent": 0.36481326858859425
+        }
+      ],
+      "topInclusive": [
+        {
+          "name": "(root)",
+          "ms": 11135.834,
+          "percent": 100
+        },
+        {
+          "name": "",
+          "ms": 11070.249,
+          "percent": 99.41104545919058
+        },
+        {
+          "name": "step",
+          "ms": 10965.915,
+          "percent": 98.47412416528479
+        },
+        {
+          "name": "stepFixed",
+          "ms": 10871.167,
+          "percent": 97.62328533273754
+        },
+        {
+          "name": "#solveKirchhoffContainment",
+          "ms": 7042.029,
+          "percent": 63.23755364887803
+        },
+        {
+          "name": "solveKirchhoffContactBlock",
+          "ms": 3595.453,
+          "percent": 32.287235962748724
+        },
+        {
+          "name": "#solveContainment",
+          "ms": 3595.343,
+          "percent": 32.286248160667625
+        },
+        {
+          "name": "solveKirchhoffDirect",
+          "ms": 2564.14,
+          "percent": 23.026025711230968
+        },
+        {
+          "name": "#solveKirchhoffBendTwist",
+          "ms": 2509.72,
+          "percent": 22.537333081653337
+        },
+        {
+          "name": "#solveBending",
+          "ms": 2509.72,
+          "percent": 22.537333081653337
+        },
+        {
+          "name": "#kirchhoffSmoothMaterialSideRecord",
+          "ms": 2185.907,
+          "percent": 19.62948621540156
+        },
+        {
+          "name": "#solveKirchhoffLumenRecord",
+          "ms": 1135.409,
+          "percent": 10.195994300920793
+        },
+        {
+          "name": "wasm-function[1]",
+          "ms": 978.213,
+          "percent": 8.784371246913343
+        },
+        {
+          "name": "multiply",
+          "ms": 966.586,
+          "percent": 8.679960566940922
+        },
+        {
+          "name": "factorAndSolve",
+          "ms": 910.206,
+          "percent": 8.173667100281847
+        },
+        {
+          "name": "wasm-function[0]",
+          "ms": 797.574,
+          "percent": 7.162229609385341
+        },
+        {
+          "name": "js-to-wasm:iiiii:",
+          "ms": 797.574,
+          "percent": 7.162229609385341
+        },
+        {
+          "name": "js-to-wasm:iiii:",
+          "ms": 766.588,
+          "percent": 6.883974743157989
+        },
+        {
+          "name": "precondition",
+          "ms": 446.546,
+          "percent": 4.0099915282501515
+        },
+        {
+          "name": "closestKirchhoffCenterlinePoint",
+          "ms": 391.95,
+          "percent": 3.5197184153427576
+        },
+        {
+          "name": "#kirchhoffRuntimeContactRecord",
+          "ms": 376.588,
+          "percent": 3.381767364707484
+        },
+        {
+          "name": "kirchhoffDirectBlockResponse",
+          "ms": 300.211,
+          "percent": 2.6959004597230884
+        },
+        {
+          "name": "wasm-function[2]",
+          "ms": 296.503,
+          "percent": 2.6626025495710515
+        },
+        {
+          "name": "js-to-wasm:iiiiiiiiiii:",
+          "ms": 296.503,
+          "percent": 2.6626025495710515
+        },
+        {
+          "name": "js-to-wasm:iiiiiid:",
+          "ms": 282.705,
+          "percent": 2.538696248525256
+        },
+        {
+          "name": "wasm-function[3]",
+          "ms": 281.164,
+          "percent": 2.5248580393709172
+        },
+        {
+          "name": "queryCapsuleSoA",
+          "ms": 259.873,
+          "percent": 2.3336644565642772
+        },
+        {
+          "name": "#queryCapsuleStored",
+          "ms": 258.373,
+          "percent": 2.3201944281856215
+        },
+        {
+          "name": "#solveLengthsGlobal",
+          "ms": 255.965,
+          "percent": 2.2985705426284193
+        },
+        {
+          "name": "factor",
+          "ms": 241.077,
+          "percent": 2.164876020960801
+        }
+      ]
+    }
+  ],
+  "localContactSpectra": [
+    {
+      "phase": "feed",
+      "count": 479,
+      "loadedContacts": 140,
+      "band": 16,
+      "clearanceMm": 0.04049999999999998,
+      "adjacentRowsAbsCorrelationOver099": 3,
+      "loadedAdjacentPairs": 27,
+      "loadedAdjacentRowsAbsCorrelationOver099": 0,
+      "maxAdjacentAbsCorrelation": 0.9979893184179051,
+      "spectra": {
+        "localMassGram_all": {
+          "n": 479,
+          "minimumNormalizedEigenvalue": -9.616316070292306e-16,
+          "maximumNormalizedEigenvalue": 6.941342315401973,
+          "conditionNumber": null,
+          "rankAtRelative1e10": 471,
+          "positiveSpectrumConditionNumber": 5515474985.066888
+        },
+        "localMassGram_loaded": {
+          "n": 140,
+          "minimumNormalizedEigenvalue": 0.0019518882642031556,
+          "maximumNormalizedEigenvalue": 3.27535093558936,
+          "conditionNumber": 1678.0422300077196,
+          "rankAtRelative1e10": 140,
+          "positiveSpectrumConditionNumber": 1678.0422300077196
+        },
+        "physicalLocalOperator_all": {
+          "n": 479,
+          "minimumNormalizedEigenvalue": -1.0837328344647398e-15,
+          "maximumNormalizedEigenvalue": 6.941342313583735,
+          "conditionNumber": null,
+          "rankAtRelative1e10": 471,
+          "positiveSpectrumConditionNumber": 5515474950.575602
+        },
+        "physicalLocalOperator_loaded": {
+          "n": 140,
+          "minimumNormalizedEigenvalue": 0.0019518882642031556,
+          "maximumNormalizedEigenvalue": 3.27535093558936,
+          "conditionNumber": 1678.0422300077196,
+          "rankAtRelative1e10": 140,
+          "positiveSpectrumConditionNumber": 1678.0422300077196
+        },
+        "dampedPreconditioner_all": {
+          "n": 479,
+          "minimumNormalizedEigenvalue": 0.000999000998999978,
+          "maximumNormalizedEigenvalue": 6.9354069066770725,
+          "conditionNumber": 6942.342313590845,
+          "rankAtRelative1e10": 479,
+          "positiveSpectrumConditionNumber": 6942.342313590845
+        },
+        "dampedPreconditioner_loaded": {
+          "n": 140,
+          "minimumNormalizedEigenvalue": 0.0029489393248776923,
+          "maximumNormalizedEigenvalue": 3.273077857731633,
+          "conditionNumber": 1109.9169895153352,
+          "rankAtRelative1e10": 140,
+          "positiveSpectrumConditionNumber": 1109.9169895153352
+        }
+      }
+    },
+    {
+      "phase": "hold",
+      "count": 479,
+      "loadedContacts": 114,
+      "band": 16,
+      "clearanceMm": 0.04049999999999998,
+      "adjacentRowsAbsCorrelationOver099": 1,
+      "loadedAdjacentPairs": 17,
+      "loadedAdjacentRowsAbsCorrelationOver099": 0,
+      "maxAdjacentAbsCorrelation": 0.9967299663275201,
+      "spectra": {
+        "localMassGram_all": {
+          "n": 479,
+          "minimumNormalizedEigenvalue": -1.2440562138578943e-15,
+          "maximumNormalizedEigenvalue": 7.227834464837038,
+          "conditionNumber": null,
+          "rankAtRelative1e10": 459,
+          "positiveSpectrumConditionNumber": 8773727380.184174
+        },
+        "localMassGram_loaded": {
+          "n": 114,
+          "minimumNormalizedEigenvalue": 0.03275444488661648,
+          "maximumNormalizedEigenvalue": 2.766939852277207,
+          "conditionNumber": 84.4752479199482,
+          "rankAtRelative1e10": 114,
+          "positiveSpectrumConditionNumber": 84.4752479199482
+        },
+        "physicalLocalOperator_all": {
+          "n": 479,
+          "minimumNormalizedEigenvalue": -1.2406294942728356e-15,
+          "maximumNormalizedEigenvalue": 7.227834464837036,
+          "conditionNumber": null,
+          "rankAtRelative1e10": 459,
+          "positiveSpectrumConditionNumber": 8773726884.793222
+        },
+        "physicalLocalOperator_loaded": {
+          "n": 114,
+          "minimumNormalizedEigenvalue": 0.03275444488661648,
+          "maximumNormalizedEigenvalue": 2.766939852277207,
+          "conditionNumber": 84.4752479199482,
+          "rankAtRelative1e10": 114,
+          "positiveSpectrumConditionNumber": 84.4752479199482
+        },
+        "dampedPreconditioner_all": {
+          "n": 479,
+          "minimumNormalizedEigenvalue": 0.0009990009990002487,
+          "maximumNormalizedEigenvalue": 7.22161285198505,
+          "conditionNumber": 7228.834464842464,
+          "rankAtRelative1e10": 479,
+          "positiveSpectrumConditionNumber": 7228.834464842464
+        },
+        "dampedPreconditioner_loaded": {
+          "n": 114,
+          "minimumNormalizedEigenvalue": 0.03372072416245491,
+          "maximumNormalizedEigenvalue": 2.765174677599612,
+          "conditionNumber": 82.00223293776097,
+          "rankAtRelative1e10": 114,
+          "positiveSpectrumConditionNumber": 82.00223293776097
+        }
+      }
+    }
+  ],
+  "browserEvidence": "catheter-contact-block-browser.json"
+}

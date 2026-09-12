@@ -1,0 +1,13 @@
+✔ a common straight shaft solves fewer relative increments with independent feed/spin and original two-tool balance (64.510958ms)
+✔ transverse load activates omitted motion through full equations and retains the independent physical shape (13.839875ms)
+✔ curved original geometry is preserved and independent lumen samples remain in the whole-step certificate (49.879834ms)
+✔ all reduced factorizations consume the existing budget and a rejected step retries from the same owned state (12.528541ms)
+✔ loaded lumen normal and Coulomb reactions stay in the reduced solve and survive the second dt and late query rejection (202.130958ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 467.930167

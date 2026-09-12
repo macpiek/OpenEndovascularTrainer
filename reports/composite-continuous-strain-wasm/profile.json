@@ -1,0 +1,156 @@
+{
+  "scope": "CPU samples including startup and warmup; 240 accepted fixed-state synthetic replays; not timing or FPS",
+  "samples": 5214,
+  "top": [
+    {
+      "location": "wasm-function[1] | wasm://wasm/058ed86a:1",
+      "samples": 831,
+      "percent": 15.937859608745685
+    },
+    {
+      "location": "wasm-function[0] | wasm://wasm/058ed86a:1",
+      "samples": 790,
+      "percent": 15.151515151515152
+    },
+    {
+      "location": "sampleCompositeContinuousBasis | file:///src/physics/kirchhoffCompositeContinuousGeometry.js:80",
+      "samples": 326,
+      "percent": 6.252397391637898
+    },
+    {
+      "location": "alloc | file:///src/physics/kirchhoffCompositeStrainDifferentialTape.js:26",
+      "samples": 303,
+      "percent": 5.811277330264672
+    },
+    {
+      "location": "evaluateAt | file:///src/physics/kirchhoffCompositeContinuousFrame.js:171",
+      "samples": 229,
+      "percent": 4.392021480629076
+    },
+    {
+      "location": "(anonymous) | file:///src/physics/kirchhoffCompositeContinuousLength.js:51",
+      "samples": 206,
+      "percent": 3.9509014192558496
+    },
+    {
+      "location": "binary | file:///src/physics/kirchhoffCompositeStrainDifferentialTape.js:39",
+      "samples": 169,
+      "percent": 3.2412734944380515
+    },
+    {
+      "location": "(anonymous) | file:///src/physics/kirchhoffCompositeContinuousFrame.js:153",
+      "samples": 150,
+      "percent": 2.8768699654775602
+    },
+    {
+      "location": "(anonymous) | file:///src/physics/kirchhoffCompositeContinuousElasticity.js:60",
+      "samples": 149,
+      "percent": 2.857690832374377
+    },
+    {
+      "location": "dot | file:///src/physics/kirchhoffCompositeJointSurfaceMotion.js:79",
+      "samples": 135,
+      "percent": 2.5891829689298045
+    },
+    {
+      "location": "geometryVector | file:///src/physics/kirchhoffCompositeContinuousFrame.js:150",
+      "samples": 111,
+      "percent": 2.128883774453395
+    },
+    {
+      "location": "integrate | file:///src/physics/kirchhoffCompositeContinuousElasticity.js:67",
+      "samples": 91,
+      "percent": 1.74530111238972
+    },
+    {
+      "location": "vector | file:///src/physics/kirchhoffCompositeContinuousFrame.js:7",
+      "samples": 89,
+      "percent": 1.7069428461833525
+    },
+    {
+      "location": "(garbage collector) | :0",
+      "samples": 84,
+      "percent": 1.6110471806674338
+    },
+    {
+      "location": "directorBasis | file:///src/physics/kirchhoffCompositeContinuousFrame.js:23",
+      "samples": 83,
+      "percent": 1.5918680475642502
+    },
+    {
+      "location": "mul | file:///src/physics/kirchhoffCompositeStrainDifferentialTape.js:75",
+      "samples": 74,
+      "percent": 1.4192558496355965
+    },
+    {
+      "location": "cross | file:///src/physics/kirchhoffCompositeJointSurfaceMotion.js:80",
+      "samples": 55,
+      "percent": 1.0548523206751055
+    },
+    {
+      "location": "(program) | :0",
+      "samples": 52,
+      "percent": 0.9973149213655543
+    },
+    {
+      "location": "evaluateContinuousField | file:///src/physics/kirchhoffCompositeContinuousFrame.js:136",
+      "samples": 52,
+      "percent": 0.9973149213655543
+    },
+    {
+      "location": "unit | file:///src/physics/kirchhoffCompositeJointSurfaceMotion.js:81",
+      "samples": 50,
+      "percent": 0.9589566551591868
+    },
+    {
+      "location": "compileSourceTextModule | node:internal/modules/esm/utils:355",
+      "samples": 49,
+      "percent": 0.9397775220560031
+    },
+    {
+      "location": "integral | file:///src/physics/kirchhoffCompositeContinuousLength.js:47",
+      "samples": 40,
+      "percent": 0.7671653241273494
+    },
+    {
+      "location": "add | file:///src/physics/kirchhoffCompositeContinuousFrame.js:26",
+      "samples": 37,
+      "percent": 0.7096279248177982
+    },
+    {
+      "location": "(anonymous) | file:///src/physics/kirchhoffCompositeContinuousElasticity.js:70",
+      "samples": 34,
+      "percent": 0.652090525508247
+    },
+    {
+      "location": "(anonymous) | file:///src/physics/kirchhoffCompositeContinuousFrame.js:195",
+      "samples": 33,
+      "percent": 0.6329113924050633
+    },
+    {
+      "location": "bernstein | file:///src/physics/kirchhoffCompositeContinuousGeometry.js:28",
+      "samples": 32,
+      "percent": 0.6137322593018796
+    },
+    {
+      "location": "hessians | file:///src/physics/kirchhoffCompositeStrainDifferentialTape.js:50",
+      "samples": 27,
+      "percent": 0.5178365937859609
+    },
+    {
+      "location": "normalizedDerivative | file:///src/physics/kirchhoffCompositeContinuousFrame.js:183",
+      "samples": 26,
+      "percent": 0.49865746068277716
+    },
+    {
+      "location": "jet | file:///src/physics/kirchhoffCompositeContinuousFrame.js:147",
+      "samples": 23,
+      "percent": 0.44112006137322596
+    },
+    {
+      "location": "evaluate | file:///src/physics/kirchhoffCompositeContinuousInertia.js:72",
+      "samples": 23,
+      "percent": 0.44112006137322596
+    }
+  ]
+}

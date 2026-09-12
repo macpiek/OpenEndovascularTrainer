@@ -1,0 +1,31 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "source": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffSplitMotion.js",
+      "beforeSha256": "d96e31763dba61c33ab0b6f18fe0e4f1d4c168fb447fc996aab8faed3e24e91a",
+      "afterSha256": "0584fa9cf1c8b54eb7dfd156916f9370c5d33775e4a45a392f6caf52d50bb3db"
+    },
+    {
+      "path": "tests/kirchhoffSplitDiscreteContactCertificate.test.js",
+      "beforeSha256": null,
+      "afterSha256": "ba14e4795fbac49fd88f5c72dd79abed960ceb7d97cd9d78a5d55563c458f1dc"
+    },
+    {
+      "path": "reports/split-discrete-contact-certificate.md",
+      "beforeSha256": null,
+      "afterSha256": "b6cda3de7bcd4c78b5ed298634b23bdadf592b817ddab39532b893c416717db4"
+    }
+  ],
+  "verification": {
+    "newStrictPassed": 4,
+    "newStrictFailed": 2,
+    "existingSplit": 13,
+    "independentWorldWall": 11
+  },
+  "strictFailures": "Existing baseline-identical .0005 second-step and compliant residual accuracy; no tolerance changes",
+  "status": "Bounded certificate change; strict failures retained for root classification",
+  "patchSha256": "a8cc81caa7fc9cdc967449aaa0a53878dee84c8c6c3fe7c928086226a6c3d4a4",
+  "unchangedLocalWorldSha256": "2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5"
+}

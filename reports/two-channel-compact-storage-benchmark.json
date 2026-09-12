@@ -1,0 +1,119 @@
+{
+  "scope": "saved-155-native-298-expanded-existing-mechanics",
+  "limitation": "Frozen Node microbenchmark; condensed includes condensation and recovery; excludes geometry and browser.",
+  "variants": {
+    "condensed": {
+      "converged": true,
+      "originalKkt": 0.00010861483123968986,
+      "operatorEntries": 3844,
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 2,
+        "factorizations": 2,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 3,
+        "maximumResidual": 0.0001086148312396886,
+        "frictionResidual": 3.032352711412195e-7,
+        "coneViolation": 0,
+        "rowCount": 62,
+        "band": 62,
+        "groupCount": 6,
+        "normalLoadIterations": 0,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "fischer-burmeister",
+        "matrixFormat": "row-major",
+        "linearSolver": "dense-lu"
+      },
+      "samplesMs": [
+        9.180082999999968,
+        20.090916999999877,
+        13.252499999999827,
+        24.015791000000036,
+        11.755292000000054,
+        22.648707999999942,
+        8.430082999999968
+      ],
+      "medianMs": 13.252499999999827
+    },
+    "full-dense": {
+      "converged": true,
+      "originalKkt": 0.000010829509797400869,
+      "operatorEntries": 88804,
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 3,
+        "factorizations": 3,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000010829509797401556,
+        "frictionResidual": 9.79518957715253e-8,
+        "coneViolation": 0,
+        "rowCount": 298,
+        "band": 298,
+        "groupCount": 6,
+        "normalLoadIterations": 0,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "fischer-burmeister",
+        "matrixFormat": "row-major",
+        "linearSolver": "dense-lu"
+      },
+      "samplesMs": [
+        93.02754099999993,
+        113.78474999999992,
+        242.51479100000006,
+        185.44220799999994,
+        135.96425,
+        150.69325000000003,
+        113.49491700000021
+      ],
+      "medianMs": 135.96425
+    },
+    "full-band": {
+      "converged": true,
+      "originalKkt": 0.000010829509797400869,
+      "operatorEntries": 11067,
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 3,
+        "factorizations": 3,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000010829509797401556,
+        "frictionResidual": 9.79518957715253e-8,
+        "coneViolation": 0,
+        "rowCount": 298,
+        "band": 298,
+        "groupCount": 6,
+        "normalLoadIterations": 0,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "fischer-burmeister",
+        "matrixFormat": "general-band",
+        "linearSolver": "band-lu",
+        "jacobianEntries": 11067,
+        "factorEntries": 54832,
+        "lowerBandwidth": 61,
+        "upperBandwidth": 61,
+        "rowSwaps": 193,
+        "maximumLinearBackwardError": 4.85315501833638e-17,
+        "maximumPivotGrowth": 0.9997679222376266,
+        "linearResidualFailures": 0
+      },
+      "samplesMs": [
+        7.818499999999972,
+        2.9680419999999685,
+        2.6443340000000717,
+        6.278833999999961,
+        9.936541999999918,
+        5.221250000000055,
+        3.309792000000016
+      ],
+      "medianMs": 5.221250000000055
+    }
+  }
+}

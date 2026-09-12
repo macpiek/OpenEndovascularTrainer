@@ -1,0 +1,19 @@
+{
+  "snapshot": "/tmp/oet-condensed-integration-review-o9n4g9_8",
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "before": {
+    "src/physics/kirchhoffTwoChannelSystem.js": "2d071feb0a4061fe7c01a77744154863c72f6bcacde02511110e611e11e1d0b2",
+    "src/physics/kirchhoffTwoChannelCondensation.js": "6612f923bca9b9f68ce371673b26c8911a8685fb722438c633ebcfb94943d377",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "tests/kirchhoffTwoChannelSystem.test.js": "128c3b75d5e9165677c337e34a1535f7d5811609e7c3aed0669f788e90206649"
+  },
+  "after": {
+    "src/physics/kirchhoffTwoChannelSystem.js": "2d071feb0a4061fe7c01a77744154863c72f6bcacde02511110e611e11e1d0b2",
+    "src/physics/kirchhoffTwoChannelCondensation.js": "6612f923bca9b9f68ce371673b26c8911a8685fb722438c633ebcfb94943d377",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "tests/kirchhoffTwoChannelSystem.test.js": "128c3b75d5e9165677c337e34a1535f7d5811609e7c3aed0669f788e90206649"
+  },
+  "stable": true,
+  "repro": "tests/kirchhoffTwoChannelFallbackAccounting.test.js",
+  "reproSha256": "808da6247670c12950518e5a618ba8f49775be61b20f188e2bd51de5c440791e"
+}

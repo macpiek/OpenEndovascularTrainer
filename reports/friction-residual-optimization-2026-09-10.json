@@ -1,0 +1,495 @@
+{
+  "scope": "Fresh lumen-friction residual evaluation without assembled gradients; unchanged Coulomb law, tolerances, geometry refresh and LU.",
+  "isolatedEvaluation": [
+    {
+      "name": "full-rows",
+      "contacts": 80,
+      "medianMs": 0.5713727733333334,
+      "rounds": [
+        0.5713727733333334,
+        0.5599202800000004,
+        0.5426752733333334,
+        0.5422524999999996,
+        0.5351625000000005,
+        0.6049166666666663,
+        0.6537447266666656,
+        0.5795700000000004,
+        2.023667219999999
+      ],
+      "residual": 0.0030000000000001137,
+      "merit": 0.003000000000000116
+    },
+    {
+      "name": "residual-only",
+      "contacts": 80,
+      "medianMs": 0.5054738933333333,
+      "rounds": [
+        0.5054738933333333,
+        0.4703277733333334,
+        0.47404778000000003,
+        0.4718861133333333,
+        0.4835755533333334,
+        0.5254477799999995,
+        0.5412180599999995,
+        0.51079222,
+        1.0845524999999998
+      ],
+      "residual": 0.0030000000000001137,
+      "merit": 0.003000000000000116
+    }
+  ],
+  "runtimeComparison": {
+    "completed": 796,
+    "wallLimitReached": false,
+    "error": null,
+    "maxPositionDifference": 0,
+    "maxOrientationDifference": 0,
+    "decisionDifferences": 0,
+    "variants": [
+      {
+        "name": "full-rows",
+        "feedMeanMs": 11.536983487309639,
+        "feedSteps": 197,
+        "failed": 1,
+        "error": {
+          "step": 796,
+          "message": "Invalid friction data"
+        },
+        "profile": {
+          "lineSearch": {
+            "accepted": [
+              1397,
+              2,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "rejected": [
+              3,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "rejectionTerms": {
+              "lumenNormal": 4
+            },
+            "boundaryKinds": {},
+            "boundaryWorstChanged": 0,
+            "predictedStarts": 0,
+            "largerFallbacks": 0,
+            "earlyRejections": 0
+          },
+          "steps": 796,
+          "failedSteps": 0,
+          "percentileSteps": 796,
+          "fields": {
+            "assemblyMs": {
+              "mean": 0.40927141834171304,
+              "p95": 1.778458000000228,
+              "maximum": 8.677418000000216,
+              "sum": 325.7800490000036
+            },
+            "solveMs": {
+              "mean": 0.9379748618090459,
+              "p95": 2.6140839999998207,
+              "maximum": 14.005334999998922,
+              "sum": 746.6279900000005
+            },
+            "applyMs": {
+              "mean": 0.07524072236182061,
+              "p95": 0.29658299999982773,
+              "maximum": 1.6641670000026352,
+              "sum": 59.89161500000921
+            },
+            "snapshotMs": {
+              "mean": 0.6262259208542733,
+              "p95": 2.0282499999998436,
+              "maximum": 17.552208000000064,
+              "sum": 498.47583300000156
+            },
+            "restoreMs": {
+              "mean": 0.007921011306532489,
+              "p95": 0,
+              "maximum": 3.3003329999992275,
+              "sum": 6.305124999999862
+            },
+            "measureMs": {
+              "mean": 1.1912918052763795,
+              "p95": 3.1469999999999345,
+              "maximum": 39.63037599999916,
+              "sum": 948.268276999998
+            },
+            "condensedSetupMs": {
+              "mean": 0.191146781407045,
+              "p95": 0.7090409999998428,
+              "maximum": 2.9796670000014274,
+              "sum": 152.15283800000782
+            },
+            "schurMs": {
+              "mean": 0.053763999999999465,
+              "p95": 0.13729199999943376,
+              "maximum": 1.2171669999997903,
+              "sum": 42.79614399999957
+            },
+            "contactSolveMs": {
+              "mean": 0.0664355012562811,
+              "p95": 0.11645800000042072,
+              "maximum": 2.6132079999997586,
+              "sum": 52.88265899999976
+            },
+            "reconstructionMs": {
+              "mean": 0.02688228517588762,
+              "p95": 0.09141699999963748,
+              "maximum": 0.49562600000172097,
+              "sum": 21.398299000006546
+            },
+            "seedMs": {
+              "mean": 0.04002415703517234,
+              "p95": 0.08366699999987759,
+              "maximum": 1.6905409999999392,
+              "sum": 31.859228999997185
+            },
+            "solveCalls": {
+              "mean": 1.7587939698492463,
+              "p95": 3,
+              "maximum": 8,
+              "sum": 1400
+            },
+            "applyCalls": {
+              "mean": 1.763819095477387,
+              "p95": 3,
+              "maximum": 11,
+              "sum": 1404
+            },
+            "measureCalls": {
+              "mean": 2.507537688442211,
+              "p95": 5,
+              "maximum": 18,
+              "sum": 1996
+            },
+            "fullMeasureCalls": {
+              "mean": 2.507537688442211,
+              "p95": 5,
+              "maximum": 18,
+              "sum": 1996
+            },
+            "snapshots": {
+              "mean": 0.7437185929648241,
+              "p95": 2,
+              "maximum": 7,
+              "sum": 592
+            },
+            "restores": {
+              "mean": 0.005025125628140704,
+              "p95": 0,
+              "maximum": 3,
+              "sum": 4
+            },
+            "total": {
+              "mean": 3.40990607160804,
+              "p95": 9.328958000000057,
+              "maximum": 81.6859170000007,
+              "sum": 2714.2852329999996
+            },
+            "constraints": {
+              "mean": 3.285174140703513,
+              "p95": 9.069292000000132,
+              "maximum": 81.3763340000005,
+              "sum": 2614.998615999996
+            },
+            "narrowPhase": {
+              "mean": 0.07911316834171349,
+              "p95": 0.16937499999994543,
+              "maximum": 1.0919160000003103,
+              "sum": 62.97408200000393
+            },
+            "integrate": {
+              "mean": 0.00988932914572489,
+              "p95": 0.028999999999996362,
+              "maximum": 0.11225000000001728,
+              "sum": 7.871905999997011
+            },
+            "velocity": {
+              "mean": 0.021528533919598258,
+              "p95": 0.05966699999999037,
+              "maximum": 0.41808400000002166,
+              "sum": 17.136713000000213
+            },
+            "trials": {
+              "mean": 1.763819095477387,
+              "p95": 3,
+              "maximum": 11,
+              "sum": 1404
+            },
+            "backtracks": {
+              "mean": 0.005025125628140704,
+              "p95": 0,
+              "maximum": 3,
+              "sum": 4
+            },
+            "factorizations": {
+              "mean": 6.0376884422110555,
+              "p95": 10,
+              "maximum": 161,
+              "sum": 4806
+            }
+          }
+        },
+        "snapshot": {
+          "wireMm": 220.0000000000008,
+          "catheterMm": 85.36666666666662,
+          "wireRotation": 0,
+          "catheterRotation": 0,
+          "executedSteps": 796,
+          "fingerprints": [
+            {
+              "id": "guidewire",
+              "hash": "d81534fd"
+            },
+            {
+              "id": "catheter",
+              "hash": "91ca05b0"
+            }
+          ],
+          "activeNodes": [
+            46,
+            19
+          ]
+        }
+      },
+      {
+        "name": "residual-only",
+        "feedMeanMs": 10.9425651675127,
+        "feedSteps": 197,
+        "failed": 1,
+        "error": {
+          "step": 796,
+          "message": "Invalid friction data"
+        },
+        "profile": {
+          "lineSearch": {
+            "accepted": [
+              1397,
+              2,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "rejected": [
+              3,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "rejectionTerms": {
+              "lumenNormal": 4
+            },
+            "boundaryKinds": {},
+            "boundaryWorstChanged": 0,
+            "predictedStarts": 0,
+            "largerFallbacks": 0,
+            "earlyRejections": 0
+          },
+          "steps": 796,
+          "failedSteps": 0,
+          "percentileSteps": 796,
+          "fields": {
+            "assemblyMs": {
+              "mean": 0.4103693806532664,
+              "p95": 1.7610410000002048,
+              "maximum": 9.105583000000479,
+              "sum": 326.65402700000004
+            },
+            "solveMs": {
+              "mean": 0.9097538341708578,
+              "p95": 2.5007909999999356,
+              "maximum": 14.565959000000475,
+              "sum": 724.1640520000028
+            },
+            "applyMs": {
+              "mean": 0.0734724057788867,
+              "p95": 0.3073749999998654,
+              "maximum": 1.920457000001079,
+              "sum": 58.48403499999381
+            },
+            "snapshotMs": {
+              "mean": 0.6266263178392042,
+              "p95": 1.9599590000002536,
+              "maximum": 20.22004199999992,
+              "sum": 498.79454900000655
+            },
+            "restoreMs": {
+              "mean": 0.00688473618090518,
+              "p95": 0,
+              "maximum": 3.8230419999999867,
+              "sum": 5.480250000000524
+            },
+            "measureMs": {
+              "mean": 1.0679246884422247,
+              "p95": 2.707792000000154,
+              "maximum": 34.98187399999915,
+              "sum": 850.0680520000108
+            },
+            "condensedSetupMs": {
+              "mean": 0.18726199246230005,
+              "p95": 0.6577500000003056,
+              "maximum": 3.2642919999989317,
+              "sum": 149.06054599999084
+            },
+            "schurMs": {
+              "mean": 0.05225048994975094,
+              "p95": 0.1413749999992433,
+              "maximum": 0.9792489999999816,
+              "sum": 41.59139000000175
+            },
+            "contactSolveMs": {
+              "mean": 0.06611716080402058,
+              "p95": 0.09416700000019773,
+              "maximum": 2.8644170000002305,
+              "sum": 52.629260000000386
+            },
+            "reconstructionMs": {
+              "mean": 0.02618473115578141,
+              "p95": 0.09362499999997453,
+              "maximum": 0.46291500000006636,
+              "sum": 20.843046000002005
+            },
+            "seedMs": {
+              "mean": 0.03850434045225929,
+              "p95": 0.07891600000039034,
+              "maximum": 1.7469979999987117,
+              "sum": 30.649454999998397
+            },
+            "solveCalls": {
+              "mean": 1.7587939698492463,
+              "p95": 3,
+              "maximum": 8,
+              "sum": 1400
+            },
+            "applyCalls": {
+              "mean": 1.763819095477387,
+              "p95": 3,
+              "maximum": 11,
+              "sum": 1404
+            },
+            "measureCalls": {
+              "mean": 2.507537688442211,
+              "p95": 5,
+              "maximum": 18,
+              "sum": 1996
+            },
+            "fullMeasureCalls": {
+              "mean": 2.507537688442211,
+              "p95": 5,
+              "maximum": 18,
+              "sum": 1996
+            },
+            "snapshots": {
+              "mean": 0.7437185929648241,
+              "p95": 2,
+              "maximum": 7,
+              "sum": 592
+            },
+            "restores": {
+              "mean": 0.005025125628140704,
+              "p95": 0,
+              "maximum": 3,
+              "sum": 4
+            },
+            "total": {
+              "mean": 3.2518989773869325,
+              "p95": 8.764166999999816,
+              "maximum": 78.79462500000045,
+              "sum": 2588.5115859999983
+            },
+            "constraints": {
+              "mean": 3.1292554786432247,
+              "p95": 8.61054200000035,
+              "maximum": 78.6103750000002,
+              "sum": 2490.887361000007
+            },
+            "narrowPhase": {
+              "mean": 0.07806012437185171,
+              "p95": 0.16820899999993344,
+              "maximum": 1.1922910000000684,
+              "sum": 62.13585899999396
+            },
+            "integrate": {
+              "mean": 0.009668135678393941,
+              "p95": 0.025374999999939973,
+              "maximum": 0.12329199999999219,
+              "sum": 7.695836000001577
+            },
+            "velocity": {
+              "mean": 0.02109627889447109,
+              "p95": 0.05954100000053586,
+              "maximum": 0.38208399999996345,
+              "sum": 16.792637999998988
+            },
+            "trials": {
+              "mean": 1.763819095477387,
+              "p95": 3,
+              "maximum": 11,
+              "sum": 1404
+            },
+            "backtracks": {
+              "mean": 0.005025125628140704,
+              "p95": 0,
+              "maximum": 3,
+              "sum": 4
+            },
+            "factorizations": {
+              "mean": 6.0376884422110555,
+              "p95": 10,
+              "maximum": 161,
+              "sum": 4806
+            }
+          }
+        },
+        "snapshot": {
+          "wireMm": 220.0000000000008,
+          "catheterMm": 85.36666666666662,
+          "wireRotation": 0,
+          "catheterRotation": 0,
+          "executedSteps": 796,
+          "fingerprints": [
+            {
+              "id": "guidewire",
+              "hash": "d81534fd"
+            },
+            {
+              "id": "catheter",
+              "hash": "91ca05b0"
+            }
+          ],
+          "activeNodes": [
+            46,
+            19
+          ]
+        }
+      }
+    ]
+  },
+  "validation": {
+    "focusedTests": 33,
+    "coupledSuite": {
+      "passed": 765,
+      "knownFailures": 7
+    },
+    "build": "passed"
+  }
+}

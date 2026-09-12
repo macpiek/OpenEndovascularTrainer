@@ -1,0 +1,9 @@
+# Wprowadzenie kontaktów do wspólnych współrzędnych
+
+`kirchhoffCompositeContactPullback.js` przygotowuje stałe lokalne przekształcenie punktów obu fizycznych narzędzi do wspólnych q i względnych ρ. Kolejność punktów odpowiada dokładnie geometrii kontaktu, np. wire0/wire1/cat0/cat1. Powtarzające się współrzędne q są sumowane. Obecność kontaktu ani jego gałąź nie są tu wybierane.
+
+Przekształcenie zachowuje oddzielnie prawdziwy gradient szczeliny G, kolumnę normalnej siły B oraz pełną pochodną DB: TᵀG, TᵀB, TᵀDBT. Nie zakłada G=B ani symetrii DB. Wkład mechaniczny do wspólnego równania pozostaje −Fn·B, kolumna mnożnika −B, a styczna geometryczna −Fn·DB. Nie dodaje się względnej siły drugi raz jako siły świata.
+
+Sześć testów przechodzi: niezależne skończone zmiany fizycznych punktów, odrębne G/B i niesymetryczne DB, praca wirtualna oraz zerowa reakcja na wspólną translację, własność danych i unieważnianie buforów, odrzucenie zbyt odległej korespondencji oraz integracja z rzeczywistym detektorem światła i SideGeometry. Ten ostatni test sprawdza szczelinę i siły względem niezależnych zmian common/relative przy stabilnej próbce wewnętrznej 0.25; pomocnicze operatory nie wykonują dodatkowych zapytań. Obsługiwany zakres obejmuje najwyżej dwie krawędzie wspólnej siatki, zgodnie z istniejącym solverem pasmowym. Dłuższy przesuw wymagający innego przyporządkowania wymaga przebudowy lokalnego opisu; nie zwiększa automatycznie pasma do rozmiaru globalnego.
+
+To operator mapowania pochodnych. Nie rozwiązuje sam kontaktu, tarcia, zmiany próbki ani pełnego dt. Nie certyfikuje pominięcia ρ na węzłach. Geometria wejściowa musi wcześniej sprawdzić aktualną tożsamość źródła, próbki i cechy kontaktu. SideGeometry jest już zintegrowany z tym operatorem w teście; włączenie wierszy do JointTimeStep pozostaje następnym etapem integracji.

@@ -1,0 +1,46 @@
+{
+  "scope": "fixed-topology full-relative nonlinear dt, contacts:none, quasi-static torsion",
+  "owned": [
+    "src/physics/kirchhoffCompositeJointTimeStep.js",
+    "tests/kirchhoffCompositeJointTimeStep.test.js"
+  ],
+  "files": {
+    "probe.mjs": "5fe8dba2493f55f660fcfb1852f9f639df6757265919e6c618a4961456ce3406",
+    "reports/composite-joint-timestep-probe.json": "0925c30f5d1369b8ec15ff693db888cbdc84aebaf5a650991d8e6f376d31a92e",
+    "reports/composite-joint-timestep.md": "2e8e47ced5fc18967ff508b52c21a9a7a50fefb4cf30a10a426dcd2ff2c7ad70",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeClearance.js": "65a2330bd1ad5d82bf5f7f9a9db6fb5c88a7d3e2f11085aded4cd3055f9fc5bd",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeJointAssembly.js": "e02e44ea190c58b619f9fe8abaaae8ed54e609da5d4a560858d32eb706abfd66",
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "7dcc122249dd200000835fdd713e5a86d1c9197310e1b5283bb9ddaa0604d37d",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeMaterialInertia.js": "0d0b425eaa69740e3a9d04eab15e455a270040a8c635ca3922d67caf7ea3eee9",
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "dab0b81c3a91741013545ba544ffb82b97d0f17d0ac13767b7465151c00fe6c9",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "aca9f0712ccc3174f84ce89f8d3693bff2c95750a88f007fc383e5cd8ab31542",
+    "src/physics/kirchhoffCompositeRelativePatch.js": "1209803e98f92115d52c3dfb67a468ad47ef0324c3772c108e44a2486321172f",
+    "src/physics/kirchhoffCompositeToolLengths.js": "054d2b7d156bb86cb0a213632c6aaf81fe98605e52b57865826c3e0464a0f5cd",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "tests/kirchhoffCompositeJointAssembly.test.js": "c184483a09fa2a2f4e5cfdb1c4cd37146a58dbd3c4c5004ab5da873954276e64",
+    "tests/kirchhoffCompositeJointTimeStep.test.js": "043ed05ae4340634f04606a75e5856c8fb994bfb6983167739806b92a3ad8bd0",
+    "tests/kirchhoffCompositeMaterialInertia.test.js": "ff0f644fc5c7ac996d4c749f463ad73c8c27244f7a05ae6906ff9cccb741cfc9",
+    "tests/kirchhoffCompositeRelativeCluster.test.js": "b05c5757cde4da6b7cfaf1f3d21c6b90801256a39c1aa024a94da9d3d084ac7f",
+    "tests/kirchhoffCompositeRelativeDirection.test.js": "bfb4ee2531bf743d6442c0bc1ebf013693e1bf4a0afa7f1e3596fa685fa52a91",
+    "tests/kirchhoffCompositeToolLengths.test.js": "420400d8a88a9767d7e684b5c42b4d81f772776b21d04fc3d68824c8d79dcf95",
+    "tests.txt": "524953c41ea2e9bdcce7873edb6754124df414680f7d16eaef10ab9c5da31429"
+  },
+  "sourceStable": true,
+  "testCommand": "node --test --test-concurrency=1 tests/kirchhoffCompositeJointTimeStep.test.js tests/kirchhoffCompositeJointAssembly.test.js tests/kirchhoffCompositeToolLengths.test.js tests/kirchhoffCompositeMaterialInertia.test.js tests/kirchhoffCompositeRelativeDirection.test.js tests/kirchhoffCompositeRelativeCluster.test.js",
+  "verification": {
+    "tests": 62,
+    "pass": 62,
+    "fail": 0,
+    "syntax": "PASS",
+    "executedFromFrozenBundle": true
+  }
+}

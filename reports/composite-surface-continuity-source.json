@@ -1,0 +1,37 @@
+{
+  "status": "frozen",
+  "scope": "Adjacent-support continuity regression and bounded reconstruction proposal; no runtime changes",
+  "patch": "/tmp/oet-composite-surface-continuity-final-8996/composite-surface-continuity.patch",
+  "patchSha256": "6d6b52b56945be929bdea5e7a32f336de13781ca97ca4bbad456223db3d64aae",
+  "files": {
+    "tests/kirchhoffCompositeSurfaceContinuity.test.js": "e43291ae213fe7c38224a447f59b2200245ddd5b548399207d667eebcd5ab353",
+    "reports/composite-surface-continuity.md": "523dfbaafba8b5dfb81c0967c09ce562739f8e0ce82f5b7c2468665aaa83d371"
+  },
+  "tests": {
+    "passed": 18,
+    "failed": 0,
+    "newContinuityTests": 7,
+    "snapshot": "/tmp/oet-composite-surface-test-qz4h_7a4",
+    "command": "node --test --test-concurrency=1 tests/kirchhoffCompositeSurfaceContinuity.test.js tests/kirchhoffCompositeSurfaceMotion.test.js"
+  },
+  "unchangedFrozenBaseline": {
+    "src/physics/kirchhoffCompositeSurfaceMotion.js": {
+      "sha256": "b795b851e0f6057ad27a84adb6e5287aedf8d31636954a51e0526691599e4de0",
+      "ownStageAndRootMatch": true
+    },
+    "tests/kirchhoffCompositeSurfaceMotion.test.js": {
+      "sha256": "41d3e1955b88d8e63108d16464ba8c5c595f6fe555ce44b914ad36faf3450570",
+      "ownStageAndRootMatch": true
+    },
+    "src/physics/kirchhoffCompositeElement.js": {
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "stageAndRootMatch": true
+    }
+  },
+  "gitApplyCheck": {
+    "target": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+    "passed": true
+  },
+  "finding": "Quadratic neighboring supports have position and generally slip jumps, despite matching tangent and material-frame values.",
+  "nextStep": "Discuss a common reconstruction within smooth regions, retain physical one-sided interface jumps, and establish controlled geometry/velocity/transport error; no implementation."
+}

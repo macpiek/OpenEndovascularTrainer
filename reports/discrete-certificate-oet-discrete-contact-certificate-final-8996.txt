@@ -1,0 +1,56 @@
+✔ discrete first closure from gap 0 and the next unforced dt obey the same contact law (15.4775ms)
+✖ discrete first closure from gap 0.0005 and the next unforced dt obey the same contact law (9.949208ms)
+✔ discrete first closure from gap 0.01 and the next unforced dt obey the same contact law (2.803166ms)
+✔ manually zeroing physical velocity while keeping first-step lambda fails a fresh certificate (1.433125ms)
+✔ fresh hard-wall penetration cannot be hidden by a settled history equation (1.311125ms)
+✖ compliant normal compression retains its declared alpha and multiplier allowance (1.986625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.703209
+
+✖ failing tests:
+
+test at tests/kirchhoffSplitDiscreteContactCertificate.test.js:68:32
+✖ discrete first closure from gap 0.0005 and the next unforced dt obey the same contact law (9.949208ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(second.rawGaps.every(g=>g>=-2e-6))
+  
+      at TestContext.<anonymous> (file:///Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/tests/kirchhoffSplitDiscreteContactCertificate.test.js:75:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:763:18)
+      at Test.postRun (node:internal/test_runner/test:1210:19)
+      at Test.run (node:internal/test_runner/test:1138:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/kirchhoffSplitDiscreteContactCertificate.test.js:104:1
+✖ compliant normal compression retains its declared alpha and multiplier allowance (1.986625ms)
+  AssertionError [ERR_ASSERTION]: independent compliant full-step normal equation: -0.00022715311497449858 vs 0
+      at near (file:///Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/tests/kirchhoffSplitDiscreteContactCertificate.test.js:11:36)
+      at TestContext.<anonymous> (file:///Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/tests/kirchhoffSplitDiscreteContactCertificate.test.js:113:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:763:18)
+      at Test.postRun (node:internal/test_runner/test:1210:19)
+      at Test.run (node:internal/test_runner/test:1138:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

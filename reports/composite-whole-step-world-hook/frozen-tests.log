@@ -1,0 +1,20 @@
+✔ whole-dt provider publishes once before legacy prediction, integration, damping or contact passes (6.041166ms)
+✔ early rejection keeps prepared input and elapsed dt; direct retry commits and consumes them exactly once (0.446791ms)
+✔ provider exception preserves pending preparation, body transaction, clocks and an explicit failed result (0.349875ms)
+✔ an unfunded direct retry never subtracts time, while an advance retry funds the same prepared dt once (0.283625ms)
+✔ maxSubsteps and an intervening rejection preserve the full backlog without dropping or duplicate preparation (0.180791ms)
+✔ pending dt, provider object, id and methods cannot change or fall back, even before the next accumulator update (0.217875ms)
+✔ reset explicitly abandons a pending dt and resets the owned adapter without keeping pending inputs (0.295042ms)
+✔ a preparation exception is never replayed or passed as a valid partial input; reset is required (0.295458ms)
+✔ whole-step timings include preparation and provider rollback exactly once without old phase samples (0.651333ms)
+✔ malformed and asynchronous provider results cannot commit World clocks and can retry without re-preparation (0.336708ms)
+✔ provider clock mutation and reentrant execution are explicit errors, never extra committed dt (0.228917ms)
+✔ a callback may select the whole-dt law before a new step, but a pending split cannot switch laws (0.154666ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.127333

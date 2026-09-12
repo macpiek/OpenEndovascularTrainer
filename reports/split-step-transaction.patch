@@ -1,0 +1,441 @@
+diff --git a/src/physics/endovascularPhysicsWorld.js b/src/physics/endovascularPhysicsWorld.js
+--- a/src/physics/endovascularPhysicsWorld.js
++++ b/src/physics/endovascularPhysicsWorld.js
+@@ -1,4 +1,6 @@
+ import { buildKirchhoffPortalSideSamples } from './kirchhoffPortalSideSamples.js';
++import { captureKirchhoffSplitStep, restoreKirchhoffSplitStep,
++    kirchhoffSplitStepTopologyUnchanged } from './kirchhoffSplitStepTransaction.js';
+ import { buildKirchhoffSplitWallFriction, appendKirchhoffSplitWallFriction,
+     commitKirchhoffSplitWallFriction, measureKirchhoffSplitWallFriction } from './kirchhoffSplitWallFriction.js';
+ import { beginKirchhoffSplitMotion, captureKirchhoffSplitSweep, appendKirchhoffSplitSweeps, appendKirchhoffSplitPointWalls,
+@@ -1298,21 +1300,88 @@
+         return constraint;
+     }
+ 
++    // A rejected split leaves one prepared dt pending. Its callback inputs
++    // survive rollback, and only an accepted retry consumes that elapsed time.
+     advance(frameDt, beforeSubstep = null) {
+         const elapsed = Number.isFinite(frameDt) ? Math.max(0, frameDt) : 0;
+         this.accumulator += elapsed;
+         let substeps = 0;
+         while (this.accumulator + EPSILON >= this.fixedDt && substeps < this.maxSubsteps) {
+-            beforeSubstep?.(this.fixedDt, substeps);
+-            this.stepFixed();
+-            this.accumulator -= this.fixedDt;
++            if (this._pendingSplitSubstep && (this.jointMotionMode !== 'split-physical-bias' ||
++                this._pendingSplitSubstep.dt !== this.fixedDt))
++                throw new Error('A pending split timestep must retain its dt and motion mode');
++            if (!this._pendingSplitSubstep) {
++                beforeSubstep?.(this.fixedDt, substeps);
++                if (this.jointMotionMode === 'split-physical-bias') this._pendingSplitSubstep = { dt: this.fixedDt };
++            }
++            const result = this.stepFixed();
++            if (result?.accepted === false) break;
++            if (!result?.consumedPendingDt) {
++                this._pendingSplitSubstep = null;
++                this.accumulator -= this.fixedDt;
++            }
+             substeps++;
+         }
+         this.lastSubsteps = substeps;
+         return substeps;
+     }
+ 
++    // Legacy position-history keeps its void return. Optional split returns
++    // an owned acceptance result; false means no committed physical timestep.
+     stepFixed() {
++        if (this._pendingSplitSubstep && (this.jointMotionMode !== 'split-physical-bias' ||
++            this._pendingSplitSubstep.dt !== this.fixedDt))
++            throw new Error('A pending split timestep must retain its dt and motion mode');
++        if (this.jointMotionMode !== 'split-physical-bias') return this.#stepFixedImpl();
++        const joint = this.#jointCoupledConstraint();
++        if (!joint) {
++            this.lastCoupledClosureConverged = false;
++            return this.lastStepResult = { accepted: false, dt: this.fixedDt,
++                status: 'split-joint-unavailable', diagnostics: null };
++        }
++        const transactionStart = now();
++        const transaction = captureKirchhoffSplitStep(this);
++        try {
++            this.#stepFixedImpl(true);
++            const topologyUnchanged = kirchhoffSplitStepTopologyUnchanged(this, transaction);
++            const accepted = this.lastCoupledClosureConverged && topologyUnchanged;
++            const diagnostics = structuredClone(getKirchhoffSplitMotionStats(this));
++            const result = { accepted, dt: transaction.dt,
++                status: accepted ? 'accepted' : topologyUnchanged ? 'split-uncertified' : 'split-topology-changed', diagnostics };
++            if (!accepted) {
++                if (diagnostics) diagnostics.candidateMotion = this.bodies.map(body => Object.fromEntries(
++                    ['velocityX', 'velocityY', 'velocityZ', 'angularVelocityX', 'angularVelocityY', 'angularVelocityZ']
++                        .map(key => [key, Array.from(body[key])])));
++                restoreKirchhoffSplitStep(this, transaction);
++                this.lastCoupledClosureConverged = false;
++                if (diagnostics) { diagnostics.certified = false; diagnostics.historyCommits = 0; }
++            } else if (this._pendingSplitSubstep) {
++                // Also consume the queued dt when a caller retries stepFixed
++                // directly after a failed advance. It must not execute again
++                // when advance next visits its accumulator.
++                this.accumulator -= this._pendingSplitSubstep.dt;
++                this._pendingSplitSubstep = null;
++                result.consumedPendingDt = true;
++            }
++            this.lastStepResult = result;
++            return result;
++        } catch (error) {
++            let diagnostics = null;
++            try { diagnostics = structuredClone(getKirchhoffSplitMotionStats(this)); } catch { /* Incomplete failed phase. */ }
++            if (!transaction.restored) restoreKirchhoffSplitStep(this, transaction);
++            this.lastCoupledClosureConverged = false;
++            if (diagnostics) { diagnostics.certified = false; diagnostics.historyCommits = 0; }
++            this.lastStepResult = { accepted: false, dt: transaction.dt, status: 'split-error',
++                message: error.message, diagnostics };
++            throw error;
++        } finally {
++            // One sample includes snapshot, failed work and rollback, rather
++            // than reporting only the inner physics solve as the whole dt.
++            recordTiming(this.timings.total, now() - transactionStart);
++        }
++    }
++
++    #stepFixedImpl(transactional = false) {
+         const totalStart = now();
+         this.lastCoupledSolver = 'independent';
+         this.lastJointFactorizations = this.lastJointLinearIterations = 0;
+@@ -1346,7 +1415,7 @@
+                 if (name !== 'total') recordTiming(timing, 0);
+             }
+             this.stepCount++;
+-            recordTiming(this.timings.total, now() - totalStart);
++            if (!transactional) recordTiming(this.timings.total, now() - totalStart);
+             return;
+         }
+         // A load on either tool wakes their connected mechanical component
+@@ -2294,7 +2363,7 @@
+         recordTiming(this.timings.velocity, now() - phaseStart);
+ 
+         this.stepCount++;
+-        recordTiming(this.timings.total, now() - totalStart);
++        if (!transactional) recordTiming(this.timings.total, now() - totalStart);
+     }
+ 
+     #jointCoupledConstraint() {
+@@ -2607,6 +2676,8 @@
+     }
+ 
+     resetSimulationState() {
++        this._pendingSplitSubstep = null;
++        this.lastStepResult = null;
+         this.accumulator = 0;
+         this.stepCount = 0;
+         this.lastSubsteps = 0;
+@@ -2696,7 +2767,8 @@
+         return {
+             mode: 'kirchhoff-direct',
+             coupledSolver: this.lastCoupledSolver ?? 'independent',
+-            jointMotion: getKirchhoffSplitMotionStats(this),
++            jointMotion: this.jointMotionMode === 'split-physical-bias' && this.lastStepResult?.accepted === false
++                ? this.lastStepResult.diagnostics : getKirchhoffSplitMotionStats(this),
+             jointFactorizations: this.lastJointFactorizations ?? 0,
+             jointTrialEvaluations: this.lastJointTrialEvaluations ?? 0,
+             jointBacktracks: this.lastJointBacktracks ?? 0,
+diff --git a/src/physics/kirchhoffSplitStepTransaction.js b/src/physics/kirchhoffSplitStepTransaction.js
+new file mode 100644
+--- /dev/null
++++ b/src/physics/kirchhoffSplitStepTransaction.js
+@@ -0,0 +1,82 @@
++import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from './kirchhoffCoupledTrialState.js';
++
++const collectionKeys = ['bodies', 'containments', 'toolContacts', 'sheaths'];
++const settingKeys = ['fixedDt', 'jointMotionMode', 'contactField', 'coupledSystem'];
++const topologyKeys = ['count', 'segmentCount', 'activeStart', 'activeEnd'];
++const topologyArrays = ['x', 'y', 'z', 'previousX', 'previousY', 'previousZ',
++    'orientationX', 'orientationY', 'orientationZ', 'orientationW'];
++
++function slots(object) {
++    return { object, descriptors: Object.getOwnPropertyDescriptors(object) };
++}
++function restoreSlots({ object, descriptors }) {
++    for (const key of Reflect.ownKeys(object)) if (!Object.hasOwn(descriptors, key)) delete object[key];
++    Object.defineProperties(object, descriptors);
++}
++
++/** Whole physical-dt transaction, captured AFTER the caller prepared inputs
++ * but BEFORE wake, damping, integration, multiplier reset or contact refresh.
++ *
++ * The existing trial snapshot supplies owned numeric bytes and the mutable
++ * constraint/manifold/tool graph. It does NOT supply this whole-step contract:
++ * we additionally own body reference slots (phase banks replace arrays),
++ * collection/sheath references, body topology, simulation time and integrator
++ * flags. Restore those first so the trial helper's topology checks apply to
++ * the original bodies, including when a failed callback replaced storage.
++ * Every containment is captured, including disabled ones touched by beginStep.
++ *
++ * Solver scratch and old local-trial snapshots are disposable caches. They
++ * are invalidated, never published as restored physical history. World timing
++ * and work counters remain outside this snapshot, so rejection retains cost.
++ * External callbacks/renderer/contact-field internals are not physical state.
++ */
++export function captureKirchhoffSplitStep(world) {
++    const collections = collectionKeys.map(key => ({ key,
++        descriptor: Object.getOwnPropertyDescriptor(world, key), array: world[key], values: world[key].slice() }));
++    const bodySlots = world.bodies.map(slots), sheathSlots = world.sheaths.map(slots);
++    const sheathBodies = world.sheaths.filter(sheath => Array.isArray(sheath.bodies))
++        .map(sheath => ({ array: sheath.bodies, values: sheath.bodies.slice() }));
++    const topology = world.bodies.map(body => ({ body,
++        values: Object.fromEntries([...topologyKeys, ...topologyArrays].map(key => [key, body[key]])) }));
++    const localTrialCaches = world.containments.map(constraint => constraint._jointTrialState).filter(Boolean);
++    const trials = world.containments.map(constraint => captureKirchhoffCoupledTrialState(constraint,
++        { world, external: localTrialCaches }));
++    return { collections, bodySlots, sheathSlots, sheathBodies, topology, trials,
++        settings: settingKeys.map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(world, key) })),
++        dt: world.fixedDt,
++        stepCount: world.stepCount, inCoupledClosure: Object.getOwnPropertyDescriptor(world, '_inCoupledClosure'),
++        restored: false };
++}
++
++/** No topology/material window may change inside the solver transaction.
++ * beforeSubstep may prepare a new window before capture. An internal change
++ * is rejected and restored rather than committing a solve on mixed topology.
++ */
++export function kirchhoffSplitStepTopologyUnchanged(world, snapshot) {
++    return snapshot.settings.every(({ key, descriptor }) => world[key] === descriptor.value) &&
++        snapshot.collections.every(({ key, array, values }) => world[key] === array &&
++        array.length === values.length && values.every((value, index) => array[index] === value)) &&
++        snapshot.topology.every(({ body, values }) => Object.entries(values).every(([key, value]) => body[key] === value));
++}
++
++export function restoreKirchhoffSplitStep(world, snapshot) {
++    if (snapshot.restored) throw new Error('A physical step transaction can be restored only once');
++    // Reconnect original objects/storage before restoring any numeric bytes.
++    for (const { key, descriptor, array, values } of snapshot.collections) {
++        Object.defineProperty(world, key, descriptor);
++        array.length = 0; array.push(...values);
++    }
++    for (const state of [...snapshot.bodySlots, ...snapshot.sheathSlots]) restoreSlots(state);
++    for (const { array, values } of snapshot.sheathBodies) { array.length = 0; array.push(...values); }
++    for (const trial of snapshot.trials) restoreKirchhoffCoupledTrialState(trial);
++    // The numeric-body filter of the trial helper intentionally omits object
++    // references; a failed split must also undo _splitPhysicalMotion and bank
++    // substitutions, including removing properties first created by that dt.
++    for (const state of [...snapshot.bodySlots, ...snapshot.sheathSlots]) restoreSlots(state);
++    for (const constraint of world.containments) delete constraint._jointTrialState;
++    for (const { key, descriptor } of snapshot.settings) Object.defineProperty(world, key, descriptor);
++    world.stepCount = snapshot.stepCount;
++    if (snapshot.inCoupledClosure) Object.defineProperty(world, '_inCoupledClosure', snapshot.inCoupledClosure);
++    else delete world._inCoupledClosure;
++    snapshot.restored = true;
++}
+diff --git a/tests/kirchhoffSplitStepTransaction.test.js b/tests/kirchhoffSplitStepTransaction.test.js
+new file mode 100644
+--- /dev/null
++++ b/tests/kirchhoffSplitStepTransaction.test.js
+@@ -0,0 +1,171 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { Quaternion } from 'three';
++import { fixture, frame, DT } from './fixtures/splitMotionAnalyticWorld.js';
++import { configureKirchhoffSplitBias } from '../src/physics/kirchhoffSplitMotion.js';
++
++function tilt(f) {
++    for (let i = 0; i < f.wire.count; i++) f.wire.setNodePosition(i, i - 1, -.5 + .2 * (i - 1), 0);
++    f.wire.captureRestConfiguration(); f.wire.copyCurrentToPrevious();
++}
++function removeOverlap(f) {
++    for (let i = 0; i < f.wire.count; i++) f.wire.setNodePosition(i, i - 1, -.6, 0);
++    f.wire.captureRestConfiguration(); f.wire.copyCurrentToPrevious();
++}
++function numericBytes(body) {
++    return Object.entries(body).filter(([, value]) => ArrayBuffer.isView(value)).map(([key, array]) =>
++        ({ key, array, bytes: Buffer.from(array.buffer, array.byteOffset, array.byteLength).toString('hex') }));
++}
++function sameBytes(body, saved) {
++    for (const { key, array, bytes } of saved) {
++        assert.equal(body[key], array, `${key} original storage reference`);
++        assert.equal(Buffer.from(array.buffer, array.byteOffset, array.byteLength).toString('hex'), bytes, `${key} original bytes`);
++    }
++}
++
++test('uncertified tilted dt restores body/history/manifold/tools/sheath and force inputs before damping', () => {
++    const f = fixture({ wall: true, y: -.5 });
++    assert.equal(f.world.stepFixed().accepted, true);
++    const oldHistory = f.constraint._acceptedPhysicalMotion, oldSplit = f.constraint._splitMotion;
++    const oldBodyMotion = f.wire._splitPhysicalMotion, beforeStep = f.world.stepCount;
++    tilt(f);
++    f.wire.linearDamping = .6; f.wire.angularDamping = .7;
++    f.wire.velocityX.fill(1); f.wire.angularVelocityX.fill(.1); f.wire.forceX.fill(.25);
++    const tool = f.world.addToolContact(f.wire, f.catheter, { enabled: false });
++    tool.lambdas[0] = .123;
++    tool._jointReactions = new Map([['prior', { wrenches: [], normalWrenches: [], data: Float64Array.of(.5, .75) }]]);
++    const sheath = f.world.addSheath({ start: { x: 10, y: 0, z: 0 }, end: { x: 11, y: 0, z: 0 }, bodies: [] });
++    sheath.lambdas.set(f.wire, Float32Array.of(.2, .4));
++    const contact = f.constraint.manifold.upsertContact({ innerMaterialSegmentId: 'old-inner', outerMaterialSegmentId: 'old-outer',
++        feature: 'review-history', innerSegmentIndex: 0, outerSegmentIndex: 0, normal: [0, 1, 0], tangentU: [1, 0, 0] });
++    contact.normalLambda = 2; contact.tangentLambda[0] = .3; f.constraint.manifold.endStep();
++    const contacts = Array.from(f.constraint.manifold.contacts()), manifoldStep = f.constraint.manifold.step;
++    const toolLambdas = tool.lambdas, reactions = tool._jointReactions, reactionBytes = reactions.get('prior').data.slice();
++    const sheathMap = sheath.lambdas, sheathValues = sheathMap.get(f.wire), sheathBytes = sheathValues.slice();
++    const wire = numericBytes(f.wire), catheter = numericBytes(f.catheter);
++    const result = f.world.stepFixed();
++    assert.equal(result.accepted, false); assert.equal(result.status, 'split-uncertified');
++    assert.equal(f.world.stepCount, beforeStep); assert.equal(f.world.lastCoupledClosureConverged, false);
++    assert.ok(result.diagnostics.finalMaterialResidual.bendTwistRad > .001);
++    assert.equal(result.diagnostics.historyCommits, 0);
++    sameBytes(f.wire, wire); sameBytes(f.catheter, catheter);
++    assert.equal(f.constraint._acceptedPhysicalMotion, oldHistory); assert.equal(f.constraint._splitMotion, oldSplit);
++    assert.equal(f.wire._splitPhysicalMotion, oldBodyMotion);
++    assert.deepEqual(Array.from(f.constraint.manifold.contacts()), contacts);
++    assert.equal(f.constraint.manifold.step, manifoldStep); assert.equal(contact.normalLambda, 2);
++    assert.deepEqual(Array.from(contact.tangentLambda), [.3, 0]);
++    assert.equal(tool.lambdas, toolLambdas); assert.equal(tool.lambdas[0], Math.fround(.123));
++    assert.equal(tool._jointReactions, reactions); assert.deepEqual(reactions.get('prior').data, reactionBytes);
++    assert.equal(sheath.lambdas, sheathMap); assert.equal(sheathMap.get(f.wire), sheathValues); assert.deepEqual(sheathValues, sheathBytes);
++    assert.ok(f.world.lastJointFactorizations > 0, 'rejected solve costs remain visible');
++    assert.ok(f.world.timings.total.last > 0);
++    assert.equal(f.world.getStats().jointMotion.certified, false, 'restored old accepted graph cannot conceal failed diagnostics');
++    const savedFailure = structuredClone(result);
++    // Remove the rejected geometry and old test reactions. The force input
++    // restored above is consumed by one accepted physical dt, not lost.
++    contact.normalLambda = 0; contact.tangentLambda.fill(0);
++    f.world.toolContacts.length = 0; f.world.sheaths.length = 0;
++    removeOverlap(f);
++    const accepted = f.world.stepFixed();
++    assert.equal(accepted.accepted, true, JSON.stringify(accepted));
++    assert.equal(f.world.stepCount, beforeStep + 1); assert.equal(accepted.diagnostics.historyCommits, 1);
++    assert.ok(f.wire.forceX.every(value => value === 0));
++    assert.deepEqual(result, savedFailure, 'failed result is an owned stable diagnostic snapshot');
++});
++
++test('advance keeps rejected dt queued and prepares callback inputs only once across retries', () => {
++    const f = fixture({ wall: true, y: -.5 }); tilt(f);
++    let callbacks = 0;
++    const prepare = () => { callbacks++; f.wire.forceX.fill(.125 * callbacks); };
++    assert.equal(f.world.advance(DT, prepare), 0);
++    assert.equal(callbacks, 1); assert.equal(f.world.accumulator, DT); assert.equal(f.world.stepCount, 0);
++    assert.equal(f.world.lastSubsteps, 0); assert.ok(f.wire.forceX.every(value => value === .125));
++    assert.equal(f.world.advance(0, prepare), 0);
++    assert.equal(callbacks, 1); assert.equal(f.world.accumulator, DT); assert.ok(f.wire.forceX.every(value => value === .125));
++    removeOverlap(f);
++    assert.equal(f.world.advance(0, prepare), 1);
++    assert.equal(callbacks, 1); assert.equal(f.world.accumulator, 0); assert.equal(f.world.stepCount, 1);
++    assert.equal(f.world.advance(DT, prepare), 1);
++    assert.equal(callbacks, 2); assert.equal(f.world.stepCount, 2); assert.equal(f.world.droppedTime, 0);
++    f.world.maxSubsteps = 1;
++    assert.equal(f.world.advance(2 * DT, prepare), 1);
++    assert.equal(f.world.accumulator, DT); assert.equal(callbacks, 3);
++    assert.equal(f.world.advance(0, prepare), 1);
++    assert.equal(f.world.accumulator, 0); assert.equal(callbacks, 4); assert.equal(f.world.stepCount, 4);
++});
++
++test('a rejected internal physical trial can still commit exactly one accepted dt', () => {
++    const f = fixture(), q = new Quaternion(Math.sin(.1), 0, 0, Math.cos(.1)).multiply(frame(f.wire, 1));
++    ['X', 'Y', 'Z', 'W'].forEach((axis, i) => { f.wire['orientation' + axis][1] = q.toArray()[i]; });
++    f.wire.copyCurrentToPrevious();
++    let rejected = 0;
++    f.world.debugJointTrial = (joint, state, pass, trial) => {
++        if (state.motionPhase !== 'physical') return;
++        if (pass === 0) { state.settled = false; state.merit = 1; }
++        if (pass === 1 && trial === 0) { state.settled = false; state.merit = Infinity; rejected++; }
++    };
++    const result = f.world.stepFixed();
++    assert.equal(result.accepted, true, JSON.stringify(result)); assert.equal(rejected, 1);
++    assert.equal(f.world.stepCount, 1); assert.equal(result.diagnostics.historyCommits, 1);
++    assert.ok(result.diagnostics.rollbackCount >= 1);
++});
++
++test('whole-step rollback reconnects original storage and topology even if a failing hook replaces them', () => {
++    const f = fixture(), bodies = f.world.bodies, x = f.wire.x, activeEnd = f.wire.activeEnd;
++    const before = numericBytes(f.wire);
++    configureKirchhoffSplitBias(f.constraint, { materialMode: 'preserve-strain' });
++    f.world.debugJointTrial = () => {
++        f.wire.x = f.wire.x.slice(); f.wire.x[0] = 100;
++        f.wire.activeEnd--;
++        f.world.bodies = [f.catheter, f.wire];
++        f.world.fixedDt = 2 * DT;
++        f.constraint._splitBiasMaterialMode = 'physical-compliance';
++        throw new Error('intentional failed topology edit');
++    };
++    assert.throws(() => f.world.stepFixed(), /intentional failed topology edit/);
++    assert.equal(f.world.bodies, bodies); assert.deepEqual(f.world.bodies, [f.wire, f.catheter]);
++    assert.equal(f.wire.x, x); assert.equal(f.wire.activeEnd, activeEnd); sameBytes(f.wire, before);
++    assert.equal(f.world.stepCount, 0); assert.equal(f.world.lastStepResult.accepted, false);
++    assert.equal(f.world.fixedDt, DT);
++    assert.equal(f.constraint._splitMotion, undefined); assert.equal(f.wire._splitPhysicalMotion, undefined);
++    assert.equal(f.constraint._splitBiasMaterialMode, 'preserve-strain');
++});
++
++test('accepted transaction retains the selected per-joint bias material mode', () => {
++    const f = fixture(); configureKirchhoffSplitBias(f.constraint, { materialMode: 'preserve-strain' });
++    const result = f.world.stepFixed();
++    assert.equal(result.accepted, true, JSON.stringify(result));
++    assert.equal(f.constraint._splitBiasMaterialMode, 'preserve-strain');
++    assert.equal(result.diagnostics.biasMaterialMode, 'preserve-strain');
++});
++
++test('pending split time cannot silently switch to another dt or another physical law', () => {
++    const f = fixture({ wall: true, y: -.5 }); tilt(f);
++    f.world.advance(DT);
++    f.world.fixedDt = DT / 2;
++    assert.throws(() => f.world.advance(0), /pending split timestep/);
++    f.world.fixedDt = DT; f.world.jointMotionMode = 'position-history';
++    assert.throws(() => f.world.advance(0), /pending split timestep/);
++    assert.equal(f.world.accumulator, DT); assert.equal(f.world.stepCount, 0);
++});
++
++test('direct retry consumes the pending dt once and cannot fall back when the joint is unavailable', () => {
++    const f = fixture({ wall: true, y: -.5 }); tilt(f);
++    let calls = 0; f.world.advance(DT, () => calls++);
++    f.constraint.enabled = false;
++    const missing = f.world.stepFixed();
++    assert.equal(missing.accepted, false); assert.equal(missing.status, 'split-joint-unavailable');
++    assert.equal(f.world.stepCount, 0); assert.equal(f.world.accumulator, DT);
++    f.constraint.enabled = true; removeOverlap(f);
++    const accepted = f.world.stepFixed();
++    assert.equal(accepted.accepted, true); assert.equal(accepted.consumedPendingDt, true);
++    assert.equal(f.world.accumulator, 0); assert.equal(f.world.stepCount, 1);
++    assert.equal(f.world.advance(0, () => calls++), 0); assert.equal(calls, 1);
++});
++
++test('default position-history retains its return behavior and per-step callback scheduling', () => {
++    const f = fixture(); f.world.jointMotionMode = 'position-history';
++    assert.equal(f.world.stepFixed(), undefined);
++    let calls = 0; assert.equal(f.world.advance(2 * DT, () => calls++), 2);
++    assert.equal(calls, 2); assert.equal(f.world.stepCount, 3); assert.equal(f.world.accumulator, 0);
++});
+diff --git a/tests/kirchhoffSplitMotionCertification.test.js b/tests/kirchhoffSplitMotionCertification.test.js
+--- a/tests/kirchhoffSplitMotionCertification.test.js
++++ b/tests/kirchhoffSplitMotionCertification.test.js
+@@ -106,16 +106,18 @@
+     const f=fixture({wall:true,y:-.5});
+     for(let i=0;i<f.wire.count;i++)f.wire.setNodePosition(i,i-1,-.5+.2*(i-1),0);
+     f.wire.captureRestConfiguration();f.wire.copyCurrentToPrevious();
+-    f.world.stepFixed();
++    const before=f.wire.y.slice(),result=f.world.stepFixed();
++    assert.equal(result.accepted,false);
+     const d=f.world.getStats().jointMotion,m=assembleKirchhoffDirect(f.wire,DT);
+     let actual=0;
+     for(let i=0;i<m.rowCount;i+=6)actual=Math.max(actual,Math.hypot(...[0,1,2].map(k=>m.strain[i+k]+m.alpha[i+k]*m.lambda[i+k])));
+-    assert.ok(actual>f.world.coupledAngularToleranceRad,'fixture must have a real final material residual');
++    assert.ok(d.finalMaterialResidual.bendTwistRad>f.world.coupledAngularToleranceRad,'rejected candidate must have a real final material residual');
++    assert.ok(actual<f.world.coupledAngularToleranceRad,'published state is restored before the rejected bias');
++    assert.deepEqual(f.wire.y,before);
+     assert.ok(d.biasElasticEnergyDelta>.1,'fixture must change elastic energy');
+     assert.equal(d.certified,false);
+     assert.equal(d.historyCommits,0);
+     assert.equal(d.finalPhysicalResidualSettled,false);
+-    close(d.finalMaterialResidual.bendTwistRad,actual,1e-9,'fresh geometric material equation');
+     assert.ok(d.physicalPhaseMaterialResidual.bendTwistRad<f.world.coupledAngularToleranceRad);
+ });
+ 
+diff --git a/tests/kirchhoffSplitBiasStrain.test.js b/tests/kirchhoffSplitBiasStrain.test.js
+--- a/tests/kirchhoffSplitBiasStrain.test.js
++++ b/tests/kirchhoffSplitBiasStrain.test.js
+@@ -34,8 +34,8 @@
+         close(length,hard.wire.restLength[i],POSITION,'geometric rest length');
+     }
+     for(const a of axes) {
+-        assert.deepEqual(hard.wire['velocity'+a],compliant.wire['velocity'+a],'bias cannot change physical velocity');
+-        assert.deepEqual(hard.wire['angularVelocity'+a],compliant.wire['angularVelocity'+a],'bias cannot change physical spin');
++        assert.deepEqual(Array.from(hard.wire['velocity'+a]),old.candidateMotion[0]['velocity'+a],'bias cannot change candidate physical velocity');
++        assert.deepEqual(Array.from(hard.wire['angularVelocity'+a]),old.candidateMotion[0]['angularVelocity'+a],'bias cannot change candidate physical spin');
+         for(const v of hard.wire['velocity'+a])close(v,0,VELOCITY,'initially stationary translation');
+         for(const w of hard.wire['angularVelocity'+a])close(w,0,ANGULAR,'initially stationary spin');
+     }

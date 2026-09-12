@@ -1,0 +1,717 @@
+{
+  "scope": "Frozen problem and post-feed trial-state microbenchmarks, not browser FPS or full-step acceptance",
+  "stateBefore": {
+    "state": {
+      "wireMm": 999.9000000000169,
+      "catheterMm": 100.00000000000007,
+      "wireRotation": 0,
+      "catheterRotation": 0,
+      "executedSteps": 3918,
+      "fingerprints": [
+        {
+          "id": "guidewire",
+          "hash": "32d9cbe8"
+        },
+        {
+          "id": "catheter",
+          "hash": "64daf2c2"
+        }
+      ],
+      "activeNodes": [
+        201,
+        41
+      ]
+    },
+    "total": {
+      "objects": 15146,
+      "bytes": 903641
+    },
+    "stats": [
+      {
+        "key": "_kirchhoffRuntimeRecordPool",
+        "objects": 8143,
+        "properties": 23859,
+        "bytes": 105808
+      },
+      {
+        "key": "_coupledFoldRows",
+        "objects": 1591,
+        "properties": 8494,
+        "bytes": 59394
+      },
+      {
+        "key": "kirchhoffContacts",
+        "objects": 3363,
+        "properties": 6691,
+        "bytes": 61168
+      },
+      {
+        "key": "_coupledBoundaries",
+        "objects": 1066,
+        "properties": 5290,
+        "bytes": 30216
+      },
+      {
+        "key": "manifold",
+        "objects": 427,
+        "properties": 2725,
+        "bytes": 1360
+      },
+      {
+        "key": "_jointPortalSideSamples",
+        "objects": 287,
+        "properties": 717,
+        "bytes": 3840
+      },
+      {
+        "key": "catheter",
+        "objects": 105,
+        "properties": 182,
+        "bytes": 178009
+      },
+      {
+        "key": "guidewire",
+        "objects": 105,
+        "properties": 181,
+        "bytes": 111726
+      },
+      {
+        "key": "_jointDiagnostics",
+        "objects": 1,
+        "properties": 31,
+        "bytes": 0
+      },
+      {
+        "key": "_coupledOrientationRows",
+        "objects": 7,
+        "properties": 30,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffSmoothContactScratch",
+        "objects": 23,
+        "properties": 24,
+        "bytes": 512
+      },
+      {
+        "key": "_kirchhoffRuntimeRecords",
+        "objects": 1,
+        "properties": 23,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffUpsertOptions",
+        "objects": 1,
+        "properties": 13,
+        "bytes": 0
+      },
+      {
+        "key": "_slidingPortalState",
+        "objects": 1,
+        "properties": 8,
+        "bytes": 0
+      },
+      {
+        "key": "kirchhoffMeasuredWorstSide",
+        "objects": 1,
+        "properties": 6,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffSmoothRuntimeRecords",
+        "objects": 1,
+        "properties": 5,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffClosestCurve",
+        "objects": 1,
+        "properties": 5,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffCurveCache",
+        "objects": 2,
+        "properties": 1,
+        "bytes": 61248
+      },
+      {
+        "key": "kirchhoffOuterSegmentByInner",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 800
+      },
+      {
+        "key": "lambdas",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 804
+      },
+      {
+        "key": "closestSegment",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 804
+      },
+      {
+        "key": "closestT",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 804
+      },
+      {
+        "key": "outerPostX",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 1280
+      },
+      {
+        "key": "outerPostY",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 1280
+      },
+      {
+        "key": "outerPostZ",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 1280
+      },
+      {
+        "key": "_kirchhoffOuterArcAtNode",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 2560
+      },
+      {
+        "key": "_kirchhoffRuntimeAxis",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 24
+      },
+      {
+        "key": "_kirchhoffRawOuterTBySample",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 40
+      },
+      {
+        "key": "_kirchhoffOpenGapCache",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 22400
+      },
+      {
+        "key": "_kirchhoffOpenOuterSegment",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 800
+      },
+      {
+        "key": "_kirchhoffOpenSampleMask",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 200
+      }
+    ],
+    "times": [
+      {
+        "capture": 6.89166699999987,
+        "restore": 5.534500000001572
+      },
+      {
+        "capture": 9.03820800000176,
+        "restore": 2.9146249999976135
+      },
+      {
+        "capture": 6.114790999999968,
+        "restore": 3.1768749999973807
+      },
+      {
+        "capture": 6.671167000000423,
+        "restore": 2.6413329999995767
+      },
+      {
+        "capture": 6.278209000000061,
+        "restore": 3.0668750000004366
+      },
+      {
+        "capture": 6.7745839999988675,
+        "restore": 2.803125000002183
+      },
+      {
+        "capture": 6.374790999998368,
+        "restore": 3.127250000001368
+      },
+      {
+        "capture": 5.781875000000582,
+        "restore": 3.002583000001323
+      },
+      {
+        "capture": 6.674125000001368,
+        "restore": 3.0625419999996666
+      },
+      {
+        "capture": 6.079499999999825,
+        "restore": 2.8001250000015716
+      },
+      {
+        "capture": 6.284332999999606,
+        "restore": 2.5812499999992724
+      },
+      {
+        "capture": 5.8489580000023125,
+        "restore": 2.7161249999990105
+      },
+      {
+        "capture": 6.8336249999993015,
+        "restore": 2.424709000002622
+      },
+      {
+        "capture": 6.111042000000452,
+        "restore": 3.5488750000004075
+      },
+      {
+        "capture": 6.852666999999201,
+        "restore": 2.94841599999927
+      },
+      {
+        "capture": 6.731332999999722,
+        "restore": 3.1803749999999127
+      },
+      {
+        "capture": 6.434083000000101,
+        "restore": 2.754124999999476
+      },
+      {
+        "capture": 6.875707999999577,
+        "restore": 2.725916999999754
+      },
+      {
+        "capture": 5.923458000001119,
+        "restore": 2.7674579999984417
+      },
+      {
+        "capture": 7.291124999999738,
+        "restore": 3.071458000002167
+      }
+    ]
+  },
+  "stateAfter": {
+    "state": {
+      "wireMm": 999.9000000000169,
+      "catheterMm": 100.00000000000007,
+      "wireRotation": 0,
+      "catheterRotation": 0,
+      "executedSteps": 3918,
+      "fingerprints": [
+        {
+          "id": "guidewire",
+          "hash": "32d9cbe8"
+        },
+        {
+          "id": "catheter",
+          "hash": "64daf2c2"
+        }
+      ],
+      "activeNodes": [
+        201,
+        41
+      ]
+    },
+    "total": {
+      "objects": 15146,
+      "bytes": 903641
+    },
+    "stats": [
+      {
+        "key": "_kirchhoffRuntimeRecordPool",
+        "objects": 8143,
+        "properties": 23859,
+        "bytes": 105808
+      },
+      {
+        "key": "_coupledFoldRows",
+        "objects": 1591,
+        "properties": 8494,
+        "bytes": 59394
+      },
+      {
+        "key": "kirchhoffContacts",
+        "objects": 3363,
+        "properties": 6691,
+        "bytes": 61168
+      },
+      {
+        "key": "_coupledBoundaries",
+        "objects": 1066,
+        "properties": 5290,
+        "bytes": 30216
+      },
+      {
+        "key": "manifold",
+        "objects": 427,
+        "properties": 2725,
+        "bytes": 1360
+      },
+      {
+        "key": "_jointPortalSideSamples",
+        "objects": 287,
+        "properties": 717,
+        "bytes": 3840
+      },
+      {
+        "key": "catheter",
+        "objects": 105,
+        "properties": 182,
+        "bytes": 178009
+      },
+      {
+        "key": "guidewire",
+        "objects": 105,
+        "properties": 181,
+        "bytes": 111726
+      },
+      {
+        "key": "_jointDiagnostics",
+        "objects": 1,
+        "properties": 31,
+        "bytes": 0
+      },
+      {
+        "key": "_coupledOrientationRows",
+        "objects": 7,
+        "properties": 30,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffSmoothContactScratch",
+        "objects": 23,
+        "properties": 24,
+        "bytes": 512
+      },
+      {
+        "key": "_kirchhoffRuntimeRecords",
+        "objects": 1,
+        "properties": 23,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffUpsertOptions",
+        "objects": 1,
+        "properties": 13,
+        "bytes": 0
+      },
+      {
+        "key": "_slidingPortalState",
+        "objects": 1,
+        "properties": 8,
+        "bytes": 0
+      },
+      {
+        "key": "kirchhoffMeasuredWorstSide",
+        "objects": 1,
+        "properties": 6,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffSmoothRuntimeRecords",
+        "objects": 1,
+        "properties": 5,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffClosestCurve",
+        "objects": 1,
+        "properties": 5,
+        "bytes": 0
+      },
+      {
+        "key": "_kirchhoffCurveCache",
+        "objects": 2,
+        "properties": 1,
+        "bytes": 61248
+      },
+      {
+        "key": "kirchhoffOuterSegmentByInner",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 800
+      },
+      {
+        "key": "lambdas",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 804
+      },
+      {
+        "key": "closestSegment",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 804
+      },
+      {
+        "key": "closestT",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 804
+      },
+      {
+        "key": "outerPostX",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 1280
+      },
+      {
+        "key": "outerPostY",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 1280
+      },
+      {
+        "key": "outerPostZ",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 1280
+      },
+      {
+        "key": "_kirchhoffOuterArcAtNode",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 2560
+      },
+      {
+        "key": "_kirchhoffRuntimeAxis",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 24
+      },
+      {
+        "key": "_kirchhoffRawOuterTBySample",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 40
+      },
+      {
+        "key": "_kirchhoffOpenGapCache",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 22400
+      },
+      {
+        "key": "_kirchhoffOpenOuterSegment",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 800
+      },
+      {
+        "key": "_kirchhoffOpenSampleMask",
+        "objects": 1,
+        "properties": 0,
+        "bytes": 200
+      }
+    ],
+    "times": [
+      {
+        "capture": 5.274457999999868,
+        "restore": 5.497000000003027
+      },
+      {
+        "capture": 4.495915999999852,
+        "restore": 2.945791999998619
+      },
+      {
+        "capture": 4.692374999998719,
+        "restore": 2.9335419999988517
+      },
+      {
+        "capture": 4.165041000000201,
+        "restore": 2.434084000000439
+      },
+      {
+        "capture": 5.732416999999259,
+        "restore": 3.238083000000188
+      },
+      {
+        "capture": 4.269334000000526,
+        "restore": 2.426041000002442
+      },
+      {
+        "capture": 4.244084000001749,
+        "restore": 2.744915999999648
+      },
+      {
+        "capture": 4.875958000000537,
+        "restore": 2.467499999998836
+      },
+      {
+        "capture": 3.8503749999981665,
+        "restore": 2.890417000002344
+      },
+      {
+        "capture": 4.740832999999839,
+        "restore": 2.715749999999389
+      },
+      {
+        "capture": 4.624250000000757,
+        "restore": 2.816792000001442
+      },
+      {
+        "capture": 4.516083999998955,
+        "restore": 3.1058329999978014
+      },
+      {
+        "capture": 4.223708000001352,
+        "restore": 2.395667000000685
+      },
+      {
+        "capture": 4.303750000002765,
+        "restore": 3.0032909999972617
+      },
+      {
+        "capture": 4.471750000000611,
+        "restore": 2.412917000001471
+      },
+      {
+        "capture": 4.096416000000318,
+        "restore": 3.2782919999990554
+      },
+      {
+        "capture": 4.9412499999998545,
+        "restore": 2.5153339999997115
+      },
+      {
+        "capture": 3.993624999999156,
+        "restore": 2.6776669999999285
+      },
+      {
+        "capture": 4.888582999999926,
+        "restore": 2.9450419999993755
+      },
+      {
+        "capture": 4.093833000002633,
+        "restore": 2.3724589999983436
+      }
+    ]
+  },
+  "condensedBefore": {
+    "times": [
+      27.46350000000001,
+      18.504458,
+      15.25770799999998,
+      11.81679200000002,
+      10.284375000000011,
+      10.363792000000046,
+      8.13491700000003,
+      9.287750000000017,
+      12.515916999999945,
+      8.991499999999974,
+      8.982250000000022,
+      9.162041000000045,
+      9.420999999999992,
+      9.27766600000001,
+      9.701750000000004,
+      9.228499999999997,
+      8.040209000000004,
+      8.68266699999998,
+      8.257833000000005,
+      8.384624999999971,
+      8.826209000000006,
+      10.79600000000005,
+      7.804374999999936,
+      7.8891250000000355,
+      8.481792000000041,
+      8.689750000000004,
+      8.426249999999982,
+      7.57325000000003,
+      7.814375000000041,
+      7.325042000000053
+    ],
+    "incrementHash": "403c2d086511d18ee2bf36d3ecc368980a2cd7d9efe4a3a5424b978578fd557d",
+    "residualHash": "7382dc03aa5fef01a9b29f5a1fd84f1cc6c5864147cef0540bf6f555df9db84d",
+    "diagnostics": {
+      "status": "converged",
+      "converged": true,
+      "iterations": 21,
+      "factorizations": 22,
+      "backtracks": 0,
+      "gradientFallbacks": 0,
+      "maximumResidual": 0.0000381546321930222,
+      "frictionResidual": 0.0000381546321930222,
+      "coneViolation": 0,
+      "rowCount": 102,
+      "band": 102,
+      "groupCount": 22,
+      "normalLoadIterations": 1,
+      "method": "simultaneous-coulomb-newton",
+      "normalMap": "projection",
+      "seedFactorizations": 10,
+      "originalCount": 1999,
+      "equalityCount": 1438,
+      "equalityBand": 27,
+      "retainedCount": 102,
+      "responseColumns": 102,
+      "expansions": 2
+    }
+  },
+  "condensedAfter": {
+    "times": [
+      27.49866700000001,
+      22.811457999999988,
+      17.000541999999996,
+      10.023208000000011,
+      15.724875000000054,
+      12.515625,
+      11.151083000000028,
+      11.147832999999991,
+      10.701000000000022,
+      8.593707999999992,
+      6.587499999999977,
+      7.780750000000012,
+      6.828249999999969,
+      7.215750000000014,
+      7.2026670000000195,
+      7.299417000000005,
+      7.96670800000004,
+      7.396415999999988,
+      7.6362080000000105,
+      7.079999999999984,
+      7.114208000000019,
+      10.375875000000008,
+      8.692583000000013,
+      7.401333999999963,
+      8.769334000000015,
+      7.898040999999978,
+      7.142791999999986,
+      7.088250000000016,
+      6.896959000000038,
+      7.5496669999999995
+    ],
+    "incrementHash": "403c2d086511d18ee2bf36d3ecc368980a2cd7d9efe4a3a5424b978578fd557d",
+    "residualHash": "7382dc03aa5fef01a9b29f5a1fd84f1cc6c5864147cef0540bf6f555df9db84d",
+    "diagnostics": {
+      "status": "converged",
+      "converged": true,
+      "iterations": 21,
+      "factorizations": 22,
+      "backtracks": 0,
+      "gradientFallbacks": 0,
+      "maximumResidual": 0.0000381546321930222,
+      "frictionResidual": 0.0000381546321930222,
+      "coneViolation": 0,
+      "rowCount": 102,
+      "band": 102,
+      "groupCount": 22,
+      "normalLoadIterations": 1,
+      "method": "simultaneous-coulomb-newton",
+      "normalMap": "projection",
+      "seedFactorizations": 10,
+      "originalCount": 1999,
+      "equalityCount": 1438,
+      "equalityBand": 27,
+      "retainedCount": 102,
+      "responseColumns": 102,
+      "expansions": 2
+    }
+  }
+}

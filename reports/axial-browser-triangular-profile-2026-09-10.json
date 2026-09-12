@@ -1,0 +1,12 @@
+{
+  "scenario": "35 s UI joint-axial-sections with triangular profiles",
+  "calls": 430,
+  "nonconvergedResults": 0,
+  "averageFps": 28.933390612153165,
+  "backlogSeconds": 19.14136666666667,
+  "lastStepMs": 329.2999999523163,
+  "localResponsesMs": 3108.899993658066,
+  "localFactorMs": 2700.6999965906143,
+  "sectionAssemblyMs": 12095.899996638298,
+  "performanceGatePassed": false
+}

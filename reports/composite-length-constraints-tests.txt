@@ -1,0 +1,18 @@
+✔ original length and signed physical reactions are distinct from AL trial multipliers (3.1665ms)
+✔ zero AL trial force cannot certify a nonzero original length error (0.295917ms)
+✔ physical reactions obey action-reaction, zero net torque, and exact virtual work (0.482333ms)
+✔ exact constraint Jacobian and nonlinear AL gradient match independent energy differences (0.667041ms)
+✔ GN band is mu J transpose J and explicitly excludes the nonlinear geometric Hessian (1.635084ms)
+✔ AL adds to the existing common band without modifying independent spins (0.53475ms)
+✔ final measurement uses fresh geometry and physical multipliers, independent of prior AL state (0.193542ms)
+✔ length and force unit changes preserve the physical and augmented operators (0.367541ms)
+✔ tolerance and penalty are explicit, and invalid or collapsed geometry is rejected without a floor (0.828125ms)
+✔ finite-input overflow cannot produce an accepted operator or partially change a target (0.39125ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.808708

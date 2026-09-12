@@ -1,0 +1,17 @@
+✔ one/two original samples own distinct two-component rows, actual nodal forces/spin torques and original stick certificate (13.258125ms)
+✔ finite sliding rows retain all primal G/B/DB and Fn/other-Ft derivatives in the physical support (30.773917ms)
+✔ signed private normal extension and infeasible zero-load Ft remain unclamped and cannot gain authority through mutated diagnostics (2.94125ms)
+✔ failed current query/surface refresh revokes all rows and loads without partially publishing residuals, then retries identically (4.728625ms)
+✔ private commit checks positions, live own angles and forces, but permits root candidate reference-frame commit (3.449834ms)
+✔ accepted maps/Ft are owned across dt and numerical k changes; inconsistent labels or physical mu/chart cannot rebind history (3.423334ms)
+✔ old affine-map derivation supports nonuniform endpoint rates and typed semantic IDs without stale moving-foot scalars (1.864917ms)
+✔ normal-only interior endpoint gauge, tip features and pressure transfers reject explicitly before mutating original data (0.89325ms)
+✔ previous query budget failures and invalid preparation never publish data or alter incoming history (3.75ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.214375

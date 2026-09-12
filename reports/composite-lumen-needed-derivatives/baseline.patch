@@ -1,0 +1,193 @@
+--- a/src/physics/kirchhoffCompositeJointLumenRows.js
++++ b/src/physics/kirchhoffCompositeJointLumenRows.js
+@@ -100,7 +100,7 @@
+     let certificate=null,gaugePrepared=false,refreshedPositions=null,commitReady=false;
+     const gauge={kind:samples.every(s=>s.feature==='side')?'affine-side-endpoints':'explicit-tip-and-affine-side-endpoints',retainedRows:rowSampleIndices.length,redundantSamples:samples.length-rowSampleIndices.length,
+         transfers:[],preparationQueries:0};
+-    function query(sample,toolPositions,consumeQuery,differentialOrder='full') {
++    function query(sample,toolPositions,consumeQuery) {
+         const {input,points,geometry,index}=sample,Fn=normalForces[index];
+         if(!Number.isFinite(Fn))throw failure('Nonfinite private lumen force');
+         [input.innerStart,input.innerEnd,input.outerStart,input.outerEnd]=points.map(p=>toolPositions.get(p.toolId)[p.node]);
+@@ -115,7 +115,7 @@
+         const contact=sample.feature==='side'?raw.side:sample.feature==='distal-fillet'?raw.fillet:raw.portal.contact;
+         if(!contact||sample.feature==='side'&&raw.samples.length!==1||sample.feature!=='distal-rim'&&contact.innerT!==sample.s)
+             throw failure('Declared lumen sample left its original side segment/portal support');
+-        const physical=sample.feature==='side'?differentiateCompositeLumenSideContact({input,contact},geometry,{order:differentialOrder}):differentiateCompositeLumenTipContact({input,contact},geometry),gap=contact.gap;
++        const physical=sample.feature==='side'?differentiateCompositeLumenSideContact({input,contact},geometry):differentiateCompositeLumenTipContact({input,contact},geometry),gap=contact.gap;
+         const eliminated=!physical.supported&&Fn===0&&gap>0&&(physical.reason==='zero-or-fallback-radial-normal'||
+             sample.feature==='distal-rim'&&physical.reason==='rim-endpoint-or-clamped-crossing');
+         if(!physical.supported&&!eliminated)throw failure(`Unsupported original lumen ${sample.feature}: ${physical.reason}`);
+@@ -161,11 +161,7 @@
+             const {points,row,pulled,index}=sample,Fn=normalForces[index];
+             if(!gaugePrepared)throw failure('Lumen gauge must be prepared on incoming physical geometry');
+             if(sample.redundant&&Fn!==0)throw failure('Interior lumen dual changed outside its explicit zero gauge');
+-            // DB contributes only as -Fn*DB. At exactly zero Fn it is not
+-            // needed even for a full Newton assembly. The ORIGINAL gap,
+-            // branch validation, G and force column -B are still evaluated.
+-            const differentialOrder=order==='full'&&Fn!==0?'full':'gradient';
+-            const physical=query(sample,toolPositions,consumeQuery,differentialOrder),gap=sample.gap,eliminated=sample.eliminated;
++            const physical=query(sample,toolPositions,consumeQuery),gap=sample.gap,eliminated=sample.eliminated;
+             const active=sample.applicable&&Fn-k*gap>0;sample.active=active;
+             row.residual=active?gap:Fn/k;row.multiplierDerivative=active?0:1/k;
+             row.geometricTangentValid=order==='full';
+@@ -175,12 +171,9 @@
+                 // storage slot enforces exactly deltaFn=0. No normal invented.
+                 row.jacobian.fill(0);row.forceColumn.fill(0);if(order==='full')row.geometricTangent.fill(0);eliminatedCount++;
+             } else {
+-                pullbackCompositeContact(physical,pulled,{order:differentialOrder});
++                pullbackCompositeContact(physical,pulled);
+                 for(let j=0;j<row.jacobian.length;j++){row.jacobian[j]=active?pulled.gapJacobian[j]:0;row.forceColumn[j]=pulled.forceColumn[j];}
+-                if(order==='full'){
+-                    if(Fn===0)row.geometricTangent.fill(0);
+-                    else for(let j=0;j<row.geometricTangent.length;j++)row.geometricTangent[j]=-Fn*pulled.normalDerivative[j];
+-                }
++                if(order==='full')for(let j=0;j<row.geometricTangent.length;j++)row.geometricTangent[j]=-Fn*pulled.normalDerivative[j];
+                 row.commonDofs.forEach((d,j)=>commonResidual[d]+=Fn*row.forceColumn[j]);
+                 row.relativeDofs.forEach((d,j)=>relativeResidual[d]+=Fn*row.forceColumn[row.commonDofs.length+j]);
+                 points.forEach((p,i)=>{const force=nodalForces.get(p.toolId)[p.node];for(let axis=0;axis<3;axis++)force[axis]+=Fn*physical.normalForceColumn[3*i+axis];});
+--- a/src/physics/kirchhoffCompositeLumenSideGeometry.js
++++ b/src/physics/kirchhoffCompositeLumenSideGeometry.js
+@@ -34,7 +34,7 @@
+  */
+ export function createCompositeLumenSideGeometryWorkspace() {
+     return { dofCount: 12, dofs: Int32Array.from({ length: 12 }, (_, i) => i),
+-        supported: false, reason: 'not-evaluated', certified: false, queryCount: 0, hessianValid: false, witnessJacobianValid: false,
++        supported: false, reason: 'not-evaluated', certified: false, queryCount: 0,
+         derivativeScope: 'fixed-inner-quadrature-strict-interior-outer-side', selectionCertified: false,
+         branchSignature: null, gap: NaN, clearance: NaN, radialDistance: NaN, innerT: NaN, outerT: NaN,
+         positions: Array.from({ length: 4 }, () => new Float64Array(3)),
+@@ -48,10 +48,7 @@
+ const geometryArrays = ['innerPoint', 'outerPoint', 'outerDirection', 'offsetFromOuterStart', 'radial', 'normal',
+     'innerWeights', 'outerWeights', 'outerTGradient', 'normalJacobian', 'gapJacobian', 'normalForceColumn',
+     'forceColumn', 'normalDerivative', 'gapHessian'];
+-const witnessArrays=geometryArrays.filter(key=>!['normalDerivative','gapHessian'].includes(key));
+-const gradientArrays=witnessArrays.filter(key=>!['outerTGradient','normalJacobian'].includes(key));
+ function unsupported(out, reason) {
+-    out.hessianValid = out.witnessJacobianValid = false;
+     out.supported = false; out.reason = reason; out.certified = false; out.selectionCertified = false;
+     out.branchSignature = null;
+     out.gap = out.clearance = out.radialDistance = out.innerT = out.outerT = NaN;
+@@ -74,15 +71,9 @@
+  * s is frozen; t and its weights are differentiated. The detector's normal
+  * points outward from catheter axis to wire. Physical B points inward on the
+  * wire and outward on the catheter: B=G^T, forceColumn=-B, DB=Hgap.
+- * order:'gradient' keeps the exact validated gap and G/B; 'witness' also
+- * computes d(normal)/dq and d(outerT)/dq for the surface friction operator.
+- * Only 'full' computes DB/Hgap. Unavailable arrays remain NaN and their
+- * validity flags are false, including after a previous full evaluation.
+  */
+-export function differentiateCompositeLumenSideContact({ input, contact }, out, {order='full'}={}) {
++export function differentiateCompositeLumenSideContact({ input, contact }, out) {
+     unsupported(out, 'not-evaluated'); resetRaw(out.rawContact); out.queryCount = 0;
+-    if(!['full','witness','gradient'].includes(order))throw new RangeError('Side geometry order must be full, witness or gradient');
+-    const full=order==='full',witness=order!=='gradient';
+     if (!input || typeof input !== 'object') throw new TypeError('Original lumen detector input is required');
+     if (!contact || typeof contact !== 'object') return unsupported(out, 'missing-original-contact');
+     const raw = out.rawContact;
+@@ -155,7 +146,7 @@
+         const B = coefficients[Math.floor(i / 3)] * n[i % 3];
+         out.gapJacobian[i] = B; out.normalForceColumn[i] = B; out.forceColumn[i] = -B;
+     }
+-    if(witness)for (let j = 0; j < 12; j++) {
++    for (let j = 0; j < 12; j++) {
+         const block = Math.floor(j / 3), axis = j % 3;
+         const dp = block < 2 ? iw[block] : 0, dC = block === 2 ? 1 : 0, dd = block === 3 ? 1 : block === 2 ? -1 : 0;
+         const dt = (d[axis] * (dp - dC) + (v[axis] - 2 * t * d[axis]) * dd) / lengthSquared;
+@@ -163,17 +154,15 @@
+         const dr = [0, 1, 2].map(i => (i === axis ? dp - dC - t * dd : 0) - d[i] * dt);
+         const radialPart = dot(n, dr);
+         for (let i = 0; i < 3; i++) out.normalJacobian[12 * i + j] = (dr[i] - n[i] * radialPart) / distance;
+-        if(full)for (let i = 0; i < 12; i++) {
++        for (let i = 0; i < 12; i++) {
+             const body = Math.floor(i / 3), a = i % 3;
+             const dWeight = body === 2 ? -dt : body === 3 ? dt : 0;
+             const value = coefficients[body] * out.normalJacobian[12 * a + j] + dWeight * n[a];
+             out.normalDerivative[12 * i + j] = value; out.gapHessian[12 * i + j] = value;
+         }
+     }
+-    const required=full?geometryArrays:witness?witnessArrays:gradientArrays;
+-    if ([...required.map(key => out[key]), ...out.positions].some(array => !array.every(Number.isFinite)))
++    if ([...geometryArrays.map(key => out[key]), ...out.positions].some(array => !array.every(Number.isFinite)))
+         return unsupported(out, 'nonfinite-side-differential');
+-    out.hessianValid=full;out.witnessJacobianValid=witness;
+     out.supported = true; out.reason = null;
+     out.branchSignature = `${raw.id}:innerT=${s}:strict-outer-side`;
+     return out;
+--- a/src/physics/kirchhoffCompositeContactPullback.js
++++ b/src/physics/kirchhoffCompositeContactPullback.js
+@@ -51,7 +51,7 @@
+     }
+     const workspace={anchorNode,unit:'mm',commonDofs,relativeDofs,points:ownedPoints,physicalDofCount:physicalCount,dofCount:count,
+         gap:NaN,gapJacobian:new Float64Array(count),normalForceColumn:new Float64Array(count),forceColumn:new Float64Array(count),
+-        normalDerivative:new Float64Array(count*count),supported:false,operatorReady:false,hessianValid:false,certified:false,
++        normalDerivative:new Float64Array(count*count),supported:false,operatorReady:false,certified:false,
+         scope:'fixed-affine-physical-tool-contact-pullback'};
+     plans.set(workspace,{physicalCount,count,columns,pairs});return workspace;
+ }
+@@ -62,23 +62,16 @@
+  * This function retains the distinction G!=B and does not choose an NCP
+  * branch, enforce complementarity, scale Fn, or certify a complete step.
+  * Geometry must already have validated its current source/sample/feature.
+- * order:'gradient' keeps exact G/B without reading DB; it invalidates the
+- * Hessian output. A full pullback requires a fresh physical derivative.
+  */
+-export function pullbackCompositeContact(geometry,workspace,{order='full'}={}) {
++export function pullbackCompositeContact(geometry,workspace) {
+     const plan=plans.get(workspace);if(!plan)throw new TypeError('Use a prepared contact pullback workspace');
+-    workspace.supported=workspace.operatorReady=workspace.hessianValid=false;workspace.gap=NaN;
++    workspace.supported=workspace.operatorReady=false;workspace.gap=NaN;
+     for(const a of [workspace.gapJacobian,workspace.normalForceColumn,workspace.forceColumn,workspace.normalDerivative])a.fill(NaN);
+-    if(!['full','gradient'].includes(order))throw new RangeError('Contact pullback order must be full or gradient');
+-    const full=order==='full';
+     if(geometry?.supported!==true||!Number.isFinite(geometry.gap))throw new RangeError('A current supported physical contact geometry is required');
+     const {physicalCount,count,columns,pairs}=plan;
+     finiteVector(geometry.gapJacobian,physicalCount,'Physical gap Jacobian');
+     finiteVector(geometry.normalForceColumn,physicalCount,'Physical normal force column');
+-    if(full){
+-        if(geometry.hessianValid===false)throw new RangeError('A fresh physical normal derivative is required');
+-        finiteVector(geometry.normalDerivative,physicalCount*physicalCount,'Physical normal derivative');
+-    }
++    finiteVector(geometry.normalDerivative,physicalCount*physicalCount,'Physical normal derivative');
+     if(geometry.forceColumn!==undefined) {
+         finiteVector(geometry.forceColumn,physicalCount,'Signed physical force column');
+         if(geometry.forceColumn.some((v,i)=>v!==-geometry.normalForceColumn[i]))throw new RangeError('Physical force column must be the negative normal load column');
+@@ -88,8 +81,8 @@
+         for(const [d,w] of columns[i]){g+=w*geometry.gapJacobian[d];b+=w*geometry.normalForceColumn[d];}
+         workspace.gapJacobian[i]=g;workspace.normalForceColumn[i]=b;workspace.forceColumn[i]=-b;
+     }
+-    if(full)for(let i=0;i<pairs.length;i++){const terms=pairs[i];let value=0;for(let k=0;k<terms.length;k+=2)value+=terms[k+1]*geometry.normalDerivative[terms[k]];workspace.normalDerivative[i]=value;}
+-    if(![workspace.gapJacobian,workspace.normalForceColumn,...(full?[workspace.normalDerivative]:[])].every(a=>a.every(Number.isFinite)))
++    for(let i=0;i<pairs.length;i++){const terms=pairs[i];let value=0;for(let k=0;k<terms.length;k+=2)value+=terms[k+1]*geometry.normalDerivative[terms[k]];workspace.normalDerivative[i]=value;}
++    if(![workspace.gapJacobian,workspace.normalForceColumn,workspace.normalDerivative].every(a=>a.every(Number.isFinite)))
+         throw new RangeError('Nonfinite pulled-back physical contact operator');
+-    workspace.gap=geometry.gap;workspace.supported=workspace.operatorReady=true;workspace.hessianValid=full;return workspace;
++    workspace.gap=geometry.gap;workspace.supported=workspace.operatorReady=true;return workspace;
+ }
+--- a/src/physics/kirchhoffCompositeJointLumenSurface.js
++++ b/src/physics/kirchhoffCompositeJointLumenSurface.js
+@@ -121,11 +121,8 @@
+             if (current.input[key] !== previous.input[key]) unsupported(`changed-original-${key}`);
+         if (current.contact.innerT !== previous.contact.innerT || current.contact.id !== previous.contact.id || current.contact.feature !== previous.contact.feature)
+             unsupported('changed-original-sample-or-contact-identity');
+-        // Surface G/B/DB need first derivatives of the current normal and
+-        // witness, not the normal-contact Hessian. Old witness geometry is
+-        // fixed input even in a full surface evaluation.
+-        differentiateCompositeLumenSideContact(current, plan.current, {order:full?'witness':'gradient'}); if (!plan.current.supported) unsupported(`current:${plan.current.reason}`);
+-        differentiateCompositeLumenSideContact(previous, plan.previous, {order:'gradient'}); if (!plan.previous.supported) unsupported(`previous:${plan.previous.reason}`);
++        differentiateCompositeLumenSideContact(current, plan.current); if (!plan.current.supported) unsupported(`current:${plan.current.reason}`);
++        differentiateCompositeLumenSideContact(previous, plan.previous); if (!plan.previous.supported) unsupported(`previous:${plan.previous.reason}`);
+         if (!(plan.current.innerT > 0 && plan.current.innerT < 1)) unsupported('strict-interior-inner-side-sample-required');
+         const preparedTools = tools.map((tool, index) => {
+             const materialKey = index === 0 ? 'innerMaterialSegmentId' : 'outerMaterialSegmentId';
+--- a/src/physics/kirchhoffCompositeJointLumenFrictionRows.js
++++ b/src/physics/kirchhoffCompositeJointLumenFrictionRows.js
+@@ -192,7 +192,7 @@
+             const previous=records.map(rec=>{
+                 const input=inputFor(rec,oldPositions);consumeQuery();preparationQueries++;
+                 const raw=evaluateKirchhoffLumenSegmentContact(input),contact=raw.side,geometry=createCompositeLumenSideGeometryWorkspace();
+-                if(!contact||raw.samples.length!==1||contact.innerT!==rec.sample.s||!differentiateCompositeLumenSideContact({input,contact},geometry,{order:'gradient'}).supported)
++                if(!contact||raw.samples.length!==1||contact.innerT!==rec.sample.s||!differentiateCompositeLumenSideContact({input,contact},geometry).supported)
+                     throw failure('Previous declared sample is not a supported original strict-side contact');
+                 const regular=rec.tools.every(t=>{
+                     const f=chordUnit(t.previousPositions),a=t.reference;

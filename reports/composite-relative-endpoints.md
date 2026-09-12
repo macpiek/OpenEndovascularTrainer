@@ -1,0 +1,20 @@
+# Full relative coordinates at physical endpoints
+
+The owned RelativeCluster and RelativeDirection modules now permit complete three-coordinate modes at common endpoints and at the relative material's interior start/tip. The relative material must have at least one active incident edge, and the other material must also meet the node. A material can therefore end at that node without forcing its position to equal the other material's position. Reduced two-coordinate modes retain the previous interior, two-sided material support and transverse-basis requirements.
+
+No band algorithm changed. Existing local hinge pullbacks naturally include an endpoint through its neighboring physical hinge. Inertia support now filters nonexistent edge indices and incident edges where the relative material is absent. Missing prepared inertia for an actually active relative-material edge remains an error. A one-edge wire embedded in a larger common chain is supported by its actual inertia edge; with neither a bending hinge nor supplied inertia, the previous explicit no-energy-support error remains. The common layout still requires at least three nodes in RelativeDirection; general two-node layout support is outside this patch.
+
+The structure-only API, current-operator guards, variable mode offsets, fixed basis ownership, signed force columns, positive force-on-chain reactions and original tolerances are preserved. No implicit endpoint normal, stiffness, zero relative displacement, clamped wire attachment, or artificial support is added. No TimeStep, JointAssembly, ToolLengths, Kinematics or wall source was edited.
+
+Four new tests cover:
+
+- Exact finite differences of independent summed wire energy/gradients at both global endpoints and an interior wire start/tip, including full consistent convective inertia, axial/spin/common coupling, and unchanged `2e-8` comparisons. Proxy guards fail if nonexistent ghost edges are accessed.
+- A one-edge wire, missing active inertia rejection, and preserved reduced 2D eligibility checks.
+- Independent dense original systems for endpoint-local rows at global and interior material endpoints, using both GN and Exact tangents and complete current H/C.
+- Separate physical endpoint boundary conditions with a stationary catheter and independent wire motion, retaining both materials' original length equations in the same solve.
+
+The boundary-control test uses five nodes spaced `2 mm`, complete 3D relative coordinates at every overlap node, frozen material labels with zero map advection, zero initial velocities, and explicit manufactured wire mass density `2.4` (`19.2` total mass units). All catheter q positions are held fixed. With a distal wire load `0.2` and `dt=0.25`, the otherwise free wire translates by `0.0006510416667 mm`; it is not attached to either stationary catheter endpoint.
+
+An independent wire endpoint target is then supplied as three local equations for `y_wire = q+B*rho`, with a `0.01 mm` axial displacement. Every wire node translates by `0.01 mm`, while every catheter position increment is exactly zero. The physical force-on-wire boundary multiplier is `3.072`, matching `mass * displacement / dt²`. The original fixed common stationarity remains below `1e-9`, so this frictionless control transfers no artificial drag to the held catheter. Reconstructed finite physical edge lengths of both materials remain within `1e-12 mm` of their separate rest lengths. This verifies the prepared direction and its straight-translation geometry; it does not declare a nonlinear dt accepted or model feed/remeshing history.
+
+Final verification: **53/53 PASS** — 15 Cluster, 16 RelativeDirection, 7 prior RelativePatch, 8 existing MixedDirection and all 7 current root JointAssembly tests, including its nonlinear finite-offset and independent-length controls. Both changed production modules pass syntax checks. The frozen bundle is `/tmp/oet-composite-relative-endpoints-final/manifest.json`, with complete dependency hashes and the test output. All earlier frozen manifests are preserved. Work stops at this handoff; the full joint time step is a separate integration task.

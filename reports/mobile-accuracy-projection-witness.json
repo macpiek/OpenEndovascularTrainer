@@ -1,0 +1,180 @@
+{
+  "seed": {
+    "sha256": "6851781656931d9c7aab705173a0b7941d8dcaa93936075925c7e89f5d526333",
+    "step": 53,
+    "pass": 5
+  },
+  "linear": {
+    "status": "converged",
+    "converged": true,
+    "iterations": 2,
+    "factorizations": 3,
+    "backtracks": 0,
+    "gradientFallbacks": 0,
+    "boundRecoveries": 0,
+    "mobileResidual": 1.734723475976807e-17,
+    "mobileTolerance": 2e-10,
+    "maximumResidual": 3.102116925779441e-06,
+    "frictionResidual": 1.0408340855860843e-17,
+    "coneViolation": 0,
+    "rowCount": 66,
+    "band": 66,
+    "groupCount": 7,
+    "normalLoadIterations": 0,
+    "method": "simultaneous-coulomb-newton",
+    "normalMap": "fischer-burmeister",
+    "matrixFormat": "row-major",
+    "linearSolver": "dense-lu",
+    "mobileReconstructionResidual": 1.734723475976807e-17,
+    "immutableAccuracyRows": [
+      {
+        "sorted": 108,
+        "original": 3,
+        "phase": "physical",
+        "channel": "pose",
+        "full": 216,
+        "rhs": 3.102116925779441e-06
+      },
+      {
+        "sorted": 108,
+        "original": 3,
+        "phase": "bias",
+        "channel": "bias-motion",
+        "full": 217,
+        "rhs": 0
+      },
+      {
+        "sorted": 110,
+        "original": 5,
+        "phase": "physical",
+        "channel": "pose",
+        "full": 220,
+        "rhs": -2.714359792710397e-06
+      },
+      {
+        "sorted": 110,
+        "original": 5,
+        "phase": "bias",
+        "channel": "bias-motion",
+        "full": 221,
+        "rhs": 0
+      }
+    ],
+    "reconstructionResidual": 3.102116925779441e-06,
+    "structuralResidualFloor": 3.102116925779441e-06,
+    "requestedTolerance": 2e-05,
+    "physicalRows": 158,
+    "biasRows": 144,
+    "channels": 2,
+    "fullRowCount": 302,
+    "condensation": "condensed",
+    "materialCondensation": {
+      "equalityCount": 118,
+      "eliminatedRows": 236,
+      "equalityBand": 15,
+      "equalityMatrixEntries": 1770,
+      "factorEntries": 1770,
+      "factorizations": 1,
+      "factorization": "wasm-skyline",
+      "minimumScaledPivot": 0.04207324989061034,
+      "maximumEqualityBackwardError": 9.10018986198463e-16,
+      "equalitySolves": 64,
+      "zeroEqualityResponses": 44,
+      "reusedEqualityResponses": 26,
+      "fullExpandedMatrixEntries": 0,
+      "retainedZeroEqualityOriginalRows": [
+        3,
+        5
+      ],
+      "retainedRows": 66,
+      "schurEntries": 4356,
+      "responseEntries": 15576
+    }
+  },
+  "frozen": {
+    "id": "lumen:sliding-rim|runtime:199:7",
+    "normal": [
+      0.8428459407929098,
+      -0.09483273016672528,
+      0.52973339839776
+    ],
+    "axes": [
+      [
+        0.24082634314009835,
+        0.9467529704572127,
+        -0.21368548238055832
+      ],
+      [
+        -0.48126229079233135,
+        0.3076776986061378,
+        0.8208051176995356
+      ]
+    ],
+    "point": [
+      -87.05772471074798,
+      -440.8388627519531,
+      26.88836772308982
+    ],
+    "mu": [
+      0.015,
+      0.006
+    ],
+    "normalLambda": 0.006674794418691973,
+    "lambda": [
+      0.00010012183724683128,
+      5.032053158277477e-08
+    ],
+    "innerWeights": [
+      0.6000624343974318,
+      0.3999375656025682
+    ],
+    "outerWeights": [
+      0,
+      1
+    ]
+  },
+  "fresh": {
+    "kind": "lumen",
+    "id": "lumen:sliding-rim|runtime:199:7",
+    "normalLambda": 0.006674794418691973,
+    "lambda": [
+      0.00010012183700058754,
+      5.080413793494531e-08
+    ],
+    "axes": [
+      [
+        0.24082291967584024,
+        0.946752132559586,
+        -0.21369305288820226
+      ],
+      [
+        -0.48048647586210885,
+        0.30759500490936953,
+        0.8212904842188398
+      ]
+    ],
+    "normal": [
+      0.843289433037326,
+      -0.09510895041309801,
+      0.5289775228484702
+    ],
+    "point": [
+      -87.05751864469815,
+      -440.8389913131949,
+      26.888017424702007
+    ],
+    "mu": [
+      0.015,
+      0.006
+    ]
+  },
+  "directProjectionLambda": [
+    0.00010012183700058754,
+    5.080413793493853e-08
+  ],
+  "frozenCone": 0,
+  "freshCone": 1.278603334320394e-08,
+  "directProjectionCone": 1.278603334320394e-08,
+  "normalChange": 0.000918874769148487,
+  "pointChange": 0.00042626302946959925
+}

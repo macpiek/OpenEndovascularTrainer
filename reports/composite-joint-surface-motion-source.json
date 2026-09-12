@@ -1,0 +1,11 @@
+{
+  "frozenBundle": "/tmp/oet-composite-joint-surface-motion-final",
+  "manifestSHA256": "6ea57b632363f57cf912a497347ed66f0acee3e9bc8cd9beba4ee2044f32e161",
+  "ownedSourceSHA256": {
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "be58aed21b93a7181103c1d6c945613b3cf3926a7429cdc2f245d814bfbe0e63",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "b949cb0d8520ab2b5de017c4624a59962af4ebf69cda15b65c0fca4bcaf4b4ba"
+  },
+  "reportSHA256": "29d72d8847828aabd2a2aa895b6ae25db3ec1818ce2ec1e4c81488a3daaed4c7",
+  "probeSHA256": "f301a81936bac2bd206193323afa7c029b4e14030fbff2b8937625ee27fcdff9",
+  "testOutputSHA256": "ba6455ccef66ed948e8229a126c58de2bea02d3d7a9618585e305fce055dc51e"
+}

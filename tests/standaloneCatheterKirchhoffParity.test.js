@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ElasticRod } from '../src/physics/elasticRod.js';
+import { RodState } from '../src/physics/rodState.js';
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
@@ -17,7 +17,7 @@ function createStandaloneCatheter(type = 'berenstein') {
     const guidewireLength = 240;
     const guidewireSpacing = 2;
     const sheathLength = 20;
-    const wire = new ElasticRod(
+    const wire = new RodState(
         guidewireLength / guidewireSpacing + 1,
         guidewireSpacing
     );
@@ -45,11 +45,10 @@ function createStandaloneCatheter(type = 'berenstein') {
         maxLength: 180
     });
     catheter.setType(type);
-    catheter.setExternalCollisionSolver(true);
+
     const world = new EndovascularPhysicsWorld();
     const body = world.createRod('standalone-catheter', 160, 4, {
-        ...DEFAULT_TOOL_PROFILES.catheter,
-        rodModel: 'kirchhoff'
+        ...DEFAULT_TOOL_PROFILES.catheter
     });
     return { body, catheter, world };
 }
@@ -58,9 +57,7 @@ function runtimeState(body) {
     return {
         postStabilizationPasses: body.postStabilizationPasses,
         finalStructuralClosurePasses: body.finalStructuralClosurePasses,
-        intrinsicClosureCorrectionScale: body.intrinsicClosureCorrectionScale,
         postStabilizeBending: body.postStabilizeBending,
-        restTurnPolishMaxAngle: body.restTurnPolishMaxAngle,
         projectionVelocityRetention: body.projectionVelocityRetention,
         distalProjectionVelocityRetention: body.distalProjectionVelocityRetention,
         distalProjectionVelocityRetentionStartNode:
@@ -79,13 +76,13 @@ test('standalone catheter keeps one guidewire-equivalent Kirchhoff runtime durin
     try {
         for (let step = 0; step < 100; step++) {
             catheter.advance(1, DT, 0);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
         }
         const feeding = runtimeState(body);
 
         catheter.advance(0, DT, 0);
-        catheter.stepPhysics(DT, { collisions: false });
+        catheter.stepPhysics(DT);
         catheter.syncXpbdBody(body);
         const resting = runtimeState(body);
 
@@ -93,9 +90,7 @@ test('standalone catheter keeps one guidewire-equivalent Kirchhoff runtime durin
         assert.deepEqual(resting, {
             postStabilizationPasses: 0,
             finalStructuralClosurePasses: 8,
-            intrinsicClosureCorrectionScale: 0,
             postStabilizeBending: false,
-            restTurnPolishMaxAngle: 0,
             projectionVelocityRetention: 1,
             distalProjectionVelocityRetention: 1,
             distalProjectionVelocityRetentionStartNode: Infinity,
@@ -112,13 +107,13 @@ test('standalone catheter keeps one guidewire-equivalent Kirchhoff runtime durin
     }
 });
 
-test('guidewire-supported catheter does not reconstruct idle projections as momentum', () => {
+test('guidewire-supported catheter keeps the same motion policy when controls are released', () => {
     const { body, catheter } = createStandaloneCatheter('pigtail');
     try {
         const guidewireInserted = 120;
         for (let step = 0; step < 100; step++) {
             catheter.advance(1, DT, guidewireInserted);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
         }
         assert.ok(catheter.progress > 18);
@@ -126,12 +121,14 @@ test('guidewire-supported catheter does not reconstruct idle projections as mome
             'active feed must retain physical transport velocity');
         assert.equal(body.wallProjectionVelocityRetention, 0,
             'adding lumen support must not turn vessel projection into rebound');
+        const feedingPolicy = runtimeState(body);
 
         catheter.advance(0, DT, guidewireInserted);
-        catheter.stepPhysics(DT, { collisions: false });
+        catheter.stepPhysics(DT);
         catheter.syncXpbdBody(body);
-        assert.equal(body.projectionVelocityRetention, 0.005,
-            'idle coupled equilibrium projections must be quasi-static');
+        assert.equal(body.projectionVelocityRetention, 1,
+            'releasing input must not change the velocity reconstruction law');
+        assert.deepEqual(runtimeState(body), feedingPolicy);
         assert.equal(body.wallProjectionVelocityRetention, 0,
             'idle coupled wall contact must remain zero-restitution');
     } finally {
@@ -144,26 +141,23 @@ test('standalone catheter XPBD pose remains authoritative while it is advancing'
     try {
         for (let step = 0; step < 130; step++) {
             catheter.advance(1, DT, 0);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
         }
-        assert.ok(catheter.freeNodes.length > 4);
-        const tracked = catheter.freeNodes[Math.floor(catheter.freeNodes.length / 2)];
-        const bodyIndex = tracked._xpbdIndex;
+        const bodyIndex = body.activeEnd - 1;
         assert.ok(bodyIndex > body.activeStart && bodyIndex <= body.activeEnd);
+        assert.equal(body.pinned[bodyIndex], 0, 'tracked material has exited the sheath');
         body.y[bodyIndex] += 3;
         const expectedY = body.y[bodyIndex];
 
         catheter.advance(1, DT, 0);
-        catheter.stepPhysics(DT, { collisions: false });
-
-        const synchronized = catheter.freeNodes.find(
-            node => node._xpbdIndex === bodyIndex
-        );
-        assert.ok(synchronized, 'the tracked catheter material node should remain active');
+        catheter.stepPhysics(DT);
+        catheter.syncXpbdBody(body);
+        assert.ok(bodyIndex >= body.activeStart && bodyIndex <= body.activeEnd,
+            'the tracked catheter material node should remain active');
         assert.ok(
-            Math.abs(synchronized.pos.y - expectedY) < 1e-6,
-            `feed replaced the physical XPBD pose (${synchronized.pos.y} instead of ${expectedY})`
+            Math.abs(body.y[bodyIndex] - expectedY) < 1e-6,
+            `feed replaced the physical XPBD pose (${body.y[bodyIndex]} instead of ${expectedY})`
         );
     } finally {
         catheter.dispose();
@@ -199,7 +193,7 @@ test('standalone catheter advances, withdraws and relaxes through one continuous
         };
         const step = command => {
             catheter.advance(command, DT, 0);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
             world.stepFixed();
             sampleTipStep();
@@ -240,7 +234,7 @@ test('standalone catheter supports its own always-on relaxation pass rate', () =
 
         for (const command of [1, -1, 0]) {
             catheter.advance(command, DT, 0);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
             world.stepFixed();
             assert.equal(

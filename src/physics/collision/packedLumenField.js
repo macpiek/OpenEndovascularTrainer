@@ -117,6 +117,50 @@ export class PackedLumenField {
         return false;
     }
 
+    /** Sufficient (not necessary) inside proof for a WORLD-coordinate ball.
+     * One axis suffices because axis interiors form a union. The entire ball
+     * must stay in one finite interpolation slab, and both signed polygon
+     * distances must exceed its projected XZ radius. Signed polygon distance
+     * is 1-Lipschitz; their positive interpolation then stays inside. The XZ
+     * Frobenius bound remains conservative for nonorthonormal stored bases.
+     * No query result, interval hint or cache is changed by this diagnostic.
+     */
+    certifyInsideBallCoordinates(x, y, z, radius) {
+        if (![x, y, z, radius].every(Number.isFinite) || radius < 0) {
+            throw new RangeError('Finite ball coordinates and nonnegative radius required');
+        }
+        const lowerHint = this._lastLower.slice(), upperHint = this._lastUpper.slice(), intervalScratch = this._interval.slice();
+        let reason = 'no-supported-axis-slab';
+        try {
+            for (let axis = 0; axis < this.axisCount; axis++) {
+                const offset = axis * 9, basis = Array.from(this.axisBases.slice(offset, offset + 9));
+                if (basis.length !== 9 || !basis.every(Number.isFinite)) continue;
+                const local = [0, 1, 2].map(i => x * basis[3*i] + y * basis[3*i+1] + z * basis[3*i+2]);
+                const normX = Math.hypot(...basis.slice(0, 3)), normY = Math.hypot(...basis.slice(3, 6)), normZ = Math.hypot(...basis.slice(6, 9));
+                if (!local.every(Number.isFinite) || !(normY > 0)) continue;
+                const interval = this.#findInterval(local[1], axis), lower = interval[INTERVAL_LOWER], upper = interval[INTERVAL_UPPER];
+                if (lower < 0 || upper <= lower) continue;
+                const bottom = this.sliceYs[lower], top = this.sliceYs[upper];
+                if (![bottom, top].every(Number.isFinite) || !(top > bottom)) continue;
+                const yRadius = radius * normY, xzRadius = radius * Math.hypot(normX, normZ);
+                const guard = 64 * Number.EPSILON * Math.max(1, Math.abs(x), Math.abs(y), Math.abs(z), ...local.map(Math.abs), Math.abs(bottom), Math.abs(top), yRadius, xzRadius);
+                const slabMargin = Math.min(local[1] - bottom, top - local[1]) - yRadius - guard;
+                if (!(slabMargin >= 0)) { reason = 'ball-exits-axis-slab'; continue; }
+                const lowerDistance = this.#querySliceSignedDistance(lower, local[0], local[2]);
+                const upperDistance = this.#querySliceSignedDistance(upper, local[0], local[2]);
+                const sliceMargin = Math.min(lowerDistance, upperDistance) - xzRadius - guard;
+                if (!Number.isFinite(sliceMargin) || !(sliceMargin > 0)) { reason = 'slice-clearance-not-proved'; continue; }
+                return {supported: true, axis, slab: {lowerSliceIndex: lower, upperSliceIndex: upper, lower: bottom, upper: top},
+                    radius, localCenter: local, localYRadius: yRadius, localXZRadius: xzRadius,
+                    lowerDistance, upperDistance, slabMargin, sliceMargin, minimumMargin: Math.min(slabMargin, sliceMargin),
+                    numericalGuard: guard, scope: 'one-axis-slab-two-signed-polygon-distances'};
+            }
+            return {supported: false, axis: null, slab: null, minimumMargin: null, reason};
+        } finally {
+            this._lastLower.set(lowerHint); this._lastUpper.set(upperHint); this._interval.set(intervalScratch);
+        }
+    }
+
     #sliceBoundsContain(sliceIndex, x, z) {
         const contourStart = this.sliceContourOffsets[sliceIndex];
         const contourEnd = this.sliceContourOffsets[sliceIndex + 1];

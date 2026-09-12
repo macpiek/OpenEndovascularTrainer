@@ -1,0 +1,314 @@
+{
+  "status": "PASS",
+  "scope": "Synthetic affine oracle only; no native rod/anatomy acceptance claim",
+  "dt": 0.008333333333333333,
+  "tolerance": 0.0002,
+  "parameters": {
+    "m": 1,
+    "K": 99,
+    "xPred": -3.264956,
+    "rest": 0.016489676767676768
+  },
+  "physicalOnly": {
+    "u": 3.2486312200000005,
+    "geometryGap": -0.016324779999999706
+  },
+  "preserveStrain": {
+    "E": [
+      [
+        1
+      ]
+    ],
+    "rank": 1,
+    "mobileDofs": 1,
+    "requiredRepair": 0.01632478,
+    "zeroStrainBiasSolution": 0,
+    "feasible": false
+  },
+  "onePass": {
+    "u": 3.2486312200000005,
+    "b": 0.016324779999999706,
+    "q": 0,
+    "materialResidual": 0.016324780000000007
+  },
+  "exact": {
+    "u": 1.632478000000031,
+    "b": 1.6324779999999692,
+    "p": 0,
+    "beta": 163.24779999999691,
+    "q": 0,
+    "lambda": 1.632478,
+    "betaMaterial": -161.61532199999695,
+    "vPhysical": 195.89736000000372,
+    "geometryViolation": 0,
+    "physicalNormalViolation": 0,
+    "physicalMomentum": 3.086420008457935e-14,
+    "biasMomentum": 0,
+    "materialResidual": 0,
+    "biasMaterialResidual": 0,
+    "kinetic": 19187.887827485527,
+    "elastic": 193.81704876247272,
+    "H": 100,
+    "algebraMaximum": 5.684341886080802e-14,
+    "loaded": false,
+    "biasLoaded": true
+  },
+  "nativeRowAdapter": {
+    "unknowns": [
+      1.6324779999999721,
+      0,
+      -161.61532200000246,
+      163.24780000000248
+    ],
+    "matrix": [
+      [
+        1.0101010101010102,
+        1,
+        1,
+        1
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1.0101010101010102,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "rhs": [
+      3.281445676767677,
+      0,
+      0,
+      3.264956
+    ],
+    "u": 1.6324779999999721,
+    "b": 1.6324780000000203
+  },
+  "alternating": {
+    "contraction": 0.99,
+    "iterationsToTolerance": 440,
+    "checkpoints": [
+      {
+        "iteration": 1,
+        "u": 3.2486312200000005,
+        "b": 0.016324779999999706,
+        "geometryViolation": 0,
+        "materialResidual": 0.016324780000000007
+      },
+      {
+        "iteration": 2,
+        "u": 3.232469687800001,
+        "b": 0.0324863121999992,
+        "geometryViolation": 0,
+        "materialResidual": 0.016161532200000012
+      },
+      {
+        "iteration": 30,
+        "u": 2.8400225861481596,
+        "b": 0.4249334138518406,
+        "geometryViolation": 0,
+        "materialResidual": 0.012197420062102622
+      },
+      {
+        "iteration": 64,
+        "u": 2.4905027027627646,
+        "b": 0.7744532972372355,
+        "geometryViolation": 0,
+        "materialResidual": 0.008666916189522877
+      },
+      {
+        "iteration": 128,
+        "u": 2.0834527699822813,
+        "b": 1.1815032300177188,
+        "geometryViolation": 0,
+        "materialResidual": 0.004555300706891731
+      },
+      {
+        "iteration": 256,
+        "u": 1.7570605322978807,
+        "b": 1.5078954677021195,
+        "geometryViolation": 0,
+        "materialResidual": 0.0012584094171503094
+      },
+      {
+        "iteration": 440,
+        "u": 1.6520814703503834,
+        "b": 1.6128745296496168,
+        "geometryViolation": 0,
+        "materialResidual": 0.00019801485202407612
+      },
+      {
+        "iteration": 1000,
+        "u": 1.6325484761116429,
+        "b": 1.6324075238883573,
+        "geometryViolation": 0,
+        "materialResidual": 7.118799155853006e-7
+      }
+    ]
+  },
+  "unloadedBiasWithIndependentSlideSpin": [
+    {
+      "step": 0.016666666666666666,
+      "state": {
+        "u": 0,
+        "b": 0.01632478,
+        "p": 0,
+        "beta": 0.01632478,
+        "q": 0,
+        "lambda": 0,
+        "betaMaterial": 0,
+        "vPhysical": 0,
+        "geometryViolation": 0,
+        "physicalNormalViolation": 0,
+        "physicalMomentum": 0,
+        "biasMomentum": 0,
+        "materialResidual": 0,
+        "biasMaterialResidual": 0,
+        "kinetic": 0,
+        "elastic": 0,
+        "H": 1,
+        "algebraMaximum": 0,
+        "loaded": false,
+        "biasLoaded": true
+      },
+      "channels": {
+        "normalLambda": 0,
+        "biasLambda": 0.01632478,
+        "cap": 0,
+        "tangentLambda": [
+          0,
+          0
+        ],
+        "slide": 3,
+        "spin": -2,
+        "outSlide": 3,
+        "outSpin": -2,
+        "kineticLoss": 0
+      }
+    },
+    {
+      "step": 0.008333333333333333,
+      "state": {
+        "u": 0,
+        "b": 0.01632478,
+        "p": 0,
+        "beta": 0.01632478,
+        "q": 0,
+        "lambda": 0,
+        "betaMaterial": 0,
+        "vPhysical": 0,
+        "geometryViolation": 0,
+        "physicalNormalViolation": 0,
+        "physicalMomentum": 0,
+        "biasMomentum": 0,
+        "materialResidual": 0,
+        "biasMaterialResidual": 0,
+        "kinetic": 0,
+        "elastic": 0,
+        "H": 1,
+        "algebraMaximum": 0,
+        "loaded": false,
+        "biasLoaded": true
+      },
+      "channels": {
+        "normalLambda": 0,
+        "biasLambda": 0.01632478,
+        "cap": 0,
+        "tangentLambda": [
+          0,
+          0
+        ],
+        "slide": 3,
+        "spin": -2,
+        "outSlide": 3,
+        "outSpin": -2,
+        "kineticLoss": 0
+      }
+    }
+  ],
+  "loadedElasticReaction": {
+    "state": {
+      "u": 0,
+      "b": 0.01632478,
+      "p": 0.03264956,
+      "beta": 0.048974340000000005,
+      "q": 0,
+      "lambda": -0.03264956,
+      "betaMaterial": -0.03264956,
+      "vPhysical": 0,
+      "geometryViolation": 0,
+      "physicalNormalViolation": 0,
+      "physicalMomentum": 0,
+      "biasMomentum": 0,
+      "materialResidual": 0,
+      "biasMaterialResidual": 0,
+      "kinetic": 0,
+      "elastic": 3.83757756549696,
+      "H": 3,
+      "algebraMaximum": 0,
+      "loaded": true,
+      "biasLoaded": true
+    },
+    "friction": {
+      "normalLambda": 0.03264956,
+      "biasLambda": 0.048974340000000005,
+      "cap": 0.009794868,
+      "tangentLambda": [
+        -0.009292227678209438,
+        0.003097409226069813
+      ],
+      "slide": 3,
+      "spin": -2,
+      "outSlide": 1.8849326786148675,
+      "outSpin": -1.256621785743245,
+      "kineticLoss": 3.0261271094943227
+    },
+    "biasScaled1000": {
+      "normalLambda": 0.03264956,
+      "biasLambda": 48.974340000000005,
+      "cap": 0.009794868,
+      "tangentLambda": [
+        -0.009292227678209438,
+        0.003097409226069813
+      ],
+      "slide": 3,
+      "spin": -2,
+      "outSlide": 1.8849326786148675,
+      "outSpin": -1.256621785743245,
+      "kineticLoss": 3.0261271094943227
+    }
+  },
+  "freeElasticRecoil": {
+    "u": -0.6666666666666666,
+    "b": 0,
+    "p": 0,
+    "beta": 0,
+    "q": 0.33333333333333337,
+    "lambda": -0.6666666666666667,
+    "betaMaterial": 0,
+    "vPhysical": -80,
+    "geometryViolation": 0,
+    "physicalNormalViolation": 0,
+    "physicalMomentum": 1.1102230246251565e-16,
+    "biasMomentum": 0,
+    "materialResidual": 0,
+    "biasMaterialResidual": 0,
+    "kinetic": 3200,
+    "elastic": 1600.0000000000002,
+    "H": 3,
+    "algebraMaximum": 0,
+    "loaded": false,
+    "biasLoaded": false
+  }
+}

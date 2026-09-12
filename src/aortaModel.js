@@ -9,6 +9,7 @@ import {
 import { decodeCollisionAsset } from './physics/collision/collisionAssetFormat.js';
 import { createContactResult, VesselContactField } from './physics/collision/vesselContactField.js';
 import { GUIDEWIRE_RADIUS_MM } from './toolDimensions.js';
+import { releaseOwnedBuffers } from './releaseOwnedBuffers.js';
 
 function bufferHash(buffer) {
     return globalThis.crypto.subtle.digest('SHA-256', buffer).then(digest => {
@@ -18,8 +19,8 @@ function bufferHash(buffer) {
     });
 }
 
-async function fetchArrayBuffer(url) {
-    const response = await fetch(url);
+async function fetchArrayBuffer(url, signal) {
+    const response = await fetch(url, { signal });
     if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status} ${response.statusText}`);
     return response.arrayBuffer();
 }
@@ -162,7 +163,7 @@ function createAssetPreprocessing(contactField, geometry, transform) {
     };
 }
 
-export function createAortaModel(vessel, { onLoaded, onError } = {}) {
+export function createAortaModel(vessel, { onLoaded, onError, signal } = {}) {
     const group = new THREE.Group();
     group.visible = false;
 
@@ -174,12 +175,16 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
         side: THREE.DoubleSide
     });
 
-    Promise.all([
-        fetchArrayBuffer(AORTA_MODEL_URL),
-        fetchArrayBuffer(AORTA_COLLISION_URL)
+    const ready = Promise.all([
+        fetchArrayBuffer(AORTA_MODEL_URL, signal),
+        fetchArrayBuffer(AORTA_COLLISION_URL, signal)
     ]).then(async ([sourceBuffer, collisionBuffer]) => {
             const [sourceHash] = await Promise.all([bufferHash(sourceBuffer)]);
+            if (signal?.aborted) return;
             const geometry = new STLLoader().parse(sourceBuffer);
+            // STLLoader has copied the vertices/normals. The source file is
+            // no longer needed by hashing, rendering or collision detection.
+            releaseOwnedBuffers([sourceBuffer]);
             const transform = transformAortaGeometry(geometry, vessel);
             const asset = decodeCollisionAsset(collisionBuffer);
             validateCollisionAsset(asset, sourceHash, transform);
@@ -215,11 +220,12 @@ export function createAortaModel(vessel, { onLoaded, onError } = {}) {
                 onLoaded({ group, mesh, geometry, collision, preprocessing, scale: transform.scale });
             }
         }).catch(error => {
+            if (signal?.aborted) return;
             console.warn('Failed to load aorta STL model', error);
             if (typeof onError === 'function') onError(error);
         });
 
-    return { group, material };
+    return { group, material, ready };
 }
 
 export function createVesselContactColliderAdapter(contactField) {

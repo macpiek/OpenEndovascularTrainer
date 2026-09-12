@@ -1,0 +1,28 @@
+{
+  "status": "frozen",
+  "scope": "finite-own-affine-contact-frame-increment",
+  "tests": {
+    "owned": 22,
+    "affected": 40,
+    "failures": 0,
+    "syntax": "pass"
+  },
+  "productionEdits": [
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js"
+  ],
+  "previousSourcePrefixUnchanged": true,
+  "previous13TestBodiesUnchanged": true,
+  "previousManifest": "/tmp/oet-composite-joint-surface-motion-final/manifest.json",
+  "previousManifestSha256": "6ea57b632363f57cf912a497347ed66f0acee3e9bc8cd9beba4ee2044f32e161",
+  "frozenBundle": "/tmp/oet-composite-joint-surface-nonparallel-final",
+  "files": {
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "9b7959df0fa175f4e3b9cd2f2d040c9f8e87a46e8faa7b37573ce798ba11d519",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "9b66e81975d76ef03c22b38b2297654cb5e524e145463a72428c97f1ce251a3a",
+    "reports/composite-joint-surface-nonparallel.md": "69ec0baa46b4a78a9ba94fbe5c115f318d9163acadd2821644c71c27d7922827",
+    "reports/composite-joint-surface-nonparallel-probe.json": "14492299656b1bb7fab51c4eff961f434d263b966aebd53a90e528ea600be21b",
+    "reports/composite-joint-surface-nonparallel-tests.txt": "49b61580a89d652df6ebcf053b960bf6d362326a7883eb1425810e36117a42b4"
+  },
+  "probeSha256": "185333db652ff47675770daba29413e4b7649e38e5c9868ef4b929f16389bf53",
+  "noAcceptedTimeStep": true,
+  "noFpsClaim": true
+}

@@ -1,0 +1,2149 @@
+{
+  "scope": "First coupled step on a synthetic vessel without anatomy field; read-only phase observations, no injected geometry or force changes.",
+  "sourceBefore": {
+    "scripts/physics/probe-split-first-coupled-step.mjs": "b422179bdb2118a41574134330c0aeba87f83af9527ef090ff35b63024e54362",
+    "src/physics/applyKirchhoffMaterialProfile.js": "8ee844e33bacd45fd41fa704fd7e59fdbba0cdb8e8b9f3200793ffc2a29341e4",
+    "src/physics/catheterGuidewireCoupling.js": "4790e0a272ccd6b66a859a7247f79e408c936d34d8374415f21eab5dfdba59e6",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/coupledSolverSelection.js": "a32eee6c975155bab36dda0e05a6a051fd401f6e055a59e6084e52f61bf63022",
+    "src/physics/discreteKirchhoffRod.js": "f4877eef38e9608c77e56a587c597cbc67c2c3a07eda2de35fa7b660cce63f98",
+    "src/physics/endovascularPhysicsWorld.js": "2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/guidewireRelaxationRate.js": "16f8de528fb08d33cd1d7d17879a09e2ba7b17d3ffa68e11368f416f08178989",
+    "src/physics/guidewireResistance.js": "fed09abc642d708fc96e9de5c4689f7428eb91a7dce429728e27a9b7a31f36b1",
+    "src/physics/guidewireTransport.js": "94a0e7e60cc690aaed1accad86e868c8cdd060417f50b7ebd6785f96f6845c07",
+    "src/physics/kirchhoffActiveCondensedSolver.js": "cbc7a80ca45e5be6fb5e5269cf6b07f76713a701c61666944d5624e4e404e813",
+    "src/physics/kirchhoffBundleDiscretization.js": "54b1f1006fece9b830dc1ed04287eec4efb612e294bd70dc40b1893f3f3ebf10",
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffBundleRuntime.js": "c7cd25cd8ba2e04dbcd1872dfda38b947dd276e734f19a3e38b072549f618308",
+    "src/physics/kirchhoffCenterlineSearch.js": "b6fd089ace12ab289583baf1201fb136e4b08a1906b890a6744457f07444ffec",
+    "src/physics/kirchhoffContactBlock.js": "3a13921f73a56359f4c2d073d05a6d9d86c46c9d42c8869718613ccf55891c4e",
+    "src/physics/kirchhoffContactManifold.js": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef",
+    "src/physics/kirchhoffContactNormalRows.js": "47c3af0c749cb36bf54da1c7ae91ae6d6671bb924acbd9bc71a478a969dea9cc",
+    "src/physics/kirchhoffContinuousFrictionKKT.js": "628d6f72149dc8a0423157f7d819f420913b94f9e3c8758daeba9d270818c20c",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "6b5ffe0d4c4ee2394878abeef4f49dbf8131e4882d6c3f092c9d614e5b1c0cd7",
+    "src/physics/kirchhoffCoupledBoundaryRows.js": "a1478e70c525748b963ce07fd215fa6185e5327377922c048140606c490dd04a",
+    "src/physics/kirchhoffCoupledConeRepair.js": "f0ee5dfdc493e5ad4bd9b981fa1e69d00906213d67f555d7bed7e7b8963cbd46",
+    "src/physics/kirchhoffCoupledConvergence.js": "fe1bc31d76dccf9a86f1e30e2dba23e110331cd531cf47031a59902dccd8c4ad",
+    "src/physics/kirchhoffCoupledFoldRows.js": "86454e32ccdb1aaef122d1a369ae57f8f379b29a54bc7d6acef36d56d3e4a25b",
+    "src/physics/kirchhoffCoupledFrictionRows.js": "63fdf51bbf6ce32a251b344853f24ce8079943aa1a45dc6619e9db0ce30b6757",
+    "src/physics/kirchhoffCoupledFrictionSolver.js": "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54",
+    "src/physics/kirchhoffCoupledLinearSolver.js": "b4b35a67dca4c17aab10073b34ccd818ce4cbf3931afddf3b4fd81d2b5b4f4f0",
+    "src/physics/kirchhoffCoupledLoadSolver.js": "d1bd39270139179020aa891a68908d66d7e874921bd16bae6fb81bff0baf4b3d",
+    "src/physics/kirchhoffCoupledOrientationRows.js": "59ce14b9f2f4f8a4a730ef4603ca7330e4c1d56c0fbc6d9f2b5d8d5788f6f2f7",
+    "src/physics/kirchhoffCoupledResidual.js": "e4d2efee3bb913460ebf4d856619de126f023cf125e9951969ebd6918d2cb24c",
+    "src/physics/kirchhoffCoupledSystem.js": "a8fb18ce4389a310b6400f00bbe50813fb19308aa5eb32ef3e875351fe97f5ee",
+    "src/physics/kirchhoffCoupledTrialState.js": "a76135ac3ee75e1d9a14313eb7e46347d3c33113a71a318766a7b731f18c6884",
+    "src/physics/kirchhoffDirectSolver.js": "8bf685703ae164e352ae8dbf84c6dff55f0c19d21ee41b9d492f804f2c4d3e5d",
+    "src/physics/kirchhoffExternalFrictionRows.js": "69831d63aa8ef321b377516dd6ffc8cab3afd23509987e85d63570257d8f0f88",
+    "src/physics/kirchhoffFrictionMerit.js": "61e121c1b13516994ad8758754c125d407dcf4c25d8c34086c5cfc5ec4a56105",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffLumenContact.js": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/kirchhoffOrientationBoundary.js": "748f23a86852b995689cc8bfa71cfb02b380b425ef39fcaaa87ad39d09ba8a07",
+    "src/physics/kirchhoffPortalSideSamples.js": "c78b0e7e08fbcb95d935e8b9c5ffee7402de5dec91a07379ce6e54221c1896c9",
+    "src/physics/kirchhoffRodDiagnostics.js": "a25bdd5e1ef7b312b365ab89d957bf99c5db27d8705e824d6585a9907a5cbd79",
+    "src/physics/kirchhoffSlidingPortal.js": "04f32dde898eadb9b1e964ac055bb0f6cfe3cc0883abb56f6318ed3fb3583942",
+    "src/physics/kirchhoffSplitMotion.js": "53128abcc78c511965d6fe944122d8e3458b0fe5acbc3dde2f63ebc04fd25e12",
+    "src/physics/kirchhoffSplitWallFriction.js": "be714ab7ba2acb116b4d43ce9a2e447308540f5d89407b62a052bef131e1ba55",
+    "src/physics/kirchhoffSurfaceFriction.js": "f89463fcee825a725e8671ed8efb2e55af7e53379d00765d6d297c79668b18a6",
+    "src/physics/kirchhoffToolContactOwnership.js": "4a51dd66e3bfab29d17ff3510ba75c4ec0baeef0101191e93ee394319e833986",
+    "src/physics/pointBuffer.js": "16daaf9694aef63325d0a505a661a4f1ae7fc443ffb81a967ff97fe888d5304e",
+    "src/physics/rodState.js": "e57ac6c67ba2758e00924df3cf40a5b98f3be5af5485350159365d7d6e27b60f",
+    "tests/helpers/coupledRuntimeFixture.js": "767c503b07fd0326e84e012f57c396c9f10956f57b4c605eb590de3f8742d127"
+  },
+  "dt": 0.008333333333333333,
+  "trace": [
+    {
+      "phase": "physical",
+      "pass": 0,
+      "trial": 0,
+      "scale": 0.3801104605992058,
+      "settled": false,
+      "merit": 934.4935160245329,
+      "contacts": [
+        {
+          "id": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "contactId": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "kind": "distal-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4508976376069834,
+          "outerT": 1,
+          "actualGap": 0.158581862921213,
+          "physicalGap": 0.15631830296078741,
+          "startGap": 0.1694377694761167,
+          "physicalNormalMotion": -0.013119466515329286,
+          "normal": [
+            -0.5949890508211791,
+            -0.019295287637937926,
+            -0.8035021600953428
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:side|runtime:198:8",
+          "contactId": "containment:guidewire:catheter:side|runtime:198:8",
+          "kind": "side",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0,
+          "outerT": 0.48226215770040215,
+          "actualGap": 0.025107589673484337,
+          "physicalGap": 0.024015959868865122,
+          "startGap": 0.030343086687471446,
+          "physicalNormalMotion": -0.006327126818606323,
+          "normal": [
+            -0.5950064036743311,
+            -0.01928817584083891,
+            -0.8034894808641068
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+          "contactId": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+          "kind": "distal-fillet",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4208967531512265,
+          "outerT": 1,
+          "actualGap": 0.009681417182774432,
+          "physicalGap": 0.008644293549015972,
+          "startGap": 0.021466925599020636,
+          "physicalNormalMotion": -0.012822632050004664,
+          "normal": [
+            -0.5949896274877094,
+            -0.019295051302445968,
+            -0.8035017387518664
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "lumen:sliding-rim|runtime:198:7",
+          "contactId": "lumen:sliding-rim|runtime:198:7",
+          "kind": "sliding-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4508508444425503,
+          "outerT": 1,
+          "actualGap": 0.00858272043451061,
+          "physicalGap": -0.0024245133437082646,
+          "startGap": 0.010849015942390496,
+          "physicalNormalMotion": -0.01327352928609876,
+          "normal": [
+            -0.596744178505037,
+            -0.026252375108336747,
+            -0.8020019939012121
+          ],
+          "lambda": 0.016439170167196437,
+          "tangent": [
+            0.000006692670347916251,
+            -0.00008769786603230729
+          ]
+        }
+      ],
+      "material": {
+        "bendTwistRad": 0.9344935160245329,
+        "adaptationMm": 0.4485476285478879
+      }
+    },
+    {
+      "phase": "physical",
+      "pass": 1,
+      "trial": 0,
+      "scale": 0.6119324831453328,
+      "settled": false,
+      "merit": 362.5685600751505,
+      "contacts": [
+        {
+          "id": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "contactId": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "kind": "distal-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4511844415258645,
+          "outerT": 1,
+          "actualGap": 0.1600641518709861,
+          "physicalGap": 0.15794523015133186,
+          "startGap": 0.16943083289573066,
+          "physicalNormalMotion": -0.011485602744398799,
+          "normal": [
+            -0.582707328789861,
+            -0.024653133031538148,
+            -0.8123080647182533
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:side|runtime:198:8",
+          "contactId": "containment:guidewire:catheter:side|runtime:198:8",
+          "kind": "side",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0,
+          "outerT": 0.4821033917743556,
+          "actualGap": 0.025827279391676027,
+          "physicalGap": 0.02480573483732016,
+          "startGap": 0.030343086687474756,
+          "physicalNormalMotion": -0.005537351850154594,
+          "normal": [
+            -0.5827253377588332,
+            -0.02464585308198488,
+            -0.8122953666368627
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "lumen:sliding-rim|runtime:198:7",
+          "contactId": "lumen:sliding-rim|runtime:198:7",
+          "kind": "sliding-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4511419075524638,
+          "outerT": 1,
+          "actualGap": 0.01006489488933358,
+          "physicalGap": -0.0018402528528724642,
+          "startGap": 0.009802392889143252,
+          "physicalNormalMotion": -0.011642645742015716,
+          "normal": [
+            -0.5843793834577321,
+            -0.03128505056098306,
+            -0.8108772914571954
+          ],
+          "lambda": 0.041399229637349814,
+          "tangent": [
+            -0.00023561014979944837,
+            -0.0002212764166759302
+          ]
+        }
+      ],
+      "material": {
+        "bendTwistRad": 0.36256856007515054,
+        "adaptationMm": 0.18027529981326493
+      }
+    },
+    {
+      "phase": "physical",
+      "pass": 2,
+      "trial": 0,
+      "scale": 1,
+      "settled": false,
+      "merit": 14.125703904913612,
+      "contacts": [
+        {
+          "id": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "contactId": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "kind": "distal-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4474220955156042,
+          "outerT": 1,
+          "actualGap": 0.1614381663515752,
+          "physicalGap": 0.1606317896858438,
+          "startGap": 0.1695218282198952,
+          "physicalNormalMotion": -0.008890038534051414,
+          "normal": [
+            -0.43488885594988547,
+            -0.08041124060375929,
+            -0.8968866792160335
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:side|runtime:198:8",
+          "contactId": "containment:guidewire:catheter:side|runtime:198:8",
+          "kind": "side",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0,
+          "outerT": 0.484194456655384,
+          "actualGap": 0.02642897667611905,
+          "physicalGap": 0.02603853081790216,
+          "startGap": 0.030343086687469642,
+          "physicalNormalMotion": -0.004304555869567482,
+          "normal": [
+            -0.4349039042249352,
+            -0.08040598540689806,
+            -0.8968798534924587
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+          "contactId": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+          "kind": "distal-fillet",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.41742134349121307,
+          "outerT": 1,
+          "actualGap": 0.012443337056740167,
+          "physicalGap": 0.011680440395535025,
+          "startGap": 0.02028819258677675,
+          "physicalNormalMotion": -0.008607752191241724,
+          "normal": [
+            -0.43488936199944783,
+            -0.08041106388113861,
+            -0.8968864496831339
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "lumen:sliding-rim|runtime:198:7",
+          "contactId": "lumen:sliding-rim|runtime:198:7",
+          "kind": "sliding-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4473831468155194,
+          "outerT": 1,
+          "actualGap": 0.011438818844090131,
+          "physicalGap": 0.010312691628082954,
+          "startGap": 0.019227326172737848,
+          "physicalNormalMotion": -0.008914634544654894,
+          "normal": [
+            -0.43648847798206947,
+            -0.08677247700730127,
+            -0.8955156870892401
+          ],
+          "lambda": 0.052888250159181416,
+          "tangent": [
+            -0.0004361166754140906,
+            -0.00026082160440574003
+          ]
+        }
+      ],
+      "material": {
+        "bendTwistRad": 0.0018730058519257427,
+        "adaptationMm": 0.014125703904913613
+      }
+    },
+    {
+      "phase": "physical",
+      "pass": 3,
+      "trial": 0,
+      "scale": 1,
+      "settled": false,
+      "merit": 0.45387596723153384,
+      "contacts": [
+        {
+          "id": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "contactId": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "kind": "distal-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4467115587240329,
+          "outerT": 1,
+          "actualGap": 0.1511054606868568,
+          "physicalGap": 0.15045294877392268,
+          "startGap": 0.1695390131161029,
+          "physicalNormalMotion": -0.019086064342180204,
+          "normal": [
+            -0.40922719790685225,
+            -0.08680378255499446,
+            -0.9082941174682633
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:side|runtime:198:8",
+          "contactId": "containment:guidewire:catheter:side|runtime:198:8",
+          "kind": "side",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0,
+          "outerT": 0.4845914024478284,
+          "actualGap": 0.0214103067269315,
+          "physicalGap": 0.021094113958777923,
+          "startGap": 0.03034308668747435,
+          "physicalNormalMotion": -0.009248972728696429,
+          "normal": [
+            -0.40923769847018693,
+            -0.08680019744416634,
+            -0.9082897290372042
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "lumen:sliding-rim|runtime:198:7",
+          "contactId": "lumen:sliding-rim|runtime:198:7",
+          "kind": "sliding-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4466399327060276,
+          "outerT": 1,
+          "actualGap": 0.0011070885665184493,
+          "physicalGap": 0.00045387596723153387,
+          "startGap": 0.019539946891672384,
+          "physicalNormalMotion": -0.01908607092444085,
+          "normal": [
+            -0.41140101524721034,
+            -0.09543499510315413,
+            -0.906444353704752
+          ],
+          "lambda": 0.03583907530918293,
+          "tangent": [
+            -0.0002880987647837411,
+            -0.0001814731764279493
+          ]
+        }
+      ],
+      "material": {
+        "bendTwistRad": 6.495751576058362e-7,
+        "adaptationMm": 0.00004855114321010219
+      }
+    },
+    {
+      "phase": "physical",
+      "pass": 4,
+      "trial": 0,
+      "scale": 1,
+      "settled": true,
+      "merit": 0.0465847093067021,
+      "contacts": [
+        {
+          "id": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "contactId": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+          "kind": "distal-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.44670404602726677,
+          "outerT": 1,
+          "actualGap": 0.1506511245501853,
+          "physicalGap": 0.14999892546885613,
+          "startGap": 0.1695391948166397,
+          "physicalNormalMotion": -0.01954026934778357,
+          "normal": [
+            -0.40918858589662815,
+            -0.08670866929613628,
+            -0.9083205974989288
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:side|runtime:198:8",
+          "contactId": "containment:guidewire:catheter:side|runtime:198:8",
+          "kind": "side",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0,
+          "outerT": 0.48459560294990695,
+          "actualGap": 0.02118997195541833,
+          "physicalGap": 0.020873928388335003,
+          "startGap": 0.030343086687469437,
+          "physicalNormalMotion": -0.009469158299134434,
+          "normal": [
+            -0.4091989662463336,
+            -0.08670512527107761,
+            -0.9083162595014243
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+          "contactId": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+          "kind": "distal-fillet",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.41670269906387913,
+          "outerT": 1,
+          "actualGap": 0.0020305458756703088,
+          "physicalGap": 0.0013989551287531543,
+          "startGap": 0.020264853158521973,
+          "physicalNormalMotion": -0.01886589802976882,
+          "normal": [
+            -0.4091889358425085,
+            -0.08670854981933766,
+            -0.9083204512573207
+          ],
+          "lambda": 0,
+          "tangent": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "lumen:sliding-rim|runtime:198:7",
+          "contactId": "lumen:sliding-rim|runtime:198:7",
+          "kind": "sliding-rim",
+          "innerSegment": 198,
+          "outerSegment": 15,
+          "innerT": 0.4466307577483955,
+          "outerT": 1,
+          "actualGap": 0.0006528094337310969,
+          "physicalGap": -1.500884910243805e-7,
+          "startGap": 0.019539718147750653,
+          "physicalNormalMotion": -0.019539868236241677,
+          "normal": [
+            -0.41138769009427295,
+            -0.09543954454244201,
+            -0.906449922376537
+          ],
+          "lambda": 0.03510952429792796,
+          "tangent": [
+            -0.00027972507855635764,
+            -0.0001784854206309002
+          ]
+        }
+      ],
+      "material": {
+        "bendTwistRad": 5.775218601571403e-10,
+        "adaptationMm": 0.000046584709306702105
+      }
+    }
+  ],
+  "solves": [
+    {
+      "phase": "physical",
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 3,
+        "factorizations": 4,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000003102116925779441,
+        "frictionResidual": 2.5063214281750845e-9,
+        "coneViolation": 0,
+        "rowCount": 10,
+        "band": 10,
+        "groupCount": 1,
+        "normalLoadIterations": 1,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "projection",
+        "seedFactorizations": 2,
+        "originalCount": 139,
+        "equalityCount": 112,
+        "equalityBand": 13,
+        "retainedCount": 10,
+        "responseColumns": 10,
+        "expansions": 1,
+        "reconstructionResidual": 0.000003102116925779441,
+        "basis": "common-relative",
+        "individualBand": 19,
+        "pairedNodes": 2,
+        "bundleEntries": 620,
+        "materialResidual": 0.000003102116925779441,
+        "contactResidual": 6.990501927317538e-15,
+        "activeContacts": 1,
+        "dofCount": 120
+      },
+      "additional": [
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 0,
+          "strain": 0.05849590901378266,
+          "actual": 0.05849590901378266,
+          "start": 0.058552354111814274,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 1,
+          "strain": 0.05869743045589158,
+          "actual": 0.058697430455891576,
+          "start": 0.058742697975343455,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 2,
+          "strain": 0.05971208203640445,
+          "actual": 0.059712082036404455,
+          "start": 0.0598541085364067,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 3,
+          "strain": 0.06048208539743678,
+          "actual": 0.06048208539743679,
+          "start": 0.060481846942664584,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 4,
+          "strain": 0.06196500165752594,
+          "actual": 0.06196500165752594,
+          "start": 0.06160673310900126,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 5,
+          "strain": 0.061969350404278395,
+          "actual": 0.0619693504042784,
+          "start": 0.06198426519929533,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 6,
+          "strain": 0.05684196435089278,
+          "actual": 0.05684196435089278,
+          "start": 0.05689296841322314,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 7,
+          "strain": 0.05057681614167518,
+          "actual": 0.05057681614167518,
+          "start": 0.04980838871819,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 8,
+          "strain": 0.04423988090413579,
+          "actual": 0.04423988090413578,
+          "start": 0.04295950957956913,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 9,
+          "strain": 0.03533565381301668,
+          "actual": 0.03533565381301669,
+          "start": 0.03511124223806509,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 10,
+          "strain": 0.021553783710957848,
+          "actual": 0.021553783710957848,
+          "start": 0.023422678105471998,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 11,
+          "strain": 0.006789208988432452,
+          "actual": 0.006789208988432452,
+          "start": 0.009017022520521788,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 12,
+          "strain": -0.00014892423420352665,
+          "actual": -0.0011715300778621096,
+          "start": -0.0010226058436585829,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 13,
+          "strain": -0.00013548668295334273,
+          "actual": -0.000845307017511579,
+          "start": -0.0007098203345582362,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 14,
+          "strain": -0.02443076609070273,
+          "actual": -0.02443076609070273,
+          "start": 0.03770937357118494,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 16,
+          "strain": 0.045708030145542464,
+          "actual": 0.045708030145542464,
+          "start": 0.045708030145542464,
+          "alpha": 0,
+          "lambda": 0
+        }
+      ]
+    },
+    {
+      "phase": "physical",
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 4,
+        "factorizations": 7,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000003102116925779441,
+        "frictionResidual": 2.3870588028440665e-7,
+        "coneViolation": 2.220446049250313e-16,
+        "rowCount": 12,
+        "band": 12,
+        "groupCount": 2,
+        "normalLoadIterations": 1,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "projection",
+        "seedFactorizations": 5,
+        "originalCount": 142,
+        "equalityCount": 112,
+        "equalityBand": 13,
+        "retainedCount": 12,
+        "responseColumns": 12,
+        "expansions": 1,
+        "reconstructionResidual": 0.000003102116925779441,
+        "basis": "common-relative",
+        "individualBand": 22,
+        "pairedNodes": 2,
+        "bundleEntries": 650,
+        "materialResidual": 0.000003102116925779441,
+        "contactResidual": 5.096465784115711e-14,
+        "activeContacts": 1,
+        "dofCount": 120
+      },
+      "additional": [
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 0,
+          "strain": 0.05849353971696406,
+          "actual": 0.058502020269877365,
+          "start": 0.058555855962954914,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 1,
+          "strain": 0.05868624040738286,
+          "actual": 0.058684478087542506,
+          "start": 0.0587459976208609,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 2,
+          "strain": 0.05973892872293101,
+          "actual": 0.059735501578422154,
+          "start": 0.05985426240965911,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 3,
+          "strain": 0.060612496118808847,
+          "actual": 0.060610642192914926,
+          "start": 0.060481916019485674,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 4,
+          "strain": 0.06213487065932644,
+          "actual": 0.062130566068676556,
+          "start": 0.061607983244052894,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 5,
+          "strain": 0.06209332917936158,
+          "actual": 0.06209291078064149,
+          "start": 0.061996712020819265,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 6,
+          "strain": 0.05704865449418085,
+          "actual": 0.05704497623985884,
+          "start": 0.05689778666711789,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 7,
+          "strain": 0.05076098477861048,
+          "actual": 0.0507612894483271,
+          "start": 0.049808832575470086,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 8,
+          "strain": 0.04412861918649269,
+          "actual": 0.04412809722941055,
+          "start": 0.04295746164496565,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 9,
+          "strain": 0.034711849911703334,
+          "actual": 0.03471280056762269,
+          "start": 0.03512344237754533,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 10,
+          "strain": 0.02010416756048506,
+          "actual": 0.020105482024726937,
+          "start": 0.02344100507883876,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 11,
+          "strain": 0.00420835429826013,
+          "actual": 0.004207680340678199,
+          "start": 0.009023971103513662,
+          "alpha": 0,
+          "lambda": 0.005253702651711569
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 12,
+          "strain": -0.00010034752794325348,
+          "actual": -0.001112386086067188,
+          "start": -0.0010147862514571391,
+          "alpha": 0,
+          "lambda": 0.036621441795012366
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 13,
+          "strain": -0.00011553522578809147,
+          "actual": -0.0007957982320368207,
+          "start": -0.0006809825684458122,
+          "alpha": 0,
+          "lambda": 0.03487438371676622
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 14,
+          "strain": -0.015432099116661366,
+          "actual": -0.015431320309468644,
+          "start": 0.03796912143853157,
+          "alpha": 0,
+          "lambda": 0.09624170926668955
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 16,
+          "strain": 0.03475156900088447,
+          "actual": 0.034750440744133124,
+          "start": 0.048025305519216674,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.014701470417541149,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.1234723213987057,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.020249255580384637,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.10849671196707039,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.00983886393952186,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.10059633887086357,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.009970945594647802,
+          "alpha": 0,
+          "lambda": 0.000006692683903026321
+        },
+        {
+          "strain": 0.10539965202086102,
+          "alpha": 0,
+          "lambda": -0.00008769786499784687
+        }
+      ]
+    },
+    {
+      "phase": "physical",
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 4,
+        "factorizations": 7,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000003102116925779441,
+        "frictionResidual": 2.7063387864068034e-8,
+        "coneViolation": 0,
+        "rowCount": 9,
+        "band": 9,
+        "groupCount": 1,
+        "normalLoadIterations": 1,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "projection",
+        "seedFactorizations": 5,
+        "originalCount": 139,
+        "equalityCount": 112,
+        "equalityBand": 13,
+        "retainedCount": 9,
+        "responseColumns": 9,
+        "expansions": 1,
+        "reconstructionResidual": 0.000003102116925779441,
+        "basis": "common-relative",
+        "individualBand": 19,
+        "pairedNodes": 2,
+        "bundleEntries": 620,
+        "materialResidual": 0.000003102116925779441,
+        "contactResidual": 3.2791477866389585e-13,
+        "activeContacts": 1,
+        "dofCount": 120
+      },
+      "additional": [
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 0,
+          "strain": 0.058486080613635784,
+          "actual": 0.058492012972028086,
+          "start": 0.05856024159596975,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 1,
+          "strain": 0.058676252995081175,
+          "actual": 0.058677532695760204,
+          "start": 0.05875076540974315,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 2,
+          "strain": 0.05976658356288504,
+          "actual": 0.05975704742585067,
+          "start": 0.05985442608324786,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 3,
+          "strain": 0.06074278790732696,
+          "actual": 0.060740505794516814,
+          "start": 0.060482246821434674,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 4,
+          "strain": 0.0623054516800974,
+          "actual": 0.06229646013421854,
+          "start": 0.061609683740747004,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 5,
+          "strain": 0.0622139689375131,
+          "actual": 0.0622134769885563,
+          "start": 0.062011499329905746,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 6,
+          "strain": 0.05725521139776748,
+          "actual": 0.057252069680811646,
+          "start": 0.056903400745650756,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 7,
+          "strain": 0.050941886179755605,
+          "actual": 0.05094066212162667,
+          "start": 0.04980956560375762,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 8,
+          "strain": 0.044007508740169926,
+          "actual": 0.044006199223227786,
+          "start": 0.04295699044904926,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 9,
+          "strain": 0.03407188577894748,
+          "actual": 0.03407268815393229,
+          "start": 0.03513840448508706,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 10,
+          "strain": 0.018649144622409377,
+          "actual": 0.018650039668710802,
+          "start": 0.02346283475608254,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 11,
+          "strain": 0.0016309777705257357,
+          "actual": 0.0016331700560679174,
+          "start": 0.009048240727745559,
+          "alpha": 0,
+          "lambda": 0.01040654359314936
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 12,
+          "strain": -0.00012376319267076556,
+          "actual": -0.0010617260493566982,
+          "start": -0.0009418850496427259,
+          "alpha": 0,
+          "lambda": 0.07313456339289073
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 13,
+          "strain": -0.000009165880501993031,
+          "actual": -0.0007334749691153969,
+          "start": -0.0007229955568650518,
+          "alpha": 0,
+          "lambda": 0.069930796865627
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 14,
+          "strain": -0.0063086843809952095,
+          "actual": -0.006304992146554139,
+          "start": 0.038497815437454175,
+          "alpha": 0,
+          "lambda": 0.19478232452770716
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 16,
+          "strain": 0.03623129543572925,
+          "actual": 0.03623262732238414,
+          "start": 0.0478741460818039,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.04980255293203793,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.2570158662614526,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.05066328981476305,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.22205098598018325,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.040110100601068635,
+          "alpha": 0,
+          "lambda": -0.0002356101163982638
+        },
+        {
+          "strain": 0.22085737292025856,
+          "alpha": 0,
+          "lambda": -0.0002212764522407546
+        }
+      ]
+    },
+    {
+      "phase": "physical",
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 4,
+        "factorizations": 7,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000003102116925779441,
+        "frictionResidual": 2.7207773145576652e-8,
+        "coneViolation": 0,
+        "rowCount": 9,
+        "band": 9,
+        "groupCount": 1,
+        "normalLoadIterations": 1,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "projection",
+        "seedFactorizations": 5,
+        "originalCount": 142,
+        "equalityCount": 112,
+        "equalityBand": 13,
+        "retainedCount": 9,
+        "responseColumns": 9,
+        "expansions": 1,
+        "reconstructionResidual": 0.000003102116925779441,
+        "basis": "common-relative",
+        "individualBand": 22,
+        "pairedNodes": 2,
+        "bundleEntries": 650,
+        "materialResidual": 0.000003102116925779441,
+        "contactResidual": 1.0414013401627287e-12,
+        "activeContacts": 1,
+        "dofCount": 120
+      },
+      "additional": [
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 0,
+          "strain": 0.058482301509961816,
+          "actual": 0.058490816319847205,
+          "start": 0.0585641405453764,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 1,
+          "strain": 0.05866540412736722,
+          "actual": 0.0586601710045011,
+          "start": 0.05875365989624282,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 2,
+          "strain": 0.059786691486362134,
+          "actual": 0.05977299480030253,
+          "start": 0.05985459462787262,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 3,
+          "strain": 0.060825395685831056,
+          "actual": 0.06082379110885413,
+          "start": 0.06048247350269734,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 4,
+          "strain": 0.0624167104955079,
+          "actual": 0.06240915772006261,
+          "start": 0.06161048412327496,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 5,
+          "strain": 0.062287509541037095,
+          "actual": 0.062284480657702,
+          "start": 0.06202197485526338,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 6,
+          "strain": 0.05738500040501379,
+          "actual": 0.05738010058163698,
+          "start": 0.056906960854821845,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 7,
+          "strain": 0.05105631880587156,
+          "actual": 0.051053715025769414,
+          "start": 0.049809674434344,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 8,
+          "strain": 0.043925502402352476,
+          "actual": 0.04392356464956327,
+          "start": 0.042957315135338084,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 9,
+          "strain": 0.033653539538466656,
+          "actual": 0.03365620712806373,
+          "start": 0.03514828932844439,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 10,
+          "strain": 0.017713365311120523,
+          "actual": 0.017712377398957556,
+          "start": 0.02347885298233293,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 11,
+          "strain": -0.0000017601018895592457,
+          "actual": 0.000004272609797920102,
+          "start": 0.00907285577991652,
+          "alpha": 0,
+          "lambda": 0.013540632340800385
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 12,
+          "strain": -0.00010766298027921421,
+          "actual": -0.0009514126992944405,
+          "start": -0.0008459928997351224,
+          "alpha": 0,
+          "lambda": 0.09648633111389977
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 13,
+          "strain": 0.000025102054729808743,
+          "actual": -0.0007398809400453732,
+          "start": -0.0007613765143041091,
+          "alpha": 0,
+          "lambda": 0.09264413437774476
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 14,
+          "strain": -0.00008664600122781224,
+          "actual": -0.00008309833108249842,
+          "start": 0.03888957412892358,
+          "alpha": 0,
+          "lambda": 0.25837234245197316
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 16,
+          "strain": 0.037604927539709766,
+          "actual": 0.037606650895783675,
+          "start": 0.04651966036206171,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.08525523058617561,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.34491633800632493,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.07392489697153021,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.2957001747572651,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.07313798844036914,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.28614403668614885,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.07327823239095785,
+          "alpha": 0,
+          "lambda": -0.0004361166469669237
+        },
+        {
+          "strain": 0.2972217524859061,
+          "alpha": 0,
+          "lambda": -0.0002608216519719009
+        }
+      ]
+    },
+    {
+      "phase": "physical",
+      "diagnostics": {
+        "status": "converged",
+        "converged": true,
+        "iterations": 4,
+        "factorizations": 7,
+        "backtracks": 0,
+        "gradientFallbacks": 0,
+        "boundRecoveries": 0,
+        "maximumResidual": 0.000003102116925779441,
+        "frictionResidual": 4.3596126708678185e-11,
+        "coneViolation": 0,
+        "rowCount": 9,
+        "band": 9,
+        "groupCount": 1,
+        "normalLoadIterations": 1,
+        "method": "simultaneous-coulomb-newton",
+        "normalMap": "projection",
+        "seedFactorizations": 5,
+        "originalCount": 139,
+        "equalityCount": 112,
+        "equalityBand": 13,
+        "retainedCount": 9,
+        "responseColumns": 9,
+        "expansions": 1,
+        "reconstructionResidual": 0.000003102116925779441,
+        "basis": "common-relative",
+        "individualBand": 19,
+        "pairedNodes": 2,
+        "bundleEntries": 620,
+        "materialResidual": 0.000003102116925779441,
+        "contactResidual": 6.26560435479373e-15,
+        "activeContacts": 1,
+        "dofCount": 120
+      },
+      "additional": [
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 0,
+          "strain": 0.05847724877946778,
+          "actual": 0.0584852825796309,
+          "start": 0.05856378976068516,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 1,
+          "strain": 0.058669488016887386,
+          "actual": 0.05867273051140567,
+          "start": 0.05875435122578381,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 2,
+          "strain": 0.059788680643879356,
+          "actual": 0.05977008609192574,
+          "start": 0.05985444093718784,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 3,
+          "strain": 0.06082516557991641,
+          "actual": 0.06082379110885413,
+          "start": 0.06048247350269734,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 4,
+          "strain": 0.06241596122878267,
+          "actual": 0.06240915772006261,
+          "start": 0.06161048412327496,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 5,
+          "strain": 0.062286630623087716,
+          "actual": 0.062284480657702,
+          "start": 0.06202197485526338,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 6,
+          "strain": 0.057384745353677,
+          "actual": 0.05738010058163698,
+          "start": 0.056906960854821845,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 7,
+          "strain": 0.05105695547429498,
+          "actual": 0.051053715025769414,
+          "start": 0.049809674434344,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 8,
+          "strain": 0.04392481107361629,
+          "actual": 0.04392105852222415,
+          "start": 0.04295736904444287,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 9,
+          "strain": 0.033646873980513206,
+          "actual": 0.03364637959187924,
+          "start": 0.035148445761535196,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 10,
+          "strain": 0.017703993669893437,
+          "actual": 0.017703677418636862,
+          "start": 0.02347847054417093,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 11,
+          "strain": -1.0722152332665047e-13,
+          "actual": 0.000005205506971889262,
+          "start": 0.009072855859472024,
+          "alpha": 0,
+          "lambda": 0.013435219196325567
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 12,
+          "strain": 4.660393437192628e-7,
+          "actual": -0.0008440113566991342,
+          "start": -0.0008464587303702195,
+          "alpha": 0,
+          "lambda": 0.09677696051693974
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 13,
+          "strain": 0.0000010716791878583184,
+          "actual": -0.0007650487236222775,
+          "start": -0.0007624788548872944,
+          "alpha": 0,
+          "lambda": 0.09272504739223146
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 14,
+          "strain": -0.000003141661450503652,
+          "actual": -9.548830407907216e-7,
+          "start": 0.03880949984317372,
+          "alpha": 0,
+          "lambda": 0.2592019662420834
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 16,
+          "strain": 0.02727602653901204,
+          "actual": 0.027274932680762226,
+          "start": 0.04636215949500435,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.08700255578333826,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.3488820657410259,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.07379221150218006,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.29766579314553315,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "strain": 0.07550058647547048,
+          "alpha": 0,
+          "lambda": -0.00028809874627549076
+        },
+        {
+          "strain": 0.3010776955781983,
+          "alpha": 0,
+          "lambda": -0.00018147320581082338
+        }
+      ]
+    },
+    {
+      "phase": "bias",
+      "diagnostics": {
+        "status": "condensed-full-residual",
+        "converged": false,
+        "iterations": 2,
+        "factorizations": 3,
+        "refinements": 0,
+        "nearNullPivots": 0,
+        "numericalShift": 1e-8,
+        "maximumResidual": 0.007242910004223058,
+        "rowCount": 14,
+        "band": 14,
+        "matrixEntries": 196,
+        "factorRowCount": 2,
+        "factorBand": 2,
+        "factorEntries": 4,
+        "factorization": "skyline",
+        "factorProfileEntries": 3,
+        "frictionResidual": 0,
+        "originalCount": 134,
+        "equalityCount": 103,
+        "equalityBand": 9,
+        "retainedCount": 14,
+        "responseColumns": 14,
+        "expansions": 1,
+        "reconstructionResidual": 0.007221604510080542,
+        "basis": "common-relative",
+        "individualBand": 16,
+        "pairedNodes": 2,
+        "bundleEntries": 554,
+        "materialResidual": 0.007221604510080542,
+        "contactResidual": 0,
+        "activeContacts": 0,
+        "dofCount": 120
+      },
+      "additional": [
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 0,
+          "strain": 0.0584888186828536,
+          "actual": 0.0584888186828536,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 1,
+          "strain": 0.05867273051140567,
+          "actual": 0.05867273051140567,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 2,
+          "strain": 0.05977008609192574,
+          "actual": 0.05977008609192574,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 3,
+          "strain": 0.06082379110885413,
+          "actual": 0.06082379110885413,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 4,
+          "strain": 0.06240915772006261,
+          "actual": 0.06240915772006261,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 5,
+          "strain": 0.062284480657702,
+          "actual": 0.062284480657702,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 6,
+          "strain": 0.05738010058163698,
+          "actual": 0.05738010058163698,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 7,
+          "strain": 0.051053715025769414,
+          "actual": 0.051053715025769414,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 8,
+          "strain": 0.04392105852222415,
+          "actual": 0.04392105852222415,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 9,
+          "strain": 0.03364637959187924,
+          "actual": 0.03364637959187924,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 10,
+          "strain": 0.017703677418636862,
+          "actual": 0.017703677418636862,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 11,
+          "strain": 0.0000014739182758460867,
+          "actual": 0.0000014739182758460867,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 12,
+          "strain": -0.0008440113566991342,
+          "actual": -0.0008440113566991342,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 13,
+          "strain": -0.0007650487236222775,
+          "actual": -0.0007650487236222775,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 14,
+          "strain": -2.3567144158409548e-7,
+          "actual": -2.3567144158409548e-7,
+          "alpha": 0,
+          "lambda": 0
+        },
+        {
+          "kind": "sheath",
+          "side": 1,
+          "node": 16,
+          "strain": 0.026820653531337564,
+          "actual": 0.026820653531337564,
+          "alpha": 0,
+          "lambda": 0
+        }
+      ]
+    }
+  ],
+  "preparationAttempts": 33,
+  "catheterAttempts": 10,
+  "prepared": {
+    "wireMm": 12.100000000000001,
+    "catheterMm": 0,
+    "wireRotation": 0,
+    "catheterRotation": 0,
+    "executedSteps": 33,
+    "fingerprints": [
+      {
+        "id": "guidewire",
+        "hash": "3b0ee17d"
+      },
+      {
+        "id": "catheter",
+        "hash": "d2980471"
+      }
+    ],
+    "activeNodes": [
+      4,
+      16
+    ]
+  },
+  "final": {
+    "state": {
+      "wireMm": 12.100000000000001,
+      "catheterMm": 4.333333333333335,
+      "wireRotation": 0,
+      "catheterRotation": 0,
+      "executedSteps": 43,
+      "fingerprints": [
+        {
+          "id": "guidewire",
+          "hash": "feabae5c"
+        },
+        {
+          "id": "catheter",
+          "hash": "a8fe376d"
+        }
+      ],
+      "activeNodes": [
+        4,
+        17
+      ]
+    },
+    "jointMotion": {
+      "mode": "split-physical-bias",
+      "physicalDt": 0.008333333333333333,
+      "biasMaterialMode": "preserve-strain",
+      "physicalPasses": 5,
+      "biasPasses": 1,
+      "historyCommits": 0,
+      "rejectedTrials": 0,
+      "rollbackCount": 0,
+      "physicalAccepted": true,
+      "biasAccepted": false,
+      "sweptWitnesses": 0,
+      "unverifiedHistoryKinds": [
+        "sheath-tangent-plane"
+      ],
+      "biasElasticEnergyDelta": 0,
+      "certified": false,
+      "biasHardStrainMaximum": 0.00004653337335547292,
+      "finalPhysicalResidualSettled": true,
+      "finishVelocityMaximumChange": 2.051178613626803e-7,
+      "physicalKKTResidualMm": 0.0000013335016508797537,
+      "physicalConeViolation": 0,
+      "physicalPhaseMaterialResidual": {
+        "bendTwistRad": 5.775218601571403e-10,
+        "adaptationMm": 0.000046584709306702105
+      },
+      "finalMaterialResidual": {
+        "bendTwistRad": 5.775218601571403e-10,
+        "adaptationMm": 0.000046584709306702105
+      },
+      "maximumOutwardContactVelocity": 2.344784206791015,
+      "reactionUnits": "xpbd-multiplier",
+      "impulseScale": 120,
+      "limitations": [
+        "sheath-tangent-plane"
+      ],
+      "contacts": [
+        {
+          "id": "lumen:sliding-rim|runtime:198:7",
+          "kind": "lumen",
+          "feature": "sliding-rim",
+          "normalPhysical": 0.03510952429792796,
+          "normalBias": 0,
+          "tangentPhysical": [
+            -0.0002797250603533119,
+            -0.00017848544915898852
+          ],
+          "mu": [
+            0.015,
+            0.006
+          ]
+        }
+      ]
+    },
+    "stepCount": 43,
+    "contacts": [
+      {
+        "id": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+        "contactId": "containment:guidewire:catheter:distal-rim|runtime:198:5",
+        "kind": "distal-rim",
+        "innerSegment": 198,
+        "outerSegment": 15,
+        "innerT": 0.44670404602726677,
+        "outerT": 1,
+        "actualGap": 0.1506511245501853,
+        "physicalGap": 0.1499989253148762,
+        "startGap": 0.1695391948166397,
+        "physicalNormalMotion": -0.019540269501763484,
+        "normal": [
+          -0.40918858589662815,
+          -0.08670866929613628,
+          -0.9083205974989288
+        ],
+        "lambda": 0,
+        "tangent": [
+          0,
+          0
+        ]
+      },
+      {
+        "id": "containment:guidewire:catheter:side|runtime:198:8",
+        "contactId": "containment:guidewire:catheter:side|runtime:198:8",
+        "kind": "side",
+        "innerSegment": 198,
+        "outerSegment": 15,
+        "innerT": 0,
+        "outerT": 0.48459560294990695,
+        "actualGap": 0.02118997195541833,
+        "physicalGap": 0.020873928313717295,
+        "startGap": 0.030343086687469437,
+        "physicalNormalMotion": -0.009469158373752144,
+        "normal": [
+          -0.4091989662463336,
+          -0.08670512527107761,
+          -0.9083162595014243
+        ],
+        "lambda": 0,
+        "tangent": [
+          0,
+          0
+        ]
+      },
+      {
+        "id": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+        "contactId": "containment:guidewire:catheter:distal-fillet|runtime:198:21",
+        "kind": "distal-fillet",
+        "innerSegment": 198,
+        "outerSegment": 15,
+        "innerT": 0.41670269906387913,
+        "outerT": 1,
+        "actualGap": 0.0020305458756703088,
+        "physicalGap": 0.0013989549803807323,
+        "startGap": 0.020264853158521973,
+        "physicalNormalMotion": -0.01886589817814124,
+        "normal": [
+          -0.4091889358425085,
+          -0.08670854981933766,
+          -0.9083204512573207
+        ],
+        "lambda": 0,
+        "tangent": [
+          0,
+          0
+        ]
+      },
+      {
+        "id": "lumen:sliding-rim|runtime:198:7",
+        "contactId": "lumen:sliding-rim|runtime:198:7",
+        "kind": "sliding-rim",
+        "innerSegment": 198,
+        "outerSegment": 15,
+        "innerT": 0.4466307577483955,
+        "outerT": 1,
+        "actualGap": 0.0006528094337310969,
+        "physicalGap": -1.502421744722926e-7,
+        "startGap": 0.019539718147750653,
+        "physicalNormalMotion": -0.019539868389925125,
+        "normal": [
+          -0.41138769009427295,
+          -0.09543954454244201,
+          -0.906449922376537
+        ],
+        "lambda": 0.03510952429792796,
+        "tangent": [
+          -0.00027972507855635764,
+          -0.0001784854206309003
+        ]
+      }
+    ],
+    "linearFailure": {
+      "status": "condensed-full-residual",
+      "converged": false,
+      "iterations": 2,
+      "factorizations": 3,
+      "refinements": 0,
+      "nearNullPivots": 0,
+      "numericalShift": 1e-8,
+      "maximumResidual": 0.007242910004223058,
+      "rowCount": 14,
+      "band": 14,
+      "matrixEntries": 196,
+      "factorRowCount": 2,
+      "factorBand": 2,
+      "factorEntries": 4,
+      "factorization": "skyline",
+      "factorProfileEntries": 3,
+      "frictionResidual": 0,
+      "originalCount": 134,
+      "equalityCount": 103,
+      "equalityBand": 9,
+      "retainedCount": 14,
+      "responseColumns": 14,
+      "expansions": 1,
+      "reconstructionResidual": 0.007221604510080542,
+      "basis": "common-relative",
+      "individualBand": 16,
+      "pairedNodes": 2,
+      "bundleEntries": 554,
+      "materialResidual": 0.007221604510080542,
+      "contactResidual": 0,
+      "activeContacts": 0,
+      "dofCount": 120
+    },
+    "trialFailure": null
+  },
+  "sourceAfter": {
+    "scripts/physics/probe-split-first-coupled-step.mjs": "b422179bdb2118a41574134330c0aeba87f83af9527ef090ff35b63024e54362",
+    "src/physics/applyKirchhoffMaterialProfile.js": "8ee844e33bacd45fd41fa704fd7e59fdbba0cdb8e8b9f3200793ffc2a29341e4",
+    "src/physics/catheterGuidewireCoupling.js": "4790e0a272ccd6b66a859a7247f79e408c936d34d8374415f21eab5dfdba59e6",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "src/physics/coupledSolverSelection.js": "a32eee6c975155bab36dda0e05a6a051fd401f6e055a59e6084e52f61bf63022",
+    "src/physics/discreteKirchhoffRod.js": "f4877eef38e9608c77e56a587c597cbc67c2c3a07eda2de35fa7b660cce63f98",
+    "src/physics/endovascularPhysicsWorld.js": "2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/guidewireRelaxationRate.js": "16f8de528fb08d33cd1d7d17879a09e2ba7b17d3ffa68e11368f416f08178989",
+    "src/physics/guidewireResistance.js": "fed09abc642d708fc96e9de5c4689f7428eb91a7dce429728e27a9b7a31f36b1",
+    "src/physics/guidewireTransport.js": "94a0e7e60cc690aaed1accad86e868c8cdd060417f50b7ebd6785f96f6845c07",
+    "src/physics/kirchhoffActiveCondensedSolver.js": "cbc7a80ca45e5be6fb5e5269cf6b07f76713a701c61666944d5624e4e404e813",
+    "src/physics/kirchhoffBundleDiscretization.js": "54b1f1006fece9b830dc1ed04287eec4efb612e294bd70dc40b1893f3f3ebf10",
+    "src/physics/kirchhoffBundleModel.js": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+    "src/physics/kirchhoffBundleRuntime.js": "c7cd25cd8ba2e04dbcd1872dfda38b947dd276e734f19a3e38b072549f618308",
+    "src/physics/kirchhoffCenterlineSearch.js": "b6fd089ace12ab289583baf1201fb136e4b08a1906b890a6744457f07444ffec",
+    "src/physics/kirchhoffContactBlock.js": "3a13921f73a56359f4c2d073d05a6d9d86c46c9d42c8869718613ccf55891c4e",
+    "src/physics/kirchhoffContactManifold.js": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef",
+    "src/physics/kirchhoffContactNormalRows.js": "47c3af0c749cb36bf54da1c7ae91ae6d6671bb924acbd9bc71a478a969dea9cc",
+    "src/physics/kirchhoffContinuousFrictionKKT.js": "628d6f72149dc8a0423157f7d819f420913b94f9e3c8758daeba9d270818c20c",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "6b5ffe0d4c4ee2394878abeef4f49dbf8131e4882d6c3f092c9d614e5b1c0cd7",
+    "src/physics/kirchhoffCoupledBoundaryRows.js": "a1478e70c525748b963ce07fd215fa6185e5327377922c048140606c490dd04a",
+    "src/physics/kirchhoffCoupledConeRepair.js": "f0ee5dfdc493e5ad4bd9b981fa1e69d00906213d67f555d7bed7e7b8963cbd46",
+    "src/physics/kirchhoffCoupledConvergence.js": "fe1bc31d76dccf9a86f1e30e2dba23e110331cd531cf47031a59902dccd8c4ad",
+    "src/physics/kirchhoffCoupledFoldRows.js": "86454e32ccdb1aaef122d1a369ae57f8f379b29a54bc7d6acef36d56d3e4a25b",
+    "src/physics/kirchhoffCoupledFrictionRows.js": "63fdf51bbf6ce32a251b344853f24ce8079943aa1a45dc6619e9db0ce30b6757",
+    "src/physics/kirchhoffCoupledFrictionSolver.js": "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54",
+    "src/physics/kirchhoffCoupledLinearSolver.js": "b4b35a67dca4c17aab10073b34ccd818ce4cbf3931afddf3b4fd81d2b5b4f4f0",
+    "src/physics/kirchhoffCoupledLoadSolver.js": "d1bd39270139179020aa891a68908d66d7e874921bd16bae6fb81bff0baf4b3d",
+    "src/physics/kirchhoffCoupledOrientationRows.js": "59ce14b9f2f4f8a4a730ef4603ca7330e4c1d56c0fbc6d9f2b5d8d5788f6f2f7",
+    "src/physics/kirchhoffCoupledResidual.js": "e4d2efee3bb913460ebf4d856619de126f023cf125e9951969ebd6918d2cb24c",
+    "src/physics/kirchhoffCoupledSystem.js": "a8fb18ce4389a310b6400f00bbe50813fb19308aa5eb32ef3e875351fe97f5ee",
+    "src/physics/kirchhoffCoupledTrialState.js": "a76135ac3ee75e1d9a14313eb7e46347d3c33113a71a318766a7b731f18c6884",
+    "src/physics/kirchhoffDirectSolver.js": "8bf685703ae164e352ae8dbf84c6dff55f0c19d21ee41b9d492f804f2c4d3e5d",
+    "src/physics/kirchhoffExternalFrictionRows.js": "69831d63aa8ef321b377516dd6ffc8cab3afd23509987e85d63570257d8f0f88",
+    "src/physics/kirchhoffFrictionMerit.js": "61e121c1b13516994ad8758754c125d407dcf4c25d8c34086c5cfc5ec4a56105",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffLumenContact.js": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/kirchhoffOrientationBoundary.js": "748f23a86852b995689cc8bfa71cfb02b380b425ef39fcaaa87ad39d09ba8a07",
+    "src/physics/kirchhoffPortalSideSamples.js": "c78b0e7e08fbcb95d935e8b9c5ffee7402de5dec91a07379ce6e54221c1896c9",
+    "src/physics/kirchhoffRodDiagnostics.js": "a25bdd5e1ef7b312b365ab89d957bf99c5db27d8705e824d6585a9907a5cbd79",
+    "src/physics/kirchhoffSlidingPortal.js": "04f32dde898eadb9b1e964ac055bb0f6cfe3cc0883abb56f6318ed3fb3583942",
+    "src/physics/kirchhoffSplitMotion.js": "53128abcc78c511965d6fe944122d8e3458b0fe5acbc3dde2f63ebc04fd25e12",
+    "src/physics/kirchhoffSplitWallFriction.js": "be714ab7ba2acb116b4d43ce9a2e447308540f5d89407b62a052bef131e1ba55",
+    "src/physics/kirchhoffSurfaceFriction.js": "f89463fcee825a725e8671ed8efb2e55af7e53379d00765d6d297c79668b18a6",
+    "src/physics/kirchhoffToolContactOwnership.js": "4a51dd66e3bfab29d17ff3510ba75c4ec0baeef0101191e93ee394319e833986",
+    "src/physics/pointBuffer.js": "16daaf9694aef63325d0a505a661a4f1ae7fc443ffb81a967ff97fe888d5304e",
+    "src/physics/rodState.js": "e57ac6c67ba2758e00924df3cf40a5b98f3be5af5485350159365d7d6e27b60f",
+    "tests/helpers/coupledRuntimeFixture.js": "767c503b07fd0326e84e012f57c396c9f10956f57b4c605eb590de3f8742d127"
+  },
+  "sourceStable": true
+}

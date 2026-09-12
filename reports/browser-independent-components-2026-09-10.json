@@ -1,0 +1,10 @@
+{
+  "scenario": "35 s application joint-active-coulomb independentComponents enabled",
+  "averageFps": 34.76691457070356,
+  "independentComponents": true,
+  "solveCalls": 10419,
+  "nonconvergedResults": 0,
+  "backlogSeconds": 17.583033333333365,
+  "lastStepMs": 366.60000002384186,
+  "performanceGatePassed": false
+}

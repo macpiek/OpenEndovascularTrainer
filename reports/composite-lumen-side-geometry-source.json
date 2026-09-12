@@ -1,0 +1,29 @@
+{
+  "scope": "Exactly two NEW files; frozen selected side sample derivative only, no detector/winner or existing source changes",
+  "files": {
+    "src/physics/kirchhoffCompositeLumenSideGeometry.js": {
+      "before": null,
+      "after": "77b6ac3482ae0c55084b53a6c269106ec4fa6e7502ddf50fd83e8fb3f2cb1452"
+    },
+    "tests/kirchhoffCompositeLumenSideGeometry.test.js": {
+      "before": null,
+      "after": "19d620c4527958ef10537f1bbe89512ab5ca9b36a36bf6f6fdd54ce515b9d41a"
+    }
+  },
+  "dependenciesSHA256": {
+    "src/physics/kirchhoffLumenContact.js": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6",
+    "src/physics/kirchhoffContactManifold.js": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef",
+    "tests/kirchhoffLumenContact.test.js": "81fecf864b39fc2e1e705675635b4884eb332d76bd8192c7284ecf830bd8bc00"
+  },
+  "patchSHA256": "9898a30d9d7bc9050392acdc29b880787cec51acbb5f2ee81e8764b1deef3dab",
+  "validation": {
+    "newTests": 11,
+    "combinedIncludingOriginalDetectorTestFile": 12,
+    "failures": 0,
+    "selectionScope": "Frozen supplied innerT sample; no winner uniqueness, remaximization or tie resolution",
+    "additionalDetectorCalls": 0,
+    "rootApplyCheck": "passed",
+    "dependenciesUnchanged": true
+  },
+  "apiSHA256": "617874a0b9e580b2690d7ce9b622881d1ef1deab4dee352ab63da8f5090c5c99"
+}

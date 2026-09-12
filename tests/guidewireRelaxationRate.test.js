@@ -49,7 +49,7 @@ function recoveredBend(relaxationRate) {
         penetrationIterations: 8
     });
     const body = world.createRod('relaxation-rate-fixture', 31, segmentLength, {
-        rodModel: 'kirchhoff',
+
         adaptationCompliance: 0,
         foldLimitStrength: 0,
         maxBendAngle: 179,

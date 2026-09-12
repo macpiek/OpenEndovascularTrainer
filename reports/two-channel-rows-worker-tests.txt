@@ -1,0 +1,38 @@
+✔ begin captures a separate predicted pose once and outer passes retain qP and time-start history (8.682167ms)
+✔ bias-only updates total geometry and beta without changing qP, physical velocity, or physical material lambda (0.770375ms)
+✔ physical displacement adds one impulse and leaves body qG and physical multipliers for root application (0.463125ms)
+✔ physical local angular correction is transported from current qG before left-multiplying the separate qP (0.932083ms)
+✔ common fractional scale applies separately to each physical and bias material channel exactly once (0.707625ms)
+✔ fresh material measurement returns C(qG)-C(qP)+alpha beta using unchanged finite compliance (1.289917ms)
+✔ hard-frame measurement preserves both posed frames, control targets, pose references and native mobility mask (0.864542ms)
+✔ a failing qP assembly restores body references and reconstructs current geometric scratch in finally (0.39225ms)
+✔ rejected combined trial restores qP, beta, physical motion, geometry and once-only receipts in place (2.106667ms)
+✔ native local material indexing is preserved for an active range starting after node zero (1.466791ms)
+✔ the reused split hook journals physical sheath increments without recording bias normals (0.562875ms)
+✔ an unconverged direction is rejected before qP, velocity or beta changes (0.263708ms)
+✔ actual two-channel solve and motion staging close both finite-compliance material equations at the final poses (19.409834ms)
+ℹ {"physicalPoseX":8.367552280433376,"geometryX":10,"physicalVelocityX":195.90099334805006,"betaMaterial":-161.61232423708825,"physicalResidual":{"adaptationMm":7.42496342187593e-14,"bendTwistRad":0},"biasResidual":{"adaptationMm":7.616129948928574e-14,"bendTwistRad":0},"alpha":0.0101010101010101}
+✔ begin creates real independently owned banks without resetting physical arrays or history (3.464708ms)
+✔ every runtime row gets its correct channel; compliance and raw geometry remain independent of physical strain (5.618959ms)
+✔ untyped surface friction is classified only through its explicit group indices and never sees beta normal load (2.40775ms)
+✔ commits snapshot targets at the exact shared scale despite collector pool reuse and row reordering (1.422292ms)
+✔ missing loaded reactions remain in their banks with frozen old J and explicitly block both solve and certification (1.503625ms)
+✔ a manifold object rekey or changed material label cannot inherit a loaded beta (0.727292ms)
+✔ changing an interior material foot with the same supporting nodes requires release of its loaded beta (1.112125ms)
+✔ missing angular normal retains the old world wrench even after material frames rotate (0.88ms)
+✔ zero-beta rows can vanish; a released reaction can vanish only after its negative increment was actually committed (0.74225ms)
+✔ fresh residuals use nonlinear raw geometry and vector control norms, including loaded separating normals (0.755167ms)
+✔ orientation uses the difference of native target-frame logs, measures freshly with null batch and leaves the solve batch untouched (2.669417ms)
+✔ commit prevalidation is atomic for scale mismatch, stale targets, invalid normals and foreign bias friction increments (0.7365ms)
+✔ native assembly detects a source equation or normal compliance changed after prepare (0.605542ms)
+✔ trial rollback restores all beta bytes, real bank references, target receipts and sheath reaction history (3.215709ms)
+✔ native wall/material solve closes both channels and retains independent beta on the next outer pass (17.752541ms)
+ℹ {"geometryX":10,"physicalPoseX":8.367552280433378,"physicalVelocityX":195.9009933480502,"betaNormal":163.2447719566548,"physicalNormal":0}
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 548.94675

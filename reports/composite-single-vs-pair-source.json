@@ -1,0 +1,13 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "snapshot": "/tmp/oet-composite-exact-snapshot-iBYhkf",
+  "files": {
+    "scripts/physics/benchmark-composite-single-vs-pair.mjs": "679bb205590f608bb5758674487b97a6eb18027d653a7a5fc61962d9251ba70e",
+    "scripts/physics/helpers/composite-single-vs-pair.js": "8ff168f2f15974802892eaf0b07dd9864e09006532935066a2825ce79c25dd32",
+    "scripts/physics/probe-composite-single-vs-pair-setup.mjs": "dd3ce58f40fcd7f81c188e3d4345fd831fe507d01203e1e16ec870178c3c9642",
+    "reports/composite-single-vs-pair.md": "b7ab34d153de0c26a88f0904cf351e021990e253fbf87a87ffb0d24e54ee0ca6",
+    "reports/composite-single-vs-pair.json": "38028427eccd9827c2bc0c7d664962223b796e031dc11cb3d10f100184fb0002",
+    "reports/composite-single-vs-pair-setup.json": "a849641037449c5274364b9e8afc7aabb00100d1e36b7e360971c4f26af2071e"
+  },
+  "verification": "36/36 accepted full calls;72/72 linear directions;36/36 setup probes correctly rejected with0evaluations/commits;identical common inputs and source hashes, syntax PASS"
+}

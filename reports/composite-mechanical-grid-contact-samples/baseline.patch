@@ -1,0 +1,63 @@
+--- a/src/physics/kirchhoffCompositeRelativeDirection.js
++++ b/src/physics/kirchhoffCompositeRelativeDirection.js
+@@ -1,5 +1,4 @@
+ import {createCoulombBandLU} from './kirchhoffCoulombBandLU.js';
+-import {prepareCompositeZeroDualSolve} from './kirchhoffCompositeZeroDuals.js';
+ 
+ const finite=(v,name)=>{if(!Number.isFinite(v))throw new RangeError(`${name} must be finite`);return v;};
+ const positive=(v,name)=>{if(!(finite(v,name)>0))throw new RangeError(`${name} must be positive`);return v;};
+@@ -188,15 +187,10 @@
+  * search system. The original matrix, residual and proof remain separate;
+  * `converged` ALWAYS refers to the original unshifted linear equations.
+  * `numericalConverged` certifies only that search system, never a physical dt.
+- * With eliminateZeroDuals=true (default), an unshifted solve substitutes only
+- * dual increments proved exactly zero by the assembled numerical equations.
+- * The original full residual, held-row incompatibilities and geometric
+- * tangents remain. count describes original unknowns; solvedCount and
+- * eliminatedZeroDuals describe the actual factorized system.
+  * No pivot floor, disk normal, branch decision or nonlinear dt approval.
+  * Returned typed arrays belong to workspace and are overwritten next solve.
+  */
+-export function solveCompositeRelativeDirection(w,chain,{cluster,commonResidual,relativeResidual,fixed,rows=[],tolerances,maxCorrections=1,numericalShift=0,eliminateZeroDuals=true}) {
++export function solveCompositeRelativeDirection(w,chain,{cluster,commonResidual,relativeResidual,fixed,rows=[],tolerances,maxCorrections=1,numericalShift=0}) {
+     if(chain.layout!==w.layout||chain.hessianValid===false)throw new RangeError('A fresh full common Hessian with the frozen layout is required');
+     validateClusterStructure(w,cluster);
+     if(chain.elementBackend!==undefined&&(chain.elementBackend==='wasm-exact')!==(cluster.hessianKind==='exact'))
+@@ -208,7 +202,6 @@
+         throw new RangeError('Fixed coordinates and rows must match the frozen layout');
+     if(!Number.isInteger(maxCorrections)||maxCorrections<0||maxCorrections>2)throw new RangeError('maxCorrections must be 0..2');
+     if(!Number.isFinite(numericalShift)||numericalShift<0)throw new RangeError('numericalShift must be finite and nonnegative');
+-    if(typeof eliminateZeroDuals!=='boolean')throw new TypeError('eliminateZeroDuals must be boolean');
+     const tol={force:positive(tolerances?.force,'linear force tolerance'),torque:positive(tolerances?.torque,'linear torque tolerance')};
+     A.fill(0);F.fill(0);increment.fill(0);w.fixedMask.fill(0);w.heldMultiplierRows.fill(0);w.freeGeometryRows.fill(0);
+     const at=(i,j)=>p.offsets[i]+j;
+@@ -313,19 +306,10 @@
+         return {commonForce,relativeForce,force:Math.max(commonForce,relativeForce),torque,constraints};
+     };
+     const passes=proof=>proof.force<=tol.force&&proof.torque<=tol.torque&&proof.constraints.every(c=>c.converged);
+-    // Remove only dual increments determined to be exactly zero by these
+-    // assembled equations. Keep the full original operator and certificate,
+-    // and preserve the established numerical-shift policy unchanged.
+-    const compressed=eliminateZeroDuals&&numericalShift===0?prepareCompositeZeroDualSolve(w):null;
+     let factorizations=0,linearSolves=0,solverAccepted=false,proof=measure(true,numericalShift>0);
+     for(let attempt=0;attempt<=maxCorrections;attempt++) {
+         factorizations++;linearSolves++;
+-        const rhs=attempt===0?residual:w.linearResidual;
+-        if(compressed) {
+-            compressed.original.forEach((d,i)=>compressed.residual[i]=rhs[d]);
+-            solverAccepted=compressed.lu.solve(compressed.matrix,compressed.residual,compressed.scales,0,compressed.correction);
+-            w.correction.fill(0);compressed.original.forEach((d,i)=>w.correction[d]=compressed.correction[i]);
+-        } else solverAccepted=w.lu.solve(matrix,rhs,scales,0,w.correction);
++        solverAccepted=w.lu.solve(matrix,attempt===0?residual:w.linearResidual,scales,0,w.correction);
+         if(!solverAccepted)break;
+         for(let i=0;i<count;i++)increment[i]=w.fixedMask[i]?0:increment[i]+scales[i]*w.correction[i];
+         // Held reaction increments are prescribed exactly, not a tiny LU error.
+@@ -351,8 +335,6 @@
+         originalLinearResidual:w.originalLinearResidual,constraintResidual:w.constraintResidual,heldMultiplierRows:w.heldMultiplierRows,
+         proof,numericalProof,numericalShift,numericalConverged,factorizations,linearSolves,converged:solverAccepted&&w.originalLinearResidual.every(Number.isFinite)&&passes(proof),
+         count,bandwidth:p.kl,matrixEntries:matrix.length,factorEntries:w.lu.diagnostics.factorEntries,maxRowsPerNode:w.maxRowsPerNode,
+-        solvedCount:compressed?.count??count,eliminatedZeroDuals:compressed?.removed??0,
+-        solvedBandwidth:compressed?.packedLayout.kl??p.kl,solvedFactorEntries:compressed?.lu.diagnostics.factorEntries??w.lu.diagnostics.factorEntries,
+         scope:'one-common-axis-and-joint-relative-original-linear-direction',relativeRepresentation:cluster.relativeRepresentation,
+         fullRankOnRepresentedNodes:cluster.fullRankOnRepresentedNodes===true,certified:false,nonlinearStepAccepted:false};
+ }

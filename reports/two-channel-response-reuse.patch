@@ -1,0 +1,75 @@
+--- a/src/physics/kirchhoffTwoChannelCondensation.js
++++ b/src/physics/kirchhoffTwoChannelCondensation.js
+@@ -78,7 +78,9 @@
+                 zeroEqualityRows.push(original); continue;
+             }
+             equalityMap[sorted] = equality.length; equality.push(sorted);
+-        } else if (row.kind === 'material' || d.bias?.channel === 'bias-motion') {
++        } else if (row.kind === 'material' || (d.bias?.channel === 'bias-motion' &&
++            !(Number.isFinite(native.lower[sorted]) && native.lower[sorted] === native.upper[sorted] &&
++                Number.isFinite(d.bias.lower) && d.bias.lower === d.bias.upper))) {
+             return fallback('unsupported-equality-pair', { originalRow: original });
+         }
+     }
+@@ -120,7 +122,8 @@
+     }
+     const diagnostics = { equalityCount: ne, eliminatedRows: 2 * ne, equalityBand, equalityMatrixEntries: ae.length,
+         factorEntries: factor.length, factorizations: 1, factorization: skyline ? 'wasm-skyline' : 'wasm-band',
+-        minimumScaledPivot, maximumEqualityBackwardError: 0, equalitySolves: 0, fullExpandedMatrixEntries: 0,
++        minimumScaledPivot, maximumEqualityBackwardError: 0, equalitySolves: 0, zeroEqualityResponses: 0,
++        reusedEqualityResponses: 0, fullExpandedMatrixEntries: 0,
+         retainedZeroEqualityOriginalRows: zeroEqualityRows.slice() };
+     function multiply(input, out, absolute = false, gramOnly = false) {
+         out.fill(0);
+@@ -136,6 +139,13 @@
+     }
+     const product = new Float64Array(ne), magnitude = new Float64Array(ne), gBeta = new Float64Array(ne);
+     function solveAe(rhs) {
++        // Ae has already passed the unshifted factor/pivot checks. Its response
++        // to an exactly zero load is zero; no factor solve or residual scan is
++        // needed. This is an algebraic case, not a tolerance-based load cutoff.
++        if (rhs.every(value => value === 0)) {
++            diagnostics.zeroEqualityResponses++;
++            return new Float64Array(ne);
++        }
+         for (let i = 0; i < ne; i++) work[i] = rhs[i] * scales[i];
+         if (skyline) kernel.solveSkyline(factor.byteOffset, work.byteOffset, ne, equalityBand, starts.byteOffset);
+         else kernel.solveBand(factor.byteOffset, work.byteOffset, ne, equalityBand);
+@@ -149,8 +159,10 @@
+         diagnostics.equalitySolves++;
+         return result;
+     }
+-    function solvePair(rp, rb) {
+-        const b = solveAe(rb);
++    function solvePair(rp, rb, knownBiasResponse = null) {
++        const b = knownBiasResponse ?? solveAe(rb);
++        if (knownBiasResponse) diagnostics.reusedEqualityResponses++;
++        if (b.every(value => value === 0)) return [solveAe(rp), b];
+         multiply(b, gBeta, false, true);
+         return [solveAe(Float64Array.from(rp, (v, i) => v - gBeta[i])), b];
+     }
+@@ -206,13 +218,23 @@
+         }));
+         for (let i = 0; i < k; i++) rhs[i] = retained[i].rhs - couplingDot(retained[i], couplings[i], freeP, freeB);
+         const rp = new Float64Array(ne), rb = new Float64Array(ne);
++        const physicalColumns = new Int32Array(n).fill(-1);
+         for (let j = 0; j < k; j++) {
+             rp.fill(0); rb.fill(0);
+             for (let i = 0; i < couplings[j].length; i += 2) {
+                 const e = couplings[j][i], g = couplings[j][i + 1]; rp[e] = g;
+                 if (retained[j].phase === 'bias') rb[e] = g;
+             }
+-            const [p, b] = solvePair(rp, rb); responsesP.set(p, j * ne); responsesB.set(b, j * ne);
++            // Both columns of one native row have the same equality coupling
++            // g. The physical column has (p,b)=(Ae^-1 g,0); that p is exactly
++            // the bias column's b. Reuse only within this frozen assembly,
++            // keeping all response columns owned for subsequent recovery.
++            const prior = physicalColumns[retained[j].sorted];
++            const knownBiasResponse = retained[j].phase === 'bias' && prior >= 0
++                ? responsesP.subarray(prior * ne, (prior + 1) * ne) : null;
++            const [p, b] = solvePair(rp, rb, knownBiasResponse);
++            responsesP.set(p, j * ne); responsesB.set(b, j * ne);
++            if (retained[j].phase === 'physical') physicalColumns[retained[j].sorted] = j;
+             for (let i = 0; i < k; i++) {
+                 const row = retained[i], col = retained[j];
+                 const a = row.phase === col.phase || row.channel === 'pose' ? gram(row.sorted, col.sorted) : 0;

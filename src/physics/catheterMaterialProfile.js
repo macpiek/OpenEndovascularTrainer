@@ -403,8 +403,6 @@ export const CATHETER_MATERIAL_PROFILES = Object.freeze({
         id: 'pigtail',
         naturalArcLength: PIGTAIL_NATURAL_ARC_LENGTH_MM,
         frameNormalSign: -1,
-        intrinsicBendCompliance: 1e-7,
-        intrinsicBendMaxCorrection: 0.012,
         shaftFoldLimitDegrees: 21,
         integrateIntrinsicTurn: integratePigtailIntrinsicTurn,
         sampleRestCenterline: samplePigtailRestCenterline
@@ -413,8 +411,6 @@ export const CATHETER_MATERIAL_PROFILES = Object.freeze({
         id: 'berenstein',
         naturalArcLength: BERENSTEIN_TIP_SHAPE_LENGTH_MM,
         frameNormalSign: 1,
-        intrinsicBendCompliance: 2e-5,
-        intrinsicBendMaxCorrection: 0.012,
         shaftFoldLimitDegrees: 24,
         integrateIntrinsicTurn: integrateBerensteinIntrinsicTurn,
         sampleRestCenterline: sampleBerensteinRestCenterline
@@ -423,8 +419,6 @@ export const CATHETER_MATERIAL_PROFILES = Object.freeze({
         id: 'sim1',
         naturalArcLength: SIM1_TIP_SHAPE_LENGTH_MM,
         frameNormalSign: -1,
-        intrinsicBendCompliance: 2e-5,
-        intrinsicBendMaxCorrection: 0.012,
         shaftFoldLimitDegrees: 34,
         softTipMaxBendAngleDegrees: 34,
         integrateIntrinsicTurn: integrateSim1IntrinsicTurn,

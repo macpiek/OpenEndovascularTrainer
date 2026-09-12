@@ -1,0 +1,21 @@
+✔ hard strain-preserving bias repairs a tilted rest rod without elastic or kinetic bias (23.698583ms)
+✔ an immobile rod penetrating the plane cannot certify an infeasible strain-preserving bias (3.315333ms)
+✔ stationary wall bias does not become velocity on the next physical timestep (16.0295ms)
+✔ nonuniform bias that changes elastic strain cannot reuse the old phase certificate (4.515833ms)
+✔ a stable runtime id cannot restore physical load to new material labels during bias (8.949292ms)
+✔ stable sheath interior bias repairs overlap without physical pressure or axial drag (15.422625ms)
+✔ stable sheath radial input produces the independent physical momentum impulse (2.649208ms)
+✔ away and axial motion unload sheath pressure on the next physical step (3.477625ms)
+✔ historical sheath gap uses exact distance to the frozen oblique axis rather than a tangent plane (0.409958ms)
+✔ an entering distal-end feature is explicitly unsupported despite zero geometric penetration (3.215875ms)
+✔ a loaded row disappearing beyond the distal end cannot masquerade as a certified release (1.426458ms)
+✔ changing sheath geometry during the physical step invalidates the frozen history (1.251208ms)
+✔ changing material labels at the same runtime node invalidates sheath history (1.242375ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 342.145791

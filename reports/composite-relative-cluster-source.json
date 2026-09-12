@@ -1,0 +1,19 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "c4e46982a14810fb49594337e2c88328622d8a52094c5f08efd2adcccb7bf2cc",
+    "tests/kirchhoffCompositeRelativeCluster.test.js": "9bfb1967c49a0cdfc23e9b5cb4baa5872e887bdaf552ee5d7aa46485d966e5e2",
+    "reports/composite-relative-cluster.md": "b153a02096cc6c5afd478589a38e9740332bb2fa46e2f4475aed1495f5497456",
+    "reports/composite-relative-cluster-witness.json": "7651a760d6740a90c865334db7081eff149ebef69a030666c0fb30199b912964",
+    "tests.txt": "f7b0215d4d30c3f53e7c941828060749507cb95b7e8cbf105c5999108e335531"
+  },
+  "verification": "38/38 new RelativeCluster+existing RelativePatch/Exact/Kinematics;syntaxPASS;independent FD and cross-mode witness",
+  "dependencyHashes": {
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeRelativePatch.js": "1209803e98f92115d52c3dfb67a468ad47ef0324c3772c108e44a2486321172f",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670"
+  }
+}

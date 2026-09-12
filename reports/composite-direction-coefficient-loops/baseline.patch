@@ -1,0 +1,48 @@
+--- a/src/physics/kirchhoffCompositeRelativeDirection.js
++++ b/src/physics/kirchhoffCompositeRelativeDirection.js
+@@ -3,10 +3,7 @@
+ 
+ const finite=(v,name)=>{if(!Number.isFinite(v))throw new RangeError(`${name} must be finite`);return v;};
+ const positive=(v,name)=>{if(!(finite(v,name)>0))throw new RangeError(`${name} must be positive`);return v;};
+-const vector=(v,n,name)=>{
+-    if(!v||v.length!==n)throw new RangeError(`${name} requires ${n} finite entries`);
+-    for(let i=0;i<n;i++)if(!Number.isFinite(v[i]))throw new RangeError(`${name} requires ${n} finite entries`);
+-};
++const vector=(v,n,name)=>{if(!v||v.length!==n||!v.every(Number.isFinite))throw new RangeError(`${name} requires ${n} finite entries`);};
+ const same=(a,b)=>a?.length===b.length&&b.every((v,i)=>v===a[i]);
+ const indexList=(v,count,name)=>{
+     if(!(v instanceof Int32Array)||v.some(d=>d<0||d>=count)||new Set(v).size!==v.length)
+@@ -227,8 +224,7 @@
+     scatter(s.commonScatter,chain.hessian);
+     for(let i=0;i<relative.length;i++)F[relative[i]]=relativeResidual[i];
+     scatter(s.relativeScatter,cluster.relative.hessian);scatter(s.couplingScatter,cluster.coupling.values);
+-    for(let index=0;index<rows.length;index++) {
+-        const row=rows[index];
++    rows.forEach((row,index)=>{
+         const def=w.rows[index],support=def.mixedDofs,d=dual[index],size=support.length,plan=s.rowPlans[index];
+         vector(row.jacobian,size,'geometry Jacobian');vector(row.forceColumn,size,'signed physical force column');
+         positive(row.tolerance,`row ${index} tolerance (${def.unit})`);F[d]=finite(row.residual,'original constraint residual');
+@@ -236,19 +232,16 @@
+         if(row.multiplierDofs!==undefined&&!same(row.multiplierDofs,def.multiplierDofs))throw new RangeError('Frozen local multiplier support changed');
+         if(def.multiplierDofs.length||row.multiplierJacobian!==undefined) {
+             vector(row.multiplierJacobian,def.multiplierDofs.length,'original off-diagonal multiplier Jacobian');
+-            for(let j=0;j<plan.multiplierSlots.length;j++)add(plan.multiplierSlots[j],row.multiplierJacobian[j]);
++            plan.multiplierSlots.forEach((slot,j)=>add(slot,row.multiplierJacobian[j]));
+         }
+         let hasFreeGeometry=false;
+-        for(let i=0;i<size;i++){
+-            add(plan.jacobianSlots[i],row.jacobian[i]);add(plan.forceSlots[i],row.forceColumn[i]);
+-            if(!w.fixedMask[support[i]]&&row.jacobian[i]!==0)hasFreeGeometry=true;
+-        }
++        support.forEach((a,i)=>{add(plan.jacobianSlots[i],row.jacobian[i]);add(plan.forceSlots[i],row.forceColumn[i]);if(!w.fixedMask[a]&&row.jacobian[i]!==0)hasFreeGeometry=true;});
+         w.freeGeometryRows[index]=hasFreeGeometry?1:0;
+         if(row.geometricTangent!==undefined){
+             if(row.geometricTangentValid===false)throw new RangeError('A fresh full physical geometric tangent is required');
+             vector(row.geometricTangent,size*size,'physical geometric tangent');
+-            for(let i=0;i<plan.tangentSlots.length;i++)add(plan.tangentSlots[i],row.geometricTangent[i]);}
+-    }
++            plan.tangentSlots.forEach((slot,i)=>add(slot,row.geometricTangent[i]));}
++    });
+     // A coupling to another free dual is an equation, even when this row's
+     // own diagonal and all free geometry coefficients vanish. Only propagate
+     // the existing zero-increment gauge through already held duals. Cycles

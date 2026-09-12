@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
+import { disposeThreeResources } from '../disposeThreeResources.js';
 
 let previewScene;
 let previewCamera;
@@ -15,6 +16,7 @@ const PREVIEW_CAMERA_TARGET = new THREE.Vector3(0, 24, -30);
 export function initCArmPreview() {
     const container = document.getElementById('carm-preview');
     if (!container) return null;
+    disposeCArmPreview();
     container.replaceChildren();
 
     previewScene = new THREE.Scene();
@@ -67,6 +69,16 @@ export function initCArmPreview() {
         lift: cArmLift,
         table: cArmTable
     };
+}
+
+export function disposeCArmPreview() {
+    if (!previewRenderer) return;
+    disposeThreeResources({ roots: [previewScene] });
+    previewRenderer.dispose();
+    previewRenderer.forceContextLoss();
+    previewRenderer.domElement.remove();
+    previewRenderer = previewScene = previewCamera = null;
+    cArmGroup = cArmGantry = cArmLift = cArmTable = cArmDetectorAssembly = null;
 }
 
 export function renderCArmPreview() {

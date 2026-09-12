@@ -1,0 +1,57 @@
+{
+  "scope": "Final independent retest on the original frozen 41-file integration plus exactly the final two-file fix",
+  "tests": 52,
+  "pass": 52,
+  "fail": 0,
+  "independentWitnesses": {
+    "forceAndGeometryFreshness": "PASS; original defect closed",
+    "privateAcceptanceAuthority": "PASS; returned-certificate defect closed"
+  },
+  "outstandingFindings": [],
+  "sourceEdits": false,
+  "wholeStepFailureDemonstrated": false,
+  "variableOwnershipFrictionWorldClaim": false,
+  "sourceAudit": "source-audit.json",
+  "artifacts": [
+    {
+      "path": "README.md",
+      "sha256": "93ae18eb9c9d7105326c31b267e26e4fda1d639d70cdc41d0598f597e654565d"
+    },
+    {
+      "path": "base-manifest.json",
+      "sha256": "b19dae0f91e9d276b7d4f671f52525f08100a6c9835368dcc59543ccbaf240f2"
+    },
+    {
+      "path": "commit-freshness-retest.json",
+      "sha256": "8a93295ca723b6178cc45b1cf9be9d10c5c14177ed35db7d1700211f948a332a"
+    },
+    {
+      "path": "commit-freshness-retest.mjs",
+      "sha256": "8ed460c44f494c26f34f2c35bb01260a41fb04704d5f6669b0d6cee08e6c0d25"
+    },
+    {
+      "path": "external-runtime-audit.json",
+      "sha256": "4846c3ab3f36e9a9f24ee7542aa7dbd324c362a8d7f378d7d05fc12f4ccd29b4"
+    },
+    {
+      "path": "fix-manifest.json",
+      "sha256": "fbbc7f40ee10bd8496fd032aa6066caaa596b5334cadc4aea77e302591503223"
+    },
+    {
+      "path": "requested-tests.log",
+      "sha256": "745136a64bbb7fbb376c2a2c9d0ff37df2eb69ebd2771bd33ff636e509238ee5"
+    },
+    {
+      "path": "returned-certificate-retest.json",
+      "sha256": "d89975bab187c498cdbddb5a335bce992ce67c27c6b73933c269a4163d29a01e"
+    },
+    {
+      "path": "returned-certificate-retest.mjs",
+      "sha256": "1c2132a8369ca47deca2eab749d71514504304e5605aef55f5f201314bd37d17"
+    },
+    {
+      "path": "source-audit.json",
+      "sha256": "0716acc1497e0fdf15452d93e6975af4449e116e753d56f725ee3726526d8978"
+    }
+  ]
+}

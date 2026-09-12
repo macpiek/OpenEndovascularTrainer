@@ -1,0 +1,1512 @@
+{
+  "scope": "Real Glidewire/Berenstein profiles on ONE fixed common chain, wire318/cat310. Inertia-only and elastic+full consistent inertia+one original-matrix linear direction. Not a nonlinear accepted dt, contact/length solve, feed/remesh transaction, anatomy run, or FPS certificate.",
+  "mass": "Body model units/mm: wire1/5 and catheter1.4/4; not measured kg. Independent opposite affine material-map rates.",
+  "dt": 0.008333333333333333,
+  "linearTolerance": 5e-10,
+  "node": "v24.6.0",
+  "sourceBefore": {
+    "src/physics/kirchhoffCompositeInertiaCache.js": "1546ab48d64d11f4805875d591c30ce7f5d662b60ddba242d3a558de23bb7505",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeChain.js": "949097e7942b2646ba1ed17c3782eb37a959fe78de17d855b4d2aea8dc8780c9",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "scripts/physics/benchmark-composite-inertia-cache.mjs": "e91241adc6b5cc19d4675bfdf955922486e0419626d48e1404731c65217b2f81"
+  },
+  "cases": [
+    {
+      "nodes": 65,
+      "dofCount": 322,
+      "band": 13,
+      "sampleCount": 254,
+      "storedMatrixEntries": 576,
+      "setupMs": 16.223166999999997,
+      "coldCompileMs": 4.60275,
+      "warmCompileMs": {
+        "mean": 1.0638232499999987,
+        "median": 1.0451670000000064,
+        "max": 1.2425839999999937,
+        "samples": [
+          0.9429590000000019,
+          1.147375000000011,
+          0.9223749999999882,
+          1.2425839999999937
+        ]
+      },
+      "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+      "preparedUnchanged": true,
+      "summary": {
+        "inertia-only": {
+          "originalMs": {
+            "mean": 0.6801303749999956,
+            "median": 0.6226669999999928,
+            "max": 1.0000419999999934,
+            "samples": [
+              1.0000419999999934,
+              0.5429169999999885,
+              0.4716250000000173,
+              0.5966669999999965,
+              0.46450000000001523,
+              0.8272499999999923,
+              0.648666999999989,
+              0.8893749999999727
+            ]
+          },
+          "compiledMs": {
+            "mean": 0.15641675000000177,
+            "median": 0.14141700000000412,
+            "max": 0.27883299999999167,
+            "samples": [
+              0.17975000000001273,
+              0.08933400000000802,
+              0.27883299999999167,
+              0.07645800000000236,
+              0.22800000000000864,
+              0.12745900000001598,
+              0.11612499999998249,
+              0.15537499999999227
+            ]
+          },
+          "medianSpeedup": 4.4030562096492964,
+          "convergedDirections": {
+            "original": 0,
+            "compiled": 0
+          },
+          "pairs": 8
+        },
+        "elastic-inertia-direction": {
+          "originalMs": {
+            "mean": 2.0848176250000066,
+            "median": 1.7728334999999902,
+            "max": 3.428875000000005,
+            "samples": [
+              2.94554100000002,
+              1.380375000000015,
+              1.7115409999999827,
+              1.4698330000000226,
+              3.428875000000005,
+              1.7371249999999918,
+              1.8085419999999885,
+              2.196709000000027
+            ]
+          },
+          "compiledMs": {
+            "mean": 1.0784583750000074,
+            "median": 0.9639789999999948,
+            "max": 1.4663749999999993,
+            "samples": [
+              1.2382080000000144,
+              0.9308750000000146,
+              0.9355829999999798,
+              0.9923750000000098,
+              1.4663749999999993,
+              0.9192090000000235,
+              0.8158750000000055,
+              1.3291670000000124
+            ]
+          },
+          "medianSpeedup": 1.8390789633384126,
+          "convergedDirections": {
+            "original": 8,
+            "compiled": 8
+          },
+          "pairs": 8
+        }
+      },
+      "rows": [
+        {
+          "pair": 0,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "e6ae40eaf1e09938403f5a5424f69363450de0927b32116871245c988bef2be9",
+          "original": {
+            "elapsedMs": 1.0000419999999934,
+            "energy": 54.20066590503821,
+            "inertialEnergy": 54.20066590503821,
+            "kineticEnergy": 46.05942438538782,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "compiled": {
+            "elapsedMs": 0.17975000000001273,
+            "energy": 54.2006659050382,
+            "inertialEnergy": 54.2006659050382,
+            "kineticEnergy": 46.059424385387835,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 8.526512829121202e-14,
+              "maximumRelative": 5.678229632288851e-16
+            },
+            "direction": null,
+            "inertialEnergy": 7.105427357601002e-15,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 0,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "e6ae40eaf1e09938403f5a5424f69363450de0927b32116871245c988bef2be9",
+          "original": {
+            "elapsedMs": 2.94554100000002,
+            "energy": 1879.4736394014396,
+            "inertialEnergy": 54.20066590503821,
+            "kineticEnergy": 46.05942438538782,
+            "directionConverged": true,
+            "maximumResidual": 7.28452372513183e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "f284abb2cac6dbfd5ed3c1791e6fc134b29a567f0e8e596d1e63cf6b6f208196"
+          },
+          "compiled": {
+            "elapsedMs": 1.2382080000000144,
+            "energy": 1879.4736394014396,
+            "inertialEnergy": 54.2006659050382,
+            "kineticEnergy": 46.059424385387835,
+            "directionConverged": true,
+            "maximumResidual": 7.28452372513183e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "f284abb2cac6dbfd5ed3c1791e6fc134b29a567f0e8e596d1e63cf6b6f208196"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 8.526512829121202e-14,
+              "maximumRelative": 7.39770113753244e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 7.105427357601002e-15,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 1,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "26baf2826477cd897d2f319002fab88ff35f886557d201d47d051f97f3790cdb",
+          "compiled": {
+            "elapsedMs": 0.08933400000000802,
+            "energy": 54.190354755941044,
+            "inertialEnergy": 54.190354755941044,
+            "kineticEnergy": 46.0513221886127,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "original": {
+            "elapsedMs": 0.5429169999999885,
+            "energy": 54.190354755941044,
+            "inertialEnergy": 54.190354755941044,
+            "kineticEnergy": 46.0513221886127,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 8.421977557947164e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 1,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "26baf2826477cd897d2f319002fab88ff35f886557d201d47d051f97f3790cdb",
+          "compiled": {
+            "elapsedMs": 0.9308750000000146,
+            "energy": 1879.4659231664023,
+            "inertialEnergy": 54.190354755941044,
+            "kineticEnergy": 46.0513221886127,
+            "directionConverged": true,
+            "maximumResidual": 9.690315922267664e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "e5a6446e0cd2ed5054b194e67ad9c8f2871f3de45d90e426c722de8b41070f1f"
+          },
+          "original": {
+            "elapsedMs": 1.380375000000015,
+            "energy": 1879.4659231664023,
+            "inertialEnergy": 54.190354755941044,
+            "kineticEnergy": 46.0513221886127,
+            "directionConverged": true,
+            "maximumResidual": 9.690936512332879e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "e5a6446e0cd2ed5054b194e67ad9c8f2871f3de45d90e426c722de8b41070f1f"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 1.195942025155113e-15
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 2,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "8c5642d93a9557d0c5d52b8fe3c53382a61303d3e233d7ebf48980f4245772e2",
+          "original": {
+            "elapsedMs": 0.4716250000000173,
+            "energy": 54.17911291088094,
+            "inertialEnergy": 54.17911291088094,
+            "kineticEnergy": 46.04246727342263,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "compiled": {
+            "elapsedMs": 0.27883299999999167,
+            "energy": 54.17911291088094,
+            "inertialEnergy": 54.17911291088094,
+            "kineticEnergy": 46.04246727342264,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 7.105427357601002e-15
+          }
+        },
+        {
+          "pair": 2,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "8c5642d93a9557d0c5d52b8fe3c53382a61303d3e233d7ebf48980f4245772e2",
+          "original": {
+            "elapsedMs": 1.7115409999999827,
+            "energy": 1879.4572537325848,
+            "inertialEnergy": 54.17911291088094,
+            "kineticEnergy": 46.04246727342263,
+            "directionConverged": true,
+            "maximumResidual": 6.940833908509011e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "20b9fda0fa3668c69e4a77e96ac6d6d74f8b72964b2371e272229e0b6ef341a9"
+          },
+          "compiled": {
+            "elapsedMs": 0.9355829999999798,
+            "energy": 1879.4572537325846,
+            "inertialEnergy": 54.17911291088094,
+            "kineticEnergy": 46.04246727342264,
+            "directionConverged": true,
+            "maximumResidual": 6.940718746576972e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "20b9fda0fa3668c69e4a77e96ac6d6d74f8b72964b2371e272229e0b6ef341a9"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 7.801348433605991e-16
+            },
+            "direction": {
+              "maximumAbsolute": 2.168404344971009e-18,
+              "maximumRelative": 2.168404344971009e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 7.105427357601002e-15
+          }
+        },
+        {
+          "pair": 3,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "abedffb47286c0db5252c78173eefe35ad38b9a82abcc491bcf15826f5c1667c",
+          "compiled": {
+            "elapsedMs": 0.07645800000000236,
+            "energy": 54.16712972048175,
+            "inertialEnergy": 54.16712972048175,
+            "kineticEnergy": 46.03300870812633,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "original": {
+            "elapsedMs": 0.5966669999999965,
+            "energy": 54.16712972048175,
+            "inertialEnergy": 54.16712972048175,
+            "kineticEnergy": 46.033008708126346,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 5.551115123125783e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 3,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "abedffb47286c0db5252c78173eefe35ad38b9a82abcc491bcf15826f5c1667c",
+          "compiled": {
+            "elapsedMs": 0.9923750000000098,
+            "energy": 1879.4477770294857,
+            "inertialEnergy": 54.16712972048175,
+            "kineticEnergy": 46.03300870812633,
+            "directionConverged": true,
+            "maximumResidual": 6.458352806171964e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "eea60c05330399acbaf00f29e3caac8616d95c8128ae5d0efd1cfa630a26a15d"
+          },
+          "original": {
+            "elapsedMs": 1.4698330000000226,
+            "energy": 1879.4477770294857,
+            "inertialEnergy": 54.16712972048175,
+            "kineticEnergy": 46.033008708126346,
+            "directionConverged": true,
+            "maximumResidual": 6.458254883706672e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "eea60c05330399acbaf00f29e3caac8616d95c8128ae5d0efd1cfa630a26a15d"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 4.4023071416405325e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 4,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "0f21636d01d9ee8600d7f30bd3d2ddbfe341273639ef2133bf6ef01f933c41d2",
+          "original": {
+            "elapsedMs": 0.46450000000001523,
+            "energy": 54.1546068809415,
+            "inertialEnergy": 54.1546068809415,
+            "kineticEnergy": 46.023105582796305,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "compiled": {
+            "elapsedMs": 0.22800000000000864,
+            "energy": 54.1546068809415,
+            "inertialEnergy": 54.1546068809415,
+            "kineticEnergy": 46.023105582796305,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 4.263256414560601e-14,
+              "maximumRelative": 3.4475604689615624e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 4,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "0f21636d01d9ee8600d7f30bd3d2ddbfe341273639ef2133bf6ef01f933c41d2",
+          "original": {
+            "elapsedMs": 3.428875000000005,
+            "energy": 1879.4376524472739,
+            "inertialEnergy": 54.1546068809415,
+            "kineticEnergy": 46.023105582796305,
+            "directionConverged": true,
+            "maximumResidual": 8.199651206700037e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "83a9cd2c72ed50e9a362fb64e7b558f58295fed5f001f668614277e56e91d1f6"
+          },
+          "compiled": {
+            "elapsedMs": 1.4663749999999993,
+            "energy": 1879.4376524472739,
+            "inertialEnergy": 54.1546068809415,
+            "kineticEnergy": 46.023105582796305,
+            "directionConverged": true,
+            "maximumResidual": 8.199221061901567e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "83a9cd2c72ed50e9a362fb64e7b558f58295fed5f001f668614277e56e91d1f6"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 4.440892098500626e-16
+            },
+            "direction": {
+              "maximumAbsolute": 2.6020852139652106e-18,
+              "maximumRelative": 2.6020852139652106e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 5,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "44096b6fe4da543fa32df87e87fa3ea072730d436775cf15c5d335aa794640ab",
+          "compiled": {
+            "elapsedMs": 0.12745900000001598,
+            "energy": 54.141755065848216,
+            "inertialEnergy": 54.141755065848216,
+            "kineticEnergy": 46.01292436018311,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "original": {
+            "elapsedMs": 0.8272499999999923,
+            "energy": 54.141755065848216,
+            "inertialEnergy": 54.141755065848216,
+            "kineticEnergy": 46.01292436018313,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 5,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "44096b6fe4da543fa32df87e87fa3ea072730d436775cf15c5d335aa794640ab",
+          "compiled": {
+            "elapsedMs": 0.9192090000000235,
+            "energy": 1879.4270501829787,
+            "inertialEnergy": 54.141755065848216,
+            "kineticEnergy": 46.01292436018311,
+            "directionConverged": true,
+            "maximumResidual": 4.132479287939298e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "b951df5a6f642f86cd3b8e94e51b8e8f700129f81b85add026e0f96e641a04ff"
+          },
+          "original": {
+            "elapsedMs": 1.7371249999999918,
+            "energy": 1879.4270501829787,
+            "inertialEnergy": 54.141755065848216,
+            "kineticEnergy": 46.01292436018313,
+            "directionConverged": true,
+            "maximumResidual": 4.1324514632396817e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "b951df5a6f642f86cd3b8e94e51b8e8f700129f81b85add026e0f96e641a04ff"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 6,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "57a4089f811e23508ca8c98a66a69333a44a8b6f1913d128b1967b201caaf340",
+          "original": {
+            "elapsedMs": 0.648666999999989,
+            "energy": 54.12879041571008,
+            "inertialEnergy": 54.12879041571008,
+            "kineticEnergy": 46.00263611129308,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "compiled": {
+            "elapsedMs": 0.11612499999998249,
+            "energy": 54.12879041571008,
+            "inertialEnergy": 54.12879041571008,
+            "kineticEnergy": 46.00263611129308,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 5.551115123125783e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 6,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "57a4089f811e23508ca8c98a66a69333a44a8b6f1913d128b1967b201caaf340",
+          "original": {
+            "elapsedMs": 1.8085419999999885,
+            "energy": 1879.416148413309,
+            "inertialEnergy": 54.12879041571008,
+            "kineticEnergy": 46.00263611129308,
+            "directionConverged": true,
+            "maximumResidual": 7.292027314989363e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "7b03e928ed06a46799873daa5a4ee09c97673dc0d0030a6e0a13f98ee4b107e6"
+          },
+          "compiled": {
+            "elapsedMs": 0.8158750000000055,
+            "energy": 1879.416148413309,
+            "inertialEnergy": 54.12879041571008,
+            "kineticEnergy": 46.00263611129308,
+            "directionConverged": true,
+            "maximumResidual": 7.292027323968907e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "7b03e928ed06a46799873daa5a4ee09c97673dc0d0030a6e0a13f98ee4b107e6"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 5.684341886080802e-14,
+              "maximumRelative": 5.551115123125783e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.469446951953614e-18,
+              "maximumRelative": 3.469446951953614e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 7,
+          "mode": "inertia-only",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "46c83a8be7980b9f7e6875f02041f7da7b6ddca5586357fd00de1ba149197d27",
+          "compiled": {
+            "elapsedMs": 0.15537499999999227,
+            "energy": 54.115930940506864,
+            "inertialEnergy": 54.115930940506864,
+            "kineticEnergy": 45.99241367859693,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "original": {
+            "elapsedMs": 0.8893749999999727,
+            "energy": 54.115930940506864,
+            "inertialEnergy": 54.115930940506864,
+            "kineticEnergy": 45.992413678596925,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "48952abfffe173aedd24def705e0c1ef69ea9313344aa4e67d16a586882e5354"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 5.821007843979894e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 7.105427357601002e-15
+          }
+        },
+        {
+          "pair": 7,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "5f820d845102f9445b64f40fc2314e52f2a321c6293b71a708620281b46d7a0a",
+          "poseHash": "46c83a8be7980b9f7e6875f02041f7da7b6ddca5586357fd00de1ba149197d27",
+          "compiled": {
+            "elapsedMs": 1.3291670000000124,
+            "energy": 1879.4051303378885,
+            "inertialEnergy": 54.115930940506864,
+            "kineticEnergy": 45.99241367859693,
+            "directionConverged": true,
+            "maximumResidual": 1.0793134036611914e-12,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "2af452f48778fb3441da8b7723790509f17b4025c5ba237086e201c6e40e03d4"
+          },
+          "original": {
+            "elapsedMs": 2.196709000000027,
+            "energy": 1879.4051303378885,
+            "inertialEnergy": 54.115930940506864,
+            "kineticEnergy": 45.992413678596925,
+            "directionConverged": true,
+            "maximumResidual": 1.0793134036611914e-12,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "2af452f48778fb3441da8b7723790509f17b4025c5ba237086e201c6e40e03d4"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 6.899555879329417e-16
+            },
+            "direction": {
+              "maximumAbsolute": 2.168404344971009e-18,
+              "maximumRelative": 2.168404344971009e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 7.105427357601002e-15
+          }
+        }
+      ]
+    },
+    {
+      "nodes": 128,
+      "dofCount": 636,
+      "band": 13,
+      "sampleCount": 504,
+      "storedMatrixEntries": 1143,
+      "setupMs": 4.359250000000003,
+      "coldCompileMs": 7.316584000000006,
+      "warmCompileMs": {
+        "mean": 1.2797392499999916,
+        "median": 1.0804784999999981,
+        "max": 1.9373329999999669,
+        "samples": [
+          1.0384159999999838,
+          1.1225410000000124,
+          1.020667000000003,
+          1.9373329999999669
+        ]
+      },
+      "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+      "preparedUnchanged": true,
+      "summary": {
+        "inertia-only": {
+          "originalMs": {
+            "mean": 1.0161510000000042,
+            "median": 0.9270625000000052,
+            "max": 1.7377910000000156,
+            "samples": [
+              1.0751670000000217,
+              0.9097500000000025,
+              0.8646669999999972,
+              1.7377910000000156,
+              0.944375000000008,
+              0.9484999999999957,
+              0.8278329999999983,
+              0.821124999999995
+            ]
+          },
+          "compiledMs": {
+            "mean": 0.18828624999999377,
+            "median": 0.16033349999999302,
+            "max": 0.3737909999999829,
+            "samples": [
+              0.15974999999997408,
+              0.19745799999998326,
+              0.16091700000001197,
+              0.18500000000000227,
+              0.3737909999999829,
+              0.15712500000000773,
+              0.14033299999999826,
+              0.1319159999999897
+            ]
+          },
+          "medianSpeedup": 5.782088584107785,
+          "convergedDirections": {
+            "original": 0,
+            "compiled": 0
+          },
+          "pairs": 8
+        },
+        "elastic-inertia-direction": {
+          "originalMs": {
+            "mean": 2.8050831250000066,
+            "median": 2.425604000000007,
+            "max": 4.343667000000011,
+            "samples": [
+              4.343667000000011,
+              2.228791000000001,
+              2.160790999999989,
+              3.21712500000001,
+              2.615875000000017,
+              3.6727920000000154,
+              2.235332999999997,
+              1.9662910000000124
+            ]
+          },
+          "compiledMs": {
+            "mean": 1.628088499999997,
+            "median": 1.3706874999999883,
+            "max": 2.8778330000000096,
+            "samples": [
+              2.050707999999986,
+              1.3589999999999804,
+              1.344333000000006,
+              2.8778330000000096,
+              1.3870000000000005,
+              1.3364170000000115,
+              1.2870419999999854,
+              1.3823749999999961
+            ]
+          },
+          "medianSpeedup": 1.769625826455722,
+          "convergedDirections": {
+            "original": 8,
+            "compiled": 8
+          },
+          "pairs": 8
+        }
+      },
+      "rows": [
+        {
+          "pair": 0,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "5c578ac288e57ff2e1c8acd179c2913191e7ec3f66bd038f6b8a1ffbd3f1e6f5",
+          "original": {
+            "elapsedMs": 1.0751670000000217,
+            "energy": 54.14856467889422,
+            "inertialEnergy": 54.14856467889422,
+            "kineticEnergy": 46.02124879647031,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "compiled": {
+            "elapsedMs": 0.15974999999997408,
+            "energy": 54.14856467889422,
+            "inertialEnergy": 54.14856467889422,
+            "kineticEnergy": 46.02124879647031,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 4.1213320489655077e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 0,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "5c578ac288e57ff2e1c8acd179c2913191e7ec3f66bd038f6b8a1ffbd3f1e6f5",
+          "original": {
+            "elapsedMs": 4.343667000000011,
+            "energy": 1879.4149903021043,
+            "inertialEnergy": 54.14856467889422,
+            "kineticEnergy": 46.02124879647031,
+            "directionConverged": true,
+            "maximumResidual": 8.978197109461954e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "a67c79912928a21ac5b411fce2c89193334ae594fd6394c376aa052d4a8540f1"
+          },
+          "compiled": {
+            "elapsedMs": 2.050707999999986,
+            "energy": 1879.4149903021043,
+            "inertialEnergy": 54.14856467889422,
+            "kineticEnergy": 46.02124879647031,
+            "directionConverged": true,
+            "maximumResidual": 8.976437837807271e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "a67c79912928a21ac5b411fce2c89193334ae594fd6394c376aa052d4a8540f1"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 4.4300609727570366e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.903127820947816e-18,
+              "maximumRelative": 3.903127820947816e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 1,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "02645ee44fdcfd12fd26639101732d52bab2d1abb90d137667ff8d05b0fe5bf7",
+          "compiled": {
+            "elapsedMs": 0.19745799999998326,
+            "energy": 54.15300911112085,
+            "inertialEnergy": 54.15300911112085,
+            "kineticEnergy": 46.02458191637191,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "original": {
+            "elapsedMs": 0.9097500000000025,
+            "energy": 54.15300911112085,
+            "inertialEnergy": 54.15300911112085,
+            "kineticEnergy": 46.02458191637189,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 1.4210854715202004e-14,
+              "maximumRelative": 3.885780586188048e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 1,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "02645ee44fdcfd12fd26639101732d52bab2d1abb90d137667ff8d05b0fe5bf7",
+          "compiled": {
+            "elapsedMs": 1.3589999999999804,
+            "energy": 1879.422886836221,
+            "inertialEnergy": 54.15300911112085,
+            "kineticEnergy": 46.02458191637191,
+            "directionConverged": true,
+            "maximumResidual": 4.285843862028447e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "4a2e1c25dc61be909750da3e25c947a43f691c658d55c2f6db833348013e08bf"
+          },
+          "original": {
+            "elapsedMs": 2.228791000000001,
+            "energy": 1879.422886836221,
+            "inertialEnergy": 54.15300911112085,
+            "kineticEnergy": 46.02458191637189,
+            "directionConverged": true,
+            "maximumResidual": 4.28584377081558e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "4a2e1c25dc61be909750da3e25c947a43f691c658d55c2f6db833348013e08bf"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 1.4210854715202004e-14,
+              "maximumRelative": 3.8734931836696346e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 1.4210854715202004e-14
+          }
+        },
+        {
+          "pair": 2,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "c699e14329158ba6db8ac8a243dd0c85c8e25b5cc0a0af468c2ec2f42ff33952",
+          "original": {
+            "elapsedMs": 0.8646669999999972,
+            "energy": 54.15715092360157,
+            "inertialEnergy": 54.15715092360157,
+            "kineticEnergy": 46.027611415567,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "compiled": {
+            "elapsedMs": 0.16091700000001197,
+            "energy": 54.15715092360156,
+            "inertialEnergy": 54.15715092360156,
+            "kineticEnergy": 46.027611415567,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 5.667412842499963e-16
+            },
+            "direction": null,
+            "inertialEnergy": 7.105427357601002e-15,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 2,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "c699e14329158ba6db8ac8a243dd0c85c8e25b5cc0a0af468c2ec2f42ff33952",
+          "original": {
+            "elapsedMs": 2.160790999999989,
+            "energy": 1879.4306833402381,
+            "inertialEnergy": 54.15715092360157,
+            "kineticEnergy": 46.027611415567,
+            "directionConverged": true,
+            "maximumResidual": 8.967162254243802e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "26de0bda26769e426fb870bf65cda22db8412751ece79027f5773040e35b98fb"
+          },
+          "compiled": {
+            "elapsedMs": 1.344333000000006,
+            "energy": 1879.4306833402381,
+            "inertialEnergy": 54.15715092360156,
+            "kineticEnergy": 46.027611415567,
+            "directionConverged": true,
+            "maximumResidual": 8.967095664313563e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "26de0bda26769e426fb870bf65cda22db8412751ece79027f5773040e35b98fb"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 5.667644813850041e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 7.105427357601002e-15,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 3,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "3a7a480e488ecda08bb9fa0ec96d97a7d0fc55bf9d43ed80d593ca813c602fff",
+          "compiled": {
+            "elapsedMs": 0.18500000000000227,
+            "energy": 54.16092031350979,
+            "inertialEnergy": 54.16092031350979,
+            "kineticEnergy": 46.03028626286119,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "original": {
+            "elapsedMs": 1.7377910000000156,
+            "energy": 54.16092031350979,
+            "inertialEnergy": 54.16092031350979,
+            "kineticEnergy": 46.03028626286119,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 3.985942997437197e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 3,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "3a7a480e488ecda08bb9fa0ec96d97a7d0fc55bf9d43ed80d593ca813c602fff",
+          "compiled": {
+            "elapsedMs": 2.8778330000000096,
+            "energy": 1879.43824832368,
+            "inertialEnergy": 54.16092031350979,
+            "kineticEnergy": 46.03028626286119,
+            "directionConverged": true,
+            "maximumResidual": 6.509846166857138e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "bd7d7538b329c5c5e11bf8db6ef8e8fd8711f2d4ba1e1fd1318b3df968cfa1ac"
+          },
+          "original": {
+            "elapsedMs": 3.21712500000001,
+            "energy": 1879.43824832368,
+            "inertialEnergy": 54.16092031350979,
+            "kineticEnergy": 46.03028626286119,
+            "directionConverged": true,
+            "maximumResidual": 6.509523903305534e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "bd7d7538b329c5c5e11bf8db6ef8e8fd8711f2d4ba1e1fd1318b3df968cfa1ac"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 4.3070660662600214e-16
+            },
+            "direction": {
+              "maximumAbsolute": 2.168404344971009e-18,
+              "maximumRelative": 2.168404344971009e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 4,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "857f82449a5e41c6e1f166ce764eb51991a6b2117561e5509ce41268d64d9c4c",
+          "original": {
+            "elapsedMs": 0.944375000000008,
+            "energy": 54.16425371355598,
+            "inertialEnergy": 54.16425371355598,
+            "kineticEnergy": 46.032561362705806,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "compiled": {
+            "elapsedMs": 0.3737909999999829,
+            "energy": 54.16425371355598,
+            "inertialEnergy": 54.16425371355598,
+            "kineticEnergy": 46.03256136270581,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 4.440892098500626e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 7.105427357601002e-15
+          }
+        },
+        {
+          "pair": 4,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "857f82449a5e41c6e1f166ce764eb51991a6b2117561e5509ce41268d64d9c4c",
+          "original": {
+            "elapsedMs": 2.615875000000017,
+            "energy": 1879.445454162557,
+            "inertialEnergy": 54.16425371355598,
+            "kineticEnergy": 46.032561362705806,
+            "directionConverged": true,
+            "maximumResidual": 6.359807527845247e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "cfa0a92ef6b532335ecff2654c5c6a0151a6e857bd5bec40dbdcc5f270c04f08"
+          },
+          "compiled": {
+            "elapsedMs": 1.3870000000000005,
+            "energy": 1879.445454162557,
+            "inertialEnergy": 54.16425371355598,
+            "kineticEnergy": 46.03256136270581,
+            "directionConverged": true,
+            "maximumResidual": 6.359807513965977e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "cfa0a92ef6b532335ecff2654c5c6a0151a6e857bd5bec40dbdcc5f270c04f08"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 4.556850408906553e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 7.105427357601002e-15
+          }
+        },
+        {
+          "pair": 5,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "634ed0cd109251c98841bf927aef3d983119fb85d30cfdae00dbf423991c387c",
+          "compiled": {
+            "elapsedMs": 0.15712500000000773,
+            "energy": 54.16709486174741,
+            "inertialEnergy": 54.16709486174741,
+            "kineticEnergy": 46.03439831319976,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "original": {
+            "elapsedMs": 0.9484999999999957,
+            "energy": 54.16709486174741,
+            "inertialEnergy": 54.16709486174741,
+            "kineticEnergy": 46.03439831319976,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 4.352462023599163e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 5,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "634ed0cd109251c98841bf927aef3d983119fb85d30cfdae00dbf423991c387c",
+          "compiled": {
+            "elapsedMs": 1.3364170000000115,
+            "energy": 1879.452179250255,
+            "inertialEnergy": 54.16709486174741,
+            "kineticEnergy": 46.03439831319976,
+            "directionConverged": true,
+            "maximumResidual": 8.816719124996315e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "f1d710318360db4d689cab2f3f04bb4f961e1d3172dc4f3a1950303db164c65f"
+          },
+          "original": {
+            "elapsedMs": 3.6727920000000154,
+            "energy": 1879.452179250255,
+            "inertialEnergy": 54.16709486174741,
+            "kineticEnergy": 46.03439831319976,
+            "directionConverged": true,
+            "maximumResidual": 8.816286669275405e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "f1d710318360db4d689cab2f3f04bb4f961e1d3172dc4f3a1950303db164c65f"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 3.5107509831865837e-16
+            },
+            "direction": {
+              "maximumAbsolute": 2.6020852139652106e-18,
+              "maximumRelative": 2.6020852139652106e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 6,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "010db6da0e68e07df256c15b6497e0088532f12cb4e302e154dbba812946f392",
+          "original": {
+            "elapsedMs": 0.8278329999999983,
+            "energy": 54.16939575126309,
+            "inertialEnergy": 54.16939575126309,
+            "kineticEnergy": 46.035766054578886,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "compiled": {
+            "elapsedMs": 0.14033299999999826,
+            "energy": 54.16939575126309,
+            "inertialEnergy": 54.16939575126309,
+            "kineticEnergy": 46.035766054578886,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 4.263256414560601e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": null,
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 6,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "010db6da0e68e07df256c15b6497e0088532f12cb4e302e154dbba812946f392",
+          "original": {
+            "elapsedMs": 2.235332999999997,
+            "energy": 1879.4583100496798,
+            "inertialEnergy": 54.16939575126309,
+            "kineticEnergy": 46.035766054578886,
+            "directionConverged": true,
+            "maximumResidual": 7.112065959491637e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "dd00e52111979ec4d0c1000e46f29ebdda705ee9f4d47f75c6797544fb03adcb"
+          },
+          "compiled": {
+            "elapsedMs": 1.2870419999999854,
+            "energy": 1879.4583100496798,
+            "inertialEnergy": 54.16939575126309,
+            "kineticEnergy": 46.035766054578886,
+            "directionConverged": true,
+            "maximumResidual": 7.112960702838221e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "dd00e52111979ec4d0c1000e46f29ebdda705ee9f4d47f75c6797544fb03adcb"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 4.263256414560601e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 0,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 7,
+          "mode": "inertia-only",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "afb23493c7755a31149f668401b79bc6560074f57a886800650893528819c5ec",
+          "compiled": {
+            "elapsedMs": 0.1319159999999897,
+            "energy": 54.17111744465888,
+            "inertialEnergy": 54.17111744465888,
+            "kineticEnergy": 46.0366413974022,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "original": {
+            "elapsedMs": 0.821124999999995,
+            "energy": 54.171117444658876,
+            "inertialEnergy": 54.171117444658876,
+            "kineticEnergy": 46.0366413974022,
+            "directionConverged": null,
+            "maximumResidual": null,
+            "factorizations": 0,
+            "backsolves": 0,
+            "fullMatrixHash": "726d7f2a81930833e89d7ee64d51e148dd5898ce0b83f18dcfd84c524c4628f3"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": null,
+            "inertialEnergy": 7.105427357601002e-15,
+            "kineticEnergy": 0
+          }
+        },
+        {
+          "pair": 7,
+          "mode": "elastic-inertia-direction",
+          "preparedHash": "2ab125c45cd60a0c436b3e6fe9e98dddd81f1241acd61e24e34259d43abeab1f",
+          "poseHash": "afb23493c7755a31149f668401b79bc6560074f57a886800650893528819c5ec",
+          "compiled": {
+            "elapsedMs": 1.3823749999999961,
+            "energy": 1879.4637430122928,
+            "inertialEnergy": 54.17111744465888,
+            "kineticEnergy": 46.0366413974022,
+            "directionConverged": true,
+            "maximumResidual": 4.897472642305442e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "dabc7bc1d52d4638bede1b181e6d34fadbe53acea58609616c7c63b632ddd255"
+          },
+          "original": {
+            "elapsedMs": 1.9662910000000124,
+            "energy": 1879.4637430122928,
+            "inertialEnergy": 54.171117444658876,
+            "kineticEnergy": 46.0366413974022,
+            "directionConverged": true,
+            "maximumResidual": 4.897149298715121e-13,
+            "factorizations": 1,
+            "backsolves": 1,
+            "fullMatrixHash": "dabc7bc1d52d4638bede1b181e6d34fadbe53acea58609616c7c63b632ddd255"
+          },
+          "parity": {
+            "fullMatrixByteIdentical": true,
+            "gradient": {
+              "maximumAbsolute": 2.842170943040401e-14,
+              "maximumRelative": 6.661338147750939e-16
+            },
+            "direction": {
+              "maximumAbsolute": 3.0357660829594124e-18,
+              "maximumRelative": 3.0357660829594124e-18
+            },
+            "inertialEnergy": 7.105427357601002e-15,
+            "kineticEnergy": 0
+          }
+        }
+      ]
+    }
+  ],
+  "sourceAfter": {
+    "src/physics/kirchhoffCompositeInertiaCache.js": "1546ab48d64d11f4805875d591c30ce7f5d662b60ddba242d3a558de23bb7505",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeChain.js": "949097e7942b2646ba1ed17c3782eb37a959fe78de17d855b4d2aea8dc8780c9",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeMaterialCache.js": "f3c6d99488d8060d04de2bc42733acf683e7ad782d7b00dda47736f5e5b02176",
+    "src/physics/kirchhoffCompositeMesh.js": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+    "src/physics/guidewireMaterialProfile.js": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+    "src/physics/catheterMaterialProfile.js": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+    "scripts/physics/benchmark-composite-inertia-cache.mjs": "e91241adc6b5cc19d4675bfdf955922486e0419626d48e1404731c65217b2f81"
+  },
+  "sourceStable": true
+}

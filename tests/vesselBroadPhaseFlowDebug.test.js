@@ -50,6 +50,17 @@ assert.equal(
     'flow arrows should continue into every arterial branch'
 );
 
+const flowEdgesWithHiddenConnector = network.edges.map(edge => ({ ...edge }));
+flowEdgesWithHiddenConnector[1].renderExcluded = true;
+const visibleSamples = buildCenterlineFlowArrowSamples(
+    flowEdgesWithHiddenConnector,
+    arrowOptions
+);
+assert.ok(
+    visibleSamples.every(sample => sample.edgeIndex !== 1),
+    'flow arrows should not reveal hidden topology-repair connectors'
+);
+
 for (const sample of samples) {
     const edge = network.edges[sample.edgeIndex];
     assert.ok(

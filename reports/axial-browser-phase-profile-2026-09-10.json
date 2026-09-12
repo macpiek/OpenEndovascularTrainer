@@ -1,0 +1,22 @@
+{
+  "source": "Visible browser benchmark report, Start 35 s",
+  "variant": "joint-axial-sections",
+  "calls": 405,
+  "nonconvergedResults": 0,
+  "averageFps": 28.845961992879726,
+  "backlogSeconds": 19.124566666666684,
+  "lastStepMs": 199.80000007152557,
+  "totalsMs": {
+    "axialAssembly": 1796.4999990463257,
+    "axialNewton": 15682.299998760223,
+    "axialRecovery": 120.50000154972076,
+    "sectionAssembly": 13627.500002622604,
+    "boundaryPreparation": 187.4999977350235,
+    "boundarySolve": 224.60000491142273,
+    "sectionRecovery": 129.69999659061432
+  },
+  "localResponseSolves": 302524,
+  "localResponseReuses": 297267,
+  "notes": "sectionAssembly, boundaryPreparation, boundarySolve and sectionRecovery are subsets of axialNewton; do not add them twice. The last solve required no Newton direction, so its reported initial global/local sizes are not a reduction measurement.",
+  "afterProbe": "Visible tab restored to joint-active-coulomb"
+}

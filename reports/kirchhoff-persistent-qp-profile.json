@@ -1,0 +1,33 @@
+{
+  "fixture": "tests/fixtures/kirchhoff-coupled-friction-step3745.json.gz",
+  "node": "v24.6.0",
+  "workspaceMode": "reuse",
+  "warmupSamples": 4,
+  "measuredSamples": 20,
+  "medianMs": 5.136291000000028,
+  "p95Ms": 10.139207999999996,
+  "diagnostics": {
+    "status": "converged",
+    "converged": true,
+    "iterations": 5,
+    "factorizations": 11,
+    "innerIterations": 11,
+    "nearNullPivots": 6,
+    "maximumResidual": 6.318918659721159e-06,
+    "frictionResidual": 6.318918659721159e-06,
+    "groupCount": 3,
+    "rowCount": 1681,
+    "band": 97,
+    "matrixEntries": 163057,
+    "backtracks": 0,
+    "gradientFallbacks": 0,
+    "objective": -0.0003843728464202965
+  },
+  "limitation": "Frozen linear QP only, excludes assembly, integration, nonlinear world and renderer; not an FPS result.",
+  "sources": {
+    "src/physics/kirchhoffCoupledFrictionSolver.js": "172e253029478e6445ef8623c6958623e162be7d085b21f676c6530e07ca438f",
+    "src/physics/kirchhoffCoupledLinearSolver.js": "b4b35a67dca4c17aab10073b34ccd818ce4cbf3931afddf3b4fd81d2b5b4f4f0",
+    "src/physics/kirchhoffLinearKernelBytes.js": "0b34f2a1d5a268a54bb786ab6c5dd8cf72c22a9d10748df92352ae4680e4690b"
+  },
+  "sourceHashProvenance": "Current source checkpoint; timed source was before adding the borrowed free-mask return, with the same profile-product kernel."
+}

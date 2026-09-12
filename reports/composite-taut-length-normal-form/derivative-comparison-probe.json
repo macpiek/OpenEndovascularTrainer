@@ -1,0 +1,425 @@
+{
+  "scope": "paired full continuous joint steps of two synthetic loaded rods, no contact/anatomy/render, fixed initial state replay; not FPS or an advancing insertion trajectory",
+  "warmupPairs": 0,
+  "measurementPairs": 1,
+  "cases": [
+    {
+      "nodesPerTool": 3,
+      "fixedNodes": [
+        0,
+        1
+      ],
+      "benchmarkable": true,
+      "case": "curved-clamped-bending",
+      "firstStepDifference": {
+        "maximum": 5.421010862427522e-20,
+        "scalarCount": 227
+      },
+      "secondStepDifference": {
+        "maximum": 4.1378575912909277e-16,
+        "scalarCount": 227
+      },
+      "counters": [
+        {
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "acceptedAlphas": [
+            1,
+            1
+          ]
+        },
+        {
+          "directions": 2,
+          "evaluations": 6,
+          "fullAssemblies": 2,
+          "gradientAssemblies": 4,
+          "factorizations": 2,
+          "linearSolves": 2,
+          "lineSearchTrials": 2,
+          "acceptedAlphas": [
+            1,
+            1
+          ]
+        }
+      ],
+      "secondCounters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "scratchBytes": [
+        2785280,
+        698368
+      ],
+      "stepMs": [
+        {
+          "mean": 44.329957999999976,
+          "median": 44.329957999999976,
+          "p95": 44.329957999999976
+        },
+        {
+          "mean": 17.308042,
+          "median": 17.308042,
+          "p95": 17.308042
+        }
+      ],
+      "phaseMs": [
+        {
+          "preparationMs": {
+            "mean": 0.9567920000000072,
+            "median": 0.9567920000000072,
+            "p95": 0.9567920000000072
+          },
+          "iterationMs": {
+            "mean": 43.18504199999995,
+            "median": 43.18504199999995,
+            "p95": 43.18504199999995
+          },
+          "directionMs": {
+            "mean": 0.6440000000000055,
+            "median": 0.6440000000000055,
+            "p95": 0.6440000000000055
+          },
+          "commitMs": {
+            "mean": 0.1658750000000282,
+            "median": 0.1658750000000282,
+            "p95": 0.1658750000000282
+          }
+        },
+        {
+          "preparationMs": {
+            "mean": 0.7441249999999968,
+            "median": 0.7441249999999968,
+            "p95": 0.7441249999999968
+          },
+          "iterationMs": {
+            "mean": 16.37812500000001,
+            "median": 16.37812500000001,
+            "p95": 16.37812500000001
+          },
+          "directionMs": {
+            "mean": 0.49645699999996395,
+            "median": 0.49645699999996395,
+            "p95": 0.49645699999996395
+          },
+          "commitMs": {
+            "mean": 0.16370899999992616,
+            "median": 0.16370899999992616,
+            "p95": 0.16370899999992616
+          }
+        }
+      ],
+      "samples": [
+        [
+          44.329957999999976
+        ],
+        [
+          17.308042
+        ]
+      ]
+    },
+    {
+      "nodesPerTool": 6,
+      "fixedNodes": [
+        0
+      ],
+      "benchmarkable": true,
+      "case": "wider-continuous-loaded-bending",
+      "firstStepDifference": {
+        "maximum": 1.5178830414797062e-18,
+        "scalarCount": 452
+      },
+      "secondStepDifference": {
+        "maximum": 2.7582103268031233e-16,
+        "scalarCount": 452
+      },
+      "counters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "secondCounters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "scratchBytes": [
+        10256384,
+        1288192
+      ],
+      "stepMs": [
+        {
+          "mean": 199.77983399999994,
+          "median": 199.77983399999994,
+          "p95": 199.77983399999994
+        },
+        {
+          "mean": 53.23179200000004,
+          "median": 53.23179200000004,
+          "p95": 53.23179200000004
+        }
+      ],
+      "phaseMs": [
+        {
+          "preparationMs": {
+            "mean": 1.2410409999999956,
+            "median": 1.2410409999999956,
+            "p95": 1.2410409999999956
+          },
+          "iterationMs": {
+            "mean": 198.33237500000018,
+            "median": 198.33237500000018,
+            "p95": 198.33237500000018
+          },
+          "directionMs": {
+            "mean": 0.9175419999999122,
+            "median": 0.9175419999999122,
+            "p95": 0.9175419999999122
+          },
+          "commitMs": {
+            "mean": 0.18941700000004857,
+            "median": 0.18941700000004857,
+            "p95": 0.18941700000004857
+          }
+        },
+        {
+          "preparationMs": {
+            "mean": 1.235791000000063,
+            "median": 1.235791000000063,
+            "p95": 1.235791000000063
+          },
+          "iterationMs": {
+            "mean": 51.78125,
+            "median": 51.78125,
+            "p95": 51.78125
+          },
+          "directionMs": {
+            "mean": 0.8575000000000728,
+            "median": 0.8575000000000728,
+            "p95": 0.8575000000000728
+          },
+          "commitMs": {
+            "mean": 0.19970899999998437,
+            "median": 0.19970899999998437,
+            "p95": 0.19970899999998437
+          }
+        }
+      ],
+      "samples": [
+        [
+          199.77983399999994
+        ],
+        [
+          53.23179200000004
+        ]
+      ]
+    },
+    {
+      "nodesPerTool": 6,
+      "fixedNodes": [
+        0,
+        1
+      ],
+      "benchmarkable": true,
+      "case": "wider-continuous-loaded-bending",
+      "firstStepDifference": {
+        "maximum": 2.168404344971009e-18,
+        "scalarCount": 458
+      },
+      "secondStepDifference": {
+        "maximum": 1.4224732503009818e-16,
+        "scalarCount": 458
+      },
+      "counters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "secondCounters": [
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        },
+        {
+          "directions": 1,
+          "evaluations": 4,
+          "fullAssemblies": 1,
+          "gradientAssemblies": 3,
+          "factorizations": 1,
+          "linearSolves": 1,
+          "lineSearchTrials": 1,
+          "acceptedAlphas": [
+            1
+          ]
+        }
+      ],
+      "scratchBytes": [
+        10256384,
+        1288192
+      ],
+      "stepMs": [
+        {
+          "mean": 189.31333300000006,
+          "median": 189.31333300000006,
+          "p95": 189.31333300000006
+        },
+        {
+          "mean": 49.781375000000025,
+          "median": 49.781375000000025,
+          "p95": 49.781375000000025
+        }
+      ],
+      "phaseMs": [
+        {
+          "preparationMs": {
+            "mean": 1.2672919999999976,
+            "median": 1.2672919999999976,
+            "p95": 1.2672919999999976
+          },
+          "iterationMs": {
+            "mean": 187.85145899999998,
+            "median": 187.85145899999998,
+            "p95": 187.85145899999998
+          },
+          "directionMs": {
+            "mean": 0.47729100000015023,
+            "median": 0.47729100000015023,
+            "p95": 0.47729100000015023
+          },
+          "commitMs": {
+            "mean": 0.1779590000001008,
+            "median": 0.1779590000001008,
+            "p95": 0.1779590000001008
+          }
+        },
+        {
+          "preparationMs": {
+            "mean": 1.3955409999998665,
+            "median": 1.3955409999998665,
+            "p95": 1.3955409999998665
+          },
+          "iterationMs": {
+            "mean": 48.222041999999874,
+            "median": 48.222041999999874,
+            "p95": 48.222041999999874
+          },
+          "directionMs": {
+            "mean": 0.2769579999999223,
+            "median": 0.2769579999999223,
+            "p95": 0.2769579999999223
+          },
+          "commitMs": {
+            "mean": 0.14991599999984828,
+            "median": 0.14991599999984828,
+            "p95": 0.14991599999984828
+          }
+        }
+      ],
+      "samples": [
+        [
+          189.31333300000006
+        ],
+        [
+          49.781375000000025
+        ]
+      ]
+    }
+  ]
+}

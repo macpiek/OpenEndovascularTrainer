@@ -1,0 +1,744 @@
+{
+  "scope": "Diagnostic Node replay, no rendering, FPS or scheduler/backlog measurement",
+  "measuredAt": "2026-09-06T14:37:12.308Z",
+  "node": "v24.6.0",
+  "sourceBefore": [
+    [
+      "src/physics/endovascularPhysicsWorld.js",
+      "ea0e64c42ef9e779e7595064366ad3e1bd31d69023aa29fe00785a451b84fee9"
+    ],
+    [
+      "src/physics/kirchhoffCoupledSystem.js",
+      "fd164a7151b1a0dfc1d45f53e5cedb3ffb19a3ef27cc423bc80ea501cf758f5f"
+    ],
+    [
+      "src/physics/kirchhoffActiveCondensedSolver.js",
+      "bf30a36132204fe4be14ce3a43db3ae4b905367be6cbff9876339fd896a6fb82"
+    ],
+    [
+      "src/physics/kirchhoffCoulombNewtonSolver.js",
+      "c39eccbbb6a488733fc78d0b34e1c55a55a31166e71d15675f486f532fe497e4"
+    ],
+    [
+      "src/physics/kirchhoffCoupledFrictionSolver.js",
+      "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54"
+    ],
+    [
+      "tests/helpers/coupledRuntimeFixture.js",
+      "c1ee3c90dd41cdd13637d42ae40e1a91c0cc03fbecfc11f9f7e318ccaad766dd"
+    ]
+  ],
+  "notes": [
+    "Same commanded distances, speeds and held times, with exact fractional final feed commands.",
+    "Body linear/angular damping and component velocity damping are converted from per-120-Hz-step factors to preserve decay per second.",
+    "Projection-velocity retention remains part of the original numerical model; this comparison does not establish timestep-independent transient dynamics.",
+    "Preparation uses the existing independent guidewire path; its failures are recorded. A failed coupled step stops that frequency run."
+  ],
+  "runs": [
+    {
+      "hz": 120,
+      "dt": 0.008333333333333333,
+      "phases": [
+        {
+          "name": "wire-feed",
+          "plannedSteps": 2727,
+          "steps": 2727,
+          "unconverged": 740,
+          "maximumLengthError": 0.04490243710921291,
+          "maximumWallPenetration": 1.7580640302435382,
+          "maximumLinearResidual": 0,
+          "factorizationSum": 0,
+          "outerPassSum": 8389,
+          "physicsMs": {
+            "mean": 2.902282201686839,
+            "p95": 7.985458999999537
+          },
+          "fullMs": {
+            "mean": 2.9191878243491085,
+            "p95": 8.0024999999996
+          },
+          "simulatedSeconds": 22.725,
+          "meanFactors": 0,
+          "meanOuterPasses": 3.076274294096076,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 0,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 2727,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "7abb249b"
+              },
+              {
+                "id": "catheter",
+                "hash": "738976ea"
+              }
+            ],
+            "activeNodes": [
+              201,
+              16
+            ]
+          }
+        },
+        {
+          "name": "wire-settle",
+          "plannedSteps": 360,
+          "steps": 360,
+          "unconverged": 329,
+          "maximumLengthError": 0.03316230552637069,
+          "maximumWallPenetration": 1.5955022856161896,
+          "maximumLinearResidual": 0,
+          "factorizationSum": 0,
+          "outerPassSum": 5406,
+          "physicsMs": {
+            "mean": 7.749231227777737,
+            "p95": 9.655249999999796
+          },
+          "fullMs": {
+            "mean": 7.767306822222236,
+            "p95": 9.685457999999926
+          },
+          "simulatedSeconds": 3,
+          "meanFactors": 0,
+          "meanOuterPasses": 15.016666666666667,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 0,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 3087,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "68468944"
+              },
+              {
+                "id": "catheter",
+                "hash": "2a1a0f59"
+              }
+            ],
+            "activeNodes": [
+              201,
+              16
+            ]
+          }
+        },
+        {
+          "name": "wire-only",
+          "plannedSteps": 600,
+          "steps": 600,
+          "unconverged": 0,
+          "maximumLengthError": 0.0019970707710582404,
+          "maximumWallPenetration": 0.09404505887478048,
+          "maximumLinearResidual": 0,
+          "factorizationSum": 0,
+          "outerPassSum": 677,
+          "physicsMs": {
+            "mean": 1.981032638333354,
+            "p95": 2.214625000000524
+          },
+          "fullMs": {
+            "mean": 1.9903753283332966,
+            "p95": 2.2247499999994034
+          },
+          "simulatedSeconds": 5,
+          "meanFactors": 0,
+          "meanOuterPasses": 1.1283333333333334,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 0,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 3687,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "0ed881ec"
+              },
+              {
+                "id": "catheter",
+                "hash": "8ce256b3"
+              }
+            ],
+            "activeNodes": [
+              201,
+              16
+            ]
+          }
+        },
+        {
+          "name": "catheter-feed-100mm",
+          "plannedSteps": 231,
+          "steps": 231,
+          "unconverged": 0,
+          "maximumLengthError": 0.001918288283306957,
+          "maximumWallPenetration": 0.015517012274988862,
+          "maximumLinearResidual": 0.0001978249068519955,
+          "factorizationSum": 13737,
+          "outerPassSum": 741,
+          "physicsMs": {
+            "mean": 37.993199532467614,
+            "p95": 72.12254200000098
+          },
+          "fullMs": {
+            "mean": 38.20923141558438,
+            "p95": 72.34425000000192
+          },
+          "simulatedSeconds": 1.925,
+          "meanFactors": 59.467532467532465,
+          "meanOuterPasses": 3.207792207792208,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 100.00000000000007,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 3918,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "32d9cbe8"
+              },
+              {
+                "id": "catheter",
+                "hash": "64daf2c2"
+              }
+            ],
+            "activeNodes": [
+              201,
+              41
+            ]
+          }
+        },
+        {
+          "name": "catheter-hold-100mm",
+          "plannedSteps": 600,
+          "steps": 600,
+          "unconverged": 0,
+          "maximumLengthError": 0.000023935628494021184,
+          "maximumWallPenetration": 0.0001948027137442243,
+          "maximumLinearResidual": 0.0001991433665774209,
+          "factorizationSum": 81674,
+          "outerPassSum": 2401,
+          "physicsMs": {
+            "mean": 78.82114006999991,
+            "p95": 87.22341700000106
+          },
+          "fullMs": {
+            "mean": 78.9293089600001,
+            "p95": 87.31166599999415
+          },
+          "simulatedSeconds": 5,
+          "meanFactors": 136.12333333333333,
+          "meanOuterPasses": 4.001666666666667,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 100.00000000000007,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 4518,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "10e93874"
+              },
+              {
+                "id": "catheter",
+                "hash": "d36872be"
+              }
+            ],
+            "activeNodes": [
+              201,
+              41
+            ]
+          }
+        },
+        {
+          "name": "catheter-feed-200mm",
+          "plannedSteps": 231,
+          "steps": 69,
+          "unconverged": 1,
+          "maximumLengthError": 0.00006462789907369261,
+          "maximumWallPenetration": 0.0005369307961717862,
+          "maximumLinearResidual": 0.0001752550723054802,
+          "factorizationSum": 22248,
+          "outerPassSum": 321,
+          "physicsMs": {
+            "mean": 148.49329411594215,
+            "p95": 313.76437499999884
+          },
+          "fullMs": {
+            "mean": 148.78969508695582,
+            "p95": 314.0601250000036
+          },
+          "simulatedSeconds": 0.575,
+          "meanFactors": 322.4347826086956,
+          "meanOuterPasses": 4.6521739130434785,
+          "end": {
+            "wireMm": 999.9000000000169,
+            "catheterMm": 129.90000000000032,
+            "wireRotation": 0,
+            "catheterRotation": 0,
+            "executedSteps": 4587,
+            "fingerprints": [
+              {
+                "id": "guidewire",
+                "hash": "151ddcba"
+              },
+              {
+                "id": "catheter",
+                "hash": "9557f72b"
+              }
+            ],
+            "activeNodes": [
+              201,
+              50
+            ]
+          }
+        }
+      ],
+      "complete": false,
+      "failure": {
+        "phase": "catheter-feed-200mm",
+        "step": 68,
+        "state": {
+          "wireMm": 999.9000000000169,
+          "catheterMm": 129.90000000000032,
+          "wireRotation": 0,
+          "catheterRotation": 0,
+          "executedSteps": 4587,
+          "fingerprints": [
+            {
+              "id": "guidewire",
+              "hash": "151ddcba"
+            },
+            {
+              "id": "catheter",
+              "hash": "9557f72b"
+            }
+          ],
+          "activeNodes": [
+            201,
+            50
+          ]
+        },
+        "linear": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 6,
+          "factorizations": 86,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "maximumResidual": 0.0001244770674440316,
+          "frictionResidual": 0.000001560371213391032,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 99,
+          "band": 99,
+          "groupCount": 21,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "seedFactorizations": 84,
+          "originalCount": 2125,
+          "equalityCount": 1492,
+          "equalityBand": 21,
+          "retainedCount": 99,
+          "responseColumns": 99,
+          "expansions": 1,
+          "reconstructionResidual": 0.0001244770674440316,
+          "basis": "common-relative",
+          "individualBand": 154,
+          "pairedNodes": 26,
+          "bundleEntries": 17435,
+          "materialResidual": 0.000004198482680184412,
+          "contactResidual": 0.0001244770674440316,
+          "activeContacts": 19,
+          "dofCount": 1500
+        },
+        "trial": {
+          "previousMerit": 9.03433898036167,
+          "rejectedMerit": 1236.55148385588,
+          "trials": 8
+        },
+        "trace": [
+          {
+            "pass": 1,
+            "settled": false,
+            "merit": 36.314570959785435,
+            "trials": 1,
+            "scale": 1,
+            "coneRepair": {
+              "contacts": 5,
+              "positionMm": 5.359885785005381e-7,
+              "angleRad": 3.0692513183816195e-7,
+              "multiplier": 6.898280029924569e-7
+            },
+            "solver": "joint",
+            "contactPasses": 1,
+            "contactMotion": 0.05907737423186705,
+            "solverResidual": 0.036314570959785436,
+            "boundaryResidual": 0.007945733626749885,
+            "containmentViolation": 0.036314570959785436,
+            "materialResidual": {
+              "adaptationMm": 0.0008079034436449317,
+              "bendTwistRad": 0.00006136382924480053,
+              "worstAdaptationSegment": 43,
+              "worstAdaptationSide": 1
+            },
+            "foldResidual": {
+              "rowCount": 205,
+              "maximumResidual": 0,
+              "maximumViolation": 0,
+              "maximumAngle": 0.3980920919508246,
+              "maximumPositionalViolation": 0,
+              "maximumDirectorTangentMismatch": 0.00004466355577531242,
+              "maximumPositionalViolationBound": 0,
+              "parallelPairs": 0,
+              "antiparallelPairs": 0,
+              "degeneratePositionPairs": 0,
+              "unavailablePositionPairs": 0,
+              "fractionalHardRows": 0
+            },
+            "orientationResidual": {
+              "rowCount": 0,
+              "controlCount": 0,
+              "maximumStrainRad": 0,
+              "maximumResidualRad": 0,
+              "worstSegment": -1,
+              "worstSide": -1,
+              "residualUnits": "radians"
+            },
+            "frictionResidual": 0.000025156971211423995,
+            "frictionDisplacementResidualMm": 0.01882895781110408,
+            "frictionFeasibilityResidual": 7.196452507109245e-14,
+            "frictionConeViolation": 1.1690648449302898e-11,
+            "externalFrictionDisplacementResidualMm": 0,
+            "externalFrictionConeViolation": 0,
+            "linear": {
+              "status": "converged",
+              "converged": true,
+              "iterations": 12,
+              "factorizations": 13,
+              "backtracks": 4,
+              "gradientFallbacks": 0,
+              "maximumResidual": 0.00009589224433908752,
+              "frictionResidual": 0.000001583208449695295,
+              "coneViolation": 0,
+              "rowCount": 217,
+              "band": 217,
+              "groupCount": 58,
+              "normalLoadIterations": 1,
+              "method": "simultaneous-coulomb-newton",
+              "normalMap": "projection",
+              "seedFactorizations": 9,
+              "originalCount": 2128,
+              "equalityCount": 1492,
+              "equalityBand": 21,
+              "retainedCount": 217,
+              "responseColumns": 217,
+              "expansions": 1,
+              "reconstructionResidual": 0.00009589224433908752,
+              "basis": "common-relative",
+              "individualBand": 154,
+              "pairedNodes": 26,
+              "bundleEntries": 17438,
+              "materialResidual": 0.000004198482680184412,
+              "contactResidual": 0.00009589224433908752,
+              "activeContacts": 19,
+              "dofCount": 1500
+            }
+          },
+          {
+            "pass": 2,
+            "settled": false,
+            "merit": 18.511065214643725,
+            "trials": 2,
+            "scale": 0.5,
+            "coneRepair": {
+              "contacts": 1,
+              "positionMm": 1.1644461522314691e-7,
+              "angleRad": 9.174703495061577e-8,
+              "multiplier": 2.0937490705823583e-7
+            },
+            "solver": "joint",
+            "contactPasses": 2,
+            "contactMotion": 0.01734723757635038,
+            "solverResidual": 0.018511065214643727,
+            "boundaryResidual": 0.003958013027670404,
+            "containmentViolation": 0.018511065214643727,
+            "materialResidual": {
+              "adaptationMm": 0.0004254963944292289,
+              "bendTwistRad": 0.00003168498322434275,
+              "worstAdaptationSegment": 43,
+              "worstAdaptationSide": 1
+            },
+            "foldResidual": {
+              "rowCount": 205,
+              "maximumResidual": 0,
+              "maximumViolation": 0,
+              "maximumAngle": 0.3980913245457947,
+              "maximumPositionalViolation": 0,
+              "maximumDirectorTangentMismatch": 0.00002482306211294155,
+              "maximumPositionalViolationBound": 0,
+              "parallelPairs": 0,
+              "antiparallelPairs": 0,
+              "degeneratePositionPairs": 0,
+              "unavailablePositionPairs": 0,
+              "fractionalHardRows": 0
+            },
+            "orientationResidual": {
+              "rowCount": 0,
+              "controlCount": 0,
+              "maximumStrainRad": 0,
+              "maximumResidualRad": 0,
+              "worstSegment": -1,
+              "worstSide": -1,
+              "residualUnits": "radians"
+            },
+            "frictionResidual": 0.00001101802707285436,
+            "frictionDisplacementResidualMm": 0.01640293259857601,
+            "frictionFeasibilityResidual": 0,
+            "frictionConeViolation": 0,
+            "externalFrictionDisplacementResidualMm": 0,
+            "externalFrictionConeViolation": 0,
+            "linear": {
+              "status": "converged",
+              "converged": true,
+              "iterations": 6,
+              "factorizations": 102,
+              "backtracks": 0,
+              "gradientFallbacks": 0,
+              "maximumResidual": 0.00012663532529383684,
+              "frictionResidual": 0.00001428967688319599,
+              "coneViolation": 2.220446049250313e-16,
+              "rowCount": 114,
+              "band": 114,
+              "groupCount": 26,
+              "normalLoadIterations": 1,
+              "method": "simultaneous-coulomb-newton",
+              "normalMap": "projection",
+              "seedFactorizations": 100,
+              "originalCount": 2125,
+              "equalityCount": 1492,
+              "equalityBand": 21,
+              "retainedCount": 114,
+              "responseColumns": 114,
+              "expansions": 1,
+              "reconstructionResidual": 0.0001266353252938359,
+              "basis": "common-relative",
+              "individualBand": 154,
+              "pairedNodes": 26,
+              "bundleEntries": 17435,
+              "materialResidual": 0.000004198482680184412,
+              "contactResidual": 0.0001266353252938359,
+              "activeContacts": 19,
+              "dofCount": 1500
+            }
+          },
+          {
+            "pass": 3,
+            "settled": false,
+            "merit": 9.318445009450462,
+            "trials": 2,
+            "scale": 0.5,
+            "coneRepair": {
+              "contacts": 1,
+              "positionMm": 6.262550885518598e-8,
+              "angleRad": 4.986388660019077e-8,
+              "multiplier": 1.1273034215613861e-7
+            },
+            "solver": "joint",
+            "contactPasses": 3,
+            "contactMotion": 0.009119642154082943,
+            "solverResidual": 0.009318445009450463,
+            "boundaryResidual": 0.001988527284812136,
+            "containmentViolation": 0.009318445009450463,
+            "materialResidual": {
+              "adaptationMm": 0.00020965724410739755,
+              "bendTwistRad": 0.00001600985371030876,
+              "worstAdaptationSegment": 43,
+              "worstAdaptationSide": 1
+            },
+            "foldResidual": {
+              "rowCount": 205,
+              "maximumResidual": 0,
+              "maximumViolation": 0,
+              "maximumAngle": 0.3980908905950933,
+              "maximumPositionalViolation": 0,
+              "maximumDirectorTangentMismatch": 0.00001144332889816004,
+              "maximumPositionalViolationBound": 0,
+              "parallelPairs": 0,
+              "antiparallelPairs": 0,
+              "degeneratePositionPairs": 0,
+              "unavailablePositionPairs": 0,
+              "fractionalHardRows": 0
+            },
+            "orientationResidual": {
+              "rowCount": 0,
+              "controlCount": 0,
+              "maximumStrainRad": 0,
+              "maximumResidualRad": 0,
+              "worstSegment": -1,
+              "worstSide": -1,
+              "residualUnits": "radians"
+            },
+            "frictionResidual": 0.000010392974392542822,
+            "frictionDisplacementResidualMm": 0.01754555194336872,
+            "frictionFeasibilityResidual": 1.740009378519741e-18,
+            "frictionConeViolation": 4.440892098500626e-16,
+            "externalFrictionDisplacementResidualMm": 0,
+            "externalFrictionConeViolation": 0,
+            "linear": {
+              "status": "converged",
+              "converged": true,
+              "iterations": 6,
+              "factorizations": 81,
+              "backtracks": 0,
+              "gradientFallbacks": 0,
+              "maximumResidual": 0.0001249857163735095,
+              "frictionResidual": 0.000005906683314328698,
+              "coneViolation": 0,
+              "rowCount": 105,
+              "band": 105,
+              "groupCount": 23,
+              "normalLoadIterations": 1,
+              "method": "simultaneous-coulomb-newton",
+              "normalMap": "projection",
+              "seedFactorizations": 79,
+              "originalCount": 2125,
+              "equalityCount": 1492,
+              "equalityBand": 21,
+              "retainedCount": 105,
+              "responseColumns": 105,
+              "expansions": 1,
+              "reconstructionResidual": 0.00012498571637350838,
+              "basis": "common-relative",
+              "individualBand": 154,
+              "pairedNodes": 26,
+              "bundleEntries": 17435,
+              "materialResidual": 0.000004198482680184412,
+              "contactResidual": 0.00012498571637350838,
+              "activeContacts": 19,
+              "dofCount": 1500
+            }
+          },
+          {
+            "pass": 4,
+            "settled": false,
+            "merit": 9.03433898036167,
+            "trials": 6,
+            "scale": 0.03125,
+            "coneRepair": {
+              "contacts": 1,
+              "positionMm": 9.736992734919892e-10,
+              "angleRad": 7.75532395052252e-10,
+              "multiplier": 1.7528153125993817e-9
+            },
+            "solver": "joint",
+            "contactPasses": 4,
+            "contactMotion": 0.000284058226820793,
+            "solverResidual": 0.00903433898036167,
+            "boundaryResidual": 0.0019007240306336826,
+            "containmentViolation": 0.00903433898036167,
+            "materialResidual": {
+              "adaptationMm": 0.00021112036799795093,
+              "bendTwistRad": 0.000015509832401345707,
+              "worstAdaptationSegment": 43,
+              "worstAdaptationSide": 1
+            },
+            "foldResidual": {
+              "rowCount": 205,
+              "maximumResidual": 0,
+              "maximumViolation": 0,
+              "maximumAngle": 0.39809087727980774,
+              "maximumPositionalViolation": 0,
+              "maximumDirectorTangentMismatch": 0.000013264198439621432,
+              "maximumPositionalViolationBound": 0,
+              "parallelPairs": 0,
+              "antiparallelPairs": 0,
+              "degeneratePositionPairs": 0,
+              "unavailablePositionPairs": 0,
+              "fractionalHardRows": 0
+            },
+            "orientationResidual": {
+              "rowCount": 0,
+              "controlCount": 0,
+              "maximumStrainRad": 0,
+              "maximumResidualRad": 0,
+              "worstSegment": -1,
+              "worstSide": -1,
+              "residualUnits": "radians"
+            },
+            "frictionResidual": 0.000010197849944998354,
+            "frictionDisplacementResidualMm": 0.017570343412637815,
+            "frictionFeasibilityResidual": 8.711650476514994e-19,
+            "frictionConeViolation": 4.440892098500626e-16,
+            "externalFrictionDisplacementResidualMm": 0,
+            "externalFrictionConeViolation": 0,
+            "linear": {
+              "status": "converged",
+              "converged": true,
+              "iterations": 6,
+              "factorizations": 86,
+              "backtracks": 0,
+              "gradientFallbacks": 0,
+              "maximumResidual": 0.00012446940412943593,
+              "frictionResidual": 0.0000016649447875105583,
+              "coneViolation": 0,
+              "rowCount": 99,
+              "band": 99,
+              "groupCount": 21,
+              "normalLoadIterations": 1,
+              "method": "simultaneous-coulomb-newton",
+              "normalMap": "projection",
+              "seedFactorizations": 84,
+              "originalCount": 2125,
+              "equalityCount": 1492,
+              "equalityBand": 21,
+              "retainedCount": 99,
+              "responseColumns": 99,
+              "expansions": 1,
+              "reconstructionResidual": 0.00012446940412943593,
+              "basis": "common-relative",
+              "individualBand": 154,
+              "pairedNodes": 26,
+              "bundleEntries": 17435,
+              "materialResidual": 0.000004198482680184412,
+              "contactResidual": 0.00012446940412943593,
+              "activeContacts": 19,
+              "dofCount": 1500
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceAfter": [
+    [
+      "src/physics/endovascularPhysicsWorld.js",
+      "ea0e64c42ef9e779e7595064366ad3e1bd31d69023aa29fe00785a451b84fee9"
+    ],
+    [
+      "src/physics/kirchhoffCoupledSystem.js",
+      "fd164a7151b1a0dfc1d45f53e5cedb3ffb19a3ef27cc423bc80ea501cf758f5f"
+    ],
+    [
+      "src/physics/kirchhoffActiveCondensedSolver.js",
+      "bf30a36132204fe4be14ce3a43db3ae4b905367be6cbff9876339fd896a6fb82"
+    ],
+    [
+      "src/physics/kirchhoffCoulombNewtonSolver.js",
+      "c39eccbbb6a488733fc78d0b34e1c55a55a31166e71d15675f486f532fe497e4"
+    ],
+    [
+      "src/physics/kirchhoffCoupledFrictionSolver.js",
+      "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54"
+    ],
+    [
+      "tests/helpers/coupledRuntimeFixture.js",
+      "c1ee3c90dd41cdd13637d42ae40e1a91c0cc03fbecfc11f9f7e318ccaad766dd"
+    ]
+  ],
+  "sourceStable": true
+}

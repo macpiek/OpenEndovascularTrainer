@@ -1,0 +1,146 @@
+{
+  "status": "frozen",
+  "scope": "Same-time fixed-material-map refinement, retaining every old node and exact boundary",
+  "patch": "/tmp/oet-composite-state-transfer-final-8996/composite-state-transfer.patch",
+  "patchSha256": "97a33ba1dd5712139528ccffb5be81fc7edc914f3dae463345132d17a03efd2b",
+  "files": {
+    "src/physics/kirchhoffCompositeStateTransfer.js": "80a4573d1a1ef0b544733c206bc125cb82343e3bdd5c29b8530521fa7e9c0dda",
+    "tests/kirchhoffCompositeStateTransfer.test.js": "6f97fde200ee4d84d9002059cf84d20d57a9f3dcb051cc14a426b6969b8cdd27",
+    "reports/composite-state-transfer.md": "bac1c31849f7a881aeb8a67904719c94a98ec0da90225c28dedb5b06cfdf0592"
+  },
+  "tests": {
+    "passed": 62,
+    "failed": 0,
+    "newStateTransferTests": 14,
+    "snapshot": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-composite-transfer-test-31oigif8",
+    "command": "node --test --test-concurrency=1 tests/kirchhoffCompositeStateTransfer.test.js tests/kirchhoffCompositeChain.test.js tests/kirchhoffCompositeKinematics.test.js tests/kirchhoffCompositeLengthConstraints.test.js tests/kirchhoffCompositeMesh.test.js"
+  },
+  "ownedSourcesMatchTestedSnapshot": true,
+  "dependenciesMatchCurrentSources": true,
+  "gitApplyCheck": {
+    "target": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+    "passed": true
+  },
+  "dependencies": {
+    "src/physics/kirchhoffCompositeChain.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeChain.js",
+      "sha256": "949097e7942b2646ba1ed17c3782eb37a959fe78de17d855b4d2aea8dc8780c9",
+      "currentSha256": "949097e7942b2646ba1ed17c3782eb37a959fe78de17d855b4d2aea8dc8780c9",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElement.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "currentSha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementFast.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+      "currentSha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+      "currentSha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffLinearKernel.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+      "currentSha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffLinearKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+      "currentSha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeKinematics.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeKinematics.js",
+      "sha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+      "currentSha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeLengthConstraints.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeLengthConstraints.js",
+      "sha256": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+      "currentSha256": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+      "matchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeChain.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeChain.test.js",
+      "sha256": "4fc40b9737aa3060cc2190d2a1358a532eef227eead525103ef58f9224ca3890",
+      "currentSha256": "4fc40b9737aa3060cc2190d2a1358a532eef227eead525103ef58f9224ca3890",
+      "matchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeKinematics.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeKinematics.test.js",
+      "sha256": "2e6ea80284e0faf1be2439ffd9b8f26f2ee19eea3210e9bf4cc34be67eba42f9",
+      "currentSha256": "2e6ea80284e0faf1be2439ffd9b8f26f2ee19eea3210e9bf4cc34be67eba42f9",
+      "matchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeLengthConstraints.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeLengthConstraints.test.js",
+      "sha256": "196edeb1f2b6b88cad3f9b638be2a73c9d0f8679e63577a586509020e328388f",
+      "currentSha256": "196edeb1f2b6b88cad3f9b638be2a73c9d0f8679e63577a586509020e328388f",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeMesh.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeMesh.js",
+      "sha256": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+      "currentSha256": "53b2c57f8e543a3710c4d45390586c57eb8dfd9301e0c82a819d9ab2d257731e",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeTopology.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeTopology.js",
+      "sha256": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+      "currentSha256": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffBundleModel.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffBundleModel.js",
+      "sha256": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+      "currentSha256": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffMaterialProfile.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffMaterialProfile.js",
+      "sha256": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+      "currentSha256": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/guidewireMaterialProfile.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/guidewireMaterialProfile.js",
+      "sha256": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+      "currentSha256": "23fa6b12dfc28a90b0e602bc024f7d99716d959444fa8b11aa86009ff4c38419",
+      "matchesTestedSnapshot": true
+    },
+    "src/physics/catheterMaterialProfile.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/catheterMaterialProfile.js",
+      "sha256": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+      "currentSha256": "85a79a3688cbea95586a62d97ec6c0ddd24f7c8126b9691919c16372f1176ef2",
+      "matchesTestedSnapshot": true
+    },
+    "src/toolDimensions.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/toolDimensions.js",
+      "sha256": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+      "currentSha256": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+      "matchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeMesh.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeMesh.test.js",
+      "sha256": "41b9de0716e341bb6ed2de9046410d6bbe14f7fa08f7c7cdc78932ac3fecb00b",
+      "currentSha256": "41b9de0716e341bb6ed2de9046410d6bbe14f7fa08f7c7cdc78932ac3fecb00b",
+      "matchesTestedSnapshot": true
+    }
+  },
+  "limitations": [
+    "Explicitly measured DER change; no exact elastic-energy or smooth-curve error-bound claim.",
+    "No dt/feed, coarsening, moving boundaries, angular inertia, wall-slot adapter, contact recertification, app integration or FPS work.",
+    "Prolongation is for state/virtual-work comparison. Caller chooses physical handle BC via explicit proximal/distal/child spin DOFs.",
+    "Known angular derivative and old full angular-velocity fields are preserved as declared independent inputs; unknown values remain null."
+  ]
+}

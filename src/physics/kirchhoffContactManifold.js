@@ -199,13 +199,22 @@ export function materialSegmentContactId(
     ].join('|');
 }
 
+function writeNormal(source, out) {
+    const x = vectorComponent(source, 0, 'x'), y = vectorComponent(source, 1, 'y'), z = vectorComponent(source, 2, 'z');
+    const length = Math.sqrt(x * x + y * y + z * z);
+    if (length <= EPSILON) throw new RangeError('normal must have positive length');
+    out[0] = x / length; out[1] = y / length; out[2] = z / length;
+    return out;
+}
+
 /**
  * Persistent contact state shared by future guidewire/catheter Kirchhoff rod
  * solvers. It owns warm-start multipliers and transient material-to-array
  * mappings, but it does not know about a particular world or integrator.
  */
 export class KirchhoffContactManifold {
-    constructor({ frictionCoefficient = 0, retentionSteps = 1 } = {}) {
+    constructor({ frictionCoefficient = 0, retentionSteps = 1, normalOnly = false } = {}) {
+        this.normalOnly = normalOnly;
         this.frictionCoefficient = nonNegative(
             frictionCoefficient,
             'frictionCoefficient'
@@ -296,7 +305,9 @@ export class KirchhoffContactManifold {
             });
         }
 
-        const basis = contactBasis(normal, tangentU);
+        const basis = this.normalOnly
+            ? { normal: writeNormal(normal, new Float64Array(3)), tangentU: new Float64Array(3), tangentV: new Float64Array(3) }
+            : contactBasis(normal, tangentU);
         const contactFriction = nonNegative(
             frictionCoefficient ?? this.frictionCoefficient,
             'frictionCoefficient'
@@ -320,8 +331,8 @@ export class KirchhoffContactManifold {
             normal: basis.normal,
             tangentU: basis.tangentU,
             tangentV: basis.tangentV,
-            frictionCoefficient: contactFriction,
-            twistFrictionCoefficient: twistFriction,
+            frictionCoefficient: this.normalOnly ? 0 : contactFriction,
+            twistFrictionCoefficient: this.normalOnly ? 0 : twistFriction,
             effectiveTwistRadius: twistRadius,
             normalLambda: 0,
             tangentLambda: new Float64Array(2),
@@ -381,6 +392,7 @@ export class KirchhoffContactManifold {
         outerMaterialSegmentId,
         feature = contact?.feature ?? 'lumen',
         id: suppliedId = null,
+        preserveLambdas = false,
         ...values
     } = {}) {
         if (contact?._manifold !== this) {
@@ -395,6 +407,14 @@ export class KirchhoffContactManifold {
             innerMaterialSegmentId !== contact.innerMaterialSegmentId ||
             outerMaterialSegmentId !== contact.outerMaterialSegmentId ||
             feature !== contact.feature;
+        // A moving closest point may cross an outer mesh cell inside the
+        // SAME material quadrature constraint. Its reaction remains owned by
+        // that constraint until the joint solve unloads it. This exception
+        // cannot be used to transfer force to a different inner material/feature.
+        if (preserveLambdas && (id !== contact.id ||
+            innerMaterialSegmentId !== contact.innerMaterialSegmentId || feature !== contact.feature)) {
+            throw new RangeError('Only a stable material contact may preserve its outer-slide reaction');
+        }
         if (id !== contact.id) {
             const existing = this._contacts.get(id);
             if (existing && existing !== contact) {
@@ -421,12 +441,14 @@ export class KirchhoffContactManifold {
             contact.feature = feature;
             contact.innerMaterialSegmentId = innerMaterialSegmentId;
             contact.outerMaterialSegmentId = outerMaterialSegmentId;
-            contact.normalLambda = 0;
-            contact.tangentLambda[0] = 0;
-            contact.tangentLambda[1] = 0;
-            contact.twistLambda = 0;
-            contact.innerTwistImpulse = 0;
-            contact.outerTwistImpulse = 0;
+            if (!preserveLambdas) {
+                contact.normalLambda = 0;
+                contact.tangentLambda[0] = 0;
+                contact.tangentLambda[1] = 0;
+                contact.twistLambda = 0;
+                contact.innerTwistImpulse = 0;
+                contact.outerTwistImpulse = 0;
+            }
         }
         return this.#remapContactValues(contact, values);
     }
@@ -459,8 +481,16 @@ export class KirchhoffContactManifold {
         tangentU,
         frictionCoefficient,
         twistFrictionCoefficient,
-        effectiveTwistRadius
+        effectiveTwistRadius,
+        projectFriction = true
     }) {
+        if (this.normalOnly) {
+            if (normal != null) writeNormal(normal, contact.normal);
+            if (innerSegmentIndex !== undefined) contact.innerSegmentIndex = innerSegmentIndex;
+            if (outerSegmentIndex !== undefined) contact.outerSegmentIndex = outerSegmentIndex;
+            contact.lastSeenStep = this._step;
+            return contact;
+        }
         const sameNormal = normal == null || (
             vectorComponent(normal, 0, 'x') === contact.normal[0] &&
             vectorComponent(normal, 1, 'y') === contact.normal[1] &&
@@ -544,8 +574,13 @@ export class KirchhoffContactManifold {
             );
         }
         contact.lastSeenStep = this._step;
-        this.#projectTangentialLambda(contact, contact.frictionCoefficient);
-        this.#projectTwistLambda(contact);
+        // The simultaneous surface solver owns the complete Coulomb group.
+        // Rebuilding geometry must not silently change its multipliers without
+        // applying their matching material/position direction.
+        if (projectFriction) {
+            this.#projectTangentialLambda(contact, contact.frictionCoefficient);
+            this.#projectTwistLambda(contact);
+        }
         return contact;
     }
 
@@ -553,8 +588,10 @@ export class KirchhoffContactManifold {
         const contact = resolveContact(this._contacts, contactOrId);
         const previous = contact.normalLambda;
         contact.normalLambda = nonNegative(value, 'normalLambda');
-        this.#projectTangentialLambda(contact, contact.frictionCoefficient);
-        this.#projectTwistLambda(contact);
+        if (!this.normalOnly) {
+            this.#projectTangentialLambda(contact, contact.frictionCoefficient);
+            this.#projectTwistLambda(contact);
+        }
         return contact.normalLambda - previous;
     }
 
@@ -573,8 +610,10 @@ export class KirchhoffContactManifold {
         }
         const previous = contact.normalLambda;
         contact.normalLambda = Math.max(0, previous + delta);
-        this.#projectTangentialLambda(contact, contact.frictionCoefficient);
-        this.#projectTwistLambda(contact);
+        if (!this.normalOnly) {
+            this.#projectTangentialLambda(contact, contact.frictionCoefficient);
+            this.#projectTwistLambda(contact);
+        }
         return contact.normalLambda - previous;
     }
 

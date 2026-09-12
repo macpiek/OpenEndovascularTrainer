@@ -1,0 +1,6 @@
+{
+  "status": "target-hold-prepared-and-reference-accepted",
+  "certifiedExecutedSteps": 890,
+  "failure": null,
+  "output": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer/reports/composite-world-replay"
+}

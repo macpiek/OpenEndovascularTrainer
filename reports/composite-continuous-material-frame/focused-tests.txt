@@ -1,0 +1,19 @@
+✔ continuous physical directors and material surface rates match across artificial geometry and angle-support boundaries (32.559542ms)
+✔ all frame and angular-rate-map columns, including physical coordinate derivatives, match independent finite differences (10.705208ms)
+ℹ {"configurationDofs":19,"maxAngularDerivativeError":5.687232906836925e-10,"operations":853,"arenaBytes":6897664}
+✔ surface B and its complete configuration/foot/point derivatives match rate variations and finite differences (19.182708ms)
+✔ opposite tools retain different levers, feeds and spins and give conjugate equal/opposite contact work (6.393458ms)
+✔ common instantaneous rigid motion yields the same physical velocity at the world witness for two curved tools (4.311208ms)
+✔ independent native frame gauges and large common unwrapped angle lifts leave physical fields and force maps unchanged (6.313333ms)
+✔ resolved spatial winding exceeds a full revolution without being replaced by modulo angles; unresolved intervals request refinement (35.820375ms)
+✔ observer rotation and finite common body rotation preserve the physical material frame reconstruction (6.778208ms)
+✔ backward Euler rate derivatives include the physical B/dt term and value mode keeps exact B without second derivatives (9.479708ms)
+✔ prepared sources and returned derivatives are owned; failures do not poison later frame evaluations (9.457541ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.247833

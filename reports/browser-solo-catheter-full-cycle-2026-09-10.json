@@ -1,0 +1,16 @@
+{
+  "scenario": "catheter-only complete 28 simulated seconds",
+  "durationMs": 67510.20000004768,
+  "simulationElapsedMs": 27999.99999999879,
+  "steps": 3360,
+  "averageFps": 31.800481969111914,
+  "solveCalls": 13574,
+  "linearNonconvergedResults": 0,
+  "backlogSeconds": 39.51470000000182,
+  "maxSegmentErrorPercent": 2.1896829789200103,
+  "lengthPeakStep": 1050,
+  "lengthPeakNode": 145,
+  "maxPostStepPenetrationMm": 0.1160307668949343,
+  "lengthPass": false,
+  "performanceGatePassed": false
+}

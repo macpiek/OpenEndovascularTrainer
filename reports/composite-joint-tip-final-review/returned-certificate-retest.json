@@ -1,0 +1,20 @@
+{
+  "measured": {
+    "converged": false,
+    "minGap": -0.010000000000000009,
+    "Fn": 1,
+    "ncp": 0.010000000000000009,
+    "work": 0.010000000000000009
+  },
+  "mutation": "returnedCertificate.converged=true",
+  "rejected": true,
+  "rejection": "Cannot commit an uncertified original lumen state",
+  "currentOriginalGap": -0.010000000000000009,
+  "queriesAtRejectedCommit": 2,
+  "originalHistoryUntouched": true,
+  "publicFalseCannotRevokeActualPrivateProof": true,
+  "failedRefreshRevokesPrivateProof": true,
+  "freshRetryRestoresHistory": true,
+  "resolution": "Private commitReady authority prevents diagnostic-field changes from manufacturing an accepted history.",
+  "scope": "Exactly frozen baseline plus final two-file fix; no source edits, live solver imports or World claim."
+}

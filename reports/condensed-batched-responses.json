@@ -1,0 +1,1718 @@
+[
+  {
+    "name": "friction-boundary-cycle",
+    "count": 2002,
+    "band": 151,
+    "variants": [
+      {
+        "name": "scalar",
+        "means": {
+          "totalMs": 5.180831200000003,
+          "setupMs": 1.7064979499999964,
+          "schurMs": 1.8723814000000005,
+          "contactSolveMs": 1.3252646000000055,
+          "reconstructionMs": 0.24567904999999826,
+          "seedMs": 0.9261228500000016
+        },
+        "samples": [
+          {
+            "totalMs": 5.2511670000000095,
+            "setupMs": 2.0625420000000076,
+            "schurMs": 1.79037500000004,
+            "contactSolveMs": 1.1302499999999895,
+            "reconstructionMs": 0.24637500000000045,
+            "seedMs": 0.8225829999999519
+          },
+          {
+            "totalMs": 4.885749999999973,
+            "setupMs": 2.025374999999997,
+            "schurMs": 1.693584000000044,
+            "contactSolveMs": 0.9812080000000378,
+            "reconstructionMs": 0.16620799999998326,
+            "seedMs": 0.7951669999999922
+          },
+          {
+            "totalMs": 4.6806250000000205,
+            "setupMs": 1.999416999999994,
+            "schurMs": 1.5679169999999658,
+            "contactSolveMs": 0.9464169999999967,
+            "reconstructionMs": 0.1516250000000241,
+            "seedMs": 0.7736670000000458
+          },
+          {
+            "totalMs": 4.587916000000007,
+            "setupMs": 1.9078329999999823,
+            "schurMs": 1.560541999999998,
+            "contactSolveMs": 0.9283330000000092,
+            "reconstructionMs": 0.17695800000001327,
+            "seedMs": 0.7584170000000086
+          },
+          {
+            "totalMs": 4.591957999999977,
+            "setupMs": 1.9381249999999568,
+            "schurMs": 1.509416999999985,
+            "contactSolveMs": 0.9322500000000105,
+            "reconstructionMs": 0.1949170000000322,
+            "seedMs": 0.7580420000000458
+          },
+          {
+            "totalMs": 4.689542000000017,
+            "setupMs": 2.0111249999999927,
+            "schurMs": 1.5127499999999827,
+            "contactSolveMs": 0.9657089999999471,
+            "reconstructionMs": 0.18637499999999818,
+            "seedMs": 0.787666999999999
+          },
+          {
+            "totalMs": 5.16375000000005,
+            "setupMs": 0.8929580000000215,
+            "schurMs": 1.5611659999999574,
+            "contactSolveMs": 2.2816250000000196,
+            "reconstructionMs": 0.3602910000000179,
+            "seedMs": 0.9634580000000028
+          },
+          {
+            "totalMs": 5.220416999999998,
+            "setupMs": 1.2489999999999668,
+            "schurMs": 2.226791999999989,
+            "contactSolveMs": 1.4359590000000253,
+            "reconstructionMs": 0.2913749999999595,
+            "seedMs": 0.6672090000000139
+          },
+          {
+            "totalMs": 5.048458000000039,
+            "setupMs": 1.2404999999999973,
+            "schurMs": 2.379542000000015,
+            "contactSolveMs": 1.2392500000000268,
+            "reconstructionMs": 0.1709170000000313,
+            "seedMs": 0.6895000000000095
+          },
+          {
+            "totalMs": 4.692416999999978,
+            "setupMs": 1.9902079999999955,
+            "schurMs": 1.5887909999999579,
+            "contactSolveMs": 0.9511669999999981,
+            "reconstructionMs": 0.14870799999999917,
+            "seedMs": 0.6729159999999865
+          },
+          {
+            "totalMs": 4.61587499999996,
+            "setupMs": 1.8696670000000495,
+            "schurMs": 1.6719590000000153,
+            "contactSolveMs": 0.8975419999999872,
+            "reconstructionMs": 0.15291600000000471,
+            "seedMs": 0.6535000000000082
+          },
+          {
+            "totalMs": 5.058457999999973,
+            "setupMs": 1.8547079999999596,
+            "schurMs": 2.1191670000000045,
+            "contactSolveMs": 0.8951660000000174,
+            "reconstructionMs": 0.17329100000000608,
+            "seedMs": 0.6402499999999804
+          },
+          {
+            "totalMs": 4.944583000000023,
+            "setupMs": 1.8725840000000176,
+            "schurMs": 1.752834000000007,
+            "contactSolveMs": 1.1020829999999933,
+            "reconstructionMs": 0.20383300000003146,
+            "seedMs": 0.8338330000000269
+          },
+          {
+            "totalMs": 4.921375000000012,
+            "setupMs": 1.9004579999999578,
+            "schurMs": 1.70474999999999,
+            "contactSolveMs": 1.129333000000031,
+            "reconstructionMs": 0.1728329999999687,
+            "seedMs": 0.9437500000000227
+          },
+          {
+            "totalMs": 5.870749999999987,
+            "setupMs": 1.2760840000000258,
+            "schurMs": 2.5322080000000255,
+            "contactSolveMs": 1.8754999999999882,
+            "reconstructionMs": 0.171291999999994,
+            "seedMs": 1.601541999999995
+          },
+          {
+            "totalMs": 4.554665999999997,
+            "setupMs": 0.8936249999999859,
+            "schurMs": 1.5068749999999795,
+            "contactSolveMs": 1.8657080000000406,
+            "reconstructionMs": 0.17708399999997937,
+            "seedMs": 1.5699159999999779
+          },
+          {
+            "totalMs": 8.076041999999973,
+            "setupMs": 1.378959000000009,
+            "schurMs": 3.3777500000000487,
+            "contactSolveMs": 2.4092919999999935,
+            "reconstructionMs": 0.830791999999974,
+            "seedMs": 1.7614580000000046
+          },
+          {
+            "totalMs": 6.760000000000048,
+            "setupMs": 1.7041250000000332,
+            "schurMs": 1.8511670000000322,
+            "contactSolveMs": 2.5717920000000163,
+            "reconstructionMs": 0.5325829999999883,
+            "seedMs": 1.4823749999999905
+          },
+          {
+            "totalMs": 5.011375000000044,
+            "setupMs": 2.0833749999999895,
+            "schurMs": 1.779875000000004,
+            "contactSolveMs": 0.9699580000000196,
+            "reconstructionMs": 0.16837499999996908,
+            "seedMs": 0.6502909999999815
+          },
+          {
+            "totalMs": 4.991499999999974,
+            "setupMs": 1.9792909999999893,
+            "schurMs": 1.7601669999999672,
+            "contactSolveMs": 0.9967499999999632,
+            "reconstructionMs": 0.23683299999999008,
+            "seedMs": 0.6969159999999874
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 6,
+          "factorizations": 45,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.000014489918106711658,
+          "frictionResidual": 0.000014489918106711658,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 59,
+          "band": 59,
+          "groupCount": 7,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.6969159999999874,
+          "seedFactorizations": 43,
+          "condensedCosts": {
+            "setupMs": 1.9792909999999893,
+            "schurMs": 1.7601669999999672,
+            "contactSolveMs": 0.9967499999999632,
+            "reconstructionMs": 0.23683299999999008,
+            "seedMs": 0.6969159999999874
+          },
+          "originalCount": 2002,
+          "equalityCount": 1438,
+          "equalityBand": 27,
+          "retainedCount": 59,
+          "responseColumns": 59,
+          "responseKernelCalls": 59,
+          "responseBatches": 0,
+          "schurEvaluations": 1770,
+          "schurReuses": 0,
+          "expansions": 1
+        }
+      },
+      {
+        "name": "batch4",
+        "means": {
+          "totalMs": 4.162020949999999,
+          "setupMs": 1.7833626500000008,
+          "schurMs": 0.9831060500000006,
+          "contactSolveMs": 1.1702123999999912,
+          "reconstructionMs": 0.20126669999999933,
+          "seedMs": 0.8486606499999994
+        },
+        "samples": [
+          {
+            "totalMs": 4.884208000000001,
+            "setupMs": 2.1949579999999855,
+            "schurMs": 1.139792,
+            "contactSolveMs": 1.2727499999999736,
+            "reconstructionMs": 0.24287499999996953,
+            "seedMs": 0.8378339999999866
+          },
+          {
+            "totalMs": 4.097417000000007,
+            "setupMs": 1.890375000000006,
+            "schurMs": 0.9929159999999797,
+            "contactSolveMs": 0.9982090000000312,
+            "reconstructionMs": 0.18633299999999053,
+            "seedMs": 0.8033340000000067
+          },
+          {
+            "totalMs": 3.8427920000000313,
+            "setupMs": 1.8375420000000418,
+            "schurMs": 0.8290000000000077,
+            "contactSolveMs": 0.9918329999999855,
+            "reconstructionMs": 0.1698329999999828,
+            "seedMs": 0.8152499999999918
+          },
+          {
+            "totalMs": 4.04891699999996,
+            "setupMs": 1.8708749999999554,
+            "schurMs": 0.9683330000000296,
+            "contactSolveMs": 0.9648750000000064,
+            "reconstructionMs": 0.17074999999999818,
+            "seedMs": 0.7632499999999709
+          },
+          {
+            "totalMs": 4.118792000000042,
+            "setupMs": 1.8646669999999972,
+            "schurMs": 1.0884169999999926,
+            "contactSolveMs": 0.9220829999999864,
+            "reconstructionMs": 0.21562499999998863,
+            "seedMs": 0.7418749999999932
+          },
+          {
+            "totalMs": 4.3023750000000405,
+            "setupMs": 1.9761250000000246,
+            "schurMs": 0.9865409999999883,
+            "contactSolveMs": 1.0572500000000105,
+            "reconstructionMs": 0.2667500000000018,
+            "seedMs": 0.8550420000000258
+          },
+          {
+            "totalMs": 4.113415999999972,
+            "setupMs": 2.1014999999999873,
+            "schurMs": 0.9246249999999918,
+            "contactSolveMs": 0.9114579999999819,
+            "reconstructionMs": 0.161625000000015,
+            "seedMs": 0.7341249999999491
+          },
+          {
+            "totalMs": 4.220792000000017,
+            "setupMs": 1.2349169999999958,
+            "schurMs": 1.3533750000000282,
+            "contactSolveMs": 1.439707999999996,
+            "reconstructionMs": 0.17804100000000744,
+            "seedMs": 0.6345420000000104
+          },
+          {
+            "totalMs": 3.8661669999999617,
+            "setupMs": 1.214084000000014,
+            "schurMs": 1.2822909999999865,
+            "contactSolveMs": 1.1955829999999992,
+            "reconstructionMs": 0.15879200000000537,
+            "seedMs": 0.6481670000000008
+          },
+          {
+            "totalMs": 3.623999999999967,
+            "setupMs": 1.8039590000000203,
+            "schurMs": 0.724708000000021,
+            "contactSolveMs": 0.9210830000000101,
+            "reconstructionMs": 0.16179199999999128,
+            "seedMs": 0.6448750000000132
+          },
+          {
+            "totalMs": 3.5607910000000516,
+            "setupMs": 1.8097080000000005,
+            "schurMs": 0.6836660000000165,
+            "contactSolveMs": 0.8835409999999797,
+            "reconstructionMs": 0.171291999999994,
+            "seedMs": 0.6301670000000286
+          },
+          {
+            "totalMs": 3.7681669999999485,
+            "setupMs": 1.9368749999999864,
+            "schurMs": 0.7340829999999983,
+            "contactSolveMs": 0.9174170000000004,
+            "reconstructionMs": 0.16512499999998909,
+            "seedMs": 0.6734169999999722
+          },
+          {
+            "totalMs": 3.6180420000000026,
+            "setupMs": 1.8501660000000015,
+            "schurMs": 0.7258749999999736,
+            "contactSolveMs": 0.8625829999999723,
+            "reconstructionMs": 0.15441700000002356,
+            "seedMs": 0.600750000000005
+          },
+          {
+            "totalMs": 5.447999999999979,
+            "setupMs": 1.8509170000000381,
+            "schurMs": 0.7382920000000013,
+            "contactSolveMs": 2.42266699999999,
+            "reconstructionMs": 0.3435410000000161,
+            "seedMs": 1.869041999999979
+          },
+          {
+            "totalMs": 5.010458999999969,
+            "setupMs": 1.2257089999999948,
+            "schurMs": 1.2811659999999847,
+            "contactSolveMs": 2.170082999999977,
+            "reconstructionMs": 0.3166659999999979,
+            "seedMs": 1.5879170000000045
+          },
+          {
+            "totalMs": 3.86845900000003,
+            "setupMs": 1.232416999999998,
+            "schurMs": 1.3213329999999814,
+            "contactSolveMs": 1.1474999999999795,
+            "reconstructionMs": 0.14920900000004167,
+            "seedMs": 0.8620420000000308
+          },
+          {
+            "totalMs": 4.582042000000001,
+            "setupMs": 1.8426670000000058,
+            "schurMs": 1.5230420000000322,
+            "contactSolveMs": 0.9992500000000177,
+            "reconstructionMs": 0.19879200000002584,
+            "seedMs": 0.7121670000000222
+          },
+          {
+            "totalMs": 4.083624999999984,
+            "setupMs": 1.9581249999999955,
+            "schurMs": 0.7822499999999764,
+            "contactSolveMs": 1.032624999999996,
+            "reconstructionMs": 0.29683399999998983,
+            "seedMs": 0.7298339999999826
+          },
+          {
+            "totalMs": 4.107708000000002,
+            "setupMs": 1.8137090000000171,
+            "schurMs": 0.7307079999999928,
+            "contactSolveMs": 1.417874999999981,
+            "reconstructionMs": 0.13787499999995134,
+            "seedMs": 1.1448750000000132
+          },
+          {
+            "totalMs": 4.074250000000006,
+            "setupMs": 2.157957999999951,
+            "schurMs": 0.8517080000000306,
+            "contactSolveMs": 0.8758749999999509,
+            "reconstructionMs": 0.17916700000000674,
+            "seedMs": 0.6847080000000005
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 6,
+          "factorizations": 45,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.000014489918106711658,
+          "frictionResidual": 0.000014489918106711658,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 59,
+          "band": 59,
+          "groupCount": 7,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.6847080000000005,
+          "seedFactorizations": 43,
+          "condensedCosts": {
+            "setupMs": 2.157957999999951,
+            "schurMs": 0.8517080000000306,
+            "contactSolveMs": 0.8758749999999509,
+            "reconstructionMs": 0.17916700000000674,
+            "seedMs": 0.6847080000000005
+          },
+          "originalCount": 2002,
+          "equalityCount": 1438,
+          "equalityBand": 27,
+          "retainedCount": 59,
+          "responseColumns": 59,
+          "responseKernelCalls": 17,
+          "responseBatches": 14,
+          "schurEvaluations": 1770,
+          "schurReuses": 0,
+          "expansions": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "normal-load-cycle",
+    "count": 2000,
+    "band": 151,
+    "variants": [
+      {
+        "name": "scalar",
+        "means": {
+          "totalMs": 5.442785449999997,
+          "setupMs": 1.5867936499999984,
+          "schurMs": 2.1458541000000024,
+          "contactSolveMs": 1.4068604500000048,
+          "reconstructionMs": 0.2836395499999753,
+          "seedMs": 1.0054000000000145
+        },
+        "samples": [
+          {
+            "totalMs": 6.979166999999961,
+            "setupMs": 2.399665999999911,
+            "schurMs": 2.4195420000000922,
+            "contactSolveMs": 1.640166000000022,
+            "reconstructionMs": 0.48587499999996453,
+            "seedMs": 1.1894580000000587
+          },
+          {
+            "totalMs": 6.994167000000061,
+            "setupMs": 2.7649999999999864,
+            "schurMs": 2.450458000000026,
+            "contactSolveMs": 1.4040830000000142,
+            "reconstructionMs": 0.338916999999924,
+            "seedMs": 1.0139580000000024
+          },
+          {
+            "totalMs": 8.653332999999975,
+            "setupMs": 3.469416000000024,
+            "schurMs": 2.9441249999999854,
+            "contactSolveMs": 1.845124999999939,
+            "reconstructionMs": 0.3695829999999205,
+            "seedMs": 1.4481670000000122
+          },
+          {
+            "totalMs": 10.364874999999984,
+            "setupMs": 3.3998750000000655,
+            "schurMs": 3.2469579999999496,
+            "contactSolveMs": 2.9097090000000208,
+            "reconstructionMs": 0.7254159999999956,
+            "seedMs": 2.070208999999977
+          },
+          {
+            "totalMs": 6.514958000000092,
+            "setupMs": 2.594333000000006,
+            "schurMs": 2.173000000000002,
+            "contactSolveMs": 1.3203750000000127,
+            "reconstructionMs": 0.3956670000000031,
+            "seedMs": 1.0356249999999818
+          },
+          {
+            "totalMs": 7.173541999999998,
+            "setupMs": 3.3219589999999926,
+            "schurMs": 2.229249999999979,
+            "contactSolveMs": 1.3306660000000647,
+            "reconstructionMs": 0.2701250000000073,
+            "seedMs": 1.0415420000000495
+          },
+          {
+            "totalMs": 5.35512499999993,
+            "setupMs": 1.115666000000033,
+            "schurMs": 2.5592080000000124,
+            "contactSolveMs": 1.373583999999937,
+            "reconstructionMs": 0.29112499999996544,
+            "seedMs": 1.0829169999999522
+          },
+          {
+            "totalMs": 4.544374999999945,
+            "setupMs": 1.094333000000006,
+            "schurMs": 1.7887080000000424,
+            "contactSolveMs": 1.4087920000000622,
+            "reconstructionMs": 0.23879199999998946,
+            "seedMs": 1.1286660000000666
+          },
+          {
+            "totalMs": 4.57954200000006,
+            "setupMs": 0.9722499999999172,
+            "schurMs": 1.9935829999999441,
+            "contactSolveMs": 1.2268340000000535,
+            "reconstructionMs": 0.3717499999999063,
+            "seedMs": 0.9473330000000715
+          },
+          {
+            "totalMs": 4.377540999999951,
+            "setupMs": 1.125,
+            "schurMs": 1.9269999999999072,
+            "contactSolveMs": 1.1235410000000456,
+            "reconstructionMs": 0.18870799999990595,
+            "seedMs": 0.8595000000000255
+          },
+          {
+            "totalMs": 4.305708999999979,
+            "setupMs": 0.9875410000000784,
+            "schurMs": 1.9788750000000164,
+            "contactSolveMs": 1.1302500000000464,
+            "reconstructionMs": 0.19787499999995362,
+            "seedMs": 0.8497500000000855
+          },
+          {
+            "totalMs": 5.001666999999998,
+            "setupMs": 0.9467919999999594,
+            "schurMs": 2.631375000000048,
+            "contactSolveMs": 1.1399169999999685,
+            "reconstructionMs": 0.2722909999999956,
+            "seedMs": 0.8649580000000014
+          },
+          {
+            "totalMs": 3.9828750000000355,
+            "setupMs": 0.9569589999999835,
+            "schurMs": 1.8252499999999827,
+            "contactSolveMs": 1.0363330000000133,
+            "reconstructionMs": 0.1554159999999456,
+            "seedMs": 0.7975420000000213
+          },
+          {
+            "totalMs": 4.639292000000069,
+            "setupMs": 0.9282079999999269,
+            "schurMs": 1.847417000000064,
+            "contactSolveMs": 1.6518330000000105,
+            "reconstructionMs": 0.19833300000004783,
+            "seedMs": 0.8904999999999745
+          },
+          {
+            "totalMs": 4.716332999999963,
+            "setupMs": 1.0101250000000164,
+            "schurMs": 1.872624999999971,
+            "contactSolveMs": 1.6400840000000017,
+            "reconstructionMs": 0.18462499999998272,
+            "seedMs": 0.8529170000000477
+          },
+          {
+            "totalMs": 4.565499999999929,
+            "setupMs": 0.8852920000000495,
+            "schurMs": 1.768416000000002,
+            "contactSolveMs": 1.616457999999966,
+            "reconstructionMs": 0.2840840000000071,
+            "seedMs": 0.8487920000000031
+          },
+          {
+            "totalMs": 4.082208000000037,
+            "setupMs": 1.0186670000000504,
+            "schurMs": 1.8229580000000851,
+            "contactSolveMs": 1.0635829999999942,
+            "reconstructionMs": 0.1658750000000282,
+            "seedMs": 0.8171250000000327
+          },
+          {
+            "totalMs": 4.123207999999977,
+            "setupMs": 0.9139579999999796,
+            "schurMs": 1.7905419999999594,
+            "contactSolveMs": 1.2369999999999663,
+            "reconstructionMs": 0.17133300000000418,
+            "seedMs": 0.7989579999999705
+          },
+          {
+            "totalMs": 3.970916999999986,
+            "setupMs": 0.9410410000000411,
+            "schurMs": 1.8317919999999503,
+            "contactSolveMs": 1.0178339999999935,
+            "reconstructionMs": 0.17133400000000165,
+            "seedMs": 0.7822909999999865
+          },
+          {
+            "totalMs": 3.9313750000000027,
+            "setupMs": 0.8897919999999431,
+            "schurMs": 1.816000000000031,
+            "contactSolveMs": 1.0210419999999658,
+            "reconstructionMs": 0.19566699999995762,
+            "seedMs": 0.7877919999999676
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 5,
+          "factorizations": 35,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.000049716686857595156,
+          "frictionResidual": 1.920324832430792e-7,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 65,
+          "band": 65,
+          "groupCount": 11,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.7877919999999676,
+          "seedFactorizations": 33,
+          "condensedCosts": {
+            "setupMs": 0.8897919999999431,
+            "schurMs": 1.816000000000031,
+            "contactSolveMs": 1.0210419999999658,
+            "reconstructionMs": 0.19566699999995762,
+            "seedMs": 0.7877919999999676
+          },
+          "originalCount": 2000,
+          "equalityCount": 1438,
+          "equalityBand": 27,
+          "retainedCount": 65,
+          "responseColumns": 65,
+          "responseKernelCalls": 65,
+          "responseBatches": 0,
+          "schurEvaluations": 2145,
+          "schurReuses": 0,
+          "expansions": 1
+        }
+      },
+      {
+        "name": "batch4",
+        "means": {
+          "totalMs": 4.583556549999992,
+          "setupMs": 1.9503479000000028,
+          "schurMs": 0.9562624500000141,
+          "contactSolveMs": 1.4179896499999813,
+          "reconstructionMs": 0.2379293000000075,
+          "seedMs": 1.0563127000000123
+        },
+        "samples": [
+          {
+            "totalMs": 4.471833999999944,
+            "setupMs": 2.0529999999999973,
+            "schurMs": 0.8642090000000735,
+            "contactSolveMs": 1.266375000000039,
+            "reconstructionMs": 0.25774999999998727,
+            "seedMs": 0.9208750000000236
+          },
+          {
+            "totalMs": 9.91116599999998,
+            "setupMs": 5.281875000000014,
+            "schurMs": 2.326915999999983,
+            "contactSolveMs": 1.8767090000000053,
+            "reconstructionMs": 0.34679099999993923,
+            "seedMs": 1.4266249999999445
+          },
+          {
+            "totalMs": 9.670124999999985,
+            "setupMs": 3.9312079999999696,
+            "schurMs": 1.2942910000000438,
+            "contactSolveMs": 3.757082999999966,
+            "reconstructionMs": 0.6586669999999231,
+            "seedMs": 3.0790830000000824
+          },
+          {
+            "totalMs": 9.116708000000017,
+            "setupMs": 6.267082999999957,
+            "schurMs": 1.0356250000000955,
+            "contactSolveMs": 1.4752079999999523,
+            "reconstructionMs": 0.311916999999994,
+            "seedMs": 1.188874999999939
+          },
+          {
+            "totalMs": 10.249709000000053,
+            "setupMs": 5.21183300000007,
+            "schurMs": 2.5649579999999332,
+            "contactSolveMs": 2.0194999999999936,
+            "reconstructionMs": 0.3788330000000997,
+            "seedMs": 1.6538750000000846
+          },
+          {
+            "totalMs": 4.528541999999902,
+            "setupMs": 2.1649999999999636,
+            "schurMs": 0.8583340000000135,
+            "contactSolveMs": 1.280666999999994,
+            "reconstructionMs": 0.20420899999999165,
+            "seedMs": 1.0207920000000286
+          },
+          {
+            "totalMs": 3.193834000000038,
+            "setupMs": 1.0019999999999527,
+            "schurMs": 0.738790999999992,
+            "contactSolveMs": 1.24899999999991,
+            "reconstructionMs": 0.1915000000000191,
+            "seedMs": 0.9942919999999731
+          },
+          {
+            "totalMs": 3.181291999999985,
+            "setupMs": 1.0469170000000076,
+            "schurMs": 0.8042080000000169,
+            "contactSolveMs": 1.1316249999999854,
+            "reconstructionMs": 0.18616700000006858,
+            "seedMs": 0.875
+          },
+          {
+            "totalMs": 3.087167000000022,
+            "setupMs": 0.983791999999994,
+            "schurMs": 0.8315420000000131,
+            "contactSolveMs": 1.087582999999995,
+            "reconstructionMs": 0.175583999999958,
+            "seedMs": 0.8450420000000349
+          },
+          {
+            "totalMs": 3.302832999999964,
+            "setupMs": 1.0616250000000491,
+            "schurMs": 0.7629170000000158,
+            "contactSolveMs": 1.2208749999999782,
+            "reconstructionMs": 0.24295900000004167,
+            "seedMs": 0.9273340000000871
+          },
+          {
+            "totalMs": 3.2249590000000126,
+            "setupMs": 1.111291000000051,
+            "schurMs": 0.8039580000000797,
+            "contactSolveMs": 1.1068329999999378,
+            "reconstructionMs": 0.19041700000002493,
+            "seedMs": 0.852292000000034
+          },
+          {
+            "totalMs": 3.062708999999927,
+            "setupMs": 1.0515829999999369,
+            "schurMs": 0.712833000000046,
+            "contactSolveMs": 1.1095420000000331,
+            "reconstructionMs": 0.17791699999997945,
+            "seedMs": 0.8336249999999836
+          },
+          {
+            "totalMs": 2.9117919999999913,
+            "setupMs": 0.9382500000000391,
+            "schurMs": 0.6831670000000258,
+            "contactSolveMs": 1.098792000000003,
+            "reconstructionMs": 0.18029200000000856,
+            "seedMs": 0.8384170000000495
+          },
+          {
+            "totalMs": 3.3605420000000095,
+            "setupMs": 0.9729589999999462,
+            "schurMs": 0.6794590000000653,
+            "contactSolveMs": 1.54912499999989,
+            "reconstructionMs": 0.15016700000001038,
+            "seedMs": 0.8182920000000422
+          },
+          {
+            "totalMs": 3.2702920000000404,
+            "setupMs": 0.8998330000000578,
+            "schurMs": 0.6735829999998941,
+            "contactSolveMs": 1.5096250000000282,
+            "reconstructionMs": 0.17774999999994634,
+            "seedMs": 0.8051249999999754
+          },
+          {
+            "totalMs": 3.2913330000000087,
+            "setupMs": 1.037458000000015,
+            "schurMs": 0.7159159999999929,
+            "contactSolveMs": 1.2758749999999281,
+            "reconstructionMs": 0.2502910000000611,
+            "seedMs": 0.8384590000000571
+          },
+          {
+            "totalMs": 3.1738339999999425,
+            "setupMs": 1.0349999999999682,
+            "schurMs": 0.7007919999999785,
+            "contactSolveMs": 1.2545000000000073,
+            "reconstructionMs": 0.16566599999998743,
+            "seedMs": 0.8232090000000198
+          },
+          {
+            "totalMs": 2.9752090000000635,
+            "setupMs": 1.062791999999945,
+            "schurMs": 0.6996659999999792,
+            "contactSolveMs": 1.0387920000000577,
+            "reconstructionMs": 0.16354200000000674,
+            "seedMs": 0.8078339999999571
+          },
+          {
+            "totalMs": 2.864958999999999,
+            "setupMs": 0.9527920000000449,
+            "schurMs": 0.6905839999999444,
+            "contactSolveMs": 1.0312089999999898,
+            "reconstructionMs": 0.18066700000008495,
+            "seedMs": 0.7900419999999713
+          },
+          {
+            "totalMs": 2.8222919999999476,
+            "setupMs": 0.9406670000000759,
+            "schurMs": 0.6835000000000946,
+            "contactSolveMs": 1.0208749999999327,
+            "reconstructionMs": 0.1675000000000182,
+            "seedMs": 0.7871659999999565
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 5,
+          "factorizations": 35,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.000049716686857595156,
+          "frictionResidual": 1.920324832430792e-7,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 65,
+          "band": 65,
+          "groupCount": 11,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.7871659999999565,
+          "seedFactorizations": 33,
+          "condensedCosts": {
+            "setupMs": 0.9406670000000759,
+            "schurMs": 0.6835000000000946,
+            "contactSolveMs": 1.0208749999999327,
+            "reconstructionMs": 0.1675000000000182,
+            "seedMs": 0.7871659999999565
+          },
+          "originalCount": 2000,
+          "equalityCount": 1438,
+          "equalityBand": 27,
+          "retainedCount": 65,
+          "responseColumns": 65,
+          "responseKernelCalls": 17,
+          "responseBatches": 16,
+          "schurEvaluations": 2145,
+          "schurReuses": 0,
+          "expansions": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "active-condensed-1999",
+    "count": 1999,
+    "band": 150,
+    "variants": [
+      {
+        "name": "scalar",
+        "means": {
+          "totalMs": 6.549218699999983,
+          "setupMs": 1.326668799999993,
+          "schurMs": 3.1406166000000213,
+          "contactSolveMs": 1.6003645000000346,
+          "reconstructionMs": 0.4354957499999955,
+          "seedMs": 0.40367919999998775
+        },
+        "samples": [
+          {
+            "totalMs": 7.403749999999945,
+            "setupMs": 1.9762919999998303,
+            "schurMs": 3.2937090000000353,
+            "contactSolveMs": 1.6567919999999958,
+            "reconstructionMs": 0.4478750000000673,
+            "seedMs": 0.460166000000072
+          },
+          {
+            "totalMs": 7.436500000000024,
+            "setupMs": 2.0623339999999644,
+            "schurMs": 3.2852919999997994,
+            "contactSolveMs": 1.6172080000001188,
+            "reconstructionMs": 0.44087400000012167,
+            "seedMs": 0.45845799999983683
+          },
+          {
+            "totalMs": 6.239790999999968,
+            "setupMs": 0.94399999999996,
+            "schurMs": 3.3182910000000447,
+            "contactSolveMs": 1.5568339999999807,
+            "reconstructionMs": 0.3819170000001577,
+            "seedMs": 0.4381659999999101
+          },
+          {
+            "totalMs": 6.1693330000000515,
+            "setupMs": 1.0659579999999096,
+            "schurMs": 3.1620000000000346,
+            "contactSolveMs": 1.542999000000009,
+            "reconstructionMs": 0.36404099999981554,
+            "seedMs": 0.4486660000000029
+          },
+          {
+            "totalMs": 6.0709589999999025,
+            "setupMs": 1.0891659999999774,
+            "schurMs": 2.94662500000004,
+            "contactSolveMs": 1.5903749999999945,
+            "reconstructionMs": 0.4097910000000411,
+            "seedMs": 0.45358299999998053
+          },
+          {
+            "totalMs": 6.900333000000046,
+            "setupMs": 1.8786250000000564,
+            "schurMs": 3.07549999999992,
+            "contactSolveMs": 1.5407909999998992,
+            "reconstructionMs": 0.3739580000001297,
+            "seedMs": 0.4459180000001197
+          },
+          {
+            "totalMs": 7.085291999999981,
+            "setupMs": 1.8837499999999636,
+            "schurMs": 3.1345410000001266,
+            "contactSolveMs": 1.6197910000000775,
+            "reconstructionMs": 0.41104199999995217,
+            "seedMs": 0.48287500000014916
+          },
+          {
+            "totalMs": 7.043999999999869,
+            "setupMs": 1.8931669999999485,
+            "schurMs": 3.1504990000000817,
+            "contactSolveMs": 1.585499000000027,
+            "reconstructionMs": 0.3891670000000431,
+            "seedMs": 0.4695839999999407
+          },
+          {
+            "totalMs": 7.572875000000067,
+            "setupMs": 1.9333750000000691,
+            "schurMs": 3.4703330000002097,
+            "contactSolveMs": 1.6239170000001195,
+            "reconstructionMs": 0.5173330000000078,
+            "seedMs": 0.47787499999981264
+          },
+          {
+            "totalMs": 7.405665999999883,
+            "setupMs": 1.9217079999998532,
+            "schurMs": 3.3509999999998854,
+            "contactSolveMs": 1.572208000000046,
+            "reconstructionMs": 0.5328750000001037,
+            "seedMs": 0.4129170000001068
+          },
+          {
+            "totalMs": 5.957540999999992,
+            "setupMs": 0.8943340000000717,
+            "schurMs": 3.023042000000032,
+            "contactSolveMs": 1.5612929999999778,
+            "reconstructionMs": 0.45195799999987685,
+            "seedMs": 0.3440419999999449
+          },
+          {
+            "totalMs": 5.7669160000000375,
+            "setupMs": 0.9414170000000013,
+            "schurMs": 2.907375000000002,
+            "contactSolveMs": 1.476165999999921,
+            "reconstructionMs": 0.42237500000010186,
+            "seedMs": 0.34733299999993505
+          },
+          {
+            "totalMs": 6.172667000000047,
+            "setupMs": 0.8676660000000993,
+            "schurMs": 3.127291000000241,
+            "contactSolveMs": 1.6937490000000253,
+            "reconstructionMs": 0.4485419999998612,
+            "seedMs": 0.3807499999998072
+          },
+          {
+            "totalMs": 6.044499999999971,
+            "setupMs": 1.0083340000001044,
+            "schurMs": 3.0969579999998587,
+            "contactSolveMs": 1.5177499999999782,
+            "reconstructionMs": 0.3947499999997035,
+            "seedMs": 0.36662599999999657
+          },
+          {
+            "totalMs": 5.989749999999958,
+            "setupMs": 0.9311250000000655,
+            "schurMs": 3.0894579999999223,
+            "contactSolveMs": 1.5072090000001026,
+            "reconstructionMs": 0.44000000000005457,
+            "seedMs": 0.35287399999992886
+          },
+          {
+            "totalMs": 6.212041999999883,
+            "setupMs": 0.9567920000001777,
+            "schurMs": 3.0603340000000117,
+            "contactSolveMs": 1.5411670000003141,
+            "reconstructionMs": 0.5193329999997331,
+            "seedMs": 0.3510830000002443
+          },
+          {
+            "totalMs": 6.616083000000117,
+            "setupMs": 1.0665000000001328,
+            "schurMs": 3.0464170000000195,
+            "contactSolveMs": 1.981791999999814,
+            "reconstructionMs": 0.43991700000015044,
+            "seedMs": 0.34033399999998437
+          },
+          {
+            "totalMs": 6.592374999999947,
+            "setupMs": 1.0840829999999642,
+            "schurMs": 3.1245420000000195,
+            "contactSolveMs": 1.8280420000000959,
+            "reconstructionMs": 0.46404199999983575,
+            "seedMs": 0.3505419999999049
+          },
+          {
+            "totalMs": 6.204666999999972,
+            "setupMs": 1.0565419999998085,
+            "schurMs": 3.1312920000000304,
+            "contactSolveMs": 1.4866660000002412,
+            "reconstructionMs": 0.44325000000003456,
+            "seedMs": 0.3505419999999049
+          },
+          {
+            "totalMs": 6.099333999999999,
+            "setupMs": 1.0782079999999041,
+            "schurMs": 3.0178330000001097,
+            "contactSolveMs": 1.5070419999999558,
+            "reconstructionMs": 0.41687500000011823,
+            "seedMs": 0.3412500000001728
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 21,
+          "factorizations": 22,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.0000381546321930222,
+          "frictionResidual": 0.0000381546321930222,
+          "coneViolation": 0,
+          "rowCount": 102,
+          "band": 102,
+          "groupCount": 22,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.1796670000001086,
+          "seedFactorizations": 10,
+          "condensedCosts": {
+            "setupMs": 1.0782079999999041,
+            "schurMs": 3.0178330000001097,
+            "contactSolveMs": 1.5070419999999558,
+            "reconstructionMs": 0.41687500000011823,
+            "seedMs": 0.3412500000001728
+          },
+          "originalCount": 1999,
+          "equalityCount": 1438,
+          "equalityBand": 27,
+          "retainedCount": 102,
+          "responseColumns": 102,
+          "responseKernelCalls": 102,
+          "responseBatches": 0,
+          "schurEvaluations": 5253,
+          "schurReuses": 4950,
+          "expansions": 2
+        }
+      },
+      {
+        "name": "batch4",
+        "means": {
+          "totalMs": 5.036339600000008,
+          "setupMs": 1.3884083500000315,
+          "schurMs": 1.5244562000000088,
+          "contactSolveMs": 1.6813665999999785,
+          "reconstructionMs": 0.4002455499999883,
+          "seedMs": 0.39911875000000235
+        },
+        "samples": [
+          {
+            "totalMs": 5.605542000000014,
+            "setupMs": 1.8734999999999218,
+            "schurMs": 1.6180829999998423,
+            "contactSolveMs": 1.6815419999998085,
+            "reconstructionMs": 0.4032489999999598,
+            "seedMs": 0.4571659999999156
+          },
+          {
+            "totalMs": 5.983249999999998,
+            "setupMs": 1.9237500000001546,
+            "schurMs": 1.9134579999999914,
+            "contactSolveMs": 1.6583340000001954,
+            "reconstructionMs": 0.4449569999999312,
+            "seedMs": 0.47633300000006784
+          },
+          {
+            "totalMs": 5.70941700000003,
+            "setupMs": 2.048999999999978,
+            "schurMs": 1.66537500000004,
+            "contactSolveMs": 1.592332999999826,
+            "reconstructionMs": 0.36850000000004,
+            "seedMs": 0.4427089999999225
+          },
+          {
+            "totalMs": 4.634916000000203,
+            "setupMs": 1.0517079999999623,
+            "schurMs": 1.6087079999999787,
+            "contactSolveMs": 1.5651660000000902,
+            "reconstructionMs": 0.37945700000000215,
+            "seedMs": 0.44733300000029885
+          },
+          {
+            "totalMs": 4.642417000000023,
+            "setupMs": 1.0370829999999387,
+            "schurMs": 1.6459169999998267,
+            "contactSolveMs": 1.5629999999998745,
+            "reconstructionMs": 0.367542000000185,
+            "seedMs": 0.4489589999998316
+          },
+          {
+            "totalMs": 5.593332999999802,
+            "setupMs": 1.8765000000000782,
+            "schurMs": 1.7469590000000608,
+            "contactSolveMs": 1.5492079999999078,
+            "reconstructionMs": 0.39162499999997635,
+            "seedMs": 0.444957999999815
+          },
+          {
+            "totalMs": 5.584082999999964,
+            "setupMs": 1.889791999999943,
+            "schurMs": 1.624416999999994,
+            "contactSolveMs": 1.6007500000000618,
+            "reconstructionMs": 0.4296239999998761,
+            "seedMs": 0.4575830000001133
+          },
+          {
+            "totalMs": 5.594624999999951,
+            "setupMs": 1.94925000000012,
+            "schurMs": 1.6254579999999805,
+            "contactSolveMs": 1.6000840000001517,
+            "reconstructionMs": 0.3927089999997406,
+            "seedMs": 0.4699989999999161
+          },
+          {
+            "totalMs": 5.592125000000124,
+            "setupMs": 1.938083000000006,
+            "schurMs": 1.621458999999959,
+            "contactSolveMs": 1.6033339999999043,
+            "reconstructionMs": 0.4043749999998454,
+            "seedMs": 0.4653330000001006
+          },
+          {
+            "totalMs": 5.849457999999913,
+            "setupMs": 2.147667000000183,
+            "schurMs": 1.8535420000000613,
+            "contactSolveMs": 1.4379999999998745,
+            "reconstructionMs": 0.38416700000016135,
+            "seedMs": 0.34779200000002675
+          },
+          {
+            "totalMs": 4.002291999999898,
+            "setupMs": 0.9085000000000036,
+            "schurMs": 1.2603750000000673,
+            "contactSolveMs": 1.4407489999998688,
+            "reconstructionMs": 0.3735839999999371,
+            "seedMs": 0.33695799999986775
+          },
+          {
+            "totalMs": 4.251374999999825,
+            "setupMs": 0.9508749999999964,
+            "schurMs": 1.4325839999999062,
+            "contactSolveMs": 1.4930420000000595,
+            "reconstructionMs": 0.35741699999994125,
+            "seedMs": 0.35695800000007694
+          },
+          {
+            "totalMs": 4.010625000000118,
+            "setupMs": 0.8869999999999436,
+            "schurMs": 1.2691240000001471,
+            "contactSolveMs": 1.474375000000009,
+            "reconstructionMs": 0.3633330000002388,
+            "seedMs": 0.34541699999999764
+          },
+          {
+            "totalMs": 4.305625000000191,
+            "setupMs": 0.9511250000000473,
+            "schurMs": 1.34575000000018,
+            "contactSolveMs": 1.541749000000209,
+            "reconstructionMs": 0.44158299999980954,
+            "seedMs": 0.35700000000019827
+          },
+          {
+            "totalMs": 4.112333000000035,
+            "setupMs": 0.9376670000001468,
+            "schurMs": 1.2789580000001024,
+            "contactSolveMs": 1.4969169999999394,
+            "reconstructionMs": 0.37954100000001745,
+            "seedMs": 0.3491670000000795
+          },
+          {
+            "totalMs": 5.649208999999928,
+            "setupMs": 1.0919169999999667,
+            "schurMs": 1.6603749999999309,
+            "contactSolveMs": 2.326457999999775,
+            "reconstructionMs": 0.4719589999999698,
+            "seedMs": 0.3772089999997661
+          },
+          {
+            "totalMs": 6.421750000000202,
+            "setupMs": 1.096625000000131,
+            "schurMs": 1.3188330000000406,
+            "contactSolveMs": 3.5227490000002035,
+            "reconstructionMs": 0.3975830000001679,
+            "seedMs": 0.3444170000000213
+          },
+          {
+            "totalMs": 4.541832999999997,
+            "setupMs": 1.095167000000174,
+            "schurMs": 1.3948330000000624,
+            "contactSolveMs": 1.5359999999998308,
+            "reconstructionMs": 0.4337909999999283,
+            "seedMs": 0.37391699999989214
+          },
+          {
+            "totalMs": 4.290917000000036,
+            "setupMs": 1.0493329999999332,
+            "schurMs": 1.2876659999999447,
+            "contactSolveMs": 1.4678329999999278,
+            "reconstructionMs": 0.398249000000078,
+            "seedMs": 0.34033399999998437
+          },
+          {
+            "totalMs": 4.351666999999907,
+            "setupMs": 1.0636250000000018,
+            "schurMs": 1.3172500000000582,
+            "contactSolveMs": 1.4757090000000517,
+            "reconstructionMs": 0.42166599999995924,
+            "seedMs": 0.34283300000015515
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 21,
+          "factorizations": 22,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.0000381546321930222,
+          "frictionResidual": 0.0000381546321930222,
+          "coneViolation": 0,
+          "rowCount": 102,
+          "band": 102,
+          "groupCount": 22,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.18125000000009095,
+          "seedFactorizations": 10,
+          "condensedCosts": {
+            "setupMs": 1.0636250000000018,
+            "schurMs": 1.3172500000000582,
+            "contactSolveMs": 1.4757090000000517,
+            "reconstructionMs": 0.42166599999995924,
+            "seedMs": 0.34283300000015515
+          },
+          "originalCount": 1999,
+          "equalityCount": 1438,
+          "equalityBand": 27,
+          "retainedCount": 102,
+          "responseColumns": 102,
+          "responseKernelCalls": 30,
+          "responseBatches": 24,
+          "schurEvaluations": 5253,
+          "schurReuses": 4950,
+          "expansions": 2
+        }
+      }
+    ]
+  },
+  {
+    "name": "coupled-full-200",
+    "count": 2459,
+    "band": 155,
+    "variants": [
+      {
+        "name": "scalar",
+        "means": {
+          "totalMs": 14.546312349999994,
+          "setupMs": 1.1082188499999688,
+          "schurMs": 6.468270799999994,
+          "contactSolveMs": 6.227685350000013,
+          "reconstructionMs": 0.7056521000000544,
+          "seedMs": 1.5885584500000163
+        },
+        "samples": [
+          {
+            "totalMs": 16.148625000000038,
+            "setupMs": 1.3356250000001637,
+            "schurMs": 6.792625000000271,
+            "contactSolveMs": 6.985458000000108,
+            "reconstructionMs": 0.9782090000001062,
+            "seedMs": 2.092542000000094
+          },
+          {
+            "totalMs": 14.161624999999958,
+            "setupMs": 1.072499999999991,
+            "schurMs": 6.148123999999825,
+            "contactSolveMs": 6.245541000000003,
+            "reconstructionMs": 0.6500419999997575,
+            "seedMs": 1.6001659999997173
+          },
+          {
+            "totalMs": 15.881291000000147,
+            "setupMs": 1.39325000000008,
+            "schurMs": 6.658374999999978,
+            "contactSolveMs": 6.866625999999997,
+            "reconstructionMs": 0.8950009999998656,
+            "seedMs": 1.6819580000001224
+          },
+          {
+            "totalMs": 14.694707999999991,
+            "setupMs": 1.1524159999999029,
+            "schurMs": 6.28474899999992,
+            "contactSolveMs": 6.46279099999947,
+            "reconstructionMs": 0.7373750000001564,
+            "seedMs": 1.5506250000003092
+          },
+          {
+            "totalMs": 14.439166999999998,
+            "setupMs": 1.0889999999999418,
+            "schurMs": 6.536542000000281,
+            "contactSolveMs": 6.117207999999664,
+            "reconstructionMs": 0.6502920000002632,
+            "seedMs": 1.5862919999999576
+          },
+          {
+            "totalMs": 14.460583000000042,
+            "setupMs": 1.097124999999778,
+            "schurMs": 6.534541999999874,
+            "contactSolveMs": 6.13537499999984,
+            "reconstructionMs": 0.6529160000000047,
+            "seedMs": 1.5705839999995987
+          },
+          {
+            "totalMs": 14.54995800000006,
+            "setupMs": 1.0771669999999176,
+            "schurMs": 6.536416999999801,
+            "contactSolveMs": 6.241334000000279,
+            "reconstructionMs": 0.6629580000003443,
+            "seedMs": 1.6289590000001226
+          },
+          {
+            "totalMs": 14.38629200000014,
+            "setupMs": 1.062167000000045,
+            "schurMs": 6.4587500000002365,
+            "contactSolveMs": 6.1908330000001115,
+            "reconstructionMs": 0.6405829999998787,
+            "seedMs": 1.608459000000039
+          },
+          {
+            "totalMs": 14.50979099999995,
+            "setupMs": 1.0421249999999418,
+            "schurMs": 6.540042999999969,
+            "contactSolveMs": 6.1475420000006125,
+            "reconstructionMs": 0.748833000000559,
+            "seedMs": 1.5400419999996302
+          },
+          {
+            "totalMs": 14.430790999999772,
+            "setupMs": 1.0873329999999441,
+            "schurMs": 6.435874999999669,
+            "contactSolveMs": 6.133124999999836,
+            "reconstructionMs": 0.7456250000000182,
+            "seedMs": 1.540458000000399
+          },
+          {
+            "totalMs": 14.62433400000009,
+            "setupMs": 1.1271670000000995,
+            "schurMs": 6.590749999999844,
+            "contactSolveMs": 6.15866700000015,
+            "reconstructionMs": 0.7156669999994847,
+            "seedMs": 1.5872909999998228
+          },
+          {
+            "totalMs": 14.379707999999937,
+            "setupMs": 1.1107919999999467,
+            "schurMs": 6.38924999999972,
+            "contactSolveMs": 6.153167000000394,
+            "reconstructionMs": 0.6974170000003141,
+            "seedMs": 1.5670420000001286
+          },
+          {
+            "totalMs": 14.530999999999949,
+            "setupMs": 1.0637090000000171,
+            "schurMs": 6.637542000000394,
+            "contactSolveMs": 6.133583000000272,
+            "reconstructionMs": 0.6655830000004244,
+            "seedMs": 1.5379579999998896
+          },
+          {
+            "totalMs": 14.454791999999998,
+            "setupMs": 1.0684999999998581,
+            "schurMs": 6.577209000000039,
+            "contactSolveMs": 6.032791999999972,
+            "reconstructionMs": 0.7475840000001881,
+            "seedMs": 1.5095830000000205
+          },
+          {
+            "totalMs": 14.488208000000213,
+            "setupMs": 1.0471670000001723,
+            "schurMs": 6.605250000000069,
+            "contactSolveMs": 6.160333000000264,
+            "reconstructionMs": 0.6482079999996131,
+            "seedMs": 1.553124999999909
+          },
+          {
+            "totalMs": 14.186791000000085,
+            "setupMs": 1.0545829999996386,
+            "schurMs": 6.385248999999931,
+            "contactSolveMs": 6.086874999999509,
+            "reconstructionMs": 0.6325839999999516,
+            "seedMs": 1.4950010000002294
+          },
+          {
+            "totalMs": 14.482082999999875,
+            "setupMs": 1.1400840000001153,
+            "schurMs": 6.568709000000126,
+            "contactSolveMs": 6.095416999999998,
+            "reconstructionMs": 0.6508739999999307,
+            "seedMs": 1.5390000000002146
+          },
+          {
+            "totalMs": 14.312916999999743,
+            "setupMs": 1.0493750000000546,
+            "schurMs": 6.429999999999836,
+            "contactSolveMs": 6.104665999999725,
+            "reconstructionMs": 0.7006670000000668,
+            "seedMs": 1.5174590000001444
+          },
+          {
+            "totalMs": 14.071374999999989,
+            "setupMs": 1.0782920000001468,
+            "schurMs": 6.257248999999774,
+            "contactSolveMs": 6.067790999999943,
+            "reconstructionMs": 0.6383739999996578,
+            "seedMs": 1.564958000000388
+          },
+          {
+            "totalMs": 13.7322079999999,
+            "setupMs": 1.0159999999996217,
+            "schurMs": 5.99816600000031,
+            "contactSolveMs": 6.0345830000001115,
+            "reconstructionMs": 0.654250000000502,
+            "seedMs": 1.4996669999995902
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 34,
+          "factorizations": 35,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.00006170902011689021,
+          "frictionResidual": 0.00006170902011689021,
+          "coneViolation": 0,
+          "rowCount": 183,
+          "band": 183,
+          "groupCount": 48,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.9154579999999441,
+          "seedFactorizations": 19,
+          "condensedCosts": {
+            "setupMs": 1.0159999999996217,
+            "schurMs": 5.99816600000031,
+            "contactSolveMs": 6.0345830000001115,
+            "reconstructionMs": 0.654250000000502,
+            "seedMs": 1.4996669999995902
+          },
+          "originalCount": 2459,
+          "equalityCount": 1624,
+          "equalityBand": 21,
+          "retainedCount": 183,
+          "responseColumns": 183,
+          "responseKernelCalls": 183,
+          "responseBatches": 0,
+          "schurEvaluations": 16836,
+          "schurReuses": 13695,
+          "expansions": 2
+        }
+      },
+      {
+        "name": "batch4",
+        "means": {
+          "totalMs": 11.347887549999916,
+          "setupMs": 1.1042688500000282,
+          "schurMs": 3.2111499499999128,
+          "contactSolveMs": 6.28551259999997,
+          "reconstructionMs": 0.7056336000000215,
+          "seedMs": 1.6098415499999532
+        },
+        "samples": [
+          {
+            "totalMs": 11.254874999999856,
+            "setupMs": 1.062874999999849,
+            "schurMs": 2.9184580000001006,
+            "contactSolveMs": 6.575583000000279,
+            "reconstructionMs": 0.6518760000001294,
+            "seedMs": 1.8600420000000213
+          },
+          {
+            "totalMs": 11.975000000000364,
+            "setupMs": 1.0598340000001372,
+            "schurMs": 3.3068339999999807,
+            "contactSolveMs": 6.68079200000011,
+            "reconstructionMs": 0.8686669999997321,
+            "seedMs": 1.716957999999977
+          },
+          {
+            "totalMs": 17.867707999999766,
+            "setupMs": 1.2170420000002196,
+            "schurMs": 7.238792000000103,
+            "contactSolveMs": 8.045750000000226,
+            "reconstructionMs": 1.289625000000342,
+            "seedMs": 1.9819170000005215
+          },
+          {
+            "totalMs": 11.155833999999686,
+            "setupMs": 1.1300830000000133,
+            "schurMs": 3.1021660000001248,
+            "contactSolveMs": 6.225708000000395,
+            "reconstructionMs": 0.6502909999999247,
+            "seedMs": 1.6099579999995512
+          },
+          {
+            "totalMs": 10.800208999999995,
+            "setupMs": 1.0517910000003212,
+            "schurMs": 2.9185419999994338,
+            "contactSolveMs": 6.159500000000207,
+            "reconstructionMs": 0.626459000000068,
+            "seedMs": 1.605833999999959
+          },
+          {
+            "totalMs": 11.019416999999976,
+            "setupMs": 1.114042000000154,
+            "schurMs": 2.9847500000000764,
+            "contactSolveMs": 6.194000000000415,
+            "reconstructionMs": 0.6887919999999212,
+            "seedMs": 1.593833999999788
+          },
+          {
+            "totalMs": 10.830792000000201,
+            "setupMs": 1.0386670000002596,
+            "schurMs": 2.9289989999997488,
+            "contactSolveMs": 6.207958999999846,
+            "reconstructionMs": 0.6232919999997648,
+            "seedMs": 1.5731670000000122
+          },
+          {
+            "totalMs": 11.100416999999652,
+            "setupMs": 1.0550839999996242,
+            "schurMs": 3.125082999999904,
+            "contactSolveMs": 6.151416000000154,
+            "reconstructionMs": 0.6895830000003116,
+            "seedMs": 1.5789169999993646
+          },
+          {
+            "totalMs": 10.78333399999974,
+            "setupMs": 1.0658750000002328,
+            "schurMs": 2.9577919999996993,
+            "contactSolveMs": 6.099416999999903,
+            "reconstructionMs": 0.6301250000001346,
+            "seedMs": 1.5094170000002123
+          },
+          {
+            "totalMs": 11.035041999999976,
+            "setupMs": 1.140041999999994,
+            "schurMs": 3.0301660000000084,
+            "contactSolveMs": 6.126208999999562,
+            "reconstructionMs": 0.7055000000000291,
+            "seedMs": 1.5510409999997137
+          },
+          {
+            "totalMs": 10.932290999999623,
+            "setupMs": 1.0895000000000437,
+            "schurMs": 2.9373749999999745,
+            "contactSolveMs": 6.16537500000004,
+            "reconstructionMs": 0.7084589999994932,
+            "seedMs": 1.5615829999997004
+          },
+          {
+            "totalMs": 11.21112499999981,
+            "setupMs": 1.405583000000206,
+            "schurMs": 2.971708000000035,
+            "contactSolveMs": 6.128124999999727,
+            "reconstructionMs": 0.6589169999997466,
+            "seedMs": 1.6000410000001466
+          },
+          {
+            "totalMs": 10.772500000000036,
+            "setupMs": 1.0754170000000158,
+            "schurMs": 2.955917000000227,
+            "contactSolveMs": 6.062083999999686,
+            "reconstructionMs": 0.6398330000001806,
+            "seedMs": 1.5333329999998568
+          },
+          {
+            "totalMs": 10.86783400000013,
+            "setupMs": 1.1208329999999478,
+            "schurMs": 3.034208999999464,
+            "contactSolveMs": 6.049582999999529,
+            "reconstructionMs": 0.6350830000001224,
+            "seedMs": 1.5224580000003698
+          },
+          {
+            "totalMs": 10.7465830000001,
+            "setupMs": 1.0231250000001637,
+            "schurMs": 2.9090000000001055,
+            "contactSolveMs": 6.15099999999984,
+            "reconstructionMs": 0.63675000000012,
+            "seedMs": 1.546208000000206
+          },
+          {
+            "totalMs": 11.345208000000184,
+            "setupMs": 1.1395840000000135,
+            "schurMs": 3.1674169999996593,
+            "contactSolveMs": 6.19720899999993,
+            "reconstructionMs": 0.8030430000003435,
+            "seedMs": 1.6095409999998083
+          },
+          {
+            "totalMs": 10.965832999999748,
+            "setupMs": 1.1903749999996762,
+            "schurMs": 2.962040999999772,
+            "contactSolveMs": 6.149249999999938,
+            "reconstructionMs": 0.6350010000001021,
+            "seedMs": 1.5853329999999914
+          },
+          {
+            "totalMs": 10.782040999999936,
+            "setupMs": 1.0514589999997952,
+            "schurMs": 2.9603329999999914,
+            "contactSolveMs": 6.110041999999794,
+            "reconstructionMs": 0.6331669999999576,
+            "seedMs": 1.53899999999976
+          },
+          {
+            "totalMs": 10.673207999999704,
+            "setupMs": 1.0114579999999478,
+            "schurMs": 2.8707919999997102,
+            "contactSolveMs": 6.087333999999828,
+            "reconstructionMs": 0.6773339999999735,
+            "seedMs": 1.508248999999978
+          },
+          {
+            "totalMs": 10.83849999999984,
+            "setupMs": 1.0427079999999478,
+            "schurMs": 2.9426250000001346,
+            "contactSolveMs": 6.14391599999999,
+            "reconstructionMs": 0.6608750000000327,
+            "seedMs": 1.6100000000001273
+          }
+        ],
+        "diagnostics": {
+          "status": "converged",
+          "converged": true,
+          "iterations": 34,
+          "factorizations": 35,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 0.00006170902011689021,
+          "frictionResidual": 0.00006170902011689021,
+          "coneViolation": 0,
+          "rowCount": 183,
+          "band": 183,
+          "groupCount": 48,
+          "normalLoadIterations": 1,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "projection",
+          "factorUpdates": 0,
+          "seedMs": 0.9821249999999964,
+          "seedFactorizations": 19,
+          "condensedCosts": {
+            "setupMs": 1.0427079999999478,
+            "schurMs": 2.9426250000001346,
+            "contactSolveMs": 6.14391599999999,
+            "reconstructionMs": 0.6608750000000327,
+            "seedMs": 1.6100000000001273
+          },
+          "originalCount": 2459,
+          "equalityCount": 1624,
+          "equalityBand": 21,
+          "retainedCount": 183,
+          "responseColumns": 183,
+          "responseKernelCalls": 48,
+          "responseBatches": 45,
+          "schurEvaluations": 16836,
+          "schurReuses": 13695,
+          "expansions": 2
+        }
+      }
+    ]
+  }
+]

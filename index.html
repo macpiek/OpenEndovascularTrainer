@@ -123,12 +123,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="25"
+                                    value="58.1"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="catheterShaftStiffnessRange"
                                 >
-                                <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">25,00×</output>
+                                <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">58,10×</output>
                             </span>
                             <span id="catheterShaftStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
@@ -145,39 +145,17 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="5"
+                                    value="87"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="catheterTipStiffnessRange"
                                 >
-                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">5,00×</output>
+                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">87,00×</output>
                             </span>
                             <span id="catheterTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
                                 <span>standard</span>
                                 <span>sztywniejsza</span>
-                            </span>
-                        </label>
-                        <label class="guidewire-stiffness-control" for="catheterRelaxation">
-                            <span class="guidewire-stiffness-heading">Szybkość relaksacji cewnika</span>
-                            <span class="guidewire-stiffness-input-row">
-                                <input
-                                    id="catheterRelaxation"
-                                    type="range"
-                                    min="1"
-                                    max="50"
-                                    step="0.5"
-                                    value="30"
-                                    data-value-decimals="2"
-                                    data-value-suffix="×"
-                                    aria-describedby="catheterRelaxationRange"
-                                >
-                                <output id="catheterRelaxationValue" for="catheterRelaxation">30,00×</output>
-                            </span>
-                            <span id="catheterRelaxationRange" class="guidewire-stiffness-range">
-                                <span>obecna</span>
-                                <span>szybsza</span>
-                                <span>najszybsza</span>
                             </span>
                         </label>
                         <div class="catheter-manual-controls" role="group" aria-label="Sterowanie cewnikiem">
@@ -222,12 +200,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="10"
+                                    value="39"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireStiffnessRange"
                                 >
-                                <output id="guidewireStiffnessValue" for="stiffness">10,00×</output>
+                                <output id="guidewireStiffnessValue" for="stiffness">39,00×</output>
                             </span>
                             <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
@@ -244,39 +222,17 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="4.55"
+                                    value="30.7"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireTipStiffnessRange"
                                 >
-                                <output id="guidewireTipStiffnessValue" for="tipStiffness">4,55×</output>
+                                <output id="guidewireTipStiffnessValue" for="tipStiffness">30,70×</output>
                             </span>
                             <span id="guidewireTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
                                 <span>standard</span>
                                 <span>sztywniejsza</span>
-                            </span>
-                        </label>
-                        <label class="guidewire-stiffness-control" for="guidewireRelaxation">
-                            <span class="guidewire-stiffness-heading">Szybkość relaksacji prowadnika</span>
-                            <span class="guidewire-stiffness-input-row">
-                                <input
-                                    id="guidewireRelaxation"
-                                    type="range"
-                                    min="1"
-                                    max="50"
-                                    step="0.5"
-                                    value="30"
-                                    data-value-decimals="2"
-                                    data-value-suffix="×"
-                                    aria-describedby="guidewireRelaxationRange"
-                                >
-                                <output id="guidewireRelaxationValue" for="guidewireRelaxation">30,00×</output>
-                            </span>
-                            <span id="guidewireRelaxationRange" class="guidewire-stiffness-range">
-                                <span>obecna</span>
-                                <span>szybsza</span>
-                                <span>najszybsza</span>
                             </span>
                         </label>
                         <div class="guidewire-manual-controls" role="group" aria-label="Sterowanie obrotem prowadnika">
@@ -297,16 +253,6 @@
                 </div>
                 <div class="guidewire-resistance-meter">
                     <div id="guidewireResistanceFill" class="guidewire-resistance-fill"></div>
-                </div>
-            </div>
-
-            <div class="control-section">
-                <div class="section-header"><span class="collapse-triangle">▼</span> Guidewire</div>
-                <div class="section-content compact-grid">
-                    <label class="parameter-label">Smoothing iterations
-                        <input id="smoothIterations" type="range" min="0" max="10" step="1" value="1">
-                        <span></span>
-                    </label>
                 </div>
             </div>
 
@@ -640,8 +586,11 @@
                     Gotowe do ustawienia
                 </output>
                 <div class="browser-benchmark-actions">
+                    <button id="runSoloCatheterBenchmark" type="button">Sam cewnik pełny cykl</button>
                     <button id="runGuidewireBenchmark" type="button">Prowadnik 28 s</button>
                     <button id="runGuidewireBenchmarkFull" type="button">Prowadnik 10 min</button>
+                    <button id="runDeepCatheterBenchmark" type="button">Cewnik 10–60 cm</button>
+                    <button id="runShortCatheterBenchmark" type="button">Cewnik 1/2/5 cm</button>
                     <button id="runBrowserBenchmarkSmoke" type="button">Start 35 s</button>
                     <button id="runBrowserBenchmarkFull" type="button">Start 10 min</button>
                     <button id="stopBrowserBenchmark" type="button" disabled>Stop</button>

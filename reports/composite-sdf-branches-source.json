@@ -1,0 +1,31 @@
+{
+  "scope": "Exactly two NEW files; no production integration, frozen helper edits, query changes or commits",
+  "files": {
+    "src/physics/kirchhoffCompositeWallSdfBranches.js": {
+      "before": null,
+      "after": "4346836ca63da0045abb878291a1f46ced1649c6637f5cec2a9dfda5dcd7ba0f"
+    },
+    "tests/kirchhoffCompositeWallSdfBranches.test.js": {
+      "before": null,
+      "after": "136c5adb449d3d25d5af5df5b8930b0b5e1a5305320122635836d418813d9eb8"
+    }
+  },
+  "patchSHA256": "dcf3b2f1e9c6b6d04c10b37cc0c2952c49c4ceeeb6cba73edb4904393b2b802b",
+  "validation": {
+    "newTests": 12,
+    "combinedWithFrozenWallGeometry": 24,
+    "failures": 0,
+    "stage": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-sdf-branches-test-q2pqytyp",
+    "rootApplyCheck": "passed",
+    "frozenDependenciesUnchanged": true
+  },
+  "dependencies": {
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8"
+  },
+  "diagnosisBundle": "/tmp/oet-composite-sdf-seam-diagnosis-final-8996",
+  "productionIntegration": false,
+  "apiSHA256": "72002d1aa3f686f81fd950f1eaf55e22389a2bbbfd66fa9470f7f2365d107933"
+}

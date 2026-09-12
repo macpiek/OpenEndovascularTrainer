@@ -1,0 +1,674 @@
+--- a/src/physics/kirchhoffSplitWallFriction.js
++++ b/src/physics/kirchhoffSplitWallFriction.js
+@@ -1,5 +1,6 @@
+ import { buildKirchhoffSurfaceFriction, evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
+ import { rotateVectorByQuaternion } from './discreteKirchhoffRod.js';
++import { prepareKirchhoffWallFrictionEntry, recordKirchhoffWallFrictionApplication } from './kirchhoffWallFrictionMode.js';
+ const XYZ=['X','Y','Z'];
+ const wallKinds=new Set(['wall','split-point-wall','split-sweep']);
+ function fixedWitness() {
+@@ -38,10 +39,8 @@
+     for(const normal of normalRows) {
+         if(!wallKinds.has(normal.kind))continue;
+         const side=normal.side,body=side?joint.outerBody:joint.innerBody;
+-        const mu=body.wallStaticFriction;
++        let mu=body.wallStaticFriction;
+         if(!(mu>0||body.wallKineticFriction>0))continue;
+-        if(mu!==body.wallKineticFriction&&!state.diagnostics.unverifiedHistoryKinds.includes('unequal-wall-static-kinetic'))
+-            state.diagnostics.unverifiedHistoryKinds.push('unequal-wall-static-kinetic');
+         const key=`${normal.kind}:${side}:${normal.node}`;
+         let contact=contacts.get(key);
+         if(!contact) {
+@@ -65,6 +64,9 @@
+             entry.wall[axis.toLowerCase()].fill(r.surfaceContactPoint[a]);entry.wall['previous'+axis].fill(r.surfaceContactPoint[a]);
+         }
+         entry.wall.z[1]+=1;entry.wall.previousZ[1]+=1;
++        entry.normalRow=normal;entry.side=side;
++        entry.normalIndex=normalRows.indexOf(normal);entry.baseNormalLambda=contact.normalLambda;
++        mu=prepareKirchhoffWallFrictionEntry(joint,entry);
+         Object.assign(entry.constraint,{innerBody:body,outerBody:entry.wall,axialFriction:mu,circumferentialFriction:mu,
+             surfaceMotion:{dt,bodies:[state.bodies[side],entry.wall]}});
+         const surface=buildKirchhoffSurfaceFriction(entry.constraint,r,dt,entry.surface);
+@@ -95,6 +97,8 @@
+         }
+     }
+     for(const e of batch.entries) {
++        recordKirchhoffWallFrictionApplication(e,scale*increments[e.normalIndex],
++            e.lambda.map((value,axis)=>value-e.rows[axis].lambda),scale);
+         e.contact.tangentLambda.set(e.lambda);e.contact.tangentU.set(e.surface.axes[0]);e.contact.tangentV.set(e.surface.axes[1]);
+     }
+     batch.committed=true;
+--- /dev/null
++++ b/src/physics/kirchhoffWallFrictionMode.js
+@@ -0,0 +1,269 @@
++import { rotateVectorByQuaternion } from './discreteKirchhoffRod.js';
++import { evaluateKirchhoffSurfaceFrictionKKT } from './kirchhoffSurfaceFriction.js';
++
++const XYZ = ['X', 'Y', 'Z'];
++const bodiesOf = joint => [joint.innerBody, joint.outerBody];
++const unequal = body => body.wallStaticFriction !== body.wallKineticFriction;
++const clone = value => structuredClone(value);
++const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
++const length = vector => Math.hypot(...vector);
++const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
++const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
++function frame(body, segment, inverse = false) {
++    return Object.fromEntries([...XYZ, 'W'].map(a => [a.toLowerCase(), body['orientation' + a][segment] * (inverse && a !== 'W' ? -1 : 1)]));
++}
++function rotated(q, vector) {
++    const result = rotateVectorByQuaternion(q, { x: vector[0], y: vector[1], z: vector[2] });
++    return [result.x, result.y, result.z];
++}
++function issue(joint, reason, detail = {}) {
++    const state = joint._splitMotion, controller = state?.wallFrictionModes;
++    if (state && !state.diagnostics.unverifiedHistoryKinds.includes(reason)) state.diagnostics.unverifiedHistoryKinds.push(reason);
++    if (controller && !controller.issues.some(item => item.reason === reason && item.key === detail.key))
++        controller.issues.push({ reason, ...detail });
++}
++function profileValid(body) {
++    return Number.isFinite(body.wallStaticFriction) && Number.isFinite(body.wallKineticFriction) &&
++        body.wallKineticFriction >= 0 && body.wallStaticFriction >= body.wallKineticFriction;
++}
++function motionSignature(motion, identity) {
++    const { segment, weights } = identity;
++    return [...weights.flatMap((weight, i) => weight ? XYZ.map(a => motion['velocity' + a][segment + i]) : []),
++        ...XYZ.map(a => motion['angularVelocity' + a][segment])];
++}
++
++/** Capture BEFORE force/damping prediction. Predicted velocity must not turn a
++ * resting contact under a sub-static applied force into a sliding contact.
++ * Equal-coefficient bodies need no controller and retain the original path. */
++export function captureKirchhoffWallFrictionIncoming(joint, world) {
++    if (!bodiesOf(joint).some(unequal)) return null;
++    return { dt: world.fixedDt, step: world.stepCount, bodies: bodiesOf(joint).map(body => {
++        const saved = { count: body.count, activeStart: body.activeStart, activeEnd: body.activeEnd };
++        for (const key of ['x', 'y', 'z', 'materialCoordinate', 'nodeRadius',
++            ...XYZ.flatMap(a => ['velocity' + a, 'angularVelocity' + a]), ...[...XYZ, 'W'].map(a => 'orientation' + a)])
++            saved[key] = body[key].slice();
++        return saved;
++    }) };
++}
++
++/** Root owns the physical-phase snapshot/restart. All mechanics/history below
++ * is owned by the joint, so the existing trial and whole-step transactions
++ * restore it. The caller must pass the existing linear solve tolerance in mm;
++ * there is deliberately no contactActivation/stiction-speed default. */
++export function initializeKirchhoffWallFrictionModes(joint, incoming, { displacementToleranceMm, coneTolerance = 1e-9 } = {}) {
++    if (!bodiesOf(joint).some(unequal)) return null;
++    const state = joint._splitMotion;
++    if (!state || state.phase !== 'physical' || !incoming || incoming.dt !== state.dt ||
++        incoming.bodies.some((body, side) => body.count !== bodiesOf(joint)[side].count))
++        throw new Error('Wall friction modes require matching pre-prediction motion and a physical phase');
++    if (!(Number.isFinite(displacementToleranceMm) && displacementToleranceMm > 0) ||
++        !(Number.isFinite(coneTolerance) && coneTolerance >= 0)) throw new RangeError('Explicit finite friction tolerances required');
++    const controller = state.wallFrictionModes = { incoming, dt: state.dt, step: state.step,
++        displacementToleranceMm, coneTolerance, records: new Map(), overrides: new Map(), issues: [],
++        attempt: 1, maximumAttempts: 1 + bodiesOf(joint).reduce((sum, body) => sum + body.segmentCount + 2 * body.count, 0),
++        committed: false, certificate: null };
++    for (const [side, body] of bodiesOf(joint).entries()) if (!profileValid(body)) issue(joint, 'wall-friction-invalid-profile', { side });
++    return controller;
++}
++
++/** A wall slot alone is not material contact identity. A loaded change in the
++ * foot, material labels, normal or collider feature needs mechanical release;
++ * this bounded controller guards it rather than transferring the old force.
++ * Tangential world-point motion on the SAME flat face is not a new identity. */
++function witness(entry, body) {
++    const record = entry.record, normal = entry.normalRow, segment = record._innerSegmentIndex;
++    const wall = normal.kind === 'wall' ? { branchId: body.wallBranchId[normal.node], faceIndex: body.wallFaceIndex[normal.node],
++        planeOffset: dot(record.normal, XYZ.map(a => body['wall' + a][normal.node])) } : normal.wallFrictionWitness;
++    return { kind: normal.kind, side: entry.side, node: normal.node, segment,
++        weights: [...record.innerWeights], material: [body.materialCoordinate[segment], body.materialCoordinate[segment + 1]],
++        radius: Math.max(body.nodeRadius[segment], body.nodeRadius[segment + 1]),
++        normal: [...record.normal], branch: wall?.branchId, face: wall?.faceIndex, plane: wall?.planeOffset };
++}
++function incomingSurfaceMotion(entry, incoming, body) {
++    const record = entry.record, segment = record._innerSegmentIndex;
++    const velocity = XYZ.map(a => record.innerWeights.reduce((sum, weight, i) => sum + weight * incoming['velocity' + a][segment + i], 0));
++    // The same material surface point at t_n: R_n R_current^T r_current.
++    const center = XYZ.map(a => record.innerWeights.reduce((sum, weight, i) => sum + weight * body[a.toLowerCase()][segment + i], 0));
++    const lever = record.surfaceContactPoint.map((value, i) => value - center[i]);
++    const startLever = rotated(frame(incoming, segment), rotated(frame(body, segment, true), lever));
++    const spin = cross(XYZ.map(a => incoming['angularVelocity' + a][segment]), startLever);
++    const result = velocity.map((value, i) => value + spin[i]), n = record.normal;
++    const normalMotion = dot(result, n) / dot(n, n);
++    return result.map((value, i) => value - normalMotion * n[i]);
++}
++
++/** Called only by the wall builder after constructing its shared-point
++ * geometry. It selects an exact profile coefficient, never a blended value. */
++export function prepareKirchhoffWallFrictionEntry(joint, entry) {
++    const body = bodiesOf(joint)[entry.side], state = joint._splitMotion, controller = state?.wallFrictionModes;
++    entry.modeRecord = null;
++    if (!unequal(body)) return body.wallStaticFriction;
++    if (!controller) { issue(joint, 'unequal-wall-static-kinetic'); return body.wallStaticFriction; }
++    if (!profileValid(body)) { issue(joint, 'wall-friction-invalid-profile', { side: entry.side }); return body.wallStaticFriction; }
++    const key = entry.contact.key, identity = witness(entry, body), incoming = controller.incoming.bodies[entry.side];
++    if (![...identity.weights, ...identity.material, identity.radius, ...identity.normal, identity.plane, identity.branch, identity.face].every(Number.isFinite))
++        issue(joint, 'wall-friction-witness-history-missing', { key });
++    if (identity.segment < incoming.activeStart || identity.segment + 1 > incoming.activeEnd ||
++        identity.material.some((value, i) => value !== incoming.materialCoordinate[identity.segment + i]) ||
++        identity.radius !== Math.max(incoming.nodeRadius[identity.segment], incoming.nodeRadius[identity.segment + 1]))
++        issue(joint, 'wall-friction-incoming-material-changed', { key });
++    let record = controller.records.get(key);
++    if (record && !same(record.identity, identity)) {
++        if (record.maximumReaction > 0 || entry.contact.normalLambda !== 0 || entry.contact.tangentLambda.some(value => value !== 0))
++            issue(joint, 'wall-friction-loaded-witness-changed', { key, before: record.identity, after: identity });
++        else record = null;
++    }
++    if (!record) {
++        const old = joint._wallFrictionHistory?.records.get(key), signature = motionSignature(incoming, identity);
++        const priorStop = old?.stopped && same(old.identity, identity) && same(old.motionSignature, signature);
++        const startMotion = incomingSurfaceMotion(entry, incoming, body);
++        let mode = priorStop || startMotion.every(value => value === 0) ? 'stick' : 'slide';
++        const override = controller.overrides.get(key);
++        if (override) {
++            if (!same(override.identity, identity)) issue(joint, 'wall-friction-retry-witness-changed', { key });
++            mode = 'slide';
++        }
++        record = { key, identity, mode, startMotion, incomingCertificate: priorStop ? 'committed-stop' :
++            startMotion.every(value => value === 0) ? 'exact-zero' : 'nonzero-incoming',
++            muStatic: body.wallStaticFriction, muKinetic: body.wallKineticFriction, maximumReaction: 0,
++            appliedCount: 0, lastAppliedScale: 0, lastNormalIncrement: 0, lastTangentIncrement: [0, 0] };
++        controller.records.set(key, record);
++    }
++    if (record.muStatic !== body.wallStaticFriction || record.muKinetic !== body.wallKineticFriction)
++        issue(joint, 'wall-friction-profile-changed', { key });
++    entry.modeRecord = record;
++    return record.mode === 'stick' ? record.muStatic : record.muKinetic;
++}
++
++/** Applied history is recorded before any later collector can erase a load.
++ * Rejected scales are restored by the same snapshot as lambda and velocity. */
++export function recordKirchhoffWallFrictionApplication(entry, normalIncrement, tangentIncrement, scale) {
++    const record = entry.modeRecord;
++    if (!record) return;
++    const values = [entry.baseNormalLambda, entry.contact.normalLambda, normalIncrement,
++        ...entry.rows.map(row => row.lambda), ...entry.lambda, ...tangentIncrement];
++    if (!values.every(Number.isFinite)) throw new RangeError('Nonfinite wall friction reaction history');
++    record.maximumReaction = Math.max(record.maximumReaction, ...values.map(Math.abs));
++    record.appliedCount++;
++    record.lastAppliedScale = scale; record.lastNormalIncrement = normalIncrement; record.lastTangentIncrement = [...tangentIncrement];
++}
++
++function actualContact(joint, entry) {
++    const motion = joint._splitMotion.bodies[entry.side], r = entry.record, segment = r._innerSegmentIndex;
++    const velocity = XYZ.map(a => r.innerWeights.reduce((sum, weight, i) => sum + weight * motion['velocity' + a][segment + i], 0));
++    const spin = cross(XYZ.map(a => motion['angularVelocity' + a][segment]), entry.surface.levers[0]);
++    const u = velocity.map((value, i) => value + spin[i]);
++    const worldLambda = XYZ.map((_, i) => entry.contact.tangentU[i] * entry.contact.tangentLambda[0] + entry.contact.tangentV[i] * entry.contact.tangentLambda[1]);
++    return { displacement: entry.surface.axes.map(axis => joint._splitMotion.dt * dot(axis, u)),
++        lambda: entry.surface.axes.map(axis => dot(axis, worldLambda)), normalLambda: entry.contact.normalLambda };
++}
++
++function evaluate(joint, batch, converged, final) {
++    const state = joint._splitMotion, controller = state?.wallFrictionModes;
++    const base = { status: 'accepted', accepted: true, restart: false, step: state?.step, dt: state?.dt, contacts: [], issues: [] };
++    if (!controller) {
++        if (batch?.entries.some(entry => unequal(bodiesOf(joint)[entry.side]))) {
++            issue(joint, 'unequal-wall-static-kinetic'); return { ...base, status: 'unsupported', accepted: false, issues: ['unequal-wall-static-kinetic'] };
++        }
++        return base;
++    }
++    Object.assign(base, { attempt: controller.attempt, maximumAttempts: controller.maximumAttempts });
++    if (!converged) return { ...base, status: 'unconverged', accepted: false };
++    if (!batch || batch.joint !== joint) return { ...base, status: 'unsupported', accepted: false, issues: ['wall-friction-fresh-batch-missing'] };
++    if (controller.issues.length) return { ...base, status: 'unsupported', accepted: false, issues: clone(controller.issues) };
++    const overrides = new Map(controller.overrides), seen = new Set();
++    let ambiguous = false, unresolved = false;
++    for (const entry of batch.entries) {
++        if (!unequal(bodiesOf(joint)[entry.side])) continue;
++        const record = entry.modeRecord;
++        if (!record || controller.records.get(record.key) !== record) {
++            issue(joint, 'wall-friction-mode-history-missing', { key: entry.contact.key }); continue;
++        }
++        seen.add(record.key);
++        const { displacement, lambda, normalLambda } = actualContact(joint, entry);
++        const mu = record.mode === 'stick' ? record.muStatic : record.muKinetic;
++        const residual = evaluateKirchhoffSurfaceFrictionKKT(lambda, displacement, normalLambda, [mu, mu]);
++        const radius = mu * normalLambda, slip = length(displacement), force = length(lambda);
++        const interior = radius > 0 && force < radius * (1 - controller.coneTolerance);
++        const valid = residual.residualMm <= controller.displacementToleranceMm && residual.coneViolation <= controller.coneTolerance;
++        const stopped = normalLambda > 0 && valid && (slip === 0 || interior && slip <= controller.displacementToleranceMm);
++        const evidence = { key: record.key, identity: clone(record.identity), mode: record.mode,
++            muStatic: record.muStatic, muKinetic: record.muKinetic, muApplied: mu,
++            normalLambda, lambda, displacement, residualMm: residual.residualMm, coneViolation: residual.coneViolation,
++            stopped, stopCertificate: stopped ? (slip === 0 ? 'exact-zero' : 'interior-cone-and-solver-residual') : null,
++            maximumReaction: record.maximumReaction };
++        base.contacts.push(evidence);
++        if (!valid) { unresolved = true; continue; }
++        if (normalLambda === 0) continue;
++        if (record.mode === 'stick' && !stopped) {
++            // A shifted/refined solve may leave a tiny force deficit inside
++            // the disk while satisfying the continuous KKT. Resolved slip
++            // still proves breakaway; relative force distance cannot veto it.
++            if (slip > controller.displacementToleranceMm)
++                overrides.set(record.key, { key: record.key, identity: clone(record.identity), mode: 'slide' });
++            else ambiguous = true;
++        } else if (record.mode === 'slide' && !stopped && radius > 0 && slip <= controller.displacementToleranceMm)
++            ambiguous = true;
++    }
++    for (const record of controller.records.values()) if (!seen.has(record.key) && record.maximumReaction > 0)
++        issue(joint, 'wall-friction-loaded-witness-missing', { key: record.key });
++    if (controller.issues.length) return { ...base, status: 'unsupported', accepted: false, issues: clone(controller.issues) };
++    if (unresolved) return { ...base, status: 'unconverged', accepted: false };
++    if (ambiguous) return { ...base, status: 'ambiguous', accepted: false, issues: ['wall-friction-mode-ambiguous'] };
++    if (overrides.size > controller.overrides.size) return { ...base, status: final ? 'unsupported' : 'restart',
++        accepted: false, restart: !final, overrides: [...overrides.values()], attempt: controller.attempt + 1,
++        issues: final ? ['wall-friction-static-slip-final'] : [] };
++    return base;
++}
++
++/** Call only after a fresh, converged WHOLE physical closure. A failed linear
++ * or nonlinear solve is never evidence of static breakaway. Returned restart
++ * plans own all values and survive restoring the physical-phase snapshot. */
++export function evaluateKirchhoffWallFrictionCandidate(joint, freshWallBatch, { converged = false } = {}) {
++    return evaluate(joint, freshWallBatch, converged, false);
++}
++
++/** AFTER root restores the same phase base, reinstall all monotone demotions.
++ * Trials never clip old static multipliers or apply a second force kick. */
++export function prepareKirchhoffWallFrictionRetry(joint, decision) {
++    const controller = joint._splitMotion?.wallFrictionModes;
++    if (!controller || decision.status !== 'restart' || decision.step !== controller.step || decision.dt !== controller.dt ||
++        !Number.isInteger(decision.attempt) || decision.attempt < 2 || decision.attempt > controller.maximumAttempts ||
++        decision.overrides.length < decision.attempt - 1 || new Set(decision.overrides.map(item => item.key)).size !== decision.overrides.length)
++        throw new Error('Invalid or exhausted wall-friction restart');
++    controller.overrides = new Map(decision.overrides.map(item => [item.key, clone(item)]));
++    controller.attempt = decision.attempt; controller.certificate = null;
++    for (const record of controller.records.values()) {
++        const override = controller.overrides.get(record.key);
++        if (!override) continue;
++        if (!same(override.identity, record.identity)) issue(joint, 'wall-friction-retry-witness-changed', { key: record.key });
++        record.mode = 'slide';
++    }
++    return controller;
++}
++
++export function certifyKirchhoffWallFrictionModes(joint, freshWallBatch, { converged = false } = {}) {
++    const result = evaluate(joint, freshWallBatch, converged, true), controller = joint._splitMotion?.wallFrictionModes;
++    if (controller) controller.certificate = result;
++    if (!result.accepted) for (const item of result.issues.length ? result.issues : ['wall-friction-final-unconverged'])
++        issue(joint, typeof item === 'string' ? item : item.reason, typeof item === 'string' ? {} : item);
++    return result;
++}
++
++/** Call inside the accepted final split commit. This persists mode evidence,
++ * never a normal/tangent multiplier. Whole-step rollback owns this map too. */
++export function commitKirchhoffWallFrictionHistory(joint, certificate) {
++    const state = joint._splitMotion, controller = state?.wallFrictionModes;
++    if (!controller) return false;
++    if (state.phase !== 'complete' || !state.diagnostics.certified || controller.committed ||
++        certificate !== controller.certificate || !certificate.accepted || certificate.step !== state.step)
++        throw new Error('Wall-friction history requires one accepted fresh final certificate');
++    const records = new Map();
++    for (const contact of certificate.contacts) if (contact.normalLambda > 0) records.set(contact.key, {
++        identity: clone(contact.identity), mode: contact.stopped ? 'stick' : 'slide', stopped: contact.stopped,
++        stopCertificate: contact.stopCertificate, motionSignature: motionSignature(bodiesOf(joint)[contact.identity.side], contact.identity)
++    });
++    joint._wallFrictionHistory = { step: state.step, dt: state.dt, records };
++    controller.committed = true;
++    return true;
++}
+--- /dev/null
++++ b/tests/kirchhoffWallFrictionMode.test.js
+@@ -0,0 +1,165 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { fixture, begin, build, solveAttempt, retry, step, DT, TOL } from './fixtures/wallFrictionModeHarness.js';
++import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../src/physics/kirchhoffCoupledTrialState.js';
++import { captureKirchhoffWallFrictionIncoming, evaluateKirchhoffWallFrictionCandidate,
++    certifyKirchhoffWallFrictionModes, commitKirchhoffWallFrictionHistory, prepareKirchhoffWallFrictionRetry } from '../src/physics/kirchhoffWallFrictionMode.js';
++
++const near = (a, b, text) => assert.ok(Number.isFinite(a) && Math.abs(a - b) < 1e-8, `${text}: ${a} vs ${b}`);
++const impulse = trial => trial.certificate.contacts[0].lambda[0] / DT;
++
++test('rest under drive between kinetic and static budgets stays stuck across accepted steps', () => {
++    const f = fixture();
++    for (let i = 0; i < 3; i++) {
++        const t = step(f, { drive: .4 });
++        assert.equal(t.certificate.accepted, true); assert.equal(f.attempts.length, 1);
++        near(impulse(t), -.4, 'static impulse'); near(f.joint.innerBody.velocityZ[0], 0, 'static velocity');
++        assert.equal(t.certificate.contacts[0].stopped, true);
++        assert.equal(f.joint._wallFrictionHistory.records.get('wall:0:0').mode, 'stick');
++    }
++});
++
++test('breakaway rolls back the entire static candidate and applies only the kinetic branch impulse', () => {
++    const f = fixture(), t = step(f, { drive: .8 });
++    assert.equal(t.certificate.accepted, true); assert.deepEqual(f.attempts.map(a => a.mode), ['stick', 'slide']);
++    assert.equal(f.attempts[0].decision.status, 'restart');
++    near(f.attempts[0].delta[1] / DT, -.6, 'discarded static impulse');
++    near(impulse(t), -.2, 'accepted kinetic impulse'); near(f.joint.innerBody.velocityZ[0], .6, 'accepted velocity');
++    assert.equal(f.joint._splitMotion.wallFrictionModes.records.get('wall:0:0').appliedCount, 1);
++});
++
++test('existing sliding uses the kinetic budget even where the static cone could stop it', () => {
++    const f = fixture(); f.joint.innerBody.velocityZ[0] = .1;
++    const t = step(f, { drive: .3 });
++    assert.equal(f.attempts.length, 1); near(impulse(t), -.2, 'kinetic impulse'); near(f.joint.innerBody.velocityZ[0], .2, 'continued slip');
++});
++
++test('steady sliding is invariant to static coefficient and dissipates its predicted kinetic energy', () => {
++    for (const muStatic of [.3, .6, .9]) {
++        const f = fixture(muStatic, .2); f.joint.innerBody.velocityZ[0] = 1;
++        const t = step(f, { drive: .2 }); near(impulse(t), -.2, 'kinetic impulse'); near(f.joint.innerBody.velocityZ[0], 1, 'steady velocity');
++        const p = impulse(t), u = f.joint.innerBody.velocityZ[0];
++        near(.5 * (u * u - 1.2 ** 2), p * u - .5 * p * p, 'discrete work identity');
++        assert.ok(p * u <= 0);
++    }
++});
++
++test('stopping does not reverse velocity; next-step reversal first sticks then breaks away in the opposite direction', () => {
++    const f = fixture(); f.joint.innerBody.velocityZ[0] = .1;
++    let t = step(f); near(impulse(t), -.1, 'capture impulse'); near(f.joint.innerBody.velocityZ[0], 0, 'capture velocity');
++    assert.equal(t.certificate.contacts[0].stopped, true);
++    t = step(f, { drive: -.4 }); near(impulse(t), .4, 'reverse static reaction'); near(f.joint.innerBody.velocityZ[0], 0, 'reverse held velocity');
++    t = step(f, { drive: -.8 }); near(impulse(t), .2, 'reverse kinetic reaction'); near(f.joint.innerBody.velocityZ[0], -.6, 'reverse sliding');
++});
++
++test('strong reversal in one dt follows the explicit post-prediction kinetic law and dissipates energy', () => {
++    const f = fixture(); f.joint.innerBody.velocityZ[0] = .1;
++    const t = step(f, { drive: -.5 }); near(impulse(t), .2, 'reverse impulse'); near(f.joint.innerBody.velocityZ[0], -.2, 'reverse speed');
++    assert.ok(.5 * f.joint.innerBody.velocityZ[0] ** 2 < .5 * .4 ** 2);
++});
++
++test('zero physical normal load releases all friction regardless of positive static coefficient', () => {
++    const f = fixture(); step(f, { drive: .4 });
++    const t = step(f, { drive: .3, normalImpulse: 0 });
++    assert.equal(t.certificate.accepted, true); near(impulse(t), 0, 'unloaded impulse'); near(f.joint.innerBody.velocityZ[0], .3, 'free motion');
++    assert.equal(f.joint._wallFrictionHistory.records.size, 0);
++});
++
++test('zero kinetic coefficient still permits static holding and gives zero friction during sliding', () => {
++    const f = fixture(.6, 0); let t = step(f, { drive: .4 }); near(impulse(t), -.4, 'static hold');
++    t = step(f, { drive: .8 }); near(impulse(t), 0, 'frictionless breakaway'); near(f.joint.innerBody.velocityZ[0], .8, 'free slide');
++});
++
++test('standalone unequal builder retains the guard; equal coefficients need no controller', () => {
++    const f = fixture(); begin(f, { initialize: false }); build(f);
++    assert.ok(f.joint._splitMotion.diagnostics.unverifiedHistoryKinds.includes('unequal-wall-static-kinetic'));
++    const equal = fixture(.2, .2); assert.equal(captureKirchhoffWallFrictionIncoming(equal.joint, equal.world), null);
++    begin(equal); const b = build(equal).batch;
++    assert.equal(equal.joint._splitMotion.wallFrictionModes, undefined); assert.deepEqual([...b.groups[0].mu], [.2, .2]);
++    assert.equal(equal.joint._splitMotion.diagnostics.unverifiedHistoryKinds.length, 0);
++});
++
++test('small nonzero static-boundary slip is ambiguous, and solver failure never causes a retry', () => {
++    const f = fixture(); begin(f, { drive: .8 }); const t = solveAttempt(f);
++    const entry = t.fresh.entries[0];
++    f.joint._splitMotion.bodies[0].velocityZ[0] = TOL / (2 * DT);
++    const d = evaluateKirchhoffWallFrictionCandidate(f.joint, t.fresh, { converged: true });
++    assert.equal(d.status, 'ambiguous'); assert.equal(d.restart, false);
++    assert.equal(evaluateKirchhoffWallFrictionCandidate(f.joint, t.fresh, { converged: false }).status, 'unconverged');
++    f.joint._splitMotion.phase = 'complete';
++    assert.equal(certifyKirchhoffWallFrictionModes(f.joint, t.fresh, { converged: true }).status, 'ambiguous');
++    assert.ok(f.joint._splitMotion.diagnostics.unverifiedHistoryKinds.includes('wall-friction-mode-ambiguous'));
++    assert.equal(entry.modeRecord.mode, 'stick');
++});
++
++test('resolved slip with valid KKT proves breakaway despite a small numerical interior force offset', () => {
++    const f = fixture(); begin(f, { drive: .8 }); const t = solveAttempt(f);
++    const contact = t.fresh.entries[0].contact;
++    contact.tangentLambda[0] *= 1 - 3e-8;
++    const d = evaluateKirchhoffWallFrictionCandidate(f.joint, t.fresh, { converged: true });
++    const c = d.contacts[0];
++    assert.ok(Math.hypot(...c.lambda) < c.muStatic * c.normalLambda * (1 - 1e-9), 'force lies numerically inside static cone');
++    assert.ok(Math.hypot(...c.displacement) > TOL && c.residualMm <= TOL, 'resolved sliding with accepted native KKT');
++    assert.equal(d.status, 'restart'); assert.equal(d.overrides[0].mode, 'slide');
++});
++
++test('applied half-scale reaction journal and phase mode restore with rejected trial identity', () => {
++    const f = fixture(); begin(f, { drive: .4 }); build(f);
++    const state = f.joint._splitMotion, record = state.wallFrictionModes.records.get('wall:0:0'), velocity = state.bodies[0].velocityZ;
++    const snapshot = captureKirchhoffCoupledTrialState(f.joint, { reusePropertyLayout: true, frozenFrictionBatches: true });
++    const t = solveAttempt(f, { scale: .5 });
++    near(record.lastTangentIncrement[0], .5 * t.result.increment[1], 'actual scaled delta');
++    assert.ok(record.maximumReaction > 0);
++    record.mode = 'slide'; restoreKirchhoffCoupledTrialState(snapshot);
++    assert.equal(f.joint._splitMotion, state); assert.equal(state.wallFrictionModes.records.get(record.key), record);
++    assert.equal(record.maximumReaction, 0); assert.equal(record.mode, 'stick'); assert.equal(state.bodies[0].velocityZ, velocity);
++    near(velocity[0], .4, 'restored prediction');
++});
++
++test('loaded foot migration remains guarded even after current reaction arrays are erased', () => {
++    const f = fixture(); begin(f, { drive: .4 }); solveAttempt(f);
++    f.joint.innerBody.wallLambda.fill(0);
++    for (const contact of f.joint._splitMotion.wallFrictionContacts.values()) contact.tangentLambda.fill(0);
++    f.joint.innerBody.wallT[0] = 1;
++    const fresh = build(f).batch, d = evaluateKirchhoffWallFrictionCandidate(f.joint, fresh, { converged: true });
++    assert.equal(d.status, 'unsupported'); assert.ok(f.joint._splitMotion.diagnostics.unverifiedHistoryKinds.includes('wall-friction-loaded-witness-changed'));
++});
++
++test('retry plan owns its witness and rejects unbounded attempts', () => {
++    const f = fixture(); begin(f, { drive: .8 }); const t = solveAttempt(f), original = t.decision.overrides[0].identity.weights[0];
++    t.fresh.entries[0].modeRecord.identity.weights[0] = .5;
++    assert.equal(t.decision.overrides[0].identity.weights[0], original);
++    retry(f, t.decision); assert.equal(f.joint._splitMotion.wallFrictionModes.attempt, 2);
++    assert.throws(() => prepareKirchhoffWallFrictionRetry(f.joint, { ...t.decision, attempt: 1000 }), /Invalid or exhausted/);
++});
++
++test('history commit is once-only and a whole-step rollback restores the prior history map', () => {
++    const f = fixture(); step(f, { drive: .4 }); const old = f.joint._wallFrictionHistory;
++    const snapshot = captureKirchhoffCoupledTrialState(f.joint);
++    const t = step(f, { drive: .8 }); assert.notEqual(f.joint._wallFrictionHistory, old);
++    assert.throws(() => commitKirchhoffWallFrictionHistory(f.joint, t.certificate), /one accepted/);
++    restoreKirchhoffCoupledTrialState(snapshot); assert.equal(f.joint._wallFrictionHistory, old);
++    assert.equal(old.records.get('wall:0:0').mode, 'stick');
++});
++
++test('externally changed incoming velocity invalidates a prior stop certificate', () => {
++    const f = fixture(); step(f, { drive: .4 }); f.joint.innerBody.velocityZ[0] = .1;
++    const t = step(f, { drive: .3 }); assert.equal(f.attempts[0].mode, 'slide'); near(impulse(t), -.2, 'kinetic after edited input');
++});
++
++test('material relabeling after incoming capture cannot borrow the old physical velocity history', () => {
++    const f = fixture(); begin(f, { drive: .4 }); f.joint.innerBody.materialCoordinate[0] = 10;
++    const fresh = build(f).batch;
++    assert.equal(evaluateKirchhoffWallFrictionCandidate(f.joint, fresh, { converged: true }).status, 'unsupported');
++    assert.ok(f.joint._splitMotion.diagnostics.unverifiedHistoryKinds.includes('wall-friction-incoming-material-changed'));
++});
++
++test('a rejected final certificate cannot publish candidate mode history', () => {
++    const f = fixture(); step(f, { drive: .4 }); const history = f.joint._wallFrictionHistory;
++    begin(f, { drive: .8 }); const t = solveAttempt(f);
++    f.joint._splitMotion.phase = 'complete';
++    const certificate = certifyKirchhoffWallFrictionModes(f.joint, t.fresh, { converged: true });
++    assert.equal(certificate.accepted, false); assert.equal(certificate.restart, false);
++    assert.throws(() => commitKirchhoffWallFrictionHistory(f.joint, certificate), /one accepted/);
++    assert.equal(f.joint._wallFrictionHistory, history);
++});
+--- /dev/null
++++ b/tests/kirchhoffWallFrictionModeWrench.test.js
+@@ -0,0 +1,93 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { Vector3, Quaternion } from 'three';
++import { EndovascularPhysicsWorld } from '../src/physics/endovascularPhysicsWorld.js';
++import { solveKirchhoffCoupledSystem, applyKirchhoffCoupledCorrection } from '../src/physics/kirchhoffCoupledSystem.js';
++import { beginKirchhoffSplitMotion, prepareKirchhoffSplitBoundaryRows, applyKirchhoffSplitPhysicalIncrement } from '../src/physics/kirchhoffSplitMotion.js';
++import { captureKirchhoffWallFrictionIncoming, initializeKirchhoffWallFrictionModes, evaluateKirchhoffWallFrictionCandidate } from '../src/physics/kirchhoffWallFrictionMode.js';
++import { buildKirchhoffSplitWallFriction, appendKirchhoffSplitWallFriction, commitKirchhoffSplitWallFriction } from '../src/physics/kirchhoffSplitWallFriction.js';
++
++const DT = 1 / 120, XYZ = ['X', 'Y', 'Z'], xyz = ['x', 'y', 'z'];
++const near = (a, b, tolerance, message) => assert.ok(Number.isFinite(a) && Math.abs(a - b) <= tolerance, `${message}: ${a} vs ${b}`);
++const point = (body, i) => new Vector3(...xyz.map(a => body[a][i]));
++const frame = (body, i) => new Quaternion(...[...XYZ, 'W'].map(a => body['orientation' + a][i])).normalize();
++
++test('unequal kinetic wall rows keep the native full-rod surface impulse and radius moment with free angular DOFs', t => {
++    const world = new EndovascularPhysicsWorld({ fixedDt: DT, jointMotionMode: 'split-physical-bias' });
++    const profile = { radius: .5, mass: 1, inverseAngularInertia: 1, adaptationCompliance: 0,
++        kirchhoffBendCompliance: 0, kirchhoffTwistCompliance: 0, foldLimitStrength: 0,
++        linearDamping: 1, angularDamping: 1, wallStaticFriction: .6, wallKineticFriction: .2 };
++    const wire = world.createRod('free-frame-wall-witness', 2, .5, profile);
++    const catheter = world.createRod('remote-supported-catheter', 3, 1, { ...profile, wallStaticFriction: 0, wallKineticFriction: 0 });
++    for (let i = 0; i < wire.count; i++) wire.setNodePosition(i, 1.25 + .5 * i, -.5, 0);
++    for (let i = 0; i < catheter.count; i++) catheter.setNodePosition(i, i - 1, -4, 0);
++    catheter.inverseMass.fill(0); for (let a = 1; a <= 3; a++) catheter['inverseInertia' + a].fill(0);
++    const joint = world.addContainment(wire, catheter, { innerRadius: 100, openDistal: false, openProximal: false,
++        axialFriction: 0, torsionalFriction: 0, radialVelocityDamping: 0, coupledBendingRateDamping: 0 });
++    wire.copyCurrentToPrevious(); catheter.copyCurrentToPrevious();
++    wire.velocityX.fill(4); wire.velocityY.fill(1); wire.velocityZ.fill(2);
++    const incoming = captureKirchhoffWallFrictionIncoming(joint, world);
++    for (const a of XYZ) for (let i = 0; i < wire.count; i++) wire[a.toLowerCase()][i] += DT * wire['velocity' + a][i];
++    beginKirchhoffSplitMotion(joint, world);
++    initializeKirchhoffWallFrictionModes(joint, incoming, { displacementToleranceMm: 1e-8 });
++    joint.kirchhoffContacts.length = 0;
++    // Two endpoint witnesses on the analytic y=0 plane. No production force
++    // Jacobian supplies the expected surface points or resultant wrench.
++    const normalRows = [0, 1].map(node => ({ kind: 'split-point-wall', side: 0, node, owner: wire,
++        lambda: 0, alpha: 0, strain: -wire.y[node] - .5, lower: 0, upper: Infinity, normal: [0, -1, 0],
++        gradients: [{ side: 0, dof: node * 6 + 1, value: -1 }],
++        wallFrictionWitness: { branchId: 0, faceIndex: 0, planeOffset: 0 } }));
++    prepareKirchhoffSplitBoundaryRows(joint, normalRows);
++    const rows = [...normalRows], groups = [], batch = buildKirchhoffSplitWallFriction(joint, rows, DT);
++    appendKirchhoffSplitWallFriction(batch, rows, groups);
++    assert.ok(batch.entries.every(e => e.modeRecord.mode === 'slide'));
++    assert.ok(batch.groups.every(g => [...g.mu].every(mu => mu === .2)));
++    const result = solveKirchhoffCoupledSystem(joint, DT, { additionalRows: rows, groups, resolveNormalLoads: true,
++        activeCondensation: true, simultaneousCoulomb: true, tolerance: 1e-8, numericalShift: 1e-8 });
++    assert.equal(result.diagnostics.converged, true, JSON.stringify(result.diagnostics));
++    const expectedForce = new Vector3(), expectedMoment = new Vector3(), radialMoment = new Vector3();
++    const factor = result.scale / DT;
++    for (let i = 0; i < normalRows.length; i++) {
++        const p = point(wire, i).add(new Vector3(0, .5, 0));
++        const force = new Vector3(0, -factor * result.additionalIncrement[i], 0);
++        const e = batch.entries[i];
++        for (let axis = 0; axis < 2; axis++) {
++            const tangent = new Vector3(...e.surface.axes[axis]).multiplyScalar(factor * result.additionalIncrement[batch.rowOffset + e.rowStart + axis]);
++            force.add(tangent); radialMoment.add(new Vector3(0, .5, 0).cross(tangent));
++        }
++        expectedForce.add(force); expectedMoment.add(p.clone().cross(force));
++    }
++    const actualForce = new Vector3(), actualMoment = new Vector3();
++    for (const [body, response] of [[wire, result.inner], [catheter, result.outer]]) {
++        for (let node = body.activeStart; node <= body.activeEnd; node++) {
++            if (body.inverseMass[node] > 0) {
++                const impulse = new Vector3(...[0, 1, 2].map(a => factor * response.correction[node * 6 + a] / body.inverseMass[node]));
++                actualForce.add(impulse); actualMoment.add(point(body, node).cross(impulse));
++            }
++            if (node < body.activeEnd) {
++                const local = new Vector3(...[0, 1, 2].map(a => body['inverseInertia' + (a + 1)][node] > 0 ?
++                    factor * response.correction[node * 6 + 3 + a] / body['inverseInertia' + (a + 1)][node] : 0));
++                actualMoment.add(local.applyQuaternion(frame(body, node)));
++            }
++        }
++    }
++    for (const a of xyz) {
++        near(actualForce[a], expectedForce[a], 1e-9, 'total linear impulse ' + a);
++        near(actualMoment[a], expectedMoment[a], 1e-9, 'total angular impulse ' + a);
++    }
++    assert.ok(radialMoment.length() > .01, 'nonzero radius torque must be exercised');
++    applyKirchhoffSplitPhysicalIncrement(joint, result); applyKirchhoffCoupledCorrection(joint, result);
++    for (let i = 0; i < normalRows.length; i++) normalRows[i].lambda += result.scale * result.additionalIncrement[i];
++    commitKirchhoffSplitWallFriction(batch, result.additionalIncrement, result.scale);
++    const fresh = buildKirchhoffSplitWallFriction(joint, normalRows, DT);
++    const decision = evaluateKirchhoffWallFrictionCandidate(joint, fresh, { converged: true });
++    assert.equal(decision.accepted, true, JSON.stringify(decision));
++    assert.ok(joint._splitMotion.bodies[0].angularVelocityX.some(value => Math.abs(value) > .001), 'actual physical angular response');
++    for (const c of decision.contacts) {
++        near(Math.hypot(...c.lambda), .2 * c.normalLambda, 1e-9, 'kinetic boundary');
++        assert.ok(c.lambda.reduce((sum, value, i) => sum + value * c.displacement[i], 0) <= 0, 'friction opposes the physical surface slip');
++    }
++    t.diagnostic(JSON.stringify({ expectedForce: expectedForce.toArray(), actualForce: actualForce.toArray(),
++        expectedMoment: expectedMoment.toArray(), actualMoment: actualMoment.toArray(), radialMoment: radialMoment.toArray(),
++        contacts: decision.contacts.map(c => ({ muApplied: c.muApplied, residualMm: c.residualMm, coneViolation: c.coneViolation })) }));
++});
+--- /dev/null
++++ b/tests/fixtures/wallFrictionModeHarness.js
+@@ -0,0 +1,95 @@
++import { captureKirchhoffWallFrictionIncoming, initializeKirchhoffWallFrictionModes,
++    evaluateKirchhoffWallFrictionCandidate, prepareKirchhoffWallFrictionRetry,
++    certifyKirchhoffWallFrictionModes, commitKirchhoffWallFrictionHistory } from '../../src/physics/kirchhoffWallFrictionMode.js';
++import { buildKirchhoffSplitWallFriction, appendKirchhoffSplitWallFriction, commitKirchhoffSplitWallFriction } from '../../src/physics/kirchhoffSplitWallFriction.js';
++import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../../src/physics/kirchhoffCoupledTrialState.js';
++import { solveCoupledLoadQP } from '../../src/physics/kirchhoffCoupledLoadSolver.js';
++
++export const DT = 1 / 120, TOL = 1e-10;
++const XYZ = ['X', 'Y', 'Z'];
++export function body(muStatic = .6, muKinetic = .2) {
++    const b = { count: 2, segmentCount: 1, activeStart: 0, activeEnd: 1,
++        wallStaticFriction: muStatic, wallKineticFriction: muKinetic, orientationControlSegment: -1,
++        nodeRadius: new Float64Array([.5, .5]), materialCoordinate: new Float64Array([0, 1]),
++        inverseMass: new Float64Array([1, 0]), wallLambda: new Float64Array(1), wallT: new Float64Array(1),
++        wallBranchId: new Int32Array([0]), wallFaceIndex: new Int32Array([0]) };
++    for (const a of XYZ) {
++        for (const key of [a.toLowerCase(), 'previous' + a, 'velocity' + a, 'angularVelocity' + a]) b[key] = new Float64Array(2);
++        b['wall' + a] = new Float64Array(1); b['wallNormal' + a] = new Float64Array([a === 'Y' ? -1 : 0]);
++    }
++    for (const a of [...XYZ, 'W']) for (const p of ['orientation', 'previousOrientation']) b[p + a] = new Float64Array([a === 'W' ? 1 : 0]);
++    for (let a = 1; a <= 3; a++) b['inverseInertia' + a] = new Float64Array(1);
++    b.y.fill(-.5); b.previousY.fill(-.5); b.z[1] = b.previousZ[1] = 1;
++    return b;
++}
++export function fixture(muStatic = .6, muKinetic = .2) {
++    return { joint: { innerBody: body(muStatic, muKinetic), outerBody: body(0, 0) }, world: { fixedDt: DT, stepCount: 0 }, attempts: [] };
++}
++export function begin(f, { drive = 0, normalImpulse = 1, initialize = true } = {}) {
++    const { joint, world } = f, incoming = captureKirchhoffWallFrictionIncoming(joint, world);
++    f.normalImpulse = normalImpulse; f.free = joint.innerBody.velocityZ[0] + drive;
++    joint.innerBody.wallLambda.fill(0);
++    joint._splitMotion = { phase: 'physical', step: world.stepCount, dt: DT,
++        diagnostics: { unverifiedHistoryKinds: [], certified: false },
++        bodies: [joint.innerBody, joint.outerBody].map(b => Object.fromEntries(XYZ.flatMap(a =>
++            [['velocity' + a, b['velocity' + a].slice()], ['angularVelocity' + a, b['angularVelocity' + a].slice()]]))) };
++    joint._splitMotion.bodies[0].velocityZ[0] = f.free;
++    joint._splitMotion.bodies[0].velocityY[0] = normalImpulse;
++    if (initialize) initializeKirchhoffWallFrictionModes(joint, incoming, { displacementToleranceMm: TOL });
++    f.snapshot = captureKirchhoffCoupledTrialState(joint, { reusePropertyLayout: true, frozenFrictionBatches: true });
++    return incoming;
++}
++export function build(f) {
++    const normal = { kind: 'wall', side: 0, node: 0, owner: f.joint.innerBody, lambda: f.joint.innerBody.wallLambda[0],
++        alpha: 0, strain: -DT * f.normalImpulse, lower: 0, upper: Infinity,
++        gradients: [{ side: 0, dof: 1, value: -1 }] };
++    const rows = [normal], groups = [], batch = buildKirchhoffSplitWallFriction(f.joint, rows, DT);
++    appendKirchhoffSplitWallFriction(batch, rows, groups);
++    return { normal, rows, groups, batch };
++}
++/** A scalar contact with unit mobility in each translational direction. The
++ * frozen J W J^T is independently known as I: angular DOFs and node 1 are
++ * prescribed. These are REAL wall rows and the native final-load QP solver. */
++export function solveAttempt(f, { scale = 1 } = {}) {
++    const { normal, batch } = build(f), mu = batch.groups[0].mu;
++    const result = solveCoupledLoadQP(new Float64Array([1, 1, 1]), new Float64Array([DT * f.normalImpulse, -DT * f.free, 0]),
++        new Float64Array([0, -Infinity, -Infinity]), new Float64Array([Infinity, Infinity, Infinity]), 3, 1,
++        [{ rows: [1, 2], lambda: [0, 0], normalRow: 0, normalLambda: 0, mu: [...mu], radii: [0, 0] }], { tolerance: TOL });
++    if (!result.diagnostics.converged) throw new Error('Native scalar solve failed: ' + result.diagnostics.status);
++    const delta = result.increment, motion = f.joint._splitMotion.bodies[0];
++    motion.velocityY[0] -= scale * delta[0] / DT;
++    motion.velocityZ[0] += scale * delta[1] / DT;
++    motion.velocityX[0] -= scale * delta[2] / DT;
++    normal.owner.wallLambda[0] += scale * delta[0];
++    commitKirchhoffSplitWallFriction(batch, delta, scale);
++    const fresh = build(f).batch, decision = evaluateKirchhoffWallFrictionCandidate(f.joint, fresh, { converged: true });
++    f.attempts.push({ mode: batch.entries[0].modeRecord?.mode ?? 'equal', mu: [...mu], scale,
++        delta: [...delta], velocity: motion.velocityZ[0], decision: structuredClone(decision) });
++    return { decision, fresh, result, batch };
++}
++export function retry(f, decision) {
++    restoreKirchhoffCoupledTrialState(f.snapshot);
++    prepareKirchhoffWallFrictionRetry(f.joint, decision);
++}
++export function finish(f, fresh) {
++    const state = f.joint._splitMotion;
++    state.phase = 'complete';
++    for (const [side, b] of [f.joint.innerBody, f.joint.outerBody].entries()) for (const a of XYZ)
++        for (const prefix of ['velocity', 'angularVelocity']) b[prefix + a].set(state.bodies[side][prefix + a]);
++    const certificate = certifyKirchhoffWallFrictionModes(f.joint, fresh, { converged: true });
++    state.diagnostics.certified = certificate.accepted;
++    if (certificate.accepted) commitKirchhoffWallFrictionHistory(f.joint, certificate);
++    return certificate;
++}
++export function step(f, options = {}) {
++    f.attempts.length = 0; begin(f, options);
++    let trial;
++    for (let i = 0; i < 8; i++) {
++        trial = solveAttempt(f);
++        if (!trial.decision.restart) break;
++        retry(f, trial.decision);
++    }
++    if (trial.decision.accepted) trial.certificate = finish(f, trial.fresh);
++    f.world.stepCount++;
++    return trial;
++}

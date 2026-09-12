@@ -5,7 +5,7 @@ import {
 
 function profile(overrides = {}) {
     return {
-        rodModel: 'kirchhoff',
+
         radius: 0.2,
         innerRadius: 1,
         adaptationCompliance: 0,

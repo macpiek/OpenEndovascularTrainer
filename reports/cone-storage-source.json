@@ -1,0 +1,23 @@
+{
+  "source": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-two-channel-world-preview-zizk0c2d",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-cone-storage-audit-ld_m5_kg",
+  "previewWorldSha256": "99819f97a94720cd39b35f7ca735fdfba6427a297e3170b3435d056d7a357bfa",
+  "isolatedWorldSha256": "1e9aed70a0b47dee07b424ee2a1b442883514635432d06309b78595d69d58f7a",
+  "onlyInitialChange": "remove failed experimental coneMerit from isolated copy",
+  "previewUnchanged": true,
+  "isolatedInstrumentedWorldSha256": "c8bf687ce3203da8efee61c1aae686d00dccdb5e35d350184c6c4f3ef4fd0bf6",
+  "instrumentation": "Two optional debug callbacks, immediately before physical apply and after multiplier commits; existing debugJointTrial observes fresh measurement. Callbacks copy numeric evidence only.",
+  "baselineEquality": {
+    "state": true,
+    "accepted": true,
+    "result": true,
+    "error": true,
+    "diagnostics": true
+  },
+  "handoffHashes": {
+    "tests/kirchhoffLumenConeBasisDrift.test.js": "7dd6574510771d2028cf17363600384c8c4d2e4cf5fbde17c3087aa461cf876d",
+    "tests/kirchhoffNormalMultiplierPrecision.test.js": "bfb6f8fef343fdd7e36959d2ef6c4045cc15698e9b257e0db5e24f0efd958295",
+    "tests/fixtures/kirchhoff-cone-transport-storage.json": "bda53a8bd106114bcd9111c13410915a2301805c577ca9fadc15c23dec521607",
+    "reports/probe-cone-storage.mjs": "0c028b98a09b919f278f08bc8e5ed6efff075b02d65ac125d42805d13b64da13"
+  }
+}

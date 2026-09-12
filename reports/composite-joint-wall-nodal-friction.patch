@@ -1,0 +1,237 @@
+--- a/src/physics/kirchhoffCompositeJointWallFrictionRows.js
++++ b/src/physics/kirchhoffCompositeJointWallFrictionRows.js
+@@ -29,7 +29,9 @@
+     workspaces.set(handle,scratch);return handle;
+ }
+ 
+-/** Two Coulomb rows per ORIGINAL capsule wall record. No seam, duplicate
++/** Two Coulomb rows per ORIGINAL capsule record, or per explicitly declared
++ * nodal endpoint pressure site. The latter has one physical Fn/Ft owner from
++ * the initial law; it is not a reduction of capsule pressure. No seam, duplicate
+  * representative or normal-pressure remap is a valid tangential reduction.
+  * The normal manager owns all queries and current provenance. One stationary
+  * current wall material witness is used at both ends of dt, never an old query.
+@@ -44,7 +46,8 @@
+     if(wall?.mode!=='wall-coulomb'||policy?.law!=='coulomb'||policy.materialPath!=='linear-affine-maps'||policy.motion!=='stationary-material'||
+         !['analytic-plane','sparse-sdf','sparse-sdf-bvh'].includes(policy.source)||!['projected-own-tangent','projected-own-reference-director'].includes(policy.tangentBasis))
+         throw failure('Explicit wall-coulomb law, affine path, stationary material, source and tangent basis are required');
+-    if((wall.contactMode??'capsule')!=='capsule')throw failure('Wall Coulomb currently requires original capsule records without an envelope gauge');
++    const contactMode=wall.contactMode??'capsule',nodal=contactMode==='nodal-endpoints',slotCount=nodal?1:3;
++    if(contactMode!=='capsule'&&!nodal)throw failure('Wall Coulomb requires original capsule or explicit nodal-endpoints pressure records');
+     const mu=vector(policy.mu,2,'Coulomb coefficients');if(mu.some(v=>v<0))throw failure('Coulomb coefficients must be nonnegative');
+     const penalty=positive(policy.forcePerLength,'Friction forcePerLength'),normalSignature=normal?.signature,views=normal?.surfaceRecords;
+     if(typeof normalSignature!=='string'||!Array.isArray(views)||!views.length||typeof normal.assertCurrentSurface!=='function'||!Array.isArray(normal.rowForceIndices))
+@@ -60,9 +63,35 @@
+         return e.wall==null?null:[i,e.wall.owner,e.wall.radius,edgeId(e.wall.materialSegmentId)];
+     });
+     const owners=JSON.stringify(ownerDescription());
+-    if(wall.contactOwners?.edges?.length!==n-1||new Set(sampleIds).size!==views.length||retained.length!==views.length||new Set(retained).size!==views.length||
+-        normal.rows.length!==retained.length||views.some((s,i)=>s.index!==i||s.base!==3*i||s.role!=='capsule'||!retainedIndex.has(s.base)))
+-        throw failure('Original capsule records require one ordinary row and three normal force slots each');
++    function pressureDescription() {
++        if(wall.pressureDiscretization!=='nodal-endpoints-one-sided-surface'||!Array.isArray(wall.pressureSites))
++            throw failure('Nodal pressure needs its explicit initial discretization and one-sided sites');
++        const expected=new Map();
++        for(const e of wall.contactOwners.edges)if(e.wall!=null)for(const node of [e.edge,e.edge+1]) {
++            const key=JSON.stringify([e.wall.owner,node]),radius=positive(e.wall.radius,'Nodal owner radius');
++            if(expected.has(key)&&expected.get(key)!==radius)throw failure('Nodal wall pressure does not support radius discontinuities');
++            expected.set(key,radius);
++        }
++        const seen=new Set(),description=wall.pressureSites.map(site=>{
++            const owner=wall.contactOwners.edges[site.edge]?.wall;
++            if(!Number.isInteger(site.node)||!Number.isInteger(site.edge)||site.edge<0||site.edge>=n-1||!owner||owner.owner!==site.owner||
++                !(site.node===site.edge&&site.trace==='right'||site.node===site.edge+1&&site.trace==='left'))
++                throw failure('Each nodal site must select an owned physical endpoint and its exact one-sided trace');
++            const key=JSON.stringify([site.owner,site.node]);
++            if(!expected.has(key)||seen.has(key))throw failure('Each physical owned node needs exactly one nodal Fn/Ft owner');
++            seen.add(key);return [site.owner,site.node,site.edge,site.trace];
++        });
++        if(seen.size!==expected.size)throw failure('Nodal pressure sites must cover every physical owned endpoint');
++        return description;
++    }
++    if(wall.contactOwners?.edges?.length!==n-1)throw failure('Wall ownership must cover actual edges');
++    const sites=nodal?copy(pressureDescription()):null,pressure=nodal?JSON.stringify(sites):null;
++    const recordIdentity=v=>JSON.stringify([v.index,v.key,v.base,v.owner,v.edge,v.role,v.radius,...(nodal?[v.node,v.trace]:[])]);
++    if(new Set(sampleIds).size!==views.length||retained.length!==views.length||new Set(retained).size!==views.length||normal.rows.length!==retained.length||
++        views.some((s,i)=>s.index!==i||s.base!==slotCount*i||!retainedIndex.has(s.base)||
++            (nodal?(s.owner!==sites[i]?.[0]||s.node!==sites[i]?.[1]||s.edge!==sites[i]?.[2]||s.trace!==sites[i]?.[3]||
++                s.role!==(s.trace==='right'?'proximal':'distal')||retained[i]!==s.base):s.role!=='capsule'))||nodal&&sites.length!==views.length)
++        throw failure('Original capsule or nodal records must match their declared physical force slots and sites');
+     const field=wall.field,query=field?.queryCapsuleCoordinates,plane=policy.source==='analytic-plane'?{
+         normal:vector(wall.plane?.normal,3,'Stationary plane normal'),offset:finite(wall.plane?.offset,'Stationary plane offset')}:null;
+     if(typeof query!=='function')throw failure('Original wall field query provider is required');
+@@ -72,7 +101,7 @@
+     const frozenPolicy=policySignature();
+     for(const [name,value] of Object.entries({normalRowOffset,frictionRowOffset}))if(!Number.isInteger(value)||value<0)throw failure(`${name} must be a nonnegative global row index`);
+     if(frictionRowOffset<normalRowOffset+retained.length&&frictionRowOffset+2*retained.length>normalRowOffset)throw failure('Normal and friction global row intervals overlap');
+-    const signature=JSON.stringify({normal:normalSignature,policy:frozenPolicy,owners,surface:'same-current-stationary-wall-material-witness',gauge:'no-normal-pressure-remap'});
++    const signature=JSON.stringify({normal:normalSignature,policy:frozenPolicy,owners,surface:'same-current-stationary-wall-material-witness',gauge:'no-normal-pressure-remap',...(nodal?{contactMode,pressureDiscretization:wall.pressureDiscretization,pressureSites:sites}:{})});
+     const history=state.wallFrictionState===undefined?null:copy(state.wallFrictionState);
+     if(history&&(history.signature!==signature||!same(history.sampleIds,sampleIds)||history.tractions?.length!==2*sampleIds.length))
+         throw failure('Wall friction chart/coefficient/path/sample history changed without traction transfer');
+@@ -121,7 +150,7 @@
+                 jacobian:new Float64Array(size).fill(NaN),forceColumn:new Float64Array(size).fill(NaN),geometricTangent:new Float64Array(size*size).fill(NaN),
+                 geometricTangentValid:false,residual:NaN,multiplierDerivative:NaN,tolerance:tol.linearConstraint};rows.push(row);return row;
+         });
+-        return {view,index:i,normalIndex:index,tool,mapping,rows:localRows,identity:JSON.stringify([view.index,view.key,view.base,view.owner,view.edge,view.role,view.radius])};
++        return {view,index:i,normalIndex:index,tool,mapping,rows:localRows,identity:recordIdentity(view)};
+     });
+     if(history&&oldMaps.size!==edges.size)throw failure('Accepted friction maps contain changed physical support');
+     const nodalForces=new Map([...layout.spins.keys()].map(id=>[id,Array.from({length:n},()=>[0,0,0])])),spinTorques=new Map([...layout.spins.keys()].map(id=>[id,new Float64Array(n-1)]));
+@@ -136,14 +165,14 @@
+         if(scratch.generation!==generation||scratch.busy)throw failure('Stale or busy prepared wall friction manager');
+         if(normal.signature!==normalSignature||normal.surfaceRecords!==views||views.length!==records.length||!same(normal.rowForceIndices,retained)||normal.rows.length!==retained.length)
+             throw failure('Normal wall row structure or owner changed during a prepared step');
+-        if(wall.mode!=='wall-coulomb'||wall.friction!==policy||policy.forcePerLength!==penalty||(wall.contactMode??'capsule')!=='capsule'||
++        if(wall.mode!=='wall-coulomb'||wall.friction!==policy||policy.forcePerLength!==penalty||(wall.contactMode??'capsule')!==contactMode||nodal&&JSON.stringify(pressureDescription())!==pressure||
+             policySignature()!==frozenPolicy||JSON.stringify(ownerDescription())!==owners||wall.field!==field||field.queryCapsuleCoordinates!==query)
+             throw failure('Frozen wall friction source/policy/ownership changed during a prepared step');
+-        vector(tractions,2*records.length,'Private traction');vector(normal.normalForces,3*records.length,'Private normal forces');
++        vector(tractions,2*records.length,'Private traction');vector(normal.normalForces,slotCount*records.length,'Private normal forces');
+         for(const rec of records) {
+             const v=rec.view;
+-            if(JSON.stringify([v.index,v.key,v.base,v.owner,v.edge,v.role,v.radius])!==rec.identity||v.seam!=null||v.representative!=null||v.dependent!=null||
+-                normal.normalForces[v.base+1]!==0||normal.normalForces[v.base+2]!==0)
++            if(recordIdentity(v)!==rec.identity||v.seam!=null||v.representative!=null||v.dependent!=null||
++                (!nodal&&(normal.normalForces[v.base+1]!==0||normal.normalForces[v.base+2]!==0)))
+                 throw failure('Wall Coulomb does not support seams, representatives, dependent gauges or pressure transfers');
+         }
+     }
+@@ -159,14 +188,18 @@
+         const row=rec.view.raw,raw=row?.rawContact;
+         if(!raw||row.source!==policy.source||raw.source!==policy.source||row.derivativeSource!==policy.source||row.derivativeUnavailable!==false)
+             throw failure('A supported original current wall differential at the declared source is required');
+-        return JSON.stringify([row.source,row.t,raw.segmentT,raw.capsuleSampleCount,raw.faceIndex??-1,Math.sign(raw.signedDistance)]);
++        if(nodal&&(row.t!==(rec.view.trace==='right'?0:1)||row.role!==rec.view.role||row.edge!==rec.view.edge||row.owner!==rec.view.owner))
++            throw failure('Current original endpoint row must match the selected physical site/trace');
++        // A degenerate endpoint query's raw fraction does not choose another
++        // physical point. Current raw geometry is still verified by Surface.
++        return JSON.stringify([row.source,row.t,nodal?'physical-endpoint':raw.segmentT,raw.capsuleSampleCount,raw.faceIndex??-1,Math.sign(raw.signedDistance)]);
+     }
+     function evaluateSurface(rec,toolPositions,order) {
+         const t=rec.tool,v=rec.view,f=v.raw.t,dx=t.coordinates[1]-t.coordinates[0];
+         const previousFraction=(t.currentMap.sStart+t.currentMap.dsDx*dx*f-t.previousMap.sStart)/(t.previousMap.dsDx*dx);
+         const positions=[toolPositions.get(t.id)[t.edge],toolPositions.get(t.id)[t.edge+1]];
+         return evaluateCompositeJointWallSurface({current:{row:v.raw,field,positions,seam:v.seam,plane,localFaceIndices},
+-            tool:{...t,positions,radius:v.radius,angle:candidate.angles.get(t.id)[t.edge],trace:trace(f),materialMap:{...t.currentMap,dsDtEnds:t.rates.slice()},
++            tool:{...t,positions,radius:v.radius,angle:candidate.angles.get(t.id)[t.edge],trace:nodal?v.trace:trace(f),materialMap:{...t.currentMap,dsDtEnds:t.rates.slice()},
+                 materialPath:{kind:'linear-affine-maps',previousEdgeId:t.edgeId,previousMap:{...t.previousMap},previousTrace:trace(previousFraction)}},dt,
+             wall:{motion:policy.motion,source:policy.source,tangentBasis:policy.tangentBasis},order},scratch.surface);
+     }
+@@ -205,7 +238,7 @@
+                 lineSearchMerit+=equationMerit;
+                 merit+=Fn>=0?equationMerit+(physical.slipResidual/tol.frictionSlip)**2+(physical.coneViolation/tol.frictionCone)**2+(physical.workGap/tol.frictionWork)**2:Infinity;
+                 converged=converged&&ok;
+-                proofs.push({sampleId:s.key,key:s.key,owner:s.owner,edge:s.edge,forceIndex:s.base,Fn,traction:Array.from(sampleTraction),slip,mu:mu.slice(),equationResidual,
++                proofs.push({sampleId:s.key,key:s.key,owner:s.owner,edge:s.edge,...(nodal?{node:s.node,trace:s.trace,role:s.role}:{}),forceIndex:s.base,Fn,traction:Array.from(sampleTraction),slip,mu:mu.slice(),equationResidual,
+                     work:physical.work,minimumWork:physical.minimumWork,workGap:physical.workGap,coneViolation:physical.coneViolation,slipResidual:physical.slipResidual,
+                     converged:ok,redundant:false,normalAdmissible:Fn>=0,surfaceWitness:surface.identity.wallWitness,wallWork:0});
+                 // A trial needs its true current B and finite slip. G/DB are
+@@ -226,7 +259,7 @@
+             if(!Number.isFinite(lineSearchMerit)||!commonScratch.every(Number.isFinite)||!relativeScratch.every(Number.isFinite)||
+                 commonScratch.some((v,i)=>!Number.isFinite(v+commonResidual[i]))||relativeScratch.some((v,i)=>!Number.isFinite(v+relativeResidual[i])))throw failure('Nonfinite complete friction residual');
+             commonScratch.forEach((v,i)=>commonResidual[i]+=v);relativeScratch.forEach((v,i)=>relativeResidual[i]+=v);
+-            const certificate={scope:'original-capsule-stationary-wall-finite-Coulomb-rows',converged,merit,lineSearchMerit,samples:proofs,
++            const certificate={scope:nodal?'original-nodal-endpoints-stationary-wall-finite-Coulomb-rows':'original-capsule-stationary-wall-finite-Coulomb-rows',converged,merit,lineSearchMerit,samples:proofs,
+                 sampleCount:records.length,retainedRows:rows.length};
+             last={toolPositions,values,tractions:tractions.slice(),normalForces:normal.normalForces.slice()};commitReady=converged;refreshes++;scratch.refreshes++;
+             return certificate;
+@@ -239,7 +272,7 @@
+         normal.assertCurrentSurface({toolPositions:last.toolPositions});
+         if(records.some((rec,i)=>recordProvenance(rec)!==provenance[i]))throw failure('Certified original wall provenance changed');
+         return {signature,sampleIds:sampleIds.slice(),tractions:tractions.slice(),law:'coulomb',mu:mu.slice(),materialPath:'linear-affine-maps',
+-            motion:'stationary-material',provenance:provenance.slice(),
++            motion:'stationary-material',provenance:provenance.slice(),...(nodal?{contactMode,pressureDiscretization:wall.pressureDiscretization,pressureSites:sites.map(s=>s.slice())}:{}),
+             currentMaps:Array.from(edges.values(),t=>({id:t.id,edge:t.edge,edgeId:t.edgeId,currentMap:{...t.currentMap}}))};
+     }
+     verify();
+--- a/tests/kirchhoffCompositeJointWallFrictionRows.test.js
++++ b/tests/kirchhoffCompositeJointWallFrictionRows.test.js
+@@ -206,3 +206,87 @@
+     assert.equal(field.calls,calls);assert.equal(field.bvhQueries,bvhCalls);assert.equal(m.diagnostics.preparationQueries,0);assert.ok(full.certificate.samples[0].work<0);m.commit();
+     field.fallbackGeometry?.dispose();
+ });
++
++function nodalFixture({sharedTrace='right',single=true,horizontal=true}={}) {
++    const f=fixture({single,owner:'wire',horizontal});
++    f.wall.contactOwners.edges[1].wall={owner:'wire',radius:.25,materialSegmentId:'wire:1'};
++    f.wall.contactMode='nodal-endpoints';f.wall.pressureDiscretization='nodal-endpoints-one-sided-surface';
++    f.wall.pressureSites=[{owner:'wire',node:0,edge:0,trace:'right'},
++        {owner:'wire',node:1,edge:sharedTrace==='right'?1:0,trace:sharedTrace},{owner:'wire',node:2,edge:1,trace:'left'}];
++    f.normal=createCompositeJointWallRows({...f.state,wall:{...f.wall,mode:'wall-normal',friction:'none'},tolerances:tol});
++    f.normal.normalForces.set([1,2,3]);f.frictionRowOffset=9;return f;
++}
++
++test('explicit nodal pressure gives one physical Fn/Ft at the shared node and its selected one-sided own spin',()=>{
++    for(const sharedTrace of ['right','left']) {
++        const f=nodalFixture({sharedTrace}),before=structuredClone(f.state),m=ready(f);m.tractions.set([0,0,.1,.2,0,0]);
++        const result=refresh(f,m);assert.equal(result.certificate.converged,true);assert.deepEqual(f.state,before);
++        assert.equal(f.normal.surfaceRecords.length,3);assert.equal(f.normal.normalForces.length,3);assert.deepEqual(f.normal.rowForceIndices,[0,1,2]);
++        assert.deepEqual(m.rows.map(r=>Array.from(r.multiplierDofs)),[[3,10],[3,9],[4,12],[4,11],[5,14],[5,13]]);
++        assert.deepEqual(result.certificate.samples.map(s=>s.node),[0,1,2]);assert.equal(result.certificate.samples[1].trace,sharedTrace);
++        vec(m.nodalForces.get('wire').reduce((sum,v)=>sum.map((x,k)=>x+v[k]),[0,0,0]),[.1,0,.2],1e-14);
++        const chosen=sharedTrace==='right'?1:0,other=1-chosen;close(m.spinTorques.get('wire')[chosen],-.05,1e-14);close(m.spinTorques.get('wire')[other],0,0);
++        close(result.common[f.state.layout.spins.get('wire')[chosen]],.05,1e-14);
++        assert.equal(m.diagnostics.preparationQueries,0);const history=m.commit();assert.equal(history.contactMode,'nodal-endpoints');
++        assert.equal(history.pressureDiscretization,'nodal-endpoints-one-sided-surface');assert.equal(history.currentMaps.length,2);
++    }
++});
++
++test('flat capsule minimum changes endpoints while original nodal pressure and all three finite Coulomb laws remain defined',()=>{
++    const f=nodalFixture(),m=ready(f),p=f.candidate.toolPositions.get('wire');p.forEach(v=>v[0]+=.02);
++    p[0][1]=.25;p[1][1]=.2501;p[2][1]=.2502;const first=loadSliding(f,m);
++    const originalFirst=normalRefresh(f).originalInequalities.filter(s=>s.role==='capsule');assert.deepEqual(originalFirst.map(s=>s.endpointFraction),[0,0]);assert.ok(originalFirst.every(s=>s.pressureDof===false));assert.equal(first.certificate.converged,true);
++    const firstProof=first.certificate.samples.map(s=>({node:s.node,Fn:s.Fn,trace:s.trace,forceIndex:s.forceIndex}));
++    p[0][1]=.2502;p[1][1]=.2501;p[2][1]=.25;const second=loadSliding(f,m);
++    const originalSecond=normalRefresh(f).originalInequalities.filter(s=>s.role==='capsule');assert.deepEqual(originalSecond.map(s=>s.endpointFraction),[1,1]);assert.ok(originalSecond.every(s=>s.pressureDof===false));assert.equal(second.certificate.converged,true);
++    assert.deepEqual(second.certificate.samples.map(s=>({node:s.node,Fn:s.Fn,trace:s.trace,forceIndex:s.forceIndex})),firstProof);
++    assert.deepEqual(f.normal.rowForceIndices,[0,1,2]);vec(f.normal.normalForces,[1,2,3],0);assert.equal(m.rows.length,6);
++    assert.ok(second.certificate.samples.every(s=>s.work<=0));m.commit();
++});
++
++test('nodal selected endpoint uses row.t and explicit trace even when degenerate raw query fraction is different',()=>{
++    const f=nodalFixture();const original=f.wall.field.queryCapsuleCoordinates;let rawFraction=1;
++    f.wall.field.queryCapsuleCoordinates=function(...args){const out=original.apply(this,args);if(args[0]===args[3]&&args[1]===args[4]&&args[2]===args[5])out.segmentT=rawFraction;return out;};
++    // Source identity is frozen from construction by the normal owner.
++    f.normal=createCompositeJointWallRows({...f.state,wall:{...f.wall,mode:'wall-normal',friction:'none'},tolerances:tol});f.normal.normalForces.set([1,2,3]);
++    const m=ready(f),record=f.normal.surfaceRecords[0];assert.equal(record.raw.t,0);assert.equal(record.raw.rawContact.segmentT,1);
++    f.candidate.toolPositions.get('wire').forEach(v=>v[0]+=.02);const r=loadSliding(f,m);assert.equal(r.certificate.converged,true);
++    r.certificate.samples.forEach(s=>vec(s.slip,[.02,0],2e-14));const history=m.commit();
++    rawFraction=0;const toggled=refresh(f,m);assert.equal(record.raw.t,0);assert.equal(record.raw.rawContact.segmentT,0);assert.deepEqual(toggled,r);assert.deepEqual(m.commit(),history);
++});
++
++test('nodal full/value, local derivatives and scalar torques use the chosen shared-node edge within a full two-tool chart',()=>{
++    const f=nodalFixture({single:false,horizontal:false}),m=ready(f);f.candidate.toolPositions.get('wire').forEach(p=>p[0]+=.02);
++    f.candidate.angles.get('wire')[0]=.2;f.candidate.angles.get('wire')[1]=-.3;loadSliding(f,m);
++    const full=refresh(f,m),forces=structuredClone(m.nodalForces),spins=structuredClone(m.spinTorques),saved=snapshotRows(m),support=m.rows[2],size=support.jacobian.length;
++    const geometry=structuredClone(f.candidate.toolPositions),angles=structuredClone(f.candidate.angles),h=1e-6;
++    const keys=row=>[...Array.from(row.commonDofs,d=>`c:${d}`),...Array.from(row.relativeDofs,d=>`r:${d}`)],selected=keys(support),allKeys=m.rows.map(keys);
++    const expectedH=(i,j)=>saved.reduce((sum,row,index)=>{const a=allKeys[index].indexOf(selected[i]),b=allKeys[index].indexOf(selected[j]);return sum+(a>=0&&b>=0?row.H[a*allKeys[index].length+b]:0);},0);
++    for(let col=0;col<size;col++) {
++        const residuals=[],mechanics=[];
++        for(const sign of [-1,1]){f.candidate.toolPositions=structuredClone(geometry);f.candidate.angles=structuredClone(angles);perturb(f,support,col,sign*h);const r=refresh(f,m);residuals.push(m.rows.slice(2,4).map(r=>r.residual));mechanics.push([...Array.from(support.commonDofs,d=>r.common[d]),...Array.from(support.relativeDofs,d=>r.relative[d])]);}
++        for(let c=0;c<2;c++)close((residuals[1][c]-residuals[0][c])/(2*h),saved[2+c].jacobian[col],3e-6);
++        for(let i=0;i<size;i++)close((mechanics[1][i]-mechanics[0][i])/(2*h),expectedH(i,col),3e-6);
++    }
++    f.candidate.toolPositions=geometry;f.candidate.angles=angles;const value=refresh(f,m,{order:'gradient'});assert.deepEqual(value,full);assert.deepEqual(m.nodalForces,forces);assert.deepEqual(m.spinTorques,spins);
++    assert.ok(m.rows.every(r=>!r.geometricTangentValid&&r.jacobian.every(Number.isNaN)));m.commit();
++});
++
++test('nodal pressure rejects missing/duplicate sites, wrong one-sided owner, radius jumps and silent history reinterpretation',()=>{
++    for(const alter of [f=>delete f.wall.pressureDiscretization,f=>f.wall.pressureSites.pop(),f=>f.wall.pressureSites.push({...f.wall.pressureSites[1]}),
++        f=>f.wall.pressureSites[1].trace='left',f=>f.wall.pressureSites[1].owner='catheter',f=>f.wall.contactOwners.edges[1].wall.radius=.3]) {
++        const f=nodalFixture(),before=f.normal.normalForces.slice();alter(f);assert.throws(()=>create(f),/Nodal|nodal|one-sided|physical owned/);assert.deepEqual(f.normal.normalForces,before);
++    }
++    const f=nodalFixture(),m=ready(f);m.tractions.set([.1,0,.1,0,.1,0]);refresh(f,m);const history=m.commit();
++    f.wall.pressureSites[1]={owner:'wire',node:1,edge:0,trace:'left'};assert.throws(()=>refresh(f,m,{normal:false}),/Frozen wall friction/);
++    const changed=nodalFixture({sharedTrace:'left'});changed.state.wallFrictionState=history;assert.throws(()=>create(changed),/history changed/);
++    const capsule=fixture({single:true});capsule.state.wallFrictionState=history;assert.throws(()=>create(capsule),/history changed/);
++});
++
++test('nodal second-site failure revokes every row and load, preserves original Fn/Ft/history and retries bit-identically',()=>{
++    const f=nodalFixture(),m=ready(f);m.tractions.set([.1,.05,.05,-.1,.1,.1]);const full=refresh(f,m),saved=snapshotRows(m),history=structuredClone(m.commit()),fn=f.normal.normalForces.slice(),ft=m.tractions.slice();
++    const common=new Float64Array(f.state.layout.dofCount).fill(7),relative=new Float64Array(0);f.normal.surfaceRecords[1].raw.rawContact.source='bad-source';
++    assert.throws(()=>refresh(f,m,{normal:false,common,relative}),/declared source/);assert.ok(common.every(v=>v===7));assert.ok([...m.nodalForces.values()].flat(2).every(v=>v===0));
++    assert.ok([...m.spinTorques.values()].every(v=>v.every(x=>x===0)));assert.deepEqual(f.normal.normalForces,fn);assert.deepEqual(m.tractions,ft);assert.throws(()=>m.commit(),/unchanged certified/);
++    assert.deepEqual(refresh(f,m),full);assert.deepEqual(snapshotRows(m),saved);assert.deepEqual(m.commit(),history);
++});

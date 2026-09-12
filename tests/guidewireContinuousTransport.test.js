@@ -52,7 +52,7 @@ function continuousBoundaryMotion(stiffnessScale, direction) {
         segmentLength,
         {
             ...DEFAULT_TOOL_PROFILES.guidewire,
-            rodModel: 'kirchhoff',
+
             adaptationCompliance: 0,
             foldLimitStrength: 0,
             maxBendAngle: 179,

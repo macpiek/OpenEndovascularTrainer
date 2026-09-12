@@ -1,0 +1,32 @@
+{
+  "label": "mobile-filter-original",
+  "seed": {
+    "sha256": "6851781656931d9c7aab705173a0b7941d8dcaa93936075925c7e89f5d526333",
+    "step": 53,
+    "pass": 5
+  },
+  "tolerance": null,
+  "state": {
+    "wireMm": 12.100000000000001,
+    "catheterMm": 9.100000000000003,
+    "wireRotation": 0,
+    "catheterRotation": 0,
+    "executedSteps": 54,
+    "fingerprints": [
+      {
+        "id": "guidewire",
+        "hash": "4d0b8ea4"
+      },
+      {
+        "id": "catheter",
+        "hash": "eb461c90"
+      }
+    ],
+    "activeNodes": [
+      4,
+      18
+    ]
+  },
+  "certified": true,
+  "cone": 0
+}

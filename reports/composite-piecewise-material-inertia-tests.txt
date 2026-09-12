@@ -1,0 +1,21 @@
+✔ prepared single-material E/g/H and momentum match the independent original operator for varying maps and geometry (6.81575ms)
+✔ independent wire/catheter histories pull back once to common and full relative motion (3.779ms)
+✔ exact integrated momentum and kinetic energy retain the two independent material velocities (0.443541ms)
+✔ prepared data owns both material maps and old positions/velocities while local output buffers are reused (0.687958ms)
+✔ gradient evaluation leaves poisoned Hessian bytes unused and a later full evaluation restores the original tangent (4.290958ms)
+✔ missing physical history, invalid parameters and nonfinite trials fail explicitly (1.577667ms)
+✔ jump history integrates energy9.5 on one unchanged six-DOF edge while whole-edge Gauss gives7.5 (6.094333ms)
+✔ piecewise E/g/fullH/momentum match independent original-edge polynomials with convection, nonunit metric and affine rates (3.109625ms)
+✔ independent energy and gradient finite differences recover all six force rows and full consistent Hessian (2.5595ms)
+✔ one-piece response is unchanged from the existing original material inertia factory (2.808458ms)
+✔ constant rigid velocities and common frame translations preserve physical momentum and convective relative increments (3.376708ms)
+✔ prepared histories, maps and positions are owned; invalid trials and gradient-only calls cannot certify stale Hessians (1.570625ms)
+✔ coverage, density, map, history and finite guards reject without clamping or extrapolation (3.953834ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145.599333

@@ -1,0 +1,82 @@
+{
+  "seed": {
+    "sha256": "0829a4fc8611ebeacc6abc03ace1f4903a177d48b1caeb018f24398c23b9f155",
+    "step": 49,
+    "pass": 5
+  },
+  "tolerance": 0.000002,
+  "diagnostics": {
+    "status": "coulomb-line-search",
+    "converged": false,
+    "iterations": 17,
+    "factorizations": 19,
+    "backtracks": 262,
+    "gradientFallbacks": 0,
+    "boundRecoveries": 0,
+    "maximumResidual": 0.000003102116925779441,
+    "frictionResidual": 5.551115123125783e-17,
+    "coneViolation": 0,
+    "rowCount": 66,
+    "band": 66,
+    "groupCount": 7,
+    "normalLoadIterations": 0,
+    "method": "simultaneous-coulomb-newton",
+    "normalMap": "fischer-burmeister",
+    "matrixFormat": "row-major",
+    "linearSolver": "dense-lu",
+    "reconstructionResidual": 0.000003102116925779441,
+    "physicalRows": 158,
+    "biasRows": 144,
+    "channels": 2,
+    "fullRowCount": 302,
+    "condensation": "condensed",
+    "materialCondensation": {
+      "equalityCount": 118,
+      "eliminatedRows": 236,
+      "equalityBand": 15,
+      "equalityMatrixEntries": 1770,
+      "factorEntries": 1770,
+      "factorizations": 1,
+      "factorization": "wasm-skyline",
+      "minimumScaledPivot": 0.042113472224109494,
+      "maximumEqualityBackwardError": 5.870800626283417e-16,
+      "equalitySolves": 134,
+      "fullExpandedMatrixEntries": 0,
+      "retainedZeroEqualityOriginalRows": [
+        3,
+        5
+      ],
+      "retainedRows": 66,
+      "schurEntries": 4356,
+      "responseEntries": 15576
+    }
+  },
+  "zeros": [
+    {
+      "original": 3,
+      "sorted": 108,
+      "physicalRow": 216,
+      "kind": "material",
+      "side": 0,
+      "alpha": 0,
+      "rhs": 0.000003102116925779441,
+      "gradientTerms": 0,
+      "gradientOneNorm": 0,
+      "lower": null,
+      "upper": null
+    },
+    {
+      "original": 5,
+      "sorted": 110,
+      "physicalRow": 220,
+      "kind": "material",
+      "side": 0,
+      "alpha": 0,
+      "rhs": -0.000002714359792710397,
+      "gradientTerms": 0,
+      "gradientOneNorm": 0,
+      "lower": null,
+      "upper": null
+    }
+  ]
+}

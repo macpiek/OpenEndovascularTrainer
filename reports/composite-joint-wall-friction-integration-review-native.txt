@@ -1,0 +1,24 @@
+✔ one full 120 Hz joint step solves normal force and two Coulomb components with independent material feeds and spins (48.436333ms)
+✔ two loaded friction dt retain actual own material history and cannot silently disable their tangential load (33.980416ms)
+✔ original friction solution is unchanged by numerical penalty and by reused joint workspaces (27.044417ms)
+✔ late rejection restores normal/tangential history, geometry, spins and time and retry matches a cold physical step (33.5465ms)
+✔ reversing material feeds reverses axial friction while independent spin friction and both momentum balances remain active (5.033ms)
+✔ unloading normal contact releases both Coulomb forces through the original equations without retaining stale friction (25.645166ms)
+✔ normal-only interior pressure reduction is explicitly rejected for Coulomb instead of silently changing friction moments (1.045833ms)
+✔ catheter vessel support and both components of wire-catheter friction enter the same physical step and retain their histories (38.848167ms)
+✔ lumen Coulomb and vessel Coulomb solve together with two independent material histories and atomic retry (40.10525ms)
+✔ full joint dt solves stationary vessel friction with own feed, spin and physical external reaction (35.881ms)
+✔ second wall-friction dt retains own material history and cannot discard loaded wall traction (22.799041ms)
+✔ wall Coulomb roots are independent of numerical penalty and match cold/reused complete dt (42.522125ms)
+✔ late wall-friction failure preserves state, winding, traction and time; retry matches cold (16.694375ms)
+✔ unknown incoming surface orientation beyond the proximal material endpoint cannot be silently extrapolated (0.95825ms)
+✔ vessel friction unloads through signed private normal trials and can then be explicitly disabled (22.0085ms)
+✔ a physically disabled Coulomb axis has literal zero traction while the other axis retains its own law (23.830208ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 380.604375

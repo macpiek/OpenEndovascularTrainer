@@ -1,0 +1,22 @@
+✔ native release keeps fractional old beta and applies its whole old-J response at the same common scale (21.701625ms)
+✔ new witness starts with beta zero alongside the retained old force without shifting friction indices (6.944ms)
+✔ rotated angular release preserves old world torque, current anisotropic mobility and full-system force balance (8.483167ms)
+✔ pending gate uses net generalized response, including cancellation and tiny multipliers with large mobility (2.890958ms)
+✔ whole trial rollback restores retirement, old canonical beta, owned arrays and applied receipts exactly (7.31525ms)
+✔ continuous transports telescope exactly through one reusable difference carrier without moving pose or velocity (4.006708ms)
+✔ native fractional difference release preserves force balance through a subsequent transport and snapshot retry (5.881042ms)
+✔ continuous angular transport retains world reaction across frame rotations, then semantic replacement fully retires both terms (5.302166ms)
+✔ missing force history, material/mobility changes and negative bias remain hard failures rather than releases (3.498875ms)
+✔ a force representation changed after frozen assembly cannot be committed using the old result (2.93675ms)
+✔ sparse norms have complete A/B byte parity on long rods, rotated frames, active masks and duplicate DOFs (1089.783458ms)
+✔ shared correction preserves exact release ordering and opposing-wrench cancellation before global norms (169.259292ms)
+✔ empty, zero, failed-history, inactive, overflow and ignored out-of-range entries retain baseline output and guards (109.325792ms)
+✔ only two full correction vectors are allocated, independently of sparse release count (43.956625ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1922.418375

@@ -1,0 +1,96 @@
+{
+  "scope": "strict-side-affine-joint-lumen-surface",
+  "virtualCommonPoint": true,
+  "exactCylinderIntersection": false,
+  "queryCount": 0,
+  "originalSample": {
+    "contactId": "f10:lumen:side|s12:wire-segment|s11:cat-segment",
+    "feature": "lumen:side",
+    "innerT": 0.43,
+    "innerMaterialSegmentId": "wire-segment",
+    "outerMaterialSegmentId": "cat-segment",
+    "innerRadius": 0.16,
+    "lumenRadius": 0.5,
+    "edgeIds": [
+      "wire:edge0",
+      "catheter:edge0"
+    ],
+    "coordinateSpans": [
+      [
+        10,
+        12
+      ],
+      [
+        -3,
+        0.2
+      ]
+    ]
+  },
+  "currentGap": 0.018190845739182615,
+  "previousGap": -0.004529212314000219,
+  "currentWitnessSeparation": 0.020163484550645767,
+  "previousWitnessSeparation": 0.005188088980742535,
+  "increment": [
+    0.05324703285024974,
+    0.2708127812575745
+  ],
+  "maxGError": 4.1993585969679614e-9,
+  "maxDBError": 1.4256799386880292e-10,
+  "maxBParityError": 5.551115123125783e-17,
+  "virtualPowerError": 1.1102230246251565e-16,
+  "finiteRigidSlip": [
+    -7.825144057846148e-16,
+    -4.3373583949185904e-17
+  ],
+  "maxFiniteRigidSlip": 7.825144057846148e-16,
+  "zeroGapAngle03WitnessSeparation": 0.04782020239155175,
+  "virtualPowerLimit": [
+    {
+      "dt": 0.001,
+      "finiteRate": [
+        0.6214616736043809,
+        1.3591607220063449
+      ],
+      "instantaneousRate": [
+        0.6214593725022769,
+        1.3591632072475341
+      ],
+      "maxRateError": 0.0000024852411892872794,
+      "finitePower": -0.10864111727947134,
+      "instantaneousPower": -0.10864372214741991,
+      "powerError": 0.0000026048679485635162
+    },
+    {
+      "dt": 0.0001,
+      "finiteRate": [
+        0.6214596042232241,
+        1.3591629635842057
+      ],
+      "instantaneousRate": [
+        0.6214593724742445,
+        1.359163207247088
+      ],
+      "maxRateError": 2.436628823154763e-7,
+      "finitePower": -0.10864346247742551,
+      "instantaneousPower": -0.10864372216686424,
+      "powerError": 2.596894387307813e-7
+    },
+    {
+      "dt": 0.00001,
+      "finiteRate": [
+        0.6214593959134024,
+        1.359163182924909
+      ],
+      "instantaneousRate": [
+        0.6214593732783367,
+        1.3591632072435225
+      ],
+      "maxRateError": 2.4318613567331226e-8,
+      "finitePower": -0.10864369603058194,
+      "instantaneousPower": -0.10864372160257346,
+      "powerError": 2.5571991524309112e-8
+    }
+  ],
+  "noAcceptedTimeStep": true,
+  "noFpsClaim": true
+}

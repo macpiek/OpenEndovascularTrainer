@@ -8,7 +8,7 @@ import {
     STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM,
     STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD
 } from '../src/physics/guidewireMaterialProfile.js';
-import { ElasticRod } from '../src/physics/elasticRod.js';
+import { RodState } from '../src/physics/rodState.js';
 import { BERENSTEIN_NATURAL_BEND_ANGLE_RAD } from '../src/physics/catheterMaterialProfile.js';
 import { applyKirchhoffMaterialProfile } from '../src/physics/applyKirchhoffMaterialProfile.js';
 
@@ -123,7 +123,6 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
 // A catheter subset changes only active material coordinates and active joints.
 {
     const body = createBody('berenstein-subset', 11, DEFAULT_TOOL_PROFILES.catheter);
-    body.enableKirchhoff(true);
     body.materialCoordinate.fill(-100);
     body.restRotation1.fill(7);
     body.restRotation2.fill(8);
@@ -190,8 +189,7 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
 // compliance actually changes; remote warm starts survive.
 {
     const body = createBody('local-remesh', 10, {
-        ...DEFAULT_TOOL_PROFILES.guidewire,
-        rodModel: 'kirchhoff'
+        ...DEFAULT_TOOL_PROFILES.guidewire
     });
     const tipCoordinate = STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM;
     const coordinates = Float64Array.from(
@@ -252,7 +250,7 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
 // A live stiffness control scales EI/GJ without changing the manufactured
 // rest shape or collapsing the soft-tip taper into a uniform material.
 {
-    const elasticRod = new ElasticRod(21, 5);
+    const elasticRod = new RodState(21, 5);
     applyGuidewireMaterialProfile(elasticRod, {
         type: 'glidewire',
         stiffnessScale: 1
@@ -272,8 +270,7 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
     }
 
     const body = createBody('scaled-glidewire', 21, {
-        ...DEFAULT_TOOL_PROFILES.guidewire,
-        rodModel: 'kirchhoff'
+        ...DEFAULT_TOOL_PROFILES.guidewire
     });
     const coordinates = Float64Array.from(
         { length: body.count },
@@ -349,8 +346,7 @@ function assertArrayNear(actual, expected, tolerance = 1e-12) {
 // shaft scale, and neither control changes the manufactured rest curvature.
 for (const catheterType of ['pigtail', 'berenstein', 'sim1']) {
     const body = createBody(`scaled-${catheterType}`, 33, {
-        ...DEFAULT_TOOL_PROFILES.catheter,
-        rodModel: 'kirchhoff'
+        ...DEFAULT_TOOL_PROFILES.catheter
     });
     const coordinates = Float64Array.from(
         { length: body.count },

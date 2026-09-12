@@ -1,0 +1,22 @@
+✔ begin captures a separate predicted pose once and outer passes retain qP and time-start history (8.325125ms)
+✔ bias-only updates total geometry and beta without changing qP, physical velocity, or physical material lambda (0.839708ms)
+✔ physical displacement adds one impulse and leaves body qG and physical multipliers for root application (0.43025ms)
+✔ physical local angular correction is transported from current qG before left-multiplying the separate qP (0.958041ms)
+✔ common fractional scale applies separately to each physical and bias material channel exactly once (0.712375ms)
+✔ fresh material measurement returns C(qG)-C(qP)+alpha beta using unchanged finite compliance (1.248958ms)
+✔ hard-frame measurement preserves both posed frames, control targets, pose references and native mobility mask (0.919208ms)
+✔ a failing qP assembly restores body references and reconstructs current geometric scratch in finally (0.416542ms)
+✔ rejected combined trial restores qP, beta, physical motion, geometry and once-only receipts in place (2.285167ms)
+✔ native local material indexing is preserved for an active range starting after node zero (0.997292ms)
+✔ the reused split hook journals physical sheath increments without recording bias normals (0.261834ms)
+✔ an unconverged direction is rejected before qP, velocity or beta changes (0.225166ms)
+✔ actual two-channel solve and motion staging close both finite-compliance material equations at the final poses (16.070083ms)
+ℹ {"physicalPoseX":8.367552280923107,"geometryX":10,"physicalVelocityX":195.9009934068178,"betaMaterial":-161.61232418762322,"physicalResidual":{"adaptationMm":5.021028731677646e-12,"bendTwistRad":0},"biasResidual":{"adaptationMm":9.992007221626409e-12,"bendTwistRad":0},"alpha":0.0101010101010101}
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 314.504333

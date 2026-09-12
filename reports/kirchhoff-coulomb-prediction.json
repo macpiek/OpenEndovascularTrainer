@@ -1,0 +1,3811 @@
+{
+  "scope": "One alternating-order A/B pass on 24 DIFFERENT successive frozen systems; original accepted trial histories, exact input hints/row bounds, old residual law only. Candidate results are NEVER inserted into mechanical history.",
+  "systems": [
+    {
+      "solveId": 1,
+      "step": 4747,
+      "pass": 1,
+      "count": 2446,
+      "topLevelPostSolveBoundChanges": 256,
+      "mapping": {
+        "mappedRows": 0,
+        "rowCount": 2446,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 0,
+            "misses": {
+              "no-history": 1626
+            }
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "no-history": 30
+            }
+          },
+          "friction": {
+            "rows": 312,
+            "mapped": 0,
+            "misses": {
+              "no-history": 312
+            }
+          },
+          "normal": {
+            "rows": 156,
+            "mapped": 0,
+            "misses": {
+              "no-history": 156
+            }
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "no-history": 227
+            }
+          },
+          "wall": {
+            "rows": 95,
+            "mapped": 0,
+            "misses": {
+              "no-history": 95
+            }
+          }
+        },
+        "reason": "no-history"
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 228.68062499999996,
+          "solveMs": 228.68062499999996,
+          "predictionMs": 0,
+          "certificateMs": 1.971625000000131,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 33,
+            "factorizations": 34,
+            "backtracks": 49,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00008437963639601693,
+            "frictionResidual": 0.000040799981364882804,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 399,
+            "band": 399,
+            "groupCount": 120,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 26,
+            "originalCount": 2446,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 399,
+            "responseColumns": 399,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.00008437963639601693,
+            "frictionResidual": 0.000040799981364882804,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00008437963639602885,
+            "frictionResidual": 0.000040799981364852446,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "ef7a25c2d1ca571eac0d12058687a08680d7fdf3eca0d047d54452b3334388ad"
+        },
+        {
+          "ms": 226.7556259999992,
+          "solveMs": 224.56566699999985,
+          "predictionMs": 2.1899589999993623,
+          "certificateMs": 1.36974999999984,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 33,
+            "factorizations": 34,
+            "backtracks": 49,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00008437963639601693,
+            "frictionResidual": 0.000040799981364882804,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 399,
+            "band": 399,
+            "groupCount": 120,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 26,
+            "originalCount": 2446,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 399,
+            "responseColumns": 399,
+            "expansions": 1,
+            "prediction": {
+              "attempted": false,
+              "accepted": false,
+              "reason": "no-history",
+              "budget": 4,
+              "mappedRows": 0,
+              "factorizations": 0,
+              "iterations": 0,
+              "backtracks": 0,
+              "maximumResidual": null
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00008437963639601693,
+            "frictionResidual": 0.000040799981364882804,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00008437963639602885,
+            "frictionResidual": 0.000040799981364852446,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "ef7a25c2d1ca571eac0d12058687a08680d7fdf3eca0d047d54452b3334388ad"
+        }
+      ]
+    },
+    {
+      "solveId": 2,
+      "step": 4747,
+      "pass": 2,
+      "count": 2446,
+      "topLevelPostSolveBoundChanges": 236,
+      "mapping": {
+        "mappedRows": 2097,
+        "rowCount": 2446,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 314,
+            "mapped": 314,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 157,
+            "mapped": 157,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 183.0856249999997,
+          "solveMs": 183.0856249999997,
+          "predictionMs": 0,
+          "certificateMs": 0.47183399999994435,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 22,
+            "factorizations": 283,
+            "backtracks": 43,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00008383799100657078,
+            "frictionResidual": 0.00006184548170116988,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 289,
+            "band": 289,
+            "groupCount": 86,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 139,
+            "originalCount": 2446,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 289,
+            "responseColumns": 289,
+            "expansions": 2
+          },
+          "audit": {
+            "maximumResidual": 0.00008383799100657078,
+            "frictionResidual": 0.00006184548170116988,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00008383799100653424,
+            "frictionResidual": 0.00006184548170113865,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "e1f93370abc2a20f96bf511beba0c99aa26872359be59cefdc694ff34b87962a"
+        },
+        {
+          "ms": 327.61054199999944,
+          "solveMs": 325.6143750000001,
+          "predictionMs": 1.996166999999332,
+          "certificateMs": 1.0341249999992215,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 26,
+            "factorizations": 287,
+            "backtracks": 126,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00008383799100657078,
+            "frictionResidual": 0.00006184548170116988,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 289,
+            "band": 289,
+            "groupCount": 86,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 139,
+            "originalCount": 2446,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 289,
+            "responseColumns": 289,
+            "expansions": 2,
+            "rowSwaps": 4126,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.0680319315961682e-16,
+            "maximumPivotGrowth": 4.246780718752028,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2097,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 83,
+              "maximumResidual": 0.8659324289664168
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00008383799100657078,
+            "frictionResidual": 0.00006184548170116988,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00008383799100653424,
+            "frictionResidual": 0.00006184548170113865,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "e1f93370abc2a20f96bf511beba0c99aa26872359be59cefdc694ff34b87962a"
+        }
+      ]
+    },
+    {
+      "solveId": 3,
+      "step": 4747,
+      "pass": 3,
+      "count": 2443,
+      "topLevelPostSolveBoundChanges": 232,
+      "mapping": {
+        "mappedRows": 2094,
+        "rowCount": 2443,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 312,
+            "mapped": 312,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 156,
+            "mapped": 156,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 144.51204199999938,
+          "solveMs": 144.51204199999938,
+          "predictionMs": 0,
+          "certificateMs": 0.3781669999998485,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 17,
+            "factorizations": 213,
+            "backtracks": 235,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00016500554431174192,
+            "frictionResidual": 0.00006852182747781391,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 234,
+            "band": 234,
+            "groupCount": 68,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "fischer-burmeister",
+            "normalMapStart": "projection",
+            "normalMapFallback": true,
+            "seedFactorizations": 199,
+            "originalCount": 2443,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 234,
+            "responseColumns": 234,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.00016500554431174192,
+            "frictionResidual": 0.00006852182747781391,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00016500554431174333,
+            "frictionResidual": 0.00006852182747777574,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "2b2f8db7b01247ca7ae8640350c0a4045dd757c4a1581ff4bec7214d46aa2773"
+        },
+        {
+          "ms": 185.54054199999973,
+          "solveMs": 183.68004199999996,
+          "predictionMs": 1.8604999999997744,
+          "certificateMs": 0.5320000000001528,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 21,
+            "factorizations": 217,
+            "backtracks": 312,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00016500554431174192,
+            "frictionResidual": 0.00006852182747781391,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 234,
+            "band": 234,
+            "groupCount": 68,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "fischer-burmeister",
+            "normalMapStart": "projection",
+            "normalMapFallback": true,
+            "seedFactorizations": 199,
+            "originalCount": 2443,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 234,
+            "responseColumns": 234,
+            "expansions": 1,
+            "rowSwaps": 3731,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.3204085553996123e-16,
+            "maximumPivotGrowth": 3.4690284885086533,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2094,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 77,
+              "maximumResidual": 0.8621901146208626
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00016500554431174192,
+            "frictionResidual": 0.00006852182747781391,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00016500554431174333,
+            "frictionResidual": 0.00006852182747777574,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "2b2f8db7b01247ca7ae8640350c0a4045dd757c4a1581ff4bec7214d46aa2773"
+        }
+      ]
+    },
+    {
+      "solveId": 4,
+      "step": 4747,
+      "pass": 4,
+      "count": 2446,
+      "topLevelPostSolveBoundChanges": 236,
+      "mapping": {
+        "mappedRows": 2097,
+        "rowCount": 2446,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 314,
+            "mapped": 314,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 157,
+            "mapped": 157,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 33.64641699999993,
+          "solveMs": 33.64641699999993,
+          "predictionMs": 0,
+          "certificateMs": 0.29679200000009587,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 5,
+            "factorizations": 195,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00016624395647230617,
+            "frictionResidual": 2.6989467709348514e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 165,
+            "band": 165,
+            "groupCount": 45,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 193,
+            "originalCount": 2446,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 165,
+            "responseColumns": 165,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.00016624395647230617,
+            "frictionResidual": 2.6989467709348514e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00016624395647230617,
+            "frictionResidual": 2.698946798690427e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "523d8001ee344beb78a034efc2d6c8c2285ad25608ec13859a1644ea65216b57"
+        },
+        {
+          "ms": 123.99833300000046,
+          "solveMs": 122.42987500000072,
+          "predictionMs": 1.5684579999997368,
+          "certificateMs": 0.38312499999938154,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 9,
+            "factorizations": 199,
+            "backtracks": 93,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00016624395647230617,
+            "frictionResidual": 2.6989467709348514e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 165,
+            "band": 165,
+            "groupCount": 45,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 193,
+            "originalCount": 2446,
+            "equalityCount": 1624,
+            "equalityBand": 27,
+            "retainedCount": 165,
+            "responseColumns": 165,
+            "expansions": 1,
+            "rowSwaps": 3399,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 7.752850765246222e-17,
+            "maximumPivotGrowth": 2.496809085146295,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2097,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 93,
+              "maximumResidual": 0.2171033519116571
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00016624395647230617,
+            "frictionResidual": 2.6989467709348514e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00016624395647230617,
+            "frictionResidual": 2.698946798690427e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "523d8001ee344beb78a034efc2d6c8c2285ad25608ec13859a1644ea65216b57"
+        }
+      ]
+    },
+    {
+      "solveId": 5,
+      "step": 4748,
+      "pass": 1,
+      "count": 2454,
+      "topLevelPostSolveBoundChanges": 298,
+      "mapping": {
+        "mappedRows": 1542,
+        "rowCount": 2454,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1380,
+            "misses": {
+              "no-exact-history": 246
+            }
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 108,
+            "misses": {
+              "no-exact-history": 210
+            }
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 54,
+            "misses": {
+              "no-exact-history": 105
+            }
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 94,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 94
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 58.31095800000003,
+          "solveMs": 58.31095800000003,
+          "predictionMs": 0,
+          "certificateMs": 0.3092499999993379,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 21,
+            "factorizations": 22,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00006827917022695328,
+            "frictionResidual": 0.00006827917022695328,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 263,
+            "band": 263,
+            "groupCount": 75,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 10,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 263,
+            "responseColumns": 263,
+            "expansions": 2
+          },
+          "audit": {
+            "maximumResidual": 0.00006827917022695328,
+            "frictionResidual": 0.00006827917022695328,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00006827917022691338,
+            "frictionResidual": 0.00006827917022691338,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "50f63d05f43d9ff68c87447c688c4058062dd710116d9713d28002c67330a41b"
+        },
+        {
+          "ms": 100.72812400000021,
+          "solveMs": 99.01933300000019,
+          "predictionMs": 1.7087910000000193,
+          "certificateMs": 0.48966699999982666,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 25,
+            "factorizations": 26,
+            "backtracks": 67,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00006827917022695328,
+            "frictionResidual": 0.00006827917022695328,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 263,
+            "band": 263,
+            "groupCount": 75,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 10,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 263,
+            "responseColumns": 263,
+            "expansions": 2,
+            "rowSwaps": 4242,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.6805154658010186e-16,
+            "maximumPivotGrowth": 2.742450167739173,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 1542,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 67,
+              "maximumResidual": 1.6406808526042738
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00006827917022695328,
+            "frictionResidual": 0.00006827917022695328,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00006827917022691338,
+            "frictionResidual": 0.00006827917022691338,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "50f63d05f43d9ff68c87447c688c4058062dd710116d9713d28002c67330a41b"
+        }
+      ]
+    },
+    {
+      "solveId": 6,
+      "step": 4748,
+      "pass": 2,
+      "count": 2457,
+      "topLevelPostSolveBoundChanges": 298,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2457,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 94,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 94
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 21.14733399999932,
+          "solveMs": 21.14733399999932,
+          "predictionMs": 0,
+          "certificateMs": 0.2475830000003043,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 6,
+            "factorizations": 40,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000046513952477761356,
+            "frictionResidual": 0.000046513952477761356,
+            "coneViolation": 0,
+            "rowCount": 191,
+            "band": 191,
+            "groupCount": 53,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 38,
+            "originalCount": 2457,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 191,
+            "responseColumns": 191,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000046513952477761356,
+            "frictionResidual": 0.000046513952477761356,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00004651395247774054,
+            "frictionResidual": 0.00004651395247774054,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "ebe4e930ed68312f4cb5823ecc7a94bd8f508bfdc13cb0626da7013e3402afd6"
+        },
+        {
+          "ms": 90.10162600000149,
+          "solveMs": 88.60183400000096,
+          "predictionMs": 1.4997920000005251,
+          "certificateMs": 0.33045899999888206,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 44,
+            "backtracks": 63,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000046513952477761356,
+            "frictionResidual": 0.000046513952477761356,
+            "coneViolation": 0,
+            "rowCount": 191,
+            "band": 191,
+            "groupCount": 53,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 38,
+            "originalCount": 2457,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 191,
+            "responseColumns": 191,
+            "expansions": 1,
+            "rowSwaps": 3676,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 9.21689548565995e-17,
+            "maximumPivotGrowth": 2.46405216163053,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 63,
+              "maximumResidual": 0.6907773728733112
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000046513952477761356,
+            "frictionResidual": 0.000046513952477761356,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00004651395247774054,
+            "frictionResidual": 0.00004651395247774054,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "ebe4e930ed68312f4cb5823ecc7a94bd8f508bfdc13cb0626da7013e3402afd6"
+        }
+      ]
+    },
+    {
+      "solveId": 7,
+      "step": 4748,
+      "pass": 3,
+      "count": 2457,
+      "topLevelPostSolveBoundChanges": 298,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2457,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 94,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 94
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 8.190707999998267,
+          "solveMs": 8.190707999998267,
+          "predictionMs": 0,
+          "certificateMs": 0.6888749999998254,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 6,
+            "factorizations": 44,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00019147989478626086,
+            "frictionResidual": 0.00002282482223849025,
+            "coneViolation": 0,
+            "rowCount": 94,
+            "band": 94,
+            "groupCount": 21,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 42,
+            "originalCount": 2457,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 94,
+            "responseColumns": 94,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.00019147989478626086,
+            "frictionResidual": 0.00002282482223849025,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00019147989478626056,
+            "frictionResidual": 0.00002282482223848331,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "320fe379a8686b61588484b84dc0cd700883ba7350ac8c263242ea583a147882"
+        },
+        {
+          "ms": 47.94166699999914,
+          "solveMs": 46.33179199999904,
+          "predictionMs": 1.6098750000001019,
+          "certificateMs": 0.7250829999993584,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 48,
+            "backtracks": 70,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00019147989478626086,
+            "frictionResidual": 0.00002282482223849025,
+            "coneViolation": 0,
+            "rowCount": 94,
+            "band": 94,
+            "groupCount": 21,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 42,
+            "originalCount": 2457,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 94,
+            "responseColumns": 94,
+            "expansions": 1,
+            "rowSwaps": 2939,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 9.860433695457125e-17,
+            "maximumPivotGrowth": 2.213272696084845,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 70,
+              "maximumResidual": 0.021063502871120538
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00019147989478626086,
+            "frictionResidual": 0.00002282482223849025,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00019147989478626056,
+            "frictionResidual": 0.00002282482223848331,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "320fe379a8686b61588484b84dc0cd700883ba7350ac8c263242ea583a147882"
+        }
+      ]
+    },
+    {
+      "solveId": 8,
+      "step": 4748,
+      "pass": 4,
+      "count": 2454,
+      "topLevelPostSolveBoundChanges": 296,
+      "mapping": {
+        "mappedRows": 2103,
+        "rowCount": 2454,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 318,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 159,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 94,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 94
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 5.033916999998837,
+          "solveMs": 5.033916999998837,
+          "predictionMs": 0,
+          "certificateMs": 0.31054199999925913,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 6,
+            "factorizations": 43,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.0001925882421972911,
+            "frictionResidual": 6.38747527093031e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 64,
+            "band": 64,
+            "groupCount": 11,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 41,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 64,
+            "responseColumns": 64,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.0001925882421972911,
+            "frictionResidual": 6.38747527093031e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00019258824219729097,
+            "frictionResidual": 6.387475444402657e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "e830dfecce45791314779db90c284577938254578c47ea5304ff4ee8edb6b60a"
+        },
+        {
+          "ms": 66.2101249999996,
+          "solveMs": 64.56975000000057,
+          "predictionMs": 1.6403749999990396,
+          "certificateMs": 0.3216659999998228,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 47,
+            "backtracks": 58,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.0001925882421972911,
+            "frictionResidual": 6.38747527093031e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 64,
+            "band": 64,
+            "groupCount": 11,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 41,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 64,
+            "responseColumns": 64,
+            "expansions": 1,
+            "rowSwaps": 2240,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 5.544275458061302e-17,
+            "maximumPivotGrowth": 1.5618698959487771,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2103,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 58,
+              "maximumResidual": 0.001565140107189474
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.0001925882421972911,
+            "frictionResidual": 6.38747527093031e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00019258824219729097,
+            "frictionResidual": 6.387475444402657e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "e830dfecce45791314779db90c284577938254578c47ea5304ff4ee8edb6b60a"
+        }
+      ]
+    },
+    {
+      "solveId": 9,
+      "step": 4749,
+      "pass": 1,
+      "count": 2459,
+      "topLevelPostSolveBoundChanges": 302,
+      "mapping": {
+        "mappedRows": 2055,
+        "rowCount": 2459,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 286,
+            "misses": {
+              "no-exact-history": 34
+            }
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 143,
+            "misses": {
+              "no-exact-history": 17
+            }
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 96,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 96
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 12.36041700000169,
+          "solveMs": 12.36041700000169,
+          "predictionMs": 0,
+          "certificateMs": 0.6294589999997697,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 25,
+            "factorizations": 26,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00003333581611356107,
+            "frictionResidual": 0.00003333581611356107,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 157,
+            "band": 157,
+            "groupCount": 38,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 11,
+            "originalCount": 2459,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 157,
+            "responseColumns": 157,
+            "expansions": 2
+          },
+          "audit": {
+            "maximumResidual": 0.00003333581611356107,
+            "frictionResidual": 0.00003333581611356107,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000033335816113443106,
+            "frictionResidual": 0.000033335816113443106,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "bdc9420176b658bc1ce8265438ab2e3125affcc1d676c08ca4772e8b85a9aabb"
+        },
+        {
+          "ms": 43.24345900000117,
+          "solveMs": 41.58466700000099,
+          "predictionMs": 1.658792000000176,
+          "certificateMs": 0.6492090000010649,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 29,
+            "factorizations": 30,
+            "backtracks": 31,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00003333581611356107,
+            "frictionResidual": 0.00003333581611356107,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 157,
+            "band": 157,
+            "groupCount": 38,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 11,
+            "originalCount": 2459,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 157,
+            "responseColumns": 157,
+            "expansions": 2,
+            "rowSwaps": 2517,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 5.259557198876417e-17,
+            "maximumPivotGrowth": 2.049531656440692,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2055,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 31,
+              "maximumResidual": 1.181150183011624
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00003333581611356107,
+            "frictionResidual": 0.00003333581611356107,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000033335816113443106,
+            "frictionResidual": 0.000033335816113443106,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "bdc9420176b658bc1ce8265438ab2e3125affcc1d676c08ca4772e8b85a9aabb"
+        }
+      ]
+    },
+    {
+      "solveId": 10,
+      "step": 4749,
+      "pass": 2,
+      "count": 2459,
+      "topLevelPostSolveBoundChanges": 246,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2459,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 96,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 96
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 110.00704099999894,
+          "solveMs": 110.00704099999894,
+          "predictionMs": 0,
+          "certificateMs": 0.2427079999997659,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 11,
+            "factorizations": 91,
+            "backtracks": 14,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.0000063585878151938,
+            "frictionResidual": 0.0000063585878151938,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 338,
+            "band": 338,
+            "groupCount": 101,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 84,
+            "originalCount": 2459,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 338,
+            "responseColumns": 338,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.0000063585878151938,
+            "frictionResidual": 0.0000063585878151938,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000006358587815346456,
+            "frictionResidual": 0.000006358587815346456,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "3eae12340c0b663e42790ebc04c1f5af655d70fe2e4f463e2eaefd84b4e90110"
+        },
+        {
+          "ms": 192.7562909999997,
+          "solveMs": 191.1357079999998,
+          "predictionMs": 1.6205829999998969,
+          "certificateMs": 0.33508400000027905,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 15,
+            "factorizations": 95,
+            "backtracks": 101,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.0000063585878151938,
+            "frictionResidual": 0.0000063585878151938,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 338,
+            "band": 338,
+            "groupCount": 101,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 84,
+            "originalCount": 2459,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 338,
+            "responseColumns": 338,
+            "expansions": 1,
+            "rowSwaps": 4322,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.1205898700964157e-16,
+            "maximumPivotGrowth": 4.124914419767963,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 87,
+              "maximumResidual": 0.43070585110642845
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.0000063585878151938,
+            "frictionResidual": 0.0000063585878151938,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000006358587815346456,
+            "frictionResidual": 0.000006358587815346456,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "3eae12340c0b663e42790ebc04c1f5af655d70fe2e4f463e2eaefd84b4e90110"
+        }
+      ]
+    },
+    {
+      "solveId": 11,
+      "step": 4749,
+      "pass": 3,
+      "count": 2455,
+      "topLevelPostSolveBoundChanges": 246,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2455,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 120.45762500000092,
+          "solveMs": 120.45762500000092,
+          "predictionMs": 0,
+          "certificateMs": 0.7854999999999563,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 12,
+            "factorizations": 217,
+            "backtracks": 36,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.000003624593852023794,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 302,
+            "band": 302,
+            "groupCount": 90,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 209,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 302,
+            "responseColumns": 302,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.000003624593852023794,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.000003624593852117469,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "f7e8273710200e768492da8d036c1fb165670a36a48a8c9238b3b68de6683521"
+        },
+        {
+          "ms": 166.06958400000076,
+          "solveMs": 164.5557090000002,
+          "predictionMs": 1.513875000000553,
+          "certificateMs": 0.8932499999991705,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 16,
+            "factorizations": 221,
+            "backtracks": 127,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.000003624593852023794,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 302,
+            "band": 302,
+            "groupCount": 90,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 209,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 302,
+            "responseColumns": 302,
+            "expansions": 1,
+            "rowSwaps": 4146,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.162096840625605e-16,
+            "maximumPivotGrowth": 2.894611959780066,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 91,
+              "maximumResidual": 0.23677753874825763
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.000003624593852023794,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.000003624593852117469,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "f7e8273710200e768492da8d036c1fb165670a36a48a8c9238b3b68de6683521"
+        }
+      ]
+    },
+    {
+      "solveId": 12,
+      "step": 4749,
+      "pass": 4,
+      "count": 2452,
+      "topLevelPostSolveBoundChanges": 240,
+      "mapping": {
+        "mappedRows": 2103,
+        "rowCount": 2452,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 318,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 159,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 37.74974999999904,
+          "solveMs": 37.74974999999904,
+          "predictionMs": 0,
+          "certificateMs": 0.2692909999987023,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 8,
+            "factorizations": 150,
+            "backtracks": 15,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 6.118408397461084e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 211,
+            "band": 211,
+            "groupCount": 60,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 146,
+            "originalCount": 2452,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 211,
+            "responseColumns": 211,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 6.118408397461084e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 6.118408397981501e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "06ae43d1eead9f1f362d01cd2bdd6610c27e41a4fa2148a88294549e1cd61618"
+        },
+        {
+          "ms": 89.84783299999981,
+          "solveMs": 88.00458299999991,
+          "predictionMs": 1.8432499999998981,
+          "certificateMs": 0.32629199999973935,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 9,
+            "factorizations": 152,
+            "backtracks": 66,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 6.118408397461084e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 211,
+            "band": 211,
+            "groupCount": 60,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 146,
+            "originalCount": 2452,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 211,
+            "responseColumns": 211,
+            "expansions": 1,
+            "rowSwaps": 1930,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.2401130158500517e-16,
+            "maximumPivotGrowth": 2.508774651735578,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-line-search",
+              "budget": 4,
+              "mappedRows": 2103,
+              "factorizations": 2,
+              "iterations": 1,
+              "backtracks": 51,
+              "maximumResidual": 0.017169545884455368
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 6.118408397461084e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 6.118408397981501e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "06ae43d1eead9f1f362d01cd2bdd6610c27e41a4fa2148a88294549e1cd61618"
+        }
+      ]
+    },
+    {
+      "solveId": 13,
+      "step": 4749,
+      "pass": 5,
+      "count": 2455,
+      "topLevelPostSolveBoundChanges": 242,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2455,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 6.759915069506559e-7,
+      "maximumPrimalCorrectionDifference": 1.663461170307997e-8,
+      "variants": [
+        {
+          "ms": 49.010707999999795,
+          "solveMs": 49.010707999999795,
+          "predictionMs": 0,
+          "certificateMs": 0.7214590000003227,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 7,
+            "factorizations": 225,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 2.1888688136323387e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 205,
+            "band": 205,
+            "groupCount": 58,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 223,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 205,
+            "responseColumns": 205,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 2.1888688136323387e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 2.1888688205712326e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "ec5580831435acdd4d2d0699bfd62697860c6c5da7b263d94673e2a1765c8af9"
+        },
+        {
+          "ms": 22.526334000000134,
+          "solveMs": 20.846666999999798,
+          "predictionMs": 1.679667000000336,
+          "certificateMs": 0.25333300000056624,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 1,
+            "factorizations": 1,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.00000197228526872123,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 2455,
+            "band": 153,
+            "groupCount": 160,
+            "normalLoadIterations": 0,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "linearSolver": "band-lu",
+            "jacobianEntries": 203609,
+            "factorEntries": 1121935,
+            "lowerBandwidth": 152,
+            "upperBandwidth": 152,
+            "rowSwaps": 596,
+            "maximumLinearBackwardError": 5.893832803667887e-17,
+            "maximumPivotGrowth": 1.6561288780501113,
+            "linearResidualFailures": 0,
+            "prediction": {
+              "attempted": true,
+              "accepted": true,
+              "reason": "converged",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 1,
+              "iterations": 1,
+              "backtracks": 0,
+              "maximumResidual": 0.000004198482680184412
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.00000197228526872123,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 0.0000019722852687229647,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "30cf2c86c66d25d43d1ebddc5ddae4e23dfa749421c2407ec7834eeac0985c2a"
+        }
+      ]
+    },
+    {
+      "solveId": 14,
+      "step": 4750,
+      "pass": 1,
+      "count": 2451,
+      "topLevelPostSolveBoundChanges": 282,
+      "mapping": {
+        "mappedRows": 2094,
+        "rowCount": 2451,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 29,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 29
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 312,
+            "misses": {
+              "no-exact-history": 6
+            }
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 156,
+            "misses": {
+              "no-exact-history": 3
+            }
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 53.25224999999955,
+          "solveMs": 53.25224999999955,
+          "predictionMs": 0,
+          "certificateMs": 0.6642090000004828,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 19,
+            "factorizations": 20,
+            "backtracks": 33,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 1.8088392791254255e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 261,
+            "band": 261,
+            "groupCount": 74,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 13,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 261,
+            "responseColumns": 261,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 1.8088392791254255e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 1.8088502054438692e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "9f26c7f987510f0b28d54e47c1d5d11970b59462eea6bd71ce9b83ac522cba1c"
+        },
+        {
+          "ms": 103.75645800000166,
+          "solveMs": 102.05262500000026,
+          "predictionMs": 1.7038330000013957,
+          "certificateMs": 0.7932500000006257,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 23,
+            "factorizations": 24,
+            "backtracks": 103,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 1.8088392791254255e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 261,
+            "band": 261,
+            "groupCount": 74,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 13,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 261,
+            "responseColumns": 261,
+            "expansions": 1,
+            "rowSwaps": 3816,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 8.763470824905094e-17,
+            "maximumPivotGrowth": 2.4378457013571344,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2094,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 70,
+              "maximumResidual": 1.419447254562984
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 1.8088392791254255e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004198482680184412,
+            "frictionResidual": 1.8088502054438692e-10,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "9f26c7f987510f0b28d54e47c1d5d11970b59462eea6bd71ce9b83ac522cba1c"
+        }
+      ]
+    },
+    {
+      "solveId": 15,
+      "step": 4750,
+      "pass": 2,
+      "count": 2451,
+      "topLevelPostSolveBoundChanges": 280,
+      "mapping": {
+        "mappedRows": 2103,
+        "rowCount": 2451,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 318,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 159,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 91,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 91
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 99.12754099999984,
+          "solveMs": 99.12754099999984,
+          "predictionMs": 0,
+          "certificateMs": 0.9265829999985726,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 22,
+            "factorizations": 303,
+            "backtracks": 2,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00004857070566951729,
+            "frictionResidual": 0.0000011517387078275633,
+            "coneViolation": 0,
+            "rowCount": 260,
+            "band": 260,
+            "groupCount": 75,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 100,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 260,
+            "responseColumns": 260,
+            "expansions": 3
+          },
+          "audit": {
+            "maximumResidual": 0.00004857070566951729,
+            "frictionResidual": 0.0000011517387078275633,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000048570705669512175,
+            "frictionResidual": 0.000001151738707837538,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "09238af09a118f9d0a4dc4575632b01e6f201f85e1bb64c8ce53511518a58421"
+        },
+        {
+          "ms": 148.1326250000002,
+          "solveMs": 146.3935419999998,
+          "predictionMs": 1.7390830000003916,
+          "certificateMs": 0.2382080000006681,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 26,
+            "factorizations": 307,
+            "backtracks": 66,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00004857070566951729,
+            "frictionResidual": 0.0000011517387078275633,
+            "coneViolation": 0,
+            "rowCount": 260,
+            "band": 260,
+            "groupCount": 75,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 100,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 260,
+            "responseColumns": 260,
+            "expansions": 3,
+            "rowSwaps": 3856,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.1968466753098133e-16,
+            "maximumPivotGrowth": 3.4235236554399138,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2103,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 64,
+              "maximumResidual": 0.10239826752986961
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00004857070566951729,
+            "frictionResidual": 0.0000011517387078275633,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000048570705669512175,
+            "frictionResidual": 0.000001151738707837538,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "09238af09a118f9d0a4dc4575632b01e6f201f85e1bb64c8ce53511518a58421"
+        }
+      ]
+    },
+    {
+      "solveId": 16,
+      "step": 4750,
+      "pass": 3,
+      "count": 2451,
+      "topLevelPostSolveBoundChanges": 280,
+      "mapping": {
+        "mappedRows": 2103,
+        "rowCount": 2451,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 318,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 159,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 91,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 91
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 11.659458000000086,
+          "solveMs": 11.659458000000086,
+          "predictionMs": 0,
+          "certificateMs": 0.4767499999998108,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 6,
+            "factorizations": 89,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000025407199326549917,
+            "frictionResidual": 0.000025407199326549917,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 136,
+            "band": 136,
+            "groupCount": 35,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 87,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 136,
+            "responseColumns": 136,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000025407199326549917,
+            "frictionResidual": 0.000025407199326549917,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000025407199326515223,
+            "frictionResidual": 0.000025407199326515223,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "bc49b8b85a5e10d4a1cf3682238bcb05cb33ccda65d98889b04cc446dd0590fb"
+        },
+        {
+          "ms": 55.070166000001336,
+          "solveMs": 53.31550000000061,
+          "predictionMs": 1.754666000000725,
+          "certificateMs": 0.6602080000011483,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 93,
+            "backtracks": 80,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000025407199326549917,
+            "frictionResidual": 0.000025407199326549917,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 136,
+            "band": 136,
+            "groupCount": 35,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 87,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 136,
+            "responseColumns": 136,
+            "expansions": 1,
+            "rowSwaps": 3372,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 8.001269430548846e-17,
+            "maximumPivotGrowth": 2.343831168054918,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2103,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 80,
+              "maximumResidual": 0.024328871439882896
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000025407199326549917,
+            "frictionResidual": 0.000025407199326549917,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000025407199326515223,
+            "frictionResidual": 0.000025407199326515223,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "bc49b8b85a5e10d4a1cf3682238bcb05cb33ccda65d98889b04cc446dd0590fb"
+        }
+      ]
+    },
+    {
+      "solveId": 17,
+      "step": 4750,
+      "pass": 4,
+      "count": 2454,
+      "topLevelPostSolveBoundChanges": 282,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2454,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 91,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 91
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 13.793041999999332,
+          "solveMs": 13.793041999999332,
+          "predictionMs": 0,
+          "certificateMs": 0.7072499999994761,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 6,
+            "factorizations": 73,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004365475262953312,
+            "frictionResidual": 1.9633273617980507e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 88,
+            "band": 88,
+            "groupCount": 19,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 71,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 88,
+            "responseColumns": 88,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000004365475262953312,
+            "frictionResidual": 1.9633273617980507e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004365475262953317,
+            "frictionResidual": 1.963327360410272e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "9ed83541582c9a7c3158d1fbd71e06727517ae8532e77f5b4046f1bc8060f664"
+        },
+        {
+          "ms": 72.94183200000043,
+          "solveMs": 71.27979100000084,
+          "predictionMs": 1.66204099999959,
+          "certificateMs": 0.23550000000068394,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 77,
+            "backtracks": 72,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000004365475262953312,
+            "frictionResidual": 1.9633273617980507e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 88,
+            "band": 88,
+            "groupCount": 19,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 71,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 88,
+            "responseColumns": 88,
+            "expansions": 1,
+            "rowSwaps": 2977,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 1.150599974771081e-16,
+            "maximumPivotGrowth": 2.2677663472298555,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 72,
+              "maximumResidual": 0.03249624274411824
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000004365475262953312,
+            "frictionResidual": 1.9633273617980507e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000004365475262953317,
+            "frictionResidual": 1.963327360410272e-8,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "9ed83541582c9a7c3158d1fbd71e06727517ae8532e77f5b4046f1bc8060f664"
+        }
+      ]
+    },
+    {
+      "solveId": 18,
+      "step": 4751,
+      "pass": 1,
+      "count": 2454,
+      "topLevelPostSolveBoundChanges": 294,
+      "mapping": {
+        "mappedRows": 2094,
+        "rowCount": 2454,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 312,
+            "misses": {
+              "no-exact-history": 8
+            }
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 156,
+            "misses": {
+              "no-exact-history": 4
+            }
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 91,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 91
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 17.999915999998848,
+          "solveMs": 17.999915999998848,
+          "predictionMs": 0,
+          "certificateMs": 0.5915839999997843,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 11,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00013926169724420498,
+            "frictionResidual": 0.00013926169724420498,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 258,
+            "band": 258,
+            "groupCount": 73,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 9,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 258,
+            "responseColumns": 258,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.00013926169724420498,
+            "frictionResidual": 0.00013926169724420498,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.0001392616972427478,
+            "frictionResidual": 0.0001392616972427478,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "d68b193cd60942264d0f696de0c34dc808fc968b69b81678f1860c7b2c469567"
+        },
+        {
+          "ms": 47.80291599999873,
+          "solveMs": 46.213165999999546,
+          "predictionMs": 1.589749999999185,
+          "certificateMs": 0.7203339999996388,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 14,
+            "factorizations": 15,
+            "backtracks": 20,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00013926169724420498,
+            "frictionResidual": 0.00013926169724420498,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 258,
+            "band": 258,
+            "groupCount": 73,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 9,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 258,
+            "responseColumns": 258,
+            "expansions": 1,
+            "rowSwaps": 2417,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 5.642695132034562e-17,
+            "maximumPivotGrowth": 1.719950387830217,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2094,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 20,
+              "maximumResidual": 1.8089481966148484
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00013926169724420498,
+            "frictionResidual": 0.00013926169724420498,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.0001392616972427478,
+            "frictionResidual": 0.0001392616972427478,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "d68b193cd60942264d0f696de0c34dc808fc968b69b81678f1860c7b2c469567"
+        }
+      ]
+    },
+    {
+      "solveId": 19,
+      "step": 4751,
+      "pass": 2,
+      "count": 2455,
+      "topLevelPostSolveBoundChanges": 298,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2455,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 21.700458999999682,
+          "solveMs": 21.700458999999682,
+          "predictionMs": 0,
+          "certificateMs": 0.7705829999995331,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 110,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00006618720114484784,
+            "frictionResidual": 0.00006618720114484784,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 146,
+            "band": 146,
+            "groupCount": 38,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 55,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 146,
+            "responseColumns": 146,
+            "expansions": 2
+          },
+          "audit": {
+            "maximumResidual": 0.00006618720114483917,
+            "frictionResidual": 0.00006618720114483917,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00006618720114489295,
+            "frictionResidual": 0.00006618720114489295,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "5a270524fc013752a3c7bb17ef1c47995725597a961e21b7df0cd91cebfebe8f"
+        },
+        {
+          "ms": 67.27550000000156,
+          "solveMs": 65.61962500000118,
+          "predictionMs": 1.6558750000003783,
+          "certificateMs": 0.23591699999997218,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 14,
+            "factorizations": 114,
+            "backtracks": 61,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00006618720114484784,
+            "frictionResidual": 0.00006618720114484784,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 146,
+            "band": 146,
+            "groupCount": 38,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 55,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 146,
+            "responseColumns": 146,
+            "expansions": 2,
+            "rowSwaps": 3465,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 9.239628558224793e-17,
+            "maximumPivotGrowth": 2.0427031439207552,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 61,
+              "maximumResidual": 0.0241383182485134
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00006618720114483917,
+            "frictionResidual": 0.00006618720114483917,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00006618720114489295,
+            "frictionResidual": 0.00006618720114489295,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "5a270524fc013752a3c7bb17ef1c47995725597a961e21b7df0cd91cebfebe8f"
+        }
+      ]
+    },
+    {
+      "solveId": 20,
+      "step": 4751,
+      "pass": 3,
+      "count": 2455,
+      "topLevelPostSolveBoundChanges": 298,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2455,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 4.829791999998633,
+          "solveMs": 4.829791999998633,
+          "predictionMs": 0,
+          "certificateMs": 0.37079199999971024,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 5,
+            "factorizations": 41,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000006209693499344832,
+            "frictionResidual": 0.000006209693499344832,
+            "coneViolation": 0,
+            "rowCount": 76,
+            "band": 76,
+            "groupCount": 15,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 39,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 76,
+            "responseColumns": 76,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000006209693499344832,
+            "frictionResidual": 0.000006209693499344832,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000006209693499379526,
+            "frictionResidual": 0.000006209693499379526,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "76becf75ca2acd3a1aca8254e7b82799b022ae6137507de26ddfd6614cc1a945"
+        },
+        {
+          "ms": 37.88987400000042,
+          "solveMs": 36.131916000000274,
+          "predictionMs": 1.7579580000001442,
+          "certificateMs": 0.6346250000005966,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 9,
+            "factorizations": 45,
+            "backtracks": 49,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000006209693499344832,
+            "frictionResidual": 0.000006209693499344832,
+            "coneViolation": 0,
+            "rowCount": 76,
+            "band": 76,
+            "groupCount": 15,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 39,
+            "originalCount": 2455,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 76,
+            "responseColumns": 76,
+            "expansions": 1,
+            "rowSwaps": 2221,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 3.621437235880048e-17,
+            "maximumPivotGrowth": 1.588670815054024,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 49,
+              "maximumResidual": 0.006918255797327862
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000006209693499344832,
+            "frictionResidual": 0.000006209693499344832,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000006209693499379526,
+            "frictionResidual": 0.000006209693499379526,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "76becf75ca2acd3a1aca8254e7b82799b022ae6137507de26ddfd6614cc1a945"
+        }
+      ]
+    },
+    {
+      "solveId": 21,
+      "step": 4751,
+      "pass": 4,
+      "count": 2452,
+      "topLevelPostSolveBoundChanges": 296,
+      "mapping": {
+        "mappedRows": 2103,
+        "rowCount": 2452,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 318,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 159,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 2.2610877781041594e-7,
+      "maximumPrimalCorrectionDifference": 3.61199339020407e-8,
+      "variants": [
+        {
+          "ms": 9.808332999999038,
+          "solveMs": 9.808332999999038,
+          "predictionMs": 0,
+          "certificateMs": 0.6857920000002196,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 5,
+            "factorizations": 39,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000012027471540235429,
+            "frictionResidual": 2.7804129207331663e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 67,
+            "band": 67,
+            "groupCount": 12,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 37,
+            "originalCount": 2452,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 67,
+            "responseColumns": 67,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000012027471540235429,
+            "frictionResidual": 2.7804129207331663e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000012027471540235439,
+            "frictionResidual": 2.7804129137942724e-9,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "c31dc5be126523cde0d029ff2f08b3e6b1b1fc2a5e63cbe1cac95d50177e0294"
+        },
+        {
+          "ms": 26.825000999999247,
+          "solveMs": 25.146458999999595,
+          "predictionMs": 1.678541999999652,
+          "certificateMs": 0.25558300000011513,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 1,
+            "factorizations": 1,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000012023182754478258,
+            "frictionResidual": 6.074473116700341e-7,
+            "coneViolation": 0,
+            "rowCount": 2452,
+            "band": 153,
+            "groupCount": 159,
+            "normalLoadIterations": 0,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "linearSolver": "band-lu",
+            "jacobianEntries": 203133,
+            "factorEntries": 1120564,
+            "lowerBandwidth": 152,
+            "upperBandwidth": 152,
+            "rowSwaps": 551,
+            "maximumLinearBackwardError": 4.1137793317407764e-17,
+            "maximumPivotGrowth": 1.6000117779269432,
+            "linearResidualFailures": 0,
+            "prediction": {
+              "attempted": true,
+              "accepted": true,
+              "reason": "converged",
+              "budget": 4,
+              "mappedRows": 2103,
+              "factorizations": 1,
+              "iterations": 1,
+              "backtracks": 0,
+              "maximumResidual": 0.000012023182754478258
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000012023182754478258,
+            "frictionResidual": 6.074473116700341e-7,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000012023182754478266,
+            "frictionResidual": 6.074473116700341e-7,
+            "coneViolation": 0,
+            "bounds": true
+          },
+          "incrementHash": "e91946414714c0e475ec7ed073a20e9974304de479138204676b1af4f7d7d60c"
+        }
+      ]
+    },
+    {
+      "solveId": 22,
+      "step": 4752,
+      "pass": 1,
+      "count": 2452,
+      "topLevelPostSolveBoundChanges": 284,
+      "mapping": {
+        "mappedRows": 2094,
+        "rowCount": 2452,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 312,
+            "misses": {
+              "no-exact-history": 6
+            }
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 156,
+            "misses": {
+              "no-exact-history": 3
+            }
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 92,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 92
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 73.91120799999953,
+          "solveMs": 73.91120799999953,
+          "predictionMs": 0,
+          "certificateMs": 0.593457999999373,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 32,
+            "factorizations": 33,
+            "backtracks": 16,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00009873450366882763,
+            "frictionResidual": 0.00009873450366882763,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 277,
+            "band": 277,
+            "groupCount": 79,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 12,
+            "originalCount": 2452,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 277,
+            "responseColumns": 277,
+            "expansions": 2
+          },
+          "audit": {
+            "maximumResidual": 0.00009873450366882763,
+            "frictionResidual": 0.00009873450366882763,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00009873450366873764,
+            "frictionResidual": 0.00009873450366873764,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "f9a8aacf13b0da7395cf60e573dcdd55a915517d8ca19bfa924fac052b598884"
+        },
+        {
+          "ms": 115.58283300000039,
+          "solveMs": 113.89395800000057,
+          "predictionMs": 1.6888749999998254,
+          "certificateMs": 0.6151250000002619,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 36,
+            "factorizations": 37,
+            "backtracks": 55,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00009873450366882763,
+            "frictionResidual": 0.00009873450366882763,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 277,
+            "band": 277,
+            "groupCount": 79,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 12,
+            "originalCount": 2452,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 277,
+            "responseColumns": 277,
+            "expansions": 2,
+            "rowSwaps": 2497,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 4.775736109733655e-17,
+            "maximumPivotGrowth": 2.0697725058709056,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2094,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 39,
+              "maximumResidual": 1.39741177724694
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00009873450366882763,
+            "frictionResidual": 0.00009873450366882763,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00009873450366873764,
+            "frictionResidual": 0.00009873450366873764,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "f9a8aacf13b0da7395cf60e573dcdd55a915517d8ca19bfa924fac052b598884"
+        }
+      ]
+    },
+    {
+      "solveId": 23,
+      "step": 4752,
+      "pass": 2,
+      "count": 2451,
+      "topLevelPostSolveBoundChanges": 290,
+      "mapping": {
+        "mappedRows": 2103,
+        "rowCount": 2451,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 318,
+            "mapped": 318,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 159,
+            "mapped": 159,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 91,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 91
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 36.40491600000132,
+          "solveMs": 36.40491600000132,
+          "predictionMs": 0,
+          "certificateMs": 0.3194999999996071,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 6,
+            "factorizations": 107,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00007802798726081051,
+            "frictionResidual": 0.00007802798726081051,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 190,
+            "band": 190,
+            "groupCount": 52,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 105,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 190,
+            "responseColumns": 190,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.00007802798726081051,
+            "frictionResidual": 0.00007802798726081051,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00007802798726080299,
+            "frictionResidual": 0.00007802798726080299,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "697477930c607024694d66f6148d0efd1ecf45ca1974c869f51879e2e54165aa"
+        },
+        {
+          "ms": 72.37487599999986,
+          "solveMs": 70.72995900000024,
+          "predictionMs": 1.644916999999623,
+          "certificateMs": 0.26449999999931606,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 10,
+            "factorizations": 111,
+            "backtracks": 62,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.00007802798726081051,
+            "frictionResidual": 0.00007802798726081051,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 190,
+            "band": 190,
+            "groupCount": 52,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 105,
+            "originalCount": 2451,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 190,
+            "responseColumns": 190,
+            "expansions": 1,
+            "rowSwaps": 3678,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 8.400636538712311e-17,
+            "maximumPivotGrowth": 2.40575066315188,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2103,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 62,
+              "maximumResidual": 0.053938282752433606
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.00007802798726081051,
+            "frictionResidual": 0.00007802798726081051,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.00007802798726080299,
+            "frictionResidual": 0.00007802798726080299,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "697477930c607024694d66f6148d0efd1ecf45ca1974c869f51879e2e54165aa"
+        }
+      ]
+    },
+    {
+      "solveId": 24,
+      "step": 4752,
+      "pass": 3,
+      "count": 2454,
+      "topLevelPostSolveBoundChanges": 290,
+      "mapping": {
+        "mappedRows": 2106,
+        "rowCount": 2454,
+        "families": {
+          "material": {
+            "rows": 1626,
+            "mapped": 1626,
+            "misses": {}
+          },
+          "sheath": {
+            "rows": 30,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 30
+            }
+          },
+          "friction": {
+            "rows": 320,
+            "mapped": 320,
+            "misses": {}
+          },
+          "normal": {
+            "rows": 160,
+            "mapped": 160,
+            "misses": {}
+          },
+          "fold": {
+            "rows": 227,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 227
+            }
+          },
+          "wall": {
+            "rows": 91,
+            "mapped": 0,
+            "misses": {
+              "accepted-value-unavailable": 91
+            }
+          }
+        },
+        "reason": null
+      },
+      "maxForceDelta": 0,
+      "maximumPrimalCorrectionDifference": 0,
+      "variants": [
+        {
+          "ms": 9.5346669999999,
+          "solveMs": 9.5346669999999,
+          "predictionMs": 0,
+          "certificateMs": 0.4225000000005821,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 5,
+            "factorizations": 63,
+            "backtracks": 0,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000025806653742709018,
+            "frictionResidual": 0.000025806653742709018,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 126,
+            "band": 126,
+            "groupCount": 31,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 61,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 126,
+            "responseColumns": 126,
+            "expansions": 1
+          },
+          "audit": {
+            "maximumResidual": 0.000025806653742709018,
+            "frictionResidual": 0.000025806653742709018,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000025806653742726365,
+            "frictionResidual": 0.000025806653742726365,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "4bd420ac414264465968ee5a2da2a4b1a7614b24b57648f653444cd48b04ef07"
+        },
+        {
+          "ms": 48.899999999999636,
+          "solveMs": 47.282250000000204,
+          "predictionMs": 1.6177499999994325,
+          "certificateMs": 0.648457999999664,
+          "diagnostics": {
+            "status": "converged",
+            "converged": true,
+            "iterations": 9,
+            "factorizations": 67,
+            "backtracks": 62,
+            "gradientFallbacks": 0,
+            "boundRecoveries": 0,
+            "maximumResidual": 0.000025806653742709018,
+            "frictionResidual": 0.000025806653742709018,
+            "coneViolation": 2.220446049250313e-16,
+            "rowCount": 126,
+            "band": 126,
+            "groupCount": 31,
+            "normalLoadIterations": 1,
+            "method": "simultaneous-coulomb-newton",
+            "normalMap": "projection",
+            "seedFactorizations": 61,
+            "originalCount": 2454,
+            "equalityCount": 1624,
+            "equalityBand": 21,
+            "retainedCount": 126,
+            "responseColumns": 126,
+            "expansions": 1,
+            "rowSwaps": 2961,
+            "linearResidualFailures": 0,
+            "maximumLinearBackwardError": 6.331730058903831e-17,
+            "maximumPivotGrowth": 2.0591357082538515,
+            "prediction": {
+              "attempted": true,
+              "accepted": false,
+              "reason": "coulomb-newton-limit",
+              "budget": 4,
+              "mappedRows": 2106,
+              "factorizations": 4,
+              "iterations": 4,
+              "backtracks": 62,
+              "maximumResidual": 0.012370720064230404
+            }
+          },
+          "audit": {
+            "maximumResidual": 0.000025806653742709018,
+            "frictionResidual": 0.000025806653742709018,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "reconstructionKKT": {
+            "maximumResidual": 0.000025806653742726365,
+            "frictionResidual": 0.000025806653742726365,
+            "coneViolation": 2.220446049250313e-16,
+            "bounds": true
+          },
+          "incrementHash": "4bd420ac414264465968ee5a2da2a4b1a7614b24b57648f653444cd48b04ef07"
+        }
+      ]
+    }
+  ],
+  "total": {
+    "ms": [
+      1364.2147489999916,
+      2479.8821670000043
+    ],
+    "factors": [
+      2472,
+      2292
+    ],
+    "predicted": 2,
+    "attempts": 23,
+    "predictionFactors": 84,
+    "rejectedFactors": 82
+  }
+}

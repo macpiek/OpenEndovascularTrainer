@@ -1,0 +1,14 @@
+{
+  "scenario": "35 s UI benchmark, joint-axial-sections",
+  "source": "visible browserBenchmarkReport, selected fields",
+  "averageFps": 28.958878392682394,
+  "calls": 419,
+  "nonconvergedResults": 0,
+  "backlogSeconds": 19.066366666666685,
+  "lastStepMs": 242.80000007152557,
+  "axialAssemblyMs": 1985.799998164177,
+  "axialNewtonMs": 15173.100001096725,
+  "sectionAssemblyMs": 12291.1000020504,
+  "boundarySolveMs": 691.9000000953674,
+  "performanceGatePassed": false
+}

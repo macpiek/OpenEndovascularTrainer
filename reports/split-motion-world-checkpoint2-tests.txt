@@ -1,0 +1,16 @@
+✔ initial affine-wall overlap is repaired without physical velocity, spin or load (24.60225ms)
+✔ nested bias-only contact with positive friction preserves axial slip and has zero physical budget (15.8885ms)
+✔ nested incoming velocity creates physical load and a bounded friction impulse (14.029917ms)
+✔ nested external force creates physical load and a bounded friction impulse (8.388125ms)
+✔ wall bias preserves incoming away/tangent motion and independent wire-only axial spin (2.171375ms)
+✔ free torsional prestrain produces analytic physical recoil and dissipative total energy (1.2605ms)
+✔ hard positional and orientation controls remain exact while physical history commits once per dt (5.3965ms)
+✔ a rejected physical trial rolls back and commits the accepted physical history once (4.651625ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 317.463375

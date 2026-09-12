@@ -1,0 +1,58 @@
+{
+  "scope": "whole 3-node 2-tool one-side-contact physical dt including material-history preparation and commit; fixed small fixture, no World/render/FPS claim",
+  "dt": 0.008333333333333333,
+  "nodeCount": 3,
+  "frictionMu": [
+    0.015,
+    0.006
+  ],
+  "maxNumericDifference": 3.3881317890172014e-21,
+  "summary": [
+    {
+      "stage": "first-loaded-dt",
+      "pairs": 100,
+      "warmupPairs": 40,
+      "triadHessian": {
+        "meanMs": 2.195515809999996,
+        "medianMs": 2.099792000000093,
+        "p95Ms": 2.7404999999999973,
+        "minMs": 1.859625000000051,
+        "maxMs": 5.0951670000000036
+      },
+      "closedOmega": {
+        "meanMs": 1.7902471200000003,
+        "medianMs": 1.7126659999998992,
+        "p95Ms": 2.2558329999999955,
+        "minMs": 1.4819159999999556,
+        "maxMs": 3.3322089999999207
+      },
+      "directions": 2,
+      "evaluations": 6,
+      "fullAssemblies": 2,
+      "gradientAssemblies": 4
+    },
+    {
+      "stage": "second-loaded-dt",
+      "pairs": 100,
+      "warmupPairs": 40,
+      "triadHessian": {
+        "meanMs": 2.2766966400000035,
+        "medianMs": 2.1411249999998745,
+        "p95Ms": 3.015916000000061,
+        "minMs": 1.9289169999999558,
+        "maxMs": 4.372417000000041
+      },
+      "closedOmega": {
+        "meanMs": 1.8717707800000016,
+        "medianMs": 1.8143750000001546,
+        "p95Ms": 2.3638750000000073,
+        "minMs": 1.5482080000001588,
+        "maxMs": 3.203000000000202
+      },
+      "directions": 2,
+      "evaluations": 6,
+      "fullAssemblies": 2,
+      "gradientAssemblies": 4
+    }
+  ]
+}

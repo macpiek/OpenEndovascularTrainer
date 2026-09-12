@@ -20,7 +20,7 @@ import {
 import {
     KIRCHHOFF_MATERIAL_PROFILES,
     KIRCHHOFF_PROFILE_EXPECTED_TURNS,
-    LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI,
+    GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI,
     discretizeKirchhoffProfile,
     integrateKirchhoffMaterial,
     integrateKirchhoffVoronoi,
@@ -130,17 +130,17 @@ const glidewireTransitionMiddle = sampleKirchhoffMaterial(
 assert.equal(
     glidewireTip.EI1,
     GUIDEWIRE_TIP_BENDING_STIFFNESS *
-        LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
+        GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
 );
 assert.equal(
     glidewireTransitionStart.EI1,
     GUIDEWIRE_TIP_BENDING_STIFFNESS *
-        LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
+        GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
 );
 assert.ok(Math.abs(
     glidewireBody.EI1 -
     GUIDEWIRE_BODY_BENDING_STIFFNESS *
-        LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
+        GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
 ) < 1e-9);
 assert.equal(GUIDEWIRE_SOFT_TIP_LENGTH_MM, 50);
 assert.ok(
@@ -156,14 +156,14 @@ assert.ok(
 assert.equal(
     steelJTip.EI1,
     STEEL_J_GUIDEWIRE_TIP_BENDING_STIFFNESS *
-        LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
+        GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
 );
 const steelJBody = sampleKirchhoffMaterial('steel-j-035', 100);
 assert.ok(
     Math.abs(
         steelJBody.EI1 -
         STEEL_J_GUIDEWIRE_BODY_BENDING_STIFFNESS *
-            LEGACY_GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
+            GUIDEWIRE_RIGIDITY_TO_KIRCHHOFF_EI
     ) < 1e-9
 );
 

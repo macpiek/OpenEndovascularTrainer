@@ -1,0 +1,48 @@
+✔ each own affine axis retains translation, opposite feed/spin, all configuration/rate Jacobian columns and finite differences (22.256292ms)
+✔ instantaneous force map is exactly work conjugate to rates, with prescribed feed and wall power explicit (1.602916ms)
+✔ common instantaneous rigid motion cancels at the same contact point with different physical lever arms (0.457292ms)
+✔ own accepted frame gauges and unwrapped angle lifts preserve physical rate maps and independent winding (1.0855ms)
+✔ zero-feed bending follows the actual affine triad derivative rather than a quadratic reconstruction (1.478167ms)
+✔ midpoints inside one affine edge are not support seams; real hinge crossings and ambiguous traces require transport (2.370959ms)
+✔ source/returned histories are owned across workspace reuse and stale own-frame or nonfinite inputs reject (2.428708ms)
+✔ finite contact-frame rule cancels common short finite rigid motion with different axes origins/levers and frame gauges (0.471708ms)
+✔ finite opposite feeds and each own winding match the instantaneous limit, including both+2pi and stationary-wall control (0.601583ms)
+✔ finite BE-center-plus-omega counterexample is nonobjective while the stated contact-frame rule cancels it (2.962625ms)
+✔ finite control rejects nonparallel/unknown rotation paths and the ambiguous short-contact-normal branch (0.218416ms)
+✔ finite control needs own unwrapped pose history and the contact path, not invented instantaneous angular rates (0.403292ms)
+✔ finite parallel contact-frame increments have the instantaneous virtual-power limit under common bending with independent feeds and spins (1.034625ms)
+✔ finite nonparallel chart exposes exact AD for every configuration, moving foot and both geometric query arguments (11.39675ms)
+✔ finite nonparallel contact-frame rule cancels arbitrary common short rigid motion with unequal physical axes/levers (0.543916ms)
+✔ finite nonparallel reversal swaps the same material labels and negates each winding, swing and resulting slip (0.472666ms)
+✔ general finite rule preserves both own full turns, agrees with the parallel control and differentiates departure from parallelism (2.437041ms)
+✔ finite nonparallel moving-query increment and work converge to the independent instantaneous rate map with opposite feed and changing metrics (2.577833ms)
+✔ finite configuration Jacobian includes actual strict-side projection foot, point, normal and tangent chain rules (0.645167ms)
+✔ stationary-wall finite increment allows own nonparallel bending, but rejects missing material transport or a moving wall history (0.439167ms)
+✔ finite swing integral matches independent path quadrature and is differentiable at the removable parallel singularity and series join (10.706ms)
+✔ zero-feed nonparallel bending has the same virtual-power limit, including one tool against its stationary wall (4.97675ms)
+✔ adjacent quadratic supports have the exact third-difference position jump despite matching tangents and material frames (6.298041ms)
+✔ stationary curved material feed has a bending-omega and finite-radius slip jump at the common midpoint (1.874667ms)
+✔ two tools with opposite feed retain the boundary jump in their relative material slip (1.303708ms)
+✔ a straight continuous centerline still has a slip jump when independent edge-angle slopes differ (4.50025ms)
+✔ BE centerline motion can jump at the interface even with zero feed and unchanged common-edge geometry (1.680583ms)
+✔ the nonuniform-grid jump follows the cubic divided difference; a globally quadratic control is continuous (1.820625ms)
+✔ the exact quadratic-versus-affine position envelope is attained at each patch midpoint (0.366959ms)
+✔ straight stationary opposite feed/spin uses non-unit qx and retains theta convection (9.010833ms)
+✔ a curved stationary centerline advects bending omega and actual surface velocity (1.292584ms)
+✔ unwrapped reference winding selects a continuous spatial material field rather than zero twist (0.725458ms)
+✔ common finite rigid-body motion has no false relative slip at the same common surface foot (0.743042ms)
+✔ accepted time-frame gauges preserve material orientation, full omega, slip and every Jacobian column (1.26ms)
+✔ world-frame rotation and translation preserve slip and transform angular/material velocity covariantly (1.206125ms)
+✔ full analytic slip Jacobian matches independent differences including neighbor q, both spins, moving levers and axes (25.860708ms)
+✔ independent material-path finite differences of the entire director triad recover full omega (3.111084ms)
+✔ quadratic midpoint tangent/material endpoints and BE translational Kinematics agree with their declared fields (2.937167ms)
+✔ stationary wall is one side, outputs survive workspace reuse and accepted inputs remain untouched (1.4425ms)
+✔ missing angular history/reconstruction and stale or degenerate time charts fail explicitly (2.311333ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.123083

@@ -1,0 +1,91 @@
+{
+  "base": "/tmp/oet-composite-joint-surface-motion-final",
+  "baseManifestSha256": "6ea57b632363f57cf912a497347ed66f0acee3e9bc8cd9beba4ee2044f32e161",
+  "baseFiles": {
+    "package.json": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+    "probe.mjs": "74d59ca6474945f528e63c8b183c04a1ba19820315929cc9c635803fa260878d",
+    "reports/composite-joint-surface-motion-probe.json": "f301a81936bac2bd206193323afa7c029b4e14030fbff2b8937625ee27fcdff9",
+    "reports/composite-joint-surface-motion-tests.txt": "ba6455ccef66ed948e8229a126c58de2bea02d3d7a9618585e305fce055dc51e",
+    "reports/composite-joint-surface-motion.md": "29d72d8847828aabd2a2aa895b6ae25db3ec1818ce2ec1e4c81488a3daaed4c7",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "be58aed21b93a7181103c1d6c945613b3cf3926a7429cdc2f245d814bfbe0e63",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeSurfaceMotion.js": "b795b851e0f6057ad27a84adb6e5287aedf8d31636954a51e0526691599e4de0",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "b949cb0d8520ab2b5de017c4624a59962af4ebf69cda15b65c0fca4bcaf4b4ba",
+    "tests/kirchhoffCompositeSurfaceContinuity.test.js": "e43291ae213fe7c38224a447f59b2200245ddd5b548399207d667eebcd5ab353",
+    "tests/kirchhoffCompositeSurfaceMotion.test.js": "41d3e1955b88d8e63108d16464ba8c5c595f6fe555ce44b914ad36faf3450570"
+  },
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-joint-surface-pullback-6bh28v_v",
+  "existingSourceEdits": false,
+  "dependencies": {
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9"
+  },
+  "status": "complete-frozen",
+  "bundleKind": "changed-files-only",
+  "frozenBundle": "/tmp/oet-composite-joint-surface-pullback-final-86n3dn26",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeJointSurfacePullback.js",
+      "sha256": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointSurfacePullback.test.js",
+      "sha256": "b35f68bf939ff98643fcbf98c4f9576351d416054f7f11aa37af9d21308d2292"
+    },
+    {
+      "path": "reports/composite-joint-surface-pullback.md",
+      "sha256": "01d6115748153574980cc944b2a95e10d052b6a06a56d8241051aa8494458586"
+    },
+    {
+      "path": "reports/composite-joint-surface-pullback-tests.txt",
+      "sha256": "4f50eb6e137f8fcb4fcd5a19cd7fd9ec6a653bc1eec919350f4740c2fbd2f3b4"
+    },
+    {
+      "path": "reports/composite-joint-surface-pullback-affected-tests.txt",
+      "sha256": "429899fbf659ba0942f7375b0127d53abdaf1d0d844ee13c5657bfd3435517d0"
+    }
+  ],
+  "newSources": [
+    "src/physics/kirchhoffCompositeJointSurfacePullback.js"
+  ],
+  "newTests": [
+    "tests/kirchhoffCompositeJointSurfacePullback.test.js"
+  ],
+  "previousSingleMaterialSourcesUnchanged": true,
+  "tests": {
+    "new": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0
+    },
+    "affectedFrozen": {
+      "tests": 44,
+      "pass": 44,
+      "fail": 0
+    },
+    "providerTests": 31,
+    "command": "/opt/homebrew/bin/node --test --test-concurrency=1 tests/kirchhoffCompositeJointSurfacePullback.test.js tests/kirchhoffCompositeJointSurfaceMotion.test.js tests/kirchhoffCompositeSurfaceMotion.test.js tests/kirchhoffCompositeSurfaceContinuity.test.js",
+    "syntaxCheck": true
+  },
+  "verification": {
+    "all12ProviderManifestEntries": true,
+    "runtimeMatchesProvider": true,
+    "dependencyHashes": true,
+    "newSourceAndTestMatchTestedRuntime": true
+  },
+  "scope": "Bounded local affine G/B/DB map and physical force/own spin-torque scatter; no detector, friction policy or solver",
+  "limitations": [
+    "Caller supplies already geometry-chain-rule-composed operators with explicit validity flags",
+    "Provider edgeId-to-layout-edge binding is explicitly declared by caller and frozen",
+    "Finite G and full DB are tested by independent dense operators; frozen instantaneous provider supplies B only",
+    "At most two distinct physical tools and local two-edge stencil; full chart overlap modes required",
+    "Output arrays are read-only reusable scratch; copy results before next map/load",
+    "No finite friction dt/hinge transport/Coulomb/World/performance certification"
+  ]
+}

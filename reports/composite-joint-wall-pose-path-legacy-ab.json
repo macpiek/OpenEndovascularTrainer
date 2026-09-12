@@ -1,0 +1,656 @@
+{
+  "pass": true,
+  "cases": 72,
+  "baselineSha256": "dae80edb3b75cf39e0d696317ecdab6762cf7ebb0e48482895617a8728952be8",
+  "candidateSha256": "ff026caa2b6da4e7008793f67707adb3651e3407883f204c8e7e8f68d7b9e366",
+  "results": [
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "d994a086474a7636256e307b87d2a9a6d87890bcf84a2be0365d5d205a2380d8"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "1386980f4a6dbb496f303e617b1931b690f13180e1563b73d9393098afdc0e1a"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "93aff701ed68151d5ed585692c5129a99431615f0e49e1ac4b4c22555fa91608"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "e50aefd0af5fa595fc749936fe18cc34363300c15c8751a62738cb2d5050a74a"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "d91c6ce6c45d4ce264ef64809544e86181770fd27531a2f09b081a1fee45ba35"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "d49ef34c534615fdf5e38ab3467258de5195307db63785cc6fae1bca0326f9c9"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "ae0a05b7178fd69d4b3cbb52244fc6c40dd4436d17e1882219f6023ae1e61ca9"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "6ee7dd881920019a09ae8a7ee5745fbe91fecb1e68f95e3464473b15b8995523"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "7b6beff469316c99820a8e2ad6c27768d1f8ec61af12bebeb7182271f6d53b00"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "b7703c3d7e08dfb69acc2d882c5c91e27c5401b6362349ef9594da247c5c5e38"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "918cdb5c0a13e1af7e4471b627e1819b902f18f0c0935ab2d8551e9cb20b4821"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "cabb052d3654f7fc251d1d474d81d682935ac2f821c63401857d715a32885445"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "0a138a45dc67814d7ef720c418f2914c1c52ffeaa03be0bd00d63f7bd70d6125"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "7ed346ec1b9f4660ae15240a15c1e5d3ba6ea7266fc6d136c9d6fef144f0d4cb"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "9ba753ca2c7349d97ed9f5467e58ebabcd581c1c54c5ddf0ab86fc53614aca0a"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "21f31c6a1e35a938ff35a043eb3fb138df80d1ae2208985d99ce1fe7a59d7c66"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "d599fe6bf03306e00677559d5569855078e29a0e9939dfd33b80260f892ba054"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "60cdc31df4b45fecc96ad9ae836af4e0cebabf2e01ca31bbd0ea88830bffd641"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "c39d3d934a260ee2fc6764cb3709e23860b0e55fc0a13fb5f56cf52a09cd367f"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "c8cf2ff396a5857c4277e8635e23b015fa21ff6f1305e95f9ca20cb94bc05bf1"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "8e627d64d85400ab09a02f00e89f6196dc783c76fb889ba906dd7630112de7b5"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "49f0dbdd061457ec3dae20555d0105a0740fcd82cd3b3735aae247a02471923c"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "ccb261b5f480a736a64aea1e47301ee569d1b4ef1a911354f046a92d6e7c917e"
+    },
+    {
+      "kind": "plane",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "d9aec09dc9ef82e28c50d83d25ee040c568cab848754d34cb9f9e8883ff91ca2"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "146a0d2292eee43880dc14dbcd62a6d9adfd61d1ebb4a96ecd9136aa790a26ff"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "d9839b966906695f2268a4ee46b15ca5dea363be28c2954c50eba87eac79c90d"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "8b31da56687fcb297b750df8260e89fc96c9b2e439eb667a562e5ac03c76d2bc"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "9f85aaac3fcce62b6b4c3a09637f3e22841e79b72b7229ad16fab1c80824c438"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "f5a52c795491e3cbc13e438fc31fa37c3126b1e44b2604f159f9af5faa70ed82"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "34361041dc9dcf1366f115f16e7c23b70765bce62da710359f4878ab2dd0151d"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "2dcfab2157e6c13507ff51185da057bf5eec64c8a814720a1aff4644142517ba"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "51ff435f79c2af5a167f811da52bccb54763a499a092016dbec18e2ee8f8875a"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "3ac76ff74d84ec54169a1690c168539aa81c66ff68baf0016edacddd8abd0218"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "69f937b2a0e8feea06308ebef9be874d4c60f32115899516b57a7f0a0c0bb232"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "71b9fa92cb6c9bc863bec23d9e6a65c47080a384557cb9e9e69663abe9f79f8c"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "9db9d72bec3f4d1a2669a7be76f9265980a943be3b1b1432a530d865eae2e960"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "5089d966948fd778bf07759c2a9946542843d8f6d76d1bce7750f21e6b94f606"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "6d8d6c09178b93021105f57021caeb9a62aa4eceadd1645ba1b1babd943c3a09"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "69d8bd3e3cd90a4c3bad030b30176f19804cd61348a6f3e6023e5ad9759e2b9a"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "adb6069573c2f306a73aa2c292cf6bad697bad8f9a98620e309a23e02ac8fe6c"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "01b9561bf0b0b14784c1968b980b9a8c1fa0d375a7de13787e45be909ae8dc5f"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "6c4d1aa7acbb5ec4221c17a4dd5c7e49cc3a98bc8d8b477f4e6f6a8a7e1eb1a1"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "be128e99288d8052eb9cd1ec5252a869dd804dc0974a688ce92e6850e3e07e88"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "3698a8c3681d69900b6c233cfb6af1e46914e18e6896c8345162280f35aad905"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "108298f697752898394620c49bf6d3f349f72437b6feb9a934318396aba8911c"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "792b7790ed48f4c84debf444e0f710eae0b7c1221f3646911d520ba6e4b6ec94"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "1ee42a55b5679051fa3e38cbf8c546e328e3e2a90118115e1895559ebfda81bd"
+    },
+    {
+      "kind": "sdf",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "ab115df94a592eb8a87c8474c5d85d07c3362fc422226c8f4a40c5cbe579eb86"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "8cbfc5de8ce5563385cdf196ac857bc355f3af54b68f569b14f49e2b277326e7"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "03c92027d4813bbf4fc17dc299bc45f63808ba7d8351ef861067949ddd62b0a1"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "dfd69d1d6e9207b3c621720dfd48f1e56046cfc111592520150c3756a716d0bd"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "7756c6dea50b997ba2e83bfc28e9205fdc177529443e6893813b98a9610d62ce"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "d3d0d0688af0c29df1a6e950e46d3cced593293b9091b22f39ec70874a92f5dc"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "011ea616191adaeb19109be6f2f82f23baa3283578b0c4ef021088351b5df40f"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "4747cd13d367312e0525cbe573113c1af22657e33f54c9ac34d457f01a429663"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "5eb768a9eeeaf5be7f201512173d9a5500938d7baaed222d8da9424c650951c8"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "e140615158327a874af3d1937af030ba5fecc50d372917f871a4e203a291a344"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "a0d311ac8d19663afbb39c1ba4e1c5392b3b672c759d270b4083c5283634e15c"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "31a96dbed3c11dff0bb1cbe4679aa3e5b97016bb16ea8600e0ad7b13f04ee558"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-tangent",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "5110812ab4bda25401e9ff597ea213f02e6f9dcca428efe9226332eb83283a99"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "0a7abe6bdb80f9189df8106b026205b5e83fc7b10949bb9a481b67f7c153c3a6"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "485a470f2befbbb84008843ed43d878281fb5f81ecc883cd9153ef1457e73c19"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "d73dd5cd6d1084fc9a87a3467c78bbbfeea5973950644b97532b62762611f69f"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "61028fe059eae3260d9c6398a3854ebc12bb36a123dd7c55bb89ac73a2b5e991"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "2f6776fa063edf9b899ac7628d3cbe00f4cf707a45ac9c41e63bf15e7ccbdb7b"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": false,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "e4533b897f6aeedf0ec8e799f73a64039dee6f0bd782ba604327c7fedb235b50"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0,
+      "order": "full",
+      "exact": true,
+      "sha256": "9c4be04743f4e796693f97b06592c54968fe427cbd8dae192cb1c74447a270fe"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0,
+      "order": "value",
+      "exact": true,
+      "sha256": "46f3b51fddfd897f2a8188d3a32df178486febed1311d30e2f95d43d79c77cd1"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "full",
+      "exact": true,
+      "sha256": "faae877cf8b8d25c55b2ee94d31f3f6f0dabdadfd3d2b144530fc2927c4d4bb0"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 0.19,
+      "order": "value",
+      "exact": true,
+      "sha256": "189952deb28a865fa9ade9aefe7ca534b09797ee3137a4d0d50c92702f5e69db"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "full",
+      "exact": true,
+      "sha256": "4fdae1e30d9cf300c3652dba4489cda84d69450875f53312965db3bb83f636f7"
+    },
+    {
+      "kind": "bvh",
+      "basis": "projected-own-reference-director",
+      "envelope": true,
+      "spin": 6.283185307179586,
+      "order": "value",
+      "exact": true,
+      "sha256": "0805d3f8291aaaa49678d8873433a2929f2f0d58137e7c7b1fd3fefbd273ffa2"
+    }
+  ]
+}

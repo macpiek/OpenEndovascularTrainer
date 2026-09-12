@@ -1,0 +1,31 @@
+{
+  "source": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-root-adaptive-release-xyhpy_uf",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-mobile-accuracy-audit-nfgici14",
+  "baseHashes": {
+    "src/physics/endovascularPhysicsWorld.js": "130043657df89355ab7606b9b7f454691cc985c62b309698b4f30eef7c7fae42",
+    "src/physics/kirchhoffTwoChannelSystem.js": "02871462dad5d7816e9d085b3b0658db37ecce9e32d9902f4062ece731f286ea",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "src/physics/kirchhoffTwoChannelCondensation.js": "437f646674a2d4e9ad8f6f32f89a17b855498b0acae5907e8c8f7c4de1aac1e6"
+  },
+  "filterOriginalRuntime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-mobile-filter-original-irhgf9xx",
+  "sharedSourceUnchanged": {
+    "src/physics/endovascularPhysicsWorld.js": true,
+    "src/physics/kirchhoffTwoChannelSystem.js": true,
+    "src/physics/kirchhoffCoulombNewtonSolver.js": true,
+    "src/physics/kirchhoffTwoChannelCondensation.js": true
+  },
+  "originalKernelFilterHashes": {
+    "src/physics/endovascularPhysicsWorld.js": "07bb2cff92ff97d5a536ccc75751036acc5068a882a8a048e748cdcbe3ee739a",
+    "src/physics/kirchhoffTwoChannelSystem.js": "02871462dad5d7816e9d085b3b0658db37ecce9e32d9902f4062ece731f286ea",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "src/physics/kirchhoffTwoChannelCondensation.js": "437f646674a2d4e9ad8f6f32f89a17b855498b0acae5907e8c8f7c4de1aac1e6"
+  },
+  "proofHashes": {
+    "src/physics/endovascularPhysicsWorld.js": "07bb2cff92ff97d5a536ccc75751036acc5068a882a8a048e748cdcbe3ee739a",
+    "src/physics/kirchhoffTwoChannelSystem.js": "2cd9014ab214085a4d913b59670003894fb1b0090adfcce0642017aa350bcf35",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "2842e76deb3c82c4de3ae37b17ffc2ab030da56718c6f031621fbecfbd02b93a",
+    "src/physics/kirchhoffTwoChannelCondensation.js": "437f646674a2d4e9ad8f6f32f89a17b855498b0acae5907e8c8f7c4de1aac1e6"
+  },
+  "seedSha256": "6851781656931d9c7aab705173a0b7941d8dcaa93936075925c7e89f5d526333",
+  "probeSha256": "5765363facffb73456cf0ac4199f9170194971a9c2ffcdda153f967ff0cb6e68"
+}

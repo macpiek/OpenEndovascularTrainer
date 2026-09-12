@@ -1,0 +1,139 @@
+--- a/src/physics/endovascularPhysicsWorld.js
++++ b/src/physics/endovascularPhysicsWorld.js
+@@ -10,6 +10,11 @@
+     beginKirchhoffSplitBias, finishKirchhoffSplitBias, measureKirchhoffSplitMaterial,
+     copyKirchhoffSplitVelocity, prescribeKirchhoffSplitOrientation, syncKirchhoffSplitVelocity,
+     commitKirchhoffSplitHistory, getKirchhoffSplitMotionStats } from './kirchhoffSplitMotion.js';
++import { beginKirchhoffTwoChannelMotion, applyKirchhoffTwoChannelPhysicalMotion,
++    commitKirchhoffTwoChannelBiasMaterial, measureKirchhoffTwoChannelMaterial } from './kirchhoffTwoChannelMotion.js';
++import { beginKirchhoffTwoChannelRows, prepareKirchhoffTwoChannelRows,
++    commitKirchhoffTwoChannelRows, measureKirchhoffTwoChannelRows } from './kirchhoffTwoChannelRows.js';
++import { solveKirchhoffTwoChannelSystem } from './kirchhoffTwoChannelSystem.js';
+ import { measureKirchhoffFrictionMerit } from './kirchhoffFrictionMerit.js';
+ import { beginKirchhoffCoupledBoundaryStep, collectKirchhoffCoupledBoundaryRows, applyKirchhoffCoupledBoundaryMultipliers, measureKirchhoffCoupledBoundaryResidual } from './kirchhoffCoupledBoundaryRows.js';
+ import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from './kirchhoffCoupledTrialState.js';
+@@ -1547,6 +1552,12 @@
+         }
+         if (connected && this.jointMotionMode === 'split-physical-bias') {
+             beginKirchhoffSplitMotion(connected, this);
++            if (connected._splitMotion.biasMaterialMode === 'coupled-compliance') {
++                beginKirchhoffTwoChannelMotion(connected);
++                beginKirchhoffTwoChannelRows(connected, this);
++                connected._splitMotion.diagnostics.twoChannel = true;
++                delete connected._splitMotion.diagnostics.biasElasticEnergyDelta;
++            }
+             initializeKirchhoffWallFrictionModes(connected, wallFrictionIncoming,
+                 { displacementToleranceMm: this.coupledContainmentTolerance * 0.2 });
+         }
+@@ -1572,13 +1583,23 @@
+                     jointConstraint._splitMotion.diagnostics.physicalFailure = structuredClone({
+                         linear: jointConstraint._jointLinearFailure, trial: jointConstraint._jointTrialFailure
+                     });
+-                beginKirchhoffSplitBias(jointConstraint, this, this.lastCoupledClosureConverged);
+-                this.#solveJointCoupledConstraints(jointConstraint);
+-                if (jointConstraint._jointLinearFailure || jointConstraint._jointTrialFailure)
+-                    jointConstraint._splitMotion.diagnostics.biasFailure = structuredClone({
+-                        linear: jointConstraint._jointLinearFailure, trial: jointConstraint._jointTrialFailure
+-                    });
+-                finishKirchhoffSplitBias(jointConstraint, this.lastCoupledClosureConverged);
++                if (jointConstraint._splitMotion.twoChannel) {
++                    const split = jointConstraint._splitMotion;
++                    // Both equations have just been solved in the same outer
++                    // iterations. No second integration or material-bank swap.
++                    split.physicalMaterialResidual = { ...measureKirchhoffTwoChannelMaterial(jointConstraint).physicalResidual };
++                    split.diagnostics.physicalAccepted = split.diagnostics.biasAccepted = this.lastCoupledClosureConverged;
++                    split.diagnostics.jointPasses = split.diagnostics.physicalPasses;
++                    split.phase = 'complete';
++                } else {
++                    beginKirchhoffSplitBias(jointConstraint, this, this.lastCoupledClosureConverged);
++                    this.#solveJointCoupledConstraints(jointConstraint);
++                    if (jointConstraint._jointLinearFailure || jointConstraint._jointTrialFailure)
++                        jointConstraint._splitMotion.diagnostics.biasFailure = structuredClone({
++                            linear: jointConstraint._jointLinearFailure, trial: jointConstraint._jointTrialFailure
++                        });
++                    finishKirchhoffSplitBias(jointConstraint, this.lastCoupledClosureConverged);
++                }
+                 const physical = this.#measureJointCoupledConstraints(jointConstraint, false);
+                 const split = jointConstraint._splitMotion;
+                 split.diagnostics.finalPhysicalResidualSettled = physical.settled;
+@@ -2556,7 +2577,15 @@
+             const wallBatch = constraint._splitMotion ? buildKirchhoffSplitWallFriction(constraint, options.additionalRows,
+                 this.fixedDt, constraint._jointSplitWallFrictionBatch ??= {}) : null;
+             if (wallBatch) appendKirchhoffSplitWallFriction(wallBatch, options.additionalRows, options.groups);
+-            const result = this.coupledSystem.solve(constraint, this.fixedDt, options);
++            const channelRows = constraint._splitMotion?.twoChannel
++                ? prepareKirchhoffTwoChannelRows(constraint, options.additionalRows, options.groups) : null;
++            if (channelRows && !channelRows.ready) {
++                constraint._jointLinearFailure = { converged: false, status: 'two-channel-contact-history', issues: channelRows.issues };
++                break;
++            }
++            const result = channelRows
++                ? solveKirchhoffTwoChannelSystem(constraint, this.fixedDt, { ...options, channels: channelRows.channels })
++                : this.coupledSystem.solve(constraint, this.fixedDt, options);
+             constraint._jointDiagnostics = result.diagnostics;
+             this.lastJointFactorizations += result.diagnostics.factorizations ?? 0;
+             this.lastJointLinearIterations += result.diagnostics.iterations ?? 0;
+@@ -2581,8 +2610,13 @@
+                     this.lastJointBacktracks++;
+                 }
+                 result.scale = proposedScale * 2 ** -trialCount;
+-                applyKirchhoffSplitPhysicalIncrement(constraint, result);
++                if (channelRows) applyKirchhoffTwoChannelPhysicalMotion(constraint, result);
++                else applyKirchhoffSplitPhysicalIncrement(constraint, result);
+                 this.coupledSystem.apply(constraint, result);
++                if (channelRows) {
++                    commitKirchhoffTwoChannelBiasMaterial(constraint, result);
++                    commitKirchhoffTwoChannelRows(constraint, result);
++                }
+                 applyKirchhoffCoupledBoundaryMultipliers(constraint, result.additionalIncrement, result.scale);
+                 applyKirchhoffCoupledFoldMultipliers(constraint, result.additionalIncrement, result.scale);
+                 commitKirchhoffCoupledOrientationMultipliers(orientationBatch, result.additionalIncrement, result.scale);
+@@ -2694,8 +2728,12 @@
+         appendKirchhoffSplitPointWalls(constraint, this, boundaryRows);
+         prepareKirchhoffSplitBoundaryRows(constraint, boundaryRows);
+         constraint._jointBoundaryResidual = measureKirchhoffCoupledBoundaryResidual(boundaryRows);
+-        const materialResidual = (constraint._splitMotion ? measureKirchhoffSplitMaterial : measureKirchhoffCoupledMaterialResidual)(constraint, this.fixedDt,
+-            constraint._jointMaterialResidual ??= {});
++        const materialResidual = constraint._splitMotion?.twoChannel
++            ? measureKirchhoffTwoChannelMaterial(constraint, constraint._jointMaterialResidual ??= {})
++            : (constraint._splitMotion ? measureKirchhoffSplitMaterial : measureKirchhoffCoupledMaterialResidual)(constraint, this.fixedDt,
++                constraint._jointMaterialResidual ??= {});
++        const channelResidual = constraint._splitMotion?.twoChannel
++            ? measureKirchhoffTwoChannelRows(constraint, boundaryRows) : null;
+         const foldResidual = measureKirchhoffCoupledFoldResidual(constraint);
+         const orientationResidual = measureKirchhoffCoupledOrientationResidual(constraint, this.fixedDt);
+         const externalFrictionResidual = measureKirchhoffExternalFrictionResidual(constraint, boundaryRows,
+@@ -2704,7 +2742,11 @@
+             this.fixedDt, constraint._jointSplitWallFrictionResidual ??= {}) : null;
+         const toolReleaseResidual = measureKirchhoffToolReleaseRows(constraint, boundaryRows,
+             constraint._jointToolReleaseResidual ??= {});
+-        const settled = lengthsSettled && toolReleaseResidual.pending === 0 &&
++        const channelsSettled = !channelResidual || channelResidual.finite && channelResidual.supported &&
++            channelResidual.missingLoadedRows.length === 0 &&
++            Math.max(channelResidual.normalResidualMm, channelResidual.controlResidualMm) <= this.coupledContainmentTolerance &&
++            channelResidual.orientationResidualRad <= this.coupledAngularToleranceRad;
++        const settled = channelsSettled && lengthsSettled && toolReleaseResidual.pending === 0 &&
+             materialResidual.adaptationMm <= this.coupledContainmentTolerance &&
+             materialResidual.bendTwistRad <= this.coupledAngularToleranceRad &&
+             foldResidual.maximumResidual <= this.coupledAngularToleranceRad &&
+@@ -2726,7 +2768,10 @@
+                 Math.abs(length - body.restLength[segment]) / body.restLength[segment]);
+         }
+         const mm = this.coupledContainmentTolerance, rad = this.coupledAngularToleranceRad;
+-        const merit = Math.max(lengthResidual / this.coupledLengthTolerance,
++        const channelMerit = !channelResidual ? 0 : !channelResidual.finite || !channelResidual.supported || channelResidual.missingLoadedRows.length
++            ? Infinity : Math.max(channelResidual.normalResidualMm / mm, channelResidual.controlResidualMm / mm,
++                channelResidual.orientationResidualRad / rad);
++        const merit = Math.max(channelMerit, lengthResidual / this.coupledLengthTolerance,
+             toolReleaseResidual.positionMm / mm, toolReleaseResidual.angleRad / rad,
+             materialResidual.adaptationMm / mm, materialResidual.bendTwistRad / rad,
+             foldResidual.maximumResidual / rad, foldResidual.maximumPositionalViolation / rad,
+@@ -2738,7 +2783,7 @@
+             constraint._jointBoundaryResidual / mm);
+         return Object.assign(constraint._jointStateMeasurement ??= {}, {
+             motionPhase: constraint._splitMotion?.phase ?? 'position-history',
+-            settled, merit, lengthResidual, materialResidual, foldResidual, orientationResidual,
++            settled, merit, lengthResidual, materialResidual, channelResidual, foldResidual, orientationResidual,
+             frictionResidual, externalFrictionResidual, wallPhysicalFriction, toolReleaseResidual, coneRepair
+         });
+     }

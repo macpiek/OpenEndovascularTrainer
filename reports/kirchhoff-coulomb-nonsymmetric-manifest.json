@@ -1,0 +1,31 @@
+{
+  "validatedAt": "2026-09-06T19:24:58Z",
+  "baseline": {
+    "path": "/tmp/oet-nonsymmetric-newton-baseline/kirchhoffCoulombNewtonSolver.js",
+    "sha256": "6b5ffe0d4c4ee2394878abeef4f49dbf8131e4882d6c3f092c9d614e5b1c0cd7"
+  },
+  "tests": {
+    "passed": 54,
+    "failed": 0
+  },
+  "parity": {
+    "pairs": 32,
+    "comparedBytes": 61387344
+  },
+  "artifacts": {
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "5318eef39e4c2031179930ffd5e71aa414665a309f2cfee809edd6b9d2c8f1e5",
+    "tests/kirchhoffCoulombNonsymmetric.test.js": "094d7d0fa20963e9793f1b213cc4cfac74de3f3541fdb1482bceaea560a90a92",
+    "reports/kirchhoff-coulomb-nonsymmetric.patch": "da309e8d47a7909478b5e2a6a56eb41217ceaffea6769fa6c1ee444774240b7c",
+    "reports/kirchhoff-coulomb-nonsymmetric.md": "c7d1dd1ef6eef6f2242e12ddc5319ee3acfe77ebe711051718bb917ef204cc58",
+    "reports/kirchhoff-coulomb-nonsymmetric-validation.log": "a190f69d1e7d388860c91d5a28d4f64f157619ab6da7ba5ddaea48de9d538c91",
+    "reports/kirchhoff-coulomb-nonsymmetric-parity.mjs": "8cd3bf9c3aab4b8e0c9564b4ede0341db7a91861ab5088d118a9d3ee456b617b",
+    "reports/kirchhoff-coulomb-nonsymmetric-parity.json": "1608f16c6a78d808fdc82f19dcbe826967fddceac076d4b8d0556b381cea01c0"
+  },
+  "dependencies": {
+    "src/physics/kirchhoffCoupledFrictionSolver.js": "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54",
+    "src/physics/kirchhoffCoupledLoadSolver.js": "d1bd39270139179020aa891a68908d66d7e874921bd16bae6fb81bff0baf4b3d",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCoupledLinearSolver.js": "b4b35a67dca4c17aab10073b34ccd818ce4cbf3931afddf3b4fd81d2b5b4f4f0",
+    "src/physics/kirchhoffContinuousFrictionKKT.js": "628d6f72149dc8a0423157f7d819f420913b94f9e3c8758daeba9d270818c20c"
+  }
+}

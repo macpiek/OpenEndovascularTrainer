@@ -1,0 +1,58 @@
+--- a/src/physics/kirchhoffCompositeJointTimeStep.js
++++ b/src/physics/kirchhoffCompositeJointTimeStep.js
+@@ -4,7 +4,6 @@
+ import { createCompositeRelativeDirectionWorkspace, solveCompositeRelativeDirection } from './kirchhoffCompositeRelativeDirection.js';
+ import { createCompositeJointLumenRows } from './kirchhoffCompositeJointLumenRows.js';
+ import { createCompositeJointLumenFrictionRows, createCompositeJointLumenFrictionWorkspace } from './kirchhoffCompositeJointLumenFrictionRows.js';
+-import { proposeCompositeFrictionBacktrack } from './kirchhoffCompositeFrictionLineSearch.js';
+ import { createCompositeJointWallRows } from './kirchhoffCompositeJointWallRows.js';
+ import { createCompositeJointWallFrictionRows, createCompositeJointWallFrictionWorkspace } from './kirchhoffCompositeJointWallFrictionRows.js';
+ 
+@@ -351,7 +350,7 @@
+         elementBackend,assemblyPolicy,preparationMs:performance.now()-started,iterationMs:0,commitMs:0,totalMs:0,
+         directions:0,evaluations:0,fullAssemblies:0,gradientAssemblies:0,factorizations:0,linearSolves:0,lineSearchTrials:0,
+         globalization,numericalDirections:0,regularizationActivations:[],tinyNewtonStepsAvoided:0,
+-        directionMs:0,frictionConeTrials:0,frictionConeAccepted:0,
++        directionMs:0,
+         unknowns:directionWorkspace.count,bandwidth:directionWorkspace.packedLayout.kl,commonDofs:layout.dofCount,relativeDofs:candidate.relative.length,
+         originalLengthRows:lengths.rows.length,retainedLengthRows:activeLengths.length,suppressedPrescribedLengthRows:suppressed,acceptedAlphas:[],certificate:null,
+         workspaceReused:!!scratch};
+@@ -516,16 +515,15 @@
+             const wallInactive=wallRows?.map(row=>row.multiplierDerivative>0);
+             if(vessel)backups.wallNormal.set(vessel.normalForces);
+             if(wallFriction)backups.wallTractions.set(wallFriction.tractions);
+-            let found=false,tinyNewtonStep=false,nextAlpha=1,nextConeTrial=false;
++            let found=false,tinyNewtonStep=false;
+             for(let trial=0;trial<limits.lineSearchTrials;trial++) {
+-                const alpha=nextAlpha,coneTrial=nextConeTrial;nextAlpha=alpha/2;nextConeTrial=false;diagnostics.lineSearchTrials++;
++                const alpha=2**(-trial);diagnostics.lineSearchTrials++;
+                 // A nearly singular unshifted direction can demand enormous
+                 // reactions and accept only a tiny step into a worse chart.
+                 // Rebuild the search direction at the SAME base state before
+                 // taking that step. This changes only numerical iteration;
+                 // every accepted physical dt still passes evaluate() below.
+                 if(globalization==='adaptive'&&directionShift===0&&alpha<2**-12){tinyNewtonStep=true;diagnostics.tinyNewtonStepsAvoided++;break;}
+-                if(coneTrial)diagnostics.frictionConeTrials++;
+                 // A rejected trial may have discovered a different SDF chart
+                 // or duplicate gauge. Restore its metadata as well as Fn.
+                 if(vessel)vessel.restore(wallCheckpoint);
+@@ -568,18 +566,7 @@
+                     diagnostics.invalidTrials=(diagnostics.invalidTrials??0)+1;
+                     diagnostics.lastInvalidTrial=error.message;continue;
+                 }
+-                if(next.certificate.converged||(next.certificate.lineSearchMerit??next.certificate.merit)<merit*(1-1e-4*alpha)) {
+-                    measured=next;found=true;diagnostics.acceptedAlphas.push(alpha);if(coneTrial)diagnostics.frictionConeAccepted++;break;
+-                }
+-                if(globalization==='adaptive'&&friction) {
+-                    // A sticking Newton direction may require traction past
+-                    // the opposite Coulomb boundary. Try its exact affine
+-                    // force crossing before repeatedly halving into that
+-                    // corner. All q/rho/spin/dual coordinates still take the
+-                    // SAME alpha and pass the original merit and final gates.
+-                    const hint=proposeCompositeFrictionBacktrack(measured.certificate.friction.samples,next.certificate.friction.samples,alpha);
+-                    if(hint!==null){nextAlpha=hint;nextConeTrial=true;}
+-                }
++                if(next.certificate.converged||(next.certificate.lineSearchMerit??next.certificate.merit)<merit*(1-1e-4*alpha)) {measured=next;found=true;diagnostics.acceptedAlphas.push(alpha);break;}
+             }
+             if(!found){
+                 if(!stabilize(tinyNewtonStep?'tiny-newton-step':'line-search'))return reject('line-search');

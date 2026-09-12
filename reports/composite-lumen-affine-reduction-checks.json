@@ -1,0 +1,165 @@
+{
+  "scope": "explicit checks supporting analytic affine-side reduction; no tolerance-based rank or gauge decision",
+  "gauge": {
+    "beforeFn": [
+      1,
+      2,
+      3
+    ],
+    "afterFn": [
+      2,
+      4
+    ],
+    "physicalForceDifference": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "beforeWrench": [
+      {
+        "force": [
+          0,
+          -6,
+          0
+        ],
+        "moment": [
+          -7.5,
+          0,
+          -11.5
+        ]
+      },
+      {
+        "force": [
+          0,
+          6,
+          0
+        ],
+        "moment": [
+          7.5,
+          0,
+          11.5
+        ]
+      }
+    ],
+    "afterWrench": [
+      {
+        "force": [
+          0,
+          -6,
+          0
+        ],
+        "moment": [
+          -7.5,
+          0,
+          -11.5
+        ]
+      },
+      {
+        "force": [
+          0,
+          6,
+          0
+        ],
+        "moment": [
+          7.5,
+          0,
+          11.5
+        ]
+      }
+    ],
+    "beforeWork": 4.78125,
+    "afterWork": 4.78125
+  },
+  "convexExamples": [
+    {
+      "index": 0,
+      "gaps": [
+        0,
+        0,
+        0
+      ],
+      "innerGapMinusEndpointChord": 0,
+      "outerTs": [
+        0.375,
+        0.625,
+        0.875
+      ],
+      "allSupported": true
+    },
+    {
+      "index": 1,
+      "gaps": [
+        0,
+        0.1,
+        -5.551115123125783e-17
+      ],
+      "innerGapMinusEndpointChord": 0.10000000000000003,
+      "outerTs": [
+        0.375,
+        0.625,
+        0.875
+      ],
+      "allSupported": true
+    },
+    {
+      "index": 2,
+      "gaps": [
+        0,
+        0.25,
+        0
+      ],
+      "innerGapMinusEndpointChord": 0.25,
+      "outerTs": [
+        0.375,
+        0.625,
+        0.875
+      ],
+      "allSupported": false
+    }
+  ],
+  "curvedNormals": {
+    "gaps": [
+      0,
+      0.1,
+      -5.551115123125783e-17
+    ],
+    "maximumNaiveTransferError": 0.25000000000000006,
+    "interiorFnMustBeZeroBecauseGapPositive": true
+  },
+  "opposite": {
+    "gaps": [
+      0,
+      0.25,
+      0
+    ],
+    "normalDirections": [
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ]
+    ],
+    "interiorReason": "zero-or-fallback-radial-normal",
+    "geometricEndpointReductionValid": true,
+    "interiorNormalDerivativeNotNeededOnlyWithExactZeroFnAndPositiveGap": true
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "scope": "straight first continuous element, endpoints 0 and 1 prescribed one rest-length apart",
+  "nodes": [
+    0,
+    1,
+    2
+  ],
+  "baseLength": 0.9999999999999999,
+  "freeGradient": [
+    3.469446951953614e-18,
+    0,
+    0
+  ],
+  "freeHessian": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0.08333333333333343,
+      0
+    ],
+    [
+      0,
+      0,
+      0.08333333333333343
+    ]
+  ],
+  "neighborTransversePerturbation": 0.0001,
+  "perturbedLength": 1.0000000004166667,
+  "excessLength": 4.1666670114182125e-10
+}
