@@ -173,6 +173,52 @@ function aorticPathFromRoot(flowNetwork, distalEdge) {
     return path;
 }
 
+function diagnosticSupraAorticRoots(flowNetwork) {
+    const prefixPaths = flowNetwork.getTopologyDiagnostics?.()
+        ?.aorticBranchPrefixes?.paths
+        ?.filter(path =>
+            path.branchRadiusMm >= MIN_AORTIC_ARCH_BRANCH_RADIUS_MM
+        );
+    if (prefixPaths?.length !== 3) return null;
+
+    const prefixRoots = prefixPaths
+        .map(path => flowNetwork.edges[path.rootEdgeIndex])
+        .filter(Boolean);
+    if (prefixRoots.length !== 3) return null;
+
+    const siblingsByParent = new Map();
+    for (const root of prefixRoots) {
+        const siblings = siblingsByParent.get(root.parentEdgeIndex) || [];
+        siblings.push(root);
+        siblingsByParent.set(root.parentEdgeIndex, siblings);
+    }
+    const sharedRoots = [...siblingsByParent.values()].find(
+        roots => roots.length === 2
+    );
+    if (!sharedRoots) return null;
+
+    const separateRoot = prefixRoots.find(
+        root => !sharedRoots.includes(root)
+    );
+    if (!separateRoot) return null;
+
+    const sharedPaths = sharedRoots
+        .map(edge => ({
+            edge,
+            probe: sampleDownstream(
+                flowNetwork,
+                edge,
+                SUPRA_AORTIC_SIDE_PROBE_DISTANCE_MM
+            )
+        }))
+        .sort((a, b) => a.probe.x - b.probe.x);
+    return {
+        brachiocephalic: sharedPaths[0].edge,
+        leftCommonCarotid: sharedPaths[1].edge,
+        leftSubclavian: separateRoot
+    };
+}
+
 /**
  * Finds the three supra-aortic vessels without relying on asset-specific edge
  * numbers. The extracted centerline contains a short, aorta-caliber connector
@@ -209,11 +255,16 @@ export function findAorticArchDebugAnchors(flowNetwork) {
     }
     if (branchRoots.length < 2) return null;
 
-    let brachiocephalic;
-    let leftCommonCarotid;
-    let leftSubclavian;
+    let {
+        brachiocephalic,
+        leftCommonCarotid,
+        leftSubclavian
+    } = diagnosticSupraAorticRoots(flowNetwork) || {};
     const sharedConnector = branchRoots[0];
-    if (isAorticCaliberConnector(flowNetwork, sharedConnector)) {
+    if (
+        !brachiocephalic &&
+        isAorticCaliberConnector(flowNetwork, sharedConnector)
+    ) {
         const sharedPaths = sharedConnector.childEdgeIndices
             .map(index => flowNetwork.edges[index])
             .filter(Boolean)
@@ -230,7 +281,7 @@ export function findAorticArchDebugAnchors(flowNetwork) {
         brachiocephalic = sharedPaths[0].edge;
         leftCommonCarotid = sharedPaths[1].edge;
         leftSubclavian = branchRoots[1];
-    } else {
+    } else if (!brachiocephalic) {
         if (branchRoots.length !== 3) return null;
         [brachiocephalic, leftCommonCarotid, leftSubclavian] = branchRoots;
     }

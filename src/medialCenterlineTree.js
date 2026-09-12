@@ -413,10 +413,10 @@ function findLocalComponentRoute(origin, target, lumenField, wallBvh, baseSpacin
     if (!lumenField?.query || !wallBvh) return null;
     const directDistance = origin.point.distanceTo(target.point);
     const spacing = Math.max(
-        0.32,
-        Math.min(0.65, Math.min(origin.clearance, target.clearance, baseSpacing) * 0.72)
+        0.42,
+        Math.min(0.7, Math.min(origin.clearance, target.clearance, baseSpacing) * 0.78)
     );
-    const padding = Math.max(2.5, Math.min(5, directDistance * 0.8));
+    const padding = Math.max(4, Math.min(12, directDistance * 1.5));
     const box = new THREE.Box3()
         .setFromPoints([origin.point, target.point])
         .expandByScalar(padding);
@@ -424,7 +424,7 @@ function findLocalComponentRoute(origin, target, lumenField, wallBvh, baseSpacin
     const nx = Math.max(2, Math.ceil(size.x / spacing) + 1);
     const ny = Math.max(2, Math.ceil(size.y / spacing) + 1);
     const nz = Math.max(2, Math.ceil(size.z / spacing) + 1);
-    if (nx * ny * nz > 70000) return null;
+    if (nx * ny * nz > 350000) return null;
 
     const cells = new Map();
     const queryScratch = {};
@@ -438,7 +438,6 @@ function findLocalComponentRoute(origin, target, lumenField, wallBvh, baseSpacin
                     box.min.z + iz * spacing
                 );
                 const query = lumenField.query(point, queryScratch);
-                if (!query || query.signedDistance < 0.015) continue;
                 const key = `${ix}|${iy}|${iz}`;
                 cells.set(key, {
                     key,
@@ -446,7 +445,15 @@ function findLocalComponentRoute(origin, target, lumenField, wallBvh, baseSpacin
                     iy,
                     iz,
                     point: point.clone(),
-                    clearance: query.signedDistance
+                    // The primary Y-slice lumen field can miss a narrow,
+                    // oblique branch such as the right subclavian hairpin.
+                    // Wall crossings remain the authoritative barrier for
+                    // local connector routing, so retain those grid cells and
+                    // use a conservative fallback clearance.
+                    clearance: Number.isFinite(query?.signedDistance) &&
+                        query.signedDistance > 0
+                        ? query.signedDistance
+                        : 0.08
                 });
             }
         }
@@ -564,29 +571,82 @@ function addGraphRoute(graph, aId, bId, path, lumenField) {
 }
 
 function connectGraphComponents(graph, lumenField, wallBvh, gridSpacing) {
+    const minimumRoutedComponentNodeCount = 101;
     let components = graphComponents(graph.nodes);
     let addedEdgeCount = 0;
     let routedConnectorCount = 0;
     let failedRouteCount = 0;
     while (components.length > 1) {
         const connected = new Set(components[0]);
+        const connectorCellSize = 20;
+        const connectedHash = new Map();
+        for (const nodeId of connected) {
+            const point = graph.nodes[nodeId].point;
+            const key = [
+                Math.floor(point.x / connectorCellSize),
+                Math.floor(point.y / connectorCellSize),
+                Math.floor(point.z / connectorCellSize)
+            ].join('|');
+            const bucket = connectedHash.get(key) || [];
+            bucket.push(nodeId);
+            connectedHash.set(key, bucket);
+        }
         let best = null;
         const nearestPairs = [];
         for (let componentIndex = 1; componentIndex < components.length; componentIndex++) {
             const component = components[componentIndex];
             for (const aId of component) {
                 const a = graph.nodes[aId];
-                for (const bId of connected) {
-                    const b = graph.nodes[bId];
-                    const distance = a.point.distanceTo(b.point);
-                    const limit = Math.max(7, Math.min(18, (a.clearance + b.clearance) * 1.6));
-                    if (distance > Math.max(20, limit * 1.5)) continue;
-                    nearestPairs.push({ aId, bId, distance });
-                    nearestPairs.sort((first, second) => first.distance - second.distance);
-                    if (nearestPairs.length > 8) nearestPairs.pop();
-                    if (distance > limit || (best && distance >= best.distance)) continue;
-                    if (!segmentStaysInside(a.point, b.point, lumenField, wallBvh, gridSpacing)) continue;
-                    best = { aId, bId, distance };
+                const ix = Math.floor(a.point.x / connectorCellSize);
+                const iy = Math.floor(a.point.y / connectorCellSize);
+                const iz = Math.floor(a.point.z / connectorCellSize);
+                for (let dz = -1; dz <= 1; dz++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (const bId of connectedHash.get(
+                                `${ix + dx}|${iy + dy}|${iz + dz}`
+                            ) || []) {
+                                const b = graph.nodes[bId];
+                                const distance = a.point.distanceTo(b.point);
+                                const limit = Math.max(
+                                    7,
+                                    Math.min(
+                                        18,
+                                        (a.clearance + b.clearance) * 1.6
+                                    )
+                                );
+                                if (distance > Math.max(20, limit * 1.5)) {
+                                    continue;
+                                }
+                                nearestPairs.push({
+                                    aId,
+                                    bId,
+                                    distance,
+                                    componentNodeCount: component.length
+                                });
+                                nearestPairs.sort((first, second) =>
+                                    first.distance - second.distance
+                                );
+                                if (nearestPairs.length > 8) nearestPairs.pop();
+                                if (
+                                    distance > limit ||
+                                    (best && distance >= best.distance)
+                                ) {
+                                    continue;
+                                }
+                                if (!segmentStaysInside(
+                                    a.point,
+                                    b.point,
+                                    lumenField,
+                                    wallBvh,
+                                    gridSpacing
+                                )) {
+                                    continue;
+                                }
+                                best = { aId, bId, distance };
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -594,8 +654,29 @@ function connectGraphComponents(graph, lumenField, wallBvh, gridSpacing) {
             addGraphEdge(graph.nodes, graph.edgeSet, best.aId, best.bId, best.distance);
             addedEdgeCount++;
         } else {
+            // Authored digital branches can leave a sub-voxel cap artifact at
+            // an otherwise shared plantar-arch control point. Bridge only a
+            // very short gap belonging to a substantial component; this does
+            // not apply to the wider right-subclavian hairpin or small debris.
+            const shortAuthoredJunction = nearestPairs.find(pair =>
+                pair.componentNodeCount >= 100 && pair.distance <= 8
+            );
+            if (shortAuthoredJunction) {
+                addGraphEdge(
+                    graph.nodes,
+                    graph.edgeSet,
+                    shortAuthoredJunction.aId,
+                    shortAuthoredJunction.bId,
+                    shortAuthoredJunction.distance
+                );
+                addedEdgeCount++;
+                components = graphComponents(graph.nodes);
+                continue;
+            }
             let routed = false;
-            for (const pair of nearestPairs) {
+            for (const pair of nearestPairs.filter(pair =>
+                pair.componentNodeCount >= minimumRoutedComponentNodeCount
+            )) {
                 const path = findLocalComponentRoute(
                     graph.nodes[pair.aId],
                     graph.nodes[pair.bId],

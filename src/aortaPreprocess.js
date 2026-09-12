@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 
 const DEFAULT_INTERIOR_SAMPLE_SPACING = 6;
-const DEFAULT_EDGE_PRECISION = 3;
+// Ten nanometres is fine enough to keep distinct Boolean-generated wall
+// edges separate while still coalescing the duplicated vertices of binary STL.
+const DEFAULT_EDGE_PRECISION = 5;
 const DEFAULT_CONTOUR_POINT_TOLERANCE = 0.08;
 const DEFAULT_LUMEN_CONTOUR_MIN_AREA = 10;
 const INTERIOR_SAMPLE_GRID_STEPS = 17;
