@@ -1,0 +1,818 @@
+{
+  "scope": "Frozen real-anatomy contact state, residual candidate + repeated base evaluation only; not full-step timing or FPS",
+  "wireMm": 309.0000000000026,
+  "catheterMm": 100.00000000000007,
+  "contacts": 77,
+  "before": {
+    "mean": 0.5820852554687483,
+    "median": 0.5748203124999804,
+    "p95": 0.6172395625000036
+  },
+  "after": {
+    "mean": 0.4542885398437512,
+    "median": 0.4497291249999762,
+    "p95": 0.48587762500000053
+  },
+  "samples": [
+    {
+      "before": {
+        "msPerPair": 0.6084609375000127,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4804531249999968,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4579583125000113,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.6008854374999828,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.566104125000038,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.47730731249998826,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4316770625000004,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5790989999999852,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5676770625000245,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.46586718750000955,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4303099374999988,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5711953125000377,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5695546874999877,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.45847656250003865,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4405390625000223,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5724193124999601,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5647421875000305,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.452815062500008,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44738799999998946,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5624609375000205,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5485755624999911,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.441242187499995,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4474036250000495,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5596406250000427,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5505703124999854,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.439450499999964,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4295026249999978,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5696171875000005,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5751171874999841,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4471171874999982,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44470312499998954,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5836536250000108,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5544896250000306,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4470025625000176,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44605993750002426,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5865676875000077,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5706692499999804,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.45236456250000856,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4372134999999844,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5564088124999671,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5741198125000437,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4592083125000386,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4374062499999809,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5520624999999768,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.572096375000001,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.43292187500003365,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.43958856250003464,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5717578125000387,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5575052500000197,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4370521249999797,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44443487499995626,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5673229375000233,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5757421874999977,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.44576299999999947,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4595911874999956,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.55598437499998,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5688385000000267,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.44745312499998136,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4537004999999681,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5762369374999707,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5892109374999563,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4493984375000082,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.45068224999999984,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5575885625000296,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5719088749999628,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4574010000000044,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.46598699999998416,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5969817499999976,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5893750000000182,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.437007812499985,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4437056874999712,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5557031249999795,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5595025624999721,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4465677499999856,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.42972137499998553,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5766275624999935,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5705338750000237,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.437002624999991,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4317056875000276,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5901250000000005,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5736328124999659,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.43558068749996437,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.42982549999999264,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5597057499999778,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5532057500000178,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4413203125000109,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4452473750000081,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5748359375000405,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5536406249999573,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.45742187500002274,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44384631249999984,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5742734374999827,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5682838750000201,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4497291249999762,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4407943124999747,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5758098750000045,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5520468750000305,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.45133856249998416,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44765106250002873,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.6106432500000096,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5563776249999819,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4483359375000191,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4319401249999828,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5654713124999944,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5692448124999601,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4743150625000112,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.43199481250002236,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5719400625000048,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5702318124999692,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.45333075000002054,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4471171874999982,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5950025624999853,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5748203124999804,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.474445312499995,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.44002868749998925,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5756510625000146,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.562161500000002,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.47003125000003365,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4455755624999824,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.6122500000000173,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.6172395625000036,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4974348750000104,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.45749218750000864,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.6027005624999902,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.6114505624999538,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.48587762500000053,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.49680468750000273,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.6892500000000155,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.6233098749999613,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.5218724375000079,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4968020624999667,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.6463307500000042,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5998984374999736,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4711198125000351,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4767551875000322,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5856380000000172,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.6136718750000227,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.46529424999999947,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.47619793750004646,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5930521249999856,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5914973750000172,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.46646612500001083,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4832551874999922,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.7710181874999762,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5927942499999972,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.47210418750000827,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4712812500000041,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5972265624999977,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.6038099374999888,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4682916874999705,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.45736199999998917,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5811874999999986,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5837499999999523,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4573723749999772,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.46050000000002456,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5812995000000001,
+        "reuseCount": 0
+      }
+    },
+    {
+      "before": {
+        "msPerPair": 0.5975026250000042,
+        "reuseCount": 0
+      },
+      "after": {
+        "msPerPair": 0.4595963125000253,
+        "reuseCount": 16
+      }
+    },
+    {
+      "after": {
+        "msPerPair": 0.4601823124999669,
+        "reuseCount": 16
+      },
+      "before": {
+        "msPerPair": 0.5878306875000021,
+        "reuseCount": 0
+      }
+    }
+  ]
+}

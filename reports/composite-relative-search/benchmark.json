@@ -1,0 +1,3251 @@
+{
+  "scope": "Same-source alternating whole-step A/B with reusable workspaces and full physical certificates; synthetic materials, no anatomy or browser FPS",
+  "warmupPairs": 12,
+  "measuredPairs": 24,
+  "cases": [
+    {
+      "name": "straight-33-feed-spin",
+      "geometry": {
+        "n": 33
+      },
+      "input": {
+        "feed": 0.3,
+        "spin": 0.04
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "mode": "none",
+          "statistics": {
+            "totalMs": {
+              "mean": 2.2389305833333375,
+              "median": 2.215292000000005,
+              "p95": 2.5849580000000003
+            },
+            "directionMs": {
+              "mean": 0.5427168333333287,
+              "median": 0.5072079999999914,
+              "p95": 0.7385409999999979
+            },
+            "preparationMs": {
+              "mean": 0.6154531250000043,
+              "median": 0.5454159999999888,
+              "p95": 0.9249169999999935
+            },
+            "iterationMs": {
+              "mean": 1.5446804999999937,
+              "median": 1.508624999999995,
+              "p95": 1.7458749999999554
+            },
+            "directions": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "linearSolves": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "fullUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "minimumSearchUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 2.12745799999999,
+              "directionMs": 0.5420419999999808,
+              "preparationMs": 0.5502500000000055,
+              "iterationMs": 1.487499999999983,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.5849580000000003,
+              "directionMs": 0.5992909999999938,
+              "preparationMs": 0.756165999999979,
+              "iterationMs": 1.740542000000005,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.0278330000000153,
+              "directionMs": 0.5253749999999968,
+              "preparationMs": 0.5392920000000174,
+              "iterationMs": 1.416624999999982,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.215292000000005,
+              "directionMs": 0.5845410000000015,
+              "preparationMs": 0.547791999999987,
+              "iterationMs": 1.583375000000018,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.272375000000011,
+              "directionMs": 0.5699999999999932,
+              "preparationMs": 0.5622920000000136,
+              "iterationMs": 1.6254590000000064,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.1220419999999933,
+              "directionMs": 0.5594999999999857,
+              "preparationMs": 0.5368750000000091,
+              "iterationMs": 1.508624999999995,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.5252499999999998,
+              "directionMs": 0.9068749999999852,
+              "preparationMs": 0.5454159999999888,
+              "iterationMs": 1.9030830000000094,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.137665999999996,
+              "directionMs": 0.5511249999999848,
+              "preparationMs": 0.5361660000000086,
+              "iterationMs": 1.5287910000000409,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.283457999999996,
+              "directionMs": 0.7385409999999979,
+              "preparationMs": 0.5525830000000269,
+              "iterationMs": 1.6545830000000024,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.096084000000019,
+              "directionMs": 0.5021660000000452,
+              "preparationMs": 0.533375000000035,
+              "iterationMs": 1.4894160000000056,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.2502090000000408,
+              "directionMs": 0.47537499999998545,
+              "preparationMs": 0.5246670000000222,
+              "iterationMs": 1.6537500000000023,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.004792000000009,
+              "directionMs": 0.4798749999999927,
+              "preparationMs": 0.5272500000000377,
+              "iterationMs": 1.4065420000000017,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.3203750000000127,
+              "directionMs": 0.48320799999999053,
+              "preparationMs": 0.5275839999999903,
+              "iterationMs": 1.7115829999999619,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.012875000000008,
+              "directionMs": 0.4966250000000514,
+              "preparationMs": 0.5169169999999781,
+              "iterationMs": 1.421875,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.202625000000012,
+              "directionMs": 0.4797500000000241,
+              "preparationMs": 0.7207500000000095,
+              "iterationMs": 1.4106249999999818,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.05012499999998,
+              "directionMs": 0.5029999999999859,
+              "preparationMs": 0.53449999999998,
+              "iterationMs": 1.4451669999999694,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.480583000000024,
+              "directionMs": 0.5843329999999582,
+              "preparationMs": 0.7743330000000128,
+              "iterationMs": 1.6193329999999833,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.1258750000000077,
+              "directionMs": 0.5004999999999882,
+              "preparationMs": 0.604582999999991,
+              "iterationMs": 1.4500409999999988,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.299874999999986,
+              "directionMs": 0.4637079999999969,
+              "preparationMs": 0.816709000000003,
+              "iterationMs": 1.4066669999999704,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.0612500000000296,
+              "directionMs": 0.48666699999995444,
+              "preparationMs": 0.5276250000000005,
+              "iterationMs": 1.4610830000000306,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.696542000000022,
+              "directionMs": 0.5072079999999914,
+              "preparationMs": 1.0517920000000345,
+              "iterationMs": 1.5549589999999966,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.073459000000014,
+              "directionMs": 0.4911669999999617,
+              "preparationMs": 0.52049999999997,
+              "iterationMs": 1.4782499999999459,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.3873329999999555,
+              "directionMs": 0.45929100000000744,
+              "preparationMs": 0.9249169999999935,
+              "iterationMs": 1.368583000000001,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.3759999999999764,
+              "directionMs": 0.5350410000000352,
+              "preparationMs": 0.5385410000000093,
+              "iterationMs": 1.7458749999999554,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            }
+          ]
+        },
+        {
+          "mode": "adaptive",
+          "statistics": {
+            "totalMs": {
+              "mean": 2.2251891249999964,
+              "median": 2.185290999999978,
+              "p95": 2.554833000000002
+            },
+            "directionMs": {
+              "mean": 0.5850400416666695,
+              "median": 0.5837919999999599,
+              "p95": 0.6409999999999911
+            },
+            "preparationMs": {
+              "mean": 0.6094688333333286,
+              "median": 0.5494170000000054,
+              "p95": 0.8585830000000101
+            },
+            "iterationMs": {
+              "mean": 1.5384653333333336,
+              "median": 1.5419579999999655,
+              "p95": 1.6695419999999785
+            },
+            "directions": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "linearSolves": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "fullUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "minimumSearchUnknowns": {
+              "mean": 260,
+              "median": 260,
+              "p95": 260
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 2.421875,
+              "directionMs": 0.6292089999999746,
+              "preparationMs": 0.7519169999999917,
+              "iterationMs": 1.5976670000000013,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.2099580000000003,
+              "directionMs": 0.6299169999999776,
+              "preparationMs": 0.5357079999999996,
+              "iterationMs": 1.589209000000011,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.440957999999995,
+              "directionMs": 0.616500000000002,
+              "preparationMs": 0.7922920000000033,
+              "iterationMs": 1.5589169999999797,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.1895409999999913,
+              "directionMs": 0.633499999999998,
+              "preparationMs": 0.5598329999999976,
+              "iterationMs": 1.5565830000000176,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.9822090000000117,
+              "directionMs": 0.6726669999999899,
+              "preparationMs": 1.1767090000000167,
+              "iterationMs": 1.718999999999994,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.554833000000002,
+              "directionMs": 0.6087499999999864,
+              "preparationMs": 0.8585830000000101,
+              "iterationMs": 1.6207919999999945,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.265958000000012,
+              "directionMs": 0.6409999999999911,
+              "preparationMs": 0.5610410000000172,
+              "iterationMs": 1.6325410000000034,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.185290999999978,
+              "directionMs": 0.6187500000000057,
+              "preparationMs": 0.5466249999999775,
+              "iterationMs": 1.5630419999999958,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.3686669999999594,
+              "directionMs": 0.5837919999999599,
+              "preparationMs": 0.7135419999999613,
+              "iterationMs": 1.5779170000000136,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.088792000000012,
+              "directionMs": 0.5569169999999986,
+              "preparationMs": 0.5176670000000172,
+              "iterationMs": 1.493208999999979,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.099208000000033,
+              "directionMs": 0.5422080000000165,
+              "preparationMs": 0.5494170000000054,
+              "iterationMs": 1.4639999999999986,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 1.9914590000000203,
+              "directionMs": 0.5350830000000428,
+              "preparationMs": 0.49483400000002575,
+              "iterationMs": 1.4246250000000487,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.007417000000032,
+              "directionMs": 0.5236250000000382,
+              "preparationMs": 0.5187090000000012,
+              "iterationMs": 1.4152920000000222,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.052249999999958,
+              "directionMs": 0.5498339999999757,
+              "preparationMs": 0.5194999999999936,
+              "iterationMs": 1.4622079999999755,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.115374999999972,
+              "directionMs": 0.5715000000000146,
+              "preparationMs": 0.5330419999999663,
+              "iterationMs": 1.5079999999999814,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.04362500000002,
+              "directionMs": 0.5505000000000564,
+              "preparationMs": 0.5111249999999927,
+              "iterationMs": 1.4612500000000068,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.304374999999993,
+              "directionMs": 0.5585409999999911,
+              "preparationMs": 0.674541999999974,
+              "iterationMs": 1.5419579999999655,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.116207999999972,
+              "directionMs": 0.5478750000000332,
+              "preparationMs": 0.5808749999999918,
+              "iterationMs": 1.4644999999999868,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.047708,
+              "directionMs": 0.5443329999999946,
+              "preparationMs": 0.5098330000000146,
+              "iterationMs": 1.4670830000000024,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.0684159999999565,
+              "directionMs": 0.5540420000000381,
+              "preparationMs": 0.5160829999999805,
+              "iterationMs": 1.4731250000000387,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.359874999999988,
+              "directionMs": 0.6009589999999889,
+              "preparationMs": 0.5979999999999563,
+              "iterationMs": 1.6695419999999785,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.207749999999976,
+              "directionMs": 0.569958999999983,
+              "preparationMs": 0.5937920000000076,
+              "iterationMs": 1.5393329999999992,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.182457999999997,
+              "directionMs": 0.6085830000000101,
+              "preparationMs": 0.5181249999999977,
+              "iterationMs": 1.593416999999988,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 2.1003330000000346,
+              "directionMs": 0.5929169999999999,
+              "preparationMs": 0.4954579999999851,
+              "iterationMs": 1.529958000000022,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 260,
+              "rejectedProposals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "straight-201-feed-spin",
+      "geometry": {
+        "n": 201
+      },
+      "input": {
+        "feed": 0.3,
+        "spin": 0.04
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "mode": "none",
+          "statistics": {
+            "totalMs": {
+              "mean": 13.866668416666661,
+              "median": 13.870917000000077,
+              "p95": 15.65874999999994
+            },
+            "directionMs": {
+              "mean": 3.2806493333333484,
+              "median": 3.178542000000107,
+              "p95": 3.9284999999999854
+            },
+            "preparationMs": {
+              "mean": 3.3776337083333487,
+              "median": 3.1700420000000804,
+              "p95": 4.285667000000103
+            },
+            "iterationMs": {
+              "mean": 9.976994708333345,
+              "median": 10.017957999999908,
+              "p95": 11.282083000000057
+            },
+            "directions": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "linearSolves": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "fullUnknowns": {
+              "mean": 2006,
+              "median": 2006,
+              "p95": 2006
+            },
+            "minimumSearchUnknowns": {
+              "mean": 2006,
+              "median": 2006,
+              "p95": 2006
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 12.389999999999986,
+              "directionMs": 3.0649170000000368,
+              "preparationMs": 2.8894579999999905,
+              "iterationMs": 9.074749999999995,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 12.738917000000015,
+              "directionMs": 3.0466670000000704,
+              "preparationMs": 3.044834000000037,
+              "iterationMs": 9.262583000000063,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 12.633000000000038,
+              "directionMs": 3.0529999999999973,
+              "preparationMs": 3.025792000000024,
+              "iterationMs": 9.189375000000041,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.950874999999996,
+              "directionMs": 3.9284999999999854,
+              "preparationMs": 3.0489579999999705,
+              "iterationMs": 10.388667000000055,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 12.54079200000001,
+              "directionMs": 3.17608400000006,
+              "preparationMs": 2.865583000000015,
+              "iterationMs": 9.255791999999929,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 12.698667,
+              "directionMs": 3.0513750000000073,
+              "preparationMs": 3.1700420000000804,
+              "iterationMs": 9.019457999999986,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.870917000000077,
+              "directionMs": 3.0313339999999016,
+              "preparationMs": 3.086750000000052,
+              "iterationMs": 9.420041999999967,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.115792000000056,
+              "directionMs": 3.1590830000000096,
+              "preparationMs": 2.9507920000000922,
+              "iterationMs": 10.729832999999985,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.479457999999909,
+              "directionMs": 3.1073750000000473,
+              "preparationMs": 3.563625000000002,
+              "iterationMs": 9.460500000000025,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.447374999999965,
+              "directionMs": 3.1832920000000513,
+              "preparationMs": 3.758375000000001,
+              "iterationMs": 10.189250000000015,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.65874999999994,
+              "directionMs": 4.630000000000109,
+              "preparationMs": 3.9160830000000715,
+              "iterationMs": 11.282083000000057,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.845667000000049,
+              "directionMs": 3.0659160000000156,
+              "preparationMs": 4.285667000000103,
+              "iterationMs": 9.138916000000108,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.083832999999913,
+              "directionMs": 3.0469170000001213,
+              "preparationMs": 3.487583000000086,
+              "iterationMs": 9.157707999999957,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.959875000000011,
+              "directionMs": 3.6085829999999532,
+              "preparationMs": 2.990459000000101,
+              "iterationMs": 10.450041000000056,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 16.799083999999993,
+              "directionMs": 3.5675830000000133,
+              "preparationMs": 3.2129999999999654,
+              "iterationMs": 13.105542000000014,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.148416999999881,
+              "directionMs": 3.2917499999998654,
+              "preparationMs": 3.931332999999995,
+              "iterationMs": 10.74066599999992,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.169542000000092,
+              "directionMs": 3.1962499999999636,
+              "preparationMs": 3.4533340000000408,
+              "iterationMs": 10.067542000000003,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.912082999999939,
+              "directionMs": 3.1893330000000333,
+              "preparationMs": 3.717041999999992,
+              "iterationMs": 9.758792000000085,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.710541000000148,
+              "directionMs": 3.1611250000000837,
+              "preparationMs": 4.619666000000052,
+              "iterationMs": 9.670624999999973,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.760041000000001,
+              "directionMs": 3.4285419999998794,
+              "preparationMs": 3.083874999999807,
+              "iterationMs": 10.236875000000055,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.140708000000132,
+              "directionMs": 3.199500000000171,
+              "preparationMs": 3.066332999999986,
+              "iterationMs": 9.607708000000002,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.579250000000002,
+              "directionMs": 3.178542000000107,
+              "preparationMs": 3.0765420000000177,
+              "iterationMs": 10.017957999999908,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.440582999999833,
+              "directionMs": 3.2004159999999047,
+              "preparationMs": 3.814208000000008,
+              "iterationMs": 10.124750000000176,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.72587499999986,
+              "directionMs": 3.169499999999971,
+              "preparationMs": 3.00387499999988,
+              "iterationMs": 10.098416999999927,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 2006,
+              "rejectedProposals": 0
+            }
+          ]
+        },
+        {
+          "mode": "adaptive",
+          "statistics": {
+            "totalMs": {
+              "mean": 14.367571291666687,
+              "median": 14.220084000000043,
+              "p95": 15.998417000000018
+            },
+            "directionMs": {
+              "mean": 3.7407394999999988,
+              "median": 3.6230829999999514,
+              "p95": 4.822625000000016
+            },
+            "preparationMs": {
+              "mean": 3.359548666666664,
+              "median": 3.2177080000001297,
+              "p95": 4.19216700000004
+            },
+            "iterationMs": {
+              "mean": 10.491493083333339,
+              "median": 10.230832999999961,
+              "p95": 11.788000000000011
+            },
+            "directions": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "linearSolves": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "fullUnknowns": {
+              "mean": 2006,
+              "median": 2006,
+              "p95": 2006
+            },
+            "minimumSearchUnknowns": {
+              "mean": 1604,
+              "median": 1604,
+              "p95": 1604
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 13.75304200000005,
+              "directionMs": 3.524499999999989,
+              "preparationMs": 3.079166999999984,
+              "iterationMs": 10.224790999999982,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.975500000000011,
+              "directionMs": 3.4005409999999756,
+              "preparationMs": 2.971041000000014,
+              "iterationMs": 10.574124999999981,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.753749999999968,
+              "directionMs": 3.516375000000039,
+              "preparationMs": 3.6273329999999078,
+              "iterationMs": 9.680625000000077,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.493499999999926,
+              "directionMs": 3.502707999999984,
+              "preparationMs": 3.1024159999999483,
+              "iterationMs": 9.741584000000103,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.293334000000073,
+              "directionMs": 3.5168330000000196,
+              "preparationMs": 3.0379590000000007,
+              "iterationMs": 9.778832999999963,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.681625000000054,
+              "directionMs": 3.4831249999999727,
+              "preparationMs": 3.9537500000000136,
+              "iterationMs": 9.304333000000042,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 12.98720800000001,
+              "directionMs": 3.5359999999999445,
+              "preparationMs": 2.879957999999988,
+              "iterationMs": 9.677457999999888,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.010499999999979,
+              "directionMs": 3.543916999999965,
+              "preparationMs": 2.9377090000000408,
+              "iterationMs": 9.587374999999952,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.993125000000077,
+              "directionMs": 3.5799160000000256,
+              "preparationMs": 3.3110000000000355,
+              "iterationMs": 10.230832999999961,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.701792000000069,
+              "directionMs": 3.760582999999997,
+              "preparationMs": 4.19216700000004,
+              "iterationMs": 11.006749999999897,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.71875,
+              "directionMs": 3.786624999999958,
+              "preparationMs": 3.5420839999999316,
+              "iterationMs": 10.696208999999953,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.858249999999998,
+              "directionMs": 3.600708000000168,
+              "preparationMs": 3.464042000000063,
+              "iterationMs": 9.906791999999996,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.51933299999996,
+              "directionMs": 3.482040999999981,
+              "preparationMs": 3.0277909999999792,
+              "iterationMs": 9.91233299999999,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.416666999999961,
+              "directionMs": 3.5412089999999807,
+              "preparationMs": 3.092208000000028,
+              "iterationMs": 9.879333000000088,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 16.163667000000032,
+              "directionMs": 3.9161249999999654,
+              "preparationMs": 3.413291999999956,
+              "iterationMs": 12.25020900000004,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.30925000000002,
+              "directionMs": 3.8218749999998636,
+              "preparationMs": 3.1720410000000356,
+              "iterationMs": 11.65670799999998,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.971084000000019,
+              "directionMs": 4.822625000000016,
+              "preparationMs": 4.027583999999933,
+              "iterationMs": 11.477709000000004,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.883666999999832,
+              "directionMs": 3.660584000000199,
+              "preparationMs": 4.202333999999837,
+              "iterationMs": 10.229874999999993,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.413375000000087,
+              "directionMs": 3.740583000000015,
+              "preparationMs": 3.387083000000075,
+              "iterationMs": 10.581042000000025,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.859958000000006,
+              "directionMs": 3.76175000000012,
+              "preparationMs": 3.037249999999858,
+              "iterationMs": 11.393291999999974,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.998417000000018,
+              "directionMs": 3.6674169999998867,
+              "preparationMs": 3.7024169999999685,
+              "iterationMs": 11.788000000000011,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 13.681375000000116,
+              "directionMs": 3.6230829999999514,
+              "preparationMs": 3.2177080000001297,
+              "iterationMs": 9.979417000000012,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 14.220084000000043,
+              "directionMs": 3.8665419999999813,
+              "preparationMs": 3.182709000000159,
+              "iterationMs": 10.565833000000111,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 15.164458000000195,
+              "directionMs": 5.122082999999975,
+              "preparationMs": 3.068125000000009,
+              "iterationMs": 11.672375000000102,
+              "directions": 1,
+              "linearSolves": 1,
+              "fullUnknowns": 2006,
+              "minimumSearchUnknowns": 1604,
+              "rejectedProposals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "transverse-33",
+      "geometry": {
+        "n": 33
+      },
+      "input": {
+        "force": [
+          0.01,
+          0.025,
+          -0.012
+        ]
+      },
+      "maxShapeError": 1.4845222181006584e-22,
+      "maxReactionError": 1.4348648248669475e-18,
+      "results": [
+        {
+          "mode": "none",
+          "statistics": {
+            "totalMs": {
+              "mean": 3.336928958333298,
+              "median": 3.253167000000076,
+              "p95": 3.813041999999996
+            },
+            "directionMs": {
+              "mean": 1.0555763750000153,
+              "median": 1.0528750000000855,
+              "p95": 1.0977920000000267
+            },
+            "preparationMs": {
+              "mean": 0.570868166666647,
+              "median": 0.5392500000000382,
+              "p95": 0.8270410000000084
+            },
+            "iterationMs": {
+              "mean": 2.6843662916666537,
+              "median": 2.6265829999999823,
+              "p95": 3.067916999999852
+            },
+            "directions": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "linearSolves": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "fullUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "minimumSearchUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 3.3230419999999867,
+              "directionMs": 1.0844580000000406,
+              "preparationMs": 0.5797919999999976,
+              "iterationMs": 2.657417000000123,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.348790999999892,
+              "directionMs": 1.0633750000001783,
+              "preparationMs": 0.5853329999999914,
+              "iterationMs": 2.6847909999999047,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2422079999998914,
+              "directionMs": 1.0542499999999109,
+              "preparationMs": 0.5414999999998145,
+              "iterationMs": 2.6219579999999496,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.316707999999835,
+              "directionMs": 1.0685829999999896,
+              "preparationMs": 0.6068749999999454,
+              "iterationMs": 2.62824999999998,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2189579999999296,
+              "directionMs": 1.0913330000003043,
+              "preparationMs": 0.5424579999998969,
+              "iterationMs": 2.5989170000000286,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.4190839999998843,
+              "directionMs": 1.0977920000000267,
+              "preparationMs": 0.59762499999988,
+              "iterationMs": 2.741999999999962,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.813041999999996,
+              "directionMs": 1.0850000000002638,
+              "preparationMs": 1.0308340000001408,
+              "iterationMs": 2.697082999999793,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.659249999999929,
+              "directionMs": 1.084666999999854,
+              "preparationMs": 0.8270410000000084,
+              "iterationMs": 2.74087499999996,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.253167000000076,
+              "directionMs": 1.0484180000000833,
+              "preparationMs": 0.5445420000000922,
+              "iterationMs": 2.6265829999999823,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.414291999999932,
+              "directionMs": 1.16212500000006,
+              "preparationMs": 0.5183340000000953,
+              "iterationMs": 2.8020420000000286,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2787080000000515,
+              "directionMs": 1.0705000000000382,
+              "preparationMs": 0.559624999999869,
+              "iterationMs": 2.640041999999994,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.246791999999914,
+              "directionMs": 1.0517499999998563,
+              "preparationMs": 0.5229170000000067,
+              "iterationMs": 2.6177920000000086,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 4.000541999999996,
+              "directionMs": 1.0587920000000395,
+              "preparationMs": 0.5204590000000735,
+              "iterationMs": 3.3931660000000647,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.107958999999937,
+              "directionMs": 1.0207090000001244,
+              "preparationMs": 0.5061670000000049,
+              "iterationMs": 2.529125000000022,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1250420000001213,
+              "directionMs": 1.0205829999999878,
+              "preparationMs": 0.5013750000000528,
+              "iterationMs": 2.5429160000001048,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1779999999998836,
+              "directionMs": 1.033706999999822,
+              "preparationMs": 0.518666999999823,
+              "iterationMs": 2.5835829999998623,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1357920000000377,
+              "directionMs": 1.0220420000000559,
+              "preparationMs": 0.5054589999999735,
+              "iterationMs": 2.5547500000000127,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1691249999998945,
+              "directionMs": 1.0292500000000473,
+              "preparationMs": 0.5166249999999764,
+              "iterationMs": 2.576041999999916,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.690417000000025,
+              "directionMs": 1.0282079999999496,
+              "preparationMs": 0.5392500000000382,
+              "iterationMs": 3.067916999999852,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2312919999999394,
+              "directionMs": 1.031624999999849,
+              "preparationMs": 0.5667919999998503,
+              "iterationMs": 2.588459000000057,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.126500000000078,
+              "directionMs": 1.0206249999998818,
+              "preparationMs": 0.5040830000000369,
+              "iterationMs": 2.546875,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2012500000000728,
+              "directionMs": 1.034208000000035,
+              "preparationMs": 0.5304160000000593,
+              "iterationMs": 2.587500000000091,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1234170000000177,
+              "directionMs": 1.0189579999998841,
+              "preparationMs": 0.503291999999874,
+              "iterationMs": 2.5467909999999847,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.462916999999834,
+              "directionMs": 1.0528750000000855,
+              "preparationMs": 0.5313750000000255,
+              "iterationMs": 2.849917000000005,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            }
+          ]
+        },
+        {
+          "mode": "adaptive",
+          "statistics": {
+            "totalMs": {
+              "mean": 3.874590375000016,
+              "median": 3.859250000000202,
+              "p95": 4.237957999999935
+            },
+            "directionMs": {
+              "mean": 1.6107414166666558,
+              "median": 1.6086249999998472,
+              "p95": 1.6985419999998612
+            },
+            "preparationMs": {
+              "mean": 0.5465227083333465,
+              "median": 0.5387499999999363,
+              "p95": 0.6222920000000158
+            },
+            "iterationMs": {
+              "mean": 3.2444687499999816,
+              "median": 3.238166999999976,
+              "p95": 3.5892089999999826
+            },
+            "directions": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "linearSolves": {
+              "mean": 4,
+              "median": 4,
+              "p95": 4
+            },
+            "fullUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "minimumSearchUnknowns": {
+              "mean": 262,
+              "median": 262,
+              "p95": 262
+            },
+            "rejectedProposals": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            }
+          },
+          "records": [
+            {
+              "totalMs": 4.068292000000156,
+              "directionMs": 1.7227499999999054,
+              "preparationMs": 0.6222920000000158,
+              "iterationMs": 3.357083999999986,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.840750000000071,
+              "directionMs": 1.5799999999999272,
+              "preparationMs": 0.5838330000001406,
+              "iterationMs": 3.1796670000001086,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.9302499999998872,
+              "directionMs": 1.6437089999999444,
+              "preparationMs": 0.5600830000000769,
+              "iterationMs": 3.285833000000139,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 4.282624999999825,
+              "directionMs": 1.6985419999998612,
+              "preparationMs": 0.5545829999998659,
+              "iterationMs": 3.631167000000005,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.8117910000000848,
+              "directionMs": 1.637416999999914,
+              "preparationMs": 0.5232499999999618,
+              "iterationMs": 3.2103749999998854,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 4.237957999999935,
+              "directionMs": 1.6705420000000686,
+              "preparationMs": 0.5382919999999558,
+              "iterationMs": 3.5892089999999826,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.9123339999998734,
+              "directionMs": 1.670667000000094,
+              "preparationMs": 0.5508339999998952,
+              "iterationMs": 3.278833000000077,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.779083000000128,
+              "directionMs": 1.6020830000002206,
+              "preparationMs": 0.5319580000000315,
+              "iterationMs": 3.1672499999999673,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.859250000000202,
+              "directionMs": 1.6269159999999374,
+              "preparationMs": 0.5427920000001905,
+              "iterationMs": 3.238166999999976,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.7563339999999243,
+              "directionMs": 1.5807089999998425,
+              "preparationMs": 0.5202090000000226,
+              "iterationMs": 3.1582919999998467,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.880792000000156,
+              "directionMs": 1.648541000000023,
+              "preparationMs": 0.5448340000000371,
+              "iterationMs": 3.2571250000000873,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.782791999999972,
+              "directionMs": 1.6221669999999904,
+              "preparationMs": 0.5160419999999704,
+              "iterationMs": 3.185375000000022,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.801958999999897,
+              "directionMs": 1.6084169999999176,
+              "preparationMs": 0.537208999999848,
+              "iterationMs": 3.186999999999898,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.7123750000000655,
+              "directionMs": 1.5708749999998872,
+              "preparationMs": 0.5210840000002008,
+              "iterationMs": 3.1148329999998623,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 4.014791000000059,
+              "directionMs": 1.6523760000000038,
+              "preparationMs": 0.6770830000000387,
+              "iterationMs": 3.2560410000000957,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.73433399999999,
+              "directionMs": 1.5572080000001733,
+              "preparationMs": 0.5180000000000291,
+              "iterationMs": 3.140041999999994,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.902749999999969,
+              "directionMs": 1.5755830000000515,
+              "preparationMs": 0.5241659999999229,
+              "iterationMs": 3.2890829999998914,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.708667000000105,
+              "directionMs": 1.5495840000000953,
+              "preparationMs": 0.5401249999999891,
+              "iterationMs": 3.0918340000000626,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.7569160000000466,
+              "directionMs": 1.5762919999999667,
+              "preparationMs": 0.5387499999999363,
+              "iterationMs": 3.1430410000000393,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.874667000000045,
+              "directionMs": 1.5466659999999592,
+              "preparationMs": 0.5477920000000722,
+              "iterationMs": 3.242082999999866,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.690958000000137,
+              "directionMs": 1.5493329999999332,
+              "preparationMs": 0.5074999999999363,
+              "iterationMs": 3.1096249999998236,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.860333999999966,
+              "directionMs": 1.6086249999998472,
+              "preparationMs": 0.5045000000000073,
+              "iterationMs": 3.258000000000038,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.9959579999999733,
+              "directionMs": 1.6120840000000953,
+              "preparationMs": 0.5063750000001619,
+              "iterationMs": 3.389415999999983,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            },
+            {
+              "totalMs": 3.79420899999991,
+              "directionMs": 1.5467080000000806,
+              "preparationMs": 0.604959000000008,
+              "iterationMs": 3.107874999999922,
+              "directions": 2,
+              "linearSolves": 4,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "curved-33",
+      "geometry": {
+        "n": 33,
+        "curved": true
+      },
+      "input": {
+        "force": [
+          0.01,
+          0.025,
+          -0.012
+        ]
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "mode": "none",
+          "statistics": {
+            "totalMs": {
+              "mean": 3.282144208333316,
+              "median": 3.248666000000185,
+              "p95": 3.6849580000000515
+            },
+            "directionMs": {
+              "mean": 1.1309687916666367,
+              "median": 1.0972079999999096,
+              "p95": 1.5370829999997113
+            },
+            "preparationMs": {
+              "mean": 0.5413888749999671,
+              "median": 0.5186249999999291,
+              "p95": 0.5988750000001346
+            },
+            "iterationMs": {
+              "mean": 2.6649826249999933,
+              "median": 2.642125000000078,
+              "p95": 3.054333999999926
+            },
+            "directions": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "linearSolves": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "fullUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "minimumSearchUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 3.188374999999951,
+              "directionMs": 1.0856659999999465,
+              "preparationMs": 0.5415000000000418,
+              "iterationMs": 2.5702090000002045,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.27212499999996,
+              "directionMs": 1.1077920000000177,
+              "preparationMs": 0.5536250000000109,
+              "iterationMs": 2.634207999999944,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1888329999999314,
+              "directionMs": 1.0936259999998583,
+              "preparationMs": 0.5186249999999291,
+              "iterationMs": 2.5957089999999425,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2262920000000577,
+              "directionMs": 1.1244159999998828,
+              "preparationMs": 0.5025000000000546,
+              "iterationMs": 2.6434169999999995,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.238583999999946,
+              "directionMs": 1.0816249999998035,
+              "preparationMs": 0.5500419999998485,
+              "iterationMs": 2.613125000000082,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.6849580000000515,
+              "directionMs": 1.5370829999997113,
+              "preparationMs": 0.552417000000105,
+              "iterationMs": 3.054333999999926,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.248666000000185,
+              "directionMs": 1.1157490000000507,
+              "preparationMs": 0.5138329999999769,
+              "iterationMs": 2.649541999999883,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.306959000000006,
+              "directionMs": 1.102750000000242,
+              "preparationMs": 0.5444999999999709,
+              "iterationMs": 2.668333999999959,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2646659999998064,
+              "directionMs": 1.0992499999999836,
+              "preparationMs": 0.5494159999998374,
+              "iterationMs": 2.642125000000078,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2428329999997914,
+              "directionMs": 1.0972079999999096,
+              "preparationMs": 0.5158329999999296,
+              "iterationMs": 2.6564160000000356,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2056669999999485,
+              "directionMs": 1.1016669999999067,
+              "preparationMs": 0.5089579999998932,
+              "iterationMs": 2.625500000000102,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.7897089999999025,
+              "directionMs": 1.5711669999998321,
+              "preparationMs": 0.5676670000000286,
+              "iterationMs": 3.1442919999999503,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.144625000000133,
+              "directionMs": 1.0670000000000073,
+              "preparationMs": 0.5109580000000733,
+              "iterationMs": 2.5594169999999394,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2918339999998807,
+              "directionMs": 1.0948750000000018,
+              "preparationMs": 0.5030839999999444,
+              "iterationMs": 2.7085829999998623,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1731669999999212,
+              "directionMs": 1.0485010000002148,
+              "preparationMs": 0.546083999999837,
+              "iterationMs": 2.5546659999999974,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1761249999999563,
+              "directionMs": 1.085207999999966,
+              "preparationMs": 0.5022910000000138,
+              "iterationMs": 2.602957999999944,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1681670000000395,
+              "directionMs": 1.083207999999786,
+              "preparationMs": 0.5016669999999976,
+              "iterationMs": 2.5920830000000024,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.303042000000005,
+              "directionMs": 1.121458999999959,
+              "preparationMs": 0.5092919999999594,
+              "iterationMs": 2.723583999999846,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.4459999999999127,
+              "directionMs": 1.0354580000000624,
+              "preparationMs": 0.8807079999999132,
+              "iterationMs": 2.494291000000203,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.3321670000000267,
+              "directionMs": 1.1265420000001996,
+              "preparationMs": 0.5308749999999236,
+              "iterationMs": 2.72916599999985,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2657500000000255,
+              "directionMs": 1.115916999999854,
+              "preparationMs": 0.5088749999999891,
+              "iterationMs": 2.6870409999999083,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.3651250000000346,
+              "directionMs": 1.085459000000128,
+              "preparationMs": 0.5988750000001346,
+              "iterationMs": 2.6959170000000086,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.0959170000000995,
+              "directionMs": 1.0757509999998547,
+              "preparationMs": 0.4814579999999751,
+              "iterationMs": 2.5321250000001783,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.151875000000018,
+              "directionMs": 1.0858740000001035,
+              "preparationMs": 0.5002499999998236,
+              "iterationMs": 2.582540999999992,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            }
+          ]
+        },
+        {
+          "mode": "adaptive",
+          "statistics": {
+            "totalMs": {
+              "mean": 3.2379947499999937,
+              "median": 3.20962499999996,
+              "p95": 3.3875409999998283
+            },
+            "directionMs": {
+              "mean": 1.1039390416666681,
+              "median": 1.0991249999999582,
+              "p95": 1.1354579999999714
+            },
+            "preparationMs": {
+              "mean": 0.5175277916666516,
+              "median": 0.5102500000000418,
+              "p95": 0.5620829999998023
+            },
+            "iterationMs": {
+              "mean": 2.646703125000007,
+              "median": 2.627499999999827,
+              "p95": 2.7497920000000704
+            },
+            "directions": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "linearSolves": {
+              "mean": 2,
+              "median": 2,
+              "p95": 2
+            },
+            "fullUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "minimumSearchUnknowns": {
+              "mean": 326,
+              "median": 326,
+              "p95": 326
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 3.20900000000006,
+              "directionMs": 1.0991249999999582,
+              "preparationMs": 0.5141670000000431,
+              "iterationMs": 2.621208000000024,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.3185419999999795,
+              "directionMs": 1.1283330000001115,
+              "preparationMs": 0.5082919999999831,
+              "iterationMs": 2.7216249999999036,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2073749999999563,
+              "directionMs": 1.1081250000002,
+              "preparationMs": 0.5093329999999696,
+              "iterationMs": 2.627499999999827,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.140457999999853,
+              "directionMs": 1.0827500000000327,
+              "preparationMs": 0.5084999999999127,
+              "iterationMs": 2.5627079999999296,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2642499999999472,
+              "directionMs": 1.1051239999999325,
+              "preparationMs": 0.5173749999999018,
+              "iterationMs": 2.668916999999965,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2186669999998685,
+              "directionMs": 1.1066249999996671,
+              "preparationMs": 0.5074589999999262,
+              "iterationMs": 2.6395420000001195,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1894170000000486,
+              "directionMs": 1.0743749999999181,
+              "preparationMs": 0.5299170000000686,
+              "iterationMs": 2.587750000000142,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2658749999998236,
+              "directionMs": 1.1009580000002188,
+              "preparationMs": 0.5421669999998358,
+              "iterationMs": 2.6512500000001182,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.332499999999982,
+              "directionMs": 1.1592079999998077,
+              "preparationMs": 0.5131659999999556,
+              "iterationMs": 2.7412080000001424,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.265333000000055,
+              "directionMs": 1.097541000000092,
+              "preparationMs": 0.532790999999861,
+              "iterationMs": 2.6591669999997976,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.20962499999996,
+              "directionMs": 1.0931659999998828,
+              "preparationMs": 0.5165419999998448,
+              "iterationMs": 2.6225839999999607,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2583340000001044,
+              "directionMs": 1.1204579999998714,
+              "preparationMs": 0.49929199999996854,
+              "iterationMs": 2.67841599999997,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.200125000000071,
+              "directionMs": 1.0962500000000546,
+              "preparationMs": 0.5078330000001188,
+              "iterationMs": 2.6216660000000047,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1451669999999012,
+              "directionMs": 1.089040999999952,
+              "preparationMs": 0.5012919999999212,
+              "iterationMs": 2.5731660000001284,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.252040999999963,
+              "directionMs": 1.116041000000223,
+              "preparationMs": 0.5116250000000946,
+              "iterationMs": 2.662208999999848,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.198791999999912,
+              "directionMs": 1.1060840000000098,
+              "preparationMs": 0.5021669999998721,
+              "iterationMs": 2.621167000000014,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.4486249999999927,
+              "directionMs": 1.1354579999999714,
+              "preparationMs": 0.5854580000000169,
+              "iterationMs": 2.7905419999999594,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.2842910000001666,
+              "directionMs": 1.1286669999999503,
+              "preparationMs": 0.5147910000000593,
+              "iterationMs": 2.6994170000000395,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.191917000000103,
+              "directionMs": 1.0871670000001359,
+              "preparationMs": 0.5061670000000049,
+              "iterationMs": 2.6108330000001843,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.3875409999998283,
+              "directionMs": 1.0939579999999296,
+              "preparationMs": 0.5620829999998023,
+              "iterationMs": 2.7497920000000704,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.190708000000086,
+              "directionMs": 1.0858749999999873,
+              "preparationMs": 0.5079580000001442,
+              "iterationMs": 2.613375000000133,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1943750000000364,
+              "directionMs": 1.0958750000002055,
+              "preparationMs": 0.5042090000001735,
+              "iterationMs": 2.6177910000001248,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1979160000000775,
+              "directionMs": 1.098208999999997,
+              "preparationMs": 0.5078330000001188,
+              "iterationMs": 2.618291999999883,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 3.1410000000000764,
+              "directionMs": 1.086123999999927,
+              "preparationMs": 0.5102500000000418,
+              "iterationMs": 2.560749999999871,
+              "directions": 2,
+              "linearSolves": 2,
+              "fullUnknowns": 326,
+              "minimumSearchUnknowns": 326,
+              "rejectedProposals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loaded-lumen-17",
+      "geometry": {
+        "n": 17,
+        "lumen": true,
+        "offset": 0.04075,
+        "wireSlope": -0.0005
+      },
+      "input": {
+        "force": [
+          0.1,
+          0.4,
+          0
+        ],
+        "forceNode": 0
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "mode": "none",
+          "statistics": {
+            "totalMs": {
+              "mean": 36.528357625000105,
+              "median": 36.39900000000034,
+              "p95": 37.84058300000015
+            },
+            "directionMs": {
+              "mean": 6.25471925000024,
+              "median": 6.166875000000346,
+              "p95": 6.832210000000487
+            },
+            "preparationMs": {
+              "mean": 2.953694583333345,
+              "median": 2.886041999999634,
+              "p95": 3.400916999999936
+            },
+            "iterationMs": {
+              "mean": 33.45189758333331,
+              "median": 33.36541599999964,
+              "p95": 34.60870800000066
+            },
+            "directions": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            },
+            "linearSolves": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            },
+            "fullUnknowns": {
+              "mean": 262,
+              "median": 262,
+              "p95": 262
+            },
+            "minimumSearchUnknowns": {
+              "mean": 262,
+              "median": 262,
+              "p95": 262
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 35.739250000000084,
+              "directionMs": 6.12466699999959,
+              "preparationMs": 2.7862090000003263,
+              "iterationMs": 32.845792000000074,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 35.94487500000014,
+              "directionMs": 6.074542000000292,
+              "preparationMs": 2.8112499999997453,
+              "iterationMs": 33.02345800000012,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.11854199999971,
+              "directionMs": 6.096415999999863,
+              "preparationMs": 2.886041999999634,
+              "iterationMs": 34.125082999999904,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 38.010167000000365,
+              "directionMs": 6.267165000000659,
+              "preparationMs": 3.3602500000001783,
+              "iterationMs": 34.51441700000032,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.84058300000015,
+              "directionMs": 6.20500200000015,
+              "preparationMs": 3.0107499999999163,
+              "iterationMs": 34.69383300000027,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.638582999999926,
+              "directionMs": 6.174960000000738,
+              "preparationMs": 2.9490829999999733,
+              "iterationMs": 33.5619999999999,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.95858399999997,
+              "directionMs": 6.196167000000514,
+              "preparationMs": 3.400916999999936,
+              "iterationMs": 33.42929099999992,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.67554199999995,
+              "directionMs": 6.591043000000354,
+              "preparationMs": 2.855916999999863,
+              "iterationMs": 33.68287499999997,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.02475000000004,
+              "directionMs": 6.033668000000489,
+              "preparationMs": 2.856000000000222,
+              "iterationMs": 33.046208999999635,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.35162500000024,
+              "directionMs": 6.011461000000054,
+              "preparationMs": 3.4891670000001795,
+              "iterationMs": 32.73808299999973,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 35.787500000000364,
+              "directionMs": 6.02475000000004,
+              "preparationMs": 2.761917000000267,
+              "iterationMs": 32.903959000000214,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.39900000000034,
+              "directionMs": 6.143748000001324,
+              "preparationMs": 2.8595000000000255,
+              "iterationMs": 33.41116699999975,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.004875000000084,
+              "directionMs": 6.166875000000346,
+              "preparationMs": 2.7511249999997744,
+              "iterationMs": 33.13041699999985,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.50120800000013,
+              "directionMs": 6.206918000001224,
+              "preparationMs": 3.011250000000018,
+              "iterationMs": 33.36541599999964,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 35.97529200000008,
+              "directionMs": 6.084834000000683,
+              "preparationMs": 2.744625000000269,
+              "iterationMs": 33.10666599999968,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 35.317958000000544,
+              "directionMs": 6.552500000000691,
+              "preparationMs": 2.908791000000747,
+              "iterationMs": 32.2831670000005,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.837790999999925,
+              "directionMs": 6.240707999999358,
+              "preparationMs": 3.106832999999824,
+              "iterationMs": 34.60870800000066,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 35.903417000000445,
+              "directionMs": 6.044750000000022,
+              "preparationMs": 2.7240840000004027,
+              "iterationMs": 33.05670900000041,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.313083000000006,
+              "directionMs": 6.832210000000487,
+              "preparationMs": 3.04162499999984,
+              "iterationMs": 33.15229199999976,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.70920800000022,
+              "directionMs": 6.15387599999849,
+              "preparationMs": 2.855416999999761,
+              "iterationMs": 33.724458000000595,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.53350000000046,
+              "directionMs": 7.27704200000062,
+              "preparationMs": 2.8325839999997697,
+              "iterationMs": 34.58208299999933,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.90087499999936,
+              "directionMs": 6.098709999999301,
+              "preparationMs": 2.894416999999521,
+              "iterationMs": 33.88591699999961,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.21754099999998,
+              "directionMs": 6.555583999999726,
+              "preparationMs": 2.828625000000102,
+              "iterationMs": 33.27441699999963,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 35.97683400000005,
+              "directionMs": 5.955666000000747,
+              "preparationMs": 3.1622919999999795,
+              "iterationMs": 32.699125000000095,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 262,
+              "rejectedProposals": 0
+            }
+          ]
+        },
+        {
+          "mode": "adaptive",
+          "statistics": {
+            "totalMs": {
+              "mean": 38.20859720833332,
+              "median": 37.65279099999998,
+              "p95": 39.70220900000004
+            },
+            "directionMs": {
+              "mean": 7.636587041666473,
+              "median": 7.366706999998314,
+              "p95": 8.373583999999937
+            },
+            "preparationMs": {
+              "mean": 3.151645791666624,
+              "median": 2.9220000000000255,
+              "p95": 3.6994580000000497
+            },
+            "iterationMs": {
+              "mean": 34.929947958333365,
+              "median": 34.54379199999994,
+              "p95": 36.15112500000032
+            },
+            "directions": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            },
+            "linearSolves": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            },
+            "fullUnknowns": {
+              "mean": 262,
+              "median": 262,
+              "p95": 262
+            },
+            "minimumSearchUnknowns": {
+              "mean": 245,
+              "median": 245,
+              "p95": 245
+            },
+            "rejectedProposals": {
+              "mean": 0,
+              "median": 0,
+              "p95": 0
+            }
+          },
+          "records": [
+            {
+              "totalMs": 38.92958300000009,
+              "directionMs": 7.621293000000605,
+              "preparationMs": 3.646791000000121,
+              "iterationMs": 35.171792000000096,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.08266700000013,
+              "directionMs": 7.390083999999206,
+              "preparationMs": 2.68295900000021,
+              "iterationMs": 34.29112500000019,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 47.231500000000324,
+              "directionMs": 10.956499999999323,
+              "preparationMs": 5.9871250000001055,
+              "iterationMs": 41.05862500000012,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 39.70220900000004,
+              "directionMs": 8.308708000000024,
+              "preparationMs": 3.4117919999998776,
+              "iterationMs": 36.15112500000032,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 38.381875000000036,
+              "directionMs": 7.623249999999189,
+              "preparationMs": 2.890791999999692,
+              "iterationMs": 35.34629199999972,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 39.294832999999926,
+              "directionMs": 7.842543000000205,
+              "preparationMs": 3.3617079999999078,
+              "iterationMs": 35.77979099999993,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.65279099999998,
+              "directionMs": 7.565916999999445,
+              "preparationMs": 2.8910000000000764,
+              "iterationMs": 34.63579200000004,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.64150000000018,
+              "directionMs": 7.336332000000311,
+              "preparationMs": 2.9947080000001733,
+              "iterationMs": 34.522500000000036,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.53087500000038,
+              "directionMs": 7.425206999999773,
+              "preparationMs": 2.9220000000000255,
+              "iterationMs": 34.48470800000041,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.543125000000146,
+              "directionMs": 7.305377000000135,
+              "preparationMs": 3.047708000000057,
+              "iterationMs": 34.36829200000011,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.68729200000007,
+              "directionMs": 7.304537999999866,
+              "preparationMs": 2.8494580000001406,
+              "iterationMs": 34.71312499999976,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.53108299999985,
+              "directionMs": 7.198915999998462,
+              "preparationMs": 2.765041999999994,
+              "iterationMs": 34.645874999999705,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 38.72220900000002,
+              "directionMs": 7.699376999999913,
+              "preparationMs": 2.8548749999999927,
+              "iterationMs": 35.73670899999979,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 38.363374999999905,
+              "directionMs": 7.3320410000001175,
+              "preparationMs": 3.6994580000000497,
+              "iterationMs": 34.54379199999994,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.88650000000007,
+              "directionMs": 7.364250999999058,
+              "preparationMs": 2.853290999999899,
+              "iterationMs": 34.90883299999996,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.292333000000326,
+              "directionMs": 7.287460000000465,
+              "preparationMs": 3.1790829999999914,
+              "iterationMs": 33.99033299999974,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.73054199999933,
+              "directionMs": 8.373583999999937,
+              "preparationMs": 2.7575419999993755,
+              "iterationMs": 34.850500000000466,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.129541000000245,
+              "directionMs": 7.363624999999047,
+              "preparationMs": 2.769666000000143,
+              "iterationMs": 34.21641700000055,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.15666699999929,
+              "directionMs": 7.300126000001001,
+              "preparationMs": 3.428874999999607,
+              "iterationMs": 33.61441600000035,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 36.74187499999971,
+              "directionMs": 7.349833000000217,
+              "preparationMs": 2.7476669999996375,
+              "iterationMs": 33.87504199999967,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.92845799999941,
+              "directionMs": 7.336458000000675,
+              "preparationMs": 3.285541999999623,
+              "iterationMs": 34.52374999999938,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.366792000000714,
+              "directionMs": 7.3929180000004635,
+              "preparationMs": 2.8555420000002414,
+              "iterationMs": 34.39491700000053,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.384000000000015,
+              "directionMs": 7.366706999998314,
+              "preparationMs": 2.948374999999942,
+              "iterationMs": 34.32304199999999,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            },
+            {
+              "totalMs": 37.09470799999963,
+              "directionMs": 7.233043999999609,
+              "preparationMs": 2.8085000000000946,
+              "iterationMs": 34.171957999999904,
+              "directions": 8,
+              "linearSolves": 8,
+              "fullUnknowns": 262,
+              "minimumSearchUnknowns": 245,
+              "rejectedProposals": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

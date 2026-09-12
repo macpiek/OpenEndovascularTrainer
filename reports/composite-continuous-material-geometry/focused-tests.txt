@@ -1,0 +1,38 @@
+✔ shared quintic geometry removes artificial position, curvature and advected bending-rate jumps on nonuniform nodes (3.346583ms)
+✔ quadratic curves and analytic tangent derivatives are reproduced throughout nonuniform edges (0.5515ms)
+✔ explicit physical interfaces keep separate one-sided derivatives and do not borrow nodes across a material region (0.948ms)
+✔ Bernstein controls and analytic basis describe one curve and its physical position Jacobian (0.941167ms)
+✔ rigid translation and rotation preserve material velocity and bending angular motion in the corresponding observer (0.194083ms)
+✔ continuous geometry validates its source, physical supports and finite motion without extrapolation (0.516208ms)
+✔ the material inertia factory integrates the same continuous geometry velocity and both physical momentum balances (2.555958ms)
+✔ Gauss-6 integrates degree-ten old velocity energy exactly, including a discontinuous old material boundary (0.49225ms)
+✔ continuous energy, gradient and prepared tangent differentiate all local position columns with feed (1.417916ms)
+✔ restricting the continuous field to an affine rod reproduces existing energy, gradient and tangent under exact pullback (0.819083ms)
+✔ continuous preparation owns history; gradient evaluation and failed retry revoke all tangent validity (0.425083ms)
+✔ continuous inertia refuses gaps, ambiguous endpoint histories and undeclared polynomial fields (0.453959ms)
+✔ captured velocity controls retain the complete accepted material field and survive label restriction (1.401292ms)
+✔ independent opposite feeds carry both accepted continuous fields across old nodes and into the next inertia preparation (2.434833ms)
+✔ mixed polynomial and affine reservoir history preserves degree-ten energy and refuses endpoint-only downgrade (3.68975ms)
+✔ opposite feeds sample each own current material label exactly once, independently of label rate (0.950375ms)
+✔ nonunit maps and nonuniform mesh split all crossed old edge fields by material label, not source edge index (0.432875ms)
+✔ discontinuous velocities require explicit one-sided traces and piecewise quadrature preserves physical integrals (0.283333ms)
+✔ continuous endpoint values do not erase a derivative discontinuity or an explicit old boundary (0.112333ms)
+✔ overlap and exposure use independent label histories and an explicit reservoir for newly entering material (0.225333ms)
+✔ reservoir pieces crossing known history are clipped by ownership and never replace accepted material values (0.100666ms)
+✔ owned snapshots and outputs isolate source mutations, failed preparation and identical retries (0.214333ms)
+✔ invalid or absent history, ambiguous intervals and noncovering reservoirs reject without defaults (0.237084ms)
+✔ actual accepted first and second dt histories prepare own affine velocities for the next unchanged material map (18.101291ms)
+✔ prepared single-material E/g/H and momentum match the independent original operator for varying maps and geometry (2.015708ms)
+✔ independent wire/catheter histories pull back once to common and full relative motion (0.779042ms)
+✔ exact integrated momentum and kinetic energy retain the two independent material velocities (0.150292ms)
+✔ prepared data owns both material maps and old positions/velocities while local output buffers are reused (0.128875ms)
+✔ gradient evaluation leaves poisoned Hessian bytes unused and a later full evaluation restores the original tangent (0.416791ms)
+✔ missing physical history, invalid parameters and nonfinite trials fail explicitly (0.281208ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 293.63475

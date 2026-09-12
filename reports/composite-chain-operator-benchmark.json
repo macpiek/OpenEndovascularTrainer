@@ -1,0 +1,117 @@
+{
+  "scope": "Common-axis constitutive assembly plus one primal direction only; NOT a full physics step, contact solve, admission certificate, anatomy run or FPS measurement.",
+  "sourceBefore": {
+    "src/physics/kirchhoffCompositeElement.js": "e86459a6a369530de87d74991e2a970d6f27b13e6a1095ced098411a9eed5bd3",
+    "src/physics/kirchhoffCompositeChain.js": "0db871d136cadfbec921f7eebbea089b32ff5caf21dd93a29c2c697fe82c7d9c",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "scripts/physics/benchmark-composite-chain.mjs": "4b3af2faf3ddf9a91c659eb0241f3116ef9fd52dff241f14ebaa4eaf93b2bff0"
+  },
+  "node": "v24.6.0",
+  "measurements": [
+    {
+      "nodes": 32,
+      "dofCount": 158,
+      "independentPositionFrameDofs": 378,
+      "band": 13,
+      "matrixEntries": 2054,
+      "factorizations": 1,
+      "maximumResidual": 6.937239542682122e-18,
+      "meanMs": 5.753470899999991,
+      "medianMs": 4.120124999999973,
+      "maximumMs": 12.853666999999973,
+      "samplesMs": [
+        4.7444169999999986,
+        11.713290999999913,
+        7.564166999999998,
+        1.5016669999999976,
+        9.27312500000005,
+        2.1380000000000337,
+        3.495832999999948,
+        1.632791999999995,
+        12.853666999999973,
+        2.617750000000001
+      ]
+    },
+    {
+      "nodes": 65,
+      "dofCount": 323,
+      "independentPositionFrameDofs": 774,
+      "band": 13,
+      "matrixEntries": 4199,
+      "factorizations": 1,
+      "maximumResidual": 1.4523379114854943e-17,
+      "meanMs": 10.274558500000012,
+      "medianMs": 6.671062500000062,
+      "maximumMs": 29.929292000000032,
+      "samplesMs": [
+        16.598334000000023,
+        6.028042000000141,
+        7.314082999999982,
+        3.6513330000000224,
+        7.650292000000036,
+        5.952374999999847,
+        5.460749999999962,
+        2.3802089999999225,
+        17.78087500000015,
+        29.929292000000032
+      ]
+    },
+    {
+      "nodes": 128,
+      "dofCount": 638,
+      "independentPositionFrameDofs": 1530,
+      "band": 13,
+      "matrixEntries": 8294,
+      "factorizations": 1,
+      "maximumResidual": 6.814014808721616e-18,
+      "meanMs": 38.23585009999999,
+      "medianMs": 21.60654150000005,
+      "maximumMs": 104.69383399999992,
+      "samplesMs": [
+        23.50287500000013,
+        41.35820799999988,
+        17.193750000000136,
+        15.331874999999854,
+        104.69383399999992,
+        15.34354200000007,
+        19.386250000000018,
+        88.41045899999995,
+        19.710207999999966,
+        37.42750000000001
+      ]
+    },
+    {
+      "nodes": 201,
+      "dofCount": 1003,
+      "independentPositionFrameDofs": 2406,
+      "band": 13,
+      "matrixEntries": 13039,
+      "factorizations": 1,
+      "maximumResidual": 1.7516965604019052e-17,
+      "meanMs": 38.66234989999998,
+      "medianMs": 28.00047900000004,
+      "maximumMs": 114.51229200000034,
+      "samplesMs": [
+        25.64016700000002,
+        30.360791000000063,
+        15.588124999999764,
+        14.650874999999814,
+        69.36429099999987,
+        19.96225000000004,
+        31.273375000000215,
+        23.638582999999926,
+        114.51229200000034,
+        41.63274999999976
+      ]
+    }
+  ],
+  "sourceAfter": {
+    "src/physics/kirchhoffCompositeElement.js": "e86459a6a369530de87d74991e2a970d6f27b13e6a1095ced098411a9eed5bd3",
+    "src/physics/kirchhoffCompositeChain.js": "0db871d136cadfbec921f7eebbea089b32ff5caf21dd93a29c2c697fe82c7d9c",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "scripts/physics/benchmark-composite-chain.mjs": "4b3af2faf3ddf9a91c659eb0241f3116ef9fd52dff241f14ebaa4eaf93b2bff0"
+  },
+  "sourceStable": true
+}

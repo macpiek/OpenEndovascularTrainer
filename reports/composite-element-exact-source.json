@@ -1,0 +1,19 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "src/physics/kirchhoffCompositeElementExact.js": "3184948302eeff6008210517cb86646b96ff85eae0fd4d37c1e21aa5192884b5",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "74330455afdf18f15ff9763cf5fff2d1faf9da222f74e027b7d1a98ab34c0dbf",
+    "src/physics/kirchhoffCompositeChain.js": "60e4cddeeea2135264a4aa3b86423d090fefaaf70e6eeabcce9ea0b3f0bf9706",
+    "scripts/physics/build-composite-element-exact.mjs": "4e11dd7e3de66cd7456691749ebdc623115c320991fc98be279f0d6bcd965187",
+    "scripts/physics/benchmark-composite-element-exact.mjs": "e2f1cb6d4a2619549b15bd5bc6e1a94ea8e153dc430b0470714899d4b56a7fd2",
+    "tests/kirchhoffCompositeElementExact.test.js": "368006c6d3330e4ec4cd76490579fd969f83796624bd97f35053ad66d6f51040",
+    "reports/composite-element-exact.md": "08da33640d01c315c9d50e88d4e0375199209fcb0c5d143433916c94d698150c",
+    "reports/composite-element-exact.json": "35a66b7b378e413b744a51eaacd3583eb0ad2ef9e86ed6b0cc76f77604186741",
+    "tests.txt": "49af20a9d3512c114086f034d657251003085796976a7833abeb101eea91b63c",
+    "pre-coloring.json": "ca89a3c17ce80fcd694bf4727d0aa5b28e3795baa10b1f3309a54dcb02d155a8",
+    "overlapping-suite-run.json": "b5d14e5f01e6f9b0694c2a9273761cacf710b90c4b8a68ccfa57b4b2c91718e0"
+  },
+  "tests": "34/34 new Exact + existing Fast/Chain/Refinement; syntax passed",
+  "snapshot": "/tmp/oet-composite-exact-snapshot-iBYhkf",
+  "scope": "Explicit wasm-exact backend, opt-in. Default GN unchanged; no FPS/full-budget claim."
+}

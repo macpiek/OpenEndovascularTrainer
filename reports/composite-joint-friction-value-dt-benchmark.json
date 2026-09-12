@@ -1,0 +1,59 @@
+{
+  "scope": "whole 3-node 2-tool one-side-contact physical dt including material-history preparation and commit; fixed small fixture, no World/render/FPS claim",
+  "dt": 0.008333333333333333,
+  "nodeCount": 3,
+  "frictionMu": [
+    0.015,
+    0.006
+  ],
+  "summary": [
+    {
+      "stage": "first-loaded-dt",
+      "pairs": 50,
+      "warmupPairs": 10,
+      "baselineFullSurface": {
+        "meanMs": 4.253707480000005,
+        "medianMs": 3.965167000000008,
+        "p95Ms": 6.809875000000034,
+        "minMs": 3.2357090000000426,
+        "maxMs": 10.029084000000012
+      },
+      "valueOnlyTrials": {
+        "meanMs": 3.592932579999993,
+        "medianMs": 2.5056670000000167,
+        "p95Ms": 9.018209000000013,
+        "minMs": 2.0605829999999514,
+        "maxMs": 31.412040999999988
+      },
+      "physicalStatesForcesHistoriesCertificatesBitIdentical": true,
+      "directions": 2,
+      "evaluations": 6,
+      "fullAssemblies": 2,
+      "gradientAssemblies": 4
+    },
+    {
+      "stage": "second-loaded-dt",
+      "pairs": 50,
+      "warmupPairs": 10,
+      "baselineFullSurface": {
+        "meanMs": 3.660294060000006,
+        "medianMs": 3.495791000000054,
+        "p95Ms": 4.389791000000059,
+        "minMs": 3.2192079999999805,
+        "maxMs": 7.407790999999975
+      },
+      "valueOnlyTrials": {
+        "meanMs": 2.245021599999993,
+        "medianMs": 2.1639579999999796,
+        "p95Ms": 2.6419590000000426,
+        "minMs": 1.9718330000000606,
+        "maxMs": 3.3167909999999665
+      },
+      "physicalStatesForcesHistoriesCertificatesBitIdentical": true,
+      "directions": 2,
+      "evaluations": 6,
+      "fullAssemblies": 2,
+      "gradientAssemblies": 4
+    }
+  ]
+}

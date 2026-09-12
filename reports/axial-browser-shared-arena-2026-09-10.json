@@ -1,0 +1,13 @@
+{
+  "scenario": "35 s UI, 8 mm sections, shared WASM arena",
+  "calls": 499,
+  "nonconvergedResults": 0,
+  "averageFps": 29.404168239524765,
+  "backlogSeconds": 19.074766666666687,
+  "lastStepMs": 282,
+  "sectionTopologyMs": 6171.000000476837,
+  "localFactorMs": 174.90000081062317,
+  "localResponsesMs": 985.3000067472458,
+  "sectionAssemblyMs": 10382.699998736382,
+  "performanceGatePassed": false
+}

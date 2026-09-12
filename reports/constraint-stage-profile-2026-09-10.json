@@ -1,0 +1,150 @@
+{
+  "date": "2026-09-10",
+  "source": "Observed browser benchmark report in Codex in-app browser",
+  "solver": "joint-active-coulomb",
+  "mode": "catheter-only",
+  "catheter": "berenstein",
+  "shaftStiffness": 25,
+  "tipStiffness": 5,
+  "globalBendLimitDegrees": 45,
+  "fixedHz": 120,
+  "wallLimitMs": 60000,
+  "completed": false,
+  "stopReason": "diagnostic-wall-limit",
+  "simulatedMs": 19883.333333333303,
+  "plannedSimulatedMs": 28000,
+  "steps": 2386,
+  "nonlinearFailedSteps": 779,
+  "averageFps": 33.67435350573181,
+  "backlogSeconds": 40.13266666666727,
+  "finite": true,
+  "percentileSteps": 2386,
+  "stageTimesMsPerStep": {
+    "assemblyMs": {
+      "mean": 0.5062866727044776,
+      "p95": 1.4000000953674316,
+      "maximum": 5.400000691413879
+    },
+    "solveMs": {
+      "mean": 5.45528080532357,
+      "p95": 14.299999833106995,
+      "maximum": 60.49999952316284
+    },
+    "applyMs": {
+      "mean": 0.43885163814204137,
+      "p95": 1.5999997854232788,
+      "maximum": 9.599999070167542
+    },
+    "snapshotMs": {
+      "mean": 3.595766974015088,
+      "p95": 10.299999833106995,
+      "maximum": 37.49999964237213
+    },
+    "restoreMs": {
+      "mean": 5.23721709615127,
+      "p95": 19.19999897480011,
+      "maximum": 127.49999940395355
+    },
+    "measureMs": {
+      "mean": 5.399790442849245,
+      "p95": 16.799999713897705,
+      "maximum": 106.99999964237213
+    },
+    "condensedSetupMs": {
+      "mean": 1.0285834016564106,
+      "p95": 2.8000000715255737,
+      "maximum": 11.200000524520874
+    },
+    "schurMs": {
+      "mean": 0.9975272456038827,
+      "p95": 2.700000286102295,
+      "maximum": 15.399999856948853
+    },
+    "contactSolveMs": {
+      "mean": 0.09450964096305955,
+      "p95": 0.30000007152557373,
+      "maximum": 1.2999998331069946
+    },
+    "reconstructionMs": {
+      "mean": 0.2619446768844617,
+      "p95": 0.7999999523162842,
+      "maximum": 3.1999998092651367
+    },
+    "seedMs": {
+      "mean": 0,
+      "p95": 0,
+      "maximum": 0
+    },
+    "constraints": {
+      "mean": 20.72908633732536,
+      "p95": 61.90000009536743,
+      "maximum": 335.5
+    },
+    "narrowPhase": {
+      "mean": 0.1880553235851809,
+      "p95": 0.3999999761581421,
+      "maximum": 8.800000071525574
+    },
+    "integrate": {
+      "mean": 0.022464375683767697,
+      "p95": 0.10000002384185791,
+      "maximum": 1.100000023841858
+    },
+    "velocity": {
+      "mean": 0.021165130124407863,
+      "p95": 0.10000002384185791,
+      "maximum": 0.20000004768371582
+    },
+    "physicsTotal": {
+      "mean": 20.979756916358706,
+      "p95": 62,
+      "maximum": 336
+    }
+  },
+  "callsPerStep": {
+    "solveCalls": {
+      "mean": 8.250628667225483,
+      "p95": 19,
+      "maximum": 65
+    },
+    "applyCalls": {
+      "mean": 25.577954735959764,
+      "p95": 78,
+      "maximum": 479
+    },
+    "measureCalls": {
+      "mean": 32.153394803017605,
+      "p95": 96,
+      "maximum": 542
+    },
+    "snapshots": {
+      "mean": 6.250628667225482,
+      "p95": 17,
+      "maximum": 63
+    },
+    "restores": {
+      "mean": 17.65213746856664,
+      "p95": 62,
+      "maximum": 414
+    },
+    "backtracks": {
+      "mean": 17.327326068734283,
+      "p95": 61,
+      "maximum": 414
+    },
+    "factorizations": {
+      "mean": 22.196144174350376,
+      "p95": 52,
+      "maximum": 191
+    }
+  },
+  "notes": [
+    "Means and percentiles cover all 2386 recorded steps, including internal unsuccessful nonlinear trials.",
+    "Top-level assemblyMs measures additional constraint-row assembly, not all material matrix assembly.",
+    "condensedSetupMs, schurMs, contactSolveMs and reconstructionMs are INSIDE solveMs; seedMs is inside contactSolveMs.",
+    "The remainder inside solveMs includes original assembly and reconstruction validation; it is not separately instrumented.",
+    "measureMs includes repeated contact geometry queries and physical residual checks. narrowPhase is only the separate initial contact phase.",
+    "Per-stage percentiles/maxima are not additive; peaks may occur on different steps.",
+    "This controlled solo-catheter trial does not measure a coupled pair or catheter rotation, and did not complete the full cycle."
+  ]
+}

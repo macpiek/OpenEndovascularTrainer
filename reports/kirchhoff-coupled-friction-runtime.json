@@ -1,0 +1,107 @@
+{
+  "case": {
+    "count": 1681,
+    "band": 97,
+    "positiveEllipses": 3,
+    "tolerance": 0.0002,
+    "snapshotSha256": "8626d601930c63af1a5316f3eaa538c2fd46c0757926b6940c832037ed972553"
+  },
+  "method": "Sequential baseline then candidate processes, Node v24.6.0, 16 repetitions each, fresh workspace/hints every trial. First 4 excluded from post-JIT statistics. Frozen linear solve only; not world timing or FPS.",
+  "baseline": {
+    "timesMs": [
+      160.32058300000003,
+      158.36975000000007,
+      111.93608399999994,
+      113.554167,
+      131.25266699999997,
+      132.36233300000015,
+      126.86187500000005,
+      110.21404200000006,
+      111.13516600000003,
+      112.595959,
+      102.5919170000002,
+      102.94783299999995,
+      102.33537499999989,
+      102.24454200000014,
+      102.29754099999991,
+      102.228208
+    ],
+    "postWarmup": {
+      "count": 12,
+      "meanMs": 111.58895483333336,
+      "medianMs": 106.5809375,
+      "maximumMs": 132.36233300000015
+    },
+    "diagnostics": {
+      "status": "converged",
+      "converged": true,
+      "iterations": 3,
+      "factorizations": 51,
+      "innerIterations": 51,
+      "nearNullPivots": 8,
+      "maximumResidual": 9.020921066657181e-06,
+      "frictionResidual": 9.020921066657181e-06,
+      "groupCount": 3,
+      "rowCount": 1681,
+      "band": 97,
+      "matrixEntries": 163057,
+      "backtracks": 0,
+      "gradientFallbacks": 0,
+      "objective": -0.00038437284640915274
+    }
+  },
+  "candidate": {
+    "timesMs": [
+      82.928542,
+      66.50954199999998,
+      41.96500000000003,
+      45.33574999999996,
+      81.79533400000003,
+      35.384292000000016,
+      32.93979200000001,
+      30.270125000000064,
+      30.02529100000004,
+      30.478916000000027,
+      33.37208399999997,
+      30.24083399999995,
+      30.653500000000008,
+      30.37733300000002,
+      30.03379099999995,
+      30.239166999999952
+    ],
+    "postWarmup": {
+      "count": 12,
+      "meanMs": 35.48420491666667,
+      "medianMs": 30.428124500000024,
+      "maximumMs": 81.79533400000003
+    },
+    "diagnostics": {
+      "status": "converged",
+      "converged": true,
+      "iterations": 5,
+      "factorizations": 11,
+      "innerIterations": 11,
+      "nearNullPivots": 6,
+      "maximumResidual": 6.318918659721159e-06,
+      "frictionResidual": 6.318918659721159e-06,
+      "groupCount": 3,
+      "rowCount": 1681,
+      "band": 97,
+      "matrixEntries": 163057,
+      "backtracks": 0,
+      "gradientFallbacks": 0,
+      "objective": -0.0003843728464202964
+    }
+  },
+  "physicalComparison": {
+    "inner": 2.084160070591225e-08,
+    "outer": 2.371738569941135e-08,
+    "multipliers": 4.831396041143763e-08,
+    "baselineReconstructionResidual": 9.020921066658916e-06,
+    "candidateReconstructionResidual": 6.31891865971769e-06
+  },
+  "filesSha256": {
+    "kirchhoffCoupledLinearSolver.js": "25eaf526d6ee19c89420d872ba36730c0844d9745d0eda6ce7389a28a85afa04",
+    "kirchhoffCoupledFrictionSolver.js": "dc04934477d1e18fd3976b11f75d84a4eb1fe604ef113684aa210e8874199d71"
+  }
+}

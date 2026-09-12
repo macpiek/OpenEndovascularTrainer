@@ -1,0 +1,60 @@
+{
+  "scope": "fixed-chart nonlinear JointTimeStep with original capsule stationary-wall Coulomb and simultaneous lumen Coulomb; no World or FPS certificate",
+  "sourceHashes": {
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "afa610630b5cbaf4031e4b5c364c8121e97e5f369c2bbaef60a16e6b0bb0e639",
+    "src/physics/kirchhoffCompositeJointWallRows.js": "81b931a135777600f4252fd5856ae6a09b9d58911eeb0d548f117603cc01e26e",
+    "src/physics/kirchhoffCompositeJointWallSurface.js": "dae80edb3b75cf39e0d696317ecdab6762cf7ebb0e48482895617a8728952be8",
+    "src/physics/kirchhoffCompositeJointWallFrictionRows.js": "6d4b779c39510a68273b0d83b181756030ff2f33486a4374f54df3ee5c07bbc9",
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "545c1b1b3fe25e6e045bf0745e1ed4c4a45d801640a4f03860083224320af92d",
+    "src/physics/kirchhoffCompositeJointSurfacePullback.js": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637",
+    "src/physics/kirchhoffCompositeJointLumenFrictionRows.js": "8d0937ed30f83dea0acde7a648651d2909fd456587c4983e8bc82ad4b9c84c51",
+    "src/physics/kirchhoffCompositeJointLumenSurface.js": "526b2ca7d48eb068bdd79f0e4466c68bf09808b7fbcccb4cb16fe73d64ee4a58",
+    "src/physics/kirchhoffCompositeFriction.js": "9900193b587abed02443e21cdbd4d46cd34774bfc2c81197727702583f0fc4b2",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "e88a0c81527fcfa4d55488e2939681fc69d3737bdca1f1b4c6ffe6d7043ea8a4",
+    "tests/kirchhoffCompositeJointWallRows.test.js": "8370dcacde05ee086444436841d8cc509e7d157d156d6dd984a3053000b80627",
+    "tests/kirchhoffCompositeJointWallSurface.test.js": "dc84faa39dcb5e5b1727a7ce8a1a97be830b5a1ff968fd83000f0916329a12e2",
+    "tests/kirchhoffCompositeJointWallFrictionRows.test.js": "a8fe837e96e4a3c1927cd952095b3bb376b6d01fd40e145d318f18cb304989cb",
+    "tests/kirchhoffCompositeJointWallFrictionTimeStep.test.js": "fea128570f9eb9987149546a91366e2f9588d700de4f169e6355aff28106e5ea",
+    "tests/kirchhoffCompositeJointFrictionTimeStep.test.js": "9768134e461714f21729faa5b464dc1414c229adbdd348bc23619591a2d4d872",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "667905134964e16342ef6815c0793aed6e4d19ee46b522d4697452073afceefc",
+    "package.json": "3f4e8cbcf03f731e206331a76534bd37f0d63f125b5e6e7ddb79235d482eaa9f"
+  },
+  "evidenceHashes": {
+    "/tmp/oet-joint-wall-friction-final-full-suite.txt": "8590fa51a77507435ef74283c1002ea0e361a85c20083144fd72aa8f5ce5d8d7",
+    "/tmp/oet-joint-wall-friction-build.txt": "a23c0eac6a35cd009e211bc7c95192f1fc5dafcac25c7adfd4664b3bc3d1bc22",
+    "reports/composite-joint-closed-omega-dt-benchmark.json": "2f30d9810db7095cefac25cd0171cb5048052acfcf45fcff1627f1a3fd45e1e4",
+    "reports/composite-joint-closed-omega-dt-baseline-source.json": "b7043d2692466c01be2966e72e835e551f007d0dd927d1d6a93776766397b874"
+  },
+  "validation": {
+    "compositeTests": 607,
+    "failed": 0,
+    "durationMs": 9453.781,
+    "build": "pass",
+    "buildDurationSeconds": 1.59,
+    "wallFullDtTests": 7,
+    "lumenFullDtTestsIncludingBothKinds": 9,
+    "wallManagerTests": 12,
+    "wallSurfaceTests": 11
+  },
+  "pairedPerformance": "reports/composite-joint-closed-omega-dt-benchmark.json",
+  "remaining": [
+    "loaded wall sample/source/face changes",
+    "own material finite orientation transport across old hinges and reservoir entry",
+    "contact birth",
+    "Coulomb tip and portal",
+    "friction on nonsmooth SDF seams",
+    "moving chart and adaptive q/relative discretization",
+    "World/UI and actual anatomy full steps",
+    "60 FPS/120 Hz and mean4ms/P956ms budget"
+  ],
+  "knownFailures": {
+    "flatCatheterSelectedSampleSwitch": "reports/composite-joint-flat-wall-friction-failure.json",
+    "wallReleaseBeforeExactLinearBacksub": "/tmp/oet-joint-wall-friction-dt-fourth-tests.txt"
+  },
+  "independentReview": {
+    "manifest": "reports/composite-joint-wall-friction-integration-review-source.json",
+    "findings": [],
+    "acceptedSteps": 108,
+    "intentionalRejects": 36
+  }
+}

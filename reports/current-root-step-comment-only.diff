@@ -1,0 +1,23 @@
+--- /tmp/oet-wall-friction-integration-review-final-wrqcax_y/snapshot/src/physics/kirchhoffCompositeJointTimeStep.js	2026-09-07 22:39:35
++++ /Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeJointTimeStep.js	2026-09-07 22:35:20
+@@ -202,12 +202,16 @@
+  * 'lumen-coulomb' with its own finite material surface history. Every declared
+  * lumen sample retains its original NCP gate; Coulomb rows retain their
+  * original cone, maximum-dissipation and work gates in the SAME solve.
+- * Angular inertia is absent and torsion MUST be quasi-static. This fixed
++ * Angular inertia is absent and torsion MUST be quasi-static.
+  * Wall normals optionally enter the same solve on their physical owners,
+- * including original two-branch SDF contacts. This fixed topology reference
++ * including original two-branch SDF contacts. 'wall-coulomb' adds own finite
++ * surface friction for ordinary stationary-wall capsule records. Its current
++ * wall point/frame is the same stationary material witness at both times.
++ * This fixed topology reference
+  * includes declared normal side/fillet/rim features and piecewise old
+- * material velocities. Finite friction currently requires strict side
+- * histories. Remeshing, changes of loaded contact ownership, continuous
++ * material velocities. Finite friction currently requires same-edge tool
++ * histories and fixed supported surface features. Remeshing, changes of
++ * loaded contact ownership, continuous
+  * collision and FPS are outside this fixed-chart step's certificate.
+  *
+  * Position boundaries prescribe physical material nodes, never rho alone.

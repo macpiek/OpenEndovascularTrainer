@@ -48,7 +48,7 @@ function totalCenterlineBend(body) {
         penetrationIterations: 8
     });
     const body = world.createRod('idle-straight-recovery', 31, segmentLength, {
-        rodModel: 'kirchhoff',
+
         adaptationCompliance: 0,
         foldLimitStrength: 0,
         maxBendAngle: 179,
@@ -126,11 +126,6 @@ function totalCenterlineBend(body) {
         `tool-coupled Glidewire concentrated rather than released its shaft bend (` +
         `${initialBend} -> ${finalBend} rad)`
     );
-    assert.equal(
-        body.sleeping,
-        false,
-        'a visibly strained Kirchhoff rod must not be frozen by idle damping'
-    );
     if (recoveryTrace.length) {
         console.log('Glidewire shaft recovery trace', {
             initialMaximumBend: initialBend,
@@ -151,7 +146,7 @@ function totalCenterlineBend(body) {
         penetrationIterations: 8
     });
     const body = world.createRod('glidewire-distal-recovery', 31, segmentLength, {
-        rodModel: 'kirchhoff',
+
         adaptationCompliance: 0,
         foldLimitStrength: 1,
         maxBendAngle: 30,

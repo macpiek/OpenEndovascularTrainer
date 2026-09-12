@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ElasticRod } from '../src/physics/elasticRod.js';
+import { RodState } from '../src/physics/rodState.js';
 import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
@@ -39,7 +39,7 @@ function maximumBendDegrees(body) {
 test('the loading hub radially supports a Berenstein while guidewire-only setup runs', () => {
     const guidewireLength = 1000;
     const guidewireSpacing = 5;
-    const wire = new ElasticRod(
+    const wire = new RodState(
         guidewireLength / guidewireSpacing + 1,
         guidewireSpacing
     );
@@ -68,15 +68,14 @@ test('the loading hub radially supports a Berenstein while guidewire-only setup 
         vessel
     });
     catheter.setType('berenstein');
-    catheter.setExternalCollisionSolver(true);
+
 
     const world = new EndovascularPhysicsWorld({
         fixedDt: DT,
         iterations: 6
     });
     const body = world.createRod('loading-hub-berenstein', 320, 4, {
-        ...DEFAULT_TOOL_PROFILES.catheter,
-        rodModel: 'kirchhoff'
+        ...DEFAULT_TOOL_PROFILES.catheter
     });
     catheter.syncXpbdBody(body);
     world.addSheath({
@@ -102,7 +101,7 @@ test('the loading hub radially supports a Berenstein while guidewire-only setup 
         let peak = { maximum: 0, node: -1 };
         for (let step = 0; step < 180; step++) {
             catheter.advance(0, DT, 0);
-            catheter.stepPhysics(DT, { collisions: false });
+            catheter.stepPhysics(DT);
             catheter.syncXpbdBody(body);
             world.stepFixed();
             const bend = maximumBendDegrees(body);

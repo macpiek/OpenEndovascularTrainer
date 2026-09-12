@@ -1,0 +1,7 @@
+{
+  "checks": 5,
+  "findings": [
+    "P1-known-open-Dirichlet"
+  ],
+  "status": "Independent assertions PASS: one open Dirichlet finding; typed-ID fix verified"
+}

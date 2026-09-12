@@ -5,7 +5,6 @@ import { AutomaticWithdrawalController } from './automaticWithdrawalController.j
 import { renderCatheterTipPreviews } from './catheterTipPreview.js';
 import { renderGuidewireTipPreviews } from './guidewireTipPreview.js';
 import { shouldStartInjectionFromKeydown } from './injectionShortcut.js';
-import { setWallFriction, setSmoothingIterations } from '../physics/elasticRod.js';
 import {
   DEFAULT_COLLIMATION,
   createCollimatorFieldPolygon,
@@ -39,9 +38,7 @@ export function initUI(options) {
     onModeChange,
     onDebugLayerChange,
     onCatheterStiffnessChange,
-    onCatheterRelaxationChange,
     onGuidewireStiffnessChange,
-    onGuidewireRelaxationChange,
     onGuidewireFrictionChange,
     onContrastHemodynamicsChange,
     onContrastInjectionParametersChange,
@@ -109,13 +106,8 @@ export function initUI(options) {
   const catheterShaftStiffnessValue = document.getElementById('catheterShaftStiffnessValue');
   const catheterTipStiffnessSlider = document.getElementById('catheterTipStiffness');
   const catheterTipStiffnessValue = document.getElementById('catheterTipStiffnessValue');
-  const catheterRelaxationSlider = document.getElementById('catheterRelaxation');
-  const catheterRelaxationValue = document.getElementById('catheterRelaxationValue');
-  const guidewireRelaxationSlider = document.getElementById('guidewireRelaxation');
-  const guidewireRelaxationValue = document.getElementById('guidewireRelaxationValue');
   const staticFricSlider = document.getElementById('staticFriction');
   const kineticFricSlider = document.getElementById('kineticFriction');
-  const smoothIterSlider = document.getElementById('smoothIterations');
   const modeToggle = document.getElementById('modeToggle');
   const voxelRenderToggle = document.getElementById('renderVoxels');
   const debugStlModelToggle = document.getElementById('showDebugStlModel');
@@ -231,8 +223,11 @@ export function initUI(options) {
   const reproduceRetrogradeGapButton = document.getElementById('reproduceRetrogradeGap');
   const reproduceArchBolusButton = document.getElementById('reproduceArchBolus');
   const catheterAortaSetupStatusEl = document.getElementById('catheterAortaSetupStatus');
+  const runSoloCatheterBenchmarkButton = document.getElementById('runSoloCatheterBenchmark');
   const runGuidewireBenchmarkButton = document.getElementById('runGuidewireBenchmark');
   const runGuidewireBenchmarkFullButton = document.getElementById('runGuidewireBenchmarkFull');
+  const runDeepCatheterBenchmarkButton = document.getElementById('runDeepCatheterBenchmark');
+  const runShortCatheterBenchmarkButton = document.getElementById('runShortCatheterBenchmark');
   const runBrowserBenchmarkSmokeButton = document.getElementById('runBrowserBenchmarkSmoke');
   const runBrowserBenchmarkFullButton = document.getElementById('runBrowserBenchmarkFull');
   const stopBrowserBenchmarkButton = document.getElementById('stopBrowserBenchmark');
@@ -403,6 +398,9 @@ export function initUI(options) {
   reproduceArchBolusButton?.addEventListener('click', () => {
     if (typeof onReproduceArchBolus === 'function') onReproduceArchBolus();
   });
+  runSoloCatheterBenchmarkButton?.addEventListener('click', () => {
+    onStartBrowserBenchmark?.({durationMs:28000,skipWarmup:true,mode:'catheter-only'});
+  });
   runGuidewireBenchmarkButton?.addEventListener('click', () => {
     if (typeof onStartBrowserBenchmark === 'function') {
       onStartBrowserBenchmark({
@@ -420,6 +418,12 @@ export function initUI(options) {
         mode: 'guidewire-only'
       });
     }
+  });
+  runDeepCatheterBenchmarkButton?.addEventListener('click', () => {
+    onStartBrowserBenchmark?.({ durationMs: 73000, skipWarmup: true, mode: 'deep-catheter' });
+  });
+  runShortCatheterBenchmarkButton?.addEventListener('click', () => {
+    onStartBrowserBenchmark?.({ durationMs: 47000, skipWarmup: true, mode: 'short-catheter' });
   });
   runBrowserBenchmarkSmokeButton?.addEventListener('click', () => {
     if (typeof onStartBrowserBenchmark === 'function') {
@@ -457,13 +461,10 @@ export function initUI(options) {
   const sliders = [
     catheterShaftStiffnessSlider,
     catheterTipStiffnessSlider,
-    catheterRelaxationSlider,
     shaftStiffnessSlider,
     tipStiffnessSlider,
-    guidewireRelaxationSlider,
     staticFricSlider,
     kineticFricSlider,
-    smoothIterSlider,
     persistenceSlider,
     pulseRateSlider,
     noiseSlider,
@@ -1052,21 +1053,7 @@ export function initUI(options) {
       applyCatheterStiffness();
     });
   }
-  if (catheterRelaxationSlider) {
-    const applyCatheterRelaxationRate = value => {
-      const rate = parseFloat(value);
-      if (!Number.isFinite(rate)) return;
-      if (catheterRelaxationValue) {
-        catheterRelaxationValue.textContent =
-          `${rate.toFixed(2).replace('.', ',')}×`;
-      }
-      onCatheterRelaxationChange?.(rate);
-    };
-    applyCatheterRelaxationRate(catheterRelaxationSlider.value);
-    catheterRelaxationSlider.addEventListener('input', event => {
-      applyCatheterRelaxationRate(event.target.value);
-    });
-  }
+
   if (shaftStiffnessSlider && tipStiffnessSlider) {
     let shaftStiffnessScale = parseFloat(shaftStiffnessSlider.value);
     let tipStiffnessScale = parseFloat(tipStiffnessSlider.value);
@@ -1097,26 +1084,11 @@ export function initUI(options) {
       applyStiffness();
     });
   }
-  if (guidewireRelaxationSlider) {
-    const applyRelaxationRate = value => {
-      const rate = parseFloat(value);
-      if (!Number.isFinite(rate)) return;
-      if (guidewireRelaxationValue) {
-        guidewireRelaxationValue.textContent =
-          `${rate.toFixed(2).replace('.', ',')}×`;
-      }
-      onGuidewireRelaxationChange?.(rate);
-    };
-    applyRelaxationRate(guidewireRelaxationSlider.value);
-    guidewireRelaxationSlider.addEventListener('input', event => {
-      applyRelaxationRate(event.target.value);
-    });
-  }
+
   if (staticFricSlider && kineticFricSlider) {
     let staticFriction = parseFloat(staticFricSlider.value);
     let kineticFriction = parseFloat(kineticFricSlider.value);
     const applyFriction = () => {
-      setWallFriction(staticFriction, kineticFriction);
       onGuidewireFrictionChange?.({ staticFriction, kineticFriction });
     };
     applyFriction();
@@ -1129,14 +1101,7 @@ export function initUI(options) {
       applyFriction();
     });
   }
-  if (smoothIterSlider) {
-    let smoothingIterations = parseInt(smoothIterSlider.value);
-    setSmoothingIterations(smoothingIterations);
-    smoothIterSlider.addEventListener('input', e => {
-      smoothingIterations = parseInt(e.target.value);
-      setSmoothingIterations(smoothingIterations);
-    });
-  }
+
 
   // Mode toggle
   let fluoroscopy = true;
@@ -1625,9 +1590,12 @@ export function initUI(options) {
   }
   function updateBrowserBenchmarkStatus(status, report = null) {
     const running = !!status?.running;
+    if (runSoloCatheterBenchmarkButton) runSoloCatheterBenchmarkButton.disabled = running;
     if (runGuidewireBenchmarkButton) runGuidewireBenchmarkButton.disabled = running;
     if (runGuidewireBenchmarkFullButton) runGuidewireBenchmarkFullButton.disabled = running;
     if (runBrowserBenchmarkSmokeButton) runBrowserBenchmarkSmokeButton.disabled = running;
+    if (runShortCatheterBenchmarkButton) runShortCatheterBenchmarkButton.disabled = running;
+    if (runDeepCatheterBenchmarkButton) runDeepCatheterBenchmarkButton.disabled = running;
     if (runBrowserBenchmarkFullButton) runBrowserBenchmarkFullButton.disabled = running;
     if (stopBrowserBenchmarkButton) stopBrowserBenchmarkButton.disabled = !running;
     if (!browserBenchmarkStatusEl) return;
@@ -1641,7 +1609,7 @@ export function initUI(options) {
       }
       const elapsedSeconds = Math.floor(status.elapsedMs / 1000);
       const durationSeconds = Math.round(status.durationMs / 1000);
-      const modeLabel = status.mode === 'guidewire-only' ? 'prowadnik' : 'pełny';
+      const modeLabel = status.mode === 'catheter-only' ? 'sam cewnik' : status.mode === 'deep-catheter' ? 'cewnik 10/20/40/60 cm' : status.mode === 'short-catheter' ? 'cewnik 1/2/5 cm' : status.mode === 'guidewire-only' ? 'prowadnik' : 'pełny';
       browserBenchmarkStatusEl.textContent =
         `Running ${modeLabel} ${elapsedSeconds}/${durationSeconds} s · cycle ${status.cycleIndex + 1}`;
       return;

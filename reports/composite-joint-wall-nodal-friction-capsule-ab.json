@@ -1,0 +1,222 @@
+{
+  "status": "PASS",
+  "baselineSourceSha256": "6d4b779c39510a68273b0d83b181756030ff2f33486a4374f54df3ee5c07bbc9",
+  "cases": [
+    {
+      "single": false,
+      "two": false,
+      "rate": 0,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": false,
+      "rate": 0,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": false,
+      "rate": 0,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": true,
+      "rate": 0,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": true,
+      "rate": 0,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": true,
+      "rate": 0,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": false,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": false,
+      "rate": 0,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": false,
+      "rate": 0,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": false,
+      "rate": 0,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": true,
+      "rate": 0,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": true,
+      "rate": 0,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": true,
+      "rate": 0,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 5,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 50,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    },
+    {
+      "single": true,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 500,
+      "signatureIdentical": true,
+      "fullAndValueBitIdentical": true,
+      "acceptedHistoryIdentical": true
+    }
+  ]
+}

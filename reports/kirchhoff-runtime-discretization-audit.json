@@ -1,0 +1,2851 @@
+{
+  "schemaVersion": 1,
+  "sourceHashes": {
+    "input": {
+      "path": "reports/kirchhoff-runtime-discretization-input.json",
+      "sha256": "822f74a87c1c2c06fb039d8c1c81328a881fa09206106d8896ac6bff1448ec94"
+    },
+    "generator": {
+      "path": "scripts/physics/audit-runtime-discretization.mjs",
+      "sha256": "84947d6e3c37159f9541d2e1aa4d212a9fa9672b25d2b0929bbd349b3966540e"
+    },
+    "modelApiReferences": [
+      {
+        "path": "src/physics/kirchhoffBundleModel.js",
+        "sha256": "846d7d266781aa2e5f03ead79dbd95fd7d7a07f64701abf73d419422fbfe218e"
+      },
+      {
+        "path": "src/physics/kirchhoffBundleDiscretization.js",
+        "sha256": "54b1f1006fece9b830dc1ed04287eec4efb612e294bd70dc40b1893f3f3ebf10"
+      }
+    ],
+    "originalCapture": {
+      "name": "oet-first-9mm-contact-audit.json",
+      "sha256": "7871dbc582fe52fb0caf035bbe6f782c25390cfcdc093ef1dd9b9263e8a97b20",
+      "captureScriptSha256": "28da46b60ee15596e53f5707004f4a06354389e509c5aaf723659916df3052f4",
+      "captureHelperSha256": "a6b3d340a847a31382ff63ca61200ba8fb1d8cfe0c20eed54f680ba9ed29d874",
+      "runtimeExecutionSourceHashes": null,
+      "provenanceLimitation": "Runtime source hashes were not recorded at capture time. Later source hashes are not claimed to identify the executed world/kernel."
+    }
+  },
+  "method": {
+    "operation": "Replace two adjacent material edges by one linear position field; evaluate it at the original interior material node.",
+    "formula": "t=h_left/(h_left+h_right); e_i=norm(x_i-((1-t)*x_{i-1}+t*x_{i+1}))",
+    "units": "millimetres",
+    "candidateRepresentation": "linear position interpolation used by buildAdaptiveBundleMesh",
+    "sampleCount": 199,
+    "thresholds": [
+      0.001,
+      0.00025
+    ],
+    "distributionQuantile": "linear interpolation at p*(n-1) in sorted errors",
+    "boundStatus": "Each observed error is a rejection witness, not an upper certificate between samples or on omitted dynamics.",
+    "missingEvidence": [
+      "per-segment wall/support/control masks",
+      "continuous swept-gap bounds",
+      "SO(3) frame/twist interpolation bounds",
+      "energy/force/moment error budgets and bounds",
+      "stability/coercivity of eliminated modes"
+    ],
+    "noRuntimeModification": true,
+    "noAdditionalReplay": true
+  },
+  "capture": {
+    "date": "2026-09-06",
+    "reason": "first-9.1mm",
+    "step": 3707,
+    "elapsedMs": 12962.139374999999,
+    "timingIsBenchmark": false,
+    "timingNote": "Includes anatomy loading and complete preparation; possible CPU overlap with other workers. No FPS or isolated performance inference.",
+    "solver": "joint",
+    "converged": true,
+    "progress": {
+      "wireMm": 999.9000000000169,
+      "catheterMm": 9.100000000000003,
+      "wireRotation": 0,
+      "catheterRotation": 0,
+      "executedSteps": 3708,
+      "fingerprints": [
+        {
+          "id": "guidewire",
+          "hash": "0c0794db"
+        },
+        {
+          "id": "catheter",
+          "hash": "d462ecc0"
+        }
+      ],
+      "activeNodes": [
+        201,
+        18
+      ]
+    }
+  },
+  "measuredRuntime": {
+    "activeNodeCounts": [
+      201,
+      18
+    ],
+    "activeWallContactCounts": [
+      {
+        "id": "guidewire",
+        "activeWallContacts": 94
+      },
+      {
+        "id": "catheter",
+        "activeWallContacts": 0
+      }
+    ],
+    "emittedLumenRecords": 4,
+    "loadedLumenRecords": 2,
+    "finalLinear": {
+      "status": "converged",
+      "converged": true,
+      "iterations": 4,
+      "factorizations": 10,
+      "innerIterations": 10,
+      "nearNullPivots": 6,
+      "maximumResidual": 0.000009901972167637718,
+      "frictionResidual": 0.000009901972167637718,
+      "groupCount": 2,
+      "rowCount": 1612,
+      "band": 26,
+      "matrixEntries": 41912,
+      "backtracks": 0,
+      "gradientFallbacks": 0,
+      "objective": -0.0000267708401598226,
+      "reconstructionResidual": 0.000009901972167637718,
+      "basis": "common-relative",
+      "individualBand": 26,
+      "pairedNodes": 2,
+      "bundleEntries": 7590,
+      "materialResidual": 0.000004198482680184412,
+      "contactResidual": 5.286093042035074e-10,
+      "activeContacts": 2,
+      "dofCount": 1308
+    },
+    "containment": {
+      "enabled": true,
+      "innerRadius": 0.485,
+      "compliance": 0,
+      "portalFilletRadius": 0.15,
+      "openDistal": true,
+      "openProximal": true,
+      "startNode": 1,
+      "endNode": 1,
+      "outerStartNode": 15,
+      "innerArcOffset": 4.900000000016917,
+      "containedLength": 9.100000000000003,
+      "searchWindow": 2,
+      "kirchhoffContactActivation": 0.2,
+      "kirchhoffMaxViolation": 0.010027163153231926,
+      "kirchhoffSolverResidual": 0.000001951798341753852,
+      "kirchhoffContactMotion": 0.0000010420945434933918,
+      "kirchhoffMeasuredSideViolation": 0,
+      "kirchhoffMeasuredSpatialPortalViolation": 0.010027163153231926,
+      "kirchhoffMeasuredPortalViolation": 0.010027163153231926,
+      "kirchhoffMeasuredWorstSide": {
+        "violation": 0
+      }
+    },
+    "normalBalances": [
+      {
+        "kind": "side",
+        "gapMm": -0.010027163153231926,
+        "alpha": 0.04511661882425597,
+        "normalLambda": 0.22225874161493842,
+        "alphaLambdaMm": 0.010027562925799975,
+        "equationResidualMm": 3.997725543380959e-7,
+        "containedSpanFraction": 0.8399999999966173
+      },
+      {
+        "kind": "distal-rim",
+        "gapMm": 0.14999164332197634,
+        "alpha": 0.05261556407634329,
+        "normalLambda": 0,
+        "alphaLambdaMm": 0,
+        "equationResidualMm": 0.14999164332197001,
+        "containedSpanFraction": 0.8399999999966173
+      },
+      {
+        "kind": "distal-fillet",
+        "gapMm": 0.0026361108025924618,
+        "alpha": 0.05261556407634329,
+        "normalLambda": 0,
+        "alphaLambdaMm": 0,
+        "equationResidualMm": 0.002636110802587993,
+        "containedSpanFraction": 0.8399999999966173
+      },
+      {
+        "kind": "sliding-rim",
+        "gapMm": -0.000001951798341753852,
+        "alpha": 0,
+        "normalLambda": 0.18494396367277843,
+        "alphaLambdaMm": 0,
+        "equationResidualMm": -0.000001951798329263843,
+        "containedSpanFraction": 1
+      }
+    ]
+  },
+  "geometricErrorStatisticsMm": {
+    "minimum": 0,
+    "median": 0.0821226957364682,
+    "p95": 0.3667980230619431,
+    "maximum": 0.9780878349952469,
+    "mean": 0.14349177051449263
+  },
+  "thresholds": [
+    {
+      "toleranceMm": 0.001,
+      "geometryOnlyEligibleMidpoints": 13,
+      "eligibleNodeIndices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "contiguousEligibleNodeRanges": [
+        [
+          1,
+          13
+        ]
+      ],
+      "disjointEligiblePairsWithOddLocalMidpoint": 7,
+      "eligibleRemoteMidpoints": 0,
+      "status": "geometry-only upper bound; contact/support/stability/twist/force certificates still required"
+    },
+    {
+      "toleranceMm": 0.00025,
+      "geometryOnlyEligibleMidpoints": 13,
+      "eligibleNodeIndices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "contiguousEligibleNodeRanges": [
+        [
+          1,
+          13
+        ]
+      ],
+      "disjointEligiblePairsWithOddLocalMidpoint": 7,
+      "eligibleRemoteMidpoints": 0,
+      "status": "geometry-only upper bound; contact/support/stability/twist/force certificates still required"
+    }
+  ],
+  "rawMidpointResiduals": [
+    {
+      "node": 1,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.000003814697265625,
+        0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 2,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.000003814697265625,
+        -0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 3,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.000003814697265625,
+        0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 4,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0,
+        0,
+        0
+      ],
+      "positionErrorMm": 0
+    },
+    {
+      "node": 5,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.000003814697265625,
+        -0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 6,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.000003814697265625,
+        0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 7,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.000003814697265625,
+        -0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 8,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.000003814697265625,
+        0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 9,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.000003814697265625,
+        -0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 10,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.000003814697265625,
+        0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 11,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0,
+        0,
+        0
+      ],
+      "positionErrorMm": 0
+    },
+    {
+      "node": 12,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.000003814697265625,
+        -0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 13,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.000003814697265625,
+        0.0000152587890625,
+        0
+      ],
+      "positionErrorMm": 0.000015728399755926745
+    },
+    {
+      "node": 14,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.03641510009765625,
+        0.0260162353515625,
+        0.07059717178344727
+      ],
+      "positionErrorMm": 0.08358746724726009
+    },
+    {
+      "node": 15,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.07955551147460938,
+        0.038970947265625,
+        0.06044960021972656
+      ],
+      "positionErrorMm": 0.10724722981733184
+    },
+    {
+      "node": 16,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.1204681396484375,
+        0.05499267578125,
+        0.04847240447998047
+      ],
+      "positionErrorMm": 0.14101893864303455
+    },
+    {
+      "node": 17,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.15750503540039062,
+        0.0756378173828125,
+        0.034140586853027344
+      ],
+      "positionErrorMm": 0.17802947864211446
+    },
+    {
+      "node": 18,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.1885528564453125,
+        0.101806640625,
+        0.01697683334350586
+      ],
+      "positionErrorMm": 0.214953447563438
+    },
+    {
+      "node": 19,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.21102333068847656,
+        0.1333770751953125,
+        -0.003325939178466797
+      ],
+      "positionErrorMm": 0.24966247646359083
+    },
+    {
+      "node": 20,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.2222309112548828,
+        0.168670654296875,
+        -0.02668929100036621
+      ],
+      "positionErrorMm": 0.2802653845772141
+    },
+    {
+      "node": 21,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.2200641632080078,
+        0.204681396484375,
+        -0.0523676872253418
+      ],
+      "positionErrorMm": 0.30506570548091083
+    },
+    {
+      "node": 22,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.18608856201171875,
+        0.21136474609375,
+        -0.07715141773223877
+      ],
+      "positionErrorMm": 0.29198690049548304
+    },
+    {
+      "node": 23,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.12051963806152344,
+        0.1556243896484375,
+        -0.09398236870765686
+      ],
+      "positionErrorMm": 0.21812065340043174
+    },
+    {
+      "node": 24,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.06785774230957031,
+        0.0872039794921875,
+        -0.10415912978351116
+      ],
+      "positionErrorMm": 0.15184970051957375
+    },
+    {
+      "node": 25,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.023271560668945312,
+        0.0130462646484375,
+        -0.11009231582283974
+      ],
+      "positionErrorMm": 0.11327880896478988
+    },
+    {
+      "node": 26,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.020189285278320312,
+        -0.06207275390625,
+        -0.1134448479861021
+      ],
+      "positionErrorMm": 0.13088303003882928
+    },
+    {
+      "node": 27,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0699758529663086,
+        -0.1338958740234375,
+        -0.11506244540214539
+      ],
+      "positionErrorMm": 0.18990548022841358
+    },
+    {
+      "node": 28,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.13204383850097656,
+        -0.1956787109375,
+        -0.11466294527053833
+      ],
+      "positionErrorMm": 0.26243727673169476
+    },
+    {
+      "node": 29,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.16876220703125,
+        -0.196197509765625,
+        -0.10474413633346558
+      ],
+      "positionErrorMm": 0.2791871763826817
+    },
+    {
+      "node": 30,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.18045902252197266,
+        -0.1671905517578125,
+        -0.08855099976062775
+      ],
+      "positionErrorMm": 0.261456342369571
+    },
+    {
+      "node": 31,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.18089771270751953,
+        -0.1365509033203125,
+        -0.07006800174713135
+      ],
+      "positionErrorMm": 0.23723333772731356
+    },
+    {
+      "node": 32,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.17133092880249023,
+        -0.1076507568359375,
+        -0.05035106837749481
+      ],
+      "positionErrorMm": 0.20851427456754437
+    },
+    {
+      "node": 33,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.15386962890625,
+        -0.0825653076171875,
+        -0.030299752950668335
+      ],
+      "positionErrorMm": 0.17723139606328056
+    },
+    {
+      "node": 34,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.13055992126464844,
+        -0.0619659423828125,
+        -0.010543882846832275
+      ],
+      "positionErrorMm": 0.14490287961772522
+    },
+    {
+      "node": 35,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.10305404663085938,
+        -0.045501708984375,
+        0.008556842803955078
+      ],
+      "positionErrorMm": 0.11297681888894592
+    },
+    {
+      "node": 36,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.07265257835388184,
+        -0.03228759765625,
+        0.026915311813354492
+      ],
+      "positionErrorMm": 0.08393640517611485
+    },
+    {
+      "node": 37,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.07025623321533203,
+        -0.02911376953125,
+        0.030993342399597168
+      ],
+      "positionErrorMm": 0.0821226957364682
+    },
+    {
+      "node": 38,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06704151630401611,
+        -0.0258636474609375,
+        0.03481411933898926
+      ],
+      "positionErrorMm": 0.07984682882666476
+    },
+    {
+      "node": 39,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06312441825866699,
+        -0.0225372314453125,
+        0.03837251663208008
+      ],
+      "positionErrorMm": 0.07723385924835023
+    },
+    {
+      "node": 40,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.05864700675010681,
+        -0.01934814453125,
+        0.041717529296875
+      ],
+      "positionErrorMm": 0.0745263332533195
+    },
+    {
+      "node": 41,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0537298321723938,
+        -0.0162353515625,
+        0.04488706588745117
+      ],
+      "positionErrorMm": 0.07187023159567497
+    },
+    {
+      "node": 42,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.04846033453941345,
+        -0.0133056640625,
+        0.047896385192871094
+      ],
+      "positionErrorMm": 0.06942267953889315
+    },
+    {
+      "node": 43,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.04289436340332031,
+        -0.01043701171875,
+        0.05072474479675293
+      ],
+      "positionErrorMm": 0.06724475711971263
+    },
+    {
+      "node": 44,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.037065863609313965,
+        -0.0077056884765625,
+        0.0533294677734375
+      ],
+      "positionErrorMm": 0.06540097868533928
+    },
+    {
+      "node": 45,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.030995845794677734,
+        -0.00508880615234375,
+        0.05565047264099121
+      ],
+      "positionErrorMm": 0.06390315727528088
+    },
+    {
+      "node": 46,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.02470111846923828,
+        -0.002471923828125,
+        0.05762434005737305
+      ],
+      "positionErrorMm": 0.06274408520403468
+    },
+    {
+      "node": 47,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.020391464233398438,
+        -0.0002899169921875,
+        0.05864834785461426
+      ],
+      "positionErrorMm": 0.062092870536963926
+    },
+    {
+      "node": 48,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0170748233795166,
+        0.00171661376953125,
+        0.058922529220581055
+      ],
+      "positionErrorMm": 0.06137068360402758
+    },
+    {
+      "node": 49,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.013591766357421875,
+        0.00362396240234375,
+        0.05871295928955078
+      ],
+      "positionErrorMm": 0.060374504592127246
+    },
+    {
+      "node": 50,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.009966135025024414,
+        0.00543975830078125,
+        0.05800890922546387
+      ],
+      "positionErrorMm": 0.05910963007189305
+    },
+    {
+      "node": 51,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.006227970123291016,
+        0.0070953369140625,
+        0.05681562423706055
+      ],
+      "positionErrorMm": 0.05759467488603026
+    },
+    {
+      "node": 52,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0024094581604003906,
+        0.0085906982421875,
+        0.05515646934509277
+      ],
+      "positionErrorMm": 0.055873443562494005
+    },
+    {
+      "node": 53,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.0014519691467285156,
+        0.0099029541015625,
+        0.053066253662109375
+      ],
+      "positionErrorMm": 0.05400188878244948
+    },
+    {
+      "node": 54,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.005178928375244141,
+        0.011016845703125,
+        0.05068540573120117
+      ],
+      "positionErrorMm": 0.05212679294277418
+    },
+    {
+      "node": 55,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.008810043334960938,
+        0.0119476318359375,
+        0.04801476001739502
+      ],
+      "positionErrorMm": 0.050257138294763984
+    },
+    {
+      "node": 56,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.01239013671875,
+        0.01267242431640625,
+        0.04502484202384949
+      ],
+      "positionErrorMm": 0.04838741804681217
+    },
+    {
+      "node": 57,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.015903949737548828,
+        0.01320648193359375,
+        0.041735053062438965
+      ],
+      "positionErrorMm": 0.0465742572290897
+    },
+    {
+      "node": 58,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.016803741455078125,
+        0.01380157470703125,
+        0.040239423513412476
+      ],
+      "positionErrorMm": 0.045739046732246706
+    },
+    {
+      "node": 59,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.016338348388671875,
+        0.01439666748046875,
+        0.039486825466156006
+      ],
+      "positionErrorMm": 0.04509340359750492
+    },
+    {
+      "node": 60,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.01576852798461914,
+        0.0148162841796875,
+        0.03845620155334473
+      ],
+      "positionErrorMm": 0.044125369002496154
+    },
+    {
+      "node": 61,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.015093803405761719,
+        0.01509857177734375,
+        0.037162065505981445
+      ],
+      "positionErrorMm": 0.04285800839561074
+    },
+    {
+      "node": 62,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.014311790466308594,
+        0.0151824951171875,
+        0.035620689392089844
+      ],
+      "positionErrorMm": 0.04128158205668341
+    },
+    {
+      "node": 63,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.013430118560791016,
+        0.01508331298828125,
+        0.03385305404663086
+      ],
+      "positionErrorMm": 0.03941958502500334
+    },
+    {
+      "node": 64,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.012450218200683594,
+        0.01479339599609375,
+        0.03188276290893555
+      ],
+      "positionErrorMm": 0.03728757258188406
+    },
+    {
+      "node": 65,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.011376380920410156,
+        0.01430511474609375,
+        0.029732704162597656
+      ],
+      "positionErrorMm": 0.03490117544676301
+    },
+    {
+      "node": 66,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.010219573974609375,
+        0.01361846923828125,
+        0.027428150177001953
+      ],
+      "positionErrorMm": 0.032283212646028556
+    },
+    {
+      "node": 67,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.008988380432128906,
+        0.0127410888671875,
+        0.024993896484375
+      ],
+      "positionErrorMm": 0.02945880496194474
+    },
+    {
+      "node": 68,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.0076961517333984375,
+        0.0117034912109375,
+        0.0224456787109375
+      ],
+      "positionErrorMm": 0.026457720060931483
+    },
+    {
+      "node": 69,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.006343841552734375,
+        0.01049041748046875,
+        0.019802093505859375
+      ],
+      "positionErrorMm": 0.02328982807526757
+    },
+    {
+      "node": 70,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.00493621826171875,
+        0.009124755859375,
+        0.017072677612304688
+      ],
+      "positionErrorMm": 0.01997758096152319
+    },
+    {
+      "node": 71,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.00347137451171875,
+        0.00762176513671875,
+        0.014267921447753906
+      ],
+      "positionErrorMm": 0.016544344267428308
+    },
+    {
+      "node": 72,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.001941680908203125,
+        0.00598907470703125,
+        0.011378288269042969
+      ],
+      "positionErrorMm": 0.013004021859760264
+    },
+    {
+      "node": 73,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.0003299713134765625,
+        0.004222869873046875,
+        0.008381843566894531
+      ],
+      "positionErrorMm": 0.009391315808356976
+    },
+    {
+      "node": 74,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0013380050659179688,
+        0.00232696533203125,
+        0.0052509307861328125
+      ],
+      "positionErrorMm": 0.005897228105954086
+    },
+    {
+      "node": 75,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0030422210693359375,
+        0.000335693359375,
+        0.0019884109497070312
+      ],
+      "positionErrorMm": 0.0036498735829004797
+    },
+    {
+      "node": 76,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.004741668701171875,
+        -0.00171661376953125,
+        -0.0013904571533203125
+      ],
+      "positionErrorMm": 0.005231018638911249
+    },
+    {
+      "node": 77,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.006413459777832031,
+        -0.00379180908203125,
+        -0.0048656463623046875
+      ],
+      "positionErrorMm": 0.008898583986199872
+    },
+    {
+      "node": 78,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.008015632629394531,
+        -0.005825042724609375,
+        -0.00839996337890625
+      ],
+      "positionErrorMm": 0.012990029790570342
+    },
+    {
+      "node": 79,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.009510040283203125,
+        -0.0077667236328125,
+        -0.0119171142578125
+      ],
+      "positionErrorMm": 0.017110829156133617
+    },
+    {
+      "node": 80,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.010884284973144531,
+        -0.00955963134765625,
+        -0.0153961181640625
+      ],
+      "positionErrorMm": 0.021139883287319427
+    },
+    {
+      "node": 81,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012135505676269531,
+        -0.011196136474609375,
+        -0.01882171630859375
+      ],
+      "positionErrorMm": 0.02503759123354386
+    },
+    {
+      "node": 82,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.013275146484375,
+        -0.01264190673828125,
+        -0.022172927856445312
+      ],
+      "positionErrorMm": 0.028769533362363445
+    },
+    {
+      "node": 83,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.014308929443359375,
+        -0.013896942138671875,
+        -0.025440216064453125
+      ],
+      "positionErrorMm": 0.03232762063664275
+    },
+    {
+      "node": 84,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01505279541015625,
+        -0.015415191650390625,
+        -0.029827117919921875
+      ],
+      "positionErrorMm": 0.036794996218062294
+    },
+    {
+      "node": 85,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01531219482421875,
+        -0.017612457275390625,
+        -0.03660011291503906
+      ],
+      "positionErrorMm": 0.04340772082252074
+    },
+    {
+      "node": 86,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.015604019165039062,
+        -0.019397735595703125,
+        -0.0432891845703125
+      ],
+      "positionErrorMm": 0.04993707101048575
+    },
+    {
+      "node": 87,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.015987396240234375,
+        -0.020730972290039062,
+        -0.04981803894042969
+      ],
+      "positionErrorMm": 0.05627794465421419
+    },
+    {
+      "node": 88,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01648712158203125,
+        -0.021535873413085938,
+        -0.05614471435546875
+      ],
+      "positionErrorMm": 0.062352609983723384
+    },
+    {
+      "node": 89,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0171356201171875,
+        -0.021808624267578125,
+        -0.062191009521484375
+      ],
+      "positionErrorMm": 0.06809528056000885
+    },
+    {
+      "node": 90,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.017930984497070312,
+        -0.021512985229492188,
+        -0.06789207458496094
+      ],
+      "positionErrorMm": 0.07344155860252712
+    },
+    {
+      "node": 91,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.018871307373046875,
+        -0.02063751220703125,
+        -0.07317352294921875
+      ],
+      "positionErrorMm": 0.07833516204657535
+    },
+    {
+      "node": 92,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.019906997680664062,
+        -0.019207000732421875,
+        -0.077972412109375
+      ],
+      "positionErrorMm": 0.08273387748647726
+    },
+    {
+      "node": 93,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.020998001098632812,
+        -0.017236709594726562,
+        -0.08223724365234375
+      ],
+      "positionErrorMm": 0.08660822392432531
+    },
+    {
+      "node": 94,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.022069931030273438,
+        -0.014779090881347656,
+        -0.08591079711914062
+      ],
+      "positionErrorMm": 0.08992312519372479
+    },
+    {
+      "node": 95,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.023067474365234375,
+        -0.011889457702636719,
+        -0.08898544311523438
+      ],
+      "positionErrorMm": 0.09269237651753323
+    },
+    {
+      "node": 96,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.023965835571289062,
+        -0.008647918701171875,
+        -0.091522216796875
+      ],
+      "positionErrorMm": 0.09500244175760078
+    },
+    {
+      "node": 97,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.024686813354492188,
+        -0.005112648010253906,
+        -0.09344863891601562
+      ],
+      "positionErrorMm": 0.09678959674744056
+    },
+    {
+      "node": 98,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.025163650512695312,
+        -0.0013637542724609375,
+        -0.0947113037109375
+      ],
+      "positionErrorMm": 0.09800663336461553
+    },
+    {
+      "node": 99,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.03224372863769531,
+        0.0028804540634155273,
+        -0.10540771484375
+      ],
+      "positionErrorMm": 0.1102666830944601
+    },
+    {
+      "node": 100,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0390167236328125,
+        0.008684873580932617,
+        -0.11521148681640625
+      ],
+      "positionErrorMm": 0.12194842535515987
+    },
+    {
+      "node": 101,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.04950904846191406,
+        0.016670823097229004,
+        -0.12758255004882812
+      ],
+      "positionErrorMm": 0.1378635894618481
+    },
+    {
+      "node": 102,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06752395629882812,
+        0.028868675231933594,
+        -0.14555740356445312
+      ],
+      "positionErrorMm": 0.16303325678007533
+    },
+    {
+      "node": 103,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.08462333679199219,
+        0.045485734939575195,
+        -0.16094589233398438
+      ],
+      "positionErrorMm": 0.18743970089601272
+    },
+    {
+      "node": 104,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.10022735595703125,
+        0.06661224365234375,
+        -0.17274093627929688
+      ],
+      "positionErrorMm": 0.21052825214964557
+    },
+    {
+      "node": 105,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.11368370056152344,
+        0.0919189453125,
+        -0.17994308471679688
+      ],
+      "positionErrorMm": 0.23184604809683698
+    },
+    {
+      "node": 106,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.12426185607910156,
+        0.12059593200683594,
+        -0.18158531188964844
+      ],
+      "positionErrorMm": 0.25091355720024705
+    },
+    {
+      "node": 107,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.13129615783691406,
+        0.1513519287109375,
+        -0.17694664001464844
+      ],
+      "positionErrorMm": 0.26731292673518453
+    },
+    {
+      "node": 108,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.13425827026367188,
+        0.18247318267822266,
+        -0.16568374633789062
+      ],
+      "positionErrorMm": 0.28066501266006005
+    },
+    {
+      "node": 109,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.13286781311035156,
+        0.2120075225830078,
+        -0.1479358673095703
+      ],
+      "positionErrorMm": 0.2906648692724091
+    },
+    {
+      "node": 110,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.127197265625,
+        0.23794937133789062,
+        -0.1244049072265625
+      ],
+      "positionErrorMm": 0.29711214826160137
+    },
+    {
+      "node": 111,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.11767101287841797,
+        0.2585430145263672,
+        -0.09632110595703125
+      ],
+      "positionErrorMm": 0.299947850609068
+    },
+    {
+      "node": 112,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.10502433776855469,
+        0.2724609375,
+        -0.06530189514160156
+      ],
+      "positionErrorMm": 0.29921465788992874
+    },
+    {
+      "node": 113,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.09022903442382812,
+        0.27895355224609375,
+        -0.033172607421875
+      ],
+      "positionErrorMm": 0.2950538677037404
+    },
+    {
+      "node": 114,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.07434558868408203,
+        0.27787208557128906,
+        -0.0017728805541992188
+      ],
+      "positionErrorMm": 0.28765136120307155
+    },
+    {
+      "node": 115,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.05845165252685547,
+        0.2696094512939453,
+        0.027225494384765625
+      ],
+      "positionErrorMm": 0.2772130578718063
+    },
+    {
+      "node": 116,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.04351997375488281,
+        0.2549858093261719,
+        0.052430152893066406
+      ],
+      "positionErrorMm": 0.26393308243897523
+    },
+    {
+      "node": 117,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.029964447021484375,
+        0.23519325256347656,
+        0.07248878479003906
+      ],
+      "positionErrorMm": 0.2479281308303421
+    },
+    {
+      "node": 118,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.018412113189697266,
+        0.2115478515625,
+        0.08672475814819336
+      ],
+      "positionErrorMm": 0.2293745476043111
+    },
+    {
+      "node": 119,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.009301424026489258,
+        0.18540382385253906,
+        0.09488201141357422
+      ],
+      "positionErrorMm": 0.20847947255773053
+    },
+    {
+      "node": 120,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.003420114517211914,
+        0.1578960418701172,
+        0.09755706787109375
+      ],
+      "positionErrorMm": 0.18563469156697474
+    },
+    {
+      "node": 121,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.06279206275939941,
+        0.1539287567138672,
+        0.049898505210876465
+      ],
+      "positionErrorMm": 0.17357063723837948
+    },
+    {
+      "node": 122,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.12887728214263916,
+        0.14727783203125,
+        0.0022467374801635742
+      ],
+      "positionErrorMm": 0.1957170444534744
+    },
+    {
+      "node": 123,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.19798564910888672,
+        0.13391685485839844,
+        -0.040071725845336914
+      ],
+      "positionErrorMm": 0.24235879286804599
+    },
+    {
+      "node": 124,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.2712599039077759,
+        0.1089334487915039,
+        -0.0716015100479126
+      ],
+      "positionErrorMm": 0.30095715305473025
+    },
+    {
+      "node": 125,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.3470430374145508,
+        0.06756877899169922,
+        -0.08665263652801514
+      ],
+      "positionErrorMm": 0.36402347332226076
+    },
+    {
+      "node": 126,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.4185941219329834,
+        0.006046295166015625,
+        -0.07960224151611328
+      ],
+      "positionErrorMm": 0.4261386082678611
+    },
+    {
+      "node": 127,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.5983538627624512,
+        -0.06589889526367188,
+        -0.012972354888916016
+      ],
+      "positionErrorMm": 0.6021115274358086
+    },
+    {
+      "node": 128,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.7140728235244751,
+        -0.20935535430908203,
+        0.14190912246704102
+      ],
+      "positionErrorMm": 0.7575406660460302
+    },
+    {
+      "node": 129,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.7070325668901205,
+        -0.3995933532714844,
+        0.38396549224853516
+      ],
+      "positionErrorMm": 0.8983314521153326
+    },
+    {
+      "node": 130,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.49505411460995674,
+        -0.5686526298522949,
+        0.6216897964477539
+      ],
+      "positionErrorMm": 0.9772116417836154
+    },
+    {
+      "node": 131,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        -0.13554990850389004,
+        -0.6250267028808594,
+        0.740015983581543
+      ],
+      "positionErrorMm": 0.9780878349952469
+    },
+    {
+      "node": 132,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.21228742599487305,
+        -0.5409064292907715,
+        0.6887216567993164
+      ],
+      "positionErrorMm": 0.9011011247512769
+    },
+    {
+      "node": 133,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.4117140769958496,
+        -0.3732624053955078,
+        0.5221567153930664
+      ],
+      "positionErrorMm": 0.7625489754161765
+    },
+    {
+      "node": 134,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.43493175506591797,
+        -0.20301532745361328,
+        0.33582592010498047
+      ],
+      "positionErrorMm": 0.5857985177176315
+    },
+    {
+      "node": 135,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.33334827423095703,
+        -0.07565498352050781,
+        0.19141101837158203
+      ],
+      "positionErrorMm": 0.3917689707190856
+    },
+    {
+      "node": 136,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.16929244995117188,
+        0.006436347961425781,
+        0.09910440444946289
+      ],
+      "positionErrorMm": 0.1962728793461626
+    },
+    {
+      "node": 137,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.09292888641357422,
+        0.062229156494140625,
+        0.08623719215393066
+      ],
+      "positionErrorMm": 0.14122711906228627
+    },
+    {
+      "node": 138,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01814746856689453,
+        0.11316776275634766,
+        0.07814806699752808
+      ],
+      "positionErrorMm": 0.13872055910395384
+    },
+    {
+      "node": 139,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01947307586669922,
+        0.1381988525390625,
+        0.08215761184692383
+      ],
+      "positionErrorMm": 0.1619505996012783
+    },
+    {
+      "node": 140,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.021806716918945312,
+        0.1638650894165039,
+        0.08158797025680542
+      ],
+      "positionErrorMm": 0.18434721946068838
+    },
+    {
+      "node": 141,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.025071144104003906,
+        0.1896038055419922,
+        0.075813889503479
+      ],
+      "positionErrorMm": 0.20573262061310318
+    },
+    {
+      "node": 142,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.029189109802246094,
+        0.2145099639892578,
+        0.06434369087219238
+      ],
+      "positionErrorMm": 0.22584649507303964
+    },
+    {
+      "node": 143,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.03405952453613281,
+        0.23737144470214844,
+        0.04695749282836914
+      ],
+      "positionErrorMm": 0.24435682946121823
+    },
+    {
+      "node": 144,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.03967857360839844,
+        0.2565574645996094,
+        0.023859024047851562
+      ],
+      "positionErrorMm": 0.2607016971058932
+    },
+    {
+      "node": 145,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.045879364013671875,
+        0.27051544189453125,
+        -0.004197120666503906
+      ],
+      "positionErrorMm": 0.2744105248848552
+    },
+    {
+      "node": 146,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.052013397216796875,
+        0.27849578857421875,
+        -0.036131858825683594
+      ],
+      "positionErrorMm": 0.28560603804157814
+    },
+    {
+      "node": 147,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.05790519714355469,
+        0.27860450744628906,
+        -0.07006454467773438
+      ],
+      "positionErrorMm": 0.29305720234541505
+    },
+    {
+      "node": 148,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06337738037109375,
+        0.2690696716308594,
+        -0.10295677185058594
+      ],
+      "positionErrorMm": 0.2949835205636654
+    },
+    {
+      "node": 149,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06737136840820312,
+        0.25317955017089844,
+        -0.13361740112304688
+      ],
+      "positionErrorMm": 0.2940958955660713
+    },
+    {
+      "node": 150,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06968498229980469,
+        0.2318248748779297,
+        -0.1605072021484375
+      ],
+      "positionErrorMm": 0.2904502217451576
+    },
+    {
+      "node": 151,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.07022476196289062,
+        0.20627403259277344,
+        -0.18241500854492188
+      ],
+      "positionErrorMm": 0.2841755250848903
+    },
+    {
+      "node": 152,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06904983520507812,
+        0.17804527282714844,
+        -0.19858932495117188
+      ],
+      "positionErrorMm": 0.27550992523410894
+    },
+    {
+      "node": 153,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06630325317382812,
+        0.1486973762512207,
+        -0.2087230682373047
+      ],
+      "positionErrorMm": 0.26471182500943247
+    },
+    {
+      "node": 154,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06220817565917969,
+        0.11968040466308594,
+        -0.2129497528076172
+      ],
+      "positionErrorMm": 0.25207311161642887
+    },
+    {
+      "node": 155,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.05701637268066406,
+        0.09222579002380371,
+        -0.21168899536132812
+      ],
+      "positionErrorMm": 0.23784174119835125
+    },
+    {
+      "node": 156,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.05100059509277344,
+        0.0672839879989624,
+        -0.20558738708496094
+      ],
+      "positionErrorMm": 0.22224844087030868
+    },
+    {
+      "node": 157,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.044406890869140625,
+        0.04552614688873291,
+        -0.19538116455078125
+      ],
+      "positionErrorMm": 0.20547116943361596
+    },
+    {
+      "node": 158,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.03745841979980469,
+        0.027353405952453613,
+        -0.181854248046875
+      ],
+      "positionErrorMm": 0.18767607616260648
+    },
+    {
+      "node": 159,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.030340194702148438,
+        0.012929558753967285,
+        -0.1657867431640625
+      ],
+      "positionErrorMm": 0.16903533687688913
+    },
+    {
+      "node": 160,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0236358642578125,
+        0.0021691322326660156,
+        -0.148529052734375
+      ],
+      "positionErrorMm": 0.1504135589633703
+    },
+    {
+      "node": 161,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.017297744750976562,
+        -0.005269527435302734,
+        -0.13054275512695312
+      ],
+      "positionErrorMm": 0.1317891907896736
+    },
+    {
+      "node": 162,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.011255264282226562,
+        -0.009764671325683594,
+        -0.11214065551757812
+      ],
+      "positionErrorMm": 0.11312628518639477
+    },
+    {
+      "node": 163,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0112762451171875,
+        -0.01387786865234375,
+        -0.10465240478515625
+      ],
+      "positionErrorMm": 0.10616908575282541
+    },
+    {
+      "node": 164,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.011335372924804688,
+        -0.017038345336914062,
+        -0.09682464599609375
+      ],
+      "positionErrorMm": 0.09896366991696097
+    },
+    {
+      "node": 165,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.011449813842773438,
+        -0.0193023681640625,
+        -0.08881378173828125
+      ],
+      "positionErrorMm": 0.09160549918225565
+    },
+    {
+      "node": 166,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.011621475219726562,
+        -0.02072906494140625,
+        -0.08078384399414062
+      ],
+      "positionErrorMm": 0.08420678280339065
+    },
+    {
+      "node": 167,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.011844635009765625,
+        -0.02144622802734375,
+        -0.07295417785644531
+      ],
+      "positionErrorMm": 0.0769580934133977
+    },
+    {
+      "node": 168,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01207733154296875,
+        -0.021501541137695312,
+        -0.06525421142578125
+      ],
+      "positionErrorMm": 0.06975880100242085
+    },
+    {
+      "node": 169,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012302398681640625,
+        -0.020954132080078125,
+        -0.057643890380859375
+      ],
+      "positionErrorMm": 0.06255591708856904
+    },
+    {
+      "node": 170,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012498855590820312,
+        -0.019861221313476562,
+        -0.05015373229980469
+      ],
+      "positionErrorMm": 0.05537225267896862
+    },
+    {
+      "node": 171,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01267242431640625,
+        -0.018304824829101562,
+        -0.04278564453125
+      ],
+      "positionErrorMm": 0.04823140396083884
+    },
+    {
+      "node": 172,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012823104858398438,
+        -0.016338348388671875,
+        -0.03553199768066406
+      ],
+      "positionErrorMm": 0.041156973958951536
+    },
+    {
+      "node": 173,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012975692749023438,
+        -0.014007568359375,
+        -0.0283050537109375
+      ],
+      "positionErrorMm": 0.03414317851692604
+    },
+    {
+      "node": 174,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.013010025024414062,
+        -0.0116119384765625,
+        -0.021694183349609375
+      ],
+      "positionErrorMm": 0.027834070085523275
+    },
+    {
+      "node": 175,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012689590454101562,
+        -0.009593963623046875,
+        -0.016571044921875
+      ],
+      "positionErrorMm": 0.022971055128051285
+    },
+    {
+      "node": 176,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.012256622314453125,
+        -0.007656097412109375,
+        -0.011981964111328125
+      ],
+      "positionErrorMm": 0.018772535313803868
+    },
+    {
+      "node": 177,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.011467933654785156,
+        -0.006031036376953125,
+        -0.008462905883789062
+      ],
+      "positionErrorMm": 0.015476035606335283
+    },
+    {
+      "node": 178,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.009959220886230469,
+        -0.005218505859375,
+        -0.007110595703125
+      ],
+      "positionErrorMm": 0.013303362556826003
+    },
+    {
+      "node": 179,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.008495330810546875,
+        -0.004398345947265625,
+        -0.005825042724609375
+      ],
+      "positionErrorMm": 0.011200322111259996
+    },
+    {
+      "node": 180,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.00710296630859375,
+        -0.003589630126953125,
+        -0.00458526611328125
+      ],
+      "positionErrorMm": 0.00918489195140328
+    },
+    {
+      "node": 181,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.005794525146484375,
+        -0.002777099609375,
+        -0.0033588409423828125
+      ],
+      "positionErrorMm": 0.007250559729417971
+    },
+    {
+      "node": 182,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.004572868347167969,
+        -0.00196075439453125,
+        -0.0021343231201171875
+      ],
+      "positionErrorMm": 0.005413965080906145
+    },
+    {
+      "node": 183,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0034112930297851562,
+        -0.00113677978515625,
+        -0.0008916854858398438
+      ],
+      "positionErrorMm": 0.003704631077537697
+    },
+    {
+      "node": 184,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0022382736206054688,
+        -0.000263214111328125,
+        0.000431060791015625
+      ],
+      "positionErrorMm": 0.0022945509091435706
+    },
+    {
+      "node": 185,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0022335052490234375,
+        -0.000347137451171875,
+        0.0002841949462890625
+      ],
+      "positionErrorMm": 0.0022781169581295854
+    },
+    {
+      "node": 186,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0021886825561523438,
+        -0.0003662109375,
+        0.0001964569091796875
+      ],
+      "positionErrorMm": 0.0022277874897562878
+    },
+    {
+      "node": 187,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0020704269409179688,
+        -0.00035858154296875,
+        0.00018405914306640625
+      ],
+      "positionErrorMm": 0.00210929519242403
+    },
+    {
+      "node": 188,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0018863677978515625,
+        -0.00029754638671875,
+        0.00022792816162109375
+      ],
+      "positionErrorMm": 0.0019232442819051114
+    },
+    {
+      "node": 189,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0016412734985351562,
+        -0.00020599365234375,
+        0.00030517578125
+      ],
+      "positionErrorMm": 0.0016820654979106187
+    },
+    {
+      "node": 190,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0013751983642578125,
+        -0.00011444091796875,
+        0.00039005279541015625
+      ],
+      "positionErrorMm": 0.0014340182871812237
+    },
+    {
+      "node": 191,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.00170135498046875,
+        -0.00002288818359375,
+        0.0007405281066894531
+      ],
+      "positionErrorMm": 0.0018556709070605996
+    },
+    {
+      "node": 192,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.0035419464111328125,
+        0.00045013427734375,
+        0.002567768096923828
+      ],
+      "positionErrorMm": 0.004397890204013307
+    },
+    {
+      "node": 193,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.009724140167236328,
+        0.003021240234375,
+        0.010996818542480469
+      ],
+      "positionErrorMm": 0.014987221643857395
+    },
+    {
+      "node": 194,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.050571441650390625,
+        0.0065765380859375,
+        0.040227413177490234
+      ],
+      "positionErrorMm": 0.06495357060814413
+    },
+    {
+      "node": 195,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.09906959533691406,
+        0.00311279296875,
+        0.06843757629394531
+      ],
+      "positionErrorMm": 0.12044989020034758
+    },
+    {
+      "node": 196,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.06637191772460938,
+        -0.00397491455078125,
+        0.039751529693603516
+      ],
+      "positionErrorMm": 0.0774675126818318
+    },
+    {
+      "node": 197,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.04534482955932617,
+        -0.00470733642578125,
+        0.02604079246520996
+      ],
+      "positionErrorMm": 0.05250176621987077
+    },
+    {
+      "node": 198,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.03516674041748047,
+        0.00193023681640625,
+        0.03729367256164551
+      ],
+      "positionErrorMm": 0.051295647562859516
+    },
+    {
+      "node": 199,
+      "leftMaterialLengthMm": 5,
+      "rightMaterialLengthMm": 5,
+      "candidateLengthMm": 10,
+      "fineNodeParameter": 0.5,
+      "positionErrorVectorMm": [
+        0.01806330680847168,
+        -0.01947784423828125,
+        -0.03394261747598648
+      ],
+      "positionErrorMm": 0.0431018648105725
+    }
+  ],
+  "decision": {
+    "retainFineRuntimeMesh": true,
+    "activeOrUncertainOverlapRepresentation": "full",
+    "preferredNextOptimization": "exact skyline or bilateral material Schur with full reconstruction and original residual checks",
+    "certifiedCoarseningAdmitted": false,
+    "scope": "This snapshot and linear-field coarsening only; no claim that higher-order curved elements are impossible."
+  }
+}

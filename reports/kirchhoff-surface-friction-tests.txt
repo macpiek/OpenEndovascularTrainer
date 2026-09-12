@@ -1,0 +1,23 @@
+✔ one common surface point closes total force and orbital plus material moment for both friction axes (5.550542ms)
+✔ finite differences verify every world translation and LOCAL right-sided angular gradient (1.506ms)
+✔ negative cubic interpolation preserves partition of unity, rigid translation and moment reciprocity (0.399833ms)
+✔ a shared finite rigid motion has zero relative surface displacement (0.213791ms)
+✔ finite relative twist and axial translation appear as separate surface slip components (0.172208ms)
+✔ virtual work uses v + omega cross r and admits surface rolling with zero slip (0.146625ms)
+✔ anisotropic U/V follows physical axial/circumferential directions, with force-preserving warm start (0.509625ms)
+✔ legacy twist cannot add a second friction budget, and zero normal load permits free motion (0.624333ms)
+✔ fillet and portal require an explicit physical surface point; output storage is reused (0.249417ms)
+✔ shared Coulomb disk spends one budget on combined axial and circumferential slip (0.116583ms)
+✔ ellipse projection satisfies geometric KKT and an independent boundary-search oracle (7.697542ms)
+✔ fixed-normal cone residual recognizes sticking, maximum-dissipation slip and wrong-direction friction (0.114958ms)
+✔ zero coefficients and scale changes preserve admissibility without changing normal reaction (0.096958ms)
+✔ input validation rejects malformed constraints without renormalizing or modifying physical state (0.216541ms)
+✔ new surface rows close the moment of an actual loaded baseline side contact without modifying the world (10.656ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117.517917

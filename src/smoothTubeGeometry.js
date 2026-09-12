@@ -88,6 +88,7 @@ function refreshArcLengths(state) {
 
 function sampleTangent(state, u, target) {
     const path = state.path;
+    if (state.physicalPath) return path.getTangentAt(u, target);
     if (path.isLineCurve3) {
         return target.subVectors(path.v2, path.v1).normalize();
     }
@@ -265,11 +266,15 @@ function createState(geometry, tubularSegments, radialSegments) {
 export function updateSmoothTubeGeometry(existingGeometry, points, {
     radius,
     pointCount: requestedPointCount,
+    path: physicalPath = null,
     samplesPerSegment = 3,
     radialSegments = 12,
     maxTubularSegments = 900
 } = {}) {
-    const pointCount = normalizedPointCount(points, requestedPointCount);
+    if (physicalPath && (typeof physicalPath.getPointAt !== 'function' || typeof physicalPath.getTangentAt !== 'function'))
+        throw new TypeError('A physical tube path requires position and tangent sampling');
+    const pointCount = physicalPath ? physicalPath.pointCount : normalizedPointCount(points, requestedPointCount);
+    if (physicalPath && (!Number.isInteger(pointCount) || pointCount < 2)) throw new RangeError('A physical tube path requires its complete node count');
     if (pointCount < 2 || !(radius > 0)) {
         return new THREE.BufferGeometry();
     }
@@ -299,8 +304,9 @@ export function updateSmoothTubeGeometry(existingGeometry, points, {
         smoothTubeStates.set(geometry, state);
     }
 
-    createPath(state, points, pointCount);
-    refreshArcLengths(state);
+    state.physicalPath = physicalPath !== null;
+    if (physicalPath) state.path = physicalPath;
+    else {createPath(state, points, pointCount); refreshArcLengths(state);}
     computeFrenetFrames(state);
     fillSurface(state, radius);
 

@@ -1,0 +1,359 @@
+diff --git a/src/physics/kirchhoffSplitStepTransaction.js b/src/physics/kirchhoffSplitStepTransaction.js
+--- a/src/physics/kirchhoffSplitStepTransaction.js
++++ b/src/physics/kirchhoffSplitStepTransaction.js
+@@ -5,6 +5,19 @@
+ const topologyKeys = ['count', 'segmentCount', 'activeStart', 'activeEnd'];
+ const topologyArrays = ['x', 'y', 'z', 'previousX', 'previousY', 'previousZ',
+     'orientationX', 'orientationY', 'orientationZ', 'orientationW'];
++
++// These exact World-owned outputs are rebuilt before each new solve or
++// measurement. They borrow contacts, boundary rows and physical motion; none
++// owns the retained reaction/history. Do NOT exclude their descendants: a
++// contact also reachable through a manifold/history root still needs rollback.
++// In particular _coupledExternalFriction and _splitMotion.wallFrictionContacts
++// are physical state, unlike the solve/measurement batches which refer to them.
++const rebuildableJointScratch = [
++    '_jointFrictionBatch', '_jointExternalFrictionBatch', '_jointSplitWallFrictionBatch',
++    '_jointFrictionResidual', '_jointExternalFrictionResidual', '_jointSplitWallFrictionResidual',
++    '_jointFrictionMerit', '_jointExternalFrictionMerit', '_jointSplitWallFrictionMerit',
++    '_jointStateMeasurement', '_jointMaterialResidual', '_jointToolReleaseResidual', '_jointOptions'
++];
+ 
+ function slots(object) {
+     return { object, descriptors: Object.getOwnPropertyDescriptors(object) };
+@@ -39,8 +52,9 @@
+     const topology = world.bodies.map(body => ({ body,
+         values: Object.fromEntries([...topologyKeys, ...topologyArrays].map(key => [key, body[key]])) }));
+     const localTrialCaches = world.containments.map(constraint => constraint._jointTrialState).filter(Boolean);
++    const scratch = world.containments.flatMap(constraint => rebuildableJointScratch.map(key => constraint[key])).filter(Boolean);
+     const trials = world.containments.map(constraint => captureKirchhoffCoupledTrialState(constraint,
+-        { world, external: localTrialCaches }));
++        { world, external: [...localTrialCaches, ...scratch] }));
+     return { collections, bodySlots, sheathSlots, sheathBodies, topology, trials,
+         settings: settingKeys.map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(world, key) })),
+         dt: world.fixedDt,
+@@ -73,7 +87,15 @@
+     // references; a failed split must also undo _splitPhysicalMotion and bank
+     // substitutions, including removing properties first created by that dt.
+     for (const state of [...snapshot.bodySlots, ...snapshot.sheathSlots]) restoreSlots(state);
+-    for (const constraint of world.containments) delete constraint._jointTrialState;
++    for (const constraint of world.containments) {
++        delete constraint._jointTrialState;
++        // The failed dt may have rebuilt these borrowed outputs in place.
++        // Restoring their old slot would publish stale candidate rows/KKT.
++        // Drop even slots first created by the rejected step; the runtime's
++        // next solve/measurement allocates and rebuilds them from restored
++        // mechanics. This is NOT the frozen intra-trial batch contract.
++        for (const key of rebuildableJointScratch) delete constraint[key];
++    }
+     for (const { key, descriptor } of snapshot.settings) Object.defineProperty(world, key, descriptor);
+     world.stepCount = snapshot.stepCount;
+     if (snapshot.inCoupledClosure) Object.defineProperty(world, '_inCoupledClosure', snapshot.inCoupledClosure);
+diff --git a/tests/kirchhoffSplitStepScratch.test.js b/tests/kirchhoffSplitStepScratch.test.js
+new file mode 100644
+--- /dev/null
++++ b/tests/kirchhoffSplitStepScratch.test.js
+@@ -0,0 +1,214 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { fixture, source } from './fixtures/splitMotionAnalyticWorld.js';
++import { captureKirchhoffSplitStep as captureFull, restoreKirchhoffSplitStep as restoreFull }
++    from './fixtures/fullSplitStepTransactionReference.js';
++
++const { captureKirchhoffSplitStep: capture, restoreKirchhoffSplitStep: restore } =
++    await import(source('src/physics/kirchhoffSplitStepTransaction.js'));
++const { buildKirchhoffCoupledFrictionRows, measureKirchhoffCoupledFrictionResidual } =
++    await import(source('src/physics/kirchhoffCoupledFrictionRows.js'));
++const { beginKirchhoffSplitMotion, beginKirchhoffSplitBias, finishKirchhoffSplitBias } =
++    await import(source('src/physics/kirchhoffSplitMotion.js'));
++
++const invalidated = new Set(['_jointTrialState', '_jointOptions', '_jointStateMeasurement',
++    '_jointMaterialResidual', '_jointToolReleaseResidual', '_jointFrictionBatch',
++    '_jointExternalFrictionBatch', '_jointSplitWallFrictionBatch', '_jointFrictionResidual',
++    '_jointExternalFrictionResidual', '_jointSplitWallFrictionResidual', '_jointFrictionMerit',
++    '_jointExternalFrictionMerit', '_jointSplitWallFrictionMerit']);
++const bytes = array => Buffer.from(array.buffer, array.byteOffset, array.byteLength).toString('hex');
++
++// Check values and identity, including objects aliased FROM an excluded cache.
++// Deliberately inspect only captured mechanical records, not discarded scratch.
++function assertMechanicalRestore(snapshot) {
++    for (const trial of snapshot.trials) for (const r of trial.records) {
++        if (r.kind === 'bytes') assert.equal(bytes(r.object), bytes(r.copy));
++        else if (r.kind === 'map') {
++            const entries = [...r.object]; assert.equal(entries.length, r.entries.length);
++            entries.forEach(([key, value], i) => { assert.equal(key, r.entries[i][0]); assert.equal(value, r.entries[i][1]); });
++        } else if (r.kind === 'set') assert.deepEqual([...r.object], r.entries);
++        else {
++            for (const key of r.keys) {
++                if (r.object === trial.constraint && invalidated.has(key)) continue;
++                const actual = Object.getOwnPropertyDescriptor(r.object, key), expected = r.descriptors[key];
++                assert.ok(actual, key + ' retained');
++                for (const field of ['value', 'get', 'set', 'writable', 'enumerable', 'configurable'])
++                    assert.equal(actual[field], expected[field], key + '.' + field);
++            }
++        }
++    }
++    for (const { object, descriptors } of snapshot.bodySlots)
++        for (const key of Reflect.ownKeys(descriptors)) assert.equal(object[key], descriptors[key].value, 'body slot ' + key);
++}
++
++function physicalResult(f) {
++    const vec = x => Array.from(x ?? []);
++    const contact = c => ({ id: c.id, key: c.key, normal: c.normalLambda, tangent: vec(c.tangentLambda),
++        u: vec(c.tangentU), v: vec(c.tangentV), innerMaterial: c.innerMaterialSegmentId,
++        outerMaterial: c.outerMaterialSegmentId, generation: c.generation });
++    return { step: f.world.stepCount,
++        bodies: f.world.bodies.map(b => Object.fromEntries(Object.entries(b)
++            .filter(([, value]) => ArrayBuffer.isView(value)).map(([key, value]) => [key, bytes(value)]))),
++        lumen: Array.from(f.constraint.manifold.contacts(), contact),
++        external: (f.constraint._coupledExternalFriction?.contacts ?? []).map(contact),
++        wall: Array.from(f.constraint._splitMotion?.wallFrictionContacts?.values() ?? [], contact),
++        history: f.constraint._acceptedPhysicalMotion,
++        tools: f.world.toolContacts.map(t => ({ lambdas: bytes(t.lambdas),
++            reactions: Array.from(t._jointReactions ?? [], ([key, value]) => [key, {
++                retiring: value.retiring, wrenches: value.wrenches, normalWrenches: value.normalWrenches
++            }]) })),
++        accepted: f.world.lastStepResult.accepted,
++        historyCommits: f.world.lastStepResult.diagnostics.historyCommits };
++}
++
++function prepared(kind) {
++    const f = fixture(kind === 'lumen' ? { nested: true, y: .5, mu: .2 }
++        : kind === 'wall' ? { wall: true, y: -.5 } : { y: 1.25 });
++    if (kind === 'wall') f.wire.wallStaticFriction = f.wire.wallKineticFriction = .2;
++    if (kind === 'external') f.world.addToolContact(f.wire, f.catheter, { friction: .2 });
++    assert.equal(f.world.stepFixed().accepted, true);
++    f.wire.forceX.fill(.005);
++    return f;
++}
++
++for (const kind of ['lumen', 'external', 'wall']) test(kind + ': failed dt then retry matches full capture with contact/history aliases intact', () => {
++    function run(reference) {
++        const f = prepared(kind), joint = f.constraint;
++        const oldHistory = joint._acceptedPhysicalMotion, oldSplit = joint._splitMotion;
++        const key = kind === 'lumen' ? '_jointFrictionResidual'
++            : kind === 'external' ? '_jointExternalFrictionResidual' : '_jointSplitWallFrictionResidual';
++        const oldResidual = joint[key], batch = oldResidual._batch;
++        assert.ok(batch.entries.length, 'native contact graph exists');
++        const borrowedContact = batch.entries[0].contact;
++        const savedContactForce = borrowedContact.tangentLambda.slice();
++        const captureState = capture(f.world);
++        const objects = new Set(captureState.trials[0].records.map(r => r.object));
++        assert.equal(objects.has(oldResidual), false);
++        assert.equal(objects.has(batch), false);
++        assert.equal(objects.has(borrowedContact), true, 'cache contact alias remains mechanically owned');
++        assert.equal(objects.has(borrowedContact.tangentLambda), true);
++        // The native World runs the optimized transaction. Overlay the frozen
++        // full-graph reference restore after the SAME rejected work to compare
++        // reference cached outputs against a cold rebuild on the retry.
++        const full = reference ? captureFull(f.world) : null;
++        let injected = 0;
++        f.world.debugJointTrial = () => {
++            if (injected++) return;
++            // Mutate through the OLD residual alias, not through a root field.
++            // In particular, old wall contacts belong to the prior phase.
++            borrowedContact.tangentLambda.fill(9);
++            throw new Error('reject after physical apply');
++        };
++        assert.throws(() => f.world.stepFixed(), /reject after physical apply/);
++        if (full) restoreFull(f.world, full);
++        assertMechanicalRestore(captureState);
++        assert.equal(joint._acceptedPhysicalMotion, oldHistory);
++        assert.equal(joint._splitMotion, oldSplit);
++        assert.deepEqual(borrowedContact.tangentLambda, savedContactForce);
++        if (reference) assert.equal(joint[key], oldResidual);
++        else for (const name of invalidated) assert.equal(joint[name], undefined, name + ' invalidated');
++        f.world.debugJointTrial = null;
++        const accepted = f.world.stepFixed();
++        assert.equal(accepted.accepted, true, JSON.stringify(accepted));
++        assert.equal(accepted.diagnostics.historyCommits, 1);
++        assert.equal(f.world.stepCount, captureState.stepCount + 1);
++        if (!reference) assert.notEqual(joint[key], oldResidual, 'retry uses a fresh residual graph');
++        return physicalResult(f);
++    }
++    assert.deepEqual(run(false), run(true));
++});
++
++test('an uncertified dt preserves its failed certificate and matches full-capture retry physics', () => {
++    function run(reference) {
++        const f = prepared('wall');
++        for (let i = 0; i < f.wire.count; i++) f.wire.setNodePosition(i, i - 1, -.5 + .2 * (i - 1), 0);
++        f.wire.captureRestConfiguration(); f.wire.copyCurrentToPrevious();
++        const saved = capture(f.world), full = reference ? captureFull(f.world) : null;
++        const rejected = f.world.stepFixed();
++        assert.equal(rejected.accepted, false); assert.equal(rejected.status, 'split-uncertified');
++        assert.equal(rejected.diagnostics.historyCommits, 0);
++        const ownedFailure = structuredClone(rejected);
++        if (full) restoreFull(f.world, full);
++        assertMechanicalRestore(saved);
++        assert.equal(f.world.getStats().jointMotion.certified, false);
++        for (let i = 0; i < f.wire.count; i++) f.wire.setNodePosition(i, i - 1, -.6, 0);
++        f.wire.captureRestConfiguration(); f.wire.copyCurrentToPrevious();
++        assert.equal(f.world.stepFixed().accepted, true);
++        assert.deepEqual(rejected, ownedFailure);
++        return physicalResult(f);
++    }
++    assert.deepEqual(run(false), run(true));
++});
++
++test('capture omits dense derived graphs but retains boundary rows, material and reaction owners', () => {
++    const f = fixture({ nested: true, y: .5, mu: .2 }), c = f.constraint;
++    for (let i = 0; i < 50; i++) {
++        const contact = c.manifold.upsertContact({ id: 'dense-' + i,
++            innerMaterialSegmentId: i, outerMaterialSegmentId: i,
++            innerSegmentIndex: i % 2, outerSegmentIndex: i % 4,
++            normal: [0, 1, 0], tangentU: [1, 0, 0] });
++        contact.normalLambda = 1; contact.tangentLambda.set([.01, .001]);
++        c.kirchhoffContacts.push({ id: 'row-' + i, kind: 'side', gap: 0, normal: [0, 1, 0],
++            _innerSegmentIndex: i % 2, _outerSegmentIndex: i % 4,
++            innerT: .5, outerT: .5, innerWeights: [.5, .5], outerWeights: [.5, .5], manifoldContact: contact });
++    }
++    c._jointFrictionBatch = buildKirchhoffCoupledFrictionRows(c, f.world.fixedDt);
++    c._jointFrictionResidual = measureKirchhoffCoupledFrictionResidual(c, f.world.fixedDt);
++    const contact = c.kirchhoffContacts[0].manifoldContact;
++    const row = { kind: 'sheath', lambda: 2, gradients: [{ side: 0, dof: 1, value: 1 }] };
++    const multipliers = Float64Array.of(.2, .4), boundary = c._coupledBoundaries = { rows: [row], multipliers };
++    c._jointOptions = { additionalRows: [row, ...c._jointFrictionBatch.rows], groups: c._jointFrictionBatch.groups };
++    c._jointStateMeasurement = { frictionResidual: c._jointFrictionResidual, borrowedContact: contact };
++    const tool = f.world.addToolContact(f.wire, f.catheter, { enabled: false });
++    const reaction = { wrenches: [{ side: 0, node: 0, fx: .5 }], normalWrenches: [], retiring: true };
++    const ledger = tool._jointReactions = new Map([[0, reaction]]);
++    c._jointExternalFrictionBatch = { entries: [{ owner: tool, reaction }], state: c._coupledExternalFriction = {
++        owners: new Map([[tool, new Map([[0, contact]])]]), contacts: [contact]
++    } };
++    const full = captureFull(f.world), optimized = capture(f.world);
++    assert.ok(optimized.trials[0].objectCount < full.trials[0].objectCount * .25,
++        'dense friction workspace should not be deep-copied');
++    const objects = new Set(optimized.trials[0].records.map(r => r.object));
++    for (const owned of [contact, contact.tangentLambda, row, row.gradients, boundary, multipliers, ledger, reaction])
++        assert.ok(objects.has(owned), 'physical alias is still captured');
++    c._jointStateMeasurement.borrowedContact.tangentLambda.fill(8);
++    c._jointOptions.additionalRows[0].lambda = 10;
++    multipliers.fill(8); ledger.delete(0); reaction.wrenches[0].fx = 20;
++    c._jointExternalFrictionBatch.state.owners.get(tool).clear();
++    c._jointSplitWallFrictionMerit = { maximumMm: 999 }; // New failed-step scratch.
++    restore(f.world, optimized);
++    assertMechanicalRestore(optimized);
++    assert.equal(c._coupledBoundaries, boundary); assert.equal(tool._jointReactions, ledger);
++    assert.equal(ledger.get(0), reaction); assert.equal(reaction.wrenches[0].fx, .5);
++    assert.equal(c._coupledExternalFriction.owners.get(tool).get(0), contact);
++    assert.deepEqual(contact.tangentLambda, Float64Array.of(.01, .001));
++    assert.equal(row.lambda, 2); assert.deepEqual(multipliers, Float64Array.of(.2, .4));
++    for (const key of invalidated) assert.equal(c[key], undefined);
++});
++
++test('negative material rekey keeps the physical bank, rejects history transfer and restores its old owner', () => {
++    const f = prepared('lumen'), joint = f.constraint;
++    const contact = joint._jointFrictionResidual._batch.entries[0].contact;
++    const original = { id: contact.id, inner: contact.innerMaterialSegmentId,
++        outer: contact.outerMaterialSegmentId, feature: contact.feature };
++    contact.normalLambda = 2; contact.tangentLambda.set([.3, 0]);
++    const history = joint._acceptedPhysicalMotion, saved = capture(f.world);
++    beginKirchhoffSplitMotion(joint, f.world);
++    beginKirchhoffSplitBias(joint, f.world, true);
++    joint.manifold.rekeyKnownContact(contact, { id: original.id,
++        innerMaterialSegmentId: 'new-inner', outerMaterialSegmentId: 'new-outer', feature: original.feature,
++        innerSegmentIndex: 1, outerSegmentIndex: 1, normal: [0, 1, 0], tangentU: [1, 0, 0] });
++    finishKirchhoffSplitBias(joint, true);
++    assert.ok(joint._splitMotion.diagnostics.unverifiedHistoryKinds.includes('contact-identity-changed-during-bias'));
++    assert.equal(joint._splitMotion.diagnostics.historyCommits, 0);
++    assert.equal(contact.normalLambda, 0); assert.deepEqual(contact.tangentLambda, Float64Array.of(0, 0));
++    const bank = joint._splitMotion.bank.contacts.find(entry => entry.contact === contact);
++    assert.equal(bank.normalLambda, 2); assert.deepEqual(bank.tangentLambda, Float64Array.of(.3, 0));
++    restore(f.world, saved);
++    assertMechanicalRestore(saved);
++    assert.equal(contact.id, original.id); assert.equal(contact.innerMaterialSegmentId, original.inner);
++    assert.equal(contact.outerMaterialSegmentId, original.outer); assert.equal(contact.feature, original.feature);
++    assert.equal(contact._manifold, joint.manifold); assert.equal(contact.normalLambda, 2);
++    assert.deepEqual(contact.tangentLambda, Float64Array.of(.3, 0));
++    assert.equal(joint._acceptedPhysicalMotion, history);
++});
+diff --git a/tests/fixtures/fullSplitStepTransactionReference.js b/tests/fixtures/fullSplitStepTransactionReference.js
+new file mode 100644
+--- /dev/null
++++ b/tests/fixtures/fullSplitStepTransactionReference.js
+@@ -0,0 +1,84 @@
++// Frozen full-graph reference from Transaction 0990e3ba, before scratch exclusion.
++// Independent rollback oracle for the optimized whole-dt transaction.
++import { captureKirchhoffCoupledTrialState, restoreKirchhoffCoupledTrialState } from '../../src/physics/kirchhoffCoupledTrialState.js';
++
++const collectionKeys = ['bodies', 'containments', 'toolContacts', 'sheaths'];
++const settingKeys = ['fixedDt', 'jointMotionMode', 'contactField', 'coupledSystem'];
++const topologyKeys = ['count', 'segmentCount', 'activeStart', 'activeEnd'];
++const topologyArrays = ['x', 'y', 'z', 'previousX', 'previousY', 'previousZ',
++    'orientationX', 'orientationY', 'orientationZ', 'orientationW'];
++
++function slots(object) {
++    return { object, descriptors: Object.getOwnPropertyDescriptors(object) };
++}
++function restoreSlots({ object, descriptors }) {
++    for (const key of Reflect.ownKeys(object)) if (!Object.hasOwn(descriptors, key)) delete object[key];
++    Object.defineProperties(object, descriptors);
++}
++
++/** Whole physical-dt transaction, captured AFTER the caller prepared inputs
++ * but BEFORE wake, damping, integration, multiplier reset or contact refresh.
++ *
++ * The existing trial snapshot supplies owned numeric bytes and the mutable
++ * constraint/manifold/tool graph. It does NOT supply this whole-step contract:
++ * we additionally own body reference slots (phase banks replace arrays),
++ * collection/sheath references, body topology, simulation time and integrator
++ * flags. Restore those first so the trial helper's topology checks apply to
++ * the original bodies, including when a failed callback replaced storage.
++ * Every containment is captured, including disabled ones touched by beginStep.
++ *
++ * Solver scratch and old local-trial snapshots are disposable caches. They
++ * are invalidated, never published as restored physical history. World timing
++ * and work counters remain outside this snapshot, so rejection retains cost.
++ * External callbacks/renderer/contact-field internals are not physical state.
++ */
++export function captureKirchhoffSplitStep(world) {
++    const collections = collectionKeys.map(key => ({ key,
++        descriptor: Object.getOwnPropertyDescriptor(world, key), array: world[key], values: world[key].slice() }));
++    const bodySlots = world.bodies.map(slots), sheathSlots = world.sheaths.map(slots);
++    const sheathBodies = world.sheaths.filter(sheath => Array.isArray(sheath.bodies))
++        .map(sheath => ({ array: sheath.bodies, values: sheath.bodies.slice() }));
++    const topology = world.bodies.map(body => ({ body,
++        values: Object.fromEntries([...topologyKeys, ...topologyArrays].map(key => [key, body[key]])) }));
++    const localTrialCaches = world.containments.map(constraint => constraint._jointTrialState).filter(Boolean);
++    const trials = world.containments.map(constraint => captureKirchhoffCoupledTrialState(constraint,
++        { world, external: localTrialCaches }));
++    return { collections, bodySlots, sheathSlots, sheathBodies, topology, trials,
++        settings: settingKeys.map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(world, key) })),
++        dt: world.fixedDt,
++        stepCount: world.stepCount, inCoupledClosure: Object.getOwnPropertyDescriptor(world, '_inCoupledClosure'),
++        restored: false };
++}
++
++/** No topology/material window may change inside the solver transaction.
++ * beforeSubstep may prepare a new window before capture. An internal change
++ * is rejected and restored rather than committing a solve on mixed topology.
++ */
++export function kirchhoffSplitStepTopologyUnchanged(world, snapshot) {
++    return snapshot.settings.every(({ key, descriptor }) => world[key] === descriptor.value) &&
++        snapshot.collections.every(({ key, array, values }) => world[key] === array &&
++        array.length === values.length && values.every((value, index) => array[index] === value)) &&
++        snapshot.topology.every(({ body, values }) => Object.entries(values).every(([key, value]) => body[key] === value));
++}
++
++export function restoreKirchhoffSplitStep(world, snapshot) {
++    if (snapshot.restored) throw new Error('A physical step transaction can be restored only once');
++    // Reconnect original objects/storage before restoring any numeric bytes.
++    for (const { key, descriptor, array, values } of snapshot.collections) {
++        Object.defineProperty(world, key, descriptor);
++        array.length = 0; array.push(...values);
++    }
++    for (const state of [...snapshot.bodySlots, ...snapshot.sheathSlots]) restoreSlots(state);
++    for (const { array, values } of snapshot.sheathBodies) { array.length = 0; array.push(...values); }
++    for (const trial of snapshot.trials) restoreKirchhoffCoupledTrialState(trial);
++    // The numeric-body filter of the trial helper intentionally omits object
++    // references; a failed split must also undo _splitPhysicalMotion and bank
++    // substitutions, including removing properties first created by that dt.
++    for (const state of [...snapshot.bodySlots, ...snapshot.sheathSlots]) restoreSlots(state);
++    for (const constraint of world.containments) delete constraint._jointTrialState;
++    for (const { key, descriptor } of snapshot.settings) Object.defineProperty(world, key, descriptor);
++    world.stepCount = snapshot.stepCount;
++    if (snapshot.inCoupledClosure) Object.defineProperty(world, '_inCoupledClosure', snapshot.inCoupledClosure);
++    else delete world._inCoupledClosure;
++    snapshot.restored = true;
++}

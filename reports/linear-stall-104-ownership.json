@@ -1,0 +1,714 @@
+{
+  "joint": {
+    "model": "kirchhoff",
+    "innerRadius": 0.485,
+    "compliance": 0,
+    "friction": 0.04,
+    "axialFriction": 0.015,
+    "torsionalFriction": 0.006,
+    "radialVelocityDamping": 0.9,
+    "coupledBendingRateDamping": 0.5,
+    "coupledBendingRatePasses": 8,
+    "lumenMaxCorrection": 0.4,
+    "enabled": true,
+    "openProximal": true,
+    "openDistal": true,
+    "searchWindow": 2,
+    "outerStartNode": 15,
+    "startNode": 198,
+    "endNode": 199,
+    "innerResponse": 1,
+    "outerResponse": 1,
+    "enforceDistalPortal": true,
+    "distalPortalModel": "spatial",
+    "portalFilletRadius": 0.15,
+    "innerArcOffset": 2.1000000000000014,
+    "containedLength": 10.400000000000004,
+    "kirchhoffContactActivation": 0.2,
+    "kirchhoffMaxViolation": 0.00514305158652361,
+    "_kirchhoffStepOpen": true,
+    "_lastEnabled": false,
+    "_lastOuterStartNode": 15,
+    "_lastStartNode": 0,
+    "_lastEndNode": 200,
+    "_lastInnerActiveStart": 0,
+    "_lastInnerActiveEnd": 200,
+    "_lastOuterActiveStart": 0,
+    "_lastOuterActiveEnd": 15,
+    "kirchhoffOpenCacheHits": 0,
+    "_splitBiasMaterialMode": "coupled-compliance",
+    "_kirchhoffMappingLocked": false,
+    "_contactBlockSweeps": 0,
+    "_contactBlockIterations": 0,
+    "kirchhoffSolverResidual": null,
+    "kirchhoffContactMotion": 0,
+    "renderEndNode": 199,
+    "_jointLinearFailure": null,
+    "_jointTrialFailure": null,
+    "_collectContactBlock": false,
+    "_kirchhoffOuterMaterialLength": 11.416666507720947,
+    "_kirchhoffFeaturePrefix": "containment:guidewire:catheter",
+    "_kirchhoffSideFeature": "containment:guidewire:catheter:side",
+    "_kirchhoffRimFeature": "containment:guidewire:catheter:distal-rim",
+    "_kirchhoffFilletFeature": "containment:guidewire:catheter:distal-fillet",
+    "kirchhoffNormalMotion": 0.0000011757991291032708,
+    "kirchhoffStickingTangentialMotion": 0,
+    "kirchhoffMeasuredSideViolation": 0,
+    "kirchhoffMeasuredSpatialPortalViolation": 0,
+    "kirchhoffMeasuredPortalViolation": 0,
+    "_jointBoundaryResidual": 7.564039184508012e-7
+  },
+  "branch": {
+    "segment": 199,
+    "t": 0.5731945820551745
+  },
+  "slidingState": {
+    "segment": 199,
+    "distance": 0.0015334691623013533,
+    "violation": 0,
+    "t": 0.5731910062069766,
+    "x": 0.000596441582473517,
+    "y": 0.0001579831267690679,
+    "z": 0.0014038612616928958,
+    "clearance": 0.040500000715255724
+  },
+  "tool": {
+    "compliance": 0,
+    "friction": 0.08,
+    "enabled": true,
+    "openDistalB": true,
+    "startSegmentA": 199,
+    "endSegmentA": 199,
+    "startSegmentB": 9,
+    "endSegmentB": 17,
+    "_lastEnabled": true,
+    "_lastStartSegmentA": 199,
+    "_lastEndSegmentA": 199,
+    "_lastStartSegmentB": 9,
+    "_lastEndSegmentB": 17
+  },
+  "wire": {
+    "activeStart": 197,
+    "activeEnd": 200,
+    "nodes": [
+      {
+        "node": 197,
+        "x": -90.29566192626953,
+        "y": -452.1826477050781,
+        "z": 29.13370704650879,
+        "restLength": 5,
+        "nodeRadius": 0.44449999928474426,
+        "inverseMass": 0
+      },
+      {
+        "node": 198,
+        "x": -89.10940551757812,
+        "y": -447.4376220703125,
+        "z": 28.09572982788086,
+        "restLength": 5,
+        "nodeRadius": 0.44449999928474426,
+        "inverseMass": 0
+      },
+      {
+        "node": 199,
+        "x": -87.92314910888672,
+        "y": -442.6925964355469,
+        "z": 27.05775260925293,
+        "restLength": 5,
+        "nodeRadius": 0.44449999928474426,
+        "inverseMass": 0
+      },
+      {
+        "node": 200,
+        "x": -86.73688507080078,
+        "y": -437.9475402832031,
+        "z": 26.019775390625,
+        "nodeRadius": 0.44449999928474426,
+        "inverseMass": 0
+      }
+    ]
+  },
+  "catheter": {
+    "activeStart": 0,
+    "activeEnd": 18,
+    "segmentLength": 4,
+    "nodes": [
+      {
+        "node": 15,
+        "x": -89.60763549804688,
+        "y": -449.4305419921875,
+        "z": 28.531681060791016,
+        "restLength": 4.483333110809326,
+        "nodeRadius": 0.8333333134651184,
+        "inverseMass": 0
+      },
+      {
+        "node": 16,
+        "x": -88.3748779296875,
+        "y": -444.50469970703125,
+        "z": 27.515758514404297,
+        "restLength": 3.4666666984558105,
+        "nodeRadius": 0.8333333134651184,
+        "inverseMass": 0.7142857313156128
+      },
+      {
+        "node": 17,
+        "x": -87.7659683227539,
+        "y": -442.0536804199219,
+        "z": 26.945404052734375,
+        "restLength": 3.4666666984558105,
+        "nodeRadius": 0.8333333134651184,
+        "inverseMass": 0.7142857313156128
+      },
+      {
+        "node": 18,
+        "x": -87.24378967285156,
+        "y": -439.9729309082031,
+        "z": 26.461389541625977,
+        "restLength": 4,
+        "nodeRadius": 0.8333333134651184,
+        "inverseMass": 0.7142857313156128
+      }
+    ]
+  },
+  "toolFoot": [
+    -87.76491373215356,
+    -442.05965492861424,
+    26.919297163452647
+  ],
+  "oldDistalPredicate": false,
+  "lumen": [
+    {
+      "contactIndex": 0,
+      "record": {
+        "id": "containment:guidewire:catheter:side|runtime:198:0",
+        "kind": "material-side",
+        "feature": "containment:guidewire:catheter:side",
+        "gap": 0.010218496557143098,
+        "violation": 0,
+        "active": false,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.030064771508478957,
+        "innerT": 0.125,
+        "outerT": 0.5420155496311367,
+        "_innerSegmentIndex": 198,
+        "_outerSegmentIndex": 15,
+        "_innerMaterialSegmentId": 990,
+        "_outerMaterialSegmentId": 0,
+        "normalGradients": null,
+        "_normalReference": 0.030064771508472976,
+        "_innerNodeCount": 2,
+        "_outerNodeCount": 4,
+        "_containedSpanFraction": 1,
+        "_normalAlpha": 0,
+        "_splitActualGap": 0.010435229206776767,
+        "_splitStartGap": 0.009959400432414878,
+        "surfaceFrictionDiagnosticPhase": "refreshed-total-reaction",
+        "surfaceFrictionAppliedScale": 1
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:side|runtime:198:0",
+        "feature": "containment:guidewire:catheter:side",
+        "innerMaterialSegmentId": 990,
+        "outerMaterialSegmentId": 0,
+        "innerSegmentIndex": 198,
+        "outerSegmentIndex": 15,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.004804164139871892,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.875,
+        0.125
+      ],
+      "outerWeights": [
+        0.45798445036886326,
+        0.5420155496311367
+      ],
+      "normal": [
+        -0.06642746183502865,
+        -0.18752459630683,
+        -0.980011182637278
+      ],
+      "normalGradients": null
+    },
+    {
+      "contactIndex": 1,
+      "record": {
+        "id": "containment:guidewire:catheter:side|runtime:198:1",
+        "kind": "material-side",
+        "feature": "containment:guidewire:catheter:side",
+        "gap": 0.000052418141435290704,
+        "violation": 0.00011185201749604884,
+        "active": true,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.04061185273275177,
+        "innerT": 0.375,
+        "outerT": 0.8124836277321541,
+        "_innerSegmentIndex": 198,
+        "_outerSegmentIndex": 15,
+        "_innerMaterialSegmentId": 990,
+        "_outerMaterialSegmentId": 0,
+        "normalGradients": null,
+        "_normalReference": 0.04061185273276369,
+        "_innerNodeCount": 2,
+        "_outerNodeCount": 4,
+        "_containedSpanFraction": 1,
+        "_normalAlpha": 0,
+        "_splitActualGap": -0.00011185201749604884,
+        "_splitStartGap": -0.0009145474594229319,
+        "surfaceFrictionDiagnosticPhase": "refreshed-total-reaction",
+        "surfaceFrictionAppliedScale": 1
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:side|runtime:198:1",
+        "feature": "containment:guidewire:catheter:side",
+        "innerMaterialSegmentId": 990,
+        "outerMaterialSegmentId": 0,
+        "innerSegmentIndex": 198,
+        "outerSegmentIndex": 15,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.04061185273275177,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.625,
+        0.375
+      ],
+      "outerWeights": [
+        0.1875163722678459,
+        0.8124836277321541
+      ],
+      "normal": [
+        -0.06253389133886772,
+        -0.1914755349079623,
+        -0.979503257761672
+      ],
+      "normalGradients": null
+    },
+    {
+      "contactIndex": 2,
+      "record": {
+        "id": "containment:guidewire:catheter:side|runtime:198:2",
+        "kind": "material-side",
+        "feature": "containment:guidewire:catheter:side",
+        "gap": -0.0006156441923444204,
+        "violation": 0.00514305158652361,
+        "active": true,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.045643052301779334,
+        "innerT": 0.625,
+        "outerT": 0.12850741116198372,
+        "_innerSegmentIndex": 198,
+        "_outerSegmentIndex": 16,
+        "_innerMaterialSegmentId": 990,
+        "_outerMaterialSegmentId": 3.466666666666668,
+        "normalGradients": null,
+        "_normalReference": 0.04564305230177912,
+        "_innerNodeCount": 2,
+        "_outerNodeCount": 4,
+        "_containedSpanFraction": 1,
+        "_normalAlpha": 0,
+        "_splitActualGap": -0.00514305158652361,
+        "_splitStartGap": -0.0020586879598703117
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:side|runtime:198:2",
+        "feature": "containment:guidewire:catheter:side",
+        "innerMaterialSegmentId": 990,
+        "outerMaterialSegmentId": 3.466666666666668,
+        "innerSegmentIndex": 198,
+        "outerSegmentIndex": 16,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.045643052301779334,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.375,
+        0.625
+      ],
+      "outerWeights": [
+        0.8714925888380163,
+        0.12850741116198372
+      ],
+      "normal": [
+        -0.05511089151644844,
+        -0.19961649049247723,
+        -0.9783230787218142
+      ],
+      "normalGradients": null
+    },
+    {
+      "contactIndex": 3,
+      "record": {
+        "id": "containment:guidewire:catheter:side|runtime:198:3",
+        "kind": "material-side",
+        "feature": "containment:guidewire:catheter:side",
+        "gap": 0.0002670636058030567,
+        "violation": 0.0006788013263168968,
+        "active": true,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.04117880204157262,
+        "innerT": 0.875,
+        "outerT": 0.5227915720258519,
+        "_innerSegmentIndex": 198,
+        "_outerSegmentIndex": 16,
+        "_innerMaterialSegmentId": 990,
+        "_outerMaterialSegmentId": 3.466666666666668,
+        "normalGradients": null,
+        "_normalReference": 0.04117880204157465,
+        "_innerNodeCount": 2,
+        "_outerNodeCount": 4,
+        "_containedSpanFraction": 1,
+        "_normalAlpha": 0,
+        "_splitActualGap": -0.0006788013263168968,
+        "_splitStartGap": 0.002061544552917627
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:side|runtime:198:3",
+        "feature": "containment:guidewire:catheter:side",
+        "innerMaterialSegmentId": 990,
+        "outerMaterialSegmentId": 3.466666666666668,
+        "innerSegmentIndex": 198,
+        "outerSegmentIndex": 16,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.04117880204157262,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.125,
+        0.875
+      ],
+      "outerWeights": [
+        0.4772084279741481,
+        0.5227915720258519
+      ],
+      "normal": [
+        -0.036944064604991486,
+        -0.21260526744914804,
+        -0.9764395200642683
+      ],
+      "normalGradients": null
+    },
+    {
+      "contactIndex": 4,
+      "record": {
+        "id": "containment:guidewire:catheter:side|runtime:199:0",
+        "kind": "material-side",
+        "feature": "containment:guidewire:catheter:side",
+        "gap": 0.01284703350623664,
+        "violation": 0,
+        "active": false,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.027352305418732927,
+        "innerT": 0.125,
+        "outerT": 1,
+        "_innerSegmentIndex": 199,
+        "_outerSegmentIndex": 16,
+        "_innerMaterialSegmentId": 995,
+        "_outerMaterialSegmentId": 3.466666666666668,
+        "normalGradients": null,
+        "_normalReference": 0.027352305418716583,
+        "_innerNodeCount": 2,
+        "_outerNodeCount": 4,
+        "_containedSpanFraction": 0.6600000000000005,
+        "_normalAlpha": 0.13088523140837224,
+        "_splitActualGap": 0.013147695296522797,
+        "_splitStartGap": 0.014965481574654008
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:side|runtime:199:0",
+        "feature": "containment:guidewire:catheter:side",
+        "innerMaterialSegmentId": 995,
+        "outerMaterialSegmentId": 3.466666666666668,
+        "innerSegmentIndex": 199,
+        "outerSegmentIndex": 16,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.027352305418732927,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.875,
+        0.125
+      ],
+      "outerWeights": [
+        0,
+        1
+      ],
+      "normal": [
+        0.0012065433236000428,
+        -0.226894675843323,
+        -0.9739185542575732
+      ],
+      "normalGradients": null
+    },
+    {
+      "contactIndex": 5,
+      "record": {
+        "id": "containment:guidewire:catheter:distal-rim|runtime:199:5",
+        "kind": "distal-rim",
+        "feature": "containment:guidewire:catheter:distal-rim",
+        "gap": 0.18896642736230077,
+        "violation": 0,
+        "active": false,
+        "clearance": 0.19050000071525572,
+        "radialDistance": 0.001533573389590739,
+        "innerT": 0.5731945820551745,
+        "outerT": 1,
+        "_innerSegmentIndex": 199,
+        "_outerSegmentIndex": 17,
+        "_innerMaterialSegmentId": 995,
+        "_outerMaterialSegmentId": 6.933333333333336,
+        "_innerNodeIndices": null,
+        "_innerNodeWeights": null,
+        "_outerNodeIndices": null,
+        "_outerNodeWeights": null,
+        "normalGradients": null,
+        "_normalReference": 0.0015335733895724957,
+        "_containedSpanFraction": 0.6600000000000005,
+        "_normalAlpha": 0.2617704628167445,
+        "_splitActualGap": 0.188966427325665,
+        "_splitStartGap": 0.18896642736230077,
+        "surfaceFrictionDiagnosticPhase": "refreshed-total-reaction",
+        "surfaceFrictionAppliedScale": 1
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:distal-rim|runtime:199:5",
+        "feature": "containment:guidewire:catheter:distal-rim",
+        "innerMaterialSegmentId": 995,
+        "outerMaterialSegmentId": 6.933333333333336,
+        "innerSegmentIndex": 199,
+        "outerSegmentIndex": 17,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.001533573389590739,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.4268054179448255,
+        0.5731945820551745
+      ],
+      "outerWeights": [
+        0,
+        1
+      ],
+      "normal": [
+        0.3916887751663325,
+        0.11408044013315148,
+        0.9129981142301035
+      ],
+      "normalGradients": null
+    },
+    {
+      "contactIndex": 6,
+      "record": {
+        "id": "containment:guidewire:catheter:side|runtime:199:8",
+        "kind": "side",
+        "feature": "containment:guidewire:catheter:side",
+        "gap": 0.017017919426998117,
+        "violation": 0,
+        "active": false,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.02680474901130104,
+        "innerT": 0.1333209789002081,
+        "outerT": 0,
+        "_innerSegmentIndex": 199,
+        "_outerSegmentIndex": 17,
+        "_innerMaterialSegmentId": 995,
+        "_outerMaterialSegmentId": 6.933333333333336,
+        "_innerNodeIndices": null,
+        "_innerNodeWeights": null,
+        "_outerNodeIndices": null,
+        "_outerNodeWeights": null,
+        "_normalReference": 0.026804749011290596,
+        "_containedSpanFraction": 0.6600000000000005,
+        "_normalAlpha": 0.2617704628167445,
+        "_splitActualGap": 0.013695251703954685,
+        "_splitStartGap": 0.015466538704033844,
+        "surfaceFrictionDiagnosticPhase": "refreshed-total-reaction",
+        "surfaceFrictionAppliedScale": 1
+      },
+      "manifold": {
+        "id": "containment:guidewire:catheter:side|runtime:199:8",
+        "feature": "containment:guidewire:catheter:side",
+        "innerMaterialSegmentId": 995,
+        "outerMaterialSegmentId": 6.933333333333336,
+        "innerSegmentIndex": 199,
+        "outerSegmentIndex": 17,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.02680474901130104,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.8666790210997919,
+        0.1333209789002081
+      ],
+      "outerWeights": [
+        1,
+        0
+      ],
+      "normal": [
+        0.036303143838961875,
+        -0.23505105216226976,
+        -0.97130483609669
+      ],
+      "normalGradients": [
+        {
+          "side": 0,
+          "dof": 1194,
+          "value": -0.03410043390996375
+        },
+        {
+          "side": 0,
+          "dof": 1195,
+          "value": 0.1932050004552552
+        },
+        {
+          "side": 0,
+          "dof": 1196,
+          "value": 0.844254037484219
+        },
+        {
+          "side": 0,
+          "dof": 1200,
+          "value": -0.005245659718437727
+        },
+        {
+          "side": 0,
+          "dof": 1201,
+          "value": 0.029720668392807324
+        },
+        {
+          "side": 0,
+          "dof": 1202,
+          "value": 0.12987135026646615
+        },
+        {
+          "side": 1,
+          "dof": 102,
+          "value": 0.03935176426291312
+        },
+        {
+          "side": 1,
+          "dof": 103,
+          "value": -0.22296238436268304
+        },
+        {
+          "side": 1,
+          "dof": 104,
+          "value": -0.9742771077986603
+        },
+        {
+          "side": 1,
+          "dof": 108,
+          "value": -0.000005670634511641875
+        },
+        {
+          "side": 1,
+          "dof": 109,
+          "value": 0.00003671551462048849
+        },
+        {
+          "side": 1,
+          "dof": 110,
+          "value": 0.00015172004797510806
+        }
+      ]
+    },
+    {
+      "contactIndex": 7,
+      "record": {
+        "id": "lumen:sliding-rim|runtime:199:7",
+        "kind": "sliding-rim",
+        "feature": "lumen:sliding-rim",
+        "gap": 0.03896653155295437,
+        "violation": 0,
+        "active": false,
+        "clearance": 0.040500000715255724,
+        "radialDistance": 0.0015334691623013533,
+        "innerT": 0.5731910062069766,
+        "outerT": 1,
+        "_innerSegmentIndex": 199,
+        "_outerSegmentIndex": 17,
+        "_innerMaterialSegmentId": 995,
+        "_outerMaterialSegmentId": 6.933333333333336,
+        "_innerNodeIndices": null,
+        "_innerNodeWeights": null,
+        "_outerNodeIndices": null,
+        "_outerNodeWeights": null,
+        "normalGradients": null,
+        "_normalReference": 0.0015334691622967966,
+        "_containedSpanFraction": 1,
+        "_normalAlpha": 0,
+        "_splitActualGap": 0.03896653155295437,
+        "_splitStartGap": 0.03896653155295437,
+        "surfaceFrictionDiagnosticPhase": "refreshed-total-reaction",
+        "surfaceFrictionAppliedScale": 1
+      },
+      "manifold": {
+        "id": "lumen:sliding-rim|runtime:199:7",
+        "feature": "lumen:sliding-rim",
+        "innerMaterialSegmentId": 995,
+        "outerMaterialSegmentId": 6.933333333333336,
+        "innerSegmentIndex": 199,
+        "outerSegmentIndex": 17,
+        "frictionCoefficient": 0.015,
+        "twistFrictionCoefficient": 0.006,
+        "effectiveTwistRadius": 0.0015334691623013533,
+        "normalLambda": 0,
+        "twistLambda": 0,
+        "innerTwistImpulse": 0,
+        "outerTwistImpulse": 0,
+        "lastSeenStep": 56
+      },
+      "innerWeights": [
+        0.4268089937930234,
+        0.5731910062069766
+      ],
+      "outerWeights": [
+        0,
+        1
+      ],
+      "normal": [
+        0.3889491860262827,
+        0.10302334774830084,
+        0.9154805953750329
+      ],
+      "normalGradients": null
+    }
+  ]
+}

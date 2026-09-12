@@ -1,0 +1,65 @@
+--- a/src/physics/endovascularPhysicsWorld.js
++++ b/src/physics/endovascularPhysicsWorld.js
+@@ -2509,7 +2509,7 @@
+         // correction is checked against the original unshifted equations.
+         options.numericalShift = 1e-8;
+         options.groups ??= [];
+-        let previousMerit = Infinity;
++        let previousMerit = Infinity, previousNonConeSettled = false, previousMaxCone = Infinity;
+         constraint._jointTrialFailure = null;
+         for (let pass = 0; pass < this.coupledClosureMaxPasses * 2; pass++) {
+             this.lastCoupledClosurePasses = pass + 1;
+@@ -2548,7 +2548,11 @@
+             // Contact feet/features can migrate between linearizations. The
+             // trial must decrease the merit of THIS base state, evaluated
+             // with the same fresh geometry, not a stale previous feature set.
+-            if (pass > 0) previousMerit = this.#measureJointCoupledConstraints(constraint, false).merit;
++            if (pass > 0) {
++                const previous = this.#measureJointCoupledConstraints(constraint, false);
++                previousMerit = previous.merit; previousNonConeSettled = previous.nonConeSettled;
++                previousMaxCone = previous.maximumConeViolation;
++            }
+             constraint.kirchhoffContacts.length = 0;
+             constraint.kirchhoffMaxViolation = 0;
+             // An empty lumen batch does not remove either rod's material and
+@@ -2633,8 +2637,10 @@
+                 this.lastJointTrialEvaluations++;
+                 // The load-continuous natural map guides line search only;
+                 // final physical acceptance uses the independent KKT gates.
++                const coneFilterAccepted = constraint._splitMotion?.twoChannel && previousNonConeSettled && state.nonConeSettled &&
++                    state.maximumConeViolation <= previousMaxCone * (1 - 1e-4 * result.scale);
+                 accepted = pass === 0 || state.settled ||
+-                    state.merit <= previousMerit * (1 - 1e-4 * result.scale);
++                    state.merit <= previousMerit * (1 - 1e-4 * result.scale) || coneFilterAccepted;
+                 if (accepted) break;
+             }
+             if (!accepted) {
+@@ -2774,6 +2780,19 @@
+                 wallPhysicalFriction.maximumConeViolation <= 1e-9) &&
+             Math.max(constraint.kirchhoffContactMotion, constraint.kirchhoffSolverResidual,
+                 constraint._jointBoundaryResidual) <= this.coupledContainmentTolerance;
++        const nonConeSettled = channelsSettled && lengthsSettled && toolReleaseResidual.pending === 0 &&
++            materialResidual.adaptationMm <= this.coupledContainmentTolerance &&
++            materialResidual.bendTwistRad <= this.coupledAngularToleranceRad &&
++            foldResidual.maximumResidual <= this.coupledAngularToleranceRad &&
++            foldResidual.maximumPositionalViolation <= this.coupledAngularToleranceRad &&
++            orientationResidual.maximumResidualRad <= this.coupledAngularToleranceRad &&
++            frictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
++            externalFrictionResidual.maximumDisplacementResidualMm <= this.coupledContainmentTolerance &&
++            (!wallPhysicalFriction || wallPhysicalFriction.maximumDisplacementResidualMm <= this.coupledContainmentTolerance) &&
++            Math.max(constraint.kirchhoffContactMotion, constraint.kirchhoffSolverResidual,
++                constraint._jointBoundaryResidual) <= this.coupledContainmentTolerance;
++        const maximumConeViolation = Math.max(frictionResidual.maximumConeViolation,
++            externalFrictionResidual.maximumConeViolation, wallPhysicalFriction?.maximumConeViolation ?? 0);
+         let lengthResidual = 0;
+         for (const body of bodies) for (let segment = body.activeStart; segment < body.activeEnd; segment++) {
+             const length = magnitude3(body.x[segment + 1] - body.x[segment],
+@@ -2798,7 +2817,7 @@
+             constraint._jointBoundaryResidual / mm);
+         return Object.assign(constraint._jointStateMeasurement ??= {}, {
+             motionPhase: constraint._splitMotion?.phase ?? 'position-history',
+-            settled, merit, lengthResidual, materialResidual, channelResidual, foldResidual, orientationResidual,
++            settled, nonConeSettled, maximumConeViolation, merit, lengthResidual, materialResidual, channelResidual, foldResidual, orientationResidual,
+             frictionResidual, externalFrictionResidual, wallPhysicalFriction, toolReleaseResidual, coneRepair
+         });
+     }

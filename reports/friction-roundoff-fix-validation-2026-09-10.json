@@ -1,0 +1,845 @@
+{
+  "fix": "Roundoff-aware positive numerical scaling; unchanged original matrix and physical acceptance tests; nonfinite initial-guess rejection.",
+  "targetedTestsPassed": 35,
+  "coupledSuiteBeforeThreeAddedTests": {
+    "passed": 768,
+    "knownFailures": 7
+  },
+  "build": "passed",
+  "runtime": {
+    "steps": 1080,
+    "scenario": "short-coupled",
+    "precisionKeys": [
+      "x",
+      "y",
+      "z",
+      "previousX",
+      "previousY",
+      "previousZ",
+      "wallX",
+      "wallY",
+      "wallZ",
+      "wallNormalX",
+      "wallNormalY",
+      "wallNormalZ",
+      "wallT",
+      "wallGap"
+    ],
+    "wallLimitReached": false,
+    "wallTimeMs": 68425.583708,
+    "cpuProfile": null,
+    "method": "Interleaved fixed steps, alternating variant order, shared read-only anatomy, no rendering",
+    "variants": [
+      {
+        "wide": true,
+        "error": null,
+        "quality": {
+          "finite": true,
+          "maximumLengthErrorMm": 0.003763892161623872,
+          "maximumLengthErrorRatio": 0.0007527784323246856,
+          "maximumPenetrationMm": 0.008693844027504283,
+          "maximumWireMm": 220.0000000000008,
+          "maximumCatheterMm": 208.00000000000102
+        },
+        "depthBuckets": {},
+        "phases": {
+          "wire-feed-or-withdraw": {
+            "lineSearch": {
+              "accepted": [
+                935,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "rejected": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "rejectionTerms": {},
+              "boundaryKinds": {},
+              "boundaryWorstChanged": 0,
+              "predictedStarts": 0,
+              "largerFallbacks": 0,
+              "earlyRejections": 0
+            },
+            "steps": 600,
+            "failedSteps": 0,
+            "percentileSteps": 600,
+            "fields": {
+              "assemblyMs": {
+                "mean": 0.034365095000001324,
+                "p95": 0.08733299999994415,
+                "maximum": 0.938043000000107,
+                "sum": 20.619057000000794
+              },
+              "solveMs": {
+                "mean": 0.5770430716666717,
+                "p95": 1.5912510000000566,
+                "maximum": 6.970124999999939,
+                "sum": 346.225843000003
+              },
+              "applyMs": {
+                "mean": 0.020133965000000746,
+                "p95": 0.05950000000007094,
+                "maximum": 0.4496249999999691,
+                "sum": 12.080379000000448
+              },
+              "snapshotMs": {
+                "mean": 0.1273043633333297,
+                "p95": 0.48595899999986614,
+                "maximum": 3.266375000000153,
+                "sum": 76.38261799999782
+              },
+              "restoreMs": {
+                "mean": 0,
+                "p95": 0,
+                "maximum": 0,
+                "sum": 0
+              },
+              "measureMs": {
+                "mean": 0.146389081666667,
+                "p95": 0.4827919999997903,
+                "maximum": 2.183293000000049,
+                "sum": 87.8334490000002
+              },
+              "condensedSetupMs": {
+                "mean": 0.162759391666659,
+                "p95": 0.6015840000000026,
+                "maximum": 1.7263330000000678,
+                "sum": 97.65563499999541
+              },
+              "schurMs": {
+                "mean": 0.03276875666666778,
+                "p95": 0.09833300000013878,
+                "maximum": 0.7217090000001463,
+                "sum": 19.661254000000667
+              },
+              "contactSolveMs": {
+                "mean": 0.0159011983333293,
+                "p95": 0.04574999999999818,
+                "maximum": 0.9246669999999995,
+                "sum": 9.54071899999758
+              },
+              "reconstructionMs": {
+                "mean": 0.011381971666668277,
+                "p95": 0.02987499999994725,
+                "maximum": 0.11212499999987813,
+                "sum": 6.829183000000967
+              },
+              "seedMs": {
+                "mean": 0,
+                "p95": 0,
+                "maximum": 0,
+                "sum": 0
+              },
+              "solveCalls": {
+                "mean": 1.5583333333333333,
+                "p95": 3,
+                "maximum": 3,
+                "sum": 935
+              },
+              "applyCalls": {
+                "mean": 1.5583333333333333,
+                "p95": 3,
+                "maximum": 3,
+                "sum": 935
+              },
+              "measureCalls": {
+                "mean": 2.098333333333333,
+                "p95": 5,
+                "maximum": 5,
+                "sum": 1259
+              },
+              "fullMeasureCalls": {
+                "mean": 2.098333333333333,
+                "p95": 5,
+                "maximum": 5,
+                "sum": 1259
+              },
+              "snapshots": {
+                "mean": 0.54,
+                "p95": 2,
+                "maximum": 2,
+                "sum": 324
+              },
+              "restores": {
+                "mean": 0,
+                "p95": 0,
+                "maximum": 0,
+                "sum": 0
+              },
+              "total": {
+                "mean": 1.0804236783333343,
+                "p95": 3.1744999999998527,
+                "maximum": 11.567249999999945,
+                "sum": 648.2542070000006
+              },
+              "constraints": {
+                "mean": 0.932138291666668,
+                "p95": 2.6891250000001037,
+                "maximum": 10.309041999999977,
+                "sum": 559.2829750000008
+              },
+              "narrowPhase": {
+                "mean": 0.11459260833332488,
+                "p95": 0.3327910000000429,
+                "maximum": 2.0540000000000873,
+                "sum": 68.75556499999493
+              },
+              "integrate": {
+                "mean": 0.007498358333334257,
+                "p95": 0.018958999999995285,
+                "maximum": 0.11720900000000256,
+                "sum": 4.499015000000554
+              },
+              "velocity": {
+                "mean": 0.014648193333329307,
+                "p95": 0.03725000000008549,
+                "maximum": 0.4041670000000295,
+                "sum": 8.788915999997585
+              },
+              "trials": {
+                "mean": 1.5583333333333333,
+                "p95": 3,
+                "maximum": 3,
+                "sum": 935
+              },
+              "backtracks": {
+                "mean": 0,
+                "p95": 0,
+                "maximum": 0,
+                "sum": 0
+              },
+              "factorizations": {
+                "mean": 3.0083333333333333,
+                "p95": 8,
+                "maximum": 14,
+                "sum": 1805
+              }
+            }
+          },
+          "catheter-feed": {
+            "lineSearch": {
+              "accepted": [
+                2482,
+                147,
+                18,
+                13,
+                2,
+                0,
+                0,
+                0
+              ],
+              "rejected": [
+                190,
+                44,
+                26,
+                13,
+                11,
+                11,
+                11,
+                11
+              ],
+              "rejectionTerms": {
+                "lumenNormal": 308,
+                "boundary": 1
+              },
+              "boundaryKinds": {
+                "wall": 1
+              },
+              "boundaryWorstChanged": 96,
+              "predictedStarts": 2,
+              "largerFallbacks": 1,
+              "earlyRejections": 8
+            },
+            "steps": 480,
+            "failedSteps": 11,
+            "percentileSteps": 480,
+            "fields": {
+              "assemblyMs": {
+                "mean": 9.914212187500118,
+                "p95": 26.88887500000419,
+                "maximum": 98.93728899999405,
+                "sum": 4758.821850000057
+              },
+              "solveMs": {
+                "mean": 57.6213804020834,
+                "p95": 229.9105020000061,
+                "maximum": 497.62604000000283,
+                "sum": 27658.262593000032
+              },
+              "applyMs": {
+                "mean": 2.069416379166917,
+                "p95": 5.775000000005093,
+                "maximum": 42.921413999989454,
+                "sum": 993.3198620001201
+              },
+              "snapshotMs": {
+                "mean": 23.549733189583126,
+                "p95": 64.24979100000928,
+                "maximum": 254.10854100000142,
+                "sum": 11303.8719309999
+              },
+              "restoreMs": {
+                "mean": 2.597899531249969,
+                "p95": 8.479415999994671,
+                "maximum": 273.5476669999989,
+                "sum": 1246.991774999985
+              },
+              "measureMs": {
+                "mean": 44.638906022916544,
+                "p95": 125.15995700000349,
+                "maximum": 1021.6107080000074,
+                "sum": 21426.67489099994
+              },
+              "condensedSetupMs": {
+                "mean": 2.24244982083344,
+                "p95": 5.488457000006747,
+                "maximum": 18.837710000003426,
+                "sum": 1076.3759140000511
+              },
+              "schurMs": {
+                "mean": 4.969694010416484,
+                "p95": 17.12779099999898,
+                "maximum": 45.96024900000339,
+                "sum": 2385.4531249999122
+              },
+              "contactSolveMs": {
+                "mean": 39.69745669791724,
+                "p95": 179.15749800000776,
+                "maximum": 440.68775100000494,
+                "sum": 19054.779215000275
+              },
+              "reconstructionMs": {
+                "mean": 1.24539425833343,
+                "p95": 3.533291999992798,
+                "maximum": 13.326583000016399,
+                "sum": 597.7892440000464
+              },
+              "seedMs": {
+                "mean": 12.659542831249915,
+                "p95": 56.61354199999914,
+                "maximum": 244.080249000006,
+                "sum": 6076.580558999959
+              },
+              "solveCalls": {
+                "mean": 5.56875,
+                "p95": 11,
+                "maximum": 24,
+                "sum": 2673
+              },
+              "applyCalls": {
+                "mean": 6.20625,
+                "p95": 14,
+                "maximum": 51,
+                "sum": 2979
+              },
+              "measureCalls": {
+                "mean": 10.795833333333333,
+                "p95": 23,
+                "maximum": 67,
+                "sum": 5182
+              },
+              "fullMeasureCalls": {
+                "mean": 10.779166666666667,
+                "p95": 23,
+                "maximum": 67,
+                "sum": 5174
+              },
+              "snapshots": {
+                "mean": 4.566666666666666,
+                "p95": 10,
+                "maximum": 23,
+                "sum": 2192
+              },
+              "restores": {
+                "mean": 0.6604166666666667,
+                "p95": 3,
+                "maximum": 36,
+                "sum": 317
+              },
+              "total": {
+                "mean": 140.8900078104166,
+                "p95": 463.4533330000013,
+                "maximum": 1922.096958000002,
+                "sum": 67627.20374899996
+              },
+              "constraints": {
+                "mean": 140.62987735208344,
+                "p95": 462.84441700000025,
+                "maximum": 1921.378582999998,
+                "sum": 67502.34112900005
+              },
+              "narrowPhase": {
+                "mean": 0.12104362291665373,
+                "p95": 0.21345800000017334,
+                "maximum": 4.089624999993248,
+                "sum": 58.10093899999379
+              },
+              "integrate": {
+                "mean": 0.01760980416664116,
+                "p95": 0.043166999999812106,
+                "maximum": 0.18516700000009223,
+                "sum": 8.452705999987757
+              },
+              "velocity": {
+                "mean": 0.08124520833337148,
+                "p95": 0.17025000000103319,
+                "maximum": 0.8689999999987776,
+                "sum": 38.99770000001831
+              },
+              "trials": {
+                "mean": 6.20625,
+                "p95": 14,
+                "maximum": 51,
+                "sum": 2979
+              },
+              "backtracks": {
+                "mean": 0.6375,
+                "p95": 3,
+                "maximum": 35,
+                "sum": 306
+              },
+              "factorizations": {
+                "mean": 506.4145833333333,
+                "p95": 1529,
+                "maximum": 6049,
+                "sum": 243079
+              }
+            }
+          }
+        },
+        "profile": {
+          "lineSearch": {
+            "accepted": [
+              3417,
+              147,
+              18,
+              13,
+              2,
+              0,
+              0,
+              0
+            ],
+            "rejected": [
+              190,
+              44,
+              26,
+              13,
+              11,
+              11,
+              11,
+              11
+            ],
+            "rejectionTerms": {
+              "lumenNormal": 308,
+              "boundary": 1
+            },
+            "boundaryKinds": {
+              "wall": 1
+            },
+            "boundaryWorstChanged": 96,
+            "predictedStarts": 2,
+            "largerFallbacks": 1,
+            "earlyRejections": 8
+          },
+          "steps": 1080,
+          "failedSteps": 11,
+          "percentileSteps": 1080,
+          "fields": {
+            "assemblyMs": {
+              "mean": 4.425408247222276,
+              "p95": 20.85508500001015,
+              "maximum": 98.93728899999405,
+              "sum": 4779.440907000058
+            },
+            "solveMs": {
+              "mean": 25.930081885185217,
+              "p95": 162.54208300000028,
+              "maximum": 497.62604000000283,
+              "sum": 28004.488436000036
+            },
+            "applyMs": {
+              "mean": 0.9309261490741857,
+              "p95": 4.066626000007091,
+              "maximum": 42.921413999989454,
+              "sum": 1005.4002410001206
+            },
+            "snapshotMs": {
+              "mean": 10.537272730555461,
+              "p95": 52.7472090000083,
+              "maximum": 254.10854100000142,
+              "sum": 11380.254548999897
+            },
+            "restoreMs": {
+              "mean": 1.154622013888875,
+              "p95": 3.08116699999664,
+              "maximum": 273.5476669999989,
+              "sum": 1246.991774999985
+            },
+            "measureMs": {
+              "mean": 19.920841055555503,
+              "p95": 92.44812400000228,
+              "maximum": 1021.6107080000074,
+              "sum": 21514.508339999942
+            },
+            "condensedSetupMs": {
+              "mean": 1.0870662490741172,
+              "p95": 4.274458000007144,
+              "maximum": 18.837710000003426,
+              "sum": 1174.0315490000467
+            },
+            "schurMs": {
+              "mean": 2.2269577583332527,
+              "p95": 13.068498999986332,
+              "maximum": 45.96024900000339,
+              "sum": 2405.114378999913
+            },
+            "contactSolveMs": {
+              "mean": 17.65214808703729,
+              "p95": 119.14520700000139,
+              "maximum": 440.68775100000494,
+              "sum": 19064.319934000272
+            },
+            "reconstructionMs": {
+              "mean": 0.5598318768518957,
+              "p95": 2.8637910000252305,
+              "maximum": 13.326583000016399,
+              "sum": 604.6184270000474
+            },
+            "seedMs": {
+              "mean": 5.626463480555517,
+              "p95": 36.82354099998338,
+              "maximum": 244.080249000006,
+              "sum": 6076.580558999959
+            },
+            "solveCalls": {
+              "mean": 3.3407407407407406,
+              "p95": 10,
+              "maximum": 24,
+              "sum": 3608
+            },
+            "applyCalls": {
+              "mean": 3.6240740740740742,
+              "p95": 11,
+              "maximum": 51,
+              "sum": 3914
+            },
+            "measureCalls": {
+              "mean": 5.963888888888889,
+              "p95": 20,
+              "maximum": 67,
+              "sum": 6441
+            },
+            "fullMeasureCalls": {
+              "mean": 5.9564814814814815,
+              "p95": 19,
+              "maximum": 67,
+              "sum": 6433
+            },
+            "snapshots": {
+              "mean": 2.3296296296296295,
+              "p95": 9,
+              "maximum": 23,
+              "sum": 2516
+            },
+            "restores": {
+              "mean": 0.2935185185185185,
+              "p95": 1,
+              "maximum": 36,
+              "sum": 317
+            },
+            "total": {
+              "mean": 63.2180166259259,
+              "p95": 331.52745900000446,
+              "maximum": 1922.096958000002,
+              "sum": 68275.45795599997
+            },
+            "constraints": {
+              "mean": 63.02002231851858,
+              "p95": 331.1920409999948,
+              "maximum": 1921.378582999998,
+              "sum": 68061.62410400006
+            },
+            "narrowPhase": {
+              "mean": 0.11745972592591548,
+              "p95": 0.2840840000001208,
+              "maximum": 4.089624999993248,
+              "sum": 126.85650399998872
+            },
+            "integrate": {
+              "mean": 0.011992334259248436,
+              "p95": 0.030250000000023647,
+              "maximum": 0.18516700000009223,
+              "sum": 12.95172099998831
+            },
+            "velocity": {
+              "mean": 0.044246866666681386,
+              "p95": 0.12629200000083074,
+              "maximum": 0.8689999999987776,
+              "sum": 47.7866160000159
+            },
+            "trials": {
+              "mean": 3.6240740740740742,
+              "p95": 11,
+              "maximum": 51,
+              "sum": 3914
+            },
+            "backtracks": {
+              "mean": 0.2833333333333333,
+              "p95": 1,
+              "maximum": 35,
+              "sum": 306
+            },
+            "factorizations": {
+              "mean": 226.74444444444444,
+              "p95": 1209,
+              "maximum": 6049,
+              "sum": 244884
+            }
+          }
+        },
+        "final": {
+          "mode": "kirchhoff-direct",
+          "coupledSolver": "joint",
+          "jointMotion": null,
+          "jointFactorizations": 1292,
+          "jointTrialEvaluations": 8,
+          "jointBacktracks": 0,
+          "jointLinearIterations": 113,
+          "jointMaximumBand": 316,
+          "jointMaximumRows": 316,
+          "jointCosts": {
+            "assemblyMs": 24.64029099997424,
+            "solveMs": 220.047166999997,
+            "applyMs": 3.995082999987062,
+            "snapshotMs": 60.78916700000991,
+            "restoreMs": 0,
+            "measureMs": 93.26504300002125,
+            "solveCalls": 8,
+            "applyCalls": 8,
+            "measureCalls": 15,
+            "fullMeasureCalls": 15,
+            "snapshotObjects": 22279,
+            "snapshotBytes": 972068,
+            "snapshots": 7,
+            "restores": 0,
+            "condensedSetupMs": 4.661124000005657,
+            "schurMs": 19.669500999967568,
+            "contactSolveMs": 171.97745599999325,
+            "reconstructionMs": 3.533291999992798,
+            "seedMs": 69.82483299999149
+          },
+          "fixedDt": 0.008333333333333333,
+          "steps": 1080,
+          "lastSubsteps": 0,
+          "lastLengthPolishPasses": 0,
+          "lastWallRepairPasses": 0,
+          "wallRepairResiduals": [],
+          "wallRepairWorstSegments": [],
+          "wallRepairWorstBodies": [],
+          "coupledClosurePasses": 8,
+          "coupledContactPasses": 8,
+          "coupledClosureConverged": true,
+          "coupledContainmentResidual": 0.11424281993662455,
+          "coupledRelaxationPasses": 0,
+          "backlogTime": 0,
+          "backlogSteps": 0,
+          "droppedTime": 0,
+          "contacts": 6,
+          "maxPenetration": 0.087775996089415,
+          "settledMaxPenetration": 2.8697109133446475e-09,
+          "settledContact": {
+            "bodyId": "guidewire",
+            "segment": 199,
+            "t": 1,
+            "x": -5.1413251249574135,
+            "y": -269.08371751199473,
+            "z": 18.08590754566503
+          },
+          "phases": {
+            "total": {
+              "lastMs": 404.14604099999997,
+              "averageMs": 63.2180166259259,
+              "p95Ms": 447.5760803222656,
+              "maximumMs": 1922.096958000002,
+              "maximumRecord": 1071
+            },
+            "integrate": {
+              "lastMs": 0.029792000001179986,
+              "averageMs": 0.011992334259248436,
+              "p95Ms": 0.04191699996590614,
+              "maximumMs": 0.18516700000009223,
+              "maximumRecord": 766
+            },
+            "narrowPhase": {
+              "lastMs": 0.7716250000084983,
+              "averageMs": 0.11745972592591548,
+              "p95Ms": 0.21345800161361694,
+              "maximumMs": 4.089624999993248,
+              "maximumRecord": 1072
+            },
+            "constraints": {
+              "lastMs": 403.1288329999952,
+              "averageMs": 63.02002231851858,
+              "p95Ms": 447.24591064453125,
+              "maximumMs": 1921.378582999998,
+              "maximumRecord": 1071
+            },
+            "constraintPrimary": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "constraintBodyClosure": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "constraintBodyLengthPolish": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "constraintBodyWallRepair": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "constraintBodyPrePost": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "constraintBodyPostStabilization": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "constraintCoupledClosure": {
+              "lastMs": 403.10483399999794,
+              "averageMs": 62.31801500824172,
+              "p95Ms": 447.22015380859375,
+              "maximumMs": 1921.2809579999957,
+              "maximumRecord": 1083
+            },
+            "constraintMovingClosure": {
+              "lastMs": 0,
+              "averageMs": 0,
+              "p95Ms": 0,
+              "maximumMs": 0,
+              "maximumRecord": -1
+            },
+            "velocity": {
+              "lastMs": 0.12629200000083074,
+              "averageMs": 0.044246866666681386,
+              "p95Ms": 0.15616600215435028,
+              "maximumMs": 0.8689999999987776,
+              "maximumRecord": 963
+            }
+          },
+          "containments": [
+            {
+              "model": "kirchhoff",
+              "distalPortalModel": "spatial",
+              "contactBlockSweeps": 8,
+              "contactBlockIterations": 113,
+              "solverResidual": 5.441647757577911e-05,
+              "jointTrialFailure": null,
+              "jointLinearFailure": null,
+              "closureContactMotion": 9.45415557735619e-05,
+              "enabled": true,
+              "axialFriction": 0.015,
+              "torsionalFriction": 0.006,
+              "radialVelocityDamping": 0.9,
+              "coupledBendingRateDamping": 0.5,
+              "contacts": 165,
+              "maximumViolation": 0.11424281993662455,
+              "openCacheHits": 0
+            }
+          ],
+          "bodies": [
+            {
+              "id": "guidewire",
+              "sleeping": false,
+              "constitutiveSolver": "direct",
+              "directFactorizations": 0,
+              "directFactorReuses": 0,
+              "finite": true,
+              "maxLengthError": 8.218412439475743e-09,
+              "maxBendAngleDegrees": 27.801048657632396,
+              "maxBendNode": 195,
+              "maxBendLimitDegrees": 45,
+              "maxSpeed": 71.38551763359592,
+              "maximumRawSpeed": 71.52627485727018,
+              "maximumWallProjectionSpeed": 10.46261207191715,
+              "maximumWallProjectionNode": 200,
+              "maximumRejectedWallProjectionSpeed": 4.9285236779694,
+              "wallProjectionVelocityRetention": 0,
+              "maximumToolProjectionSpeed": 0,
+              "maximumRejectedToolProjectionSpeed": 0,
+              "toolProjectionVelocityRetention": 0,
+              "maximumReconstructedSpeed": 71.38551763359592,
+              "relaxationPasses": 0,
+              "lastRelaxationPasses": 0,
+              "kineticEnergy": 5046.745304347559,
+              "activeWallContacts": 1,
+              "currentNormalLoad": 0.04786878451704979,
+              "retainedFrictionLoad": 0.049021318554878235
+            },
+            {
+              "id": "catheter",
+              "sleeping": false,
+              "constitutiveSolver": "direct",
+              "directFactorizations": 0,
+              "directFactorReuses": 0,
+              "finite": true,
+              "maxLengthError": 9.458061001055285e-10,
+              "maxBendAngleDegrees": 23.979718869455038,
+              "maxBendNode": 215,
+              "maxBendLimitDegrees": 45,
+              "maxSpeed": 54.0033293803017,
+              "maximumRawSpeed": 54.01232987418366,
+              "maximumWallProjectionSpeed": 232.82462658722608,
+              "maximumWallProjectionNode": 205,
+              "maximumRejectedWallProjectionSpeed": 6.768955518442991,
+              "wallProjectionVelocityRetention": 0,
+              "maximumToolProjectionSpeed": 0,
+              "maximumRejectedToolProjectionSpeed": 0,
+              "toolProjectionVelocityRetention": 0,
+              "maximumReconstructedSpeed": 53.88149761818224,
+              "relaxationPasses": 0,
+              "lastRelaxationPasses": 0,
+              "kineticEnergy": 66787.95722885756,
+              "activeWallContacts": 9,
+              "currentNormalLoad": 13.130778670310974,
+              "retainedFrictionLoad": 12.520059138536453
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

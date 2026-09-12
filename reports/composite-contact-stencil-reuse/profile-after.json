@@ -1,0 +1,531 @@
+{
+  "scope": "200 repeated accepted synthetic whole steps from the same initial state, after 30 warmup steps; CPU sampling adds overhead; not sequential feed, anatomy, or browser FPS",
+  "totalMs": 4453.125,
+  "samples": 5746,
+  "stats": {
+    "totalMs": {
+      "median": 20.550124999999753,
+      "p95": 26.35091699999998,
+      "mean": 21.870798395000005
+    },
+    "preparationMs": {
+      "median": 2.6268750000008367,
+      "p95": 3.9524579999997513,
+      "mean": 2.945387115000005
+    },
+    "directionMs": {
+      "median": 4.388750000000073,
+      "p95": 6.536458000000039,
+      "mean": 4.729270639999997
+    },
+    "evaluations": {
+      "median": 9,
+      "p95": 9,
+      "mean": 9
+    }
+  },
+  "self": [
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:82 differentiateCompositeLumenSideContact",
+      "ms": 402.203,
+      "percent": 9.03192701754386
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:227 (anonymous)",
+      "ms": 233.499,
+      "percent": 5.2434863157894736
+    },
+    {
+      "frame": ":0 (garbage collector)",
+      "ms": 203.253,
+      "percent": 4.5642778947368425
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:6 vector",
+      "ms": 179.922,
+      "percent": 4.040353684210526
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:243 (anonymous)",
+      "ms": 151.914,
+      "percent": 3.411402105263158
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:205 (anonymous)",
+      "ms": 115.921,
+      "percent": 2.6031382456140353
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:174 (anonymous)",
+      "ms": 109.711,
+      "percent": 2.4636856140350876
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeContactPullback.js:105 pullbackCompositeContact",
+      "ms": 104.458,
+      "percent": 2.34572350877193
+    },
+    {
+      "frame": "node:internal/worker/js_transferable:112 structuredClone",
+      "ms": 99.835,
+      "percent": 2.2419087719298245
+    },
+    {
+      "frame": ":0 (program)",
+      "ms": 97.672,
+      "percent": 2.193336140350877
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:53 unsupported",
+      "ms": 95.832,
+      "percent": 2.152016842105263
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:203 solveCompositeRelativeDirection",
+      "ms": 90.87,
+      "percent": 2.0405894736842107
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:240 refresh",
+      "ms": 85.914,
+      "percent": 1.9292968421052632
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:177 invalidate",
+      "ms": 79.626,
+      "percent": 1.7880926315789474
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:126 query",
+      "ms": 79.333,
+      "percent": 1.7815129824561404
+    },
+    {
+      "frame": "wasm://wasm/00291abe:1 wasm-function[8]",
+      "ms": 72.625,
+      "percent": 1.6308771929824561
+    },
+    {
+      "frame": "node:inspector:115 post",
+      "ms": 70.125,
+      "percent": 1.5747368421052632
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:35 createCompositeLumenSideGeometryWorkspace",
+      "ms": 66.964,
+      "percent": 1.5037529824561404
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:179 refreshPrepared",
+      "ms": 60.831,
+      "percent": 1.3660294736842105
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:269 validateQuadrature",
+      "ms": 58.744,
+      "percent": 1.3191635087719298
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfacePullback.js:100 createSurfaceMapping",
+      "ms": 55.876,
+      "percent": 1.254759298245614
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:16 alloc",
+      "ms": 52.96,
+      "percent": 1.1892771929824562
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:14 readVector",
+      "ms": 52.08,
+      "percent": 1.1695157894736843
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:31 component",
+      "ms": 51.92,
+      "percent": 1.1659228070175438
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeContactPullback.js:2 finiteVector",
+      "ms": 44.792,
+      "percent": 1.0058554385964913
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:41 (anonymous)",
+      "ms": 43.543,
+      "percent": 0.9778077192982456
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:293 evaluateKirchhoffLumenSegmentContact",
+      "ms": 42.876,
+      "percent": 0.9628294736842106
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:42 createCompositeJointLumenRows",
+      "ms": 42.544,
+      "percent": 0.9553740350877193
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:13 copy",
+      "ms": 41.792,
+      "percent": 0.9384870175438597
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:161 (anonymous)",
+      "ms": 40.374,
+      "percent": 0.9066442105263158
+    },
+    {
+      "frame": "file://src/physics/kirchhoffContactManifold.js:187 materialSegmentContactId",
+      "ms": 36.624,
+      "percent": 0.8224336842105263
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:238 (anonymous)",
+      "ms": 36.581,
+      "percent": 0.8214680701754385
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:38 vector3",
+      "ms": 33.874,
+      "percent": 0.7606792982456141
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:11 vector",
+      "ms": 32.874,
+      "percent": 0.7382231578947368
+    },
+    {
+      "frame": ":0 structuredClone",
+      "ms": 30.872,
+      "percent": 0.6932659649122807
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:12 (anonymous)",
+      "ms": 30.624,
+      "percent": 0.6876968421052632
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeContactPullback.js:129 (anonymous)",
+      "ms": 29.958,
+      "percent": 0.6727410526315789
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfacePullback.js:102 (anonymous)",
+      "ms": 29.372,
+      "percent": 0.6595817543859649
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:268 (anonymous)",
+      "ms": 28.333,
+      "percent": 0.6362498245614036
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:381 evaluate",
+      "ms": 27.541,
+      "percent": 0.6184645614035088
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:499 (anonymous)",
+      "ms": 27.211,
+      "percent": 0.6110540350877193
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:33 regularOpenHistory",
+      "ms": 26.582,
+      "percent": 0.5969291228070176
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:238 advancePreparedJointStep",
+      "ms": 26.582,
+      "percent": 0.5969291228070176
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:438 evaluateCompositeJointSurfaceForceMap",
+      "ms": 25.877,
+      "percent": 0.5810975438596491
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeMaterialInertia.js:33 evaluate",
+      "ms": 25.415,
+      "percent": 0.5707228070175439
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:146 (anonymous)",
+      "ms": 24.751,
+      "percent": 0.5558119298245614
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCoulombBandLU.js:41 solve",
+      "ms": 24.209,
+      "percent": 0.543640701754386
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeToolLengths.js:66 evaluateCompositeToolLengths",
+      "ms": 23.416,
+      "percent": 0.5258329824561403
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:269 (anonymous)",
+      "ms": 22.084,
+      "percent": 0.49592140350877195
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointAssembly.js:208 add",
+      "ms": 21.835,
+      "percent": 0.4903298245614035
+    }
+  ],
+  "inclusive": [
+    {
+      "frame": ":0 (root)",
+      "ms": 4453.125,
+      "percent": 100
+    },
+    {
+      "frame": "file://scripts/physics/profile-composite-contact-cost.mjs:0 (anonymous)",
+      "ms": 4125.118,
+      "percent": 92.63422877192983
+    },
+    {
+      "frame": "file://scripts/physics/profile-composite-contact-cost.mjs:12 run",
+      "ms": 4052.743,
+      "percent": 91.00896561403509
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:227 advanceCompositeJointTimeStep",
+      "ms": 4046.701,
+      "percent": 90.87328561403508
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:238 advancePreparedJointStep",
+      "ms": 4040.033,
+      "percent": 90.72354807017544
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:381 evaluate",
+      "ms": 2193.288,
+      "percent": 49.25278315789474
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:228 refresh",
+      "ms": 1246.284,
+      "percent": 27.986728421052632
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:179 refreshPrepared",
+      "ms": 1238.158,
+      "percent": 27.804249824561403
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:126 query",
+      "ms": 984.327,
+      "percent": 22.104185263157895
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:203 solveCompositeRelativeDirection",
+      "ms": 856.701,
+      "percent": 19.238197894736842
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:82 differentiateCompositeLumenSideContact",
+      "ms": 788.613,
+      "percent": 17.709204210526316
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:240 refresh",
+      "ms": 689.082,
+      "percent": 15.474122105263158
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:227 (anonymous)",
+      "ms": 602.25,
+      "percent": 13.52421052631579
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:193 prepare",
+      "ms": 381.791,
+      "percent": 8.573552280701755
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:205 (anonymous)",
+      "ms": 360.793,
+      "percent": 8.102018245614035
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenSurface.js:107 evaluateCompositeJointLumenSurface",
+      "ms": 348.088,
+      "percent": 7.81671298245614
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:293 evaluateKirchhoffLumenSegmentContact",
+      "ms": 244.956,
+      "percent": 5.500766315789473
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:83 createCompositeJointLumenFrictionRows",
+      "ms": 243.457,
+      "percent": 5.4671045614035085
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:153 (anonymous)",
+      "ms": 229.872,
+      "percent": 5.162037894736842
+    },
+    {
+      "frame": ":0 (garbage collector)",
+      "ms": 203.253,
+      "percent": 4.5642778947368425
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointAssembly.js:230 evaluate",
+      "ms": 194.339,
+      "percent": 4.364103859649123
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeContactPullback.js:105 pullbackCompositeContact",
+      "ms": 182.208,
+      "percent": 4.091688421052631
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:6 vector",
+      "ms": 179.922,
+      "percent": 4.040353684210526
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenRows.js:42 createCompositeJointLumenRows",
+      "ms": 175.672,
+      "percent": 3.9449150877192984
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:310 evaluateCompositeJointSurfaceIncrement",
+      "ms": 158.796,
+      "percent": 3.5659452631578947
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:13 copy",
+      "ms": 153.585,
+      "percent": 3.448926315789474
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeRelativeDirection.js:243 (anonymous)",
+      "ms": 152.664,
+      "percent": 3.428244210526316
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:438 evaluateCompositeJointSurfaceForceMap",
+      "ms": 147.669,
+      "percent": 3.3160757894736843
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeElementExact.js:35 evaluateCompositeElement",
+      "ms": 121.003,
+      "percent": 2.717260350877193
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:53 unsupported",
+      "ms": 113.414,
+      "percent": 2.546840701754386
+    },
+    {
+      "frame": "node:internal/worker/js_transferable:112 structuredClone",
+      "ms": 111.001,
+      "percent": 2.4926540350877193
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfacePullback.js:50 factory",
+      "ms": 110.79,
+      "percent": 2.4879157894736843
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:174 (anonymous)",
+      "ms": 109.711,
+      "percent": 2.4636856140350876
+    },
+    {
+      "frame": ":0 (program)",
+      "ms": 97.672,
+      "percent": 2.193336140350877
+    },
+    {
+      "frame": "wasm://wasm/00291abe:1 js-to-wasm:ii:i",
+      "ms": 93.627,
+      "percent": 2.102501052631579
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfacePullback.js:100 createSurfaceMapping",
+      "ms": 87.456,
+      "percent": 1.9639242105263157
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:38 vector3",
+      "ms": 85.794,
+      "percent": 1.926602105263158
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:124 closestSegmentSegment",
+      "ms": 82.044,
+      "percent": 1.8423915789473684
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointLumenFrictionRows.js:177 invalidate",
+      "ms": 80.626,
+      "percent": 1.8105487719298246
+    },
+    {
+      "frame": "wasm://wasm/00291abe:1 wasm-function[8]",
+      "ms": 78.625,
+      "percent": 1.7656140350877192
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeLumenSideGeometry.js:35 createCompositeLumenSideGeometryWorkspace",
+      "ms": 71.381,
+      "percent": 1.602941754385965
+    },
+    {
+      "frame": "node:internal/util:480 fn",
+      "ms": 70.875,
+      "percent": 1.591578947368421
+    },
+    {
+      "frame": "node:inspector:115 post",
+      "ms": 70.125,
+      "percent": 1.5747368421052632
+    },
+    {
+      "frame": "node:internal/util:481 (anonymous)",
+      "ms": 70.125,
+      "percent": 1.5747368421052632
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:347 (anonymous)",
+      "ms": 67.294,
+      "percent": 1.5111635087719297
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointTimeStep.js:39 reusableDirection",
+      "ms": 63.665,
+      "percent": 1.4296701754385965
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:472 (anonymous)",
+      "ms": 60.415,
+      "percent": 1.3566877192982456
+    },
+    {
+      "frame": "file://src/physics/kirchhoffLumenContact.js:269 validateQuadrature",
+      "ms": 60.285,
+      "percent": 1.3537684210526315
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:21 constant",
+      "ms": 53.71,
+      "percent": 1.206119298245614
+    },
+    {
+      "frame": "file://src/physics/kirchhoffCompositeJointSurfaceMotion.js:16 alloc",
+      "ms": 52.96,
+      "percent": 1.1892771929824562
+    }
+  ]
+}

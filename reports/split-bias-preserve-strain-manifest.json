@@ -1,0 +1,51 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "source": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCoupledSystem.js",
+      "beforeSha256": "13921ed8e96770164078b75eaf1816fa656d1cf7db33b52ae37d4bcfe86170b5",
+      "afterSha256": "a8fb18ce4389a310b6400f00bbe50813fb19308aa5eb32ef3e875351fe97f5ee"
+    },
+    {
+      "path": "src/physics/kirchhoffSplitMotion.js",
+      "beforeSha256": "e46caddba849f081d91bb5df291186cc65a8c06c91d40fb0ec204a84997d3e9b",
+      "afterSha256": "53128abcc78c511965d6fe944122d8e3458b0fe5acbc3dde2f63ebc04fd25e12"
+    },
+    {
+      "path": "tests/kirchhoffSplitBiasStrain.test.js",
+      "beforeSha256": null,
+      "afterSha256": "93b4e7e65f732050a1c2f42f16e0d4d67e700ba4c2e095875f114f942bd2f41f"
+    },
+    {
+      "path": "tests/fixtures/splitMotionAnalyticWorld.js",
+      "beforeSha256": null,
+      "afterSha256": "0ff1792adde5b9c1b8efb2d6884d4033d9071aa0e2715db51d24dd604e540ca5"
+    },
+    {
+      "path": "reports/probe-split-preserve-strain.mjs",
+      "beforeSha256": null,
+      "afterSha256": "5449d2a964b1f6b54628201004bcb90a9a7491baeec267d51a8a4c59918994e0"
+    },
+    {
+      "path": "reports/register-split-preserve-strain.mjs",
+      "beforeSha256": null,
+      "afterSha256": "4edfc8ff38fed56da3d9d34a33d2fea1e4bb3cec19e7f9027b43e00692704f04"
+    },
+    {
+      "path": "reports/split-bias-preserve-strain.md",
+      "beforeSha256": null,
+      "afterSha256": "4ca1e6abd50d3d6cec6cb57a97b30a1ed00a26c35f08d74f4ff412f066a092e8"
+    }
+  ],
+  "default": "physical-compliance",
+  "option": "preserve-strain",
+  "verification": {
+    "originalOracleDefault": 8,
+    "originalOraclePreserve": 8,
+    "newBehavior": 2,
+    "defaultRegression": 21
+  },
+  "translated": "certified=false/historyCommits=0; deltaElasticEnergy=0; physical contact residual remains 0.0016996190233046005 mm",
+  "patchSha256": "59ada834407bbc2324b8c87d6ed630701c215ba8944c3e9b059b812655f67722"
+}

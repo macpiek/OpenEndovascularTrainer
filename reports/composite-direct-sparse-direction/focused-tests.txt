@@ -1,0 +1,44 @@
+✔ affine cone exit follows changing normal load, the opposite boundary and a disabled axis without mutating forces (0.826042ms)
+✔ two-axis anisotropic intersections stay on the original force cone over widely different force scales (0.147708ms)
+✔ no numerical hint invents an exit for open, apex, negative-load or unresolved paths (0.214125ms)
+✔ backtracking matches the same law and samples, safeguards contraction and combines multiple crossings (0.149458ms)
+✔ loaded short/deep shafts cross stick-slide in a bounded common solve while retaining the original physical root (634.959541ms)
+✔ fresh-certificate budget failure publishes nothing and retry keeps the same histories through the next dt (79.733333ms)
+✔ an open lumen keeps the original trial path, exact zero reactions and every declared normal query (21.50625ms)
+✔ mechanical mesh refinement checks reactions separately from shape while retaining every lumen surface sample (261.780875ms)
+✔ many contact samples assemble and certify the original sparse equations without materializing either full band (24.929125ms)
+✔ sparse structural zero slots and diagnostic views refresh from current coefficients, including tiny and nonsymmetric terms (5.637334ms)
+✔ exact zero-dual substitution retains physical columns and geometric tangents in the independent full equations (5.2735ms)
+✔ reactivated rows, tiny nonzero geometry coefficients and unresolved dual cycles stay in the full equations (2.646ms)
+✔ zero-dual pattern storage stays bounded and never caches numeric stiffness or residuals across solves (6.188958ms)
+✔ numerical regularization solves its explicit scaled system while preserving the distinct original equation proof (6.26625ms)
+✔ regularization cannot hide an incompatible held physical row or move fixed coordinates (1.343541ms)
+✔ invalid numerical shifts reject and cannot contaminate a later original solve (1.670416ms)
+✔ one sliding Coulomb block retains normal-force and cross-tangent derivatives in the original joint solve (2.348375ms)
+✔ a local dual block with zero diagonal still solves its coupled equations at fully prescribed geometry (2.089541ms)
+✔ dual block support is owned, local and explicit; stale or missing derivatives cannot reuse it (1.50875ms)
+✔ one original common/rho/dual LU matches an independent dense oracle for GN and exact physical operators (10.936417ms)
+✔ the common diagnostic block is never added twice, even when diagnostic bytes are poisoned (2.151333ms)
+✔ neighboring modes are solved jointly and deleting cross-mode blocks fails the full original equations (1.416792ms)
+✔ current H/C values are refreshed each direction while topology and frozen bases are checked (1.80125ms)
+✔ fixed mixed supports preserve physical force-column asymmetry and full nonsymmetric geometric tangent (1.4825ms)
+✔ boundary reactions act ON the chain and close an independently integrated translational impulse balance (0.860291ms)
+✔ fully prescribed incompatible rows retain their original residual and explicit row-specific gates (2.064709ms)
+✔ singular and stale/nonfinite inputs fail without regularization or a nonlinear certificate (1.688958ms)
+✔ unattainable original force/torque gates stay failed; each bounded correction refactors the same unshifted matrix (1.278875ms)
+✔ each correction RHS satisfies the independently contracted modified system while incompatible held rows remain visible (1.705875ms)
+✔ many modes and duals retain a bounded local band and linear matrix/factor storage (37.573459ms)
+✔ nonlocal or ambiguous supports are rejected instead of silently becoming a global dense solve (0.768333ms)
+✔ full 3D and mixed 2/3 coordinates interleave with local duals and match an independent dense direction (8.332875ms)
+✔ direction workspace accepts structure-only metadata but rejects an unassembled operator and changed mode dimensions (1.226792ms)
+✔ many full three-coordinate modes keep bounded band and linear storage with one shared solve (43.084125ms)
+✔ global endpoint modes and endpoint-local physical boundary rows match an independent dense system (3.709042ms)
+✔ a held catheter permits free axial wire slip and an independent wire endpoint target while both tool lengths stay exact (3.2175ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1546.036416

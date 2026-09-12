@@ -1,0 +1,999 @@
+{
+  "status": "PASS",
+  "algebra": [
+    {
+      "Fn": -0.25,
+      "normalInactive": true,
+      "projectionBranch": "negative-load-private-extension",
+      "DPz": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "equationDNormal": [
+        0,
+        0
+      ],
+      "dFn": 0.25,
+      "dFt": [
+        -0.125,
+        0.075
+      ],
+      "linearResidual": [
+        0,
+        -1.734723475976807e-18
+      ],
+      "trials": [
+        {
+          "alpha": 1,
+          "Fn": 0,
+          "Ft": [
+            0,
+            0
+          ],
+          "normalNcp": 0
+        },
+        {
+          "alpha": 0.5,
+          "Fn": -0.125,
+          "Ft": [
+            0.0625,
+            -0.0375
+          ],
+          "normalNcp": -0.025
+        },
+        {
+          "alpha": 0.125,
+          "Fn": -0.21875,
+          "Ft": [
+            0.109375,
+            -0.065625
+          ],
+          "normalNcp": -0.04375
+        }
+      ]
+    },
+    {
+      "Fn": -1e-30,
+      "normalInactive": true,
+      "projectionBranch": "negative-load-private-extension",
+      "DPz": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "equationDNormal": [
+        0,
+        0
+      ],
+      "dFn": 1e-30,
+      "dFt": [
+        -0.125,
+        0.075
+      ],
+      "linearResidual": [
+        0,
+        -1.734723475976807e-18
+      ],
+      "trials": [
+        {
+          "alpha": 1,
+          "Fn": 0,
+          "Ft": [
+            0,
+            0
+          ],
+          "normalNcp": 0
+        },
+        {
+          "alpha": 0.5,
+          "Fn": -5e-31,
+          "Ft": [
+            0.0625,
+            -0.0375
+          ],
+          "normalNcp": -1e-31
+        },
+        {
+          "alpha": 0.125,
+          "Fn": -8.75e-31,
+          "Ft": [
+            0.109375,
+            -0.065625
+          ],
+          "normalNcp": -1.7500000000000001e-31
+        }
+      ]
+    },
+    {
+      "Fn": 0,
+      "normalInactive": true,
+      "projectionBranch": "zero-load-right-derivative",
+      "DPz": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "equationDNormal": [
+        0.029671235219839116,
+        -0.06184989876811535
+      ],
+      "dFn": 0,
+      "dFt": [
+        -0.125,
+        0.075
+      ],
+      "linearResidual": [
+        0,
+        -1.734723475976807e-18
+      ],
+      "trials": [
+        {
+          "alpha": 1,
+          "Fn": 0,
+          "Ft": [
+            0,
+            0
+          ],
+          "normalNcp": 0
+        },
+        {
+          "alpha": 0.5,
+          "Fn": 0,
+          "Ft": [
+            0.0625,
+            -0.0375
+          ],
+          "normalNcp": 0
+        },
+        {
+          "alpha": 0.125,
+          "Fn": 0,
+          "Ft": [
+            0.109375,
+            -0.065625
+          ],
+          "normalNcp": 0
+        }
+      ]
+    }
+  ],
+  "activeCounterexample": {
+    "normalForce": 0,
+    "gap": -0.1,
+    "normalActive": true,
+    "dFn": 0.4,
+    "correctDFt": [
+      -0.12,
+      0
+    ],
+    "correctLinearResidual": [
+      4.336808689942018e-19,
+      0
+    ],
+    "incorrectlyZeroedLinearResidual": [
+      0.0024000000000000002,
+      0
+    ]
+  },
+  "disabledAxes": [
+    {
+      "mu": [
+        0,
+        0.6
+      ],
+      "residual": [
+        0.017857142857142856,
+        -0.09
+      ],
+      "G": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "tractionJacobian": [
+        0.14285714285714285,
+        0,
+        0,
+        0
+      ],
+      "DNormal": [
+        0,
+        0
+      ]
+    },
+    {
+      "mu": [
+        0.3,
+        0
+      ],
+      "residual": [
+        0.10357142857142856,
+        -0.010714285714285714
+      ],
+      "G": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "tractionJacobian": [
+        0.14285714285714285,
+        0,
+        0,
+        0.14285714285714285
+      ],
+      "DNormal": [
+        0.04285714285714286,
+        0
+      ]
+    },
+    {
+      "mu": [
+        0,
+        0
+      ],
+      "residual": [
+        0.017857142857142856,
+        -0.010714285714285714
+      ],
+      "G": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "tractionJacobian": [
+        0.14285714285714285,
+        0,
+        0,
+        0.14285714285714285
+      ],
+      "DNormal": [
+        0,
+        0
+      ]
+    }
+  ],
+  "cancellation": {
+    "Ft": 0.1,
+    "k": 7,
+    "delta": -0.10000000000000002,
+    "naiveTarget": -1.3877787807814457e-17,
+    "exactBacksubTarget": 0,
+    "originalConeViolation": "Infinity"
+  },
+  "wholeSteps": [
+    {
+      "kind": "wall",
+      "mu": [
+        0,
+        0.006
+      ],
+      "k": 5,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.38906569842440825,
+          "Ft": [
+            0,
+            0.0023343941905464498
+          ],
+          "slip": [
+            -0.0024989737416004393,
+            -0.00003786649157889677
+          ],
+          "work": -8.839531795815268e-8,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.41091143224690246,
+          "Ft": [
+            0,
+            0.002465468593481415
+          ],
+          "slip": [
+            -0.0024999926299576485,
+            -0.00003563050103549831
+          ],
+          "work": -8.784588127302811e-8,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0,
+        0.006
+      ],
+      "k": 50,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.38906569842440825,
+          "Ft": [
+            0,
+            0.0023343941905464498
+          ],
+          "slip": [
+            -0.0024989737416004393,
+            -0.00003786649157889677
+          ],
+          "work": -8.839531795815268e-8,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.41091143224690246,
+          "Ft": [
+            0,
+            0.002465468593481415
+          ],
+          "slip": [
+            -0.0024999926299576485,
+            -0.00003563050103549831
+          ],
+          "work": -8.784588127302811e-8,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0,
+        0.006
+      ],
+      "k": 500,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.38906569842440825,
+          "Ft": [
+            0,
+            0.0023343941905464498
+          ],
+          "slip": [
+            -0.0024989737416004393,
+            -0.00003786649157889677
+          ],
+          "work": -8.839531795815268e-8,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.41091143224690246,
+          "Ft": [
+            0,
+            0.002465468593481415
+          ],
+          "slip": [
+            -0.0024999926299576485,
+            -0.00003563050103549831
+          ],
+          "work": -8.784588127302811e-8,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0.006,
+        0
+      ],
+      "k": 5,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.38930423785770146,
+          "Ft": [
+            0.0023358254271462087,
+            0
+          ],
+          "slip": [
+            -0.0024989677597298515,
+            -0.00004000116551733148
+          ],
+          "work": -0.000005837152434795585,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.41116246954018765,
+          "Ft": [
+            0.0024669748172411257,
+            0
+          ],
+          "slip": [
+            -0.00249998036407953,
+            -0.00003999991402875848
+          ],
+          "work": -0.0000061673886017815015,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0.006,
+        0
+      ],
+      "k": 50,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.38930423785770146,
+          "Ft": [
+            0.002335825427146209,
+            0
+          ],
+          "slip": [
+            -0.0024989677597298515,
+            -0.00004000116551733148
+          ],
+          "work": -0.000005837152434795586,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.41116246954018765,
+          "Ft": [
+            0.0024669748172411257,
+            0
+          ],
+          "slip": [
+            -0.00249998036407953,
+            -0.00003999991402875848
+          ],
+          "work": -0.0000061673886017815015,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0.006,
+        0
+      ],
+      "k": 500,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.38930423785770146,
+          "Ft": [
+            0.002335825427146209,
+            0
+          ],
+          "slip": [
+            -0.0024989677597298515,
+            -0.00004000116551733148
+          ],
+          "work": -0.000005837152434795586,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.41116246954018765,
+          "Ft": [
+            0.0024669748172411257,
+            0
+          ],
+          "slip": [
+            -0.00249998036407953,
+            -0.00003999991402875848
+          ],
+          "work": -0.0000061673886017815015,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0,
+        0
+      ],
+      "k": 5,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.3890656975119779,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            -0.002498973769328758,
+            -0.000040001165548371315
+          ],
+          "work": 0,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.4109114287705853,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            -0.002499992689463368,
+            -0.0000399999141530252
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0,
+        0
+      ],
+      "k": 50,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.3890656975119779,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            -0.002498973769328758,
+            -0.000040001165548371315
+          ],
+          "work": 0,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.4109114287705853,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            -0.002499992689463368,
+            -0.0000399999141530252
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "mu": [
+        0,
+        0
+      ],
+      "k": 500,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.3890656975119779,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            -0.002498973769328758,
+            -0.000040001165548371315
+          ],
+          "work": 0,
+          "fullEvaluations": 8,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.4109114287705853,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            -0.002499992689463368,
+            -0.0000399999141530252
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0,
+        0.006
+      ],
+      "k": 5,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.3753051915143372,
+          "Ft": [
+            0,
+            -0.002251831149086023
+          ],
+          "slip": [
+            0.0033192562743152004,
+            0.00008015683926833035
+          ],
+          "work": -1.8049966747670802e-7,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37624870904381813,
+          "Ft": [
+            0,
+            -0.002257492254262909
+          ],
+          "slip": [
+            0.0033053257697140976,
+            0.00007864785490428221
+          ],
+          "work": -1.7754692326081024e-7,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0,
+        0.006
+      ],
+      "k": 50,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.37530519151433717,
+          "Ft": [
+            0,
+            -0.002251831149086023
+          ],
+          "slip": [
+            0.0033192562743152004,
+            0.00008015683926833035
+          ],
+          "work": -1.8049966747670802e-7,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.3762487090438182,
+          "Ft": [
+            0,
+            -0.002257492254262909
+          ],
+          "slip": [
+            0.0033053257697140976,
+            0.00007864785490428221
+          ],
+          "work": -1.7754692326081024e-7,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0,
+        0.006
+      ],
+      "k": 500,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.37530519151433717,
+          "Ft": [
+            0,
+            -0.002251831149086023
+          ],
+          "slip": [
+            0.0033192562743152004,
+            0.00008015683926833035
+          ],
+          "work": -1.8049966747670802e-7,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.3762487090438182,
+          "Ft": [
+            0,
+            -0.002257492254262909
+          ],
+          "slip": [
+            0.0033053257697140976,
+            0.00007864785490428221
+          ],
+          "work": -1.7754692326081024e-7,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0.006,
+        0
+      ],
+      "k": 5,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.37484869205775345,
+          "Ft": [
+            -0.0022490921523465207,
+            0
+          ],
+          "slip": [
+            0.0033191524595974032,
+            0.00008166659050583137
+          ],
+          "work": -0.0000074650797493221715,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37579203064808697,
+          "Ft": [
+            -0.0022547521838885217,
+            0
+          ],
+          "slip": [
+            0.003305118418205766,
+            0.00008166650326965925
+          ],
+          "work": -0.000007452222971459627,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0.006,
+        0
+      ],
+      "k": 50,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.37484869205775345,
+          "Ft": [
+            -0.0022490921523465207,
+            0
+          ],
+          "slip": [
+            0.0033191524595974032,
+            0.00008166659050583137
+          ],
+          "work": -0.0000074650797493221715,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37579203064808697,
+          "Ft": [
+            -0.0022547521838885217,
+            0
+          ],
+          "slip": [
+            0.003305118418205766,
+            0.00008166650326965925
+          ],
+          "work": -0.000007452222971459627,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0.006,
+        0
+      ],
+      "k": 500,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.37484869205775345,
+          "Ft": [
+            -0.0022490921523465207,
+            0
+          ],
+          "slip": [
+            0.0033191524595974032,
+            0.00008166659050583137
+          ],
+          "work": -0.0000074650797493221715,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37579203064808697,
+          "Ft": [
+            -0.0022547521838885217,
+            0
+          ],
+          "slip": [
+            0.003305118418205766,
+            0.00008166650326965925
+          ],
+          "work": -0.000007452222971459627,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0,
+        0
+      ],
+      "k": 5,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.375305196427941,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            0.0033192562962184925,
+            0.0000816665905345801
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37624870353806206,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            0.0033053258547828964,
+            0.00008166650332808135
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0,
+        0
+      ],
+      "k": 50,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.375305196427941,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            0.0033192562962184925,
+            0.0000816665905345801
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37624870353806206,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            0.0033053258547828964,
+            0.00008166650332808135
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    },
+    {
+      "kind": "lumen",
+      "mu": [
+        0,
+        0
+      ],
+      "k": 500,
+      "steps": [
+        {
+          "stage": 0,
+          "Fn": 0.375305196427941,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            0.0033192562962184925,
+            0.0000816665905345801
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        },
+        {
+          "stage": 1,
+          "Fn": 0.37624870353806206,
+          "Ft": [
+            0,
+            0
+          ],
+          "slip": [
+            0.0033053258547828964,
+            0.00008166650332808135
+          ],
+          "work": 0,
+          "fullEvaluations": 6,
+          "rejection": "evaluation-budget"
+        }
+      ]
+    }
+  ],
+  "acceptedSteps": 108,
+  "rejectedSteps": 36,
+  "findings": [],
+  "notes": [
+    "Disabled axes satisfy exact Ft_i/k equations, but no whole-step failure reproduced; no speculative fix requested.",
+    "Root source unchanged; probes use copied fixtures and frozen runtime sources."
+  ]
+}

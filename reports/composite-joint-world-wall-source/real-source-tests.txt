@@ -1,0 +1,54 @@
+✔ different exposed tool surfaces use their own Coulomb axes, exact loads and dissipated work (17.071ms)
+✔ per-owner normal derivatives and full physical configuration derivatives match finite differences (51.992375ms)
+✔ per-owner history preserves coefficients across manager reuse and ignores only semantic list order (4.101292ms)
+✔ incomplete, mixed and unknown surface coefficient declarations reject instead of borrowing another tool law (2.873083ms)
+✔ coincident chart intervals keep both physical wall surfaces, separate Fn/Ft and own spin loads (8.780917ms)
+✔ multiple wall surfaces cannot duplicate, hide or borrow an owner (0.724583ms)
+✔ original wall records map ordinary Fn slots into two cross-coupled rows and scatter exact physical loads/own spin once (1.479542ms)
+✔ stationary wall axial sliding has exact displacement, force and dissipated work without any previous wall query (0.997958ms)
+✔ full wall operators retain independent G/B/DB and all normal/own/other traction derivatives under actual common/relative perturbations (18.211833ms)
+✔ value trials equal full values and loads bit for bit, revoke derivatives and permit original certified commit (2.915917ms)
+✔ negative signed Fn and infeasible zero-load Ft stay unclamped and never accept through forged diagnostic certificates (1.755292ms)
+✔ second surface failure publishes no partial residual, invalidates all rows/loads and retries identically (2.120542ms)
+✔ normal private generation and physical state freshness gate prepare, refresh, restore and commit (2.42ms)
+✔ own material maps/semantic ID/history survive dt and penalty changes while stale leases and changed physical policies reject (2.96925ms)
+✔ wall seam/representative/dependent reductions and active extra normal slots reject without rewriting trial forces (1.258959ms)
+✔ current source/sample policy changes and finite material label crossing are explicit failures without previous queries (0.8715ms)
+✔ sdf: actual normal source routes current original operators and value loads with no extra query (2.212625ms)
+✔ bvh: actual normal source routes current original operators and value loads with no extra query (3.88925ms)
+✔ one original field may provide SDF and BVH for different physical wall samples without changing either geometry law (3.84075ms)
+✔ explicit nodal pressure gives one physical Fn/Ft at the shared node and its selected one-sided own spin (3.829709ms)
+✔ flat capsule minimum changes endpoints while original nodal pressure and all three finite Coulomb laws remain defined (3.819875ms)
+✔ nodal selected endpoint uses row.t and explicit trace even when degenerate raw query fraction is different (4.398292ms)
+✔ nodal full/value, local derivatives and scalar torques use the chosen shared-node edge within a full two-tool chart (26.434583ms)
+✔ nodal pressure rejects missing/duplicate sites, wrong one-sided owner, radius jumps and silent history reinterpretation (3.166458ms)
+✔ nodal second-site failure revokes every row and load, preserves original Fn/Ft/history and retries bit-identically (2.227ms)
+✔ explicit prepared proximal catheter feed dsDt=-.3 gives two original nodal Coulomb laws, all columns and physical loads without extra queries (26.131417ms)
+✔ plane: N-physical wall manager equations and mechanics differentiate all expanded columns with simultaneous bending/spin (178.754875ms)
+ℹ {"kind":"plane","columns":11,"maxEquation":7.599072759933989e-11,"maxMechanics":2.5340450918176494e-10}
+✔ sdf: N-physical wall manager equations and mechanics differentiate all expanded columns with simultaneous bending/spin (178.54325ms)
+ℹ {"kind":"sdf","columns":11,"maxEquation":7.157071810204307e-11,"maxMechanics":6.298139787475066e-10}
+✔ bvh: N-physical wall manager equations and mechanics differentiate all expanded columns with simultaneous bending/spin (181.488333ms)
+ℹ {"kind":"bvh","columns":11,"maxEquation":7.012202784032438e-11,"maxMechanics":4.0414493973628396e-10}
+✔ prepared old OWN nodes, frames, angles, labels and semantic IDs must match incoming state; explicit external pose is required (7.036166ms)
+✔ two manager dt preserve their own Fn/Ft history with a newly prepared path and reject changed transport policy or support (38.537125ms)
+✔ path workspace reuse across successive dt retains one legacy scratch arena and no accumulating path cache (187.042292ms)
+✔ expanded wall manager late failure, current extra-node/spin freshness and path replacement revoke commit and retry exactly (79.09025ms)
+✔ a declared catheter pose path coexists with unchanged seven-column wire surface rows and exact global dual offsets (26.148917ms)
+✔ prepared N=7 entry works, and an expanded relative wire owner retains all common/relative equation derivatives (302.303583ms)
+✔ prepared exact endpoint labels select the accepted trace despite noninteger metric cancellation (7.687292ms)
+✔ actual 5/4 body grids expose every original collision interval with its parent radius, including both tools on one chart edge (13.60725ms)
+✔ World source proof cannot be forged, reused after range/radius/law changes, or derived from incomplete own bindings (1.086458ms)
+✔ actual World field runs two complete source-derived wall steps for both tools and retries without consuming dt twice (93.985792ms)
+✔ an entirely shielded actual World source proves zero exposure; unequal static/kinetic friction cannot silently use the kinetic alias (1.176167ms)
+✔ the original Aorta field and actual Float32 body radii enter the World bridge and certify their original capsule gap (74.219542ms)
+ℹ {"step":1,"initialGap":-0.01999905239790678,"finalGap":-3.941291737419306e-15,"source":"sparse-sdf","directions":7,"evaluations":17}
+ℹ {"step":2,"initialGap":-0.01999905239790678,"finalGap":-1.9524493133360465e-11,"source":"sparse-sdf","directions":6,"evaluations":21}
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1858.490083

@@ -1,0 +1,13 @@
+# Simulation clock / retry handoff
+
+Three shared root files are final and frozen; World and Composite modules were not modified by this worker. Register tests/fixedStepTransaction.test.js in the repository test script.
+
+FixedStepTransaction owns one prepared dt: new attempts call World.advance(dt, prepare), retries call World.advance(0) with the same context, and successful World count must match the returned count. No input preparation repeats after rejection. One failed attempt per render frame is shared by rAF and idle. Epochs invalidate stale idle callbacks after explicit reset/dispose; caller preserves or clears application backlog as requested while resetSimulationState clears World debt. Preparation failure cannot repeat partial input without reset.
+
+Simulator separates prepare/World/commit. Only accepted results consume application accumulator and increment executed/idle steps, benchmark physical time, metric samples, contrast/dose and postcommit state. Accounting occurs before presentation; exceptions after a committed World dt cannot replay it. Benchmark epochs prevent a pending old run from writing into a reset/new run. Warmup boundary/reset is outside advance before the next dt is admitted, never during retry.
+
+Stiffness, friction, relaxation and contrast UI callbacks defer mutations while pending. Type and both rotation commands are sampled only during new preparation. Deferred parameter events use the latest requested value per key. Explicit reset applies requested settings to the reset state. No GUI reload or server restart was performed.
+
+The existing simulationAcceptedTime name was retained for compatibility: it means wall time admitted by rAF, not physics accepted by the solver. Its benchmark acceptedSeconds denominator and conservation equation remain unchanged. Physical committed time is simulationExecutedSteps*fixedDt. Failed CPU cost still updates the scheduler estimate and stays visible in World diagnostics; it earns zero simulated time. This is an accounting fix, not a physics convergence/FPS claim.
+
+Validation:12 new tests +12 existing World transaction tests =24/24 PASS. Tests execute the actual simulator rAF/idle/commit/benchmark/setting callback source in VM, plus real transport + real two-channel World rejection/rejection/acceptance with both rotations, 1 feed/path/sync preparation and 1 history commit. Real World tests cover void independent/legacy and first eligible split steps. Benchmark epoch, warmup/reset boundary, postacceptance presentation error, partial preparation error, solver error, dt mismatch, stale idle, disposal and deferred UI inputs are covered. npm run build PASS6.29s; final formatting-only indentation adjustment followed by syntax/diff checks PASS.

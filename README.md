@@ -9,7 +9,7 @@ Open Endovascular Trainer is a browser-based endovascular training prototype bui
 - Real-time WebGL simulator with a full-screen Three.js scene.
 - Imported aortic, cerebral, iliac, and bilateral upper- and lower-limb arterial anatomy in
   `res/Aorta_plain.stl`, plus the skeleton from `res/skeleton.obj`.
-- Shared XPBD world for the guidewire and catheter with segment-length preservation, bending/rest-shape constraints, wall contact, Coulomb friction, and resistance feedback.
+- Shared Kirchhoff model for the guidewire and catheter with independent material feed and spin, segment-length preservation, wall and lumen contact, Coulomb friction, and resistance feedback.
 - Precompiled sparse signed-distance collision field backed by a MeshBVH validator; production startup does not generate the centerline or collision field.
 - Pigtail and Berenstein catheter shapes rendered with instanced segments instead of rebuilding `TubeGeometry` every frame.
 - Introducer sheath positioned in the iliac branch, with retraction limits that keep the wire inside the sheath.
@@ -116,7 +116,7 @@ npm run dev          # start Vite development server
 npm run build        # build the browser app
 npm run anatomy:rebuild # rebuild the hollow limb, neck, and cerebral arteries
 npm run collision:build # regenerate the versioned centerline and sparse SDF asset
-npm run benchmark:collision # write legacy/XPBD timing reports to reports/
+npm run benchmark:collision # write direct Kirchhoff/contact timing reports to reports/
 npm run benchmark:browser:chrome # run the foreground Chrome acceptance workload
 npm run benchmark:browser:safari # run the same workload through Safari WebDriver
 npm run centerline:diagnostics # export centerline metrics and orthogonal projections
@@ -142,8 +142,8 @@ style.css                   Simulator UI styling
 src/simulator.js            Main scene, physics loop, rendering passes, and integration
 src/physics/endovascularPhysicsWorld.js Shared XPBD rod/contact world
 src/physics/collision/         Packed collision asset and VesselContactField
-src/physics/elasticRod.js      Legacy elastic rod physics model
-src/physics/guidewireSolver.js Guidewire path and collision solver
+src/physics/rodState.js        Material-node storage shared with rendering
+src/physics/guidewireTransport.js Prescribed inlet feed and contact diagnostics
 src/pigtailCatheter.js      Pigtail catheter behavior and mesh generation
 src/contrast/               Hybrid 1D/3D contrast transport and volume renderer
 src/vesselGeometry.js       Vessel centerline, sheath, flow, and branch metadata
@@ -157,14 +157,75 @@ src/carmControls.js         C-arm movement controls
 src/ui/                    UI widgets, monitor, and C-arm preview
 res/                        Aorta STL and skeleton OBJ assets
 tests/                      Physics and solver regression tests
-tools/legacy/               Standalone legacy simulation demos
 video/                      Remotion video composition
 out/                        Generated preview frame and video
 ```
 
 ## Collision And Physics
 
-The default mode is `xpbd-contact-v1`; append `?physics=legacy` to compare the previous path. The shared world runs at 120 Hz with at most two substeps per rendered frame. It solves the analytic sheath lumen, rod length and bending/rest shape, guidewire-in-catheter containment, external tool contact, vessel wall contact, and friction in a fixed order.
+The default application uses the previous `joint-two-channel` solver while
+an insertion regression in the new model is being repaired. The experimental
+`?coupledSolver=composite-joint` model solves both tools in one common/relative
+system with independent material feed, spin, stiffness and contact reactions.
+It currently stalls near 131.27 mm in the captured anatomy replay and is not
+ready to replace the default solver.
+The world uses a fixed 1/120 s step. Numerical work can continue across render
+frames, and a timestep is consumed only after acceptance. The on-screen solver
+status distinguishes accepted physical steps from rendering FPS. Performance
+optimization and the 60 FPS acceptance workload remain a subsequent phase. The
+manufactured curvature lives in material frames, while the introducer boundary
+controls feeding. Vessel, sheath and tool contacts remain unilateral constraints.
+See [the UI integration status and known convergence limits](reports/composite-joint-ui-integration.md)
+before treating this development version as a completed simulator.
+
+Earlier solver variants remain available for reproducing previous measurements.
+The earlier simultaneous material/contact solver is available at
+`?coupledSolver=joint-active-coulomb`. It enables exact active material elimination
+and simultaneous Coulomb Newton; `?coupledSolver=reference` selects the previous direct implementation. Debug benchmark
+reports identify the selected variant and count its actual solves. This variant
+does not yet meet the real-time target: inspect both FPS and physics backlog.
+The additional `?coupledSolver=joint-full-band` variant retains the full local
+dual operator and uses nonsymmetric band LU for Coulomb Newton. Frozen comparisons
+do not show a consistent speed advantage, so it is also an explicit experiment.
+See [current integration and validation](reports/coupled-rebuild-progress.md).
+
+For a deterministic Node replay of that variant, use:
+
+```bash
+node scripts/benchmark-coupled-rebuild.mjs --solver joint-active-coulomb --deep
+npm run test:physics:coupled
+```
+
+`scripts/physics/compare-coupled-timesteps.mjs --hz 60,120 --prepare-hz 120`
+compares timestep choices after the same guidewire preparation. It is a CPU
+diagnostic, not a browser FPS or scheduler acceptance test.
+
+An additional World prototype separates physical motion from geometric bias:
+`jointMotionMode: 'split-physical-bias'` with a joint solver installed. It is
+available in the timestep diagnostic through `--motion-mode split-physical-bias`;
+add `--bias-material-mode preserve-strain` for the strain-preserving variant.
+The browser default is unchanged. `configureKirchhoffSplitBias(joint,
+{ materialMode: 'preserve-strain' })` additionally preserves the physical
+material strain during geometric repair. Small analytic tests pass, but new
+contacts after bias, wall witness migration and sheath history still require
+closure before general runtime use. See the [prototype handoff](reports/split-physical-bias-handoff.md)
+and [strain preservation comparison](reports/split-bias-preserve-strain.md).
+
+For an eligible split joint, `world.stepFixed()` returns an acceptance result.
+A rejected step restores the mechanical state and preserves elapsed time;
+`world.advance()` retries its prepared inputs without invoking the input callback
+again. Independent guidewire preparation remains available before the pair is
+eligible. The bias phase first evaluates the existing nonlinear accuracy gates
+and skips its linear solve when they already pass. These changes do not establish
+the deep-insertion performance target. See [step transactions](reports/split-step-transaction.md).
+
+Run `npm run test:guidewire:mechanics` and `npm run test:catheter:mechanics` for
+analytical bending, unloading, torsion and catheter-over-wire regressions.
+See [the removal and validation report](reports/direct-only-solver.md) for the
+scope of the cleanup and remaining acceptance failures inherited from the direct solver.
+
+See [the contact-block report](reports/catheter-contact-block.md) for the coupled
+solve, numerical kernel and deep-insertion performance measurements.
 
 Regenerate the collision asset whenever `Aorta_plain.stl`, its transform, or the offline centerline/SDF pipeline changes. To reproduce all arterial extensions from the original model, run the anatomy generator first:
 
@@ -179,43 +240,12 @@ See `reports/collision-system.md` for the contact API, asset layout, benchmark r
 For the foreground ten-minute browser workload, open the `Debug` tab, select `Start 10 min`, and leave the simulator in the foreground until the acceptance report appears. The automated Chrome and Safari commands use the same deterministic workload and a two-cycle warmup; Safari WebDriver additionally requires `Allow remote automation` in Safari's Developer settings.
 Treat the long browser workload as a regression gate for major physics/rendering changes and releases. During active solver development, use the deterministic unit/regression suite plus a short browser smoke run instead of tuning isolated frame-time outliers.
 
-## Legacy Physics Notes
-
-The guidewire is modeled as an `ElasticRod` with position-based constraints. Each segment is kept near its rest length, bending behavior is approximated by curvature and shape constraints, and wall contact applies tangential friction. Runtime tuning hooks are exported from `src/physics/elasticRod.js`:
-
-```js
-import {
-  setBendingStiffness,
-  setSmoothingIterations,
-  setWallFriction
-} from './src/physics/elasticRod.js';
-
-setBendingStiffness(0.8);
-setSmoothingIterations(1);
-setWallFriction(0.006, 0.002);
-```
-
-Lower friction values reduce sticking when the wire slides along the vessel wall. Higher bending stiffness makes the wire straighten more aggressively after release or withdrawal.
-
-## Test and Demo Scripts
-
-The primary test command checks simulator syntax and runs the regression tests:
+## Tests and benchmarks
 
 ```bash
 npm test
-```
-
-Legacy guidewire experiments produce JSON-style logs:
-
-```bash
-node tools/legacy/elasticRod/straightening.js
-node tools/legacy/elasticRod/wallBend.js
-node tools/legacy/elasticRod/branchCollision.js
-node tools/legacy/elasticRod/remoteSegmentInterference.js
-```
-
-For an isolated browser visualization of the rod model, open:
-
-```text
-tools/legacy/elasticRod/visualize.html
+npm run test:guidewire:mechanics
+npm run test:catheter:mechanics
+npm run benchmark:kirchhoff
+npm run benchmark:collision
 ```

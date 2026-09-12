@@ -1,0 +1,25 @@
+{
+  "status": "FROZEN",
+  "files": [
+    {
+      "path": "src/simulator.js",
+      "sha256": "a3e056578b844ea01533102a36d6c3c15a00d9b196f1b872e81727b6b503cf7e"
+    },
+    {
+      "path": "src/physics/fixedStepTransaction.js",
+      "sha256": "48760316d3798303a6d2112d7673fe14be9f3d4bbe1662cff1ef59c901e9f131"
+    },
+    {
+      "path": "tests/fixedStepTransaction.test.js",
+      "sha256": "3458cd8f9d204f497a33556a411899c68d11745d8e368bddb6f38c7c84058940"
+    }
+  ],
+  "unchangedWorldSha256": "10d363a468362ec383bfee6a2e5b35dca230ee96bbfb085f65523082b61759c1",
+  "tests": {
+    "newTests": 12,
+    "existingWorldTransactionTests": 12,
+    "passed": 24,
+    "failed": 0
+  },
+  "build": "PASS 6.29s; subsequent source edit only indentation in commitSimulationStep; final syntax/diff checks PASS"
+}

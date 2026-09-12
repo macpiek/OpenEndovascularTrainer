@@ -1,0 +1,188 @@
+{
+  "spectral": {
+    "cases": 120,
+    "maxOffsetError": 5.505040867603839e-13,
+    "maxNormalForceError": 2.2851054382044822e-11,
+    "maxResponseError": 1.3212917837269466e-11
+  },
+  "envelope": {
+    "cases": 2,
+    "maxGradientError": 3.6261271763038394e-12,
+    "maxHessianError": 4.34936808790809e-12,
+    "maxClearanceDerivativeError": 1.1448065606600721e-8
+  },
+  "units": [
+    {
+      "active": false,
+      "lengthScale": 0.001,
+      "forceScale": 0.000001,
+      "offsetError": 2.439454888092385e-19,
+      "energyRelativeError": 0,
+      "forceError": 0,
+      "responseError": 2.7755575615628914e-17
+    },
+    {
+      "active": false,
+      "lengthScale": 0.001,
+      "forceScale": 1,
+      "offsetError": 6.505213034913027e-19,
+      "energyRelativeError": 1.3108856812479299e-16,
+      "forceError": 0,
+      "responseError": 2.7755575615628914e-17
+    },
+    {
+      "active": false,
+      "lengthScale": 0.001,
+      "forceScale": 1000000,
+      "offsetError": 2.168404344971009e-19,
+      "energyRelativeError": 2.62177136249586e-16,
+      "forceError": 0,
+      "responseError": 6.938893903907228e-18
+    },
+    {
+      "active": false,
+      "lengthScale": 1,
+      "forceScale": 0.000001,
+      "offsetError": 0,
+      "energyRelativeError": 1.31088568124793e-16,
+      "forceError": 0,
+      "responseError": 0
+    },
+    {
+      "active": false,
+      "lengthScale": 1,
+      "forceScale": 1,
+      "offsetError": 0,
+      "energyRelativeError": 0,
+      "forceError": 0,
+      "responseError": 0
+    },
+    {
+      "active": false,
+      "lengthScale": 1,
+      "forceScale": 1000000,
+      "offsetError": 1.0842021724855044e-18,
+      "energyRelativeError": 0,
+      "forceError": 0,
+      "responseError": 2.7755575615628914e-17
+    },
+    {
+      "active": false,
+      "lengthScale": 1000,
+      "forceScale": 0.000001,
+      "offsetError": 2.168404344971009e-19,
+      "energyRelativeError": 1.3108856812479299e-16,
+      "forceError": 0,
+      "responseError": 1.3877787807814457e-17
+    },
+    {
+      "active": false,
+      "lengthScale": 1000,
+      "forceScale": 1,
+      "offsetError": 6.505213034913027e-19,
+      "energyRelativeError": 1.3108856812479299e-16,
+      "forceError": 0,
+      "responseError": 2.7755575615628914e-17
+    },
+    {
+      "active": false,
+      "lengthScale": 1000,
+      "forceScale": 1000000,
+      "offsetError": 4.336808689942018e-19,
+      "energyRelativeError": 2.62177136249586e-16,
+      "forceError": 0,
+      "responseError": 1.3877787807814457e-17
+    },
+    {
+      "active": true,
+      "lengthScale": 0.001,
+      "forceScale": 0.000001,
+      "offsetError": 1.3877787807814457e-17,
+      "energyRelativeError": 5.498448776540634e-16,
+      "forceError": 0,
+      "responseError": 3.469446951953614e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 0.001,
+      "forceScale": 1,
+      "offsetError": 1.3877787807814457e-17,
+      "energyRelativeError": 1.8328162588468783e-16,
+      "forceError": 4.440892098500626e-16,
+      "responseError": 5.204170427930421e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 0.001,
+      "forceScale": 1000000,
+      "offsetError": 2.0816681711721685e-17,
+      "energyRelativeError": 3.6656325176937566e-16,
+      "forceError": 0,
+      "responseError": 5.204170427930421e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 1,
+      "forceScale": 0.000001,
+      "offsetError": 6.938893903907228e-18,
+      "energyRelativeError": 1.832816258846878e-16,
+      "forceError": 4.440892098500626e-16,
+      "responseError": 1.734723475976807e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 1,
+      "forceScale": 1,
+      "offsetError": 0,
+      "energyRelativeError": 0,
+      "forceError": 0,
+      "responseError": 0
+    },
+    {
+      "active": true,
+      "lengthScale": 1,
+      "forceScale": 1000000,
+      "offsetError": 2.0816681711721685e-17,
+      "energyRelativeError": 3.6656325176937566e-16,
+      "forceError": 0,
+      "responseError": 3.469446951953614e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 1000,
+      "forceScale": 0.000001,
+      "offsetError": 1.3877787807814457e-17,
+      "energyRelativeError": 3.6656325176937566e-16,
+      "forceError": 8.881784197001252e-16,
+      "responseError": 3.469446951953614e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 1000,
+      "forceScale": 1,
+      "offsetError": 1.3877787807814457e-17,
+      "energyRelativeError": 3.6656325176937566e-16,
+      "forceError": 0,
+      "responseError": 1.734723475976807e-18
+    },
+    {
+      "active": true,
+      "lengthScale": 1000,
+      "forceScale": 1000000,
+      "offsetError": 2.0816681711721685e-17,
+      "energyRelativeError": 5.498448776540634e-16,
+      "forceError": 0,
+      "responseError": 3.469446951953614e-18
+    }
+  ],
+  "guards": [
+    "NaN stiffness",
+    "infinite gradient",
+    "negative clearance",
+    "singular stiffness",
+    "indefinite stiffness",
+    "nonfinite tolerance",
+    "invalid budget",
+    "unconverged cell cannot condense"
+  ]
+}

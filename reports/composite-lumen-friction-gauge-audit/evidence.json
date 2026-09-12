@@ -1,0 +1,1123 @@
+{
+  "scope": "Counterexample to exact Coulomb equivalence of normal-only affine pressure gauge; no whole-step solve",
+  "source": "/tmp/oet-lumen-friction-gauge-audit-8996/stage",
+  "geometry": {
+    "innerStart": [
+      0.25,
+      0.25,
+      0
+    ],
+    "innerEnd": [
+      2.25,
+      0.25,
+      0
+    ],
+    "outerStart": [
+      0,
+      0,
+      0
+    ],
+    "outerEnd": [
+      2,
+      0,
+      0
+    ],
+    "innerRadius": 0.1,
+    "lumenRadius": 0.35,
+    "innerMaterialSegmentId": "wire:0",
+    "outerMaterialSegmentId": "cat:0",
+    "openDistal": false,
+    "portalFilletRadius": 0
+  },
+  "samples": [
+    0.25,
+    0.5,
+    0.75
+  ],
+  "normal": {
+    "gaps": [
+      -2.7755575615628914e-17,
+      -2.7755575615628914e-17,
+      -2.7755575615628914e-17
+    ],
+    "before": [
+      0,
+      -0.5,
+      0,
+      0,
+      -0.5,
+      0,
+      0,
+      0.375,
+      0,
+      0,
+      0.625,
+      0
+    ],
+    "after": [
+      0,
+      -0.5,
+      0,
+      0,
+      -0.5,
+      0,
+      0,
+      0.375,
+      0,
+      0,
+      0.625,
+      0
+    ],
+    "exactEquality": true,
+    "wrenchBefore": [
+      {
+        "force": [
+          0,
+          -1,
+          0
+        ],
+        "moment": [
+          0,
+          0,
+          -1.25
+        ]
+      },
+      {
+        "force": [
+          0,
+          1,
+          0
+        ],
+        "moment": [
+          0,
+          0,
+          1.25
+        ]
+      }
+    ],
+    "wrenchAfter": [
+      {
+        "force": [
+          0,
+          -1,
+          0
+        ],
+        "moment": [
+          0,
+          0,
+          -1.25
+        ]
+      },
+      {
+        "force": [
+          0,
+          1,
+          0
+        ],
+        "moment": [
+          0,
+          0,
+          1.25
+        ]
+      }
+    ],
+    "actualGauge": {
+      "kind": "affine-side-endpoints",
+      "retainedRows": 2,
+      "redundantSamples": 1,
+      "transfers": [
+        {
+          "sampleId": "[\"gauge-audit\",\"f16:joint-lumen:side|s6:wire:0|s5:cat:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.5]",
+          "Fn": 1,
+          "endpoints": [
+            "[\"gauge-audit\",\"f16:joint-lumen:side|s6:wire:0|s5:cat:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.25]",
+            "[\"gauge-audit\",\"f16:joint-lumen:side|s6:wire:0|s5:cat:0\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":0},{\"toolId\":\"catheter\",\"node\":1}],0.75]"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ],
+          "forces": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "preparationQueries": 3
+    }
+  },
+  "instantaneous": {
+    "mu": [
+      0.015,
+      0.006
+    ],
+    "velocity": [
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "before": {
+      "Fn": [
+        0,
+        1,
+        0
+      ],
+      "slips": [
+        [
+          0,
+          -0.5
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0.5
+        ]
+      ],
+      "tractions": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "loads": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "common": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "relative": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "wrench": [
+        {
+          "force": [
+            0,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            0
+          ],
+          "spinTorque": 0
+        },
+        {
+          "force": [
+            0,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            0
+          ],
+          "spinTorque": 0
+        }
+      ],
+      "work": 0,
+      "kkt": [
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        }
+      ],
+      "equations": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "after": {
+      "Fn": [
+        0.5,
+        0,
+        0.5
+      ],
+      "slips": [
+        [
+          0,
+          -0.5
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0.5
+        ]
+      ],
+      "tractions": [
+        [
+          0,
+          0.003
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          -0.003
+        ]
+      ],
+      "loads": [
+        0,
+        0,
+        0.0015000000000000002,
+        0,
+        0,
+        -0.0015000000000000002,
+        0,
+        0,
+        0,
+        -0.0015,
+        0,
+        0,
+        0.0015,
+        0
+      ],
+      "common": [
+        0,
+        0,
+        3.2526065174565133e-19,
+        0,
+        0,
+        0,
+        0,
+        -2.168404344971009e-19
+      ],
+      "relative": [
+        0,
+        0,
+        0.0015000000000000002,
+        0,
+        0,
+        -0.0015000000000000002
+      ],
+      "wrench": [
+        {
+          "force": [
+            0,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0.0030000000000000005,
+            0
+          ],
+          "spinTorque": 0
+        },
+        {
+          "force": [
+            0,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            -0.003,
+            0
+          ],
+          "spinTorque": 0
+        }
+      ],
+      "work": -0.003,
+      "kkt": [
+        {
+          "work": -0.0015,
+          "minimumWork": -0.0015,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": -0.0015,
+          "minimumWork": -0.0015,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        }
+      ],
+      "equations": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "keepingZeroFtAfterNormalTransfer": [
+      {
+        "work": 0,
+        "minimumWork": -0.0015,
+        "workGap": 0.0015,
+        "slipResidual": 0.5,
+        "coneViolation": 0,
+        "converged": false,
+        "scope": "original-local-Coulomb-KKT"
+      },
+      {
+        "work": 0,
+        "minimumWork": 0,
+        "workGap": 0,
+        "slipResidual": 0,
+        "coneViolation": 0,
+        "converged": true,
+        "scope": "original-local-Coulomb-KKT"
+      },
+      {
+        "work": 0,
+        "minimumWork": -0.0015,
+        "workGap": 0.0015,
+        "slipResidual": 0.5,
+        "coneViolation": 0,
+        "converged": false,
+        "scope": "original-local-Coulomb-KKT"
+      }
+    ]
+  },
+  "finite": {
+    "previous": {
+      "innerStart": [
+        0.25019999333342224,
+        0.24,
+        0.01999866669333308
+      ],
+      "innerEnd": [
+        2.249800006666578,
+        0.24,
+        -0.01999866669333308
+      ],
+      "outerStart": [
+        0,
+        0,
+        0
+      ],
+      "outerEnd": [
+        2,
+        0,
+        0
+      ],
+      "innerRadius": 0.1,
+      "lumenRadius": 0.35,
+      "innerMaterialSegmentId": "wire:0",
+      "outerMaterialSegmentId": "cat:0",
+      "openDistal": false,
+      "portalFilletRadius": 0
+    },
+    "oldGaps": [
+      0.009791784762931632,
+      0.009999999999999981,
+      0.009791784762931632
+    ],
+    "currentLength": 2,
+    "previousLength": 2,
+    "before": {
+      "Fn": [
+        0,
+        1,
+        0
+      ],
+      "slips": [
+        [
+          -0.00014266121721280713,
+          -0.010205955759277985
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0.00014266121721258509,
+          0.010205955759277985
+        ]
+      ],
+      "tractions": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "loads": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "common": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "relative": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "wrench": [
+        {
+          "force": [
+            0,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            0
+          ],
+          "spinTorque": 0
+        },
+        {
+          "force": [
+            0,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            0
+          ],
+          "spinTorque": 0
+        }
+      ],
+      "work": 0,
+      "kkt": [
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        }
+      ],
+      "equations": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "after": {
+      "Fn": [
+        0.5,
+        0,
+        0.5
+      ],
+      "slips": [
+        [
+          -0.00014266121721280713,
+          -0.010205955759277985
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0.00014266121721258509,
+          0.010205955759277985
+        ]
+      ],
+      "tractions": [
+        [
+          0.00026193196366843294,
+          0.0029981698856845003
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          -0.0002619319636680257,
+          -0.0029981698856845055
+        ]
+      ],
+      "loads": [
+        0.00013096598183431825,
+        2.036267205199338e-17,
+        0.001499084942842249,
+        -0.00013096598183391103,
+        -2.036267205199338e-17,
+        -0.0014990849428422543,
+        -4.87890977618477e-19,
+        -0.00013096598183426738,
+        -7.126596405018781e-17,
+        -0.0014990849428422495,
+        0.00013096598183386015,
+        7.126596405018781e-17,
+        0.0014990849428422545,
+        1.951563910473908e-18
+      ],
+      "common": [
+        5.088296320746033e-17,
+        -5.0903291998194433e-17,
+        -4.87890977618477e-19,
+        -4.87890977618477e-19,
+        1.951563910473908e-18,
+        -5.0889739471038364e-17,
+        5.0903291998194433e-17,
+        3.2526065174565133e-19
+      ],
+      "relative": [
+        0.00013096598183431825,
+        2.036267205199338e-17,
+        0.001499084942842249,
+        -0.00013096598183391103,
+        -2.036267205199338e-17,
+        -0.0014990849428422543
+      ],
+      "wrench": [
+        {
+          "force": [
+            4.0722633598555547e-16,
+            0,
+            -5.204170427930421e-18
+          ],
+          "moment": [
+            -1.7889335846010823e-18,
+            0.0029981698856845094,
+            -1.4253192810037563e-16
+          ],
+          "spinTorque": -4.87890977618477e-19
+        },
+        {
+          "force": [
+            -4.0722633598555547e-16,
+            0,
+            4.9873299934333204e-18
+          ],
+          "moment": [
+            1.951563910473908e-18,
+            -0.002998169885684509,
+            1.4253192810037563e-16
+          ],
+          "spinTorque": 1.951563910473908e-18
+        }
+      ],
+      "work": -0.0000612731134897188,
+      "kkt": [
+        {
+          "work": -0.000030636556744859426,
+          "minimumWork": -0.00003063655674485942,
+          "workGap": 6.776263578034403e-21,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": -0.000030636556744859365,
+          "minimumWork": -0.000030636556744859365,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        }
+      ],
+      "equations": [
+        [
+          7.744301232039317e-21,
+          6.195440985631454e-20
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          -6.195440985631454e-20
+        ]
+      ]
+    },
+    "currentSurfacePoints": [
+      [
+        0.75,
+        0.35,
+        0
+      ],
+      [
+        1.25,
+        0.35,
+        0
+      ],
+      [
+        1.75,
+        0.35,
+        0
+      ]
+    ],
+    "currentWitnessSeparation": [
+      0,
+      0,
+      0
+    ],
+    "allSurfaceOperatorsReady": true
+  },
+  "coefficientVariation": {
+    "note": "Separate per-sample material coefficient thought experiment; the uniform-mu counterexample above already suffices",
+    "mu": [
+      [
+        0.01,
+        0.006
+      ],
+      [
+        0.04,
+        0.006
+      ],
+      [
+        0.01,
+        0.006
+      ]
+    ],
+    "before": {
+      "Fn": [
+        0,
+        1,
+        0
+      ],
+      "slips": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tractions": [
+        [
+          0,
+          0
+        ],
+        [
+          -0.04,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "loads": [
+        -0.02,
+        -0.0019999999999999996,
+        0,
+        -0.02,
+        0.0019999999999999996,
+        0,
+        0,
+        0.015,
+        0.006999999999999999,
+        0,
+        0.025,
+        -0.006999999999999999,
+        0,
+        0
+      ],
+      "common": [
+        -0.005000000000000001,
+        0.004999999999999999,
+        0,
+        0,
+        0,
+        0.005000000000000001,
+        -0.004999999999999999,
+        0
+      ],
+      "relative": [
+        -0.02,
+        -0.0019999999999999996,
+        0,
+        -0.02,
+        0.0019999999999999996,
+        0
+      ],
+      "wrench": [
+        {
+          "force": [
+            -0.04,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            0.013999999999999999
+          ],
+          "spinTorque": 0
+        },
+        {
+          "force": [
+            0.04,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            -0.013999999999999999
+          ],
+          "spinTorque": 0
+        }
+      ],
+      "work": -0.04,
+      "kkt": [
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": -0.04,
+          "minimumWork": -0.04,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        }
+      ],
+      "equations": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "after": {
+      "Fn": [
+        0.5,
+        0,
+        0.5
+      ],
+      "slips": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tractions": [
+        [
+          -0.005,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          -0.005,
+          0
+        ]
+      ],
+      "loads": [
+        -0.005,
+        -0.0004999999999999999,
+        0,
+        -0.005,
+        0.0004999999999999999,
+        0,
+        0,
+        0.0037500000000000003,
+        0.0017499999999999998,
+        0,
+        0.00625,
+        -0.0017499999999999998,
+        0,
+        0
+      ],
+      "common": [
+        -0.0012499999999999998,
+        0.0012499999999999998,
+        0,
+        0,
+        0,
+        0.0012500000000000005,
+        -0.0012499999999999998,
+        0
+      ],
+      "relative": [
+        -0.005,
+        -0.0004999999999999999,
+        0,
+        -0.005,
+        0.0004999999999999999,
+        0
+      ],
+      "wrench": [
+        {
+          "force": [
+            -0.01,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            0.0034999999999999996
+          ],
+          "spinTorque": 0
+        },
+        {
+          "force": [
+            0.01,
+            0,
+            0
+          ],
+          "moment": [
+            0,
+            0,
+            -0.0034999999999999996
+          ],
+          "spinTorque": 0
+        }
+      ],
+      "work": -0.01,
+      "kkt": [
+        {
+          "work": -0.005,
+          "minimumWork": -0.005,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        },
+        {
+          "work": -0.005,
+          "minimumWork": -0.005,
+          "workGap": 0,
+          "slipResidual": 0,
+          "coneViolation": 0,
+          "converged": true,
+          "scope": "original-local-Coulomb-KKT"
+        }
+      ],
+      "equations": [
+        [
+          1.2390881971262907e-19,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1.2390881971262907e-19,
+          0
+        ]
+      ]
+    }
+  }
+}

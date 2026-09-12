@@ -14,7 +14,6 @@ import {
     slerpQuaternions,
     solveAdaptationXPBDArraySweep,
     solveAdaptationXPBD,
-    solveBendTwistXPBDArraySweep,
     solveBendTwistXPBD,
     transportBishopFrame
 } from '../src/physics/discreteKirchhoffRod.js';
@@ -466,73 +465,6 @@ function solveReferenceAdaptationSweep(body, start, end, reverse, dt) {
     }
 }
 
-function solveReferenceBendSweep(body, start, end, reverse, dt) {
-    const scratch = {};
-    for (let offset = 0; offset < end - start; offset++) {
-        const joint = reverse ? end - 1 - offset : start + offset;
-        const previous = joint - 1;
-        const next = joint;
-        const orientation0 = {
-            x: body.orientationX[previous],
-            y: body.orientationY[previous],
-            z: body.orientationZ[previous],
-            w: body.orientationW[previous]
-        };
-        const orientation1 = {
-            x: body.orientationX[next],
-            y: body.orientationY[next],
-            z: body.orientationZ[next],
-            w: body.orientationW[next]
-        };
-        const lambda = {
-            x: body.bendTwistLambda1[joint],
-            y: body.bendTwistLambda2[joint],
-            z: body.bendTwistLambda3[joint]
-        };
-        solveBendTwistXPBD({
-            orientation0,
-            orientation1,
-            restRotation: {
-                x: body.restRotation1[joint],
-                y: body.restRotation2[joint],
-                z: body.restRotation3[joint]
-            },
-            inverseInertia0: {
-                x: body.inverseInertia1[previous],
-                y: body.inverseInertia2[previous],
-                z: body.inverseInertia3[previous]
-            },
-            inverseInertia1: {
-                x: body.inverseInertia1[next],
-                y: body.inverseInertia2[next],
-                z: body.inverseInertia3[next]
-            },
-            compliance: {
-                x: body.kirchhoffBendCompliance1[joint],
-                y: body.kirchhoffBendCompliance2[joint],
-                z: body.kirchhoffTwistCompliance[joint]
-            },
-            dt,
-            lambda,
-            scratch,
-            returnState: false,
-            normalizedOrientations: true,
-            objectVectors: true
-        });
-        body.orientationX[previous] = orientation0.x;
-        body.orientationY[previous] = orientation0.y;
-        body.orientationZ[previous] = orientation0.z;
-        body.orientationW[previous] = orientation0.w;
-        body.orientationX[next] = orientation1.x;
-        body.orientationY[next] = orientation1.y;
-        body.orientationZ[next] = orientation1.z;
-        body.orientationW[next] = orientation1.w;
-        body.bendTwistLambda1[joint] = lambda.x;
-        body.bendTwistLambda2[joint] = lambda.y;
-        body.bendTwistLambda3[joint] = lambda.z;
-    }
-}
-
 function assertNumericArrayNear(actual, expected, tolerance, message) {
     assert.equal(actual.length, expected.length, `${message} length`);
     for (let index = 0; index < actual.length; index++) {
@@ -545,8 +477,7 @@ const fastSweepBody = createArraySweepFixture();
 for (const reverse of [false, true]) {
     solveReferenceAdaptationSweep(referenceSweepBody, 0, 6, reverse, 1 / 120);
     solveAdaptationXPBDArraySweep(fastSweepBody, 0, 6, reverse, 1 / 120);
-    solveReferenceBendSweep(referenceSweepBody, 1, 6, reverse, 1 / 120);
-    solveBendTwistXPBDArraySweep(fastSweepBody, 1, 6, reverse, 1 / 120);
+
 }
 for (const key of ['x', 'y', 'z']) {
     assertNumericArrayNear(

@@ -1,0 +1,26 @@
+✔ finite relative displacement uses each material current geometry, history and constitutive/inertial energy exactly once (25.133084ms)
+✔ the exact common/relative/spin tangent matches FD of independently summed nonlinear material gradients (35.20575ms)
+✔ declared common-axis spans with identical frames evaluate geometry once without dropping either material or spin (34.355292ms)
+✔ original finite material length rows enter the same band solve as both nonlinear material reactions (11.239958ms)
+✔ gradient-only evaluation does not touch poisoned Hessians and full evaluation rebuilds every physical block (4.825541ms)
+✔ prepared material data and histories are owned and trial failure cannot leave a valid old tangent (2.7845ms)
+✔ independent history, active spins and complete modes are explicit requirements (1.322709ms)
+✔ prepared single-material E/g/H and momentum match the independent original operator for varying maps and geometry (7.191792ms)
+✔ independent wire/catheter histories pull back once to common and full relative motion (3.382333ms)
+✔ exact integrated momentum and kinetic energy retain the two independent material velocities (1.53625ms)
+✔ prepared data owns both material maps and old positions/velocities while local output buffers are reused (4.790333ms)
+✔ gradient evaluation leaves poisoned Hessian bytes unused and a later full evaluation restores the original tangent (2.726375ms)
+✔ missing physical history, invalid parameters and nonfinite trials fail explicitly (1.098125ms)
+✔ independent physical material rest lengths expose the axial obstruction of transverse-only motion (3.269042ms)
+✔ signed reactions and the full stress tangent match independent physical constraint-work finite differences (6.318917ms)
+✔ length Jacobians differentiate actual tool geometry and keep each material metric independent (1.755125ms)
+✔ each edge reaction has zero resultant and moment, and mapped relative forces are counted once (1.018083ms)
+✔ frozen pullback owns bases and indices; missing material history or invalid topology is explicit (0.433959ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 464.7665

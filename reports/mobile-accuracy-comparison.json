@@ -1,0 +1,908 @@
+{
+  "checks": {
+    "baselineFinalExactlyMatchesRoot": true,
+    "baselineStepsExactlyMatchRoot": true
+  },
+  "variants": {
+    "mobile-baseline": {
+      "seedIdentical": true,
+      "firstFrozenSystemIdentical": true,
+      "earlierStepsIdentical": true,
+      "state": {
+        "wireMm": 12.100000000000001,
+        "catheterMm": 9.100000000000003,
+        "wireRotation": 0,
+        "catheterRotation": 0,
+        "executedSteps": 53,
+        "fingerprints": [
+          {
+            "id": "guidewire",
+            "hash": "f5e01b9f"
+          },
+          {
+            "id": "catheter",
+            "hash": "e5845d43"
+          }
+        ],
+        "activeNodes": [
+          4,
+          18
+        ]
+      },
+      "certified": false,
+      "historyCommits": 0,
+      "finalKKT": 8.121212194099202e-05,
+      "finalCone": 1.113115522644037e-06,
+      "physicalPasses": 6,
+      "linear": [
+        {
+          "pass": 5,
+          "status": "converged",
+          "converged": true,
+          "iterations": 1,
+          "factorizations": 2,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 3.2565199451980997e-10,
+          "coneViolation": 0,
+          "rowCount": 66,
+          "band": 66,
+          "groupCount": 7,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 158,
+          "biasRows": 144,
+          "channels": 2,
+          "fullRowCount": 302,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207324989061034,
+            "maximumEqualityBackwardError": 9.10018986198463e-16,
+            "equalitySolves": 64,
+            "zeroEqualityResponses": 44,
+            "reusedEqualityResponses": 26,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 66,
+            "schurEntries": 4356,
+            "responseEntries": 15576
+          }
+        }
+      ],
+      "filterTrials": []
+    },
+    "mobile-2e-8": {
+      "seedIdentical": true,
+      "firstFrozenSystemIdentical": true,
+      "earlierStepsIdentical": true,
+      "state": {
+        "wireMm": 12.100000000000001,
+        "catheterMm": 9.100000000000003,
+        "wireRotation": 0,
+        "catheterRotation": 0,
+        "executedSteps": 53,
+        "fingerprints": [
+          {
+            "id": "guidewire",
+            "hash": "f5e01b9f"
+          },
+          {
+            "id": "catheter",
+            "hash": "e5845d43"
+          }
+        ],
+        "activeNodes": [
+          4,
+          18
+        ]
+      },
+      "certified": false,
+      "historyCommits": 0,
+      "finalKKT": 8.121212194099202e-05,
+      "finalCone": 1.113115522644037e-06,
+      "physicalPasses": 6,
+      "linear": [
+        {
+          "pass": 5,
+          "status": "converged",
+          "converged": true,
+          "iterations": 1,
+          "factorizations": 2,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "mobileResidual": 3.2565199451980997e-10,
+          "mobileTolerance": 2e-08,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 3.2565199451980997e-10,
+          "coneViolation": 0,
+          "rowCount": 66,
+          "band": 66,
+          "groupCount": 7,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "mobileReconstructionResidual": 3.256519934356078e-10,
+          "immutableAccuracyRows": [
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 216,
+              "rhs": 3.102116925779441e-06
+            },
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 217,
+              "rhs": 0
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 220,
+              "rhs": -2.714359792710397e-06
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 221,
+              "rhs": 0
+            }
+          ],
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 158,
+          "biasRows": 144,
+          "channels": 2,
+          "fullRowCount": 302,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207324989061034,
+            "maximumEqualityBackwardError": 9.10018986198463e-16,
+            "equalitySolves": 64,
+            "zeroEqualityResponses": 44,
+            "reusedEqualityResponses": 26,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 66,
+            "schurEntries": 4356,
+            "responseEntries": 15576
+          }
+        }
+      ],
+      "filterTrials": []
+    },
+    "mobile-2e-10": {
+      "seedIdentical": true,
+      "firstFrozenSystemIdentical": true,
+      "earlierStepsIdentical": true,
+      "state": {
+        "wireMm": 12.100000000000001,
+        "catheterMm": 9.100000000000003,
+        "wireRotation": 0,
+        "catheterRotation": 0,
+        "executedSteps": 53,
+        "fingerprints": [
+          {
+            "id": "guidewire",
+            "hash": "f5e01b9f"
+          },
+          {
+            "id": "catheter",
+            "hash": "e5845d43"
+          }
+        ],
+        "activeNodes": [
+          4,
+          18
+        ]
+      },
+      "certified": false,
+      "historyCommits": 0,
+      "finalKKT": 8.121212194099202e-05,
+      "finalCone": 1.113115522644037e-06,
+      "physicalPasses": 6,
+      "linear": [
+        {
+          "pass": 5,
+          "status": "converged",
+          "converged": true,
+          "iterations": 2,
+          "factorizations": 3,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "mobileResidual": 1.734723475976807e-17,
+          "mobileTolerance": 2e-10,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 1.0408340855860843e-17,
+          "coneViolation": 0,
+          "rowCount": 66,
+          "band": 66,
+          "groupCount": 7,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "mobileReconstructionResidual": 1.734723475976807e-17,
+          "immutableAccuracyRows": [
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 216,
+              "rhs": 3.102116925779441e-06
+            },
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 217,
+              "rhs": 0
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 220,
+              "rhs": -2.714359792710397e-06
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 221,
+              "rhs": 0
+            }
+          ],
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 158,
+          "biasRows": 144,
+          "channels": 2,
+          "fullRowCount": 302,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207324989061034,
+            "maximumEqualityBackwardError": 9.10018986198463e-16,
+            "equalitySolves": 64,
+            "zeroEqualityResponses": 44,
+            "reusedEqualityResponses": 26,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 66,
+            "schurEntries": 4356,
+            "responseEntries": 15576
+          }
+        }
+      ],
+      "filterTrials": []
+    },
+    "mobile-filter-original": {
+      "seedIdentical": true,
+      "firstFrozenSystemIdentical": true,
+      "earlierStepsIdentical": true,
+      "state": {
+        "wireMm": 12.100000000000001,
+        "catheterMm": 9.100000000000003,
+        "wireRotation": 0,
+        "catheterRotation": 0,
+        "executedSteps": 54,
+        "fingerprints": [
+          {
+            "id": "guidewire",
+            "hash": "4d0b8ea4"
+          },
+          {
+            "id": "catheter",
+            "hash": "eb461c90"
+          }
+        ],
+        "activeNodes": [
+          4,
+          18
+        ]
+      },
+      "certified": true,
+      "historyCommits": 1,
+      "finalKKT": 1.9037535629526153e-05,
+      "finalCone": 0,
+      "physicalPasses": 8,
+      "linear": [
+        {
+          "pass": 5,
+          "status": "converged",
+          "converged": true,
+          "iterations": 1,
+          "factorizations": 2,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 3.2565199451980997e-10,
+          "coneViolation": 0,
+          "rowCount": 66,
+          "band": 66,
+          "groupCount": 7,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 158,
+          "biasRows": 144,
+          "channels": 2,
+          "fullRowCount": 302,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207324989061034,
+            "maximumEqualityBackwardError": 9.10018986198463e-16,
+            "equalitySolves": 64,
+            "zeroEqualityResponses": 44,
+            "reusedEqualityResponses": 26,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 66,
+            "schurEntries": 4356,
+            "responseEntries": 15576
+          }
+        },
+        {
+          "pass": 6,
+          "status": "converged",
+          "converged": true,
+          "iterations": 0,
+          "factorizations": 1,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 1.107988763831766e-05,
+          "frictionResidual": 1.107988763831766e-05,
+          "coneViolation": 0,
+          "rowCount": 70,
+          "band": 70,
+          "groupCount": 8,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "reconstructionResidual": 1.107988763831766e-05,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 161,
+          "biasRows": 145,
+          "channels": 2,
+          "fullRowCount": 306,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.0420733308616339,
+            "maximumEqualityBackwardError": 1.100766455125755e-15,
+            "equalitySolves": 68,
+            "zeroEqualityResponses": 47,
+            "reusedEqualityResponses": 27,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 70,
+            "schurEntries": 4900,
+            "responseEntries": 16520
+          }
+        },
+        {
+          "pass": 7,
+          "status": "converged",
+          "converged": true,
+          "iterations": 0,
+          "factorizations": 1,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "maximumResidual": 1.9039392351008445e-05,
+          "frictionResidual": 1.9039392351008445e-05,
+          "coneViolation": 0,
+          "rowCount": 70,
+          "band": 70,
+          "groupCount": 8,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "reconstructionResidual": 1.9039392351008445e-05,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 161,
+          "biasRows": 145,
+          "channels": 2,
+          "fullRowCount": 306,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.042073360185219455,
+            "maximumEqualityBackwardError": 1.060553233915103e-15,
+            "equalitySolves": 68,
+            "zeroEqualityResponses": 47,
+            "reusedEqualityResponses": 27,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 70,
+            "schurEntries": 4900,
+            "responseEntries": 16520
+          }
+        }
+      ],
+      "filterTrials": [
+        {
+          "pass": 5,
+          "trial": 0,
+          "scale": 1,
+          "accepted": true,
+          "coneFilterAccepted": true,
+          "previousNonConeSettled": true,
+          "candidateNonConeSettled": true,
+          "previousMaxCone": 1.113115522644037e-06,
+          "candidateMaxCone": 1.2786036895917618e-08,
+          "previousMerit": 0.051516186503793596,
+          "candidateMerit": 0.05151618657691669,
+          "candidateSettled": false
+        },
+        {
+          "pass": 6,
+          "trial": 0,
+          "scale": 1,
+          "accepted": true,
+          "coneFilterAccepted": true,
+          "previousNonConeSettled": true,
+          "candidateNonConeSettled": true,
+          "previousMaxCone": 1.2786036895917618e-08,
+          "candidateMaxCone": 9.206189810484489e-09,
+          "previousMerit": 0.05151618657691669,
+          "candidateMerit": 0.05151618657691669,
+          "candidateSettled": false
+        },
+        {
+          "pass": 7,
+          "trial": 0,
+          "scale": 1,
+          "accepted": true,
+          "coneFilterAccepted": true,
+          "previousNonConeSettled": true,
+          "candidateNonConeSettled": true,
+          "previousMaxCone": 9.206189810484489e-09,
+          "candidateMaxCone": 0,
+          "previousMerit": 0.05151618657691669,
+          "candidateMerit": 0.051516186503793596,
+          "candidateSettled": true
+        }
+      ]
+    },
+    "mobile-filter-2e-10": {
+      "seedIdentical": true,
+      "firstFrozenSystemIdentical": true,
+      "earlierStepsIdentical": true,
+      "state": {
+        "wireMm": 12.100000000000001,
+        "catheterMm": 9.100000000000003,
+        "wireRotation": 0,
+        "catheterRotation": 0,
+        "executedSteps": 54,
+        "fingerprints": [
+          {
+            "id": "guidewire",
+            "hash": "3909ba70"
+          },
+          {
+            "id": "catheter",
+            "hash": "5d1b71c0"
+          }
+        ],
+        "activeNodes": [
+          4,
+          18
+        ]
+      },
+      "certified": true,
+      "historyCommits": 1,
+      "finalKKT": 3.162438220669084e-08,
+      "finalCone": 1.1102230246251565e-15,
+      "physicalPasses": 8,
+      "linear": [
+        {
+          "pass": 5,
+          "status": "converged",
+          "converged": true,
+          "iterations": 2,
+          "factorizations": 3,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "mobileResidual": 1.734723475976807e-17,
+          "mobileTolerance": 2e-10,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 1.0408340855860843e-17,
+          "coneViolation": 0,
+          "rowCount": 66,
+          "band": 66,
+          "groupCount": 7,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "mobileReconstructionResidual": 1.734723475976807e-17,
+          "immutableAccuracyRows": [
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 216,
+              "rhs": 3.102116925779441e-06
+            },
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 217,
+              "rhs": 0
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 220,
+              "rhs": -2.714359792710397e-06
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 221,
+              "rhs": 0
+            }
+          ],
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 158,
+          "biasRows": 144,
+          "channels": 2,
+          "fullRowCount": 302,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207324989061034,
+            "maximumEqualityBackwardError": 9.10018986198463e-16,
+            "equalitySolves": 64,
+            "zeroEqualityResponses": 44,
+            "reusedEqualityResponses": 26,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 66,
+            "schurEntries": 4356,
+            "responseEntries": 15576
+          }
+        },
+        {
+          "pass": 6,
+          "status": "converged",
+          "converged": true,
+          "iterations": 1,
+          "factorizations": 2,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "mobileResidual": 2.373048106717662e-12,
+          "mobileTolerance": 2e-10,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 4.1241771282785056e-13,
+          "coneViolation": 2.220446049250313e-16,
+          "rowCount": 70,
+          "band": 70,
+          "groupCount": 8,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "mobileReconstructionResidual": 2.3730481065136846e-12,
+          "immutableAccuracyRows": [
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 216,
+              "rhs": 3.102116925779441e-06
+            },
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 217,
+              "rhs": 0
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 220,
+              "rhs": -2.714359792710397e-06
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 221,
+              "rhs": 0
+            }
+          ],
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 161,
+          "biasRows": 145,
+          "channels": 2,
+          "fullRowCount": 306,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207333086145665,
+            "maximumEqualityBackwardError": 1.0178814393827075e-15,
+            "equalitySolves": 68,
+            "zeroEqualityResponses": 47,
+            "reusedEqualityResponses": 27,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 70,
+            "schurEntries": 4900,
+            "responseEntries": 16520
+          }
+        },
+        {
+          "pass": 7,
+          "status": "converged",
+          "converged": true,
+          "iterations": 1,
+          "factorizations": 2,
+          "backtracks": 0,
+          "gradientFallbacks": 0,
+          "boundRecoveries": 0,
+          "mobileResidual": 3.554668565965334e-12,
+          "mobileTolerance": 2e-10,
+          "maximumResidual": 3.102116925779441e-06,
+          "frictionResidual": 2.328721200248185e-12,
+          "coneViolation": 0,
+          "rowCount": 70,
+          "band": 70,
+          "groupCount": 8,
+          "normalLoadIterations": 0,
+          "method": "simultaneous-coulomb-newton",
+          "normalMap": "fischer-burmeister",
+          "matrixFormat": "row-major",
+          "linearSolver": "dense-lu",
+          "mobileReconstructionResidual": 3.554668565965334e-12,
+          "immutableAccuracyRows": [
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 216,
+              "rhs": 3.102116925779441e-06
+            },
+            {
+              "sorted": 108,
+              "original": 3,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 217,
+              "rhs": 0
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "physical",
+              "channel": "pose",
+              "full": 220,
+              "rhs": -2.714359792710397e-06
+            },
+            {
+              "sorted": 110,
+              "original": 5,
+              "phase": "bias",
+              "channel": "bias-motion",
+              "full": 221,
+              "rhs": 0
+            }
+          ],
+          "reconstructionResidual": 3.102116925779441e-06,
+          "structuralResidualFloor": 3.102116925779441e-06,
+          "requestedTolerance": 2e-05,
+          "physicalRows": 161,
+          "biasRows": 145,
+          "channels": 2,
+          "fullRowCount": 306,
+          "condensation": "condensed",
+          "materialCondensation": {
+            "equalityCount": 118,
+            "eliminatedRows": 236,
+            "equalityBand": 15,
+            "equalityMatrixEntries": 1770,
+            "factorEntries": 1770,
+            "factorizations": 1,
+            "factorization": "wasm-skyline",
+            "minimumScaledPivot": 0.04207338810998268,
+            "maximumEqualityBackwardError": 1.049740032702913e-15,
+            "equalitySolves": 68,
+            "zeroEqualityResponses": 47,
+            "reusedEqualityResponses": 27,
+            "fullExpandedMatrixEntries": 0,
+            "retainedZeroEqualityOriginalRows": [
+              3,
+              5
+            ],
+            "retainedRows": 70,
+            "schurEntries": 4900,
+            "responseEntries": 16520
+          }
+        }
+      ],
+      "filterTrials": [
+        {
+          "pass": 5,
+          "trial": 0,
+          "scale": 1,
+          "accepted": true,
+          "coneFilterAccepted": true,
+          "previousNonConeSettled": true,
+          "candidateNonConeSettled": true,
+          "previousMaxCone": 1.113115522644037e-06,
+          "candidateMaxCone": 1.278603334320394e-08,
+          "previousMerit": 0.051516186503793596,
+          "candidateMerit": 0.051516186503793596,
+          "candidateSettled": false
+        },
+        {
+          "pass": 6,
+          "trial": 0,
+          "scale": 1,
+          "accepted": true,
+          "coneFilterAccepted": true,
+          "previousNonConeSettled": true,
+          "candidateNonConeSettled": true,
+          "previousMaxCone": 1.2786033121159335e-08,
+          "candidateMaxCone": 9.131887468427635e-09,
+          "previousMerit": 0.051516186503793596,
+          "candidateMerit": 0.051516186503793596,
+          "candidateSettled": false
+        },
+        {
+          "pass": 7,
+          "trial": 0,
+          "scale": 1,
+          "accepted": true,
+          "coneFilterAccepted": true,
+          "previousNonConeSettled": true,
+          "candidateNonConeSettled": true,
+          "previousMaxCone": 9.131887468427635e-09,
+          "candidateMaxCone": 4.440892098500626e-16,
+          "previousMerit": 0.051516186503793596,
+          "candidateMerit": 0.05151618657662653,
+          "candidateSettled": true
+        }
+      ]
+    }
+  }
+}

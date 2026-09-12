@@ -1,0 +1,126 @@
+{
+  "status": "PASS",
+  "scope": "one shifted innerEdge0/outerEdge1 contact; four unsorted samples, two loaded interior gauges; out-of-plane prescribed motion",
+  "stateInputSha256": "7f29f9013467dc3c5fb61bf5c49518d45bbf9e881658e791955cee372498d725",
+  "acceptedStateSha256": "992953ccd9e59cc14704de87953d9954ae6413cf06cb8c239d0fe4592caf9072",
+  "incomingFn": [
+    2,
+    3,
+    1,
+    4
+  ],
+  "gaugeFn": [
+    {
+      "sampleId": "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.5]",
+      "Fn": 2,
+      "endpoints": [
+        "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.25]",
+        "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.75]"
+      ],
+      "weights": [
+        0.5,
+        0.5
+      ],
+      "forces": [
+        1,
+        1
+      ]
+    },
+    {
+      "sampleId": "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.625]",
+      "Fn": 4,
+      "endpoints": [
+        "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.25]",
+        "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.75]"
+      ],
+      "weights": [
+        0.25,
+        0.75
+      ],
+      "forces": [
+        1,
+        3
+      ]
+    }
+  ],
+  "acceptedFn": [
+    0,
+    6.9962459133344606,
+    3.0124767642529675,
+    0
+  ],
+  "incomingTransferQueries": 4,
+  "originalQueries": 28,
+  "directions": 2,
+  "evaluations": 6,
+  "contactProof": {
+    "minGap": -7.729927808952652e-13,
+    "minForce": 0,
+    "penetration": 7.729927808952652e-13,
+    "negativeForce": 0,
+    "ncp": 7.729927808952652e-13,
+    "complementarity": 2.328622791382272e-12,
+    "activeCount": 2,
+    "eliminatedCount": 0,
+    "sampleCount": 4,
+    "retainedRows": 2,
+    "redundantSamples": 2,
+    "samples": [
+      {
+        "sampleId": "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.5]",
+        "Fn": 0,
+        "gap": 1.2224700871033e-7,
+        "innerT": 0.5,
+        "outerT": 0.6874869848671027,
+        "active": false,
+        "eliminated": false,
+        "redundant": true,
+        "ncp": 0,
+        "complementarity": 0
+      },
+      {
+        "sampleId": "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.75]",
+        "Fn": 6.9962459133344606,
+        "gap": 1.0075273948473296e-14,
+        "innerT": 0.75,
+        "outerT": 0.9687369577010496,
+        "active": true,
+        "eliminated": false,
+        "redundant": false,
+        "ncp": 1.0075273948473296e-14,
+        "complementarity": 7.048909418773145e-14
+      },
+      {
+        "sampleId": "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.25]",
+        "Fn": 3.0124767642529675,
+        "gap": -7.729927808952652e-13,
+        "innerT": 0.25,
+        "outerT": 0.40623701203315565,
+        "active": true,
+        "eliminated": false,
+        "redundant": false,
+        "ncp": 7.729927808952652e-13,
+        "complementarity": 2.328622791382272e-12
+      },
+      {
+        "sampleId": "[\"independent-shifted-pair\",\"f16:joint-lumen:side|s6:wire:0|s10:catheter:1\",[{\"toolId\":\"wire\",\"node\":0},{\"toolId\":\"wire\",\"node\":1},{\"toolId\":\"catheter\",\"node\":1},{\"toolId\":\"catheter\",\"node\":2}],0.625]",
+        "Fn": 0,
+        "gap": 9.168535131109934e-8,
+        "innerT": 0.625,
+        "outerT": 0.828111971284076,
+        "active": false,
+        "eliminated": false,
+        "redundant": true,
+        "ncp": 0,
+        "complementarity": 0
+      }
+    ],
+    "merit": 0.000005439404188842144,
+    "converged": true
+  },
+  "maxDBError": 4.027436162346021e-9,
+  "maxOldFreshDifference": 0.0024211708035681715,
+  "workError": 1.0027179087046534e-10,
+  "coldReuseExact": true,
+  "rollbackRetryExact": true
+}

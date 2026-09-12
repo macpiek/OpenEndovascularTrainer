@@ -1,0 +1,19 @@
+{
+  "input": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/fixtures/kirchhoff-coupled-full-200.json.gz",
+  "sha256": "78362bc1f989696b7dd20732f53ff1c178b754df0f247745dc96e14a4850c434",
+  "scope": "Frozen original equations only; no runtime or FPS measurement",
+  "count": 2459,
+  "band": 155,
+  "nonzeroLowerEntries": 52652,
+  "allocatedEntries": 381145,
+  "denseLowerEntries": 3024570,
+  "maximumGramError": 3.552713678800501e-15,
+  "maximumRelativeGramError": 7.588456348518248e-16,
+  "allFinite": true,
+  "boundsValid": true,
+  "maximumResidual": 0.00006170902115436815,
+  "frictionResidual": 0.00006170902115436815,
+  "coneViolation": 2.220446049250313e-16,
+  "tolerance": 0.0002,
+  "passed": true
+}

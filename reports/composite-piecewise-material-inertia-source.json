@@ -1,0 +1,10 @@
+{
+  "frozenBundle": "/tmp/oet-composite-piecewise-material-inertia-final",
+  "manifestSHA256": "2a2d77bc9935343bca3abf65760f8c9d7227ab2d1798d87ec1b7d5de02ad7831",
+  "ownedSourceSHA256": {
+    "src/physics/kirchhoffCompositePiecewiseMaterialInertia.js": "8dbe6fac46a8cc7d52a7f7bb99b3a0b4f39fae4aec5eaad8c2ec9b28487eaeee",
+    "tests/kirchhoffCompositePiecewiseMaterialInertia.test.js": "6b9d197951bf4926f3136fab0a0c34864972475447720613345b9bfc64a8848a"
+  },
+  "reportSHA256": "dbe311a0446d5af4da7b500d8979be71f41f3c501f0ef46c4f85afd6435a9c04",
+  "testOutputSHA256": "d5f74747d3f92162273f6c3dee6adaddfd061dad0bc7f2a3bc0570c77d2ea217"
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "depthMm": 100,
+    "warmSamplesPerVariant": 30,
+    "medianMs": {
+      "condensed": 3.5983334999999954,
+      "full-band": 6.019708500000036
+    },
+    "fullBandSpeedup": 0.5977587619068222,
+    "fullBandTimeReductionPercent": -67.29156705458354,
+    "allCertified": true,
+    "maximumTranslationDifferenceMm": 8.949863890099496e-08,
+    "maximumRotationDifferenceRad": 1.657463801763015e-07
+  },
+  {
+    "depthMm": 200,
+    "warmSamplesPerVariant": 30,
+    "medianMs": {
+      "condensed": 17.477708500000062,
+      "full-band": 15.59018750000007
+    },
+    "fullBandSpeedup": 1.1210710903893866,
+    "fullBandTimeReductionPercent": 10.799590804480951,
+    "allCertified": true,
+    "maximumTranslationDifferenceMm": 5.438064487606198e-08,
+    "maximumRotationDifferenceRad": 2.4899796426114396e-08
+  },
+  {
+    "depthMm": 400,
+    "warmSamplesPerVariant": 30,
+    "medianMs": {
+      "condensed": 102.68650049999951,
+      "full-band": 35.43281250000018
+    },
+    "fullBandSpeedup": 2.8980623680380715,
+    "fullBandTimeReductionPercent": 65.49418635607283,
+    "allCertified": true,
+    "maximumTranslationDifferenceMm": 1.677743367844986e-07,
+    "maximumRotationDifferenceRad": 1.5523436073833653e-07
+  }
+]

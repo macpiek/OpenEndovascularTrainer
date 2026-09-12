@@ -1,0 +1,1819 @@
+{
+  "scope": "Frozen per-sample vs shared owned contact charts; identical whole-step mechanics, input and acceptance; Node synthetic shafts, not anatomy or browser FPS",
+  "warmupPairs": 10,
+  "measuredPairs": 24,
+  "sources": [
+    {
+      "root": "/tmp/oet-contact-chart-before",
+      "sha256": {
+        "kirchhoffCompositeJointTimeStep.js": "15a26ae668bc5a3639d96c54355d4d9362041e2c7965713cc39fdf09b0bf7953",
+        "kirchhoffCompositeJointLumenRows.js": "901c8d5f1bf669e3586dca4ea622a64de038e418641905320cf87cb5e4ab9399",
+        "kirchhoffCompositeLumenSideGeometry.js": "ef258cf4355a0b39c17858ea1d2e9b78ded3f579b9e16617c6cda2b720d1d6b6",
+        "kirchhoffCompositeContactPullback.js": "1f4ee852e97da0608b4c1527f251abaf4f0dc3e27519b934e9df99c9c1a889b4",
+        "kirchhoffCompositeJointLumenSurface.js": "b1dc2f41b358ddac84e5060f4c27b0f3ebaf0bca879247192b42e5b3afef439a",
+        "kirchhoffCompositeJointLumenFrictionRows.js": "17c36895cf23648c9a992f0aeba90c0f377c3134f03bfb4db6a62ac69fb52b06",
+        "kirchhoffCompositeJointSurfacePullback.js": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637",
+        "kirchhoffCompositeJointWallRows.js": "2d7af2725165c17ce7c5fa91877ec27752d3c49dc04256da8c51cc236cc63f87",
+        "kirchhoffCompositeJointWallFrictionRows.js": "dd0557aa10db022eab8fbcfbbd8e1f1d5e5a374423105174da51f3473a1951f2"
+      }
+    },
+    {
+      "root": ".",
+      "sha256": {
+        "kirchhoffCompositeJointTimeStep.js": "15a26ae668bc5a3639d96c54355d4d9362041e2c7965713cc39fdf09b0bf7953",
+        "kirchhoffCompositeJointLumenRows.js": "466e8538bb55215a85d4ffa708a5b3d784bbc9c865bca97016a4bff43fe56935",
+        "kirchhoffCompositeLumenSideGeometry.js": "ef258cf4355a0b39c17858ea1d2e9b78ded3f579b9e16617c6cda2b720d1d6b6",
+        "kirchhoffCompositeContactPullback.js": "56e3d63161bb576eeb613d1a09111cb58c54d9e233da1855ae7d2680a0d40a40",
+        "kirchhoffCompositeJointLumenSurface.js": "b1dc2f41b358ddac84e5060f4c27b0f3ebaf0bca879247192b42e5b3afef439a",
+        "kirchhoffCompositeJointLumenFrictionRows.js": "6ff97d9baf60ca04298a2ba10069e00886d1f0f0f749c2cb24021107f43a085c",
+        "kirchhoffCompositeJointSurfacePullback.js": "b55b1cac2e83f65f9b7dcc5ab0c9e3f3665a4ee3cd3b6aabb616a0ce43fb58e1",
+        "kirchhoffCompositeJointWallRows.js": "9036b5e2a32aeb437903c7e1a6b16f7316b2663c8e74b23c293c2c827362e0dc",
+        "kirchhoffCompositeJointWallFrictionRows.js": "c111300e51d0ccacf661d123f2954aaa1983e6fe45c0cac5f812ea8175298214"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "open-lumen-65",
+      "geometry": {
+        "n": 65,
+        "lumen": true
+      },
+      "input": {
+        "force": [
+          0.01,
+          0,
+          0
+        ]
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "root": "/tmp/oet-contact-chart-before",
+          "statistics": {
+            "totalMs": {
+              "mean": 44.29572579166665,
+              "median": 42.06708299999991,
+              "p95": 56.43495900000016
+            },
+            "directionMs": {
+              "mean": 3.9922396666666393,
+              "median": 3.733458000000155,
+              "p95": 5.727415999999948
+            },
+            "preparationMs": {
+              "mean": 28.916670083333297,
+              "median": 28.0269159999998,
+              "p95": 35.657042000000274
+            },
+            "iterationMs": {
+              "mean": 14.957345541666655,
+              "median": 14.482167000000118,
+              "p95": 21.22529200000008
+            },
+            "directions": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "evaluations": {
+              "mean": 4,
+              "median": 4,
+              "p95": 4
+            },
+            "contactQueries": {
+              "mean": 640,
+              "median": 640,
+              "p95": 640
+            },
+            "linearSolves": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            }
+          },
+          "records": [
+            {
+              "totalMs": 38.33741699999996,
+              "directionMs": 3.2037920000000213,
+              "preparationMs": 25.9251670000001,
+              "iterationMs": 12.033249999999953,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 56.43495900000016,
+              "directionMs": 4.154250000000047,
+              "preparationMs": 38.940459000000146,
+              "iterationMs": 17.035290999999916,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 59.093374999999924,
+              "directionMs": 7.367458999999826,
+              "preparationMs": 30.157584000000043,
+              "iterationMs": 28.5,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 47.71875,
+              "directionMs": 4.14933300000007,
+              "preparationMs": 31.54487499999982,
+              "iterationMs": 15.713457999999946,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 43.34391700000015,
+              "directionMs": 4.2937500000000455,
+              "preparationMs": 27.861625000000004,
+              "iterationMs": 15.04424999999992,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 44.05204200000003,
+              "directionMs": 3.9842089999999644,
+              "preparationMs": 30.63449999999989,
+              "iterationMs": 13.007250000000113,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 42.38891600000011,
+              "directionMs": 3.3795829999999114,
+              "preparationMs": 28.856041000000005,
+              "iterationMs": 13.134000000000015,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 42.06391699999995,
+              "directionMs": 3.248792000000094,
+              "preparationMs": 27.387082999999848,
+              "iterationMs": 14.255874999999833,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.164584000000104,
+              "directionMs": 3.2499579999998787,
+              "preparationMs": 26.75308400000017,
+              "iterationMs": 14.03166699999997,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 42.06708299999991,
+              "directionMs": 3.268291999999974,
+              "preparationMs": 30.39691700000003,
+              "iterationMs": 11.266166999999996,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 39.587792000000036,
+              "directionMs": 3.359708999999839,
+              "preparationMs": 27.506208000000015,
+              "iterationMs": 11.714124999999967,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 53.83908300000007,
+              "directionMs": 5.727415999999948,
+              "preparationMs": 32.180875000000015,
+              "iterationMs": 21.22529200000008,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.12020899999993,
+              "directionMs": 3.3848749999999654,
+              "preparationMs": 26.059999999999945,
+              "iterationMs": 14.482167000000118,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 45.134832999999844,
+              "directionMs": 3.769166999999925,
+              "preparationMs": 29.463915999999926,
+              "iterationMs": 15.232500000000073,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 44.13020800000004,
+              "directionMs": 3.733458000000155,
+              "preparationMs": 28.0269159999998,
+              "iterationMs": 15.718166999999994,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.69858299999987,
+              "directionMs": 4.7274170000000595,
+              "preparationMs": 26.568582999999762,
+              "iterationMs": 14.744500000000244,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 38.32137499999999,
+              "directionMs": 3.135584000000108,
+              "preparationMs": 25.50170799999978,
+              "iterationMs": 12.415082999999868,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.06804199999988,
+              "directionMs": 3.142749999999978,
+              "preparationMs": 28.511875000000146,
+              "iterationMs": 12.090834000000086,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 40.726874999999836,
+              "directionMs": 3.2561249999998836,
+              "preparationMs": 26.32287499999984,
+              "iterationMs": 14.03795799999989,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 52.866250000000036,
+              "directionMs": 5.5972499999998035,
+              "preparationMs": 35.657042000000274,
+              "iterationMs": 16.784957999999733,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.76050000000032,
+              "directionMs": 3.4447909999998956,
+              "preparationMs": 27.938333000000057,
+              "iterationMs": 13.383291999999983,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 42.97270899999967,
+              "directionMs": 3.794750000000022,
+              "preparationMs": 27.197124999999687,
+              "iterationMs": 15.322415999999976,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.81154199999992,
+              "directionMs": 5.273332999999639,
+              "preparationMs": 25.97908299999972,
+              "iterationMs": 15.42108399999961,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 41.39445799999976,
+              "directionMs": 3.1677090000002863,
+              "preparationMs": 28.628208000000086,
+              "iterationMs": 12.382709000000432,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            }
+          ]
+        },
+        {
+          "root": ".",
+          "statistics": {
+            "totalMs": {
+              "mean": 23.207680583333342,
+              "median": 22.153999999999996,
+              "p95": 31.61783300000002
+            },
+            "directionMs": {
+              "mean": 4.1030138750000065,
+              "median": 3.616708000000017,
+              "p95": 6.445459000000028
+            },
+            "preparationMs": {
+              "mean": 7.445998125000007,
+              "median": 7.073082999999997,
+              "p95": 9.317291999999952
+            },
+            "iterationMs": {
+              "mean": 15.325036583333334,
+              "median": 14.825792000000092,
+              "p95": 23.950792000000092
+            },
+            "directions": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            },
+            "evaluations": {
+              "mean": 4,
+              "median": 4,
+              "p95": 4
+            },
+            "contactQueries": {
+              "mean": 640,
+              "median": 640,
+              "p95": 640
+            },
+            "linearSolves": {
+              "mean": 1,
+              "median": 1,
+              "p95": 1
+            }
+          },
+          "records": [
+            {
+              "totalMs": 23.597375000000056,
+              "directionMs": 3.279209000000037,
+              "preparationMs": 8.965750000000071,
+              "iterationMs": 14.019584000000123,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 34.665666999999985,
+              "directionMs": 6.139541000000008,
+              "preparationMs": 9.671666999999843,
+              "iterationMs": 24.512958000000026,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 31.61783300000002,
+              "directionMs": 7.95091699999989,
+              "preparationMs": 7.201125000000047,
+              "iterationMs": 23.950792000000092,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 26.95004199999994,
+              "directionMs": 3.927249999999958,
+              "preparationMs": 6.992625000000089,
+              "iterationMs": 19.511207999999897,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 23.5735830000001,
+              "directionMs": 4.145542000000205,
+              "preparationMs": 7.073082999999997,
+              "iterationMs": 16.048416999999972,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 22.711500000000115,
+              "directionMs": 4.122624999999971,
+              "preparationMs": 6.760541000000103,
+              "iterationMs": 15.540124999999989,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 24.85437500000012,
+              "directionMs": 3.5074999999999363,
+              "preparationMs": 9.317291999999952,
+              "iterationMs": 15.09395900000004,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 23.075250000000096,
+              "directionMs": 3.307749999999942,
+              "preparationMs": 6.43754100000001,
+              "iterationMs": 16.2532920000001,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 20.220791999999847,
+              "directionMs": 3.3010000000001583,
+              "preparationMs": 6.667457999999897,
+              "iterationMs": 13.120084000000134,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 22.34120800000005,
+              "directionMs": 3.493125000000191,
+              "preparationMs": 8.826500000000124,
+              "iterationMs": 13.106624999999894,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 26.171582999999828,
+              "directionMs": 6.445459000000028,
+              "preparationMs": 6.185457999999926,
+              "iterationMs": 19.570166999999856,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 21.726957999999968,
+              "directionMs": 4.26458300000013,
+              "preparationMs": 7.009582999999793,
+              "iterationMs": 14.292541999999912,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 21.11779200000001,
+              "directionMs": 3.5434159999999792,
+              "preparationMs": 7.739708000000064,
+              "iterationMs": 12.935624999999845,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 21.301332999999886,
+              "directionMs": 3.1817080000000715,
+              "preparationMs": 8.283332999999857,
+              "iterationMs": 12.616291000000047,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 22.153999999999996,
+              "directionMs": 3.297625000000153,
+              "preparationMs": 6.079707999999755,
+              "iterationMs": 15.686833999999635,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 21.407874999999876,
+              "directionMs": 3.0940420000001723,
+              "preparationMs": 6.1719160000002375,
+              "iterationMs": 14.825792000000092,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 20.900708000000122,
+              "directionMs": 3.1177499999998872,
+              "preparationMs": 8.188333000000057,
+              "iterationMs": 12.317625000000135,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 21.658666999999696,
+              "directionMs": 3.5561250000000655,
+              "preparationMs": 8.639624999999796,
+              "iterationMs": 12.542209000000184,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 20.234457999999904,
+              "directionMs": 4.9455840000000535,
+              "preparationMs": 6.10183300000017,
+              "iterationMs": 13.803458000000319,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 22.03870900000038,
+              "directionMs": 3.2252079999998386,
+              "preparationMs": 6.193750000000364,
+              "iterationMs": 15.27666599999975,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 24.554249999999683,
+              "directionMs": 5.553790999999819,
+              "preparationMs": 9.1492089999997,
+              "iterationMs": 14.966374999999971,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 21.564750000000004,
+              "directionMs": 3.616708000000017,
+              "preparationMs": 8.355332999999973,
+              "iterationMs": 12.769874999999956,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 19.381709000000228,
+              "directionMs": 3.7390000000000327,
+              "preparationMs": 6.403000000000247,
+              "iterationMs": 12.553875000000062,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            },
+            {
+              "totalMs": 19.16391700000031,
+              "directionMs": 3.716874999999618,
+              "preparationMs": 6.289584000000104,
+              "iterationMs": 12.486499999999978,
+              "directions": 1,
+              "evaluations": 4,
+              "contactQueries": 640,
+              "linearSolves": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loaded-lumen-17",
+      "geometry": {
+        "n": 17,
+        "lumen": true,
+        "offset": 0.04075,
+        "wireSlope": -0.0005
+      },
+      "input": {
+        "force": [
+          0.1,
+          0.4,
+          0
+        ],
+        "forceNode": 0
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "root": "/tmp/oet-contact-chart-before",
+          "statistics": {
+            "totalMs": {
+              "mean": 32.78977091666676,
+              "median": 32.57133299999987,
+              "p95": 35.61999999999989
+            },
+            "directionMs": {
+              "mean": 6.445675458333331,
+              "median": 6.293832999998813,
+              "p95": 6.945417000001726
+            },
+            "preparationMs": {
+              "mean": 3.19663020833328,
+              "median": 3.080249999999978,
+              "p95": 3.943917000000056
+            },
+            "iterationMs": {
+              "mean": 29.453841791666644,
+              "median": 29.034209000000374,
+              "p95": 31.981666000000132
+            },
+            "directions": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            },
+            "evaluations": {
+              "mean": 40,
+              "median": 40,
+              "p95": 40
+            },
+            "contactQueries": {
+              "mean": 1312,
+              "median": 1312,
+              "p95": 1312
+            },
+            "linearSolves": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            }
+          },
+          "records": [
+            {
+              "totalMs": 33.19520800000009,
+              "directionMs": 6.326833000000988,
+              "preparationMs": 3.0417919999999867,
+              "iterationMs": 30.025500000000193,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 34.36954199999991,
+              "directionMs": 6.3918320000002495,
+              "preparationMs": 3.070541999999932,
+              "iterationMs": 31.16899999999987,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.051834000000326,
+              "directionMs": 6.234290000000328,
+              "preparationMs": 3.0047920000001795,
+              "iterationMs": 28.91341599999987,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 44.66695900000013,
+              "directionMs": 8.921000999999706,
+              "preparationMs": 3.943917000000056,
+              "iterationMs": 40.56266600000026,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 35.61999999999989,
+              "directionMs": 6.4165860000002795,
+              "preparationMs": 3.500082999999904,
+              "iterationMs": 31.981666000000132,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 33.779999999999745,
+              "directionMs": 6.3337909999995645,
+              "preparationMs": 3.999833999999737,
+              "iterationMs": 29.641791999999896,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 34.7487500000002,
+              "directionMs": 6.263500000000022,
+              "preparationMs": 3.2976659999999356,
+              "iterationMs": 31.309166000000005,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.57133299999987,
+              "directionMs": 6.140834999999697,
+              "preparationMs": 3.4991249999998217,
+              "iterationMs": 28.94058300000006,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.704041999999845,
+              "directionMs": 6.063458000000082,
+              "preparationMs": 3.5008749999997235,
+              "iterationMs": 29.069375000000036,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.37929199999962,
+              "directionMs": 6.1923769999993965,
+              "preparationMs": 3.3145830000003116,
+              "iterationMs": 28.933874999999716,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.14600000000064,
+              "directionMs": 6.921542000000045,
+              "preparationMs": 3.2593329999999696,
+              "iterationMs": 28.753999999999905,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.64558399999987,
+              "directionMs": 6.144459000000097,
+              "preparationMs": 3.469000000000051,
+              "iterationMs": 29.034209000000374,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.166041000000405,
+              "directionMs": 6.279750000000604,
+              "preparationMs": 3.418040999999903,
+              "iterationMs": 28.613166000000092,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 33.62695799999983,
+              "directionMs": 6.3171660000016345,
+              "preparationMs": 3.1496250000000146,
+              "iterationMs": 30.329499999999825,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.99962500000038,
+              "directionMs": 6.293832999998813,
+              "preparationMs": 3.080249999999978,
+              "iterationMs": 29.7714160000005,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.42120900000009,
+              "directionMs": 6.945417000001726,
+              "preparationMs": 2.980999999999767,
+              "iterationMs": 29.305707999999868,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 31.20812500000011,
+              "directionMs": 6.1492920000000595,
+              "preparationMs": 2.847541000000092,
+              "iterationMs": 28.22791700000016,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 31.06737499999963,
+              "directionMs": 6.096790999999939,
+              "preparationMs": 2.8652079999992566,
+              "iterationMs": 28.07129199999963,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.72650000000067,
+              "directionMs": 6.352081999999427,
+              "preparationMs": 2.958542000000307,
+              "iterationMs": 29.608790999999655,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 30.216833000000406,
+              "directionMs": 6.0871240000005855,
+              "preparationMs": 2.887666999999965,
+              "iterationMs": 27.193457999999737,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.64220800000021,
+              "directionMs": 6.814916999999696,
+              "preparationMs": 3.0137919999997393,
+              "iterationMs": 26.494958000000224,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 30.053250000000844,
+              "directionMs": 6.790832999999111,
+              "preparationMs": 2.842250000000604,
+              "iterationMs": 27.076874999999745,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 30.43670899999961,
+              "directionMs": 6.119792999999845,
+              "preparationMs": 2.96087499999976,
+              "iterationMs": 27.327040999999554,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.511124999999993,
+              "directionMs": 6.098708999998053,
+              "preparationMs": 2.8127919999997175,
+              "iterationMs": 26.536833000000115,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            }
+          ]
+        },
+        {
+          "root": ".",
+          "statistics": {
+            "totalMs": {
+              "mean": 30.4758645,
+              "median": 29.891625000000204,
+              "p95": 32.947083999999904
+            },
+            "directionMs": {
+              "mean": 6.402866125000003,
+              "median": 6.241543000000092,
+              "p95": 6.8764979999996285
+            },
+            "preparationMs": {
+              "mean": 1.8811995833333413,
+              "median": 1.844082999999955,
+              "p95": 2.441917000000103
+            },
+            "iterationMs": {
+              "mean": 28.451029458333306,
+              "median": 27.72004199999992,
+              "p95": 30.82729100000006
+            },
+            "directions": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            },
+            "evaluations": {
+              "mean": 40,
+              "median": 40,
+              "p95": 40
+            },
+            "contactQueries": {
+              "mean": 1312,
+              "median": 1312,
+              "p95": 1312
+            },
+            "linearSolves": {
+              "mean": 8,
+              "median": 8,
+              "p95": 8
+            }
+          },
+          "records": [
+            {
+              "totalMs": 30.125083999999788,
+              "directionMs": 6.241543000000092,
+              "preparationMs": 1.768666999999823,
+              "iterationMs": 28.157834000000094,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.947083999999904,
+              "directionMs": 6.550039999999171,
+              "preparationMs": 1.969166999999743,
+              "iterationMs": 30.82729100000006,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 31.246291999999812,
+              "directionMs": 6.45475099999976,
+              "preparationMs": 1.787083000000166,
+              "iterationMs": 29.300083000000086,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 41.39391599999999,
+              "directionMs": 8.79262400000016,
+              "preparationMs": 1.8492909999999938,
+              "iterationMs": 39.39525000000003,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 31.927584000000024,
+              "directionMs": 6.8764979999996285,
+              "preparationMs": 2.7145839999998316,
+              "iterationMs": 29.079082999999628,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.891625000000204,
+              "directionMs": 6.334416000000147,
+              "preparationMs": 2.441917000000103,
+              "iterationMs": 27.303125000000364,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 31.032584000000043,
+              "directionMs": 6.277248000000327,
+              "preparationMs": 1.9182089999999334,
+              "iterationMs": 28.97420800000009,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 31.627500000000055,
+              "directionMs": 6.505916999999954,
+              "preparationMs": 1.8744999999998981,
+              "iterationMs": 29.617749999999887,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.910041000000092,
+              "directionMs": 6.874960000000101,
+              "preparationMs": 1.997624999999971,
+              "iterationMs": 27.781208000000333,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.484249999999975,
+              "directionMs": 6.080498999999236,
+              "preparationMs": 1.729334000000108,
+              "iterationMs": 27.62079100000028,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.6489160000001,
+              "directionMs": 6.038124999999127,
+              "preparationMs": 1.844082999999955,
+              "iterationMs": 27.66887499999939,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.364290999999866,
+              "directionMs": 6.1270419999991645,
+              "preparationMs": 1.7492080000001806,
+              "iterationMs": 27.483542000000853,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.94945800000005,
+              "directionMs": 6.131790000000365,
+              "preparationMs": 1.8683750000000146,
+              "iterationMs": 27.93945799999983,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 30.59112500000083,
+              "directionMs": 6.272707999998602,
+              "preparationMs": 1.9610420000008162,
+              "iterationMs": 28.496250000000146,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 32.43370800000048,
+              "directionMs": 6.5060820000016975,
+              "preparationMs": 1.9459160000005795,
+              "iterationMs": 30.35149999999976,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 28.815625000000182,
+              "directionMs": 6.017376000000695,
+              "preparationMs": 1.7633749999995416,
+              "iterationMs": 26.89708299999984,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 28.966332999999395,
+              "directionMs": 6.086001000000579,
+              "preparationMs": 1.7321659999997792,
+              "iterationMs": 27.097791999999572,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 28.999582999999802,
+              "directionMs": 5.9973760000020775,
+              "preparationMs": 1.7436250000000655,
+              "iterationMs": 27.121208999999908,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.787749999999505,
+              "directionMs": 6.107914999999593,
+              "preparationMs": 1.9076249999998254,
+              "iterationMs": 27.72004199999992,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.491833000000042,
+              "directionMs": 6.147333000001709,
+              "preparationMs": 1.708958000000166,
+              "iterationMs": 27.620249999999942,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 28.259415999999874,
+              "directionMs": 6.096416999999747,
+              "preparationMs": 1.7560000000003129,
+              "iterationMs": 26.36424999999963,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 27.86779200000001,
+              "directionMs": 6.691125999999713,
+              "preparationMs": 1.6710829999992711,
+              "iterationMs": 26.065624999999272,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 29.146999999999935,
+              "directionMs": 6.225915999998506,
+              "preparationMs": 1.7259159999994154,
+              "iterationMs": 27.286000000000058,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            },
+            {
+              "totalMs": 28.51195800000005,
+              "directionMs": 6.235083999999915,
+              "preparationMs": 1.721041000000696,
+              "iterationMs": 26.656208000000333,
+              "directions": 8,
+              "evaluations": 40,
+              "contactQueries": 1312,
+              "linearSolves": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loaded-lumen-65",
+      "geometry": {
+        "n": 65,
+        "lumen": true,
+        "offset": 0.0406,
+        "wireSlope": -0.0002
+      },
+      "input": {
+        "force": [
+          0.1,
+          0.4,
+          0
+        ],
+        "forceNode": 0
+      },
+      "maxShapeError": 0,
+      "maxReactionError": 0,
+      "results": [
+        {
+          "root": "/tmp/oet-contact-chart-before",
+          "statistics": {
+            "totalMs": {
+              "mean": 151.42201729166672,
+              "median": 148.0505830000002,
+              "p95": 178.30383299999994
+            },
+            "directionMs": {
+              "mean": 29.537130208333036,
+              "median": 28.732457999998587,
+              "p95": 33.687833999998475
+            },
+            "preparationMs": {
+              "mean": 27.174883666666535,
+              "median": 26.593957999999475,
+              "p95": 30.23174999999901
+            },
+            "iterationMs": {
+              "mean": 123.82601208333351,
+              "median": 120.79404199999954,
+              "p95": 148.22095799999988
+            },
+            "directions": {
+              "mean": 9,
+              "median": 9,
+              "p95": 9
+            },
+            "evaluations": {
+              "mean": 58,
+              "median": 58,
+              "p95": 58
+            },
+            "contactQueries": {
+              "mean": 7552,
+              "median": 7552,
+              "p95": 7552
+            },
+            "linearSolves": {
+              "mean": 9,
+              "median": 9,
+              "p95": 9
+            }
+          },
+          "records": [
+            {
+              "totalMs": 152.011708,
+              "directionMs": 29.492582000000766,
+              "preparationMs": 26.295415999999932,
+              "iterationMs": 125.26104200000009,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 147.41483300000073,
+              "directionMs": 28.732457999998587,
+              "preparationMs": 26.19129199999952,
+              "iterationMs": 120.79404199999954,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 147.9641670000001,
+              "directionMs": 28.081375999994634,
+              "preparationMs": 25.940749999999753,
+              "iterationMs": 121.65937499999927,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 146.1536670000005,
+              "directionMs": 28.46824799999922,
+              "preparationMs": 27.357583999999406,
+              "iterationMs": 118.4582500000015,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 144.36141700000007,
+              "directionMs": 27.96175000000403,
+              "preparationMs": 25.75995900000089,
+              "iterationMs": 118.22108300000036,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 157.00341599999956,
+              "directionMs": 33.21387499999946,
+              "preparationMs": 26.39020800000071,
+              "iterationMs": 130.15562499999942,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 150.11162499999955,
+              "directionMs": 28.100832999996783,
+              "preparationMs": 29.79979099999946,
+              "iterationMs": 119.88299999999981,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 144.03191700000025,
+              "directionMs": 29.598165999999765,
+              "preparationMs": 26.098667000000205,
+              "iterationMs": 117.54300000000148,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 144.42904199999975,
+              "directionMs": 28.428250999999364,
+              "preparationMs": 25.598834000000352,
+              "iterationMs": 118.37962499999958,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 145.47249999999985,
+              "directionMs": 28.535209000001487,
+              "preparationMs": 26.295916000000943,
+              "iterationMs": 118.74791600000026,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 164.5015000000003,
+              "directionMs": 34.090791999999055,
+              "preparationMs": 33.862583999998606,
+              "iterationMs": 130.22616600000038,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 148.58770899999945,
+              "directionMs": 29.539459000001443,
+              "preparationMs": 26.12408400000095,
+              "iterationMs": 122.03525000000081,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 145.00945800000045,
+              "directionMs": 28.470124999998006,
+              "preparationMs": 25.629417000000103,
+              "iterationMs": 118.97620899999856,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 178.30383299999994,
+              "directionMs": 33.687833999998475,
+              "preparationMs": 29.6668750000008,
+              "iterationMs": 148.22095799999988,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 153.80041600000004,
+              "directionMs": 30.69304100000045,
+              "preparationMs": 26.593957999999475,
+              "iterationMs": 126.81620900000053,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 153.33391699999993,
+              "directionMs": 28.948416000002908,
+              "preparationMs": 26.070041999999376,
+              "iterationMs": 126.86391600000024,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 150.0604999999996,
+              "directionMs": 29.90621000000283,
+              "preparationMs": 28.33795800000007,
+              "iterationMs": 121.2960409999996,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 146.3080000000009,
+              "directionMs": 29.13591699999779,
+              "preparationMs": 26.8917079999992,
+              "iterationMs": 119.03475000000071,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 143.4962910000013,
+              "directionMs": 27.79450199999883,
+              "preparationMs": 25.90691599999991,
+              "iterationMs": 117.17241600000125,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 143.76345799999945,
+              "directionMs": 27.96795799999927,
+              "preparationMs": 26.90020799999911,
+              "iterationMs": 116.48766599999908,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 144.7203329999993,
+              "directionMs": 28.34020800000144,
+              "preparationMs": 26.632707999999184,
+              "iterationMs": 117.68545900000026,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 179.00974999999926,
+              "directionMs": 32.62608399999954,
+              "preparationMs": 30.23174999999901,
+              "iterationMs": 148.36966700000085,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 156.2283750000006,
+              "directionMs": 28.659123999999792,
+              "preparationMs": 27.009250000000975,
+              "iterationMs": 128.82474999999977,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 148.0505830000002,
+              "directionMs": 28.418706999998903,
+              "preparationMs": 26.611332999998922,
+              "iterationMs": 120.71187500000087,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            }
+          ]
+        },
+        {
+          "root": ".",
+          "statistics": {
+            "totalMs": {
+              "mean": 130.47783679166662,
+              "median": 127.03158299999996,
+              "p95": 148.1509589999987
+            },
+            "directionMs": {
+              "mean": 29.768395916667146,
+              "median": 29.19841699999961,
+              "p95": 34.399915999998484
+            },
+            "preparationMs": {
+              "mean": 7.1135139166667996,
+              "median": 6.773708999999144,
+              "p95": 8.042041000000609
+            },
+            "iterationMs": {
+              "mean": 122.94038362499994,
+              "median": 120.17687500000102,
+              "p95": 140.97833300000093
+            },
+            "directions": {
+              "mean": 9,
+              "median": 9,
+              "p95": 9
+            },
+            "evaluations": {
+              "mean": 58,
+              "median": 58,
+              "p95": 58
+            },
+            "contactQueries": {
+              "mean": 7552,
+              "median": 7552,
+              "p95": 7552
+            },
+            "linearSolves": {
+              "mean": 9,
+              "median": 9,
+              "p95": 9
+            }
+          },
+          "records": [
+            {
+              "totalMs": 127.01641699999982,
+              "directionMs": 28.42424999999912,
+              "preparationMs": 6.52245799999946,
+              "iterationMs": 119.99679200000082,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 126.581916000001,
+              "directionMs": 29.16716699999961,
+              "preparationMs": 7.273291000000427,
+              "iterationMs": 118.9074159999991,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 126.96212500000001,
+              "directionMs": 28.019875000003594,
+              "preparationMs": 6.475250000001324,
+              "iterationMs": 120.10941699999967,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 125.30304199999955,
+              "directionMs": 28.042998999999327,
+              "preparationMs": 7.511958000000959,
+              "iterationMs": 117.45291700000053,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 125.71866600000067,
+              "directionMs": 29.19841699999961,
+              "preparationMs": 6.3840000000000146,
+              "iterationMs": 118.99887499999932,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 126.70404099999905,
+              "directionMs": 29.24183300000186,
+              "preparationMs": 8.042041000000609,
+              "iterationMs": 118.3336249999993,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 151.98012500000004,
+              "directionMs": 35.982294000003094,
+              "preparationMs": 6.622541999999157,
+              "iterationMs": 144.4487079999999,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 133.59112500000083,
+              "directionMs": 29.10516600000483,
+              "preparationMs": 6.482084000001123,
+              "iterationMs": 126.70820800000001,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 128.69608399999925,
+              "directionMs": 29.42737500000112,
+              "preparationMs": 7.352041999998619,
+              "iterationMs": 120.91320900000028,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 128.25808400000096,
+              "directionMs": 28.162209000003713,
+              "preparationMs": 6.140417000000525,
+              "iterationMs": 121.62637499999983,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 148.1509589999987,
+              "directionMs": 33.04924900000151,
+              "preparationMs": 6.773708999999144,
+              "iterationMs": 140.97833300000093,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 133.91391699999986,
+              "directionMs": 30.064916999999696,
+              "preparationMs": 7.035832999999911,
+              "iterationMs": 126.45987500000047,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 128.60491600000023,
+              "directionMs": 28.610791999997673,
+              "preparationMs": 7.391250000000582,
+              "iterationMs": 120.81241600000067,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 141.4265830000004,
+              "directionMs": 34.399915999998484,
+              "preparationMs": 6.570125000000189,
+              "iterationMs": 134.44583299999977,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 127.03158299999996,
+              "directionMs": 28.710418000000573,
+              "preparationMs": 6.784208000000945,
+              "iterationMs": 119.86149999999907,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 125.96349999999984,
+              "directionMs": 28.40812499999629,
+              "preparationMs": 7.053375000001324,
+              "iterationMs": 118.50908299999901,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 127.29670799999985,
+              "directionMs": 29.45125200000257,
+              "preparationMs": 6.385541999999987,
+              "iterationMs": 120.43354200000067,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 124.63012499999968,
+              "directionMs": 28.73633499999778,
+              "preparationMs": 7.540124999999534,
+              "iterationMs": 116.71504199999981,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 124.42924999999923,
+              "directionMs": 29.46175000000585,
+              "preparationMs": 6.361917000000176,
+              "iterationMs": 117.6869999999999,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 125.27787499999977,
+              "directionMs": 28.09466599999905,
+              "preparationMs": 6.9944589999995515,
+              "iterationMs": 117.90170799999942,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 126.93425000000025,
+              "directionMs": 28.01433299999735,
+              "preparationMs": 6.3567910000001575,
+              "iterationMs": 120.17687500000102,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 142.1872080000012,
+              "directionMs": 32.88787299999967,
+              "preparationMs": 13.69366700000137,
+              "iterationMs": 128.0878329999996,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 128.71079199999986,
+              "directionMs": 29.90545799999927,
+              "preparationMs": 6.567874999998821,
+              "iterationMs": 121.7437919999993,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            },
+            {
+              "totalMs": 126.09879199999887,
+              "directionMs": 29.874832999999853,
+              "preparationMs": 6.409374999999272,
+              "iterationMs": 119.26083300000028,
+              "directions": 9,
+              "evaluations": 58,
+              "contactQueries": 7552,
+              "linearSolves": 9
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

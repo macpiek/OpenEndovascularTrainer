@@ -1,0 +1,45 @@
+{
+  "scope": "parent full fixed-chart side-friction dt plus exact value-only trial integration; no World/UI/adaptation/FPS claim",
+  "files": {
+    "src/physics/kirchhoffCompositeFriction.js": "9900193b587abed02443e21cdbd4d46cd34774bfc2c81197727702583f0fc4b2",
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "ec36b610557e1f47938be9f107bde40710a46f9dbce0a8dcb5bc368510b48c9f",
+    "src/physics/kirchhoffCompositeJointLumenSurface.js": "526b2ca7d48eb068bdd79f0e4466c68bf09808b7fbcccb4cb16fe73d64ee4a58",
+    "src/physics/kirchhoffCompositeJointSurfacePullback.js": "1616d121ea911c29c20d094c4f958627b8fb9c5818fac1517f34bf64ccd26637",
+    "src/physics/kirchhoffCompositeJointLumenFrictionRows.js": "8d0937ed30f83dea0acde7a648651d2909fd456587c4983e8bc82ad4b9c84c51",
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "5797e8d560f1367afbb1aa56e07f0e07af2cd3851fad297a1839dee9e9848101",
+    "src/physics/kirchhoffCompositeJointLumenRows.js": "fe3b4f5fbdf9f60e08f12dcafdc23b052c136d544a66e7df728d6bed5397a3af",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "e88a0c81527fcfa4d55488e2939681fc69d3737bdca1f1b4c6ffe6d7043ea8a4",
+    "tests/kirchhoffCompositeFriction.test.js": "7788b84972e016f06fff8ceaa0d89c0c4e92578b3069377b37b82a68d11323b0",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "7a3b3c41086c41a0801449c88e86fab4e807a75c908741083f853fb677fb03e6",
+    "tests/kirchhoffCompositeJointLumenSurface.test.js": "a3b87c2c2d8a6a4bcf5e8edf98feafd4162949d2d77d85aaf6fa085d12d7f7e4",
+    "tests/kirchhoffCompositeJointLumenFrictionRows.test.js": "f26e605b579e297fcc017f2302239d68739f4970d3caf9bcfba001838eac4e1c",
+    "tests/kirchhoffCompositeJointFrictionTimeStep.test.js": "2cdd92cd80496367906e3dfdc11ad37afb16e72b66006b24dc0a5d175cf07423",
+    "package.json": "fc389a087567375aa712384a703695bd16bd14e527a9647c0e82b5c06e5dc881"
+  },
+  "tests": {
+    "composite": {
+      "pass": 571,
+      "fail": 0,
+      "durationMs": 8706.662709,
+      "log": "/tmp/oet-composite-joint-friction-final-full-suite.txt",
+      "sha256": "8d486940d0d554e9fd66c0cc06b043d342b533af00e6c0b1d97f8e228d0117e4"
+    },
+    "fullFrictionDt": 8,
+    "manager": 9
+  },
+  "build": {
+    "passed": true,
+    "log": "/tmp/oet-composite-joint-friction-build.txt"
+  },
+  "workerManagerManifestSha256": "555befd12de61b4f9dbc3963e377e28b16d265c9686cf05666b5f059ac9630a7",
+  "parentManagerChanges": "exact value-only surface evaluation for gradient trials; invalid G/DB, full assembly recomputes; full-gradient-full test strengthened",
+  "performanceEvidence": "reports/composite-joint-friction-value-dt-benchmark.json",
+  "performanceScope": "Small fixed3-node fixture, 100 alternating pairs; measurement precedes two final input-shape checks with unchanged physical operators; original first-stage P95 spikes retained",
+  "remaining": [
+    "stationary-wall friction and tip friction",
+    "material hinge/birth/loaded-feature and owner transport",
+    "chart remap and adaptive discretization with error control",
+    "full World/UI adapter and actual-anatomy replay",
+    "60FPS with120Hz without backlog/skips and full prepare/commit/render timing"
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "case": {
+    "count": 284,
+    "band": 284,
+    "groups": 81,
+    "catheterMm": 144.2,
+    "tolerance": 0.0002,
+    "numericalShift": 1e-08
+  },
+  "baselineDirect": {
+    "status": "coulomb-line-search",
+    "converged": false,
+    "iterations": 57,
+    "factorizations": 58,
+    "backtracks": 328,
+    "gradientFallbacks": 0,
+    "maximumResidual": 0.0007341423543502477,
+    "frictionResidual": 4.9073023422607776e-11,
+    "coneViolation": 2.220446049250313e-16,
+    "rowCount": 284,
+    "band": 284,
+    "groupCount": 81,
+    "normalLoadIterations": 0,
+    "method": "simultaneous-coulomb-newton",
+    "normalMap": "fischer-burmeister"
+  },
+  "candidateDirect": {
+    "status": "converged",
+    "converged": true,
+    "iterations": 2,
+    "factorizations": 2,
+    "backtracks": 1,
+    "gradientFallbacks": 0,
+    "boundRecoveries": 3,
+    "maximumResidual": 0.0001276483504226494,
+    "frictionResidual": 8.53599125900592e-05,
+    "coneViolation": 2.220446049250313e-16,
+    "rowCount": 284,
+    "band": 284,
+    "groupCount": 81,
+    "normalLoadIterations": 0,
+    "method": "simultaneous-coulomb-newton",
+    "normalMap": "fischer-burmeister"
+  },
+  "candidateSeeded": {
+    "status": "converged",
+    "converged": true,
+    "iterations": 19,
+    "factorizations": 20,
+    "backtracks": 143,
+    "gradientFallbacks": 0,
+    "boundRecoveries": 3,
+    "maximumResidual": 0.00014835215756616655,
+    "frictionResidual": 7.60953251882808e-05,
+    "coneViolation": 0,
+    "rowCount": 284,
+    "band": 284,
+    "groupCount": 81,
+    "normalLoadIterations": 1,
+    "method": "simultaneous-coulomb-newton",
+    "normalMap": "fischer-burmeister",
+    "normalMapStart": "projection",
+    "normalMapFallback": true,
+    "seedFactorizations": 12
+  },
+  "baselineLastIterations": [
+    {
+      "iteration": 54,
+      "merit": 1.4654644414609e-32,
+      "slope": -2.930928735813371e-32,
+      "step": 0.0625,
+      "accepted": true
+    },
+    {
+      "iteration": 55,
+      "merit": 1.3484624793017713e-32,
+      "slope": -2.696924778981341e-32,
+      "step": 0.0078125,
+      "accepted": true
+    },
+    {
+      "iteration": 56,
+      "merit": 1.2652951822499925e-32,
+      "slope": -2.5305892927951756e-32,
+      "step": 1.52587890625e-05,
+      "accepted": true
+    },
+    {
+      "iteration": 57,
+      "merit": 1.265295176481854e-32,
+      "slope": -2.530589281259614e-32,
+      "step": 9.313225746154785e-10,
+      "accepted": false
+    }
+  ],
+  "baselineRow105": {
+    "force": 7.988362899996275e-20,
+    "residual": -0.0007341423543502477,
+    "naturalMap": 0
+  },
+  "candidateRow105": {
+    "force": 0,
+    "residual": -0.0009080944675549114
+  },
+  "timingNote": "No performance conclusion: a root browser smoke test overlapped part of the diagnostic probes. Report only operation counts and exact full-problem certificates.",
+  "sha256": {
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "c4acf20aae412972e543f6d5a1fbe3bbfa63ae57c0b569e3ffb08408fb8f50bc",
+    "tests/kirchhoffCoulombNewtonSolver.test.js": "a34fbf6f7bafba353099dc9d5f97aee31deee2a6fe3e1dbad987d9ecc8a1251f",
+    "tests/kirchhoffCoulombBoundRecovery.test.js": "e2c6b74e33f2ed8375d96e9a6a4be649cc328e8e2eeefe1628db8ad5659dafb3",
+    "tests/fixtures/kirchhoff-coulomb-144-bound-recovery.json.gz": "d5b41a8b6dbe20696ee40e70c45cd78739f1809140a92fbeb595d853b0777dc6"
+  }
+}

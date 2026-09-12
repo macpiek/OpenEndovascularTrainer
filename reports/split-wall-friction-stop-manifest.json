@@ -1,0 +1,33 @@
+{
+  "patch": "/tmp/oet-wall-mode-kinematic-stop-8996/wall-friction-modes.patch",
+  "patchSha256": "b15435f7db5f40d921e02b4bdaa04c330e123d5a05da24a878460c142fcea6f2",
+  "deltaPatch": "/tmp/oet-wall-mode-kinematic-stop-8996/from-ecf1cffa.patch",
+  "deltaPatchSha256": "f76c7ed2c4f5fde9717b4f94f1e76fa9148a2caeed7566b87c727bb32f3fcb2f",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffSplitWallFriction.js",
+      "beforeSha256": "ac3753d56332d32293d1552af058166f8b1318bf4e788c2b8161a6598729f78a",
+      "afterSha256": "0424e450f5beb8a1a597a86f127cab4f253ac05a01148073068fd37b0b46995e"
+    },
+    {
+      "path": "src/physics/kirchhoffWallFrictionMode.js",
+      "beforeSha256": null,
+      "afterSha256": "9e4cc22f6be6683a770e494caa150221ebf6060b907546fceb045a4275aa5cae"
+    },
+    {
+      "path": "tests/kirchhoffWallFrictionMode.test.js",
+      "beforeSha256": null,
+      "afterSha256": "f192da527edc6236e64a5b3518aabd231a0398b55d2e408805fa0477e1618181"
+    },
+    {
+      "path": "tests/kirchhoffWallFrictionModeWrench.test.js",
+      "beforeSha256": null,
+      "afterSha256": "15cbbc974c2fa121dcd69ed11592b9810052536cc2da8c4adcfa58681bfda9f8"
+    },
+    {
+      "path": "tests/fixtures/wallFrictionModeHarness.js",
+      "beforeSha256": null,
+      "afterSha256": "7f221b8e90dab6fdab4c7e32bc85f3c5dc2d7a2cf42b58c7a64f7159c83faf6a"
+    }
+  ]
+}

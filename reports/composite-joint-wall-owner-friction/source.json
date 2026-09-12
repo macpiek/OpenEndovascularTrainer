@@ -1,0 +1,37 @@
+{
+  "scope": "production per-owner wall Coulomb coefficients, common-step globalization, World bridge and fixed-union import; app/anatomy lifecycle and FPS incomplete",
+  "fullSuite": {
+    "pass": 758,
+    "fail": 0,
+    "durationMs": 16825.245917,
+    "log": "reports/composite-joint-wall-owner-friction/full-suite.txt"
+  },
+  "build": {
+    "pass": true,
+    "durationSeconds": 1.89,
+    "log": "reports/composite-joint-wall-owner-friction/build.txt"
+  },
+  "knownIncomplete": [
+    "actual-anatomy-source-adapters",
+    "per-surface-static-kinetic-friction",
+    "sheath-portal-tip-laws",
+    "moving-material-profiles-and-mesh-transfer",
+    "internal-hinge-surface-transport",
+    "adaptive-relative-reduction",
+    "app-selector-integration",
+    "60FPS-120Hz-deep-max-insertion"
+  ],
+  "sha256": {
+    "src/physics/kirchhoffCompositeJointWallFrictionRows.js": "3f36ad3673dcb9a741168331862facd7e5442bccc65f1cab1c96de11f8c13ede",
+    "tests/kirchhoffCompositeJointWallFrictionRows.test.js": "b323048c056e933248e85f59f6714b595917b338ecbfa90bd3d1bda86a111b94",
+    "tests/kirchhoffCompositeJointWallFrictionTimeStep.test.js": "66578775163411e8ef75060fa55c4efa88e61c99fc4bda041a9eb814fc3b27c8",
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "f7669e0257d86d7dd1ec9635f775c7ce6f3f380ab7a21b9047b38ec5c7fa6d84",
+    "src/physics/kirchhoffCompositeFriction.js": "9900193b587abed02443e21cdbd4d46cd34774bfc2c81197727702583f0fc4b2"
+  },
+  "logs": {
+    "full-suite.txt": "1612ed299c7faf8dae146f772b22ac06f34965492b5c9047a0537dc8a6e0845e",
+    "build.txt": "8e897224b9e90b5b5319cadd53ddde2606a31f96aafb43bce2775b8023cb9784",
+    "manager-tests.txt": "a736f92678d68eeaac99ef9a3c64ca900ed4fa94fcccfc467fa86198b64b19d1",
+    "step-tests.txt": "cfc29f107056b4111c33ba7cbaa313ecd63c8980c8340499c0d05d4196ac8251"
+  }
+}

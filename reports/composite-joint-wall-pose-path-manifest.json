@@ -1,0 +1,21 @@
+{
+  "scope": "Only WallSurface source/test and new reports; no dependency replacements",
+  "payload": {
+    "src/physics/kirchhoffCompositeJointWallSurface.js": "ff026caa2b6da4e7008793f67707adb3651e3407883f204c8e7e8f68d7b9e366",
+    "tests/kirchhoffCompositeJointWallSurface.test.js": "4d75ae1f8c4b1d00b8975794d6f33f693a2688d90ba1207f40c0f44a5605692d",
+    "reports/composite-joint-wall-pose-path-legacy-ab.json": "b7cbc01c8f77aa16592a144accff2941b7e93ac39642feb372e510109741ce24",
+    "reports/composite-joint-wall-pose-path-source.json": "443ab30e3d87f79e1956ce98793c7c50386b0dcfdfbfce67b46f06214f84aeb6",
+    "reports/composite-joint-wall-pose-path-tests.txt": "72c20864e2c35157c7c8c51e0a5d3c9c6134f8a8f8bcb9355b2753d3293f468a",
+    "reports/composite-joint-wall-pose-path.md": "9306ddfea90188db256dff9ae92182b2c15690139b2a1596d3fed05b98fdf5e2",
+    "reports/composite-joint-wall-pose-path.patch": "c2a475909254c159251baa967cbb3a3320728f4ab47d08905976c8b0a9591b14",
+    "reports/probe-composite-joint-wall-pose-path-legacy-ab.mjs": "c152fab1cc909b59f2b75493c1d760419aa12c3ede63be8b2a387dc230e5633c"
+  },
+  "validation": {
+    "pass": 125,
+    "fail": 0,
+    "wallSurface": 22,
+    "newWallSurface": 11,
+    "legacyExactAB": 72,
+    "currentRootDependencyDrift": []
+  }
+}

@@ -1,0 +1,1642 @@
+{
+  "scope": "Node physics replay; same depths and defaults, not the exact browser contact history or rendered FPS",
+  "fixedDt": 0.008333333333333333,
+  "wireMm": 309,
+  "catheterMm": 100,
+  "startedAt": "2026-09-12T07:18:17.526Z",
+  "scenarios": [
+    {
+      "scenario": "wire-alone",
+      "phases": [
+        {
+          "name": "wire-feed-309",
+          "steps": 843,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 1.9429308510638428,
+            "p50": 1.8985419999999067,
+            "p95": 2.96737499999972,
+            "max": 3.4593340000001263
+          },
+          "timings": {
+            "total": {
+              "mean": 1.9136949574468283,
+              "p50": 1.8809580000001915,
+              "p95": 2.9355829999999514,
+              "max": 3.4397079999998823
+            },
+            "integrate": {
+              "mean": 0.007074382978723232,
+              "p50": 0.00670799999988958,
+              "p95": 0.009791999999833934,
+              "max": 0.010291000000052009
+            },
+            "narrowPhase": {
+              "mean": 0.24511974468084596,
+              "p50": 0.23708299999998417,
+              "p95": 0.2958330000001297,
+              "max": 0.39095899999983885
+            },
+            "constraints": {
+              "mean": 1.6465282978723483,
+              "p50": 1.6398749999998472,
+              "p95": 2.6358329999998205,
+              "max": 3.130666999999903
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 1.644703936170185,
+              "p50": 1.6390000000001237,
+              "p95": 2.6305829999996604,
+              "max": 3.124749999999949
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.009211914893638366,
+              "p50": 0.007834000000002561,
+              "p95": 0.01358299999992596,
+              "max": 0.030291999999917607
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.07837940425533235,
+            "solveMs": 0.8668599787233204,
+            "applyMs": 0.021624148936156263,
+            "snapshotMs": 0.28650087234042615,
+            "restoreMs": 0,
+            "measureMs": 0.37581899999998103,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.17920925531908768,
+            "schurMs": 0.09949838297876688,
+            "contactSolveMs": 0.016484063829824314,
+            "reconstructionMs": 0.03247623404259936,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "wire-hold",
+          "steps": 60,
+          "measuredSteps": 60,
+          "fullMs": {
+            "mean": 1.2026479499999974,
+            "p50": 1.1239169999998921,
+            "p95": 2.889042000000245,
+            "max": 4.262040999999954
+          },
+          "timings": {
+            "total": {
+              "mean": 1.16829659999997,
+              "p50": 1.1054579999999987,
+              "p95": 2.82024999999976,
+              "max": 4.241875000000164
+            },
+            "integrate": {
+              "mean": 0.008013966666673393,
+              "p50": 0.0069590000002790475,
+              "p95": 0.012709000000086235,
+              "max": 0.028542000000015832
+            },
+            "narrowPhase": {
+              "mean": 0.08661945000008017,
+              "p50": 0.061625000000276486,
+              "p95": 0.20812500000010914,
+              "max": 0.28508200000032957
+            },
+            "constraints": {
+              "mean": 1.0562924333333512,
+              "p50": 0.9118329999996604,
+              "p95": 2.6348339999999553,
+              "max": 4.007916999999907
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 1.0542479333333403,
+              "p50": 0.9077499999998508,
+              "p95": 2.631750000000011,
+              "max": 4.0029169999997976
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.010229083333335135,
+              "p50": 0.007875000000240107,
+              "p95": 0.0215410000000702,
+              "max": 0.04333300000007512
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.05955553333330954,
+            "solveMs": 0.6071159999999963,
+            "applyMs": 0.02122364999997141,
+            "snapshotMs": 0.14778886666665586,
+            "restoreMs": 0,
+            "measureMs": 0.20502564999997047,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.11829518333335425,
+            "schurMs": 0.06580618333334011,
+            "contactSolveMs": 0.013079200000000431,
+            "reconstructionMs": 0.022370150000051582,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          },
+          "failures": 0
+        }
+      ]
+    },
+    {
+      "scenario": "catheter-alone",
+      "phases": [
+        {
+          "name": "catheter-feed-20",
+          "steps": 47,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 0.8543892127659479,
+            "p50": 0.5157500000000255,
+            "p95": 2.3300420000000486,
+            "max": 8.130874999999833
+          },
+          "timings": {
+            "total": {
+              "mean": 0.7439024893617104,
+              "p50": 0.4573339999997188,
+              "p95": 1.6692919999995866,
+              "max": 7.77350000000024
+            },
+            "integrate": {
+              "mean": 0.006883021276590103,
+              "p50": 0.005167000000255939,
+              "p95": 0.010125000000243745,
+              "max": 0.04387499999984357
+            },
+            "narrowPhase": {
+              "mean": 0.011233170212785517,
+              "p50": 0.010333000000173342,
+              "p95": 0.016541999999844847,
+              "max": 0.04087599999957092
+            },
+            "constraints": {
+              "mean": 0.7009965319149412,
+              "p50": 0.42870899999979883,
+              "p95": 1.5047500000000582,
+              "max": 7.476999999999862
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 0.6775974255319175,
+              "p50": 0.4275830000001406,
+              "p95": 1.1217090000000098,
+              "max": 7.4543749999998
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.014095702127662585,
+              "p50": 0.007916000000022905,
+              "p95": 0.02541700000028868,
+              "max": 0.19987500000024738
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.10892285106385625,
+            "solveMs": 0.4733785319149126,
+            "applyMs": 0.015779234042558064,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.08368797872337885,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.030221617021304173,
+            "schurMs": 0.00993891489363879,
+            "contactSolveMs": 0.01684125531912596,
+            "reconstructionMs": 0.004473404255301656,
+            "seedMs": 0.008141808510630498
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-feed-50",
+          "steps": 70,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 0.4903341914893374,
+            "p50": 0.4578329999999369,
+            "p95": 0.8686669999997321,
+            "max": 1.3160829999997077
+          },
+          "timings": {
+            "total": {
+              "mean": 0.4118404468085247,
+              "p50": 0.3783339999999953,
+              "p95": 0.756249999999909,
+              "max": 1.243249999999989
+            },
+            "integrate": {
+              "mean": 0.0038331914893592997,
+              "p50": 0.0031660000004194444,
+              "p95": 0.006917000000157714,
+              "max": 0.012375000000247383
+            },
+            "narrowPhase": {
+              "mean": 0.010064659574428779,
+              "p50": 0.009957999999642198,
+              "p95": 0.010916999999608379,
+              "max": 0.016083999999864318
+            },
+            "constraints": {
+              "mean": 0.36699910638295247,
+              "p50": 0.3491249999997308,
+              "p95": 0.4491250000000946,
+              "max": 0.7844589999999698
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 0.3659565106382867,
+              "p50": 0.3479160000001684,
+              "p95": 0.44783400000005713,
+              "max": 0.7827079999997295
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.023592191489327927,
+              "p50": 0.0038339999996424012,
+              "p95": 0.010957999999845924,
+              "max": 0.853125000000091
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.009528361702131347,
+            "solveMs": 0.3121719148935939,
+            "applyMs": 0.006336851063795311,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.02688387234046728,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.04387672340423725,
+            "schurMs": 0.011284531914875419,
+            "contactSolveMs": 0.004582531914849746,
+            "reconstructionMs": 0.0012188936170206672,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-feed-100",
+          "steps": 116,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 1.3937641702127814,
+            "p50": 1.306083999999828,
+            "p95": 2.0592500000002474,
+            "max": 3.1196670000003905
+          },
+          "timings": {
+            "total": {
+              "mean": 1.3019299361702363,
+              "p50": 1.220958000000337,
+              "p95": 1.932166000000052,
+              "max": 3.0284169999999904
+            },
+            "integrate": {
+              "mean": 0.006710127659574782,
+              "p50": 0.004750000000058208,
+              "p95": 0.013707999999951426,
+              "max": 0.01812500000005457
+            },
+            "narrowPhase": {
+              "mean": 0.039822765957398316,
+              "p50": 0.03937500000029104,
+              "p95": 0.06616600000006656,
+              "max": 0.07162500000004002
+            },
+            "constraints": {
+              "mean": 1.2268315957446558,
+              "p50": 1.153208000000177,
+              "p95": 1.8210840000001554,
+              "max": 2.9320419999999103
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 1.2253723404255168,
+              "p50": 1.1521249999996144,
+              "p95": 1.818083999999999,
+              "max": 2.9278340000000753
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.019931808510601185,
+              "p50": 0.018791999999848485,
+              "p95": 0.025874999999814463,
+              "max": 0.03312499999992724
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.027681659574488763,
+            "solveMs": 0.7652854255319498,
+            "applyMs": 0.016293553191518824,
+            "snapshotMs": 0.2779983404255368,
+            "restoreMs": 0,
+            "measureMs": 0.11313653191491733,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 302.0851063829787,
+            "snapshotBytes": 563124.9361702128,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.07790251063830085,
+            "schurMs": 0.046695914893645864,
+            "contactSolveMs": 0.016979425531896228,
+            "reconstructionMs": 0.005484978723377432,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-hold-100",
+          "steps": 60,
+          "measuredSteps": 60,
+          "fullMs": {
+            "mean": 0.6560167333332856,
+            "p50": 0.5381660000002739,
+            "p95": 1.1651669999996557,
+            "max": 1.9677499999997963
+          },
+          "timings": {
+            "total": {
+              "mean": 0.6086229666666668,
+              "p50": 0.49491699999998673,
+              "p95": 1.124333000000206,
+              "max": 1.9347079999997732
+            },
+            "integrate": {
+              "mean": 0.005950099999980315,
+              "p50": 0.004708999999820662,
+              "p95": 0.010499999999865395,
+              "max": 0.03175000000010186
+            },
+            "narrowPhase": {
+              "mean": 0.03615701666666761,
+              "p50": 0.032167000000299595,
+              "p95": 0.08029099999976097,
+              "max": 0.13537499999983993
+            },
+            "constraints": {
+              "mean": 0.535902100000006,
+              "p50": 0.43916699999999764,
+              "p95": 0.95049999999992,
+              "max": 1.870665999999801
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 0.5344562500000393,
+              "p50": 0.43812500000012733,
+              "p95": 0.9465000000000146,
+              "max": 1.8691250000001673
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.020440933333323603,
+              "p50": 0.020416999999724794,
+              "p95": 0.034750000000258296,
+              "max": 0.07212500000014188
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.01832851666664131,
+            "solveMs": 0.4159090000000333,
+            "applyMs": 0.01163261666664918,
+            "snapshotMs": 0.016122916666661997,
+            "restoreMs": 0,
+            "measureMs": 0.05367429999998118,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 6.183333333333334,
+            "snapshotBytes": 11028.066666666668,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.05573964999995648,
+            "schurMs": 0.025214599999988725,
+            "contactSolveMs": 0.011197233333344532,
+            "reconstructionMs": 0.00447015000003527,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          },
+          "failures": 0
+        }
+      ]
+    },
+    {
+      "scenario": "overlap",
+      "phases": [
+        {
+          "name": "wire-feed-309",
+          "steps": 843,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 1.7458891276596369,
+            "p50": 1.831958000000668,
+            "p95": 2.5077909999999974,
+            "max": 2.5395000000007713
+          },
+          "timings": {
+            "total": {
+              "mean": 1.7182774255317703,
+              "p50": 1.8071659999995973,
+              "p95": 2.400374999999258,
+              "max": 2.512916000000587
+            },
+            "integrate": {
+              "mean": 0.006547914893610837,
+              "p50": 0.006040999999640917,
+              "p95": 0.008708000000297034,
+              "max": 0.012792000000445114
+            },
+            "narrowPhase": {
+              "mean": 0.2219024255318413,
+              "p50": 0.2203750000007858,
+              "p95": 0.2556249999997817,
+              "max": 0.26941599999918253
+            },
+            "constraints": {
+              "mean": 1.4785964893616768,
+              "p50": 1.5952500000003056,
+              "p95": 2.11004099999991,
+              "max": 2.25787500000024
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 1.4773349999999328,
+              "p50": 1.5944999999992433,
+              "p95": 2.1056250000001455,
+              "max": 2.2568750000000364
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.007329808510648752,
+              "p50": 0.006624999999985448,
+              "p95": 0.00966599999992468,
+              "max": 0.018334000000322703
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.07539014893597809,
+            "solveMs": 0.7943988723403735,
+            "applyMs": 0.021878404255384086,
+            "snapshotMs": 0.2360363617020839,
+            "restoreMs": 0,
+            "measureMs": 0.3258713829784338,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.16229712765945148,
+            "schurMs": 0.08854334042553091,
+            "contactSolveMs": 0.011466340425323188,
+            "reconstructionMs": 0.027742042553016173,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-feed-20",
+          "steps": 47,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 4.942271319148916,
+            "p50": 3.05199999999968,
+            "p95": 12.665750000000116,
+            "max": 17.31958300000042
+          },
+          "timings": {
+            "total": {
+              "mean": 4.815208340425573,
+              "p50": 2.9983329999995476,
+              "p95": 12.481124999999338,
+              "max": 17.16320799999994
+            },
+            "integrate": {
+              "mean": 0.021766021276620296,
+              "p50": 0.013209000000642845,
+              "p95": 0.048166999999921245,
+              "max": 0.08904199999960838
+            },
+            "narrowPhase": {
+              "mean": 0.12274295744679121,
+              "p50": 0.09920799999963492,
+              "p95": 0.2715830000006463,
+              "max": 0.5782500000004802
+            },
+            "constraints": {
+              "mean": 4.578601042553233,
+              "p50": 2.808291000000281,
+              "p95": 12.052374999999302,
+              "max": 16.981542000000445
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 3.9961072553190187,
+              "p50": 2.488999999999578,
+              "p95": 12.036207999999533,
+              "max": 16.977082999999766
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.07138217021275388,
+              "p50": 0.05454199999985576,
+              "p95": 0.14362499999970169,
+              "max": 0.7561670000004597
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.426940553191537,
+            "solveMs": 2.406819063829797,
+            "applyMs": 0.133519404255357,
+            "snapshotMs": 0.4779228723403689,
+            "restoreMs": 0,
+            "measureMs": 1.070373127659742,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 469.1276595744681,
+            "snapshotBytes": 289652.78723404254,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.47580310638297424,
+            "schurMs": 0.18363376595729317,
+            "contactSolveMs": 0.06144410638291369,
+            "reconstructionMs": 0.08390768085106909,
+            "seedMs": 0.051982212765943454
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-feed-50",
+          "steps": 70,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 5.875087765957377,
+            "p50": 6.411833000000115,
+            "p95": 8.988416999999572,
+            "max": 9.163625000000138
+          },
+          "timings": {
+            "total": {
+              "mean": 5.74482182978726,
+              "p50": 6.2401669999999285,
+              "p95": 8.880584000000454,
+              "max": 9.057624999999462
+            },
+            "integrate": {
+              "mean": 0.016546170212832487,
+              "p50": 0.013458000000355241,
+              "p95": 0.04008299999986775,
+              "max": 0.06916699999965203
+            },
+            "narrowPhase": {
+              "mean": 0.09659848936181778,
+              "p50": 0.08758400000078836,
+              "p95": 0.17891699999927368,
+              "max": 0.187207999999373
+            },
+            "constraints": {
+              "mean": 5.57069853191498,
+              "p50": 6.058500000000095,
+              "p95": 8.704209000000446,
+              "max": 8.890249999999469
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 5.563512446808478,
+              "p50": 6.050750000000335,
+              "p95": 8.694333999999799,
+              "max": 8.882125000000087
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.03769231914898131,
+              "p50": 0.03312499999992724,
+              "p95": 0.060958999999456864,
+              "max": 0.11479099999996834
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 0.7247455957446638,
+            "solveMs": 2.182427319148875,
+            "applyMs": 0.13857180851062637,
+            "snapshotMs": 1.0219307872340768,
+            "restoreMs": 0,
+            "measureMs": 1.4410594893616748,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 2512.0425531914893,
+            "snapshotBytes": 425908.42553191487,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.7880319361703438,
+            "schurMs": 0.10041310638309292,
+            "contactSolveMs": 0.06083599999988593,
+            "reconstructionMs": 0.06280310638279882,
+            "seedMs": 0.05708510638286246
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-feed-100",
+          "steps": 116,
+          "measuredSteps": 47,
+          "fullMs": {
+            "mean": 75.9237384468085,
+            "p50": 72.24066700000003,
+            "p95": 110.50637499999993,
+            "max": 133.05395800000042
+          },
+          "timings": {
+            "total": {
+              "mean": 75.67833425531913,
+              "p50": 72.0137079999995,
+              "p95": 110.25966699999935,
+              "max": 132.83595800000148
+            },
+            "integrate": {
+              "mean": 0.022782680851184737,
+              "p50": 0.02050000000053842,
+              "p95": 0.03341600000021572,
+              "max": 0.07604100000025937
+            },
+            "narrowPhase": {
+              "mean": 0.13469242553207764,
+              "p50": 0.11687500000061846,
+              "p95": 0.22420800000054442,
+              "max": 0.33033400000022084
+            },
+            "constraints": {
+              "mean": 75.38606742553185,
+              "p50": 71.78099999999995,
+              "p95": 110.01941700000043,
+              "max": 132.55995900000016
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 75.37141493617027,
+              "p50": 71.76974999999948,
+              "p95": 110.00629200000003,
+              "max": 132.53966600000058
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.09362059574470279,
+              "p50": 0.07070800000019517,
+              "p95": 0.1912080000001879,
+              "max": 0.35295899999982794
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 7.402615191489124,
+            "solveMs": 15.691789106383112,
+            "applyMs": 1.5702820212763402,
+            "snapshotMs": 20.1246663829791,
+            "restoreMs": 0.4330407446808014,
+            "measureMs": 29.906137297872483,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 9373.36170212766,
+            "snapshotBytes": 788171.8297872341,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.4114007021277004,
+            "schurMs": 2.2757562765959944,
+            "contactSolveMs": 3.6799142340426227,
+            "reconstructionMs": 0.7400284042557186,
+            "seedMs": 2.0791055744681177
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          },
+          "failures": 0
+        },
+        {
+          "name": "catheter-hold-100",
+          "steps": 60,
+          "measuredSteps": 60,
+          "fullMs": {
+            "mean": 100.5076479666666,
+            "p50": 95.87591699999939,
+            "p95": 167.73633400000108,
+            "max": 183.74312499999905
+          },
+          "timings": {
+            "total": {
+              "mean": 100.34551185000001,
+              "p50": 95.76437499999884,
+              "p95": 167.62995800000135,
+              "max": 183.14729200000147
+            },
+            "integrate": {
+              "mean": 0.043937466666799686,
+              "p50": 0.022707999998601736,
+              "p95": 0.08829200000036508,
+              "max": 0.607332999999926
+            },
+            "narrowPhase": {
+              "mean": 0.24513883333320335,
+              "p50": 0.10958300000129384,
+              "p95": 0.6382919999996375,
+              "max": 4.648791999999958
+            },
+            "constraints": {
+              "mean": 99.82101866666659,
+              "p50": 93.97104099999888,
+              "p95": 167.38058300000012,
+              "max": 180.22504200000003
+            },
+            "constraintPrimary": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyLengthPolish": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyWallRepair": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPrePost": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintBodyPostStabilization": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "constraintCoupledClosure": {
+              "mean": 99.80905281666661,
+              "p50": 93.96362500000032,
+              "p95": 167.3678749999999,
+              "max": 180.1794170000012
+            },
+            "constraintMovingClosure": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "velocity": {
+              "mean": 0.17380494999985482,
+              "p50": 0.09120900000016263,
+              "p95": 0.6242919999986043,
+              "max": 1.372124999999869
+            }
+          },
+          "meanCosts": {
+            "assemblyMs": 10.295959933333416,
+            "solveMs": 22.536543366665956,
+            "applyMs": 1.922323633333114,
+            "snapshotMs": 29.585904800000176,
+            "restoreMs": 1.1999257333334148,
+            "measureMs": 33.90858720000048,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 10673,
+            "snapshotBytes": 806452,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 2.941935633333348,
+            "schurMs": 3.0462493333334653,
+            "contactSolveMs": 6.535582500000268,
+            "reconstructionMs": 1.1832622500002496,
+            "seedMs": 2.94494369999987
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          },
+          "failures": 0
+        }
+      ]
+    }
+  ],
+  "config": {
+    "jointMotionMode": "position-history",
+    "fixedDt": 0.008333333333333333,
+    "guidewireLength": 1000,
+    "guidewireTargetMm": 999.9,
+    "guidewireSpacing": 5,
+    "guidewireType": "glidewire",
+    "guidewireShaftStiffness": 39,
+    "guidewireTipStiffness": 30.7,
+    "catheterType": "berenstein",
+    "catheterShaftStiffness": 58.1,
+    "catheterTipStiffness": 87,
+    "relaxationRate": 1,
+    "catheterRelaxationRate": 1,
+    "maximumCatheterMm": 1000,
+    "catheterPhysicsSpacing": 5,
+    "catheterBodyCount": 219,
+    "wireAdvanceRate": 44,
+    "catheterAdvanceRate": 52,
+    "catheterWithdrawRate": 32,
+    "rotationRate": 2.827433388230814
+  },
+  "complete": true
+}

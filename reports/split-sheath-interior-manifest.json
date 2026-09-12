@@ -1,0 +1,34 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "source": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCoupledBoundaryRows.js",
+      "beforeSha256": "a1478e70c525748b963ce07fd215fa6185e5327377922c048140606c490dd04a",
+      "afterSha256": "3ac16c2ecdff705d566a0b2e89eafa2c0bf5824bfabdd2be5df0ebcde41673a9"
+    },
+    {
+      "path": "src/physics/kirchhoffSplitMotion.js",
+      "beforeSha256": "53128abcc78c511965d6fe944122d8e3458b0fe5acbc3dde2f63ebc04fd25e12",
+      "afterSha256": "d96e31763dba61c33ab0b6f18fe0e4f1d4c168fb447fc996aab8faed3e24e91a"
+    },
+    {
+      "path": "tests/kirchhoffSplitSheathHistory.test.js",
+      "beforeSha256": null,
+      "afterSha256": "4a0f806eb26aee21f17231cdee50e5a2a5bc46b1be701d7bd0a91026aedc9194"
+    },
+    {
+      "path": "reports/split-sheath-interior-history.md",
+      "beforeSha256": null,
+      "afterSha256": "b4dc72a7a99aa6a304c14ea1a877f6b95e4d2d30582bdc884592f92de5998333"
+    }
+  ],
+  "verification": {
+    "newSheathTests": 8,
+    "originalWorldWall": 11,
+    "defaultRegression": 9
+  },
+  "scope": "stable analytic interior sheath only; end transitions and changed history explicitly uncertified",
+  "patchSha256": "d07d9297042167c94f0624122b7a42578832d4adc9900d8c37596c3ef65a92ca",
+  "unchangedWorldSha256": "2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5"
+}

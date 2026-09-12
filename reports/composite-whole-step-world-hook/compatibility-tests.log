@@ -1,0 +1,73 @@
+tangential cached-contact release mm 0.1710
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: the stiff guidewire shaft should reject tight local coils
+
+60 !== 18
+
+    at file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/endovascularPhysicsWorld.test.js:630:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:371:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:669:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 60,
+  expected: 18,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.6.0
+✖ tests/endovascularPhysicsWorld.test.js (736.46125ms)
+✔ two rejections retry one prepared dt, defer mutable settings, and preserve the next command for a new dt (1.806292ms)
+✔ reset invalidates pending input without discarding the caller backlog; void World steps count as accepted (0.201875ms)
+✔ solver exceptions keep a prepared dt and expose their cost; mode/dt errors never re-prepare input (0.126458ms)
+✔ a partial preparation exception cannot apply input again before explicit reset (0.147792ms)
+✔ actual rAF and already queued idle callback share one rejected-attempt limit and do not consume backlog (1.665084ms)
+✔ first failure in idle blocks another idle callback; reset/dispose invalidates stale callbacks (0.554875ms)
+✔ actual executor commits counters once even when presentation throws after World success (0.493417ms)
+✔ actual benchmark sampler advances no clock; lifecycle reset runs before World receives its next dt (0.419125ms)
+✔ actual post-commit credits only the originating benchmark epoch while always advancing committed contrast once (0.475791ms)
+✔ actual physics-setting UI callbacks leave pending material and friction untouched (0.551625ms)
+✔ real World.advance accepts void independent/legacy steps and prepares the first eligible split once (185.708375ms)
+✔ real two-channel World and real tool transports retry without repeating feed, rotation, sync or path history (947.992209ms)
+✔ whole-dt provider publishes once before legacy prediction, integration, damping or contact passes (2.358167ms)
+✔ early rejection keeps prepared input and elapsed dt; direct retry commits and consumes them exactly once (0.377125ms)
+✔ provider exception preserves pending preparation, body transaction, clocks and an explicit failed result (0.327ms)
+✔ an unfunded direct retry never subtracts time, while an advance retry funds the same prepared dt once (0.608417ms)
+✔ maxSubsteps and an intervening rejection preserve the full backlog without dropping or duplicate preparation (0.256334ms)
+✔ pending dt, provider object, id and methods cannot change or fall back, even before the next accumulator update (0.278542ms)
+✔ reset explicitly abandons a pending dt and resets the owned adapter without keeping pending inputs (0.522208ms)
+✔ a preparation exception is never replayed or passed as a valid partial input; reset is required (0.327334ms)
+✔ whole-step timings include preparation and provider rollback exactly once without old phase samples (1.164292ms)
+✔ malformed and asynchronous provider results cannot commit World clocks and can retry without re-preparation (0.376334ms)
+✔ provider clock mutation and reentrant execution are explicit errors, never extra committed dt (0.248083ms)
+✔ a callback may select the whole-dt law before a new step, but a pending split cannot switch laws (0.160625ms)
+✔ uncertified tilted dt restores body/history/manifold/tools/sheath and force inputs before damping (41.255375ms)
+✔ advance keeps rejected dt queued and prepares callback inputs only once across retries (13.253542ms)
+✔ a rejected internal physical trial can still commit exactly one accepted dt (2.263958ms)
+✔ whole-step rollback reconnects original storage and topology even if a failing hook replaces them (2.234959ms)
+✔ accepted transaction retains the selected per-joint bias material mode (1.215083ms)
+✔ pending split time cannot silently switch to another dt or another physical law (3.212125ms)
+✔ direct retry consumes the pending dt once and cannot fall back when the joint is unavailable (4.339083ms)
+✔ default position-history retains its return behavior and per-step callback scheduling (1.359583ms)
+✔ split configuration permits independent preparation and activates a transaction when the pair becomes eligible (2.726291ms)
+✔ leaving the eligible pair retires phase-local motion and cannot report its old certificate (3.139708ms)
+✔ losing pair eligibility cannot suppress the partitioned radial damping path (2.616041ms)
+✔ a physical-phase failure survives bias initialization and whole-step rollback as owned diagnostics (7.566417ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 36
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2222.876708
+
+✖ failing tests:
+
+test at tests/endovascularPhysicsWorld.test.js:1:1
+✖ tests/endovascularPhysicsWorld.test.js (736.46125ms)
+  'test failed'

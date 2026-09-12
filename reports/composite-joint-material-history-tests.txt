@@ -1,0 +1,17 @@
+✔ opposite feeds sample each own current material label exactly once, independently of label rate (3.387666ms)
+✔ nonunit maps and nonuniform mesh split all crossed old edge fields by material label, not source edge index (2.601042ms)
+✔ discontinuous velocities require explicit one-sided traces and piecewise quadrature preserves physical integrals (1.613417ms)
+✔ continuous endpoint values do not erase a derivative discontinuity or an explicit old boundary (0.957458ms)
+✔ overlap and exposure use independent label histories and an explicit reservoir for newly entering material (0.9355ms)
+✔ reservoir pieces crossing known history are clipped by ownership and never replace accepted material values (0.35825ms)
+✔ owned snapshots and outputs isolate source mutations, failed preparation and identical retries (2.439916ms)
+✔ invalid or absent history, ambiguous intervals and noncovering reservoirs reject without defaults (0.640666ms)
+✔ actual accepted first and second dt histories prepare own affine velocities for the next unchanged material map (70.160417ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 558.22375

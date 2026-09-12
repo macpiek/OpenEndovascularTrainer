@@ -1,0 +1,36 @@
+{
+  "status": "frozen",
+  "scope": "value-only-finite-increment-and-physical-B",
+  "tests": {
+    "owned": 40,
+    "surfaceMotion": 29,
+    "lumenSurface": 11,
+    "affected": 64,
+    "failures": 0,
+    "syntax": "pass"
+  },
+  "productionEdits": [
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js",
+    "src/physics/kirchhoffCompositeJointLumenSurface.js"
+  ],
+  "existingTestBodiesUnchanged": true,
+  "previousManifest": "/tmp/oet-composite-joint-lumen-surface-final/manifest.json",
+  "previousManifestSha256": "fb449a57153120df1784c1e0b893afc42b7270f44ed3c3a73fc49fd13b7ae513",
+  "frozenBundle": "/tmp/oet-composite-joint-surface-value-final",
+  "files": {
+    "src/physics/kirchhoffCompositeJointSurfaceMotion.js": "ec36b610557e1f47938be9f107bde40710a46f9dbce0a8dcb5bc368510b48c9f",
+    "src/physics/kirchhoffCompositeJointLumenSurface.js": "526b2ca7d48eb068bdd79f0e4466c68bf09808b7fbcccb4cb16fe73d64ee4a58",
+    "tests/kirchhoffCompositeJointSurfaceMotion.test.js": "7a3b3c41086c41a0801449c88e86fab4e807a75c908741083f853fb677fb03e6",
+    "tests/kirchhoffCompositeJointLumenSurface.test.js": "a3b87c2c2d8a6a4bcf5e8edf98feafd4162949d2d77d85aaf6fa085d12d7f7e4",
+    "reports/composite-joint-surface-value.md": "2600854f14ad88cdf65cd2bd7e20f5f9ad10d66d00651ca4dfeef4c086726585",
+    "reports/composite-joint-surface-value-benchmark.json": "cb8d0b5268ced4f09794b70070de4f68aa38eede7a1003cb3782774165109f3d",
+    "reports/composite-joint-surface-value-tests.txt": "789b932c2615affaa51656114f25c70178ed5bfe5c68399767f32a8ea6141e4f"
+  },
+  "benchmarkSha256": "a6a77e624fb9ff31a796030fab148abcae56c3326615f8cb91b25f23549fdd5e",
+  "oldFullParityCases": 7,
+  "fullAllFiveNumericBuffersIdentical": true,
+  "valueIncrementAndBIdentical": true,
+  "medianSpeedup": 3.3916004162339477,
+  "noCompleteDtMeasured": true,
+  "noFpsClaim": true
+}

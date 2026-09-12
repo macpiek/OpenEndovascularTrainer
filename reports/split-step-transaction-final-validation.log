@@ -1,0 +1,44 @@
+✔ rollback restores exact body bytes and identities without traversing static geometry (10.197375ms)
+✔ geometry basis remap, friction commit, material rekey and pooled contact replacement roll back by identity (2.089209ms)
+✔ boundary/fold/sheath/tool multipliers and branch hints restore while actual work counts remain (1.899084ms)
+✔ active topology edits fail before any rollback writes (4.096ms)
+✔ sealed record layouts still capture changing values, hidden data and child identities (3.986833ms)
+✔ reused storage captures new values, changed array identities, keys and owner contacts (1.744625ms)
+✔ frozen solve batches retry the same correction after fresh geometry and friction measurements (3.052ms)
+✔ rebuilding an immutable solve batch rejects rollback before touching physical state (1.6475ms)
+✔ reused property layout preserves accessors, hidden values and same-size key replacements (2.387958ms)
+✔ reused traversal discovers same-size graph replacements, cycles, maps and sets (4.297917ms)
+✔ root and external barrier changes update a reused traversal without inspecting static geometry (3.833166ms)
+✔ filtered body state can switch between captured numeric data and external objects (1.623708ms)
+✔ shared views retain exact NaN payload, signed zero and subview bytes on repeated rollback (1.876583ms)
+✔ array holes, additional hidden keys and changed identities are captured between trials (1.59675ms)
+✔ a rejected real joint apply and contact refresh reproduce the original mechanical solve (28.450667ms)
+✔ hard strain-preserving bias repairs a tilted rest rod without elastic or kinetic bias (33.75425ms)
+✔ an immobile rod penetrating the plane cannot certify an infeasible strain-preserving bias (4.299042ms)
+✔ stationary wall bias does not become velocity on the next physical timestep (36.915208ms)
+✔ nonuniform bias that changes elastic strain cannot reuse the old phase certificate (14.826167ms)
+✔ a stable runtime id cannot restore physical load to new material labels during bias (11.007042ms)
+✔ initial affine-wall overlap is repaired without physical velocity, spin or load (29.324292ms)
+✔ nested bias-only contact with positive friction preserves axial slip and has zero physical budget (17.785792ms)
+✔ nested incoming velocity creates physical load and a bounded friction impulse (15.751833ms)
+✔ nested external force creates physical load and a bounded friction impulse (10.239167ms)
+✔ wall bias preserves incoming away/tangent motion and independent wire-only axial spin (2.816916ms)
+✔ free torsional prestrain produces analytic physical recoil and dissipative total energy (1.8165ms)
+✔ hard positional and orientation controls remain exact while physical history commits once per dt (5.922958ms)
+✔ a rejected physical trial rolls back and commits the accepted physical history once (5.890208ms)
+✔ uncertified tilted dt restores body/history/manifold/tools/sheath and force inputs before damping (64.752541ms)
+✔ advance keeps rejected dt queued and prepares callback inputs only once across retries (15.108333ms)
+✔ a rejected internal physical trial can still commit exactly one accepted dt (3.130834ms)
+✔ whole-step rollback reconnects original storage and topology even if a failing hook replaces them (2.357875ms)
+✔ accepted transaction retains the selected per-joint bias material mode (1.478292ms)
+✔ pending split time cannot silently switch to another dt or another physical law (3.590791ms)
+✔ direct retry consumes the pending dt once and cannot fall back when the joint is unavailable (4.369333ms)
+✔ default position-history retains its return behavior and per-step callback scheduling (1.56325ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231.527

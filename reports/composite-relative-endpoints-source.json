@@ -1,0 +1,52 @@
+{
+  "createdAt": "2026-09-07T16:22:31.188562+00:00",
+  "sourceStableAtCapture": true,
+  "origin": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "preservedPriorManifest": {
+    "path": "/tmp/oet-composite-relative-full-mode-final/manifest.json",
+    "sha256": "500466e626fd0af0427ba1d0df718c912f49576f7b98cfb2fbd4dc942c9e0ecc"
+  },
+  "owned": {
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "dab0b81c3a91741013545ba544ffb82b97d0f17d0ac13767b7465151c00fe6c9",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "aca9f0712ccc3174f84ce89f8d3693bff2c95750a88f007fc383e5cd8ab31542",
+    "tests/kirchhoffCompositeRelativeCluster.test.js": "b05c5757cde4da6b7cfaf1f3d21c6b90801256a39c1aa024a94da9d3d084ac7f",
+    "tests/kirchhoffCompositeRelativeDirection.test.js": "bfb4ee2531bf743d6442c0bc1ebf013693e1bf4a0afa7f1e3596fa685fa52a91",
+    "reports/composite-relative-endpoints.md": "9a1884ecf4ab8e55ea13dda2fc59251a681826370b39308119f1180eef141c8c"
+  },
+  "dependencyHashes": {
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeClearance.js": "65a2330bd1ad5d82bf5f7f9a9db6fb5c88a7d3e2f11085aded4cd3055f9fc5bd",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeJointAssembly.js": "e02e44ea190c58b619f9fe8abaaae8ed54e609da5d4a560858d32eb706abfd66",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeMaterialInertia.js": "98508853c069adf621eff3fbcf28e66773473cac12c73bbfad84fd6ac7443b29",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5540faf6ddab4fc5770b5e637e39d577bf323d707c399d79ecad7b76a175e886",
+    "src/physics/kirchhoffCompositeRelativePatch.js": "1209803e98f92115d52c3dfb67a468ad47ef0324c3772c108e44a2486321172f",
+    "src/physics/kirchhoffCompositeToolLengths.js": "02e9b78a9c4d4a047193b2331d8f308dee7c0cb06f01757cd450e4484881fac6",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "tests/kirchhoffCompositeJointAssembly.test.js": "c184483a09fa2a2f4e5cfdb1c4cd37146a58dbd3c4c5004ab5da873954276e64",
+    "tests/kirchhoffCompositeMixedDirection.test.js": "fad606dbf89f31cd35a7bd0c9c6d3b6dafb9cdf750300dae2a8e50dd80624681",
+    "tests/kirchhoffCompositeRelativePatch.test.js": "2f34b8842cd9086e6a05c1969cdb354dfb44c135f0d5d4b8fc9533ab873ce7b7"
+  },
+  "artifactHashes": {
+    "package.json": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+    "tests.txt": "af3e3fbaa5db698eb220da3902ed8eb1e8380349a206bfe8c8fb38be52d51ea4"
+  },
+  "validation": {
+    "testCommand": "node --test tests/kirchhoffCompositeRelativeCluster.test.js tests/kirchhoffCompositeRelativeDirection.test.js tests/kirchhoffCompositeRelativePatch.test.js tests/kirchhoffCompositeMixedDirection.test.js tests/kirchhoffCompositeJointAssembly.test.js",
+    "syntaxPassed": true,
+    "testsPassed": 53,
+    "clusterTests": 15,
+    "directionTests": 16,
+    "jointAssemblyTests": 7,
+    "newEndpointTests": 4,
+    "executedFromFrozenBundle": true
+  },
+  "scope": "endpoint 3D eligibility and prepared joint directions/BC; no nonlinear dt or feed transfer"
+}

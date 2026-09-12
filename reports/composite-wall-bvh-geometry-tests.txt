@@ -1,0 +1,27 @@
+✔ selected triangle face, sign 1: exact gap and normal derivatives (6.495208ms)
+✔ selected triangle face, sign -1: exact gap and normal derivatives (4.405666ms)
+✔ selected triangle edge, sign 1: exact gap and normal derivatives (2.297916ms)
+✔ selected triangle edge, sign -1: exact gap and normal derivatives (1.626958ms)
+✔ selected triangle vertex, sign 1: exact gap and normal derivatives (1.165167ms)
+✔ selected triangle vertex, sign -1: exact gap and normal derivatives (0.983333ms)
+✔ a selected contact is differentiated without a second provider or BVH query (0.618042ms)
+✔ the capsule endpoint pullback preserves a stable interior sample and its physical wrench (2.07275ms)
+✔ strict shared-edge projection is distinct from an ambiguous crease transition (1.147625ms)
+✔ a soft coplanar seam is explicitly nonclassical for the individual triangle feature (1.636375ms)
+✔ surface intersections and retained zero-distance normals are unsupported (1.625291ms)
+✔ unsupported sources, ambiguous predicates, invalid indices and unproven normal data cannot be accepted (0.736125ms)
+✔ an unresolved incident triangle cannot silently certify a local feature (0.431208ms)
+✔ feature derivatives are covariant under rotation, translation and uniform scale (0.972583ms)
+✔ actual anatomy with application BVH settings: stable capsule face (1599.768916ms)
+ℹ {"feature":"face","faceIndex":126012,"gap":-0.17163111643810686,"sampleFraction":1,"eps":0.0001,"maxGapDerivativeError":1.6049944706608699e-10,"maxNormalDerivativeError":1.4913070778277415e-9}
+✔ actual anatomy with application BVH settings: stable capsule edge (2.283708ms)
+ℹ {"feature":"edge","faceIndex":125544,"gap":-2.4037753563379924,"sampleFraction":0,"eps":0.0001,"maxGapDerivativeError":5.904132738265844e-10,"maxNormalDerivativeError":5.258392332674333e-10}
+✔ BVH physical mixed and gap-conjugate energy derivatives coincide on a proven unit-gradient branch (2.420875ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1926.74375

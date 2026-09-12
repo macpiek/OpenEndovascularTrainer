@@ -1,0 +1,40 @@
+{
+  "status": "frozen-read-only-review-complete",
+  "bundle": "/tmp/oet-composite-joint-workspace-final",
+  "bundleManifestSha256": "6fae1edd598c17ebacff621cd849a2c0831d9f0740d4ff9ccc7741fa31dc0e99",
+  "bundleFilesVerified": 47,
+  "snapshot": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-joint-workspace-review-aauoa0bq",
+  "directionRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "directionHashes": {
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "878b66b0752ea97b2cd0b6d08a198e00a8efd08be5133926bd92ba31ba1896fd",
+    "tests/kirchhoffCompositeRelativeDirection.test.js": "df17ea4f404dc03e4370f24237331b21d4d82b41828d238b06d60b12edf34d3d"
+  },
+  "solverSourceEdits": false,
+  "findings": [],
+  "snapshotSourceStable": true,
+  "verification": {
+    "reuseNative": {
+      "pass": 69,
+      "fail": 0
+    },
+    "reuseWithDirectionNative": {
+      "pass": 70,
+      "fail": 0
+    },
+    "pairedMeasuredDt": 96,
+    "independentAcceptedDt": 288,
+    "independentRejectedAttempts": 96,
+    "independentPreparationErrors": 16,
+    "exactPhysicalEquality": true,
+    "performanceClaim": false
+  },
+  "artifacts": {
+    "reports/composite-joint-workspace-review.md": "3252f6b3bf2f448cd574471ec42aef6da1e0858bbd987715d47d315f3c23ee4f",
+    "reports/probe-composite-joint-workspace-review.mjs": "2866a71b416854992eb772470694b2a010bce09602772e1cc6653563c88b9e2b",
+    "reports/composite-joint-workspace-review-native.txt": "92820a9337c3f5eb1614f5a0173f6d76d2f2e29ff5c49d1479b14d94eb59ec1c",
+    "reports/composite-joint-workspace-review-direction-native.txt": "093f2e327e2532d0dad83c5d491ededefe370a6caa2020f71a4cf3eaf5976d01",
+    "reports/composite-joint-workspace-review-paired.json": "eadef3ebbc54959623bbc566e6120e20b5c060867c04aa57b6b94433fc17cb14",
+    "reports/composite-joint-workspace-review-independent.json": "977082d6d9a308d55a0263576388e42f426fc9de23c422f288d98da01cc6f0da"
+  },
+  "directionRootChangedSinceSnapshot": []
+}

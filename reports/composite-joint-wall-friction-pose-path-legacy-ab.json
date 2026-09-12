@@ -1,0 +1,284 @@
+{
+  "pass": true,
+  "count": 36,
+  "baselineSHA256": "cdcbfa956202f8779b47bda0267c20eb50d2c9682afc893032a197cc99cfa59b",
+  "candidateSHA256": "61b7143fb917eb04101b6167960d24e4e451454976aa5a1db840e17adade2812",
+  "cases": [
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": false,
+      "rate": 0,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": false,
+      "rate": 0,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": false,
+      "rate": 0,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": true,
+      "rate": 0,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": true,
+      "rate": 0,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": true,
+      "rate": 0,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": false,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": false,
+      "rate": 0,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": false,
+      "rate": 0,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": false,
+      "rate": 0,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": false,
+      "rate": 0.2,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": true,
+      "rate": 0,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": true,
+      "rate": 0,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": true,
+      "rate": 0,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "capsule",
+      "single": true,
+      "two": true,
+      "rate": 0.2,
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": false,
+      "sharedTrace": "left",
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": false,
+      "sharedTrace": "left",
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": false,
+      "sharedTrace": "left",
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": false,
+      "sharedTrace": "right",
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": false,
+      "sharedTrace": "right",
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": false,
+      "sharedTrace": "right",
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": true,
+      "sharedTrace": "left",
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": true,
+      "sharedTrace": "left",
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": true,
+      "sharedTrace": "left",
+      "penalty": 500,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": true,
+      "sharedTrace": "right",
+      "penalty": 5,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": true,
+      "sharedTrace": "right",
+      "penalty": 50,
+      "exact": true
+    },
+    {
+      "mode": "nodal-endpoints",
+      "single": true,
+      "sharedTrace": "right",
+      "penalty": 500,
+      "exact": true
+    }
+  ]
+}

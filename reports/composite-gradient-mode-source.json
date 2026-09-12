@@ -1,0 +1,16 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "scripts/physics/build-composite-element-exact.mjs": "b86eec046fc59726338d69d5d24d039805eae274e2b168610f57471d941971dd",
+    "scripts/physics/benchmark-composite-gradient.mjs": "e0fd23db752dcfd79169bf8349974f54611539353f4e8bb11b3481b73271ff41",
+    "tests/kirchhoffCompositeElementGradient.test.js": "3b59bb477d1c754d9dbdc6ec594ea1aa2ce10b09ebec0c67fe523dc70b34eea8",
+    "reports/composite-gradient-mode.md": "76d02e87e7b18f89f17853441cbe84fdb211a341a324220d4891565fc32cefae",
+    "reports/composite-gradient-mode.json": "a233dbcdd5dd1962fe0bbef684f669212f3ae4623282aed0edd03d7f673bdef0",
+    "tests.txt": "42dea65b146986c923184e5b49fb82636046afb9c82cef1966ca07d8bbf159ae"
+  },
+  "verification": "39/39 Gradient+Exact+Fast+Chain+Refinement; syntax; exact E/g parity fullExact/JS, byte gradient parity fullExact;staleHguard;sourceStable benchmark",
+  "api": "Exact.evaluateCompositeElement(args,workspace,{order:'gradient'}); assembleCompositeChain(data,workspace,{order:'gradient'}), wasm-exact only;hessianValid=false;defaultfull"
+}

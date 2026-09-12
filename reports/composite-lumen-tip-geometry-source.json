@@ -1,0 +1,43 @@
+{
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeLumenTipGeometry.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/src/physics/kirchhoffCompositeLumenTipGeometry.js",
+      "sha256": "08d0c8ef854251574e86dc29e05dcb51f23280f0094a699ea003c3638a6fc48b"
+    },
+    {
+      "path": "tests/kirchhoffCompositeLumenTipGeometry.test.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/tests/kirchhoffCompositeLumenTipGeometry.test.js",
+      "sha256": "9da0bb91b19e32541efabbe8e79887df580b85128dff7a27efa8a5547a2a8c8e"
+    },
+    {
+      "path": "src/physics/kirchhoffLumenContact.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/src/physics/kirchhoffLumenContact.js",
+      "sha256": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6"
+    },
+    {
+      "path": "src/physics/kirchhoffContactManifold.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/src/physics/kirchhoffContactManifold.js",
+      "sha256": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef"
+    },
+    {
+      "path": "src/physics/kirchhoffCompositeLumenSideGeometry.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/src/physics/kirchhoffCompositeLumenSideGeometry.js",
+      "sha256": "77b6ac3482ae0c55084b53a6c269106ec4fa6e7502ddf50fd83e8fb3f2cb1452"
+    },
+    {
+      "path": "tests/kirchhoffCompositeLumenSideGeometry.test.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/tests/kirchhoffCompositeLumenSideGeometry.test.js",
+      "sha256": "19d620c4527958ef10537f1bbe89512ab5ca9b36a36bf6f6fdd54ce515b9d41a"
+    },
+    {
+      "path": "tests/kirchhoffLumenContact.test.js",
+      "origin": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer/tests/kirchhoffLumenContact.test.js",
+      "sha256": "81fecf864b39fc2e1e705675635b4884eb332d76bd8192c7284ecf830bd8bc00"
+    }
+  ],
+  "unchangedRootDependencies": {
+    "src/physics/kirchhoffLumenContact.js": "00767b13df96fc190428de4a5a1e5660df0cf8534a103443bf741e57b04d69c6",
+    "src/physics/kirchhoffContactManifold.js": "4573bf4359f68f7a338ff37f58293b307ef9def0f3283a20a7ec586eb2e3c8ef"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-cone-storage-audit-ld_m5_kg",
+  "previewUnchanged": true,
+  "isolatedWorldSha256": "aa5d135d352a16a26f82f2e711caf018ddce1be5ac1427e16ffcf23b194747d8",
+  "probeSha256": "9d06327ec2489dfedd1b9c44613893e3779e2d59cda38765df65b162224855fc",
+  "seedSha256": "0829a4fc8611ebeacc6abc03ace1f4903a177d48b1caeb018f24398c23b9f155",
+  "onlyMechanicalCounterfactual": "options.tolerance replaced at world step49/pass>=5; original final gates, merit, force application and history kept",
+  "optionalObservationHooks": [
+    "debugConeSolve",
+    "debugConeLinear",
+    "debugConeFrozen",
+    "debugConeCommitted",
+    "existing debugJointTrial"
+  ]
+}

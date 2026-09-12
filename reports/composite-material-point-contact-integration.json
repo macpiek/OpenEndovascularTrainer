@@ -1,0 +1,2776 @@
+{
+  "scope": "material-point-contact-integration-mechanics-only",
+  "command": "node scripts/composite-native-anatomy-replay.mjs --steps 420 --contact-mode material-points",
+  "browserPerformanceVerified": false,
+  "acceptedSteps": 361,
+  "attemptedSteps": 362,
+  "attemptedGuidewireMm": 132.73333333333233,
+  "status": "contact-query-budget",
+  "directions": 28,
+  "evaluations": 103,
+  "contactQueries": 10000,
+  "certificate": {
+    "force": 73.78709686162942,
+    "torque": 3.6275895109865244e-05,
+    "length": 4.3604513422224045e-07,
+    "boundary": 5.551115123125783e-17,
+    "merit": 553886994073603600,
+    "converged": false,
+    "sheath": {
+      "converged": true,
+      "penetration": 3.0531133177191805e-16,
+      "ncp": 4.996003610813204e-16,
+      "complementarity": 2.1838010544807407e-12,
+      "minForce": 0,
+      "merit": 5.7392889071148745e-06,
+      "lineSearchMerit": 5.161492250957792e-15,
+      "samples": [
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",173,15]",
+          "component": null,
+          "force": 0,
+          "gap": 0.45550000071525415,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",174,17]",
+          "component": null,
+          "force": 0,
+          "gap": 0.45550000071525565,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",175,18]",
+          "component": null,
+          "force": 0,
+          "gap": 0.45550000071525354,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",176,19]",
+          "component": null,
+          "force": 0,
+          "gap": 0.4555000007152553,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",177,20]",
+          "component": null,
+          "force": 0,
+          "gap": 0.45550000071525487,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",178,21]",
+          "component": null,
+          "force": 0,
+          "gap": 0.455500000715252,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",179,22]",
+          "component": null,
+          "force": 0,
+          "gap": 0.45550000071525487,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",180,23]",
+          "component": null,
+          "force": 0,
+          "gap": 0.455500000715254,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",181,24]",
+          "component": null,
+          "force": 0,
+          "gap": 0.4555000007152482,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",182,25]",
+          "component": null,
+          "force": 0,
+          "gap": 0.4555000007152482,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",183,26]",
+          "component": null,
+          "force": 0,
+          "gap": 0.455500000715254,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",184,27]",
+          "component": null,
+          "force": 0,
+          "gap": 0.455500000715254,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",185,28]",
+          "component": null,
+          "force": 0,
+          "gap": 0.4555000007152482,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",186,29]",
+          "component": null,
+          "force": 0,
+          "gap": 0.4555000007152467,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"wire\",\"guidewire\",187,30]",
+          "component": null,
+          "force": 0,
+          "gap": 0.45550000071525043,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",0,0]",
+          "component": null,
+          "force": 0,
+          "gap": 0.005716190662454351,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+          "component": null,
+          "force": 0,
+          "gap": 0.005364681886634977,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+          "component": null,
+          "force": 0,
+          "gap": 0.005001590696183118,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+          "component": null,
+          "force": 0,
+          "gap": 0.004600274730226152,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+          "component": null,
+          "force": 0,
+          "gap": 0.004131378481818382,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+          "component": null,
+          "force": 0,
+          "gap": 0.0035749531805749912,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+          "component": null,
+          "force": 0,
+          "gap": 0.0029305934534431533,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+          "component": null,
+          "force": 0,
+          "gap": 0.00222311279768464,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+          "component": null,
+          "force": 0,
+          "gap": 0.001502215115158953,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+          "component": null,
+          "force": 0,
+          "gap": 0.000836932132828816,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+          "component": null,
+          "force": 0,
+          "gap": 0.0003077708179985428,
+          "active": false,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+          "component": null,
+          "force": 152.07756888174194,
+          "gap": 4.996003610813204e-16,
+          "active": true,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+          "component": null,
+          "force": 3477.717427054981,
+          "gap": 2.7755575615628914e-16,
+          "active": true,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",13,13]",
+          "component": null,
+          "force": 7152.702265607826,
+          "gap": -3.0531133177191805e-16,
+          "active": true,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",14,14]",
+          "component": null,
+          "force": 3262.6152005961253,
+          "gap": 5.551115123125783e-17,
+          "active": true,
+          "applicable": true
+        },
+        {
+          "id": "[\"world-sheath\",0,\"catheter\",\"catheter\",15,16]",
+          "component": null,
+          "force": 0,
+          "gap": 0.06666668653487814,
+          "active": false,
+          "applicable": true
+        }
+      ],
+      "sites": 31,
+      "rows": 31,
+      "pressureDiscretization": "actual-world-nodes",
+      "axialLaw": "free-slide"
+    },
+    "wall": {
+      "scope": "joint-original-wall-normal-rows-only",
+      "contactMode": "material-points",
+      "minGap": -0.00020153634712555268,
+      "minForce": 0,
+      "penetration": 0.00020153634712555268,
+      "negativeForce": 0,
+      "ncp": 0.00020153634712555268,
+      "complementarity": 0.09712518305726944,
+      "domainAdmissible": true,
+      "samples": [
+        {
+          "key": "[\"wire\",30,0.44449999928474426,\"material-point\",0]",
+          "owner": "wire",
+          "edge": 30,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0,
+          "dependent": null,
+          "forceIndex": 0,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.307094052502516,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",30,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 30,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 1,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.3150834229429598,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",31,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 31,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 2,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.9260327384390776,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",32,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 32,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 3,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.6842468474971928,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",33,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 33,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 4,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.8067496866358903,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",34,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 34,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 5,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.8860728615847728,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",35,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 35,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 6,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.158891498240065,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",36,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 36,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 7,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.9820279066948865,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",37,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 37,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 8,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 827.780972248941,
+          "gap": -6.476163716406802e-09,
+          "ncp": 6.476163716406802e-09,
+          "complementarity": 5.360845097610538e-06,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",38,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 38,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 9,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 481.923903268737,
+          "gap": -0.00020153634712555268,
+          "ncp": 0.00020153634712555268,
+          "complementarity": 0.09712518305726944,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",39,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 39,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 10,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.004766847772840976,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",40,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 40,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 11,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.0814949959722937,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",41,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 41,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 12,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 107.45757802820881,
+          "gap": 7.2695183206406e-12,
+          "ncp": 7.2695183206406e-12,
+          "complementarity": 7.811648321677307e-10,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",42,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 42,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 1,
+          "dependent": null,
+          "forceIndex": 13,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 269.5758554178955,
+          "gap": -2.840244706092676e-11,
+          "ncp": 2.840244706092676e-11,
+          "complementarity": 7.656613962410825e-09,
+          "active": true,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",30,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 30,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 14,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.2950792110469824,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",30,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 30,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 15,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.3658466842654318,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",31,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 31,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 16,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.0185592977424243,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",31,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 31,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 17,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.9759463050772106,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",32,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 32,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 18,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.8828694989788857,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",32,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 32,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 19,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.6406740097047545,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",33,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 33,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 20,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.0430304344166026,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",33,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 33,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 21,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.7332097764583438,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",34,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 34,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 22,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.2441096710160013,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",34,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 34,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 23,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 2.279125141266622,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",35,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 35,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 24,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.4548674097478362,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",35,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 35,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 25,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.078422009328414,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",36,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 36,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 26,
+          "source": "centerline-safe-core",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.7686156629131808,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": true,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",36,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 36,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 27,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 1.320768197440753,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",37,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 37,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 28,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.7938333041312426,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",37,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 37,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 29,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.4220117936503449,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",38,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 38,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 30,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.048079981728425314,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",38,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 38,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 31,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.09696695425263657,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",39,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 39,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 32,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.0490194304115536,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",39,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 39,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 33,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.040423592434012445,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",40,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 40,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 34,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.07812262430413808,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",40,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 40,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 35,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.19105489449188273,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",41,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 41,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 36,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.052628040126356024,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",41,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 41,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 37,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.03522871249875237,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",42,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 42,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.3333333333333333,
+          "dependent": null,
+          "forceIndex": 38,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.08025189322132797,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        },
+        {
+          "key": "[\"wire\",42,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 42,
+          "role": "material-point",
+          "querySampleFraction": 0,
+          "querySampleCount": 1,
+          "endpointFraction": 0.6666666666666666,
+          "dependent": null,
+          "forceIndex": 39,
+          "source": "sparse-sdf",
+          "sdfBranch": null,
+          "Fn": 0,
+          "gap": 0.14331809240615845,
+          "ncp": 0,
+          "complementarity": 0,
+          "active": false,
+          "eliminated": false,
+          "representative": null
+        }
+      ],
+      "merit": 9433303649660770,
+      "retainedRows": 40,
+      "converged": false,
+      "rowStructureChanged": false,
+      "structureVersion": 1,
+      "queryGeneration": 102,
+      "pressureDiscretization": "fixed-material-points",
+      "originalInequalities": [
+        {
+          "owner": "wire",
+          "edge": 30,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 2.307094052502516,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 30,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 2.3150834229429598,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 30,
+          "role": "capsule",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 2.307094052502516,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 31,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 2.3150834229429598,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 31,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.9260327384390776,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 31,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "centerline-safe-core",
+          "gap": 1.9260327384390776,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 32,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.9260327384390776,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 32,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.6842468474971928,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 32,
+          "role": "capsule",
+          "endpointFraction": 0.6666666666666666,
+          "querySampleFraction": 0.6666666666666666,
+          "source": "centerline-safe-core",
+          "gap": 1.640674009704754,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 33,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.6842468474971928,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 33,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.8067496866358903,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 33,
+          "role": "capsule",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.6842468474971928,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 34,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.8067496866358903,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 34,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.8860728615847728,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 34,
+          "role": "capsule",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.8067496866358903,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 35,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.8860728615847728,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 35,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.158891498240065,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 35,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "centerline-safe-core",
+          "gap": 1.158891498240065,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 36,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "centerline-safe-core",
+          "gap": 1.158891498240065,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 36,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.9820279066948865,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 36,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "sparse-sdf",
+          "gap": 0.9820279066948865,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 37,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.9820279066948865,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 37,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": -6.476163716406802e-09,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 37,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "sparse-sdf",
+          "gap": -6.476163716406802e-09,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 38,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": -6.476163716406802e-09,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 38,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": -0.00020153634712555268,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 38,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "sparse-sdf",
+          "gap": -0.00020153634712555268,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 39,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": -0.00020153634712555268,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 39,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.004766847772840976,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 39,
+          "role": "capsule",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": -0.00020153634712555268,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 40,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.004766847772840976,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 40,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.0814949959722937,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 40,
+          "role": "capsule",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.004766847772840976,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 41,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 0.0814949959722937,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 41,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 7.2695183206406e-12,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 41,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "sparse-sdf",
+          "gap": 7.2695183206406e-12,
+          "pressureDof": false
+        },
+        {
+          "owner": "wire",
+          "edge": 42,
+          "role": "proximal",
+          "endpointFraction": 0,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": 7.2695183206406e-12,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 42,
+          "role": "distal",
+          "endpointFraction": 1,
+          "querySampleFraction": 0,
+          "source": "sparse-sdf",
+          "gap": -2.840244706092676e-11,
+          "pressureDof": "one-declared-node-site"
+        },
+        {
+          "owner": "wire",
+          "edge": 42,
+          "role": "capsule",
+          "endpointFraction": 1,
+          "querySampleFraction": 1,
+          "source": "sparse-sdf",
+          "gap": -2.840244706092676e-11,
+          "pressureDof": false
+        }
+      ],
+      "coverageMerit": 1624675969.7666876
+    },
+    "wallFriction": {
+      "scope": "original-nodal-endpoints-stationary-wall-implicit-rate-Coulomb-rows",
+      "rateMode": "backward-euler-grid",
+      "slipModel": "implicit-backward-euler-surface-rate",
+      "finiteStepSlipKnown": false,
+      "converged": false,
+      "merit": 119389598023.2076,
+      "lineSearchMerit": 288783463.9013503,
+      "samples": [
+        {
+          "sampleId": "[\"wire\",30,0.44449999928474426,\"material-point\",0]",
+          "owner": "wire",
+          "edge": 30,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",30,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 30,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",31,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 31,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",32,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 32,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",33,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 33,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",34,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 34,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",35,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 35,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",36,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",36,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 36,
+          "node": 37,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 7,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.36188814410649134,
+            -0.005877818290814419
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",37,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",37,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 37,
+          "node": 38,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 8,
+          "Fn": 827.780972248941,
+          "traction": [
+            -1.6553833253300587,
+            0.024333953440452645
+          ],
+          "slip": [
+            0.38202224970442433,
+            -0.005614704943708669
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            -3.3385601483360006e-09,
+            7.822686293262882e-08
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": -0.632529890034462,
+          "minimumWork": -0.6325298043032247,
+          "workGap": 8.573123733146559e-08,
+          "coneViolation": 1.3554036226715027e-07,
+          "slipResidual": 9.808039607931557e-07,
+          "converged": false,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",38,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",38,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 38,
+          "node": 39,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 9,
+          "Fn": 481.923903268737,
+          "traction": [
+            -0.9638036330198043,
+            0.010234042979091898
+          ],
+          "slip": [
+            0.3718025160305277,
+            -0.0005002394379890789
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            8.521548528106493e-07,
+            0.0001699341463380791
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": -0.35834973518803487,
+          "minimumWork": -0.3583613638970383,
+          "workGap": 1.1628709003452808e-05,
+          "coneViolation": 1.0540545139159363e-05,
+          "slipResidual": 0.0034475273639501315,
+          "converged": false,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",39,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",39,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 39,
+          "node": 40,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 10,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3695383294624497,
+            0.011606962719818145
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",40,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",40,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 40,
+          "node": 41,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 11,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.36682078086661174,
+            -0.0007953610212877002
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",41,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",41,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 41,
+          "node": 42,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 12,
+          "Fn": 107.45757802820881,
+          "traction": [
+            -0.2146356656029126,
+            0.010956982395709813
+          ],
+          "slip": [
+            0.3646275441784536,
+            -0.018613946260639613
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            -2.766272211296439e-12,
+            4.5538830831248766e-11
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": -0.07846602832339034,
+          "minimumWork": -0.07846602823057451,
+          "workGap": 9.281582447062675e-11,
+          "coneViolation": 1.1828791279810957e-09,
+          "slipResidual": 3.913395388993601e-09,
+          "converged": false,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",42,0.44449999928474426,\"material-point\",1]",
+          "key": "[\"wire\",42,0.44449999928474426,\"material-point\",1]",
+          "owner": "wire",
+          "edge": 42,
+          "node": 43,
+          "trace": "left",
+          "role": "material-point",
+          "forceIndex": 13,
+          "Fn": 269.5758554178955,
+          "traction": [
+            -0.5379179774190079,
+            0.036452943745621115
+          ],
+          "slip": [
+            0.37377296745263444,
+            -0.025329372819923417
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            -4.603672998371166e-12,
+            -1.7893063419816002e-12
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": -0.20198252886853832,
+          "minimumWork": -0.201982528784768,
+          "workGap": 8.377032401085671e-11,
+          "coneViolation": 4.147404641940966e-10,
+          "slipResidual": 1.6008505632214565e-10,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",30,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 30,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",30,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 30,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",31,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 31,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",31,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 31,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",32,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 32,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",32,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 32,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",33,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 33,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",33,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 33,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",34,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 34,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",34,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 34,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",35,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 35,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",35,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 35,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",36,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 36,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": null,
+          "unloaded": true,
+          "converged": true,
+          "finiteStepSlipKnown": false,
+          "rateMode": "backward-euler-grid"
+        },
+        {
+          "sampleId": "[\"wire\",36,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",36,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 36,
+          "role": "material-point",
+          "forceIndex": 27,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3662797565008461,
+            -0.0052692129478584876
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",37,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "key": "[\"wire\",37,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 37,
+          "role": "material-point",
+          "forceIndex": 28,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3946101973785184,
+            -0.00450568085567543
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",37,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",37,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 37,
+          "role": "material-point",
+          "forceIndex": 29,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.38268263508288103,
+            -0.010506076114328548
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",38,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "key": "[\"wire\",38,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 38,
+          "role": "material-point",
+          "forceIndex": 30,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.374263198578401,
+            -0.0053717378029550355
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",38,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",38,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 38,
+          "role": "material-point",
+          "forceIndex": 31,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3744888663070989,
+            -0.0018710107429516965
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",39,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "key": "[\"wire\",39,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 39,
+          "role": "material-point",
+          "forceIndex": 32,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.36986839520430526,
+            0.005624435509115469
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",39,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",39,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 39,
+          "role": "material-point",
+          "forceIndex": 33,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3703831936674457,
+            0.00859028658695896
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",40,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "key": "[\"wire\",40,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 40,
+          "role": "material-point",
+          "forceIndex": 34,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.36931066664612616,
+            0.007518981301510965
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",40,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",40,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 40,
+          "role": "material-point",
+          "forceIndex": 35,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.36879186790610086,
+            0.005692018421673178
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",41,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "key": "[\"wire\",41,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 41,
+          "role": "material-point",
+          "forceIndex": 36,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3642737315292837,
+            -0.0009604515904828958
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",41,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",41,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 41,
+          "role": "material-point",
+          "forceIndex": 37,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.36343512628140606,
+            -0.010095940316238906
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",42,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "key": "[\"wire\",42,0.44449999928474426,\"material-point\",0.3333333333333333]",
+          "owner": "wire",
+          "edge": 42,
+          "role": "material-point",
+          "forceIndex": 38,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3659396897552706,
+            -0.023049770348550665
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        },
+        {
+          "sampleId": "[\"wire\",42,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "key": "[\"wire\",42,0.44449999928474426,\"material-point\",0.6666666666666666]",
+          "owner": "wire",
+          "edge": 42,
+          "role": "material-point",
+          "forceIndex": 39,
+          "Fn": 0,
+          "traction": [
+            0,
+            0
+          ],
+          "slip": [
+            0.3686344377395424,
+            -0.03613924434524079
+          ],
+          "mu": [
+            0.002,
+            0.002
+          ],
+          "equationResidual": [
+            0,
+            0
+          ],
+          "mode": "kinetic",
+          "muStatic": [
+            0.006,
+            0.006
+          ],
+          "muKinetic": [
+            0.002,
+            0.002
+          ],
+          "work": 0,
+          "minimumWork": 0,
+          "workGap": 0,
+          "coneViolation": 0,
+          "slipResidual": 0,
+          "converged": true,
+          "redundant": false,
+          "normalAdmissible": true,
+          "surfaceWitness": "provider-normal-projection-not-exact-isosurface",
+          "wallWork": 0,
+          "rateMode": "backward-euler-grid",
+          "slipModel": "implicit-backward-euler-surface-rate",
+          "finiteStepSlipKnown": false
+        }
+      ],
+      "sampleCount": 40,
+      "retainedRows": 80
+    },
+    "lineSearchMerit": 544453573760142200
+  },
+  "sourceSha256": {
+    "src/physics/kirchhoffCompositeJointWallRows.js": "d72bc8abe229cd6b24ab33a8cba338b367d73e954a10a64b30f23ed71b47b003",
+    "src/physics/kirchhoffCompositeJointWallFrictionRows.js": "c260ea28a3e21f2a1e1c1bd21e77aa9316a996a90952db6b32553953552b3a42",
+    "src/physics/kirchhoffCompositeJointWorldWall.js": "7d3c24f3793c561997683e3c3f5709e9e2a24ec0f8a895a7fdd0e548f23d7430",
+    "src/physics/compositeDiscreteWallPoint.js": "bf76349961eff5f0adba4201e9e5fdf2631c13a7fe22c293a0a651a0dfad78ec",
+    "src/physics/kirchhoffCompositeJointWallSurface.js": "b9ed04577c84cc54af1d5780137a21a1fa50f58d06968baa663e6beddb32f31d",
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "96b8884f1b03de6be150c22d19ac9d1fbc2485346c6fe940b5a65a6162cb266e"
+  },
+  "tests": {
+    "wallRows": 32,
+    "frictionAndWorld": 70
+  }
+}

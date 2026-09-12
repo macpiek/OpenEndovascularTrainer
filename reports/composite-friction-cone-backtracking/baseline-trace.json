@@ -1,0 +1,1016 @@
+{
+  "scope": "Temporary instrumentation of the frozen original JointTimeStep on loaded 17-node fixture; trace is not production code",
+  "trace": [
+    {
+      "event": "initial",
+      "lineSearchMerit": 17000000000000.004,
+      "force": 0.41231056256176607,
+      "length": 0,
+      "normalMerit": 8.666684749742561e-18,
+      "frictionMerit": 0,
+      "loadedSamples": []
+    },
+    {
+      "event": "direction",
+      "index": 0,
+      "lineSearchMerit": 17000000000000.004,
+      "force": 0.41231056256176607,
+      "length": 0,
+      "normalMerit": 8.666684749742561e-18,
+      "frictionMerit": 0,
+      "loadedSamples": []
+    },
+    {
+      "event": "trial",
+      "index": 1,
+      "alpha": 1,
+      "lineSearchMerit": 10148037.580336008,
+      "force": 3.6352144973201934e-05,
+      "length": 1.3039559654259847e-08,
+      "normalMerit": 0.0007887061203258726,
+      "frictionMerit": 9919231.15723067,
+      "loadedSamples": [
+        {
+          "Fn": 0.42478325541354184,
+          "traction": [
+            0.12743497662406253,
+            0
+          ],
+          "slip": [
+            3.1494810933278475e-05,
+            0
+          ],
+          "equationResidual": [
+            3.1494810933280216e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 1,
+      "lineSearchMerit": 10148037.580336008,
+      "force": 3.6352144973201934e-05,
+      "length": 1.3039559654259847e-08,
+      "normalMerit": 0.0007887061203258726,
+      "frictionMerit": 9919231.15723067,
+      "loadedSamples": [
+        {
+          "Fn": 0.42478325541354184,
+          "traction": [
+            0.12743497662406253,
+            0
+          ],
+          "slip": [
+            3.1494810933278475e-05,
+            0
+          ],
+          "equationResidual": [
+            3.1494810933280216e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 2,
+      "alpha": 1,
+      "lineSearchMerit": 3023667744778.312,
+      "force": 1.2663019817096537e-05,
+      "length": 8.269163132013091e-10,
+      "normalMerit": 0.00034944243650429413,
+      "frictionMerit": 3023667684512.1826,
+      "loadedSamples": [
+        {
+          "Fn": 0.31776895286686735,
+          "traction": [
+            -0.18227416871691646,
+            0
+          ],
+          "slip": [
+            -2.6245392188343044e-13,
+            0
+          ],
+          "equationResidual": [
+            -0.01738869657137125,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 2,
+      "alpha": 0.5,
+      "lineSearchMerit": 2557959.6622392847,
+      "force": 2.131999891589707e-05,
+      "length": 6.726508683385646e-09,
+      "normalMerit": 5.524723117424987e-05,
+      "frictionMerit": 2479807.7683705245,
+      "loadedSamples": [
+        {
+          "Fn": 0.3712761041402046,
+          "traction": [
+            -0.027419596046426964,
+            0
+          ],
+          "slip": [
+            1.5747405400161873e-05,
+            0
+          ],
+          "equationResidual": [
+            1.5747405400162035e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 2,
+      "lineSearchMerit": 2557959.6622392847,
+      "force": 2.131999891589707e-05,
+      "length": 6.726508683385646e-09,
+      "normalMerit": 5.524723117424987e-05,
+      "frictionMerit": 2479807.7683705245,
+      "loadedSamples": [
+        {
+          "Fn": 0.3712761041402046,
+          "traction": [
+            -0.027419596046426964,
+            0
+          ],
+          "slip": [
+            1.5747405400161873e-05,
+            0
+          ],
+          "equationResidual": [
+            1.5747405400162035e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 3,
+      "alpha": 1,
+      "lineSearchMerit": 3024788704752.1685,
+      "force": 3.1647769329054472e-06,
+      "length": 2.0659696176039688e-10,
+      "normalMerit": 2.1857279161042553e-05,
+      "frictionMerit": 3024788700985.2734,
+      "loadedSamples": [
+        {
+          "Fn": 0.3177722671499423,
+          "traction": [
+            -0.1822912785367829,
+            0
+          ],
+          "slip": [
+            -6.735889667900232e-14,
+            0
+          ],
+          "equationResidual": [
+            -0.017391919678360044,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 3,
+      "alpha": 0.5,
+      "lineSearchMerit": 897842102.7174635,
+      "force": 1.1446865641676096e-05,
+      "length": 3.4149034711106196e-09,
+      "normalMerit": 4.258035894057828e-06,
+      "frictionMerit": 897819240.3336806,
+      "loadedSamples": [
+        {
+          "Fn": 0.3445241856450735,
+          "traction": [
+            -0.10485543729160493,
+            0
+          ],
+          "slip": [
+            7.873702680362589e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.000299636319616578,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 3,
+      "alpha": 0.25,
+      "lineSearchMerit": 1440025.3905318007,
+      "force": 1.61866497194115e-05,
+      "length": 5.057793739382532e-09,
+      "normalMerit": 2.664011349024685e-05,
+      "frictionMerit": 1394891.8687156104,
+      "loadedSamples": [
+        {
+          "Fn": 0.35790014489263905,
+          "traction": [
+            -0.06613751666901595,
+            0
+          ],
+          "slip": [
+            1.1810554045918868e-05,
+            0
+          ],
+          "equationResidual": [
+            1.1810554045918465e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 3,
+      "lineSearchMerit": 1440025.3905318007,
+      "force": 1.61866497194115e-05,
+      "length": 5.057793739382532e-09,
+      "normalMerit": 2.664011349024685e-05,
+      "frictionMerit": 1394891.8687156104,
+      "loadedSamples": [
+        {
+          "Fn": 0.35790014489263905,
+          "traction": [
+            -0.06613751666901595,
+            0
+          ],
+          "slip": [
+            1.1810554045918868e-05,
+            0
+          ],
+          "equationResidual": [
+            1.1810554045918465e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 4,
+      "alpha": 1,
+      "lineSearchMerit": 3024951958712.388,
+      "force": 1.7800806038332218e-06,
+      "length": 1.1619682993568858e-10,
+      "normalMerit": 6.916839973120655e-06,
+      "frictionMerit": 3024951957520.503,
+      "loadedSamples": [
+        {
+          "Fn": 0.31777275164645374,
+          "traction": [
+            -0.18229377058373536,
+            0
+          ],
+          "slip": [
+            -3.912491854883007e-14,
+            0
+          ],
+          "equationResidual": [
+            -0.017392389017959847,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 4,
+      "alpha": 0.5,
+      "lineSearchMerit": 209117982417.63116,
+      "force": 8.53592651884709e-06,
+      "length": 2.5579462992197932e-09,
+      "normalMerit": 2.7253419048998856e-06,
+      "frictionMerit": 209117969723.53894,
+      "loadedSamples": [
+        {
+          "Fn": 0.3378364482695464,
+          "traction": [
+            -0.12421564362637565,
+            0
+          ],
+          "slip": [
+            5.905277010470902e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.004572941829102345,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 4,
+      "alpha": 0.25,
+      "lineSearchMerit": 810520.0187549419,
+      "force": 1.2250610109631188e-05,
+      "length": 3.800607384363275e-09,
+      "normalMerit": 1.3239374064886953e-05,
+      "frictionMerit": 784626.675478761,
+      "loadedSamples": [
+        {
+          "Fn": 0.34786829658109275,
+          "traction": [
+            -0.0951765801476958,
+            0
+          ],
+          "slip": [
+            8.8579155306365e-06,
+            0
+          ],
+          "equationResidual": [
+            8.857915530635641e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 4,
+      "lineSearchMerit": 810520.0187549419,
+      "force": 1.2250610109631188e-05,
+      "length": 3.800607384363275e-09,
+      "normalMerit": 1.3239374064886953e-05,
+      "frictionMerit": 784626.675478761,
+      "loadedSamples": [
+        {
+          "Fn": 0.34786829658109275,
+          "traction": [
+            -0.0951765801476958,
+            0
+          ],
+          "slip": [
+            8.8579155306365e-06,
+            0
+          ],
+          "equationResidual": [
+            8.857915530635641e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 5,
+      "alpha": 1,
+      "lineSearchMerit": 3025043758613.186,
+      "force": 1.0012505574811528e-06,
+      "length": 6.535483265679431e-11,
+      "normalMerit": 2.1887822603096394e-06,
+      "frictionMerit": 3025043758236.062,
+      "loadedSamples": [
+        {
+          "Fn": 0.3177730243346304,
+          "traction": [
+            -0.1822951719331647,
+            0
+          ],
+          "slip": [
+            -2.212185529838805e-14,
+            0
+          ],
+          "equationResidual": [
+            -0.017392652926555115,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 5,
+      "alpha": 0.5,
+      "lineSearchMerit": 604962826032.951,
+      "force": 6.37426380646397e-06,
+      "length": 1.916642844435046e-09,
+      "normalMerit": 1.6802174639349892e-06,
+      "frictionMerit": 604962818961.8679,
+      "loadedSamples": [
+        {
+          "Fn": 0.3328206604578616,
+          "traction": [
+            -0.13873587604043025,
+            0
+          ],
+          "slip": [
+            4.428957759035137e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.007777935580614357,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 5,
+      "alpha": 0.25,
+      "lineSearchMerit": 88243286424.0714,
+      "force": 9.250185951153633e-06,
+      "length": 2.8545406038915644e-09,
+      "normalMerit": 6.750529991402628e-06,
+      "frictionMerit": 88243271642.27647,
+      "loadedSamples": [
+        {
+          "Fn": 0.3403444785194772,
+          "traction": [
+            -0.11695622809406303,
+            0
+          ],
+          "slip": [
+            6.6434366460730455e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.0029705769076439764,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 5,
+      "alpha": 0.125,
+      "lineSearchMerit": 3213748449.341476,
+      "force": 1.073484056894234e-05,
+      "length": 3.3265528109893694e-09,
+      "normalMerit": 9.929295178156114e-06,
+      "frictionMerit": 3213728561.857314,
+      "loadedSamples": [
+        {
+          "Fn": 0.34410638755028494,
+          "traction": [
+            -0.1060664041208794,
+            0
+          ],
+          "slip": [
+            7.750676088542602e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.0005668975711587865,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 5,
+      "alpha": 0.0625,
+      "lineSearchMerit": 712387.9381386061,
+      "force": 1.1488836095419557e-05,
+      "length": 3.5633247463806583e-09,
+      "normalMerit": 1.158046740830365e-05,
+      "frictionMerit": 689613.2892389788,
+      "loadedSamples": [
+        {
+          "Fn": 0.3459873420656889,
+          "traction": [
+            -0.1006214921342876,
+            0
+          ],
+          "slip": [
+            8.304295811440447e-06,
+            0
+          ],
+          "equationResidual": [
+            8.304295811439876e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 5,
+      "lineSearchMerit": 712387.9381386061,
+      "force": 1.1488836095419557e-05,
+      "length": 3.5633247463806583e-09,
+      "normalMerit": 1.158046740830365e-05,
+      "frictionMerit": 689613.2892389788,
+      "loadedSamples": [
+        {
+          "Fn": 0.3459873420656889,
+          "traction": [
+            -0.1006214921342876,
+            0
+          ],
+          "slip": [
+            8.304295811440447e-06,
+            0
+          ],
+          "equationResidual": [
+            8.304295811439876e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 6,
+      "alpha": 1,
+      "lineSearchMerit": 3025058049592.3706,
+      "force": 8.799988438270145e-07,
+      "length": 5.743983066963665e-11,
+      "normalMerit": 1.6908129496350355e-06,
+      "frictionMerit": 3025058049301.051,
+      "loadedSamples": [
+        {
+          "Fn": 0.31777306679854816,
+          "traction": [
+            -0.18229539009022783,
+            0
+          ],
+          "slip": [
+            -1.8609268111397827e-14,
+            0
+          ],
+          "equationResidual": [
+            -0.017392694010132676,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 6,
+      "alpha": 0.5,
+      "lineSearchMerit": 702055629133.5305,
+      "force": 5.963225592577947e-06,
+      "length": 1.7960224418800408e-09,
+      "normalMerit": 1.542003536018798e-06,
+      "frictionMerit": 702055622948.2324,
+      "loadedSamples": [
+        {
+          "Fn": 0.3318802044321185,
+          "traction": [
+            -0.14145844111225772,
+            0
+          ],
+          "slip": [
+            4.152147899015687e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.008378875956524433,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 6,
+      "alpha": 0.25,
+      "lineSearchMerit": 149921292037.8908,
+      "force": 8.671319301837548e-06,
+      "length": 2.6760833549133167e-09,
+      "normalMerit": 5.940549238686813e-06,
+      "frictionMerit": 149921279048.4773,
+      "loadedSamples": [
+        {
+          "Fn": 0.33893377324890367,
+          "traction": [
+            -0.12103996662327265,
+            0
+          ],
+          "slip": [
+            6.22822185437923e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.003871966929720311,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 6,
+      "alpha": 0.125,
+      "lineSearchMerit": 26195841906.456635,
+      "force": 1.0066404322513226e-05,
+      "length": 3.1188069904430904e-09,
+      "normalMerit": 8.696020259786566e-06,
+      "frictionMerit": 26195824417.763466,
+      "loadedSamples": [
+        {
+          "Fn": 0.34246055765729627,
+          "traction": [
+            -0.11083072937878014,
+            0
+          ],
+          "slip": [
+            7.266258831562489e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.001618512416318252,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 6,
+      "alpha": 0.0625,
+      "lineSearchMerit": 2418546462.8530254,
+      "force": 1.0774202024823454e-05,
+      "length": 3.340841825405505e-09,
+      "normalMerit": 1.0132365874984017e-05,
+      "frictionMerit": 2418526432.197342,
+      "loadedSamples": [
+        {
+          "Fn": 0.3442239498614926,
+          "traction": [
+            -0.10572611075653386,
+            0
+          ],
+          "slip": [
+            7.785277321509917e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.0004917851596172196,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 6,
+      "alpha": 0.03125,
+      "lineSearchMerit": 668562.966154562,
+      "force": 1.1130664385198016e-05,
+      "length": 3.4520266645188258e-09,
+      "normalMerit": 1.0856164660183e-05,
+      "frictionMerit": 647185.9087181665,
+      "loadedSamples": [
+        {
+          "Fn": 0.3451056459635907,
+          "traction": [
+            -0.10317380144541073,
+            0
+          ],
+          "slip": [
+            8.044786564715192e-06,
+            0
+          ],
+          "equationResidual": [
+            8.044786564714856e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 6,
+      "lineSearchMerit": 668562.966154562,
+      "force": 1.1130664385198016e-05,
+      "length": 3.4520266645188258e-09,
+      "normalMerit": 1.0856164660183e-05,
+      "frictionMerit": 647185.9087181665,
+      "loadedSamples": [
+        {
+          "Fn": 0.3451056459635907,
+          "traction": [
+            -0.10317380144541073,
+            0
+          ],
+          "slip": [
+            8.044786564715192e-06,
+            0
+          ],
+          "equationResidual": [
+            8.044786564714856e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 1,
+      "lineSearchMerit": 3025064428466.982,
+      "force": 8.258554610596036e-07,
+      "length": 5.390576873764985e-11,
+      "normalMerit": 1.489178424544933e-06,
+      "frictionMerit": 3025064428210.4053,
+      "loadedSamples": [
+        {
+          "Fn": 0.31777308577245067,
+          "traction": [
+            -0.1822954874718457,
+            0
+          ],
+          "slip": [
+            -1.590031613860933e-14,
+            0
+          ],
+          "equationResidual": [
+            -0.017392712348022102,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.5,
+      "lineSearchMerit": 750054202951.3993,
+      "force": 5.770676107363648e-06,
+      "length": 1.7394898854661278e-09,
+      "normalMerit": 1.478620933797386e-06,
+      "frictionMerit": 750054197160.616,
+      "loadedSamples": [
+        {
+          "Fn": 0.3314393658680207,
+          "traction": [
+            -0.1427346444586282,
+            0
+          ],
+          "slip": [
+            4.022393280144956e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.008660566939644402,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.25,
+      "lineSearchMerit": 184426819570.63803,
+      "force": 8.399325635130765e-06,
+      "length": 2.5923894142465542e-09,
+      "normalMerit": 5.5851369323215445e-06,
+      "frictionMerit": 184426807383.60983,
+      "loadedSamples": [
+        {
+          "Fn": 0.3382725059158057,
+          "traction": [
+            -0.12295422295201948,
+            0
+          ],
+          "slip": [
+            6.0335899234598196e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.004294494235455554,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.125,
+      "lineSearchMerit": 44582560346.034904,
+      "force": 9.75216286845787e-06,
+      "length": 3.0213658241962094e-09,
+      "normalMerit": 8.156983460019538e-06,
+      "frictionMerit": 44582543932.078575,
+      "loadedSamples": [
+        {
+          "Fn": 0.3416890759396982,
+          "traction": [
+            -0.1130640121987151,
+            0
+          ],
+          "slip": [
+            7.0391882462188735e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.0021114578833611288,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.0625,
+      "lineSearchMerit": 10402788866.600784,
+      "force": 1.0438205733585706e-05,
+      "length": 3.2364861901612585e-09,
+      "normalMerit": 9.499947340322922e-06,
+      "frictionMerit": 10402770065.555967,
+      "loadedSamples": [
+        {
+          "Fn": 0.34339736095164447,
+          "traction": [
+            -0.10811890682206292,
+            0
+          ],
+          "slip": [
+            7.54198740558538e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.001019939707313916,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.03125,
+      "lineSearchMerit": 2248492662.2310658,
+      "force": 1.0783633049695977e-05,
+      "length": 3.34420402481328e-09,
+      "normalMerit": 1.0177496358664822e-05,
+      "frictionMerit": 2248472597.10539,
+      "loadedSamples": [
+        {
+          "Fn": 0.3442515034576176,
+          "traction": [
+            -0.10564635413373683,
+            0
+          ],
+          "slip": [
+            7.793386986939789e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.00047418061929030696,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.015625,
+      "lineSearchMerit": 405241944.154246,
+      "force": 1.0956948284924958e-05,
+      "length": 3.398102688123572e-09,
+      "normalMerit": 1.0516816484805907e-05,
+      "frictionMerit": 405221229.082841,
+      "loadedSamples": [
+        {
+          "Fn": 0.34467857471060415,
+          "traction": [
+            -0.10441007778957379,
+            0
+          ],
+          "slip": [
+            7.919086774056436e-06,
+            0
+          ],
+          "equationResidual": [
+            -0.00020130107527850937,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.0078125,
+      "lineSearchMerit": 42090931.17611291,
+      "force": 1.1043756278169662e-05,
+      "length": 3.42506156769673e-09,
+      "normalMerit": 1.0686509931556105e-05,
+      "frictionMerit": 42069886.62220664,
+      "loadedSamples": [
+        {
+          "Fn": 0.34489211033709744,
+          "traction": [
+            -0.10379193961749225,
+            0
+          ],
+          "slip": [
+            7.981936669330496e-06,
+            0
+          ],
+          "equationResidual": [
+            -6.486130327260365e-05,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 7,
+      "alpha": 0.00390625,
+      "lineSearchMerit": 134011.2077523088,
+      "force": 1.1087197801055873e-05,
+      "length": 3.438543227929358e-09,
+      "normalMerit": 1.077134097577423e-05,
+      "frictionMerit": 112800.77956572086,
+      "loadedSamples": [
+        {
+          "Fn": 0.3449988781503441,
+          "traction": [
+            -0.1034828705314515,
+            0
+          ],
+          "slip": [
+            8.013361617078607e-06,
+            0
+          ],
+          "equationResidual": [
+            3.358582730345061e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "direction",
+      "index": 7,
+      "lineSearchMerit": 134011.2077523088,
+      "force": 1.1087197801055873e-05,
+      "length": 3.438543227929358e-09,
+      "normalMerit": 1.077134097577423e-05,
+      "frictionMerit": 112800.77956572086,
+      "loadedSamples": [
+        {
+          "Fn": 0.3449988781503441,
+          "traction": [
+            -0.1034828705314515,
+            0
+          ],
+          "slip": [
+            8.013361617078607e-06,
+            0
+          ],
+          "equationResidual": [
+            3.358582730345061e-06,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "event": "trial",
+      "index": 8,
+      "alpha": 1,
+      "lineSearchMerit": 9.385437260084445e-08,
+      "force": 1.312459520220586e-11,
+      "length": 4.884981308350689e-15,
+      "normalMerit": 9.62964972193618e-19,
+      "frictionMerit": 7.703719777548943e-20,
+      "loadedSamples": [
+        {
+          "Fn": 0.34499989826789584,
+          "traction": [
+            -0.10349996948036874,
+            0
+          ],
+          "slip": [
+            8.016410920876796e-06,
+            0
+          ],
+          "equationResidual": [
+            2.7755575615628915e-18,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scenario": "35 s UI benchmark joint-axial-sections",
+  "calls": 423,
+  "nonconvergedResults": 0,
+  "averageFps": 28.808056038055014,
+  "backlogSeconds": 19.241533333333347,
+  "lastStepMs": 231.70000004768372,
+  "timingsMs": {
+    "sectionAssembly": 12184.300001382828,
+    "sectionTopology": 2741.70000064373,
+    "localPacking": 1302.7000076770782,
+    "localFactor": 2627.099996328354,
+    "localResponses": 3236.0999925136566,
+    "localReactions": 1968.700002193451,
+    "boundarySolve": 718.4000006914139
+  },
+  "performanceGatePassed": false
+}

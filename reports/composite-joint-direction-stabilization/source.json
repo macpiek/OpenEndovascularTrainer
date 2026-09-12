@@ -1,0 +1,14 @@
+{
+  "privateSnapshot": "/tmp/oet-world-wall-penetration-probe",
+  "scope": "private prototype files; production sources untouched",
+  "sha256": {
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "73891aa4a86a3015b2365ba4f84bfa16caaed8ea705848328a09eb7e9b516226",
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "5ae714af9f52f92b966774aacde12e48e31532bd98744de119641a10e456230a",
+    "tests/fixture.mjs": "784842379015af16c5b3280f68ea8eaa73af5f312bf0e996b41d31b2243f3e4c",
+    "probe.mjs": "51d70651b127c846ecc4b5cb82b9c57c4be98fb86309846def25ac0ea5e61d1f"
+  },
+  "production": {
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "e88a0c81527fcfa4d55488e2939681fc69d3737bdca1f1b4c6ffe6d7043ea8a4",
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "68863abe08a15b06b0cd8037a135a669fc1e3e05f380e9c149d10aa1ef651c8e"
+  }
+}

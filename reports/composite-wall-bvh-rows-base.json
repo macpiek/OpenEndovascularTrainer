@@ -1,0 +1,43 @@
+{
+  "status": "frozen-base",
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "runtime": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-wall-bvh-rows-base-71ha7zgo",
+  "hashes": {
+    "package.json": "e714adeec8e1080766cd136ad562a6f16a0000ca09d6219f6d63b67d33fc49d1",
+    "res/Aorta_plain.collision.bin": "9126d2780d8ee5d58999e2b5c1157da49e7ddc81a6c0b040a938ff45b93f25c8",
+    "res/Aorta_plain.stl": "60e84c7cf241948b552d3753818229cf93601f06fc62e6123397f5e7e9dc20da",
+    "src/aortaTransform.js": "b6e496b23d923256c3cd4f2991f933f0baa1b9937447de60cd052c7afebd0479",
+    "src/physics/collision/collisionAssetFormat.js": "5a9977c3850f764a2471bddfb29c835fdaec95e891faf501c72b5802433ac9ca",
+    "src/physics/collision/packedLumenField.js": "318e03313d311d009f9a1c6462af83d22ada1ddcc5ded1ec47455e65ea2f9434",
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": "2d50b407edc6e2ede71237ec4907a0875d8facdd7d5ea1c2b40406890d604174",
+    "src/physics/collision/vesselContactField.js": "4d6fea079465484d0f86611d6d417651d8d5cdfc099eaf5537d39815f48b24b9",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeInertiaCache.js": "4567e61ffe06c0d90598da02e535e715d833ded9d5946276369e6fd749e0fbec",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5540faf6ddab4fc5770b5e637e39d577bf323d707c399d79ecad7b76a175e886",
+    "src/physics/kirchhoffCompositeTimeStep.js": "47c569faef65cca902d7c99583fd6dfb89ee2e613f947cc2a719bbfb4c3dab6b",
+    "src/physics/kirchhoffCompositeWallBvhGeometry.js": "d80a017552c2993c6fcbb53ca9406464fcc4e94fbb834a98502400a59df79b0b",
+    "src/physics/kirchhoffCompositeWallContacts.js": "8548d1e3b22eead1ff97299f1b27dcf34b49cabd5cddfb0e05820e14a5092c85",
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": "b63c12f0265049a68feace489d4a835c5628a658cf6f6cea0555ed5353af0355",
+    "src/physics/kirchhoffCompositeWallEnvelope.js": "83a4496c191646f2c26668a72b781110bf7400f2255dd3795a4ab1a9b06390e7",
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "src/toolDimensions.js": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+    "src/vesselGeometry.js": "c70e75098cfc8474a1463670d49c5f0981b1f0f921b24e69129b55fc5fb510b1",
+    "tests/kirchhoffCompositeWallContacts.test.js": "ba277ed792f235ae8dc1434d475d8b874039d9b1b501c07886d440bc1def9d08",
+    "tests/kirchhoffCompositeWallDifferentialRows.test.js": "ceb8632c1654ddec8fda3f40924a2c03a6e3dbf7077220e9d6bfc4798e1b68d2",
+    "tests/kirchhoffCompositeWallEnvelope.test.js": "5fdb3d466d4e34a2f836eacdb9a30a58146448487b699d748fce2f71ae5b5ffa"
+  },
+  "editBaseHashes": {
+    "src/physics/kirchhoffCompositeWallDifferentialRows.js": "b63c12f0265049a68feace489d4a835c5628a658cf6f6cea0555ed5353af0355",
+    "src/physics/kirchhoffCompositeWallContacts.js": "8548d1e3b22eead1ff97299f1b27dcf34b49cabd5cddfb0e05820e14a5092c85"
+  }
+}

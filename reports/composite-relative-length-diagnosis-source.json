@@ -1,0 +1,16 @@
+{
+  "createdAt": "2026-09-07T15:55:01.983576+00:00",
+  "scope": "read-only representation diagnosis, before structural 2D/3D generalization",
+  "sourceStable": true,
+  "hashes": {
+    "reports/composite-relative-length-diagnosis.md": "c0804c544a8b603f10725094f5af08e9b3e38471aae1bea2de9e9e60c197fdbf",
+    "reports/unified-catheter-guidewire-analysis.md": "fc1ad0bff3347b874d61abf49def0c148ec4c77a5042c7707707b8a10ed738b0",
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeTimeStep.js": "47c569faef65cca902d7c99583fd6dfb89ee2e613f947cc2a719bbfb4c3dab6b",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "c4e46982a14810fb49594337e2c88328622d8a52094c5f08efd2adcccb7bf2cc",
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "src/physics/kirchhoffCompositeTopology.js": "9dd3324e13d0ed3c08ae06a5040d71aa50e5667b02e70739262621e57e5a2bd4",
+    "witness.json": "f2fbbed8a0450396f6a8046d8a6dd4dd1e7714595939a47a7b68ae9a884b4b7b"
+  }
+}

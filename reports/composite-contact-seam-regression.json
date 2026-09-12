@@ -1,0 +1,3067 @@
+{
+  "scope": "Node mechanical diagnosis; not browser FPS or full goal acceptance",
+  "input": {
+    "fixture": "tests/helpers/capturedCompositeAppFixture.js",
+    "anatomy": "tests/helpers/compositeAnatomyField.js",
+    "wireRateMmPerSecond": 44,
+    "dt": 0.008333333333333333,
+    "coordinateOrigin": "sheath-start",
+    "wallSource": "original-field"
+  },
+  "experiments": [
+    {
+      "name": "nonmonotone-only",
+      "acceptedSteps": 335,
+      "guidewireMm": 123.199999999999,
+      "status": "unsupported-joint-wall-friction",
+      "message": "Normal wall row structure or owner changed during a prepared step",
+      "directions": 0,
+      "evaluations": 1,
+      "acceptedAlphas": [],
+      "regularization": [],
+      "sheathPivots": []
+    },
+    {
+      "name": "preserved-normal-samples",
+      "acceptedSteps": 335,
+      "guidewireMm": 123.199999999999,
+      "status": "direction-budget",
+      "message": null,
+      "directions": 64,
+      "evaluations": 17,
+      "force": 6713.501263521308,
+      "acceptedAlphas": [
+        1,
+        1,
+        1,
+        1,
+        0.25,
+        0.5
+      ],
+      "regularization": [
+        {
+          "reason": "linear-system",
+          "shift": 0.01,
+          "direction": 1
+        }
+      ],
+      "sheathPivots": [
+        {
+          "direction": 2,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.003626185976286321
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.011781353127998979
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",13,13]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.3176466287931216
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",14,14]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.1562609095952653
+            }
+          ]
+        },
+        {
+          "direction": 3,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -4.923033064999907,
+              "predictedGap": 8.754262670965828e-7
+            }
+          ]
+        },
+        {
+          "direction": 8,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.005103101754574395
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.01944335654996099
+            }
+          ]
+        },
+        {
+          "direction": 9,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.007718283218735168
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -17.66109939576873,
+              "predictedGap": 0.0003208487261851415
+            }
+          ]
+        },
+        {
+          "direction": 10,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -11.192305853841125,
+              "predictedGap": 0.000007507738765902966
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.006598206923831953
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -91.72462339166536,
+              "predictedGap": 0.0003616860559251386
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.00028591213157369566,
+              "predictedGap": -0.000735775341597201
+            }
+          ]
+        },
+        {
+          "direction": 11,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.0018989618721475619
+            }
+          ]
+        },
+        {
+          "direction": 13,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.008626943026462885
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.0010407226939831264
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -48.60971937352333,
+              "predictedGap": 0.00005080626621335998
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -199.35546612744423,
+              "predictedGap": 0.00013787989303600803
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -343.0405910427415,
+              "predictedGap": 0.0001645487075895844
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.034830113148915307
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -476.23887116545075,
+              "predictedGap": 0.00016528164749611733
+            }
+          ]
+        },
+        {
+          "direction": 14,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -94.94726237493485,
+              "predictedGap": 0.00015094180237295142
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -370.5157636563348,
+              "predictedGap": 0.0014754641036777284
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000005371403785758844,
+              "predictedGap": -0.023354071032524445
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.000028200676844392092,
+              "predictedGap": -0.01835300259563608
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -860.4634501191881,
+              "predictedGap": 0.00027956619363827856
+            }
+          ]
+        },
+        {
+          "direction": 15,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.007919035813706572
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.001115758758800398
+            }
+          ]
+        },
+        {
+          "direction": 17,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -87.29118749409355,
+              "predictedGap": 0.00002337426911300667
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -132.89311665343763,
+              "predictedGap": 0.000037864588746737426
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1103.3305631757326,
+              "predictedGap": 0.00012973211603707797
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.4344700237308,
+              "predictedGap": 0.00006251588283210773
+            }
+          ]
+        },
+        {
+          "direction": 18,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -198.42136474546854,
+              "predictedGap": 0.00006451075048142683
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.011171279154813685
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.012527730302130828
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -2629.749287651152,
+              "predictedGap": 0.00040311453803467084
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.046237510189769966
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.044958656056314036
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.03432159452246446
+            }
+          ]
+        },
+        {
+          "direction": 19,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -14.826025851076807,
+              "predictedGap": 0.000008354488820064851
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -858.8084320611463,
+              "predictedGap": 0.00010182840058284813
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -813.2624893177939,
+              "predictedGap": 0.00008179625000064679
+            }
+          ]
+        },
+        {
+          "direction": 20,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0016107361823920127
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -407.2665869364179,
+              "predictedGap": 0.00008153329131126326
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.0027463261005876405
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.0165799395372671
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -1135.3786325042247,
+              "predictedGap": 0.00011591379991783557
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.007962350418509675
+            }
+          ]
+        },
+        {
+          "direction": 21,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -138.8795219344833,
+              "predictedGap": 0.0000340669306819418
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.0019480499676844654
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1113.739937091453,
+              "predictedGap": 0.00013091998482613054
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.3456969565121,
+              "predictedGap": 0.00006250787837444095
+            }
+          ]
+        },
+        {
+          "direction": 22,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0012327470529261704
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -408.4372333846116,
+              "predictedGap": 0.00008171960892969449
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1887.1673500285287,
+              "predictedGap": 0.00030543951954649005
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.04423302799083928
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.04309767838798188
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.03319498198050708
+            }
+          ]
+        },
+        {
+          "direction": 23,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -605.0821894967291,
+              "predictedGap": 0.00007287435522303296
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -813.5296709266106,
+              "predictedGap": 0.00008182034113491635
+            }
+          ]
+        },
+        {
+          "direction": 24,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.000003671158529172658,
+              "predictedGap": -0.00021417672632469435
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -1224.113197544618,
+              "predictedGap": 0.00025900220999012765
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.025292243360103675
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.02876767835826191
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.033283370647245514
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -2286.2289579203584,
+              "predictedGap": 0.00023340714578195566
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.008721509234164166
+            }
+          ]
+        },
+        {
+          "direction": 25,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0017102926136308774
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -199.24191057676092,
+              "predictedGap": 0.00004842452278252824
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1103.1871578592884,
+              "predictedGap": 0.00012971575129681716
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.4398102452842,
+              "predictedGap": 0.00006251636434726859
+            }
+          ]
+        },
+        {
+          "direction": 26,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -306.06059671337687,
+              "predictedGap": 0.00006871838188137738
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.005734901375353393
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -2197.085315357906,
+              "predictedGap": 0.00034620437182695716
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.045166699734100826
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.04396445517615366
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.03371950812350341
+            }
+          ]
+        },
+        {
+          "direction": 27,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0008176409278836888
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -861.6806145653915,
+              "predictedGap": 0.00010215616054045761
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -813.2555629202776,
+              "predictedGap": 0.00008179562546376429
+            }
+          ]
+        },
+        {
+          "direction": 28,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -100.11564521013531,
+              "predictedGap": 0.000026032381410261282
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -340.564985735344,
+              "predictedGap": 0.00007091720521355989
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.002561537642127453
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.01647366614084522
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -1127.9361981265424,
+              "predictedGap": 0.00011515398215775031
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.00795742402453151
+            }
+          ]
+        },
+        {
+          "direction": 29,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -45.8852635394372,
+              "predictedGap": 0.00001774041405172653
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0060287182178018804
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.00566478412948315
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1132.9572557671013,
+              "predictedGap": 0.0001331129748416279
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.1711692924059,
+              "predictedGap": 0.00006249214162744386
+            }
+          ]
+        },
+        {
+          "direction": 30,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -56.83722781451839,
+              "predictedGap": 0.00001706210788873048
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -359.00012968023356,
+              "predictedGap": 0.00007385130382326147
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1880.667715613204,
+              "predictedGap": 0.00030458459448092444
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.04423609181622925
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.04310055133453189
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.0331966941456481
+            }
+          ]
+        },
+        {
+          "direction": 31,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.020157728856701015
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.055890204553152634
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.000003671158529172658,
+              "predictedGap": -0.017111074097518598
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.064314482413127
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.06756202754984422
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.03575171704233544
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -3527.7801955890573,
+              "predictedGap": 0.0004063989043047479
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -810.6059398221541,
+              "predictedGap": 0.000081556715210709
+            }
+          ]
+        },
+        {
+          "direction": 32,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+              "active": false,
+              "predictedForce": -241.42739362900053,
+              "predictedGap": 0.00007598152951360671
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -47.77781505882884,
+              "predictedGap": 0.000015184372628291188
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -213.1773113545405,
+              "predictedGap": 0.00005064245176476974
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -123.65649540417905,
+              "predictedGap": 0.00007347729881011528
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.014947224244367271
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -1021.2445653980084,
+              "predictedGap": 0.00010426155190146596
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.007887384919475465
+            }
+          ]
+        },
+        {
+          "direction": 33,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -296.65990069782475,
+              "predictedGap": 0.00015390788263497986
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.02065884550801505
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -323.419815815936,
+              "predictedGap": 0.00003762829375666618
+            }
+          ]
+        },
+        {
+          "direction": 34,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.00013471655651745278
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002127080480978015
+            }
+          ]
+        },
+        {
+          "direction": 35,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 36,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 37,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 38,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 39,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 40,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 41,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 42,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 43,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 44,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 45,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 46,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 47,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 48,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 49,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 50,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 51,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 52,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 53,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 54,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 55,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 56,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 57,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 58,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 59,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 60,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 61,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 62,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 63,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 64,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sheath-cycle-detection",
+      "acceptedSteps": 335,
+      "guidewireMm": 123.199999999999,
+      "status": "direction-budget",
+      "message": null,
+      "directions": 64,
+      "evaluations": 25,
+      "force": 3897.8960604245895,
+      "acceptedAlphas": [
+        1,
+        1,
+        1,
+        1,
+        0.25,
+        0.5,
+        0.5,
+        0.125
+      ],
+      "regularization": [
+        {
+          "reason": "linear-system",
+          "shift": 0.01,
+          "direction": 1
+        },
+        {
+          "reason": "sheath-active-set-cycle",
+          "shift": 0.1,
+          "direction": 36
+        },
+        {
+          "reason": "sheath-active-set-cycle",
+          "shift": 1,
+          "direction": 58
+        }
+      ],
+      "sheathPivots": [
+        {
+          "direction": 2,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.003626185976286321
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.011781353127998979
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",13,13]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.3176466287931216
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",14,14]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.1562609095952653
+            }
+          ]
+        },
+        {
+          "direction": 3,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -4.923033064999907,
+              "predictedGap": 8.754262670965828e-7
+            }
+          ]
+        },
+        {
+          "direction": 8,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.005103101754574395
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.01944335654996099
+            }
+          ]
+        },
+        {
+          "direction": 9,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.007718283218735168
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -17.66109939576873,
+              "predictedGap": 0.0003208487261851415
+            }
+          ]
+        },
+        {
+          "direction": 10,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -11.192305853841125,
+              "predictedGap": 0.000007507738765902966
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.006598206923831953
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -91.72462339166536,
+              "predictedGap": 0.0003616860559251386
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.00028591213157369566,
+              "predictedGap": -0.000735775341597201
+            }
+          ]
+        },
+        {
+          "direction": 11,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.0018989618721475619
+            }
+          ]
+        },
+        {
+          "direction": 13,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.008626943026462885
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.0010407226939831264
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -48.60971937352333,
+              "predictedGap": 0.00005080626621335998
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -199.35546612744423,
+              "predictedGap": 0.00013787989303600803
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -343.0405910427415,
+              "predictedGap": 0.0001645487075895844
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.034830113148915307
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -476.23887116545075,
+              "predictedGap": 0.00016528164749611733
+            }
+          ]
+        },
+        {
+          "direction": 14,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -94.94726237493485,
+              "predictedGap": 0.00015094180237295142
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -370.5157636563348,
+              "predictedGap": 0.0014754641036777284
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000005371403785758844,
+              "predictedGap": -0.023354071032524445
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.000028200676844392092,
+              "predictedGap": -0.01835300259563608
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -860.4634501191881,
+              "predictedGap": 0.00027956619363827856
+            }
+          ]
+        },
+        {
+          "direction": 15,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.007919035813706572
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.001115758758800398
+            }
+          ]
+        },
+        {
+          "direction": 17,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -87.29118749409355,
+              "predictedGap": 0.00002337426911300667
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -132.89311665343763,
+              "predictedGap": 0.000037864588746737426
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1103.3305631757326,
+              "predictedGap": 0.00012973211603707797
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.4344700237308,
+              "predictedGap": 0.00006251588283210773
+            }
+          ]
+        },
+        {
+          "direction": 18,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -198.42136474546854,
+              "predictedGap": 0.00006451075048142683
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.011171279154813685
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.012527730302130828
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -2629.749287651152,
+              "predictedGap": 0.00040311453803467084
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.046237510189769966
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.044958656056314036
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.03432159452246446
+            }
+          ]
+        },
+        {
+          "direction": 19,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -14.826025851076807,
+              "predictedGap": 0.000008354488820064851
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -858.8084320611463,
+              "predictedGap": 0.00010182840058284813
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -813.2624893177939,
+              "predictedGap": 0.00008179625000064679
+            }
+          ]
+        },
+        {
+          "direction": 20,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0016107361823920127
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -407.2665869364179,
+              "predictedGap": 0.00008153329131126326
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.0027463261005876405
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.0165799395372671
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -1135.3786325042247,
+              "predictedGap": 0.00011591379991783557
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.007962350418509675
+            }
+          ]
+        },
+        {
+          "direction": 21,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -138.8795219344833,
+              "predictedGap": 0.0000340669306819418
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.0019480499676844654
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1113.739937091453,
+              "predictedGap": 0.00013091998482613054
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.3456969565121,
+              "predictedGap": 0.00006250787837444095
+            }
+          ]
+        },
+        {
+          "direction": 22,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0012327470529261704
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -408.4372333846116,
+              "predictedGap": 0.00008171960892969449
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1887.1673500285287,
+              "predictedGap": 0.00030543951954649005
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.04423302799083928
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.04309767838798188
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.03319498198050708
+            }
+          ]
+        },
+        {
+          "direction": 23,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -605.0821894967291,
+              "predictedGap": 0.00007287435522303296
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -813.5296709266106,
+              "predictedGap": 0.00008182034113491635
+            }
+          ]
+        },
+        {
+          "direction": 24,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.000003671158529172658,
+              "predictedGap": -0.00021417672632469435
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -1224.113197544618,
+              "predictedGap": 0.00025900220999012765
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.025292243360103675
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.02876767835826191
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.033283370647245514
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -2286.2289579203584,
+              "predictedGap": 0.00023340714578195566
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.008721509234164166
+            }
+          ]
+        },
+        {
+          "direction": 25,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0017102926136308774
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -199.24191057676092,
+              "predictedGap": 0.00004842452278252824
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1103.1871578592884,
+              "predictedGap": 0.00012971575129681716
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.4398102452842,
+              "predictedGap": 0.00006251636434726859
+            }
+          ]
+        },
+        {
+          "direction": 26,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -306.06059671337687,
+              "predictedGap": 0.00006871838188137738
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.005734901375353393
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -2197.085315357906,
+              "predictedGap": 0.00034620437182695716
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.045166699734100826
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.04396445517615366
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.03371950812350341
+            }
+          ]
+        },
+        {
+          "direction": 27,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0008176409278836888
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -861.6806145653915,
+              "predictedGap": 0.00010215616054045761
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -813.2555629202776,
+              "predictedGap": 0.00008179562546376429
+            }
+          ]
+        },
+        {
+          "direction": 28,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -100.11564521013531,
+              "predictedGap": 0.000026032381410261282
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -340.564985735344,
+              "predictedGap": 0.00007091720521355989
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.002561537642127453
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.01647366614084522
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -1127.9361981265424,
+              "predictedGap": 0.00011515398215775031
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.00795742402453151
+            }
+          ]
+        },
+        {
+          "direction": 29,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -45.8852635394372,
+              "predictedGap": 0.00001774041405172653
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.0060287182178018804
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.00566478412948315
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -1132.9572557671013,
+              "predictedGap": 0.0001331129748416279
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -599.1711692924059,
+              "predictedGap": 0.00006249214162744386
+            }
+          ]
+        },
+        {
+          "direction": 30,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -56.83722781451839,
+              "predictedGap": 0.00001706210788873048
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -359.00012968023356,
+              "predictedGap": 0.00007385130382326147
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1880.667715613204,
+              "predictedGap": 0.00030458459448092444
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.04423609181622925
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.04310055133453189
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.0331966941456481
+            }
+          ]
+        },
+        {
+          "direction": 31,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.020157728856701015
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.055890204553152634
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.000003671158529172658,
+              "predictedGap": -0.017111074097518598
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.000005281512443389147,
+              "predictedGap": -0.064314482413127
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000016713598043338607,
+              "predictedGap": -0.06756202754984422
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.00005721221685917044,
+              "predictedGap": -0.03575171704233544
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -3527.7801955890573,
+              "predictedGap": 0.0004063989043047479
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -810.6059398221541,
+              "predictedGap": 0.000081556715210709
+            }
+          ]
+        },
+        {
+          "direction": 32,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+              "active": false,
+              "predictedForce": -241.42739362900053,
+              "predictedGap": 0.00007598152951360671
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -47.77781505882884,
+              "predictedGap": 0.000015184372628291188
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -213.1773113545405,
+              "predictedGap": 0.00005064245176476974
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -123.65649540417905,
+              "predictedGap": 0.00007347729881011528
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.000003825221419617719,
+              "predictedGap": -0.014947224244367271
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -1021.2445653980084,
+              "predictedGap": 0.00010426155190146596
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.007887384919475465
+            }
+          ]
+        },
+        {
+          "direction": 33,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -296.65990069782475,
+              "predictedGap": 0.00015390788263497986
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.02065884550801505
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -323.419815815936,
+              "predictedGap": 0.00003762829375666618
+            }
+          ]
+        },
+        {
+          "direction": 34,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.00013471655651745278
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002127080480978015
+            }
+          ]
+        },
+        {
+          "direction": 35,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -145.09814610854454,
+              "predictedGap": 0.000021549450219665632
+            }
+          ]
+        },
+        {
+          "direction": 36,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.000008466292527486985,
+              "predictedGap": -0.002120682970678976
+            }
+          ]
+        },
+        {
+          "direction": 37,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -44.86663206382997,
+              "predictedGap": 0.00023276918537524474
+            }
+          ]
+        },
+        {
+          "direction": 39,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.13168419729513023
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -5460.54234686744,
+              "predictedGap": 0.00852199428662083
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1778.8122685530316,
+              "predictedGap": 0.0023908514139817094
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6801.709839685087,
+              "predictedGap": 0.006429566898263447
+            }
+          ]
+        },
+        {
+          "direction": 40,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -2573.4226319105815,
+              "predictedGap": 0.02358321140804941
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -2678.0351545527105,
+              "predictedGap": 0.005758642111840108
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000081163467562817,
+              "predictedGap": -0.16556018746363393
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.0002604639459491409,
+              "predictedGap": -0.1195332423598615
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.039491686937712406
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.08933715500640582
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": false,
+              "predictedForce": -5523.346122916242,
+              "predictedGap": 0.01725502280008749
+            }
+          ]
+        },
+        {
+          "direction": 41,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.15827865724616783
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -565.6370917515497,
+              "predictedGap": 0.0009555175714773285
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1334.9302694793462,
+              "predictedGap": 0.0018592379737401438
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6254.89861681829,
+              "predictedGap": 0.0059564665653216164
+            }
+          ]
+        },
+        {
+          "direction": 42,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.0006641727180303897
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -4587.324550885108,
+              "predictedGap": 0.0420388953370414
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -12487.166080947749,
+              "predictedGap": 0.07100879796403396
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -27759.75645079113,
+              "predictedGap": 0.03937779392044383
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -4589.246079401555,
+              "predictedGap": 0.0041850801839588905
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.0839995401197406
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": true,
+              "predictedForce": 0.012944151731062448,
+              "predictedGap": -0.018733578479088478
+            }
+          ]
+        },
+        {
+          "direction": 43,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -1376.215532192281,
+              "predictedGap": 0.005569173328509869
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+              "active": false,
+              "predictedForce": -276.7914996500221,
+              "predictedGap": 0.004911511443769161
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.256126565440064
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.026509507915761787,
+              "predictedGap": -0.011333263282109273
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6235.848818740981,
+              "predictedGap": 0.005939984705703644
+            }
+          ]
+        },
+        {
+          "direction": 44,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+              "active": true,
+              "predictedForce": 0.001149998122798479,
+              "predictedGap": -0.6508497396564638
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -9353.061749672754,
+              "predictedGap": 0.08571278958222202
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.009143420047621476,
+              "predictedGap": -0.04542238298111259
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.09819129816955222
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.12287201860627349
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": false,
+              "predictedForce": -8424.053422287165,
+              "predictedGap": 0.019518966719704017
+            }
+          ]
+        },
+        {
+          "direction": 45,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.22390617499876542
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -10244.4229946172,
+              "predictedGap": 0.06301657117812258
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -15596.187413650683,
+              "predictedGap": 0.02612991930718231
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -5811.270778962844,
+              "predictedGap": 0.005572640358004102
+            }
+          ]
+        },
+        {
+          "direction": 46,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.009143420047621476,
+              "predictedGap": -0.14244402461982758
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -17081.595928304683,
+              "predictedGap": 0.015577253298924967
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.10917681798018546
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": true,
+              "predictedForce": 0.012944151731062448,
+              "predictedGap": -0.03856592871733519
+            }
+          ]
+        },
+        {
+          "direction": 47,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -4405.989214777377,
+              "predictedGap": 0.04037711249805014
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.026509507915761787,
+              "predictedGap": -0.0008549889084393508
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -9276.968930283389,
+              "predictedGap": 0.01924738229310076
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6796.927918669119,
+              "predictedGap": 0.006425429586646367
+            }
+          ]
+        },
+        {
+          "direction": 48,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.1569207081355551
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.009143420047621476,
+              "predictedGap": -0.0212691138141516
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.07274703176740921
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.10797527890425887
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": false,
+              "predictedForce": -7156.89470669884,
+              "predictedGap": 0.018529974734898105
+            }
+          ]
+        },
+        {
+          "direction": 49,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -4543.385718756805,
+              "predictedGap": 0.041636233623315075
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": false,
+              "predictedForce": -11473.780871476227,
+              "predictedGap": 0.06739750406909405
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -25664.55508099786,
+              "predictedGap": 0.03709581854366076
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -5694.903636689852,
+              "predictedGap": 0.0054719596633682754
+            }
+          ]
+        },
+        {
+          "direction": 50,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.266279858705607
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.009143420047621476,
+              "predictedGap": -0.7670493355965292
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -68035.54163773796,
+              "predictedGap": 0.062043785011005326
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.1847003647834733
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": true,
+              "predictedForce": 0.012944151731062448,
+              "predictedGap": -0.09805573110723406
+            }
+          ]
+        },
+        {
+          "direction": 51,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -1286.0120083735583,
+              "predictedGap": 0.005204143980099149
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+              "active": false,
+              "predictedForce": -1.8226173177154124,
+              "predictedGap": 0.0011747824697172816
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.23573992329508256
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": false,
+              "predictedForce": -469.2559875698844,
+              "predictedGap": 0.009654517210624894
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6788.757488028087,
+              "predictedGap": 0.006418360541069104
+            }
+          ]
+        },
+        {
+          "direction": 52,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.5306253086159778
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.5552627988053267
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -91403.40261721489,
+              "predictedGap": 0.8376337957891259
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",5,5]",
+              "active": true,
+              "predictedForce": 0.026509507915761787,
+              "predictedGap": -4.032370344705877
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.0002604639459491409,
+              "predictedGap": -0.4609601105682257
+            }
+          ]
+        },
+        {
+          "direction": 53,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",1,1]",
+              "active": false,
+              "predictedForce": -766.2748052001557,
+              "predictedGap": 0.0021842578145765887
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -1104.9305726601024,
+              "predictedGap": 0.004471356216501368
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",3,3]",
+              "active": true,
+              "predictedForce": 0.001149998122798479,
+              "predictedGap": -0.02026779977955053
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.1938102793012684
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000081163467562817,
+              "predictedGap": -0.04971739824268621
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -16958.07342368167,
+              "predictedGap": 0.02057023075317345
+            }
+          ]
+        },
+        {
+          "direction": 54,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -2725.0250409322985,
+              "predictedGap": 0.024972517469787466
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",9,9]",
+              "active": true,
+              "predictedForce": 0.009143420047621476,
+              "predictedGap": -0.04127027579098824
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.09470846084691947
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.12221809032016932
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": false,
+              "predictedForce": -8527.724728885776,
+              "predictedGap": 0.019599880097025693
+            }
+          ]
+        },
+        {
+          "direction": 55,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.1581350678898386
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -1399.9026120867513,
+              "predictedGap": 0.002245113652477265
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.0002604639459491409,
+              "predictedGap": -0.013768655924483758
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6340.211109463352,
+              "predictedGap": 0.006030278818959872
+            }
+          ]
+        },
+        {
+          "direction": 56,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -2726.6004312495934,
+              "predictedGap": 0.024986954570964098
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000081163467562817,
+              "predictedGap": -0.020301790718588217
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -3142.2349514365987,
+              "predictedGap": 0.004023748950857053
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -4804.666109960823,
+              "predictedGap": 0.004381528595205998
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.09274274250709749
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": true,
+              "predictedForce": 0.012944151731062448,
+              "predictedGap": -0.02551583331412198
+            }
+          ]
+        },
+        {
+          "direction": 57,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.15781472247620604
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -1421.090579052514,
+              "predictedGap": 0.0022778657182133764
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.0002604639459491409,
+              "predictedGap": -0.014836122911793384
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -6898.536794498417,
+              "predictedGap": 0.006513341449048457
+            }
+          ]
+        },
+        {
+          "direction": 58,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",4,4]",
+              "active": false,
+              "predictedForce": -2733.100600016265,
+              "predictedGap": 0.025046523043048923
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.000081163467562817,
+              "predictedGap": -0.02314282513808947
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -3079.2701267484463,
+              "predictedGap": 0.003948339388999383
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.03977071452897588
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": true,
+              "predictedForce": 0.0005447362420909485,
+              "predictedGap": -0.0872087590770058
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": false,
+              "predictedForce": -5160.676818769774,
+              "predictedGap": 0.016971966675764977
+            }
+          ]
+        },
+        {
+          "direction": 59,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.00027266371986200966,
+              "predictedGap": -0.08777162885785447
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": true,
+              "predictedForce": 0.002604611385265798,
+              "predictedGap": -0.000800231756105229
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": false,
+              "predictedForce": -9332.42295065549,
+              "predictedGap": 0.08510534777032934
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",12,12]",
+              "active": true,
+              "predictedForce": 0.12944060808513314,
+              "predictedGap": -0.06634814555439111
+            }
+          ]
+        },
+        {
+          "direction": 60,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.00632895764001922
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -2821.823439876601,
+              "predictedGap": 0.0606636944128638
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",10,10]",
+              "active": true,
+              "predictedForce": 0,
+              "predictedGap": -0.02441182763672088
+            }
+          ]
+        },
+        {
+          "direction": 62,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": false,
+              "predictedForce": -6619.24658723604,
+              "predictedGap": 0.14176235169604873
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",11,11]",
+              "active": false,
+              "predictedForce": -2501.831791694928,
+              "predictedGap": 0.028177911145848347
+            }
+          ]
+        },
+        {
+          "direction": 63,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": false,
+              "predictedForce": -2250.0247674659863,
+              "predictedGap": 0.03752129027483466
+            }
+          ]
+        },
+        {
+          "direction": 64,
+          "changes": [
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",2,2]",
+              "active": false,
+              "predictedForce": -54.989766557638305,
+              "predictedGap": 0.0025808717686984788
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",6,6]",
+              "active": true,
+              "predictedForce": 0.00023834957386270617,
+              "predictedGap": -0.08403532937791897
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",7,7]",
+              "active": true,
+              "predictedForce": 0.0027375646420466637,
+              "predictedGap": -0.1112154434824217
+            },
+            {
+              "site": "[\"world-sheath\",0,\"catheter\",\"catheter\",8,8]",
+              "active": false,
+              "predictedForce": -1316.8213624089078,
+              "predictedGap": 0.02368588461727823
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "skip-shifted-pivots-reverted",
+      "acceptedSteps": 335,
+      "guidewireMm": 123.199999999999,
+      "status": "contact-query-budget",
+      "force": 291766.12596631655,
+      "note": "No convergence improvement; this experiment is not retained."
+    },
+    {
+      "name": "hold-later-duplicate-equation",
+      "acceptedSteps": 337,
+      "guidewireMm": 123.93333333333231,
+      "status": "contact-query-budget",
+      "directions": 63,
+      "evaluations": 239,
+      "force": 312.67625994538594,
+      "acceptedAlphas": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0.5,
+        1,
+        1,
+        1,
+        0.5,
+        1,
+        0.5,
+        1,
+        0.5,
+        1,
+        0.25,
+        1,
+        0.5,
+        1,
+        0.25,
+        1,
+        0.25,
+        1,
+        0.25,
+        1,
+        0.125,
+        1,
+        0.25,
+        1,
+        0.125,
+        1,
+        0.125,
+        1,
+        0.125,
+        1,
+        0.0625,
+        1,
+        0.125,
+        1,
+        0.0625,
+        1,
+        0.0625,
+        1,
+        0.0625,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.125,
+        0.0625,
+        0.015625,
+        0.0078125,
+        0.00390625,
+        0.001953125,
+        0.000244140625
+      ]
+    },
+    {
+      "name": "hold-earlier-duplicate-equation-current",
+      "acceptedSteps": 357,
+      "guidewireMm": 131.26666666666563,
+      "status": "contact-query-budget",
+      "directions": 36,
+      "evaluations": 228,
+      "force": 196.54655821801106,
+      "acceptedAlphas": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0.5,
+        1,
+        1,
+        1,
+        0.5,
+        0.5,
+        1,
+        1,
+        1,
+        0.5,
+        0.5,
+        0.5,
+        0.125,
+        0.03125,
+        0.015625,
+        0.00390625,
+        0.001953125,
+        0.0009765625,
+        0.000244140625,
+        0.0001220703125,
+        0.00006103515625,
+        0.00000762939453125
+      ]
+    }
+  ],
+  "finalSourceSha256": {
+    "src/physics/kirchhoffCompositeJointTimeStep.js": "96b8884f1b03de6be150c22d19ac9d1fbc2485346c6fe940b5a65a6162cb266e",
+    "src/physics/kirchhoffCompositeJointWallRows.js": "a50446cb8b488b7ba4b0a4ccc6211552dc12b0b2837e57d6d5eaf10211cf86ea",
+    "tests/kirchhoffCompositeCapturedAnatomyFeed.test.js": "d289b008f4981140041c75f7d90337128ed186c86b752892a59f2bd1c2b2b7df",
+    "tests/kirchhoffCompositeJointWallRows.test.js": "27dab5a5230ce2585419c1276d0acea6b281859e03b6ea0ad86e4cfe035daa0c",
+    "tests/kirchhoffCompositeJointWallFrictionTimeStep.test.js": "95273257bb25ef3d8273b1b61b0269d99ccbdd375368ed1acd3070c5ce2cd54b",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "afca24c1b4b5833b89500a664be016d8167a8fca44efa99e86213031f3f5d64b",
+    "tests/kirchhoffCompositeRelativeDirection.test.js": "f26fe2518f7a2d19134d7343588430e1fcecbd9c059bcb18d75f663e7ba61487"
+  }
+}

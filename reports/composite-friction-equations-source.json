@@ -1,0 +1,25 @@
+{
+  "scope": "Constitutive friction equations only; no solver/World",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeFriction.js",
+      "status": "modified",
+      "before": "664b5cc3c7f97c20ee8dedd0853eb7f414c0405adeeaa420a0bcf966c380f1f0",
+      "after": "9900193b587abed02443e21cdbd4d46cd34774bfc2c81197727702583f0fc4b2"
+    },
+    {
+      "path": "tests/kirchhoffCompositeFriction.test.js",
+      "status": "modified",
+      "before": "a00a003b71edba00561b2a3551667dc437a875bc49cb4f1b6ae3971d875f14d6",
+      "after": "7788b84972e016f06fff8ceaa0d89c0c4e92578b3069377b37b82a68d11323b0"
+    }
+  ],
+  "tests": 27,
+  "passed": 27,
+  "newTests": 20,
+  "existingTests": 7,
+  "failed": 0,
+  "unchangedExistingImplementation": true,
+  "syntax": "PASS",
+  "patchApplyCheck": "PASS"
+}

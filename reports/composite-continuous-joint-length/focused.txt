@@ -1,0 +1,35 @@
+✔ continuous arclength matches an analytic parabola and bounds tangent speed between all quadrature samples (11.354791ms)
+✔ continuous length gradient and Hessian match independent finite differences, with zero resultant and moment (18.9915ms)
+✔ a hidden interior tangent collapse rejects even when endpoints and sampled quadrature sites have nonzero speed (1.314958ms)
+✔ failed or incomplete quadrature invalidates its borrowed response; gradient mode cannot expose a previous tangent (4.207792ms)
+✔ signed continuous constraints pull back all common and relative reactions, including both physical endpoints and neighboring shape nodes (35.23375ms)
+✔ unloaded full overlap preserves different physical axes, rest metrics and owned histories (13.29ms)
+✔ material measure, previous geometry, full overlap modes and explicit physical inputs reject inconsistencies (2.277208ms)
+✔ independent free rigid material velocities retain momentum with no artificial catheter drag (6.977834ms)
+✔ wire endpoint feed and rotation with every catheter position fixed remain independent (4.270667ms)
+✔ through-chart feed is counted once in accepted material velocity on each own physical tangent (1.566375ms)
+✔ all physical positions prescribed remove only dependent edge duals and retain both original force balances (3.186042ms)
+✔ nonlinear bending solves both metrics, updates each time frame and conserves per-material momentum with separate supports (5.280208ms)
+✔ rejected nonlinear attempt owns no commits and identical retry is deterministic; accepted-only time advances once (8.080792ms)
+✔ lazy gradient trials and full fresh tangent policy agree on nonlinear physical response (4.52275ms)
+✔ independent material frame winding stays continuous across two commits and a late rejected commit owns nothing (3.118292ms)
+✔ complete rotated relative coordinates produce the same nonlinear physical motion and individual reactions (4.246125ms)
+✔ catheter tip inside a longer wire retains all overlap endpoint modes and separate exposed material history (1.826542ms)
+✔ GN and exact backends use the same original force gates; a rejected deformed trial cannot alter retry history (18.700959ms)
+✔ reused timestep structures preserve exact cold states, nonzero reaction history and changed profiles/loads/maps (18.250833ms)
+✔ bounded row-pattern LRU refreshes targets/fixed masks and preserves independent physical BC reactions (13.932083ms)
+✔ workspace rejects structural/reentrant inputs and resets after early errors or rejected deformed/late-commit trials (8.342417ms)
+✔ independent physical material rest lengths expose the axial obstruction of transverse-only motion (1.1345ms)
+✔ signed reactions and the full stress tangent match independent physical constraint-work finite differences (2.395375ms)
+✔ length Jacobians differentiate actual tool geometry and keep each material metric independent (0.602167ms)
+✔ each edge reaction has zero resultant and moment, and mapped relative forces are counted once (0.492625ms)
+✔ frozen pullback owns bases and indices; missing material history or invalid topology is explicit (0.219792ms)
+✔ gradient-only trials retain exact length reactions but never supply stale stress tangents to a direction (0.33025ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 478.484833

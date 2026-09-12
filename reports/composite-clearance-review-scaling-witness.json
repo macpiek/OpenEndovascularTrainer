@@ -1,0 +1,82 @@
+[
+  {
+    "factor": 1,
+    "converged": true,
+    "responseNormalized": [
+      0,
+      0,
+      0.0008100000000000002
+    ],
+    "hessianNormalized": 0,
+    "offset": [
+      -0.04050000000000001,
+      0
+    ],
+    "normalForceNormalized": 45.95,
+    "residualNormalized": 0
+  },
+  {
+    "factor": 1e+150,
+    "converged": true,
+    "responseNormalized": [
+      0,
+      0,
+      0.0008100000000000001
+    ],
+    "hessianNormalized": 0,
+    "offset": [
+      -0.0405,
+      0
+    ],
+    "normalForceNormalized": 45.949999999999996,
+    "residualNormalized": 0
+  },
+  {
+    "factor": 1e+160,
+    "converged": true,
+    "responseNormalized": [
+      0.0008100000000000001,
+      0,
+      0.0008100000000000001
+    ],
+    "hessianNormalized": -0.00081,
+    "offset": [
+      -0.0405,
+      0
+    ],
+    "normalForceNormalized": 45.949999999999996,
+    "residualNormalized": 0
+  },
+  {
+    "factor": 1e+170,
+    "converged": true,
+    "responseNormalized": [
+      0.00081,
+      0,
+      0.00081
+    ],
+    "hessianNormalized": -0.00081,
+    "offset": [
+      -0.0405,
+      0
+    ],
+    "normalForceNormalized": 45.95,
+    "residualNormalized": 0
+  },
+  {
+    "factor": 1e+200,
+    "converged": true,
+    "responseNormalized": [
+      0.0008100000000000002,
+      0,
+      0.0008100000000000002
+    ],
+    "hessianNormalized": -0.0008100000000000002,
+    "offset": [
+      -0.04050000000000001,
+      0
+    ],
+    "normalForceNormalized": 45.95,
+    "residualNormalized": 5.438853046443695e-15
+  }
+]

@@ -1,0 +1,32 @@
+import fs from 'node:fs';import readline from 'node:readline';import {createHash} from 'node:crypto';
+import {coulombPredictionContract,createAcceptedCoulombHistory,predictCoulombIncrement} from '/Users/macpiek/.codex/worktrees/f8f6/OpenEndovascularTrainer/src/physics/kirchhoffCoulombPrediction.js';
+import {solveCoulombWithPrediction} from '/Users/macpiek/.codex/worktrees/f8f6/OpenEndovascularTrainer/src/physics/kirchhoffCoulombNewtonSolver.js';
+import {solveActiveCondensedCoupledQP} from '/Users/macpiek/.codex/worktrees/f8f6/OpenEndovascularTrainer/src/physics/kirchhoffActiveCondensedSolver.js';
+import {measureCoupledLoadKKT} from '/Users/macpiek/.codex/worktrees/f8f6/OpenEndovascularTrainer/src/physics/kirchhoffCoupledLoadSolver.js';
+const path='/tmp/oet-coupled-sequence-200.jsonl',rev=(_,v)=>v==='Infinity'?Infinity:v==='-Infinity'?-Infinity:v;
+const trials=new Map(),outcomes=new Map();for await(const line of readline.createInterface({input:fs.createReadStream(path)})){const e=JSON.parse(line,rev);if(e.type==='trial')trials.set(`${e.solveId}:${e.trial}`,e);else if(e.type==='outcome')outcomes.set(e.solveId,e);}
+function kkt(p,x,lo,hi,residual){const groups=p.groups.map(g=>({...g,radii:g.normalRow==null?g.radii:g.mu.map(mu=>mu*Math.max(0,g.normalLambda+x[g.normalRow]))}));const k=measureCoupledLoadKKT(residual,x,lo,hi,groups);return {maximumResidual:k.maximumResidual,frictionResidual:k.groupResidual,coneViolation:k.coneViolation,bounds:x.every((v,i)=>Number.isFinite(v)&&v>=lo[i]&&v<=hi[i])};}
+function reconstruction(p,x,lo,hi){const residual=Float64Array.from(p.rhs,(v,i)=>v-p.rows[i].alpha*x[i]);const corrections=[];for(let side=0;side<p.columns.length;side++){const q=new Float64Array(p.columns[side].length);for(let dof=0;dof<q.length;dof++){const col=p.columns[side][dof];let response=0;for(let j=0;j<col.length;j+=2)response+=col[j+1]*x[col[j]];q[dof]=p.weights[side][dof]*response;for(let j=0;j<col.length;j+=2)residual[col[j]]-=col[j+1]*q[dof];}corrections.push(q);}return {kkt:kkt(p,x,lo,hi,residual),residual,corrections};}
+function original(p,x,lo,hi){const residual=Float64Array.from(p.rhs);for(let i=0;i<p.count;i++)for(let j=Math.max(0,i-p.band+1);j<=i;j++){const a=p.matrix[i*p.band+i-j];residual[i]-=a*x[j];if(i!==j)residual[j]-=a*x[i];}return kkt(p,x,lo,hi,residual);}
+const hash=x=>createHash('sha256').update(new Uint8Array(x.buffer,x.byteOffset,x.byteLength)).digest('hex');
+const workspaces=[{},{ }].map(()=>({workspace:{},loadWorkspace:{},frictionWorkspace:{}}));let history;const report={scope:'One alternating-order A/B pass on 24 DIFFERENT successive frozen systems; original accepted trial histories, exact input hints/row bounds, old residual law only. Candidate results are NEVER inserted into mechanical history.',systems:[]};
+for await(const line of readline.createInterface({input:fs.createReadStream(path)})){
+ const p=JSON.parse(line,rev);if(p.type!=='system')continue;
+ const matrix=Float64Array.from(p.matrix),rhs=Float64Array.from(p.rhs),lo=Float64Array.from(p.rows,r=>r.lower),hi=Float64Array.from(p.rows,r=>r.upper);
+ const options=workspaces.map(w=>({...p.options,...w,initialFree:Uint8Array.from(p.initialFree)}));
+ const contract=coulombPredictionContract(p,'oet-coupled-sequence-200');const predictStart=performance.now();const prediction=predictCoulombIncrement(p,history,contract);const predictionMs=performance.now()-predictStart;
+ const variants=[];
+ for(const index of p.solveId%2?[0,1]:[1,0]){
+  let certified,certificateMs=0;
+  const certify=r=>{const t=performance.now();certified=reconstruction(p,r.increment,lo,hi);certificateMs+=performance.now()-t;return certified.kkt.bounds&&certified.kkt.maximumResidual<=p.options.tolerance&&certified.kkt.coneViolation<=1e-9;};
+  const fallback=()=>{const r=solveActiveCondensedCoupledQP(matrix,rhs,lo,hi,p.count,p.band,p.groups,options[index]);if(!certify(r))throw Error('fallback Jdx failed '+p.solveId+' '+JSON.stringify(certified.kkt));return r;};
+  const start=performance.now();const r=index?solveCoulombWithPrediction(matrix,rhs,lo,hi,p.count,p.band,p.groups,{...options[index],prediction,certifyPrediction:certify},fallback):fallback();const elapsed=performance.now()-start;
+  const audit=original(p,r.increment,lo,hi);if(!r.diagnostics.converged||!audit.bounds||!(audit.maximumResidual<=p.options.tolerance))throw Error('full KKT failed '+p.solveId+' '+JSON.stringify(r.diagnostics));
+  variants[index]={ms:elapsed+(index?predictionMs:0),solveMs:elapsed,predictionMs:index?predictionMs:0,certificateMs,diagnostics:r.diagnostics,audit,reconstructionKKT:certified.kkt,incrementHash:hash(r.increment),result:r,corrections:certified.corrections};
+ }
+ const maxForceDelta=Math.max(...variants[0].result.increment.map((v,i)=>Math.abs(v-variants[1].result.increment[i])));let correctionDelta=0;for(let side=0;side<2;side++)for(let j=0;j<variants[0].corrections[side].length;j++)correctionDelta=Math.max(correctionDelta,Math.abs(variants[0].corrections[side][j]-variants[1].corrections[side][j]));
+ const row={solveId:p.solveId,step:p.state.executedSteps,pass:p.outerPass,count:p.count,topLevelPostSolveBoundChanges:p.rows.filter((r,i)=>r.lower!==p.lower[i]||r.upper!==p.upper[i]).length,mapping:prediction.diagnostics,maxForceDelta,maximumPrimalCorrectionDifference:correctionDelta,variants:variants.map(({result,corrections,...v})=>v)};
+ report.systems.push(row);console.log(JSON.stringify({id:row.solveId,ms:variants.map(v=>v.ms),factors:variants.map(v=>v.diagnostics.factorizations),prediction:variants[1].diagnostics.prediction,KKT:variants.map(v=>[v.audit.maximumResidual,v.reconstructionKKT.maximumResidual]),mapped:prediction.diagnostics.mappedRows}));
+ const outcome=outcomes.get(p.solveId),trial=trials.get(`${p.solveId}:${outcome.trial}`);if(outcome.accepted)history=createAcceptedCoulombHistory(p,trial,outcome,contract);
+}
+report.total=report.systems.reduce((s,p)=>{for(let i=0;i<2;i++){s.ms[i]+=p.variants[i].ms;s.factors[i]+=p.variants[i].diagnostics.factorizations;}const q=p.variants[1].diagnostics.prediction;s.predicted+=Number(q.accepted);s.attempts+=Number(q.attempted);s.predictionFactors+=q.factorizations;s.rejectedFactors+=q.accepted?0:q.factorizations;return s;},{ms:[0,0],factors:[0,0],predicted:0,attempts:0,predictionFactors:0,rejectedFactors:0});fs.writeFileSync('/tmp/oet-prediction-ab.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report.total));

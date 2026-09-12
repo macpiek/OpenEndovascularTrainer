@@ -1,0 +1,25 @@
+✔ production joint step accepts proximal catheter feed, independent spin and two original nodal Coulomb laws with free DOFs (86.955792ms)
+ℹ {"first":{"sampleId":"[\"catheter\",0,0.16,\"proximal\"]","key":"[\"catheter\",0,0.16,\"proximal\"]","owner":"catheter","edge":0,"node":0,"trace":"right","role":"proximal","forceIndex":0,"Fn":0.38883995492847406,"traction":[-0.0023327418903361847,0.00003727804854729952],"slip":[0.0025010072473528704,-0.00003996698884859826],"mu":[0.006,0.006],"equationResidual":[-2.703740009657452e-16,3.6644915346519674e-15],"work":-0.00000583569426528502,"minimumWork":-0.000005835694265243887,"workGap":4.113361398456333e-17,"coneViolation":7.048583938740194e-12,"slipResidual":2.001001699948081e-13,"converged":true,"redundant":false,"normalAdmissible":true,"surfaceWitness":"original-geometric-wall-foot","wallWork":0},"second":{"sampleId":"[\"catheter\",0,0.16,\"proximal\"]","key":"[\"catheter\",0,0.16,\"proximal\"]","owner":"catheter","edge":0,"node":0,"trace":"right","role":"proximal","forceIndex":0,"Fn":0.41334168405405247,"traction":[-0.0024797337186291237,0.00003961318786564653],"slip":[0.001999984474357267,-0.00003194930169987648],"mu":[0.006,0.006],"equationResidual":[-3.382710778154774e-19,-7.291395135236578e-18],"work":-0.000004960694551488872,"minimumWork":-0.000004960694551488849,"workGap":2.286988957586611e-20,"coneViolation":4.6629367034256575e-15,"slipResidual":3.013268887880338e-16,"converged":true,"redundant":false,"normalAdmissible":true,"surfaceWitness":"original-geometric-wall-foot","wallWork":0},"evaluations":[8,6],"directions":[3,2]}
+✔ production second-dt late rollback preserves accepted pose, angular/material history and Fn/Ft; reused retry equals cold (127.869542ms)
+ℹ {"coldEvaluations":6,"coldQueries":18,"failures":[{"status":"evaluation-budget","evaluations":5,"queries":15},{"status":"contact-query-budget","evaluations":6,"queries":17}]}
+✔ production proximal entering labels without explicit pose remain unsupported and cannot erase loaded friction history (57.599333ms)
+✔ production axial feed and own prescribed spin remain independent controls at the loaded proximal wall (82.53775ms)
+✔ production positive-feed solutions preserve original roots across penalties and cold/reused workspaces (250.538833ms)
+✔ production zero-feed noninteger metric preserves exact proximal/distal label traces across two dt (62.444417ms)
+✔ actual World commits proximal catheter feed and retains its prepared path through a second-dt rejection (100.004875ms)
+✔ source-derived actual World wall retains the explicit proximal feed path, radii and loaded history across two dt and retry (129.59775ms)
+✔ actual 5/4 body grids expose every original collision interval with its parent radius, including both tools on one chart edge (20.879042ms)
+✔ World source proof cannot be forged, reused after range/radius/law changes, or derived from incomplete own bindings (1.127958ms)
+✔ actual World field runs two complete source-derived wall steps for both tools and retries without consuming dt twice (100.936ms)
+✔ an entirely shielded actual World source proves zero exposure; unequal static/kinetic friction cannot silently use the kinetic alias (0.924875ms)
+✔ the original Aorta field and actual Float32 body radii enter the World bridge and certify their original capsule gap (88.333125ms)
+ℹ {"step":1,"initialGap":-0.01999905239790678,"finalGap":-3.941291737419306e-15,"source":"sparse-sdf","directions":7,"evaluations":17}
+ℹ {"step":2,"initialGap":-0.01999905239790678,"finalGap":-1.9524493133360465e-11,"source":"sparse-sdf","directions":6,"evaluations":21}
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1403.01625

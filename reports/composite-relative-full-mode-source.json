@@ -1,0 +1,49 @@
+{
+  "createdAt": "2026-09-07T16:08:12.286016+00:00",
+  "sourceStable": true,
+  "origin": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "preservedPriorManifests": {
+    "/tmp/oet-composite-relative-cluster-final/manifest.json": "336d8a1b2f2f0b0458da59429282dcdf4d5593d8e754a4ebd5dc568c039d0697",
+    "/tmp/oet-composite-relative-direction-reaction-sign-final/manifest.json": "9dbf3495ef312de0fc647fc6de6b82acb9577afb80d37b5b0d8a06f46bac89f8",
+    "/tmp/oet-composite-relative-length-diagnosis-final/manifest.json": "9b6d25260983cb699b99eb767b05e50a88588861a8cabe1d61608191d5d4ec86"
+  },
+  "owned": {
+    "src/physics/kirchhoffCompositeRelativeCluster.js": "09745ef099ae04e56bf3c44b0fcd7fb6358b02ccc77e53f2a362bbd7de55ce9b",
+    "src/physics/kirchhoffCompositeRelativeDirection.js": "59f3ba173a123e0f5b1a9a37092c9f3d497711f6cd79bb3620c6de558291d78e",
+    "tests/kirchhoffCompositeRelativeCluster.test.js": "074add74ec55211bf6fab144487b7addc601bb9b7a4d960b7ec57659be79898d",
+    "tests/kirchhoffCompositeRelativeDirection.test.js": "cc9e7adbf23dd3c0e882769d4235dadcf84d26ba3e8a4eba649e96d43736f637",
+    "reports/composite-relative-full-mode.md": "edf62e89a76091c669b61a8dfd87c1265c48d06f70d7dc6f66ddbaa55a5c9886",
+    "reports/composite-relative-full-mode-witness.json": "c99249a1db2c528c691ba568fed0455a25712282eb7d315f3280771a93febf2e"
+  },
+  "dependencyHashes": {
+    "src/physics/kirchhoffCompositeChain.js": "b6e28fce00e39757fdf484504790afb2301df7ccb92fc9797c7cafdd158fb670",
+    "src/physics/kirchhoffCompositeClearance.js": "65a2330bd1ad5d82bf5f7f9a9db6fb5c88a7d3e2f11085aded4cd3055f9fc5bd",
+    "src/physics/kirchhoffCompositeElement.js": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+    "src/physics/kirchhoffCompositeElementExact.js": "f8cd8f81558c196caac552f4386f0f1b0a66b063fef355737c0f23025453f687",
+    "src/physics/kirchhoffCompositeElementExactKernelBytes.js": "21129ed17c5ac32756a6b53737cbfdda1ec6cfe5560033b93b9a2cd4ff9f6fc8",
+    "src/physics/kirchhoffCompositeElementFast.js": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+    "src/physics/kirchhoffCompositeKinematics.js": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+    "src/physics/kirchhoffCompositeMixedDirection.js": "5540faf6ddab4fc5770b5e637e39d577bf323d707c399d79ecad7b76a175e886",
+    "src/physics/kirchhoffCompositeRelativePatch.js": "1209803e98f92115d52c3dfb67a468ad47ef0324c3772c108e44a2486321172f",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "tests/kirchhoffCompositeMixedDirection.test.js": "fad606dbf89f31cd35a7bd0c9c6d3b6dafb9cdf750300dae2a8e50dd80624681",
+    "tests/kirchhoffCompositeRelativePatch.test.js": "2f34b8842cd9086e6a05c1969cdb354dfb44c135f0d5d4b8fc9533ab873ce7b7"
+  },
+  "artifactHashes": {
+    "tests.txt": "4ca1f8a6497236e2543604f4ee941ebf04efa884763edfddc41b1a941e044677",
+    "probe.mjs": "81f392c3f4dc59add59108bcf73032929ad3f1c1f95e376e2722019e6f6c8d03",
+    "package.json": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+  },
+  "validation": {
+    "testCommand": "node --test tests/kirchhoffCompositeRelativeCluster.test.js tests/kirchhoffCompositeRelativeDirection.test.js tests/kirchhoffCompositeRelativePatch.test.js tests/kirchhoffCompositeMixedDirection.test.js",
+    "testsPassed": 42,
+    "clusterTests": 13,
+    "directionTests": 14,
+    "newTests": 7,
+    "syntaxPassed": true
+  },
+  "scope": "2D/3D structure and zero-offset linearization; full rank only at represented overlap nodes; no nonlinear rho, history, endpoint extension or dt certificate"
+}

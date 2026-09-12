@@ -1,0 +1,107 @@
+[
+  {
+    "name": "gap-0-first",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": true,
+    "newCertified": true
+  },
+  {
+    "name": "gap-0-second",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": true,
+    "newCertified": true
+  },
+  {
+    "name": "gap-0.0005-first",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": true,
+    "newCertified": true
+  },
+  {
+    "name": "gap-0.0005-second",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": true,
+    "newCertified": true
+  },
+  {
+    "name": "gap-0.01-first",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": false,
+    "newCertified": true
+  },
+  {
+    "name": "gap-0.01-second",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": true,
+    "newCertified": true
+  },
+  {
+    "name": "compliant-first",
+    "exactlyEqualPhysicalFields": [
+      "startGaps",
+      "rawGaps",
+      "velocity",
+      "omega",
+      "normalImpulse",
+      "momentumLoss",
+      "predictorEnergy",
+      "finalEnergy"
+    ],
+    "baselineCertified": false,
+    "newCertified": true
+  }
+]

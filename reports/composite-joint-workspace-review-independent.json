@@ -1,0 +1,307 @@
+{
+  "status": "PASS",
+  "scope": "independent mixed/full fixed-chart sequence; all four arms exact physical equality; no contacts",
+  "accepted": 288,
+  "rejects": 96,
+  "preparationErrors": 16,
+  "records": [
+    {
+      "mixed": false,
+      "k": 0,
+      "initialHash": "ebdc883bf381c7a677a86cf7291f7ee7385bcef7d9189c3b6f3065e71b78bfbc",
+      "stateHash": "ae09dda0169910bef72da7ea43265c347116be88ff4e3d3f7f2e59539a16ab45",
+      "continuedHash": "f3e492c9a20f822e02858f068f31bd963eadedb1bb0165bcf85f3bb205d07dc4",
+      "directions": 1,
+      "evaluations": 4,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 1,
+      "initialHash": "e8369ab325d859bd3bb94663636ae29b8617d4235ecb564ec863ea62947e9163",
+      "stateHash": "7c79889f69231ec0e7e1db54abe819202fb690dedadc9f8f5850d991a3798753",
+      "continuedHash": "7ef75a9399d2956872fd3746afcb3e419ccf28295e4897f332af6bfb4b94b25b",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 2,
+      "initialHash": "aa1d9d922f1bc54132160fc57e222842b514acbbd8bc27b2d6eb09e30b6fdbc4",
+      "stateHash": "022a49bc564cbe20a00028aa246dae6f06755fc395ca7ec559931cf46a959cc9",
+      "continuedHash": "cae6ad64c94ca4f638af88b4673980047b31e422f835904eee25f56a1a726542",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 3,
+      "initialHash": "141f991aa2b62f7558d9d0134e669b5fa692319f6678601c9572df346ff3736b",
+      "stateHash": "158c18eb30ff55aad6092b3bdcceb850879d70f07bed21404148c16ef4763a54",
+      "continuedHash": "0f7c505838c229a2d4abd836315bed1bb4d09c91406df8ceacfe181c46835caa",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 4,
+      "initialHash": "93909bb262328390d6d14fca97b7fe94b6d098429713a38f44387aac036d09e6",
+      "stateHash": "89d9f21c8ebea99eff16ab316fe017468fae73119e7bedcbdfde954e14e3bdca",
+      "continuedHash": "5339779569a5fbeb3841b53b255532c550a43c07b3d0cab51bf0981408fa168a",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 5,
+      "initialHash": "24b2bebeda05e9f18edae7110eed5aecd4e9a46bd7fb62e749412c3e35a38b19",
+      "stateHash": "621dc3f0f85c417e2b5e1023aebc572438e20dbfd1020eb94e6fcb9d023f485f",
+      "continuedHash": "f5b41e14eff3ef782fc0436814c4841a6de078d0b8c1303a4003ee8d68335df0",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 6,
+      "initialHash": "76e619c4c7f081dffa577aae30fe3e5658a398d8bdf213159cea1fd44d1c73f5",
+      "stateHash": "5e5dba2fe7fdcfe00ec27f2a2f0cdea736378c843c131bb8a7008589ca4d2c69",
+      "continuedHash": "91669c4c04117938e4c91d8184f43b02230a17ab18590720742e3c9bbae80492",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 7,
+      "initialHash": "aa58a6fd0fb2997ec0d70a5be57dcebf4177d06a22afaa36a1e7b98b67ed36b0",
+      "stateHash": "b30246c4d6870ac36b5e4f1c9610ef36efcc5e8f2d350f7846664bf2356472ee",
+      "continuedHash": "f0781ee4effa6022d176f8104db0efd26701fe9fc4d6db7c8821fc3204659b77",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 8,
+      "initialHash": "61739debc66806a9fc003fc7a4b6dbe15a22200a49762078085ddca27447b617",
+      "stateHash": "6e420ace4cb242225a8ee690a44cea7ca935d0214ede081c1710803796106c43",
+      "continuedHash": "c38c4431816f88e9d5ab4d33c20638e66222f9ef6e6727e4fe6d8956d18d09a7",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 9,
+      "initialHash": "00715df0d3e3607238b51797a6933caafdffd0ce28956088f6f8b6e498e3db6a",
+      "stateHash": "4709c2f57b5feae13b1c80f5ca7bf7306cc67743b55db051c46ad3fc3f64675b",
+      "continuedHash": "aebc56775d80dd1345a48640d0b84c0d6c4158b1a438819b9205cc15ee07b15e",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 10,
+      "initialHash": "2b324f0447671e77b724f6b85cd7a516f52bfd95625e3b93c5881172d571c470",
+      "stateHash": "5178bd806b1f0f7bf7f57121748c526d810b9a08c5b36dfd73a61adfa1da17f0",
+      "continuedHash": "82f01a8e7362ba95cd8196f807f466f2efe5b543d2fec07334e615ee4553a0aa",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "k": 11,
+      "initialHash": "d23a5650328248e916cb06120a7001966fb284347633c505d1519825cc6259c4",
+      "stateHash": "cd99961fac094e15300fa6a27158892e4947ab2552b45ce7b629aa8d95458716",
+      "continuedHash": "d4e63dd60fc7f737c2b0697744331cdef228b90de110eff356449136731fbdb0",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": false,
+      "workspace": {
+        "calls": 52,
+        "lengthBuilds": 1,
+        "directionBuilds": 12,
+        "directionHits": 36,
+        "assembly": {
+          "prepares": 52,
+          "structureBuilds": 1,
+          "scatterPlansBuilt": 22
+        },
+        "rowCacheCapacity": 1,
+        "retainedRowPatterns": 1
+      },
+      "directionWorkspace": {
+        "calls": 52,
+        "lengthBuilds": 1,
+        "directionBuilds": 12,
+        "directionHits": 36,
+        "assembly": {
+          "prepares": 52,
+          "structureBuilds": 1,
+          "scatterPlansBuilt": 22
+        },
+        "rowCacheCapacity": 1,
+        "retainedRowPatterns": 1
+      }
+    },
+    {
+      "mixed": true,
+      "k": 0,
+      "initialHash": "6403664933283b8ac1bc558f1d597439f4aad933288321d309500c9f11eb948d",
+      "stateHash": "12dc9bef6051dfce3c91fc17df97de750ef8641db4694e16803a7abd72b445db",
+      "continuedHash": "e4c7c9807cabb35fa0444c794085289a2a20f4382df71d78a458c34e2df6c7b4",
+      "directions": 1,
+      "evaluations": 4,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 1,
+      "initialHash": "541a09cfd41f6234dc7d2ce981c0d061286a90ca0ebfd47b06e22b0c5fb9acc4",
+      "stateHash": "eb120e4951f5dd8059f524ca6925e9e6c6a44a0af382ae8a2ec78c1c20a66cd9",
+      "continuedHash": "7e34733a9265c22e6fb0bab64583937149aa6b7f09b849e8be17a8275e9f6304",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 2,
+      "initialHash": "872f906cb6ee74deb3c2bacd762e1894920c0956f8cde0c7ebf513f2f35ff35a",
+      "stateHash": "51a1f321c96080a790adfeae27e671fa96bbc3a00b31c82f641f6a13586bf68f",
+      "continuedHash": "3185ac29ffc78ac39f1daeb6864ebf45c262f37c3bbba87ef551cf593d102537",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 3,
+      "initialHash": "0a86bf89f19e949a9bcc8f82f081db76553c012d009275f9be40310d0bc7f12b",
+      "stateHash": "66b92435a9f1b68cb9b8456e27bf519c7d68ac52abbd5a1f10d291b97dc1339e",
+      "continuedHash": "307a8ca07cfc49a58f08d7cf11d6f18e6e5fa9fa006de2415e89c377d9dc9b5f",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 4,
+      "initialHash": "1ceb779dbfc8acbd8bc76ac7136e51a4baa4405b049eba4342459212a4c97e72",
+      "stateHash": "0f4b5ceaa7e8b3c75e27a5b2508de4c7a4189503c96f94529e9c0ea7a4921d12",
+      "continuedHash": "bce6aca43e47085284f4f2819a6b273d2c8c55a50abca895256e94346e29d05e",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 5,
+      "initialHash": "d466b1f8f865d9a9b5c806b2f1deace17963f13519b3c7a7429b40d1d2afdbb4",
+      "stateHash": "4d450778d7b912c1c94d56b304e661e62a1774cb6534b44bac713b38da48850a",
+      "continuedHash": "05c5bc7df3665b22de44de5d75a2b3257803f70a639122dde4352b7a539efdca",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 6,
+      "initialHash": "b0162e1238a71e0d3524da6aa6420652361bad1b9b6391f9cc2041888879078f",
+      "stateHash": "29a27c09a343f8a070bee610fece927daba7a57f56dd1c850d1e49c9ceed84d7",
+      "continuedHash": "0170be96b7117c81c981034f56fb5ae172047bbaa36f5337b103a09152de50fb",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 7,
+      "initialHash": "25e7424986aee397a6a62b9af126e8ce055abb1d10cc9c5bcab2e917178fa1d2",
+      "stateHash": "a24c78752918de9375c77a153302b3ebf407afa1a52cc13e375b9035ec6ed886",
+      "continuedHash": "56ae046886658c7cc0d7548de36a35b75b0d8ba12386c8ce804a0788f700cd72",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 8,
+      "initialHash": "3c263dff06ad26bc71205d77d687d64bd2c09ab46c111743d1fcbdf82d262a6f",
+      "stateHash": "f5f648c4ff1f6fa264a7832bc048b0a013dc8a0f9651e818405625ede3c9a010",
+      "continuedHash": "bccd5ae1e2f1407b3a44ad5a1aebdab1504a73f7df569485ccb82b6c9f31aa7d",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 9,
+      "initialHash": "269368c95aa79b737f90279281e7cea34e9b8c4826b1c7e992c72bd82c7f502d",
+      "stateHash": "baa3d0cdab24e6e5d7a9dbfe4ad79d6148f0b357efcbd8927547615e73ec83d5",
+      "continuedHash": "76c2959c6b6f2400fdb82e262116ef462b5eb7117efd5e49c29b650081eba803",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 10,
+      "initialHash": "b1272c689c9ce10705045c6c090e6c7dddda24a244a12deca431a444981d0954",
+      "stateHash": "2fbf7649ec448313d437a81c1e3f3bed9dd933919e8cc171a33667a649fd1e69",
+      "continuedHash": "618d443c01929e1f6f8bc664ef71bdb38e2d3156f581aea3162111a3d358d3e2",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "k": 11,
+      "initialHash": "c38664e7fecd85c42135c8537b099e60aaef93ee3835d5fd784e01f7382c9ba5",
+      "stateHash": "ab2bbb239ce2553144624e54c73c7b49471eb11fd91fa52c9e0161147a78fb35",
+      "continuedHash": "0b599d255697330a4379d4f07a5923b63de1896a94c475a3246cba9b05bd2eae",
+      "directions": 2,
+      "evaluations": 6,
+      "rejection": "evaluation-budget"
+    },
+    {
+      "mixed": true,
+      "workspace": {
+        "calls": 52,
+        "lengthBuilds": 1,
+        "directionBuilds": 12,
+        "directionHits": 36,
+        "assembly": {
+          "prepares": 52,
+          "structureBuilds": 1,
+          "scatterPlansBuilt": 18
+        },
+        "rowCacheCapacity": 1,
+        "retainedRowPatterns": 1
+      },
+      "directionWorkspace": {
+        "calls": 52,
+        "lengthBuilds": 1,
+        "directionBuilds": 12,
+        "directionHits": 36,
+        "assembly": {
+          "prepares": 52,
+          "structureBuilds": 1,
+          "scatterPlansBuilt": 18
+        },
+        "rowCacheCapacity": 1,
+        "retainedRowPatterns": 1
+      }
+    }
+  ]
+}

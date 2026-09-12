@@ -1,0 +1,9 @@
+{
+  "src/physics/endovascularPhysicsWorld.js": true,
+  "src/physics/kirchhoffTwoChannelSystem.js": true,
+  "src/physics/kirchhoffCoulombNewtonSolver.js": true,
+  "src/physics/kirchhoffTwoChannelCondensation.js": true,
+  "finalSettledByteIdentical": true,
+  "nonConeSettledOnlyThreeConeChecksRemoved": true,
+  "patchDryRunPassed": true
+}

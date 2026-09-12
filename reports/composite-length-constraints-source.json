@@ -1,0 +1,24 @@
+{
+  "workspace": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer",
+  "hashes": {
+    "src/physics/kirchhoffCompositeLengthConstraints.js": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+    "tests/kirchhoffCompositeLengthConstraints.test.js": "196edeb1f2b6b88cad3f9b638be2a73c9d0f8679e63577a586509020e328388f"
+  },
+  "tests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "parentSourceEdits": false,
+  "status": "frozen",
+  "patch": "reports/composite-length-constraints.patch",
+  "patchSha256": "67b34250489568e0df36d454b2757ecf28ef0dfab8f74272c1a2150312a53f20",
+  "files": [
+    "src/physics/kirchhoffCompositeLengthConstraints.js",
+    "tests/kirchhoffCompositeLengthConstraints.test.js"
+  ],
+  "validationLog": "reports/composite-length-constraints-tests.txt",
+  "integrationEvidence": "reports/composite-length-constraints-integration.json",
+  "report": "reports/composite-length-constraints.md",
+  "applyScope": "Adds exactly two new files; no changes to Chain, World, Element or package.json.",
+  "patchApplyVerified": true
+}

@@ -1,0 +1,59 @@
+{
+  "scope": "Optional pure accepted-history predictor plus one bounded full-band Newton attempt; no runtime integration",
+  "freeze": "/tmp/oet-coulomb-prediction-frozen",
+  "baselineNewtonSha256": "6b5ffe0d4c4ee2394878abeef4f49dbf8131e4882d6c3f092c9d614e5b1c0cd7",
+  "files": {
+    "reports/kirchhoff-coulomb-prediction-reproduce.mjs": "d64e40d5a3908a9fdabc77902329d0ac91bf5e9a4e0faf29058ba25fc98b7572",
+    "scripts/physics/audit-frozen-coupled-system.mjs": "341d8e9e92ae3e59557e783d584a185012420c8a4d323921342e10161fedf429",
+    "src/physics/kirchhoffActiveCondensedSolver.js": "cbc7a80ca45e5be6fb5e5269cf6b07f76713a701c61666944d5624e4e404e813",
+    "src/physics/kirchhoffContinuousFrictionKKT.js": "628d6f72149dc8a0423157f7d819f420913b94f9e3c8758daeba9d270818c20c",
+    "src/physics/kirchhoffCoulombBandLU.js": "96b9bd8b9e122949330b275e6bd4bca0570f31477e4938d5d78a9e8781293588",
+    "src/physics/kirchhoffCoulombNewtonSolver.js": "e4095d28e2ff76493016be7853ecb6664993d11645fc25eca11e6597d74a14a9",
+    "src/physics/kirchhoffCoulombPrediction.js": "f9ed6bf25ee6b1da74455df87b8a8bd0b08555c80b0ef54947b60689b4c4d7c6",
+    "src/physics/kirchhoffCoupledFrictionSolver.js": "6c47d89f24a3efea5f1373d6fa7beca06b1acd2631e8ac5f0cd72f9fe4445b54",
+    "src/physics/kirchhoffCoupledLinearSolver.js": "b4b35a67dca4c17aab10073b34ccd818ce4cbf3931afddf3b4fd81d2b5b4f4f0",
+    "src/physics/kirchhoffCoupledLoadSolver.js": "d1bd39270139179020aa891a68908d66d7e874921bd16bae6fb81bff0baf4b3d",
+    "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+    "src/physics/kirchhoffLinearKernelBytes.js": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+    "tests/fixtures/kirchhoff-active-condensed-1999.json.gz": "2e861dda14197831c75e5f9ed76a267a088a7f28f478f9933aa6cfcab14c18f0",
+    "tests/fixtures/kirchhoff-condensed-load-cycle.json.gz": "696fa34f5f3b53d1b31182fcfff8af59ca7c84ee0d9cf3e62446c499ee09853e",
+    "tests/fixtures/kirchhoff-coulomb-144-bound-recovery.json.gz": "d5b41a8b6dbe20696ee40e70c45cd78739f1809140a92fbeb595d853b0777dc6",
+    "tests/fixtures/kirchhoff-coulomb-hinted-seed.json.gz": "7cd5a1dedcac3516e10d67a6840a7cf6c90a6e3e267424c7a556a9104d38710f",
+    "tests/fixtures/kirchhoff-coulomb-prediction-pairs.json.gz": "6989e6143e154b0c93259a6f6da367e8f0dc177a47a7a5bd5f0447960adfe606",
+    "tests/fixtures/kirchhoff-coulomb-switching-plane.json.gz": "a5a7a08178765c5262a217f8aa80fcc834b2b4aee844bbfe791d99f7f91b4c68",
+    "tests/fixtures/kirchhoff-coupled-full-200.json.gz": "e24edce4033d42adc0b5645fa61995ef8d0521d73ad1676fbc4c2474983c91f8",
+    "tests/fixtures/kirchhoff-normal-load-cycle.json.gz": "a58b28380aee96d7c84edf29f64adc1db9c0d640fb0c8d8c630d82b2874b3f50",
+    "tests/kirchhoffActiveCondensedSolver.test.js": "c48da9a99e25e31aab33e87c20bafb06a87007d512cf657fc2903701841f8d22",
+    "tests/kirchhoffActiveCondensedWorkspace.test.js": "0544644b5c2bcf33ebe6eef1468175d6577864686819cb86506faf37f9e41885",
+    "tests/kirchhoffContinuousFrictionKKT.test.js": "3e20c0ec989a61d9a9679fcb4b2ee53fd8bd7ec04ed5493b922bf5474fb00e2f",
+    "tests/kirchhoffCoulombBandLU.test.js": "5be0f4fdaa2353fa466472cd93844caf8e0f1c8ac688dedbb22baa14dd514a77",
+    "tests/kirchhoffCoulombBoundRecovery.test.js": "e2c6b74e33f2ed8375d96e9a6a4be649cc328e8e2eeefe1628db8ad5659dafb3",
+    "tests/kirchhoffCoulombNewtonSolver.test.js": "a34fbf6f7bafba353099dc9d5f97aee31deee2a6fe3e1dbad987d9ecc8a1251f",
+    "tests/kirchhoffCoulombPrediction.test.js": "a7d2641434e8f5b26d48f8b6226d18cc98d297e79270f983646b93438251e0a7",
+    "tests/kirchhoffCoulombPredictionSequence.test.js": "36768f3566db05b239c0426fe70ecbc3806b050afcd47927f4c188ae75e6cfa3",
+    "tests/kirchhoffCoupledLoadSolver.test.js": "501e7755373c92f3bd588faa17a7e7903d6c15e65f67854c9fe0470ec3b8e354",
+    "tests/kirchhoffFullBandCoulomb.test.js": "32dda7d20ee04aed4ae67b625fa6fa693c9a87e8f1110fb8abdb494ca65b5440"
+  },
+  "patchFiles": [
+    "src/physics/kirchhoffCoulombNewtonSolver.js",
+    "src/physics/kirchhoffCoulombPrediction.js",
+    "tests/kirchhoffCoulombPrediction.test.js",
+    "tests/kirchhoffCoulombPredictionSequence.test.js"
+  ],
+  "separateBinaryFixture": "tests/fixtures/kirchhoff-coulomb-prediction-pairs.json.gz",
+  "patchSha256": "860e3acfe904507791be5998e4669c7e9434297f96ef24477277c8bb16134324",
+  "sequenceJsonlSha256": "ebb9c81b153776be348f44b11600a0f8a2ad1a1c4ab64f008284ed295ce78590",
+  "measuredScriptSha256": "3cb107ffa1f54ada2f04f337ec304810dc9c825478136fe5ae9600c11017098e",
+  "measuredResultSha256": "a6828e6332840c28c32a5f981be53d525f18f05ea5510ebf69eac9ff561fc78f",
+  "validation": {
+    "passed": 75,
+    "failed": 0,
+    "command": "node --test tests/kirchhoffCoulombPrediction.test.js tests/kirchhoffCoulombPredictionSequence.test.js tests/kirchhoffCoulombNewtonSolver.test.js tests/kirchhoffCoulombBandLU.test.js tests/kirchhoffCoulombBoundRecovery.test.js tests/kirchhoffFullBandCoulomb.test.js tests/kirchhoffCoupledLoadSolver.test.js tests/kirchhoffContinuousFrictionKKT.test.js tests/kirchhoffActiveCondensedSolver.test.js tests/kirchhoffActiveCondensedWorkspace.test.js"
+  },
+  "verification": {
+    "rootGitApplyCheck": "PASS; read-only check against /Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+    "existingNewtonAfterRemovingNewExport": "byte-identical to captured root baseline including P3 all-attempt LU diagnostics",
+    "portableReproductionSyntax": "PASS node --check; not re-executed",
+    "freezeFileHashes": "all 30 match"
+  }
+}

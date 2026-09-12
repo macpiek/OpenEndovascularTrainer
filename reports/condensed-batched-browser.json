@@ -1,0 +1,27 @@
+{
+  "mode": "catheter-only",
+  "stopReason": "diagnostic-wall-limit",
+  "wallLimitMs": 20000,
+  "simulationElapsedMs": 11041.666666666755,
+  "steps": 1325,
+  "averageFps": 48.474775804161915,
+  "backlogSeconds": 9.175033333333282,
+  "nonlinearFailedSteps": 91,
+  "finite": true,
+  "physicsMs": {
+    "mean": 10.211396227152843,
+    "p95": 47.29999923706055,
+    "max": 365
+  },
+  "lastStepCostsMs": {
+    "assembly": 5.0999995470047,
+    "solve": 80.2000002861023,
+    "snapshot": 39.69999969005585,
+    "restore": 101.09999966621399,
+    "measure": 127.60000085830688,
+    "schur": 31.50000023841858
+  },
+  "lastStepSnapshots": 48,
+  "lastStepRestores": 289,
+  "interpretation": "Incomplete browser integration probe. Different terminal depth than prior wall-limited probe; not controlled FPS speedup proof. Full mechanics and120Hz/60FPS acceptance remain incomplete."
+}

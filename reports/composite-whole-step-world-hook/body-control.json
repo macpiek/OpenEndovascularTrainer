@@ -1,0 +1,9 @@
+{
+  "scope": "Existing Body/profile mismatch control, with no World class or whole-dt hook at all",
+  "test": "tests/endovascularPhysicsWorld.test.js:630",
+  "expectedInExistingTest": 18,
+  "actual": 60,
+  "inheritRodStateBendLimit": false,
+  "defaultMaxBendAngle": 60,
+  "bodyOrProfileEditedByThisTask": false
+}

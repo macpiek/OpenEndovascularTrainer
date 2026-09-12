@@ -1,0 +1,16 @@
+✔ native stiff rod condensed and dense Coulomb solves recover the same two-channel solution (14.230042ms)
+✔ native hard material/controls + all normal/friction/fold rows match dense Schur (individual) (7.773958ms)
+✔ native hard material/controls + all normal/friction/fold rows match dense Schur (common-relative) (5.403292ms)
+✔ owned Schur, groups and recovery survive native scratch reuse and another condensation (2.138458ms)
+✔ unsupported equality pair/compliance return explicit fallback without editing input (0.639542ms)
+✔ dependent nonzero equalities do not use the Wasm pivot floor as physical compliance (0.522125ms)
+✔ structurally immovable equations retain their nonzero original RHS and full row identity (0.200792ms)
+✔ saved 155-row runtime system condenses exactly and passes the original 298-row load KKT (120.792ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 325.332125

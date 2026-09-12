@@ -1,0 +1,347 @@
+--- a/src/physics/kirchhoffCoupledSystem.js
++++ b/src/physics/kirchhoffCoupledSystem.js
+@@ -74,6 +74,8 @@
+         return rowCount++;
+     };
+     const materialOffsets = [];
++    const preserveBiasStrain = constraint._splitMotion?.phase === 'bias' &&
++        constraint._splitMotion.biasMaterialMode === 'preserve-strain';
+     for (let side = 0; side < 2; side++) {
+         const s = material[side];
+         materialOffsets.push(rowCount);
+@@ -85,7 +87,13 @@
+             // law, Jacobians, metric, compliance and rest data stay unchanged.
+             const strainOffset = options.materialStrainOffsets?.[side]?.[i] ?? 0;
+             if (!Number.isFinite(strainOffset)) throw new RangeError('Invalid material strain offset');
+-            addRow('material', side, i, s.rhs[i] + strainOffset, s.alpha[i], s.lambda[i], -Infinity, Infinity,
++            if (preserveBiasStrain && options.materialStrainOffsets?.[side]?.[i] == null)
++                throw new RangeError('Preserving bias strain requires the physical phase reference');
++            // Geometric bias may preserve C exactly without a second elastic
++            // relaxation. Only this coupled bias row loses compliance; the
++            // native material assembly and physical multipliers are untouched.
++            addRow('material', side, i, preserveBiasStrain ? -s.strain[i] + strainOffset : s.rhs[i] + strainOffset,
++                preserveBiasStrain ? 0 : s.alpha[i], s.lambda[i], -Infinity, Infinity,
+                 arcs[side][segment] + (side ? offset : 0) + (i % 6) * 1e-5);
+         }
+         for (let dof = s.start * 6; dof < (s.end + 1) * 6; dof++) {
+--- a/src/physics/kirchhoffSplitMotion.js
++++ b/src/physics/kirchhoffSplitMotion.js
+@@ -12,6 +12,12 @@
+ const clone=v=>v.slice();
+ const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+ const minus=(a,b)=>a.map((v,i)=>v-b[i]);
++/** Prototype-only per-joint selection; physical material data never changes. */
++export function configureKirchhoffSplitBias(joint,{materialMode='physical-compliance'}={}) {
++    if(!['physical-compliance','preserve-strain'].includes(materialMode))throw new RangeError('Unknown split bias material mode');
++    if(joint._splitMotion&&joint._splitMotion.phase!=='complete')throw new Error('Configure bias between physical timesteps');
++    joint._splitBiasMaterialMode=materialMode;
++}
+ function sample(body,start,record,side) {
+     const prefix=side?'_outer':'_inner', nodes=record[prefix+'NodeIndices'];
+     const count=nodes?record[prefix+'NodeCount']:2, segment=record[prefix+'SegmentIndex'];
+@@ -36,8 +42,9 @@
+  * integration, before any geometric repair. Angular velocities are world. */
+ export function beginKirchhoffSplitMotion(joint,world) {
+     const dt=world.fixedDt;
++    const biasMaterialMode=joint._splitBiasMaterialMode??'physical-compliance';
+     const state=joint._splitMotion={phase:'physical',dt,step:world.stepCount,bodies:[],start:[],sweeps:[],pointWalls:[new Map(),new Map()],
+-        physicalNormalRows:[],materialStrainOffsets:null,diagnostics:{mode:'split-physical-bias',physicalDt:dt,
++        physicalNormalRows:[],materialStrainOffsets:null,biasMaterialMode,diagnostics:{mode:'split-physical-bias',physicalDt:dt,biasMaterialMode,
+             physicalPasses:0,biasPasses:0,historyCommits:0,rejectedTrials:0,rollbackCount:0,physicalAccepted:false,biasAccepted:false,
+             sweptWitnesses:0,unverifiedHistoryKinds:[],biasElasticEnergyDelta:0,certified:false}};
+     for(const body of [joint.innerBody,joint.outerBody]) {
+@@ -267,8 +274,9 @@
+     // the step; the saved phase residual remains available for diagnostics.
+     for(const [side,b]of [joint.innerBody,joint.outerBody].entries()) {
+         const m=assembleKirchhoffDirect(b,dt),offset=s.phase==='bias'?s.materialStrainOffsets[side]:null;
++        const preserveStrain=s.phase==='bias'&&s.biasMaterialMode==='preserve-strain';
+         for(let row=0;row<m.rowCount;row+=6) {
+-            const residual=k=>m.strain[row+k]-(offset?.[row+k]??0)+m.alpha[row+k]*m.lambda[row+k];
++            const residual=k=>m.strain[row+k]-(offset?.[row+k]??0)+(preserveStrain?0:m.alpha[row+k]*m.lambda[row+k]);
+             out.adaptationMm=Math.max(out.adaptationMm,Math.hypot(residual(3),residual(4),residual(5)));
+             out.bendTwistRad=Math.max(out.bendTwistRad,Math.hypot(residual(0),residual(1),residual(2)));
+         }
+--- /dev/null
++++ b/tests/kirchhoffSplitBiasStrain.test.js
+@@ -0,0 +1,58 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {fixture,axes,frame,source,close,POSITION,VELOCITY,ANGULAR} from './fixtures/splitMotionAnalyticWorld.js';
++const {configureKirchhoffSplitBias}=await import(source('src/physics/kirchhoffSplitMotion.js'));
++const modelKeys=['restLength','restRotation1','restRotation2','restRotation3',
++    'kirchhoffBendCompliance1','kirchhoffBendCompliance2','kirchhoffTwistCompliance'];
++
++function tilted(materialMode) {
++    const f=fixture({wall:true,y:-.5});
++    configureKirchhoffSplitBias(f.constraint,{materialMode});
++    for(let i=0;i<f.wire.count;i++)f.wire.setNodePosition(i,i-1,-.5+.2*(i-1),0);
++    f.wire.captureRestConfiguration();f.wire.copyCurrentToPrevious();
++    const saved=modelKeys.map(k=>f.wire[k].slice());
++    f.world.stepFixed();
++    modelKeys.forEach((k,i)=>assert.deepEqual(f.wire[k],saved[i],k+' must retain the physical model'));
++    return f;
++}
++
++test('hard strain-preserving bias repairs a tilted rest rod without elastic or kinetic bias',()=>{
++    const compliant=tilted('physical-compliance'),hard=tilted('preserve-strain');
++    const old=compliant.world.getStats().jointMotion,d=hard.world.getStats().jointMotion;
++    assert.equal(old.certified,false);assert.ok(old.biasElasticEnergyDelta>.1);
++    assert.equal(d.biasMaterialMode,'preserve-strain');assert.equal(d.certified,true,JSON.stringify(d));
++    assert.equal(d.historyCommits,1);assert.equal(d.physicalAccepted,true);assert.equal(d.biasAccepted,true);
++    assert.ok(d.finalMaterialResidual.adaptationMm<=hard.world.coupledContainmentTolerance);
++    assert.ok(d.finalMaterialResidual.bendTwistRad<=hard.world.coupledAngularToleranceRad);
++    close(d.biasElasticEnergyDelta,0,1e-12,'no artificial elastic energy');
++    // Independent kinematics: a strain-preserving initially straight rod has
++    // equal adjacent material frames and unchanged geometric segment lengths.
++    close(frame(hard.wire,0).angleTo(frame(hard.wire,1)),0,1e-7,'no relative frame bend/twist');
++    for(let i=0;i<hard.wire.count;i++)assert.ok(-hard.wire.y[i]-hard.wire.nodeRadius[i]>=-POSITION,'raw plane gap');
++    for(let i=0;i<hard.wire.segmentCount;i++) {
++        const length=Math.hypot(...['x','y','z'].map(a=>hard.wire[a][i+1]-hard.wire[a][i]));
++        close(length,hard.wire.restLength[i],POSITION,'geometric rest length');
++    }
++    for(const a of axes) {
++        assert.deepEqual(hard.wire['velocity'+a],compliant.wire['velocity'+a],'bias cannot change physical velocity');
++        assert.deepEqual(hard.wire['angularVelocity'+a],compliant.wire['angularVelocity'+a],'bias cannot change physical spin');
++        for(const v of hard.wire['velocity'+a])close(v,0,VELOCITY,'initially stationary translation');
++        for(const w of hard.wire['angularVelocity'+a])close(w,0,ANGULAR,'initially stationary spin');
++    }
++    assert.ok(d.contacts.some(c=>c.normalBias>0),'actual wall repair must carry bias load');
++    for(const c of d.contacts) {
++        close(c.normalPhysical,0,1e-10,'bias cannot create physical normal force');
++        for(const t of c.tangentPhysical)close(t,0,1e-10,'bias cannot create physical friction');
++    }
++});
++
++test('an immobile rod penetrating the plane cannot certify an infeasible strain-preserving bias',()=>{
++    const f=fixture({wall:true,y:-.25});configureKirchhoffSplitBias(f.constraint,{materialMode:'preserve-strain'});
++    f.wire.inverseMass.fill(0);
++    for(let a=1;a<=3;a++)f.wire['inverseInertia'+a].fill(0);
++    f.world.stepFixed();
++    const d=f.world.getStats().jointMotion;
++    assert.ok(f.wire.y.every(y=>-y-.5<-.2),'fixture must remain geometrically infeasible');
++    assert.equal(d.biasAccepted,false);assert.equal(d.certified,false);assert.equal(d.historyCommits,0);
++    for(const a of axes)assert.ok(f.wire['velocity'+a].every(v=>v===0));
++});
+--- /dev/null
++++ b/tests/fixtures/splitMotionAnalyticWorld.js
+@@ -0,0 +1,86 @@
++import assert from 'node:assert/strict';
++import { createRequire } from 'node:module';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++// Small native-World regression cases for split-motion certification.
++// Fixture adapted from the independent 0827 analytic oracle.
++const sourceRoot = resolve(process.env.OET_SPLIT_MOTION_SOURCE_ROOT ?? fileURLToPath(new URL('../../', import.meta.url)));
++const source = path => pathToFileURL(resolve(sourceRoot, path));
++const { EndovascularPhysicsWorld } = await import(source('src/physics/endovascularPhysicsWorld.js'));
++const { solveKirchhoffCoupledSystem, applyKirchhoffCoupledCorrection } = await import(source('src/physics/kirchhoffCoupledSystem.js'));
++const { Quaternion, Vector3 } = createRequire(source('package.json'))('three');
++
++const DT = 1 / 120, MODE = 'split-physical-bias';
++// Float32 positions/velocities at coordinates of order 1 mm, reconstructed
++// over 1/120 s. These are fixture precision bounds, not relaxed World gates.
++const POSITION = 2e-6, VELOCITY = 5e-4, ANGULAR = 2e-5, LAMBDA = 1e-10;
++const axes = ['X', 'Y', 'Z'], xyz = ['x', 'y', 'z'];
++const close = (actual, expected, tolerance, message) => assert.ok(Number.isFinite(actual) &&
++    Math.abs(actual - expected) <= tolerance, `${message}: ${actual} vs ${expected}, tolerance ${tolerance}`);
++const frame = (body, i) => new Quaternion(...['X', 'Y', 'Z', 'W'].map(a => body['orientation' + a][i])).normalize();
++const writeFrame = (body, i, q) => ['X', 'Y', 'Z', 'W'].forEach((a, j) => { body['orientation' + a][i] = q.toArray()[j]; });
++const spin = angle => new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), angle);
++
++// Analytic lumen y <= 0: finite segments attain their largest wall violation
++// at an endpoint. No production collision/constraint helper supplies the oracle.
++class AffineWall {
++    voxelSize = .5;
++    write(p, radius, out) {
++        const gap = -p.y - radius, penetration = Math.max(0, -gap);
++        Object.assign(out, { signedDistance: -p.y, signedGap: gap, penetration,
++            inside: p.y <= 0, violation: gap < 0, branchId: 0, faceIndex: 0,
++            source: 'split-motion-affine-oracle', timeOfImpact: gap < 0 ? 0 : 1 });
++        Object.assign(out.point, p); Object.assign(out.closestPoint, { x: p.x, y: 0, z: p.z });
++        Object.assign(out.inward, { x: 0, y: -1, z: 0 }); Object.assign(out.normal, out.inward);
++        Object.assign(out.target, { x: p.x, y: p.y - penetration, z: p.z });
++        return out;
++    }
++    querySphere(p, radius, out) { return this.write(p, radius, out); }
++    queryCapsule(a, b, radius, out) {
++        const p = a.y >= b.y ? a : b;
++        this.write(p, radius, out); out.segmentT = p === a ? 0 : 1; return out;
++    }
++    sweepSphere(a, b, radius, out) {
++        this.write(b, radius, out);
++        const ga = -a.y - radius, gb = -b.y - radius;
++        out.timeOfImpact = gb >= 0 ? 1 : ga <= 0 ? 0 : ga / (ga - gb);
++        return out;
++    }
++}
++
++const profile = { radius: .25, mass: 1, inverseAngularInertia: 1,
++    adaptationCompliance: 0, kirchhoffBendCompliance: .02, kirchhoffTwistCompliance: .02,
++    maxBendAngle: 179, foldLimitStrength: 0, linearDamping: 1, angularDamping: 1,
++    projectionVelocityRetention: 0, wallProjectionVelocityRetention: 0, toolProjectionVelocityRetention: 0,
++    wallStaticFriction: 0, wallKineticFriction: 0, wallCompliance: 0,
++    sleepVelocity: 0, sleepAngularVelocity: 0, sleepFrames: 1e6, postStabilizationPasses: 0 };
++
++function fixture({ wall = false, nested = false, y = 0, mu = 0, dt = DT } = {}) {
++    const calls = { solve: 0, apply: 0 };
++    const world = new EndovascularPhysicsWorld({ fixedDt: dt, jointMotionMode: MODE,
++        contactField: wall ? new AffineWall() : null,
++        coupledSystem: {
++            solve(c, physicalDt, options) {
++                calls.solve++;
++                return solveKirchhoffCoupledSystem(c, physicalDt, { ...options,
++                    activeCondensation: true, simultaneousCoulomb: true });
++            },
++            apply(c, result) { calls.apply++; applyKirchhoffCoupledCorrection(c, result); }
++        } });
++    const wire = world.createRod('proof-wire', 3, 1, { ...profile, radius: wall ? .5 : .25 });
++    const catheter = world.createRod('proof-catheter', 5, 1, { ...profile, radius: 1 });
++    for (let i = 0; i < wire.count; i++) wire.setNodePosition(i, i - 1, y, 0);
++    for (let i = 0; i < catheter.count; i++) catheter.setNodePosition(i, i - 2, wall ? -4 : 0, 0);
++    // An exact, static external support. Reaction/momentum checks below refer
++    // to the free wire; the supported catheter may exchange momentum with it.
++    catheter.inverseMass.fill(0);
++    for (const key of ['inverseInertia1', 'inverseInertia2', 'inverseInertia3']) catheter[key].fill(0);
++    const constraint = world.addContainment(wire, catheter, { innerRadius: nested ? .75 : 100,
++        openDistal: false, openProximal: false, enforceDistalPortal: false,
++        axialFriction: mu, torsionalFriction: mu, radialVelocityDamping: 0, coupledBendingRateDamping: 0 });
++    wire.copyCurrentToPrevious(); catheter.copyCurrentToPrevious();
++    return { world, wire, catheter, constraint, calls, wall, nested };
++}
++
++export { fixture, DT, axes, xyz, frame, source, close, POSITION, VELOCITY, ANGULAR };
+--- /dev/null
++++ b/reports/probe-split-preserve-strain.mjs
+@@ -0,0 +1,35 @@
++import {fixture,DT,xyz,axes,source} from '../tests/fixtures/splitMotionAnalyticWorld.js';
++const { configureKirchhoffSplitBias } = await import(source('src/physics/kirchhoffSplitMotion.js'));
++const { assembleKirchhoffDirect } = await import(source('src/physics/kirchhoffDirectSolver.js'));
++const rows=[];
++for(const materialMode of ['physical-compliance','preserve-strain']) {
++    const f=fixture({wall:true,y:-.5});
++    configureKirchhoffSplitBias(f.constraint,{materialMode});
++    for(let i=0;i<f.wire.count;i++)f.wire.setNodePosition(i,i-1,-.5+.2*(i-1),0);
++    f.wire.captureRestConfiguration();f.wire.copyCurrentToPrevious();
++    const bodies=[f.wire,f.catheter];
++    const alphaBefore=bodies.map(b=>assembleKirchhoffDirect(b,DT).alpha.slice());
++    let reference;
++    const solve=f.world.coupledSystem.solve;
++    f.world.coupledSystem.solve=(c,dt,o)=>{
++        if(c._splitMotion.phase==='bias'&&!reference)reference=c._splitMotion.materialStrainOffsets.map(a=>a.slice());
++        return solve(c,dt,o);
++    };
++    f.world.stepFixed();
++    const d=f.world.getStats().jointMotion;
++    let strainDrift=0,alphaDrift=0;
++    for(const [side,b]of bodies.entries()) {
++        const m=assembleKirchhoffDirect(b,DT);
++        for(let i=0;i<m.rowCount;i++) {
++            strainDrift=Math.max(strainDrift,Math.abs(m.strain[i]-reference[side][i]));
++            alphaDrift=Math.max(alphaDrift,Math.abs(m.alpha[i]-alphaBefore[side][i]));
++        }
++    }
++    rows.push({materialMode,rawMinimumGap:Math.min(...f.wire.y.map((y,i)=>-y-f.wire.nodeRadius[i])),
++        strainDrift,alphaDrift,position:xyz.map(a=>[...f.wire[a]]),
++        velocity:axes.map(a=>[...f.wire['velocity'+a]]),omega:axes.map(a=>[...f.wire['angularVelocity'+a]]),
++        physicalNormal:d.contacts.reduce((s,c)=>s+c.normalPhysical,0),
++        physicalTangent:d.contacts.reduce((s,c)=>s+Math.hypot(...c.tangentPhysical),0),
++        diagnostics:d});
++}
++console.log(JSON.stringify(rows,null,2));
+--- /dev/null
++++ b/reports/register-split-preserve-strain.mjs
+@@ -0,0 +1,13 @@
++// Test-only adapter: opt each existing split-World oracle fixture into the
++// preserve-strain option without changing any oracle assertion or tolerance.
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++const root=resolve(process.env.OET_SPLIT_MOTION_SOURCE_ROOT??fileURLToPath(new URL('../',import.meta.url)));
++const {EndovascularPhysicsWorld}=await import(pathToFileURL(resolve(root,'src/physics/endovascularPhysicsWorld.js')));
++const {configureKirchhoffSplitBias}=await import(pathToFileURL(resolve(root,'src/physics/kirchhoffSplitMotion.js')));
++const add=EndovascularPhysicsWorld.prototype.addContainment;
++EndovascularPhysicsWorld.prototype.addContainment=function(...args) {
++    const joint=add.apply(this,args);
++    if(this.jointMotionMode==='split-physical-bias')configureKirchhoffSplitBias(joint,{materialMode:'preserve-strain'});
++    return joint;
++};
+--- /dev/null
++++ b/reports/split-bias-preserve-strain.md
+@@ -0,0 +1,77 @@
++# Strain-preserving geometric bias — optional bounded prototype
++
++The optional `preserve-strain` variant removes the elastic deformation introduced by the compliant bias on the tilted stress-free plane witness. It also passes the unchanged eight native World oracles. The translated-mouth case still fails final physical contact closure. The default bias option remains `physical-compliance`.
++
++Enable per joint, between timesteps:
++
++```js
++import { configureKirchhoffSplitBias } from './src/physics/kirchhoffSplitMotion.js';
++configureKirchhoffSplitBias(joint, { materialMode: 'preserve-strain' });
++```
++
++Only CoupledSystem and SplitMotion production sources change. World, physical EI/GJ/compliance, rest data, tolerances, damping, force gradients, inverse-mass metric and solver backend are untouched.
++
++## Equations
++
++The physical phase is identical in both variants. It solves the native material equations and captures `C_phys` before geometric bias. The existing compliant bias solves
++
++`(C_geo - C_phys) + alpha_physical * lambda_bias = 0`.
++
++The optional variant instead solves
++
++`C_geo - C_phys = 0`, with `alpha_bias = 0`.
++
++Thus each coupled material bias row has RHS `-(C_geo-C_phys)` and zero diagonal compliance. This changes neither the native material assembly nor the physical multiplier bank. The bias convergence measurement uses exactly the same hard strain difference. After restoring physical multipliers, the final material gate still evaluates fresh `C_geo + alpha_physical * lambda_physical`; the old phase residual is never substituted for it. No new Newton loop or outer reclosure was introduced.
++
++## Tilted stress-free plane witness
++
++Three wire nodes initially have x=`[-1,0,1]`, y=`[-.7,-.5,-.3]`, radius .5, captured straight rest shape, zero physical input. An independent fixed five-node rod supplies the JOINT pair. Plane lumen is y<=0. Bend/twist compliance .02, adaptation compliance 0. Both variants perform actual World physical and bias solves.
++
++| Final quantity | Existing compliant bias | Preserve strain |
++|---|---:|---:|
++| Raw minimum plane gap, mm | 0 | 0 |
++| Maximum native strain drift from physical phase | .07894805165337379 | 1.0208563883118416e-7 |
++| Fresh bend/twist residual, rad | .07894805165337379 | 1.7496861847463106e-24 |
++| Fresh adaptation residual, mm | 2.386899020579232e-7 | 1.2051144559080793e-7 |
++| Bias elastic energy change | .1558198714965944 | 0 |
++| Sum physical Fn / Ft (XPBD multipliers) | 0 / 0 | 0 / 0 |
++| Final certified / history commits | false / 0 | true / 1 |
++
++Physical v and omega arrays are bit-for-bit equal between variants. Both retain the tiny physical correction already caused by the Float32-captured rest length: maximum |v|=2.2045965124561917e-6 mm/s and maximum |omega| about 6.244e-16 rad/s. These are far below the unchanged independent oracle bounds; bias adds no physical motion. Native physical alpha arrays have zero before/after difference; all rest and EI/GJ compliance arrays are unchanged.
++
++The new test also checks adjacent quaternions independently (no relative bend/twist), geometric segment lengths, raw plane gaps and physical reaction banks. A fully immobile penetrating wire is intentionally infeasible and remains `biasAccepted=false`, `certified=false`, `historyCommits=0`; no gate was weakened to accept it.
++
++Raw comparison JSON: `/tmp/oet-split-preserve-strain-first-8996.json`, generated by `reports/probe-split-preserve-strain.mjs`.
++
++## Unchanged eight World oracles
++
++The external 0827 file was not edited. A test-only Node preload wraps `addContainment` to call the per-joint option setter for an already selected split World; it does not change any fixture input, assertion, tolerance or solver result.
++
++- Existing bias: **8 PASS / 0 FAIL**, `/tmp/oet-preserve-strain-reference-oracle-8996.txt`.
++- Preserve strain: **8 PASS / 0 FAIL**, `/tmp/oet-split-preserve-strain-oracle-8996.txt`.
++- New behavior tests: **2 PASS / 0 FAIL**, `tests/kirchhoffSplitBiasStrain.test.js`.
++- CoupledSystem plus existing split certification tests, default options: **21 PASS / 0 FAIL**, `/tmp/oet-preserve-strain-default-8996.txt`.
++
++Example option run:
++
++```sh
++OET_SPLIT_MOTION_SOURCE_ROOT=/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer node --import ./reports/register-split-preserve-strain.mjs --test --test-concurrency=1 /Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer/tests/kirchhoffSplitMotionWorld.test.js
++```
++
++## Translated-mouth comparison
++
++Exactly one extra execution of the existing `probe-translated-split-world.mjs` used the same preload. The probe, its controls and its witnesses were not edited. No anatomy or outer reclosure ran.
++
++| Final quantity | Existing compliant bias | Preserve strain |
++|---|---:|---:|
++| Bias elastic energy change | 1.2561989880728693e-6 | 0 |
++| Fresh bend/twist residual, rad | 5.01238264317136e-5 | 2.214997901917172e-16 |
++| Fresh adaptation residual, mm | 4.768384160547769e-7 | 4.770205541233562e-7 |
++| Physical KKT displacement residual, mm | .0016996188682287892 | .0016996190233046005 |
++| Maximum outward contact velocity, mm/s | .20395426418745471 | .20395428279655206 |
++| Physical Fn / Ft | 0 / 0 | 0 / 0 |
++| Final certified / history commits | false / 0 | false / 0 |
++
++Each variant accepts its one physical and one bias phase, then fails the fresh final physical contact gate. Removing bias elastic deformation does not close the new physical contact: the residual differs by only 1.55e-10 mm. Further physical reclosure and root's failed-step transaction remain separate work. Logs are `/tmp/oet-translated-split-final-8996.txt` and `/tmp/oet-translated-preserve-strain-8996.txt`.
++
++This checkpoint establishes the bounded hypothesis on these fixtures. General feasibility with many fixed supports, nonlinear contacts and runtime anatomy is not claimed. Existing wall material-foot ownership, migration, CCD and final-failure handling limitations from the prior handoff remain open.

@@ -1,0 +1,24 @@
+✔ analytic Darboux strain uses the surface frame and its exact configuration gradient/Hessian match finite differences (18.718917ms)
+✔ batched strains are bitwise equal to separate evaluations while one native build and bounded arena serve different frames (6.120917ms)
+✔ independent native frame gauges preserve material strain and all exact derivatives (1.036416ms)
+✔ continuous bending energy matches the analytic integral for a quadratic centerline and material metric scaling (50.483542ms)
+✔ integrated exact elastic forces/tangents match energy and gradient finite differences including geometric stiffness (38.000625ms)
+✔ quadrature splits declared material discontinuities and never returns partial force or a stale Hessian on failure (8.747917ms)
+✔ continuous inertia assembles every wider common/relative term and its full nonlinear tangent matches independent finite differences (43.512666ms)
+✔ tool tips and declared interfaces bound support; a changed chart cannot reuse a stale scatter pattern (3.56725ms)
+✔ one joint step preserves independent translations, opposite feed and independent rotation with polynomial accepted histories (10.811917ms)
+✔ nonlinear bending commits full polynomial velocity then transports opposite feeds across old nodes into the next joint solve (19.671458ms)
+✔ polynomial history cannot be downgraded to affine inertia or certified against the old contact geometry (0.6205ms)
+✔ continuous frame elasticity and inertia solve both tools together through consecutive loaded steps with separate rotation and exact retry (55.760542ms)
+✔ continuous elastic position/spin support enters the same band and CSR and matches finite differences across its wider coupling (363.141792ms)
+✔ continuous material frame, inertia and arclength close in one loaded solve and preserve independent curved lengths through a second dt (50.732167ms)
+✔ fully prescribed continuous support suppresses only redundant length duals and checks curved targets before acceptance (8.351292ms)
+✔ four-node continuous length rows use explicitly declared wider support while arbitrary distant rows remain rejected (3.124209ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 848.814208

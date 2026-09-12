@@ -1,0 +1,514 @@
+{
+  "scope": "known-open Dirichlet correctness regression; no FPS or performance claim",
+  "dt": 0.008333333333333333,
+  "preparedInputHash": "2f9f99f8551f597cb9d3291be20e46a69d2420358b27ff3ba07f86ad4041024a",
+  "inputStateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+  "loaded": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 1,
+    "time": 0.008333333333333333,
+    "stateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+    "normalForces": [
+      0.38615348816463735,
+      0.16255508872752597,
+      0
+    ],
+    "tractions": [
+      -6.391905412611796e-10,
+      -0.002316920928994051,
+      -2.7343772246893273e-10,
+      -0.000975330532813114,
+      0,
+      0
+    ],
+    "directions": 5,
+    "evaluations": 12,
+    "wallQueries": 60,
+    "knownOpenBacksubstitutions": 0,
+    "knownOpenRowRefreshes": 0,
+    "originalGaps": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "certificate": {
+      "force": 4.45911499785803e-14,
+      "torque": 1.4614331789028818e-21,
+      "length": 0,
+      "boundary": 0,
+      "wallNcp": 0,
+      "wallComplementarity": 0,
+      "frictionConverged": true
+    },
+    "maxMomentumBalance": 8.426592756904938e-14
+  },
+  "before": {
+    "accepted": false,
+    "status": "original-linear-equations",
+    "error": null,
+    "step": 1,
+    "time": 0.008333333333333333,
+    "stateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+    "normalForces": [
+      0.38615348816463735,
+      0.16255508872752597,
+      0
+    ],
+    "tractions": [
+      -6.391905412611796e-10,
+      -0.002316920928994051,
+      -2.7343772246893273e-10,
+      -0.000975330532813114,
+      0,
+      0
+    ],
+    "directions": 1,
+    "evaluations": 2,
+    "wallQueries": 10,
+    "knownOpenBacksubstitutions": null,
+    "knownOpenRowRefreshes": null,
+    "originalGaps": [
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899
+    ],
+    "certificate": {
+      "force": 9.35982064692457,
+      "torque": 0.00012499974970099886,
+      "length": 0,
+      "boundary": 0.00009999999999998899,
+      "wallNcp": 0.00009999999999998899,
+      "wallComplementarity": 0.000038615348816459483,
+      "frictionConverged": true
+    }
+  },
+  "fixed": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 2,
+    "time": 0.016666666666666666,
+    "stateHash": "22e0dfe93d4a68ec4ef5cdf19879e681838c94726740769059171650e0553de3",
+    "normalForces": [
+      0,
+      0,
+      0
+    ],
+    "tractions": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "directions": 2,
+    "evaluations": 6,
+    "wallQueries": 30,
+    "knownOpenBacksubstitutions": 2,
+    "knownOpenRowRefreshes": 1,
+    "originalGaps": [
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899,
+      0.00009999999999998899
+    ],
+    "certificate": {
+      "force": 4.152341086537189e-12,
+      "torque": 1.927711462679227e-16,
+      "length": 5.3290705182007514e-14,
+      "boundary": 0,
+      "wallNcp": 0,
+      "wallComplementarity": 0,
+      "frictionConverged": true
+    },
+    "maxMomentumBalance": 9.71445146547012e-14
+  },
+  "fixedGeometryGaps": [
+    0.0000999999999999845,
+    0.00009999999999996213,
+    0.0001
+  ],
+  "closed": {
+    "accepted": true,
+    "status": "accepted",
+    "step": 2,
+    "time": 0.016666666666666666,
+    "stateHash": "3042b122d13ce6a49bae9da68b81d5ae79c83544b7de9e128b7fe27ff692cf61",
+    "normalForces": [
+      0.38615348816463735,
+      0.16255508872752597,
+      0
+    ],
+    "tractions": [
+      -6.391848058275052e-10,
+      -0.0023169209289877362,
+      -2.734376815973057e-10,
+      -0.0009753305323651174,
+      0,
+      0
+    ],
+    "directions": 2,
+    "evaluations": 6,
+    "wallQueries": 30,
+    "knownOpenBacksubstitutions": 0,
+    "knownOpenRowRefreshes": 0,
+    "originalGaps": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "certificate": {
+      "force": 1.9593869754659408e-11,
+      "torque": 5.620504062164855e-16,
+      "length": 1.5631940186722204e-13,
+      "boundary": 0,
+      "wallNcp": 0,
+      "wallComplementarity": 0,
+      "frictionConverged": true
+    },
+    "maxMomentumBalance": 2.522548142591674e-13
+  },
+  "scales": [
+    {
+      "normalK": 0.1,
+      "frictionK": 5,
+      "accepted": true,
+      "status": "accepted",
+      "step": 2,
+      "time": 0.016666666666666666,
+      "stateHash": "0733d3877ab090abe5c1f1f1cccb24f0955b6b9a9365b9ca6d0b393afebf97d1",
+      "normalForces": [
+        0,
+        0,
+        0
+      ],
+      "tractions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "directions": 2,
+      "evaluations": 6,
+      "wallQueries": 30,
+      "knownOpenBacksubstitutions": 2,
+      "knownOpenRowRefreshes": 1,
+      "originalGaps": [
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899
+      ],
+      "certificate": {
+        "force": 4.152341086537189e-12,
+        "torque": 1.927711462679227e-16,
+        "length": 5.3290705182007514e-14,
+        "boundary": 0,
+        "wallNcp": 0,
+        "wallComplementarity": 0,
+        "frictionConverged": true
+      },
+      "maxMomentumBalance": 9.71445146547012e-14
+    },
+    {
+      "normalK": 1,
+      "frictionK": 50,
+      "accepted": true,
+      "status": "accepted",
+      "step": 2,
+      "time": 0.016666666666666666,
+      "stateHash": "cea03a0ad554b0dc6ac64aeb19f5638946208300ac09577a8f987adb2a7ebf3d",
+      "normalForces": [
+        0,
+        0,
+        0
+      ],
+      "tractions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "directions": 2,
+      "evaluations": 6,
+      "wallQueries": 30,
+      "knownOpenBacksubstitutions": 2,
+      "knownOpenRowRefreshes": 1,
+      "originalGaps": [
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899
+      ],
+      "certificate": {
+        "force": 4.152341086537189e-12,
+        "torque": 1.927711462679227e-16,
+        "length": 5.3290705182007514e-14,
+        "boundary": 0,
+        "wallNcp": 0,
+        "wallComplementarity": 0,
+        "frictionConverged": true
+      },
+      "maxMomentumBalance": 9.71445146547012e-14
+    },
+    {
+      "normalK": 10,
+      "frictionK": 500,
+      "accepted": true,
+      "status": "accepted",
+      "step": 2,
+      "time": 0.016666666666666666,
+      "stateHash": "cea03a0ad554b0dc6ac64aeb19f5638946208300ac09577a8f987adb2a7ebf3d",
+      "normalForces": [
+        0,
+        0,
+        0
+      ],
+      "tractions": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "directions": 2,
+      "evaluations": 6,
+      "wallQueries": 30,
+      "knownOpenBacksubstitutions": 2,
+      "knownOpenRowRefreshes": 1,
+      "originalGaps": [
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899,
+        0.00009999999999998899
+      ],
+      "certificate": {
+        "force": 4.152341086537189e-12,
+        "torque": 1.927711462679227e-16,
+        "length": 5.3290705182007514e-14,
+        "boundary": 0,
+        "wallNcp": 0,
+        "wallComplementarity": 0,
+        "frictionConverged": true
+      },
+      "maxMomentumBalance": 9.71445146547012e-14
+    }
+  ],
+  "retry": [
+    {
+      "budget": {
+        "contactQueries": 2
+      },
+      "rejected": {
+        "accepted": false,
+        "status": "contact-query-budget",
+        "error": "contact-query-budget",
+        "step": 1,
+        "time": 0.008333333333333333,
+        "stateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+        "normalForces": [
+          0.38615348816463735,
+          0.16255508872752597,
+          0
+        ],
+        "tractions": [
+          -6.391905412611796e-10,
+          -0.002316920928994051,
+          -2.7343772246893273e-10,
+          -0.000975330532813114,
+          0,
+          0
+        ],
+        "directions": 0,
+        "evaluations": 1,
+        "wallQueries": 0,
+        "knownOpenBacksubstitutions": 0,
+        "knownOpenRowRefreshes": 0,
+        "certificate": null
+      },
+      "rollbackHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+      "retryHash": "22e0dfe93d4a68ec4ef5cdf19879e681838c94726740769059171650e0553de3"
+    },
+    {
+      "budget": {
+        "directions": 0
+      },
+      "rejected": {
+        "accepted": false,
+        "status": "direction-budget",
+        "error": null,
+        "step": 1,
+        "time": 0.008333333333333333,
+        "stateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+        "normalForces": [
+          0.38615348816463735,
+          0.16255508872752597,
+          0
+        ],
+        "tractions": [
+          -6.391905412611796e-10,
+          -0.002316920928994051,
+          -2.7343772246893273e-10,
+          -0.000975330532813114,
+          0,
+          0
+        ],
+        "directions": 0,
+        "evaluations": 1,
+        "wallQueries": 5,
+        "knownOpenBacksubstitutions": 2,
+        "knownOpenRowRefreshes": 1,
+        "originalGaps": [
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899
+        ],
+        "certificate": {
+          "force": 9.35982064692457,
+          "torque": 0.00012499974970099886,
+          "length": 0,
+          "boundary": 0.00009999999999998899,
+          "wallNcp": 0,
+          "wallComplementarity": 0,
+          "frictionConverged": true
+        }
+      },
+      "rollbackHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+      "retryHash": "22e0dfe93d4a68ec4ef5cdf19879e681838c94726740769059171650e0553de3"
+    },
+    {
+      "budget": {
+        "contactQueries": 36
+      },
+      "rejected": {
+        "accepted": false,
+        "status": "contact-query-budget",
+        "error": "contact-query-budget",
+        "step": 1,
+        "time": 0.008333333333333333,
+        "stateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+        "normalForces": [
+          0.38615348816463735,
+          0.16255508872752597,
+          0
+        ],
+        "tractions": [
+          -6.391905412611796e-10,
+          -0.002316920928994051,
+          -2.7343772246893273e-10,
+          -0.000975330532813114,
+          0,
+          0
+        ],
+        "directions": 2,
+        "evaluations": 6,
+        "wallQueries": 29,
+        "knownOpenBacksubstitutions": 2,
+        "knownOpenRowRefreshes": 1,
+        "originalGaps": [
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899
+        ],
+        "certificate": {
+          "force": 4.152341086537189e-12,
+          "torque": 1.927711462679227e-16,
+          "length": 5.3290705182007514e-14,
+          "boundary": 0,
+          "wallNcp": 0,
+          "wallComplementarity": 0,
+          "frictionConverged": true
+        }
+      },
+      "rollbackHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+      "retryHash": "22e0dfe93d4a68ec4ef5cdf19879e681838c94726740769059171650e0553de3"
+    },
+    {
+      "budget": {
+        "evaluations": 5
+      },
+      "rejected": {
+        "accepted": false,
+        "status": "evaluation-budget",
+        "error": "evaluation-budget",
+        "step": 1,
+        "time": 0.008333333333333333,
+        "stateHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+        "normalForces": [
+          0.38615348816463735,
+          0.16255508872752597,
+          0
+        ],
+        "tractions": [
+          -6.391905412611796e-10,
+          -0.002316920928994051,
+          -2.7343772246893273e-10,
+          -0.000975330532813114,
+          0,
+          0
+        ],
+        "directions": 2,
+        "evaluations": 5,
+        "wallQueries": 25,
+        "knownOpenBacksubstitutions": 2,
+        "knownOpenRowRefreshes": 1,
+        "originalGaps": [
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899,
+          0.00009999999999998899
+        ],
+        "certificate": {
+          "force": 4.152341086537189e-12,
+          "torque": 1.927711462679227e-16,
+          "length": 5.3290705182007514e-14,
+          "boundary": 0,
+          "wallNcp": 0,
+          "wallComplementarity": 0,
+          "frictionConverged": true
+        }
+      },
+      "rollbackHash": "6148ed38c03b97c7bb5c3d3f500f424b308217f5a9db597e7b5427ff341ac45a",
+      "retryHash": "22e0dfe93d4a68ec4ef5cdf19879e681838c94726740769059171650e0553de3"
+    }
+  ],
+  "sourceStable": true,
+  "affectedSuite": {
+    "tests": 120,
+    "pass": 120,
+    "fail": 0,
+    "durationMs": 2467.798042
+  },
+  "syntax": "PASS"
+}

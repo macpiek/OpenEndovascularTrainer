@@ -1,0 +1,14 @@
+✔ actual World runs the production shared Coulomb timestep for two dt and publishes both own material states (71.392042ms)
+✔ failed numerical budgets retain one prepared command and no geometry/history/time, then direct retry is identical (24.462458ms)
+✔ a second-body publication exception restores all first-body arrays and views before retry (24.992625ms)
+✔ accepted Float64 physics and complete views are independent of subsequent Float32 view corruption (19.343875ms)
+✔ unmapped World constraints reject explicitly before advancing the shared model (2.222959ms)
+✔ active-range/storage changes require transfer and reset releases owned state, views and pending preparation (6.651166ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 289.533708

@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "src/physics/kirchhoffCompositeJointWallRows.js",
+      "status": "modified",
+      "before": "42bce9955c3bee4e3db1b157ac981f775b7785fdc73a815f1705a5f329b1d653",
+      "after": "39d315a17a682bfdcfbf2e7c4f1c8304a171462220f2a0e3c6ea273f99c6a0b4"
+    },
+    {
+      "path": "tests/kirchhoffCompositeJointWallRows.test.js",
+      "status": "modified",
+      "before": "81c76d02feb6287c9cf962fbc88aff666ad175d06e990e1c630288820c72de81",
+      "after": "deb4bf9233e04e27a6674b8af8e74481d701f17007090d02e67a2971373eeffb"
+    }
+  ],
+  "tests": 16,
+  "passed": 16,
+  "failed": 0,
+  "scope": "bounded optional envelope adapter only"
+}

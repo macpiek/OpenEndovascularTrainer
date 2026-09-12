@@ -1,0 +1,34 @@
+{
+  "source": "/Users/macpiek/.codex/worktrees/8996/OpenEndovascularTrainer",
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": [
+    {
+      "path": "src/physics/kirchhoffSplitMotion.js",
+      "beforeSha256": "0584fa9cf1c8b54eb7dfd156916f9370c5d33775e4a45a392f6caf52d50bb3db",
+      "afterSha256": "5a5c4cd240f252b893dc7312a8ce1ca3d7dbc62707efd91263cc482ceae30029"
+    },
+    {
+      "path": "tests/kirchhoffSplitSheathUnloadedTransition.test.js",
+      "beforeSha256": null,
+      "afterSha256": "610ed21941a1e56507e46ecdb1a76a8be32cb9706697f7f428cd86c59765dc4f"
+    },
+    {
+      "path": "reports/probe-sheath-unloaded-boundary.mjs",
+      "beforeSha256": null,
+      "afterSha256": "5e71c09c000d400d28e4802ffe6b42a542ed6831eeeb640d287710b12b51d03e"
+    },
+    {
+      "path": "reports/split-sheath-unloaded-transition.md",
+      "beforeSha256": null,
+      "afterSha256": "acf3029a5c310e1f31b19df00b857c083f42d18e8427f86a3b395a71dc1b1966"
+    }
+  ],
+  "verification": {
+    "newTests": 10,
+    "allLocalTests": 23,
+    "independentWorldWall": 11
+  },
+  "scope": "Only strictly positive radial endpoint clearance plus complete zero reaction history; loaded/touching/rekey/missing history remain guarded",
+  "patchSha256": "70c641880bd30b41dfac1142c744d2b49460ab15e219fe8621d9834dd2423abc",
+  "unchangedLocalWorldSha256": "2d8201499fd77caa3c1260344229c208a109d26222cd0e960baa292c441d1eb5"
+}

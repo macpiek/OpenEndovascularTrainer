@@ -1,0 +1,33 @@
+{
+  "status": "frozen",
+  "workspace": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer",
+  "files": [
+    "src/physics/kirchhoffCompositeWallGeometry.js",
+    "tests/kirchhoffCompositeWallGeometry.test.js"
+  ],
+  "hashes": {
+    "src/physics/kirchhoffCompositeWallGeometry.js": "94b29de4c4a0bc96d0a570eadf285f25a5e5476bfb9f24c3abeac64e5e1910e1",
+    "tests/kirchhoffCompositeWallGeometry.test.js": "120d32a113ad99a95902a8ce55014f5736cb1ecd5ffcc49c2b45751769eb35ad"
+  },
+  "patch": "reports/composite-wall-geometry.patch",
+  "patchSha256": "810dbfc08351a1c08a270a2b13771dd62d630d6fdcf6ca65493b8df62f98a7b1",
+  "patchApplyVerified": true,
+  "testedAppliedCopy": true,
+  "tests": {
+    "passed": 12,
+    "failed": 0
+  },
+  "validationLog": "reports/composite-wall-geometry-tests.txt",
+  "providerManifest": "reports/composite-wall-geometry-provider-source.json",
+  "providerStillMatches": {
+    "res/Aorta_plain.collision.bin": true,
+    "src/physics/collision/vesselContactField.js": true,
+    "src/physics/collision/scalarMeshBvhClosestPoint.js": true,
+    "src/physics/collision/packedLumenField.js": true,
+    "src/physics/collision/collisionAssetFormat.js": true
+  },
+  "report": "reports/composite-wall-geometry.md",
+  "witness": "reports/composite-wall-geometry-witness.json",
+  "parentSourceEdits": false,
+  "scope": "Exact local sparse-SDF branch derivatives, separate physical mixed NCP and explicit gap-conjugate energy; unsupported sources rejected."
+}

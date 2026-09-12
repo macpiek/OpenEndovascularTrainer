@@ -1,0 +1,39 @@
+✔ capsule collector retains the selected BVH feature and independent edge G/DB with no extra queries (30.460625ms)
+✔ BVH endpoint cache owns its face/foot and scatters point G/DB into the correct 3-to-6 block (5.752792ms)
+✔ collector to mixed whole dt resolves triangle face contact (capsule) with physical momentum (83.260542ms)
+ℹ {"mode":"capsule","directions":1,"forceResidual":0,"physicalWallForce":[0,0,5.760000000000005]}
+✔ collector to mixed whole dt resolves triangle face contact (envelope) with physical momentum (16.101042ms)
+ℹ {"mode":"envelope","directions":1,"forceResidual":2.220446049250313e-16,"physicalWallForce":[0,0,5.760000000000005]}
+✔ BVH physical AL remains explicitly disabled before assembly and whole-dt state mutation (13.252666ms)
+✔ ambiguous triangle boundaries retain raw penetration and reject active mixed rows (3.331834ms)
+✔ actual anatomy face: raw collector G/DB matches independent provider differences (2440.480958ms)
+ℹ {"feature":"face","faceIndex":126012,"gap":-0.17163111643810686,"t":1,"maxG":1.6049944706608699e-10,"maxDB":1.4913070778277415e-9}
+✔ actual anatomy edge: raw collector G/DB matches independent provider differences (2.164333ms)
+ℹ {"feature":"edge","faceIndex":125544,"gap":-2.4037753563379924,"t":0,"maxG":5.904132738265844e-10,"maxDB":5.258392332674333e-10}
+✔ one outer capsule per edge owns vessel contact; the hidden wire and sheath do not add duplicate rows (27.399458ms)
+✔ unilateral wall energy has the correct exact gradient and GN tangent on a planar branch (12.670042ms)
+✔ original wall KKT and physical reactions are separate from augmented trial pressure (6.069291ms)
+✔ a penetrated unloaded wall cannot be accepted from zero complementarity alone (1.609666ms)
+✔ the collector preserves the actual anatomy capsule provider gap, normal, owner radius and sample count (441.2575ms)
+✔ frozen anatomy P1 row retains raw query and true G != B / DB, with no extra detection and unchanged physical Fn (427.322958ms)
+✔ endpoint envelope uses point derivatives and scatters their 3x3 DB into the correct six-DOF block (13.074041ms)
+✔ endpoint six-DOF gap and physical-force derivatives match independent finite differences (18.003833ms)
+✔ equal endpoint normal/gap/closest witness does not merge differing globally scattered G, B, DB or source (24.282084ms)
+✔ exact analytic-plane dependence still transfers physical force and torque to the unique endpoints (4.462167ms)
+✔ a real nonlinear sparse polynomial with flat gap and identical unit normals is not reduced to endpoint rows (1.662958ms)
+✔ DB mismatch alone prevents interior reduction even when g/G/B are exactly their endpoint combination (0.876625ms)
+✔ unsupported active or loaded rows reject; open zero-force rows retain their original gap and unknown derivatives (0.585958ms)
+✔ unknown unloaded endpoint derivatives never create false duplicate or interior dependencies (1.204542ms)
+✔ refresh clears previously supported derivative buffers when the query switches to an unsupported source (4.823125ms)
+✔ endpoints and original capsule minima are all retained, with endpoint queries shared by adjacent edges (25.760791ms)
+✔ exact local dependence transfers the total force and torque to unique endpoints without losing original gap checks (2.939708ms)
+✔ a distinct interior wall obstacle remains an independent physical constraint (5.333542ms)
+✔ nearby normals and gaps are never treated as exact dependence (0.595167ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3333.53175

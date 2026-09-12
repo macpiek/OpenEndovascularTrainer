@@ -1,0 +1,15 @@
+{
+  "sourceRoot": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-composite-relative-review-1u8wciam",
+  "nodeCount": 7,
+  "dofCount": 33,
+  "band": 13,
+  "materialEnergy": 0.006292479384819556,
+  "augmentedEnergy": 0.0000665075867452213,
+  "totalEnergy": 0.006358986971564777,
+  "linearDirectionConverged": true,
+  "linearMaximumResidual": 8.083828338710866e-17,
+  "maximumOriginalLengthResidual": 0.0005490923646616075,
+  "withinLengthTolerance": false,
+  "maximumPhysicalConstraintForce": 0,
+  "scope": "assembly-and-one-linear-direction-only"
+}

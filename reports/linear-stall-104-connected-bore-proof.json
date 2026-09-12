@@ -1,0 +1,121 @@
+{
+  "joint": {
+    "startNode": 198,
+    "endNode": 199,
+    "containedLength": 10.400000000000004,
+    "innerArcOffset": 2.1000000000000014,
+    "outerStartNode": 15,
+    "innerRadius": 0.485
+  },
+  "branch": {
+    "segment": 199,
+    "t": 0.5731945820551745
+  },
+  "slidingState": {
+    "segment": 199,
+    "distance": 0.0015334691623013533,
+    "violation": 0,
+    "t": 0.5731910062069766,
+    "x": 0.000596441582473517,
+    "y": 0.0001579831267690679,
+    "z": 0.0014038612616928958,
+    "clearance": 0.040500000715255724
+  },
+  "tool": {
+    "segmentA": 199,
+    "segmentB": 16,
+    "tA": 0.13338967687875217,
+    "tB": 1
+  },
+  "catheterTip": 18,
+  "catheter17Length": 2.1991951072824696,
+  "clearance": 0.040500000715255724,
+  "points": {
+    "toolFoot": {
+      "point": [
+        -87.76491373215356,
+        -442.05965492861424,
+        26.919297163452647
+      ],
+      "axialFromCat17": 0.0003434628884241113,
+      "axialFraction": 0.0001561766335723282,
+      "radialDistance": 0.02680034732353499
+    },
+    "mouthCrossing": {
+      "point": [
+        -87.24318898936896,
+        -439.97275595747584,
+        26.4627896912387
+      ],
+      "axialFromCat17": 2.1991951072824945,
+      "axialFraction": 1.0000000000000113,
+      "radialDistance": 0.0015335733895907669
+    },
+    "slidingFoot": {
+      "point": [
+        -87.24319323126909,
+        -439.97277292507636,
+        26.46279340288767
+      ],
+      "axialFromCat17": 2.199177229447099,
+      "axialFraction": 0.9999918707370203,
+      "radialDistance": 0.0015333649450576534
+    }
+  },
+  "continuousSegmentProof": {
+    "sameWireSegment": true,
+    "orderedParameters": true,
+    "toolFootWithinCat17AxialSlab": true,
+    "maximumEndpointRadialDistance": 0.02680034732353499,
+    "minimumFiniteWireClearanceOnStraightCat17Cylinder": 0.013699653391720735,
+    "argument": "On this straight wire subsegment, axial coordinate and radial vector are affine. Both endpoint axial coordinates lie in the catheter segment slab (within 1e-12 rounding at the mouth). Convexity of the Euclidean norm bounds all intermediate radial distances by the endpoint maximum. This certifies this local connected branch; it is not a general returning-loop exemption."
+  },
+  "oldPredicate": false,
+  "predicateRejectingCondition": "segmentB=16 !== tip-1=17",
+  "lumenCoverage": [
+    {
+      "nativeOriginal": 130,
+      "id": "containment:guidewire:catheter:side|runtime:199:0",
+      "kind": "material-side",
+      "wireSegment": 199,
+      "wireT": 0.125,
+      "catheterSegment": 16,
+      "catheterT": 1,
+      "gap": 0.013147695296522797,
+      "radialDistance": 0.027352305418732927
+    },
+    {
+      "nativeOriginal": 131,
+      "id": "containment:guidewire:catheter:distal-rim|runtime:199:5",
+      "kind": "distal-rim",
+      "wireSegment": 199,
+      "wireT": 0.5731945820551745,
+      "catheterSegment": 17,
+      "catheterT": 1,
+      "gap": 0.188966427325665,
+      "radialDistance": 0.001533573389590739
+    },
+    {
+      "nativeOriginal": 132,
+      "id": "containment:guidewire:catheter:side|runtime:199:8",
+      "kind": "side",
+      "wireSegment": 199,
+      "wireT": 0.1333209789002081,
+      "catheterSegment": 17,
+      "catheterT": 0,
+      "gap": 0.013695251703954685,
+      "radialDistance": 0.02680474901130104
+    },
+    {
+      "nativeOriginal": 133,
+      "id": "lumen:sliding-rim|runtime:199:7",
+      "kind": "sliding-rim",
+      "wireSegment": 199,
+      "wireT": 0.5731910062069766,
+      "catheterSegment": 17,
+      "catheterT": 1,
+      "gap": 0.03896653155295437,
+      "radialDistance": 0.0015334691623013533
+    }
+  ]
+}

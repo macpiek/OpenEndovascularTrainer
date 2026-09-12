@@ -1,0 +1,14 @@
+{
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "src/physics/kirchhoffCompositeInertiaCache.js": "1546ab48d64d11f4805875d591c30ce7f5d662b60ddba242d3a558de23bb7505",
+    "tests/kirchhoffCompositeInertiaCache.test.js": "cbd3fae3a9aa3b4e26e639396949452b08d221abccf5dd08c7384c1b31c88364",
+    "scripts/physics/benchmark-composite-inertia-cache.mjs": "e91241adc6b5cc19d4675bfdf955922486e0419626d48e1404731c65217b2f81",
+    "reports/composite-inertia-cache.md": "33ddedb3e190b48ac06b09776ef486e105afde12baeea6e9e5260c8e332cb9af",
+    "reports/composite-inertia-cache.json": "24c6c8ba0395aba2a0b49da48741cc8a8c3407bf23fbcfaa3d8dcc3636918c7d",
+    "tests.txt": "25712501d58e1722f2cbcad835fb84933488b41b20b3cb796e809a0285af21c9",
+    "initial-probe.json": "8e98d99687e3640e3f1858fb009752b2baafda6531b88d0b78f5a77efb9d6139"
+  },
+  "tests": "42/42 existing Kinematics+Chain+Refinement and new Cache; syntax checks passed",
+  "scope": "Frozen candidate, no TimeStep integration or FPS claim"
+}

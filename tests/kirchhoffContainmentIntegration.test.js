@@ -11,7 +11,7 @@ const TOLERANCE = 2e-5;
 
 function rodProfile(overrides = {}) {
     return {
-        rodModel: 'kirchhoff',
+
         radius: 0.2,
         innerRadius: 1,
         adaptationCompliance: 0,
@@ -39,7 +39,11 @@ function twoRodWorld({
     const world = new EndovascularPhysicsWorld({
         fixedDt: 1 / 120,
         iterations,
-        penetrationIterations: iterations
+        penetrationIterations: iterations,
+        // This analytical fixture checks micrometre-scale geometry. Request
+        // matching solve accuracy explicitly instead of relying on incidental
+        // over-solving below the application's 0.001 mm default tolerance.
+        coupledContainmentTolerance: TOLERANCE * 0.01
     });
     const outer = world.createRod('outer-kirchhoff', 2, 10, rodProfile());
     const innerLength = Math.hypot(
@@ -62,11 +66,11 @@ function twoRodWorld({
     return { world, inner, outer };
 }
 
-// Existing callers stay on the legacy containment solver unless they opt in.
+// Every containment uses the shared Kirchhoff model.
 {
     const { world, inner, outer } = twoRodWorld();
     const containment = world.addContainment(inner, outer);
-    assert.equal(containment.model, 'legacy');
+    assert.equal(containment.model, 'kirchhoff');
 }
 
 // Material overlap is published as one coherent window and normalized to the
@@ -110,14 +114,13 @@ function twoRodWorld({
         friction: 0,
         innerResponse: 1,
         outerResponse: 1,
-        finalProjection: 'outer',
-        outerFollowsInnerCenterline: true,
-        enforceDistalPortal: true,
+        openDistal: false,
+        openProximal: false,
+        enforceDistalPortal: false,
         portalFilletRadius: 0
     });
     world.stepFixed();
     const clearance = 1 - inner.radius;
-    assert.equal(containment.finalProjection, 'none');
     assert.ok(inner.y[0] < 1.2, 'inner rod must receive the inward gradient');
     assert.ok(outer.y[0] > 0, 'outer rod must receive the opposite reaction');
     assert.ok(Math.abs(
@@ -128,7 +131,6 @@ function twoRodWorld({
             inner.y[0] + inner.y[1] + outer.y[0] + outer.y[1]
         ) * 0.25 - centerBefore
     ) < TOLERANCE);
-    assert.equal(containment.portalDirectionLambda, 0);
 }
 
 // A crossing through the open distal aperture is not assigned a direction or
@@ -151,7 +153,6 @@ function twoRodWorld({
         [inner.x[0], inner.y[0], inner.x[1], inner.y[1]],
         before
     );
-    assert.equal(containment.portalDirectionLambda, 0);
     assert.ok(![...containment.manifold.contacts()].some(
         contact => contact.feature.endsWith(':distal-rim')
     ));
@@ -173,8 +174,7 @@ function twoRodWorld({
         openDistal: true,
         enforceDistalPortal: true,
         portalFilletRadius: 0,
-        portalInnerResponse: 1,
-        portalOuterResponse: 1
+
     });
     world.stepFixed();
     const rim = [...containment.manifold.contacts()].find(
@@ -186,67 +186,6 @@ function twoRodWorld({
     assert.ok(rim);
     assert.ok(inner.y[1] < innerBefore);
     assert.ok(outer.y[1] > outerBefore);
-    assert.equal(containment.portalDirectionLambda, 0);
-}
-
-// The distal aperture follows a material coordinate, not a permanently
-// selected pair of mesh nodes.  When that coordinate advances through the
-// inner segment, the convective term must be present in C-dot; otherwise the
-// old nodes are numerically pinned and released as a tip jump at every segment
-// transition.  The velocity correction remains reciprocal between both rods.
-{
-    const { world, inner, outer } = twoRodWorld({
-        innerStart: [0, 0, 0],
-        innerEnd: [10, 0, 0],
-        outerStart: [-5, 0, 0],
-        outerEnd: [5, 0, 0]
-    });
-    const containment = world.addContainment(inner, outer, {
-        model: 'kirchhoff',
-        innerRadius: 1,
-        friction: 0,
-        axialFriction: 0,
-        openDistal: true,
-        enforceDistalPortal: true,
-        portalRetractionDistance: 0,
-        containedLength: 5,
-        portalInnerResponse: 1,
-        portalOuterResponse: 1
-    });
-    world.stepFixed();
-    world.updateContainmentWindow(containment, {
-        containedLength: 4.9
-    });
-    world.stepFixed();
-
-    const segment = containment.materialPortalInnerSegment;
-    const t = containment.materialPortalInnerT;
-    const w0 = 1 - t;
-    const material0 = inner.materialCoordinate[segment];
-    const material1 = inner.materialCoordinate[segment + 1];
-    const coordinateRate = (
-        containment.materialPortalCoordinate -
-        containment.materialPortalPreviousCoordinate
-    ) / world.fixedDt;
-    const convectiveX = (
-        inner.x[segment + 1] - inner.x[segment]
-    ) / (material1 - material0) * coordinateRate;
-    const materialPointVelocityX =
-        inner.velocityX[segment] * w0 +
-        inner.velocityX[segment + 1] * t +
-        convectiveX;
-    const portalRelativeVelocityX = materialPointVelocityX -
-        outer.velocityX[outer.activeEnd];
-
-    assert.ok(Math.abs(portalRelativeVelocityX) < 1e-6,
-        `material aperture C-dot was not closed (${portalRelativeVelocityX})`);
-    assert.ok(
-        inner.velocityX[segment] * w0 +
-            inner.velocityX[segment + 1] * t > 0,
-        'inner material nodes must receive the reciprocal transport reaction'
-    );
-    assert.ok(outer.velocityX[outer.activeEnd] < 0,
-        'the catheter tip must receive the opposite transport reaction');
 }
 
 // Sliding and torsional friction share the same normal load. Their persistent

@@ -3,8 +3,8 @@ import {
     DEFAULT_TOOL_PROFILES,
     EndovascularPhysicsWorld
 } from '../src/physics/endovascularPhysicsWorld.js';
-import { ElasticRod } from '../src/physics/elasticRod.js';
-import { GuidewireSolver } from '../src/physics/guidewireSolver.js';
+import { RodState } from '../src/physics/rodState.js';
+import { GuidewireTransport } from '../src/physics/guidewireTransport.js';
 
 const FIXED_DT = 1 / 120;
 const OPERATOR_FEED_MM_PER_SECOND = 44;
@@ -33,25 +33,22 @@ assert.equal(
     'the guidewire swept-slide path must not change catheter collision physics'
 );
 
-const transportRod = new ElasticRod(21, 5);
-const transportSolver = new GuidewireSolver({
-    rod: transportRod,
-    segmentLength: 5,
-    guidewireLength: 100,
-    sheath: {
+const transportRod = new RodState(21, 5);
+const transportSolver = new GuidewireTransport({
+        rod: transportRod,
+        segmentLength: 5,
+        guidewireLength: 100,
+        sheath: {
         start: { x: 0, y: 0, z: 0 },
         end: { x: 20, y: 0, z: 0 },
         radius: 1
     },
-    advanceRate: OPERATOR_FEED_MM_PER_SECOND,
-    minInsert: 0,
-    maxInsert: 100
-});
+        advanceRate: OPERATOR_FEED_MM_PER_SECOND,
+        minInsert: 0,
+        maxInsert: 100
+    });
 transportSolver.initialize();
-const transportDelta = transportSolver.advance(1, FIXED_DT, null, {
-    routeAssist: false,
-    boundaryDriven: true
-});
+const transportDelta = transportSolver.advance(1, FIXED_DT);
 const transportStats = transportSolver.getPerformanceStats();
 assert.ok(
     Math.abs(transportDelta - OPERATOR_FEED_MM_PER_SECOND * FIXED_DT) < 1e-12,

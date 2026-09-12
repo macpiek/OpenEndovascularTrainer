@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-06T23:03:15.825Z",
+  "root": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+  "files": {
+    "src/physics/kirchhoffCompositeChain.js": "949097e7942b2646ba1ed17c3782eb37a959fe78de17d855b4d2aea8dc8780c9",
+    "tests/helpers/compositeColdMaterialFixture.js": "8a65aa6863cc3d507920aca0225265eb1be9b124740a34f41e7fc395cebb28e0",
+    "tests/fixtures/compositeColdMaterialReference.json": "b24d1db83615541b3ab227f6dee84ae330d27576631d0b8975c1adef78ddb8c0",
+    "tests/kirchhoffCompositeChainRefinement.test.js": "b93fd6f1e18bb52afe3b0ac90a785e3f6191e1d347cd112debd4d9dcb7122246",
+    "scripts/physics/probe-composite-cold-residual.mjs": "6e41f7b54e22f909b307729b092292d5d118b01195ab9635bbba8c673cdf3e31",
+    "scripts/physics/probe-composite-cold-residual.py": "53b89961a46bfe74b922ab88243f43c266d3e0892d809a7cb2fedc5afd6a240e"
+  },
+  "protectedCacheAndMeshUnchanged": {
+    "src/physics/kirchhoffCompositeMaterialCache.js": true,
+    "src/physics/kirchhoffCompositeMeshUpdate.js": true,
+    "src/physics/kirchhoffCompositeMesh.js": true
+  },
+  "originalMatrixRhsSha": {
+    "javascript": "f45421d27acec32b08800f5b60c5bcc0c97ff5c950f933b1a0718affc8829b8a",
+    "wasm": "f45421d27acec32b08800f5b60c5bcc0c97ff5c950f933b1a0718affc8829b8a"
+  },
+  "probeSourceStable": true,
+  "pipelineSourceStable": true,
+  "validation": {
+    "passed": 76,
+    "tests": 76,
+    "syntax": true,
+    "diffCheck": true
+  },
+  "api": "Additive only: maxRefinementSteps optional integer0..3(default2); result adds initialMaximumResidual,refinementSteps,linearSolves. Same original residual tolerance and norm. Same one factorization. No extra persistent buffers.",
+  "handoff": "Frozen. Root may now integrate/review; worker stops edits."
+}

@@ -1,0 +1,100 @@
+{
+  "status": "frozen",
+  "scope": "Contact-free, fixed-topology nonlinear timestep with explicit quasi-static torsion",
+  "patch": "/tmp/oet-composite-timestep-final-8996/composite-timestep.patch",
+  "patchSha256": "1bcea5ef9f2892de0b6eb169df84acf50fdc411556cc342999b5701a4d2f7f1a",
+  "files": {
+    "src/physics/kirchhoffCompositeTimeStep.js": "174139d52793c0585a2f68c4ecb64cb19ba339aff727faa7d2e898fde0e87efa",
+    "tests/kirchhoffCompositeTimeStep.test.js": "58bf84cb9ccc0b5f7771675143055a15d3566c6b8087c0de1042d7db893b6922"
+  },
+  "tests": {
+    "passed": 48,
+    "failed": 0,
+    "newTimeStepTests": 13,
+    "snapshot": "/tmp/oet-composite-timestep-test-liwi71md",
+    "command": "node --test --test-concurrency=1 tests/kirchhoffCompositeTimeStep.test.js tests/kirchhoffCompositeLengthConstraints.test.js tests/kirchhoffCompositeKinematics.test.js tests/kirchhoffCompositeChain.test.js"
+  },
+  "ownedSourcesMatchTestedSnapshot": true,
+  "gitApplyCheck": {
+    "target": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer",
+    "passed": true
+  },
+  "dependencies": {
+    "src/physics/kirchhoffCompositeChain.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeChain.js",
+      "sha256": "cbbb6c41b229515a5bdecbb46668378ab6a255b85a2b03a416dbb07e27bddc28",
+      "originCurrentSha256": "949097e7942b2646ba1ed17c3782eb37a959fe78de17d855b4d2aea8dc8780c9",
+      "originMatchesTestedSnapshot": false
+    },
+    "src/physics/kirchhoffCompositeElement.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElement.js",
+      "sha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "originCurrentSha256": "7446cfe5ea4db59f5b346b959c0250787f1274cbd08ceb79b5b6b9617934a457",
+      "originMatchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementFast.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFast.js",
+      "sha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+      "originCurrentSha256": "953838d2618bf1ac69aa09d31a723f1fddbbf0fe21fc2b3e39de5121cab3d29c",
+      "originMatchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeElementFastKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeElementFastKernelBytes.js",
+      "sha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+      "originCurrentSha256": "ebbe8cf6ed62dec1b8f6c5d1533823a430a412b71fd178ff36ceadf24eb862c9",
+      "originMatchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffLinearKernel.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernel.js",
+      "sha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+      "originCurrentSha256": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+      "originMatchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffLinearKernelBytes.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffLinearKernelBytes.js",
+      "sha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+      "originCurrentSha256": "9b68c99e5c5ad5cade9555147f3a023c069e83f0e049f5cc8698d9eb8b15b3ba",
+      "originMatchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeKinematics.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCompositeKinematics.js",
+      "sha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+      "originCurrentSha256": "8c283e4156d36e052e3bb245e6e7f31902a84f48c03f8d8fcfe940d746ad0001",
+      "originMatchesTestedSnapshot": true
+    },
+    "src/physics/kirchhoffCompositeLengthConstraints.js": {
+      "source": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer/src/physics/kirchhoffCompositeLengthConstraints.js",
+      "sha256": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+      "originCurrentSha256": "e955ea4ff5e7f718d427d7c1ed57071a651d984ef0a7747f296e5a0a5c199292",
+      "originMatchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeChain.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeChain.test.js",
+      "sha256": "4fc40b9737aa3060cc2190d2a1358a532eef227eead525103ef58f9224ca3890",
+      "originCurrentSha256": "4fc40b9737aa3060cc2190d2a1358a532eef227eead525103ef58f9224ca3890",
+      "originMatchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeKinematics.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/tests/kirchhoffCompositeKinematics.test.js",
+      "sha256": "2e6ea80284e0faf1be2439ffd9b8f26f2ee19eea3210e9bf4cc34be67eba42f9",
+      "originCurrentSha256": "2e6ea80284e0faf1be2439ffd9b8f26f2ee19eea3210e9bf4cc34be67eba42f9",
+      "originMatchesTestedSnapshot": true
+    },
+    "tests/kirchhoffCompositeLengthConstraints.test.js": {
+      "source": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer/tests/kirchhoffCompositeLengthConstraints.test.js",
+      "sha256": "196edeb1f2b6b88cad3f9b638be2a73c9d0f8679e63577a586509020e328388f",
+      "originCurrentSha256": "196edeb1f2b6b88cad3f9b638be2a73c9d0f8679e63577a586509020e328388f",
+      "originMatchesTestedSnapshot": true
+    }
+  },
+  "integrationNotes": [
+    "Length e955ea4f is sourced from validator 0827; root must import that module separately.",
+    "Chain is intentionally pinned to tested cbbb6c41 snapshot while Singer works on iterative refinement. Per root instruction no live Chain copy was performed.",
+    "The present global direction counter covers band solves before Chain refinement. After the frozen Chain refinement handoff, add a separate global backsolve counter/budget and rerun the combined suite."
+  ],
+  "lengthFreezeConfirmed": {
+    "by": "validator task 01a075f1-0fc8-7dc2-8cf9-4c0dbb0db5e5",
+    "manifest": "/Users/macpiek/.codex/worktrees/0827/OpenEndovascularTrainer/reports/composite-length-constraints-source.json",
+    "manifestSha256": "21e22fce0314d350f4f8b71076c83dad86cc56dfa4615d350bafe4798735b222"
+  }
+}

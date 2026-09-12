@@ -1,0 +1,45 @@
+{
+  "scope": "Production World whole-dt dispatch and transaction contract; controlled provider, not the physical adapter or UI",
+  "sourceStable": true,
+  "newTests": {
+    "tests": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "existingSplitTransaction": {
+    "tests": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "existingSchedulerTransaction": {
+    "tests": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "syntax": "PASS",
+  "frozenNewTests": "12/12 PASS",
+  "broaderLegacyTest": {
+    "file": "tests/endovascularPhysicsWorld.test.js",
+    "status": "FAIL at line 630",
+    "actual": 60,
+    "expected": 18,
+    "unchangedBodyControl": "Same mismatch with World class entirely absent; see body-control.json"
+  },
+  "bodyRollbackOwner": "The synchronous wholeStepSystem, which publishes atomically; World owns accepted-only clocks",
+  "timingControl": {
+    "type": "mocked clock correctness, NOT measured latency",
+    "initialPreparation": 3,
+    "providerWork": 5,
+    "providerRollback": 2,
+    "firstTotal": 10,
+    "retryAcceptedTotal": 5
+  },
+  "providerContract": {
+    "id": "nonempty string",
+    "step": "step(world,dt) -> synchronous {accepted:boolean,dt:requested dt,status:nonempty string,diagnostics?}",
+    "reset": "reset(world), invoked from resetSimulationState()",
+    "diagnosticsOwnership": "stable provider-owned result"
+  },
+  "noUISelection": true,
+  "noFPSClaim": true
+}

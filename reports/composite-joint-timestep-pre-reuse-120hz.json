@@ -1,0 +1,1276 @@
+{
+  "scope": "33 nodes, synthetic declared material parameters, no contacts, dt1/120, fresh physical workspace each dt, 30 pair warmups and50 measured pairs; Node only, not runtime/FPS",
+  "statistics": [
+    {
+      "totalMs": {
+        "median": 14.798999999999978,
+        "p95": 20.72458299999971
+      },
+      "preparationMs": {
+        "median": 5.119625000000042,
+        "p95": 11.304708000000119
+      },
+      "iterationMs": {
+        "median": 8.659708000000137,
+        "p95": 14.330832999999984
+      },
+      "commitMs": {
+        "median": 0.20379099999991013,
+        "p95": 0.4025419999998121
+      },
+      "directions": {
+        "median": 2,
+        "p95": 2
+      },
+      "evaluations": {
+        "median": 6,
+        "p95": 6
+      },
+      "fullAssemblies": {
+        "median": 2,
+        "p95": 2
+      },
+      "gradientAssemblies": {
+        "median": 4,
+        "p95": 4
+      }
+    },
+    {
+      "totalMs": {
+        "median": 10.146040999999968,
+        "p95": 16.57516600000008
+      },
+      "preparationMs": {
+        "median": 4.576791999999841,
+        "p95": 11.340249999999969
+      },
+      "iterationMs": {
+        "median": 4.642458999999917,
+        "p95": 8.20029199999999
+      },
+      "commitMs": {
+        "median": 0.2227499999999054,
+        "p95": 0.8126250000000255
+      },
+      "directions": {
+        "median": 1,
+        "p95": 1
+      },
+      "evaluations": {
+        "median": 4,
+        "p95": 4
+      },
+      "fullAssemblies": {
+        "median": 1,
+        "p95": 1
+      },
+      "gradientAssemblies": {
+        "median": 3,
+        "p95": 3
+      }
+    }
+  ],
+  "records": [
+    [
+      {
+        "accepted": true,
+        "totalMs": 15.578209000000015,
+        "preparationMs": 5.811083999999937,
+        "iterationMs": 9.44120799999996,
+        "commitMs": 0.32045799999991686,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 17.661957999999913,
+        "preparationMs": 10.26254199999994,
+        "iterationMs": 7.188625000000002,
+        "commitMs": 0.20829200000002857,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 12.422125000000051,
+        "preparationMs": 4.584209000000101,
+        "iterationMs": 7.611750000000029,
+        "commitMs": 0.224666999999954,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.033333999999968,
+        "preparationMs": 6.79016700000011,
+        "iterationMs": 5.009457999999995,
+        "commitMs": 0.23204200000009223,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 14.798999999999978,
+        "preparationMs": 5.119625000000042,
+        "iterationMs": 9.454250000000002,
+        "commitMs": 0.18908299999998235,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 11.790041999999858,
+        "preparationMs": 5.169374999999945,
+        "iterationMs": 6.329167000000098,
+        "commitMs": 0.28679200000010496,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 14.645958000000064,
+        "preparationMs": 4.288917000000083,
+        "iterationMs": 10.171875,
+        "commitMs": 0.18308400000000802,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.736083000000008,
+        "preparationMs": 4.313040999999885,
+        "iterationMs": 3.5502919999998994,
+        "commitMs": 4.871333999999933,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 14.920749999999998,
+        "preparationMs": 6.138999999999896,
+        "iterationMs": 8.28108300000008,
+        "commitMs": 0.4986670000000686,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 10.146040999999968,
+        "preparationMs": 5.47808299999997,
+        "iterationMs": 4.409375000000182,
+        "commitMs": 0.25537499999995816,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 17.641916000000037,
+        "preparationMs": 9.633666000000176,
+        "iterationMs": 7.802707999999939,
+        "commitMs": 0.20379099999991013,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 10.032167000000072,
+        "preparationMs": 5.0768750000002,
+        "iterationMs": 4.642458999999917,
+        "commitMs": 0.30991599999993014,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 12.337500000000091,
+        "preparationMs": 4.747583000000077,
+        "iterationMs": 7.376167000000123,
+        "commitMs": 0.21116600000004837,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.708707999999888,
+        "preparationMs": 4.505750000000035,
+        "iterationMs": 3.9804579999999987,
+        "commitMs": 0.2212090000000444,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 18.09945800000014,
+        "preparationMs": 10.9831250000002,
+        "iterationMs": 6.912832999999864,
+        "commitMs": 0.20174999999994725,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.802457999999888,
+        "preparationMs": 4.4597499999999854,
+        "iterationMs": 3.1858330000000024,
+        "commitMs": 0.15541699999994307,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 12.903500000000122,
+        "preparationMs": 6.248624999999947,
+        "iterationMs": 6.486084000000119,
+        "commitMs": 0.1668329999999969,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 13.074833999999782,
+        "preparationMs": 6.420249999999896,
+        "iterationMs": 6.347708999999895,
+        "commitMs": 0.3042920000000322,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 14.521833000000015,
+        "preparationMs": 5.488583000000062,
+        "iterationMs": 8.841625000000022,
+        "commitMs": 0.18933300000003328,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.240041999999903,
+        "preparationMs": 5.480166999999938,
+        "iterationMs": 6.477874999999813,
+        "commitMs": 0.2795000000000982,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 16.186582999999928,
+        "preparationMs": 4.091374999999971,
+        "iterationMs": 11.866375000000062,
+        "commitMs": 0.22679200000015953,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 19.209416000000147,
+        "preparationMs": 11.346625000000131,
+        "iterationMs": 6.947000000000116,
+        "commitMs": 0.9133330000001934,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 19.258000000000038,
+        "preparationMs": 8.200041000000056,
+        "iterationMs": 10.688875000000053,
+        "commitMs": 0.355167000000165,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 13.04041600000005,
+        "preparationMs": 6.135875000000169,
+        "iterationMs": 6.5582090000000335,
+        "commitMs": 0.34275000000002365,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 17.13991699999997,
+        "preparationMs": 5.3769589999999425,
+        "iterationMs": 11.467582999999877,
+        "commitMs": 0.2911659999999756,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 15.217124999999896,
+        "preparationMs": 10.002666999999974,
+        "iterationMs": 4.987082999999984,
+        "commitMs": 0.224083999999948,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 15.820916000000125,
+        "preparationMs": 5.4322910000000775,
+        "iterationMs": 10.140707999999904,
+        "commitMs": 0.246167000000014,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 16.213209000000006,
+        "preparationMs": 11.340249999999969,
+        "iterationMs": 4.648415999999997,
+        "commitMs": 0.2227499999999054,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 14.062041000000136,
+        "preparationMs": 4.813041000000112,
+        "iterationMs": 9.083124999999882,
+        "commitMs": 0.1641669999999067,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.142417000000023,
+        "preparationMs": 4.21283399999993,
+        "iterationMs": 3.754167000000052,
+        "commitMs": 0.17370900000014444,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 18.98404100000016,
+        "preparationMs": 3.922790999999961,
+        "iterationMs": 14.836582999999791,
+        "commitMs": 0.223084000000199,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.838457999999719,
+        "preparationMs": 5.6498750000000655,
+        "iterationMs": 6.9724999999998545,
+        "commitMs": 0.21370899999965332,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 15.81820800000014,
+        "preparationMs": 5.971625000000131,
+        "iterationMs": 9.661957999999686,
+        "commitMs": 0.1833329999999478,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 16.46145800000022,
+        "preparationMs": 12.448417000000063,
+        "iterationMs": 3.8379170000002887,
+        "commitMs": 0.1738749999999527,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 11.517791999999645,
+        "preparationMs": 4.117209000000003,
+        "iterationMs": 7.245208000000275,
+        "commitMs": 0.15354200000001583,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.778374999999869,
+        "preparationMs": 3.960583999999926,
+        "iterationMs": 3.6498750000000655,
+        "commitMs": 0.16645800000014788,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 11.947333999999955,
+        "preparationMs": 3.77612500000032,
+        "iterationMs": 8.008792000000085,
+        "commitMs": 0.16029200000002675,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 14.473875000000135,
+        "preparationMs": 8.250875000000178,
+        "iterationMs": 6.026124999999865,
+        "commitMs": 0.1948330000000169,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 12.66195800000014,
+        "preparationMs": 4.824000000000069,
+        "iterationMs": 7.542790999999852,
+        "commitMs": 0.29179199999998673,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 16.57516600000008,
+        "preparationMs": 9.003208000000086,
+        "iterationMs": 7.196666000000278,
+        "commitMs": 0.3708339999998316,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 26.177999999999884,
+        "preparationMs": 16.327374999999847,
+        "iterationMs": 9.566917000000103,
+        "commitMs": 0.2819160000003649,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 11.387499999999818,
+        "preparationMs": 6.48804199999995,
+        "iterationMs": 4.698458000000301,
+        "commitMs": 0.1992089999998825,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 19.217541999999867,
+        "preparationMs": 5.6044590000001335,
+        "iterationMs": 13.439833000000363,
+        "commitMs": 0.17045899999993708,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.587416000000303,
+        "preparationMs": 3.8825000000001637,
+        "iterationMs": 4.470040999999583,
+        "commitMs": 0.23191699999961202,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 13.841917000000194,
+        "preparationMs": 5.671374999999898,
+        "iterationMs": 7.848041999999623,
+        "commitMs": 0.3192079999998896,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.112041999999747,
+        "preparationMs": 4.576791999999841,
+        "iterationMs": 3.375915999999961,
+        "commitMs": 0.15791699999999764,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 24.85983400000032,
+        "preparationMs": 3.757959000000028,
+        "iterationMs": 20.82062500000029,
+        "commitMs": 0.27999999999974534,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.759415999999874,
+        "preparationMs": 8.188874999999825,
+        "iterationMs": 4.273457999999664,
+        "commitMs": 0.2949579999999514,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 20.5082910000001,
+        "preparationMs": 11.304708000000119,
+        "iterationMs": 8.828665999999885,
+        "commitMs": 0.370375000000422,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.273791999999958,
+        "preparationMs": 6.794708999999784,
+        "iterationMs": 5.195957999999791,
+        "commitMs": 0.28129200000012133,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 16.564790999999786,
+        "preparationMs": 6.392582999999831,
+        "iterationMs": 9.96420900000021,
+        "commitMs": 0.20654100000001563,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 9.268082999999933,
+        "preparationMs": 4.720958000000337,
+        "iterationMs": 4.3270000000002256,
+        "commitMs": 0.21845799999982773,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 10.499541000000136,
+        "preparationMs": 3.9112910000003467,
+        "iterationMs": 6.420250000000124,
+        "commitMs": 0.16662500000029468,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.787624999999935,
+        "preparationMs": 4.163458999999875,
+        "iterationMs": 8.34945800000014,
+        "commitMs": 0.272707999999966,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 13.231667000000016,
+        "preparationMs": 5.350791999999728,
+        "iterationMs": 7.703791999999794,
+        "commitMs": 0.17437500000005457,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.32591599999978,
+        "preparationMs": 3.8600830000000315,
+        "iterationMs": 4.229417000000012,
+        "commitMs": 0.23404200000004494,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 11.60287500000004,
+        "preparationMs": 4.88149999999996,
+        "iterationMs": 6.5377910000001975,
+        "commitMs": 0.18229100000007747,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 10.853500000000167,
+        "preparationMs": 4.1354160000000775,
+        "iterationMs": 5.889791999999943,
+        "commitMs": 0.8126250000000255,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 17.06874999999991,
+        "preparationMs": 6.637083999999959,
+        "iterationMs": 10.24133299999994,
+        "commitMs": 0.18812500000012733,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 15.201916999999867,
+        "preparationMs": 6.701458000000002,
+        "iterationMs": 8.173416999999972,
+        "commitMs": 0.32524999999986903,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 19.000499999999647,
+        "preparationMs": 10.760792000000038,
+        "iterationMs": 8.045334000000366,
+        "commitMs": 0.19274999999970532,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.660915999999816,
+        "preparationMs": 3.837999999999738,
+        "iterationMs": 4.592000000000098,
+        "commitMs": 0.22754200000008495,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 20.72458299999971,
+        "preparationMs": 11.496166999999787,
+        "iterationMs": 8.892749999999978,
+        "commitMs": 0.3324170000000777,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.803333000000293,
+        "preparationMs": 3.963583000000199,
+        "iterationMs": 4.658374999999978,
+        "commitMs": 0.1792499999996835,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 11.673958000000312,
+        "preparationMs": 4.103917000000365,
+        "iterationMs": 7.399041000000125,
+        "commitMs": 0.16958399999975882,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.932083000000148,
+        "preparationMs": 3.473207999999886,
+        "iterationMs": 4.202709000000141,
+        "commitMs": 0.24125000000003638,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 13.805457999999817,
+        "preparationMs": 3.8316249999998035,
+        "iterationMs": 9.807416999999987,
+        "commitMs": 0.1650419999996302,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.923749999999927,
+        "preparationMs": 4.249832999999853,
+        "iterationMs": 8.20029199999999,
+        "commitMs": 0.4710840000002463,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 15.205375000000004,
+        "preparationMs": 6.873541999999816,
+        "iterationMs": 8.09920800000009,
+        "commitMs": 0.2308339999999589,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.934708000000228,
+        "preparationMs": 4.072040999999899,
+        "iterationMs": 3.705832999999984,
+        "commitMs": 0.15574999999989814,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 11.855000000000018,
+        "preparationMs": 4.038708000000042,
+        "iterationMs": 7.654375000000073,
+        "commitMs": 0.16066700000010314,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.476165999999921,
+        "preparationMs": 3.754374999999982,
+        "iterationMs": 4.5050420000002305,
+        "commitMs": 0.21391599999969912,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 12.978165999999874,
+        "preparationMs": 3.212040999999772,
+        "iterationMs": 9.50604199999998,
+        "commitMs": 0.2587499999999636,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.295500000000175,
+        "preparationMs": 4.165875000000142,
+        "iterationMs": 3.9349590000001626,
+        "commitMs": 0.1916670000000522,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 9.759915999999976,
+        "preparationMs": 3.3715409999999792,
+        "iterationMs": 6.2339170000000195,
+        "commitMs": 0.15337500000032378,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 8.70883300000014,
+        "preparationMs": 4.970083000000159,
+        "iterationMs": 3.5833749999997053,
+        "commitMs": 0.15374999999994543,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 13.4448339999999,
+        "preparationMs": 4.616250000000036,
+        "iterationMs": 8.659708000000137,
+        "commitMs": 0.1671249999999418,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 9.571249999999964,
+        "preparationMs": 3.6462910000000193,
+        "iterationMs": 5.492541999999958,
+        "commitMs": 0.4270000000001346,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 17.228166999999758,
+        "preparationMs": 5.954041999999845,
+        "iterationMs": 10.959333000000242,
+        "commitMs": 0.3106670000001941,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 16.394541000000117,
+        "preparationMs": 10.800666000000092,
+        "iterationMs": 5.308833999999933,
+        "commitMs": 0.2826249999998254,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 12.283042000000023,
+        "preparationMs": 5.200124999999844,
+        "iterationMs": 6.921875,
+        "commitMs": 0.15945800000008603,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 9.962125000000015,
+        "preparationMs": 4.511500000000069,
+        "iterationMs": 5.286583000000064,
+        "commitMs": 0.16241600000012113,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 16.904415999999856,
+        "preparationMs": 5.280416000000059,
+        "iterationMs": 11.449542000000292,
+        "commitMs": 0.17279199999984485,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.154458999999861,
+        "preparationMs": 3.430333999999675,
+        "iterationMs": 3.558665999999903,
+        "commitMs": 0.16404199999988123,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 13.411207999999988,
+        "preparationMs": 4.559624999999869,
+        "iterationMs": 8.583458999999948,
+        "commitMs": 0.26474999999982174,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 12.838083000000097,
+        "preparationMs": 3.8078330000003007,
+        "iterationMs": 8.865624999999909,
+        "commitMs": 0.16254200000003038,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 10.74791600000026,
+        "preparationMs": 4.530040999999983,
+        "iterationMs": 6.049208999999792,
+        "commitMs": 0.16762500000004366,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.6845830000002024,
+        "preparationMs": 4.2002080000002024,
+        "iterationMs": 3.3232499999999163,
+        "commitMs": 0.15979199999992488,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 15.945749999999862,
+        "preparationMs": 3.1272079999998823,
+        "iterationMs": 12.412207999999737,
+        "commitMs": 0.4025419999998121,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 9.85525000000007,
+        "preparationMs": 4.602124999999887,
+        "iterationMs": 5.040042000000085,
+        "commitMs": 0.1956659999996191,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 13.996750000000247,
+        "preparationMs": 5.060458000000381,
+        "iterationMs": 8.563250000000153,
+        "commitMs": 0.3673750000002656,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.897040999999717,
+        "preparationMs": 3.257415999999921,
+        "iterationMs": 4.477666999999656,
+        "commitMs": 0.16054200000007768,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 15.20837500000016,
+        "preparationMs": 7.116790999999921,
+        "iterationMs": 7.82629100000031,
+        "commitMs": 0.26291700000001583,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.947291000000405,
+        "preparationMs": 4.311875000000327,
+        "iterationMs": 3.4832910000000084,
+        "commitMs": 0.15041599999995015,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 10.51870800000006,
+        "preparationMs": 3.7379580000001624,
+        "iterationMs": 6.576916999999867,
+        "commitMs": 0.20270799999980227,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 6.680917000000136,
+        "preparationMs": 3.2827080000001843,
+        "iterationMs": 3.2527909999998883,
+        "commitMs": 0.14429199999995035,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 11.844167000000198,
+        "preparationMs": 4.5044590000002245,
+        "iterationMs": 7.140292000000045,
+        "commitMs": 0.19687500000009095,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 7.671792000000096,
+        "preparationMs": 3.318000000000211,
+        "iterationMs": 4.149041000000125,
+        "commitMs": 0.2035000000000764,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ],
+    [
+      {
+        "accepted": true,
+        "totalMs": 19.225916000000325,
+        "preparationMs": 4.321291000000201,
+        "iterationMs": 14.330832999999984,
+        "commitMs": 0.571458000000348,
+        "directions": 2,
+        "evaluations": 6,
+        "fullAssemblies": 2,
+        "gradientAssemblies": 4
+      },
+      {
+        "accepted": true,
+        "totalMs": 11.207584000000224,
+        "preparationMs": 5.98700000000008,
+        "iterationMs": 4.585417000000234,
+        "commitMs": 0.6324579999995876,
+        "directions": 1,
+        "evaluations": 4,
+        "fullAssemblies": 1,
+        "gradientAssemblies": 3
+      }
+    ]
+  ],
+  "sourceStateNote": "Captured before ToolLengths gradient-only optimization and JointTimeStep/JointAssembly persistent workspace changes. Do not attribute a later cross-run delta solely to workspace reuse; benchmark current cold and reused paths together."
+}
