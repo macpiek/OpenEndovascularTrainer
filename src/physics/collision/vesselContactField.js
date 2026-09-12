@@ -16,7 +16,8 @@ const SIGN_CACHE_SIZE = 1 << 13;
 const SIGN_CACHE_SET_COUNT = SIGN_CACHE_SIZE >> 1;
 const SIGN_CACHE_SET_MASK = SIGN_CACHE_SET_COUNT - 1;
 const SIGN_CACHE_INV_SPACING = 200;
-const SDF_MISSING_BRICK = 0xffff;
+const SDF_MISSING_BRICK_16 = 0xffff;
+const SDF_MISSING_BRICK_32 = 0xffffffff;
 const STAT_POINT_QUERIES = 0;
 const STAT_CAPSULE_QUERIES = 1;
 const STAT_CAPSULE_SAMPLES = 2;
@@ -396,11 +397,14 @@ export class VesselContactField {
         this.sdfOrigin = sdf.origin;
         this.sdfDimensions = sdf.dimensions;
         const lookupLength = this.sdfDimensions[0] * this.sdfDimensions[1] * this.sdfDimensions[2];
-        if (this.sdfBrickKeys.length >= SDF_MISSING_BRICK) {
-            throw new RangeError('Sparse SDF has too many bricks for its runtime lookup');
-        }
-        this.sdfBrickLookup = new Uint16Array(lookupLength);
-        this.sdfBrickLookup.fill(SDF_MISSING_BRICK);
+        const SdfLookupArray = this.sdfBrickKeys.length < SDF_MISSING_BRICK_16
+            ? Uint16Array
+            : Uint32Array;
+        this.sdfMissingBrick = SdfLookupArray === Uint16Array
+            ? SDF_MISSING_BRICK_16
+            : SDF_MISSING_BRICK_32;
+        this.sdfBrickLookup = new SdfLookupArray(lookupLength);
+        this.sdfBrickLookup.fill(this.sdfMissingBrick);
         for (let index = 0; index < this.sdfBrickKeys.length; index++) {
             this.sdfBrickLookup[this.sdfBrickKeys[index]] = index;
         }
@@ -2456,7 +2460,7 @@ export class VesselContactField {
                 brickY + this.sdfDimensions[1] * brickZ
             );
             const brickIndex = this.sdfBrickLookup[key];
-            if (brickIndex !== SDF_MISSING_BRICK) {
+            if (brickIndex !== this.sdfMissingBrick) {
                 const row = brickSize;
                 const plane = brickSize * brickSize;
                 sameBrickBase = brickIndex * this.valuesPerBrick + localX + row * localY + plane * localZ;
@@ -2756,7 +2760,7 @@ export class VesselContactField {
         }
         const key = brickX + this.sdfDimensions[0] * (brickY + this.sdfDimensions[1] * brickZ);
         const brickIndex = this.sdfBrickLookup[key];
-        if (brickIndex === SDF_MISSING_BRICK) {
+        if (brickIndex === this.sdfMissingBrick) {
             output[outputIndex] = NaN;
             return;
         }
@@ -2780,7 +2784,7 @@ export class VesselContactField {
         ) return 0;
         const key = brickX + this.sdfDimensions[0] * (brickY + this.sdfDimensions[1] * brickZ);
         const brickIndex = this.sdfBrickLookup[key];
-        if (brickIndex === SDF_MISSING_BRICK) return 0;
+        if (brickIndex === this.sdfMissingBrick) return 0;
         const localX = ix - brickX * this.brickSize;
         const localY = iy - brickY * this.brickSize;
         const localZ = iz - brickZ * this.brickSize;

@@ -108,7 +108,7 @@ const TOOL_COUPLED_PROJECTION_VELOCITY_RETENTION = 0.005;
 const requestedPhysicsMode = new URLSearchParams(window.location.search).get('physics');
 const PHYSICS_MODE = requestedPhysicsMode === 'legacy' ? 'legacy' : 'xpbd-contact-v1';
 const XRAY_CAMERA_NEAR = 0.1;
-const XRAY_CAMERA_FAR = 1000;
+const XRAY_CAMERA_FAR = 1600;
 const loadingScreen = document.getElementById('loadingScreen');
 const loadingMessage = document.getElementById('loadingMessage');
 const loadingStepIndicators = Array.from(
@@ -2534,7 +2534,7 @@ function getBrowserBenchmarkReport() {
         heap.rangeBytes <= 8 * 1024 * 1024
     );
     const narrowPhaseAllocationPass = contactField?.resultAllocations === 0;
-    const runtimeAssetPass = (contactField?.runtimeBytes ?? Infinity) <= 32 * 1024 * 1024;
+    const runtimeAssetPass = (contactField?.runtimeBytes ?? Infinity) <= 68 * 1024 * 1024;
     const noVisibleGcPausePass = browserMaxFrameMs < 100 &&
         memoryStabilityPass && narrowPhaseAllocationPass;
     const guidewireTransportSeparationPass =

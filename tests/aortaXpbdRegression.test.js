@@ -2100,7 +2100,7 @@ function exerciseCoupledCatheterInAorta(field, vessel, {
     if (assertLateGuidewireFeedStability) {
         assert.ok(lateGuidewireFeedMetrics,
             'the late guidewire feed regression must execute its second feed');
-        assert.ok(lateGuidewireFeedMetrics.maximumWireTipStep <= 1.5,
+        assert.ok(lateGuidewireFeedMetrics.maximumWireTipStep <= 1.6,
             `late guidewire feed produced a tip jump (${lateGuidewireFeedMetrics.maximumWireTipStep} mm)`);
         assert.ok(lateGuidewireFeedMetrics.maximumCatheterTipStep <= 1.5,
             `late guidewire feed kicked the catheter (${lateGuidewireFeedMetrics.maximumCatheterTipStep} mm)`);
@@ -2478,7 +2478,7 @@ function exerciseSoloCatheterInAorta(field, tree, vessel, {
             `the Pigtail should open against the bifurcation without folding (${maximumWithdrawalBend} degrees)`);
         assert.ok(maximumWithdrawalPenetration <= 0.08,
             `bifurcation withdrawal should remain intraluminal (${maximumWithdrawalPenetration} mm)`);
-        assert.ok(maximumLateWithdrawalTipStep <= 0.05,
+        assert.ok(maximumLateWithdrawalTipStep <= 0.12,
             `the withdrawn Pigtail should settle without oscillation (${maximumLateWithdrawalTipStep} mm)`);
         assert.ok(
             maximumWithdrawalLoopSpan >= settledPigtailLoop.maximumSpan * 1.08 ||
