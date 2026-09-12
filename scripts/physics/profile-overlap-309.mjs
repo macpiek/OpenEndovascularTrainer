@@ -14,6 +14,7 @@ class World extends EndovascularPhysicsWorld {
     }
 }
 const report = { scope: 'Node physics replay; same depths and defaults, not the exact browser contact history or rendered FPS',
+    interToolFriction: process.env.OET_INTER_TOOL_FRICTION === '1',
     compactContactTrial: process.env.OET_COMPACT_CONTACT_TRIAL !== '0',
     reuseCandidateEvaluation: process.env.OET_REUSE_CANDIDATE_EVALUATION !== '0',
     reuseAcceptedEvaluation: process.env.OET_REUSE_ACCEPTED_EVALUATION !== '0',
@@ -43,7 +44,7 @@ function physicalHash(fixture) {
 for (const scenario of ['wire-alone', 'catheter-alone', 'overlap']) {
     const anatomy = await loadCoupledRuntimeAnatomy();
     let linear = [];
-    const fixture = createCoupledRuntimeFixture({ ...anatomy, World, coupledSystem: {
+    const fixture = createCoupledRuntimeFixture({ ...anatomy, World, interToolFriction: report.interToolFriction, coupledSystem: {
         independentComponents: true, physicalTrialState: true, earlyTrialRejection: true,
         compactContactTrial: report.compactContactTrial,
         reuseCandidateEvaluation: report.reuseCandidateEvaluation,
@@ -59,7 +60,7 @@ for (const scenario of ['wire-alone', 'catheter-alone', 'overlap']) {
     const record = { scenario, phases: [] };
     report.scenarios.push(record);
     report.config ??= Object.fromEntries(Object.entries(fixture.config).filter(([,v]) => ['number','boolean','string'].includes(typeof v)));
-    async function phase(name, tool, target, hold = 0) {
+    async function phase(name, tool, target, hold = 0, extraCommands = {}) {
         const rows = [], start = tool === 'guidewire' ? fixture.transport.progress : fixture.catheter.progress;
         const direction = Math.sign(target - start);
         const rate = tool === 'guidewire' ? 44 : direction < 0 ? 32 : 52;
@@ -67,7 +68,7 @@ for (const scenario of ['wire-alone', 'catheter-alone', 'overlap']) {
         for (let i=0;i<count;i++) {
             linear = [];
             const t = performance.now();
-            const result = fixture.step(tool ? { [tool+'Advance']: direction * Math.min(1, Math.max(0,(Math.abs(target-start)-i*rate/120)/(rate/120))) } : {});
+            const result = fixture.step({ ...extraCommands, ...(tool ? { [tool+'Advance']: direction * Math.min(1, Math.max(0,(Math.abs(target-start)-i*rate/120)/(rate/120))) } : {}) });
             const fullMs = performance.now()-t, w = fixture.world;
             rows.push({ fullMs, wireMm: fixture.transport.progress, catheterMm: fixture.catheter.progress,
                 poseHashes: w.bodies.map(poseFingerprint),
@@ -77,6 +78,11 @@ for (const scenario of ['wire-alone', 'catheter-alone', 'overlap']) {
                 backtracks: w.lastJointBacktracks, rows: w.lastJointMaximumRows, factorizations: w.lastJointFactorizations,
                 solver: w.lastCoupledSolver, failure: w.lastJointNonlinearFailure ?? null, rejected: result.accepted === false,
                 penetrationMm: w.settledMaxPenetration,
+                lumenPenetrationMm: fixture.containment.kirchhoffMaxViolation,
+                lumenFrictionRows: fixture.containment._jointFrictionBatch?.rows.length ?? 0,
+                lumenNormalContacts: fixture.containment.kirchhoffContacts.length,
+                maximumLumenTangentialForce: Math.max(0, ...[...fixture.containment.manifold.contacts()].map(c => Math.hypot(...c.tangentLambda, c.twistLambda))),
+                finitePose: w.bodies.every(b => ['x','y','z','orientationX','orientationY','orientationZ','orientationW'].every(k => b[k].every(Number.isFinite))),
                 activeNodes: w.bodies.map(b => b.activeEnd-b.activeStart+1),
                 linear: linear.map(d => Object.fromEntries(Object.entries(d).filter(([k,v]) =>
                     typeof v === 'number' || typeof v === 'boolean' || typeof v === 'string'))) });
@@ -102,6 +108,12 @@ for (const scenario of ['wire-alone', 'catheter-alone', 'overlap']) {
                 await phase('catheter-withdraw-80', 'catheter', 80);
                 await phase('catheter-refeed-100', 'catheter', 100);
             }
+        }
+        if (scenario === 'overlap' && process.env.OET_VERIFY_BOTH === '1') {
+            await phase('both-feed-120', 'catheter', 120, 0, { guidewireAdvance: 1 });
+            await phase('wire-withdraw-inside', 'guidewire', 309);
+            await phase('wire-rotate-inside', null, 0, 30, { guidewireRotation: 1 });
+            await phase('catheter-rotate-over-wire', null, 0, 30, { catheterRotation: 1 });
         }
     } finally { fixture.dispose(); anatomy.dispose(); }
 }

@@ -1,3 +1,4 @@
+import { FRICTIONLESS_LUMEN_RESIDUAL } from './kirchhoffFrictionlessLumen.js';
 import { TOOL_MAX_BEND_ANGLE_DEGREES } from './kirchhoffToolRuntime.js';
 import { lineSearchLevel, createLineSearchStats, recordLineSearchTrial } from './kirchhoffLineSearch.js';
 import { beginKirchhoffWallWitnessFrictionModes, evaluateKirchhoffWallWitnessFrictionCandidate, prepareKirchhoffWallWitnessFrictionRetry, commitKirchhoffWallWitnessFrictionModes } from './kirchhoffWallWitnessFrictionMode.js';
@@ -1126,6 +1127,7 @@ export class EndovascularPhysicsWorld {
         innerRadius = outerBody.innerRadius,
         compliance = 0,
         friction = outerBody.lumenFriction,
+        surfaceFrictionEnabled = true,
         axialFriction = friction,
         torsionalFriction = friction,
         radialVelocityDamping = 0.9,
@@ -1155,9 +1157,10 @@ export class EndovascularPhysicsWorld {
             outerBody,
             innerRadius,
             compliance,
-            friction,
-            axialFriction: Math.max(0, axialFriction),
-            torsionalFriction: Math.max(0, torsionalFriction),
+            surfaceFrictionEnabled,
+            friction: surfaceFrictionEnabled ? friction : 0,
+            axialFriction: surfaceFrictionEnabled ? Math.max(0, axialFriction) : 0,
+            torsionalFriction: surfaceFrictionEnabled ? Math.max(0, torsionalFriction) : 0,
             // Blood and the lubricious coatings in the narrow annular gap
             // oppose transverse relative motion much more strongly than
             // axial sliding. This is a velocity-level, momentum-conserving
@@ -1198,7 +1201,8 @@ export class EndovascularPhysicsWorld {
             innerArcOffset,
             containedLength,
             manifold: new KirchhoffContactManifold({
-                    frictionCoefficient: Math.max(0, axialFriction),
+                    normalOnly: !surfaceFrictionEnabled,
+                    frictionCoefficient: surfaceFrictionEnabled ? Math.max(0, axialFriction) : 0,
                     retentionSteps: 1
                 }),
             kirchhoffOuterSegmentByInner: new Int32Array(innerBody.segmentCount),
@@ -2807,9 +2811,9 @@ export class EndovascularPhysicsWorld {
             prepareKirchhoffSplitBoundaryRows(constraint, options.additionalRows);
             options.materialStrainOffsets = constraint._splitMotion?.materialStrainOffsets ?? undefined;
             options.groups.length = 0;
-            const frictionBatch = buildKirchhoffCoupledFrictionRows(constraint, this.fixedDt,
-                constraint._jointFrictionBatch ??= {});
-            appendKirchhoffCoupledFrictionRows(frictionBatch, options.additionalRows, options.groups);
+            const frictionBatch = constraint.surfaceFrictionEnabled === false ? null
+                : buildKirchhoffCoupledFrictionRows(constraint, this.fixedDt, constraint._jointFrictionBatch ??= {});
+            if (frictionBatch) appendKirchhoffCoupledFrictionRows(frictionBatch, options.additionalRows, options.groups);
             const externalBatch = buildKirchhoffExternalFrictionRows(constraint, options.additionalRows,
                 this.fixedDt, constraint._jointExternalFrictionBatch ??= {});
             appendKirchhoffExternalFrictionRows(externalBatch, options.additionalRows, options.groups);
@@ -2893,7 +2897,7 @@ export class EndovascularPhysicsWorld {
                     const contact = constraint.kirchhoffContacts[index].manifoldContact;
                     contact.normalLambda = Math.max(0, contact.normalLambda + result.scale * result.contactIncrement[index]);
                 }
-                commitKirchhoffCoupledFrictionMultipliers(frictionBatch, result.additionalIncrement, result.scale);
+                if (frictionBatch) commitKirchhoffCoupledFrictionMultipliers(frictionBatch, result.additionalIncrement, result.scale);
                 commitKirchhoffExternalFrictionMultipliers(externalBatch, result.additionalIncrement, result.scale);
                 if (wallBatch) commitKirchhoffSplitWallFriction(wallBatch, result.additionalIncrement, result.scale);
                 if (witnessFrictionBatch) commitKirchhoffWallWitnessFriction(witnessFrictionBatch, result.additionalIncrement, result.scale);
@@ -3059,8 +3063,9 @@ export class EndovascularPhysicsWorld {
         prepareKirchhoffSplitLumenRows(constraint);
         const cacheFriction = this.coupledSystem.reuseAcceptedEvaluation !== false && hasLumen &&
             constraint.kirchhoffContacts.length > 0 && !constraint._splitMotion && !constraint._usesWallWitnesses;
-        const frictionResidual = measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt,
-            constraint._jointFrictionResidual ??= {}, { cacheInputs: cacheFriction, reuseInputs: reuseAccepted });
+        const frictionResidual = constraint.surfaceFrictionEnabled === false ? FRICTIONLESS_LUMEN_RESIDUAL
+            : measureKirchhoffCoupledFrictionResidual(constraint, this.fixedDt,
+                constraint._jointFrictionResidual ??= {}, { cacheInputs: cacheFriction, reuseInputs: reuseAccepted });
         if (frictionResidual.reusedEvaluation) this.lastJointCosts.acceptedFrictionReuseCount++;
         let coneRepair = null;
         if (!constraint._splitMotion && repairCone && frictionResidual.maximumConeViolation > 1e-9) {
@@ -3188,7 +3193,7 @@ export class EndovascularPhysicsWorld {
             adaptation: materialResidual.adaptationMm / mm, bendTwist: materialResidual.bendTwistRad / rad,
             fold: foldResidual.maximumResidual / rad, positionalFold: foldResidual.maximumPositionalViolation / rad,
             orientation: orientationResidual.maximumResidualRad / rad,
-            lumenFriction: measureKirchhoffFrictionMerit(frictionResidual._batch, constraint._jointFrictionMerit ??= {}).maximumMm / mm,
+            lumenFriction: constraint.surfaceFrictionEnabled === false ? 0 : measureKirchhoffFrictionMerit(frictionResidual._batch, constraint._jointFrictionMerit ??= {}).maximumMm / mm,
             externalFriction: measureKirchhoffFrictionMerit(externalFrictionResidual._batch, constraint._jointExternalFrictionMerit ??= {}).maximumMm / mm,
             wallFriction: wallPhysicalFriction ? measureKirchhoffFrictionMerit(wallPhysicalFriction._batch, constraint._jointSplitWallFrictionMerit ??= {}).maximumMm / mm : 0,
             lumenNormal: constraint.kirchhoffSolverResidual / mm,

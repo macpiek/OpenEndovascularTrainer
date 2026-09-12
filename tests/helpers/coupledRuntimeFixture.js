@@ -35,6 +35,7 @@ export const COUPLED_RUNTIME_DEFAULTS = Object.freeze({
     catheterPhysicsSpacing: CATHETER_PHYSICS_SPACING_MM,
     catheterBodyCount: catheterPhysicsNodeCount(1000, CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM),
     wireAdvanceRate: 44, catheterAdvanceRate: 52, catheterWithdrawRate: 32,
+    interToolFriction: true, // Legacy reference; app mode can explicitly disable it.
     rotationRate: Math.PI * 0.9
 });
 
@@ -116,6 +117,7 @@ export function createCoupledRuntimeFixture({
         proximalExtension: CATHETER_PROXIMAL_LOADING_SUPPORT_LENGTH_MM,
         bodies: [wireBody, catheterBody] });
     const containment = world.addContainment(wireBody, catheterBody, {
+        surfaceFrictionEnabled: config.interToolFriction,
         model: 'kirchhoff', innerRadius: PIGTAIL_CATHETER_INNER_RADIUS_MM,
         friction: DEFAULT_TOOL_PROFILES.catheter.lumenFriction,
         axialFriction: DEFAULT_TOOL_PROFILES.catheter.lumenAxialFriction,
@@ -125,7 +127,7 @@ export function createCoupledRuntimeFixture({
         enforceDistalPortal: true, containedLength: 0, enabled: false
     });
     const externalContact = world.addToolContact(wireBody, catheterBody, {
-        friction: 0.08, openDistalB: true, enabled: false
+        friction: config.interToolFriction ? 0.08 : 0, openDistalB: true, enabled: false
     });
 
     function reset() {

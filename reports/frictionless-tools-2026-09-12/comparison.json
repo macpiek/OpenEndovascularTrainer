@@ -1,0 +1,5277 @@
+{
+  "node": "v24.6.0",
+  "stepsPerRun": 2733,
+  "newRunDeterminismDifferences": [],
+  "sourceSHA256": {
+    "src/simulator.js": "fa914fc63b27662cbbe80bf431f6c083bdd1b7a6c6eb28695461d33ce3f0aa93",
+    "src/physics/endovascularPhysicsWorld.js": "dd137f431eb11c22ba497b2d2a17e865e679f07e90ecaa26bd7385d79a829565",
+    "src/physics/kirchhoffContactManifold.js": "0cab285c8f581d055c16f5233261f771b666a48b97cb596f3e2bb4fc79f79d3b",
+    "src/physics/kirchhoffFrictionlessLumen.js": "96ed3d796710e94de968e757a46eaa645cb78b7033bb3cdcc31c242ee2b21a28",
+    "tests/kirchhoffFrictionlessLumen.test.js": "c8bb33f151a14fc863d07dc3e89542f2e384b12db0a8cd661bd1d9beb5acd542",
+    "tests/helpers/coupledRuntimeFixture.js": "69732e6a397b2c41e9c5a605e23865fac107d8dbb9d9cadc514c125dfd380edd",
+    "scripts/physics/profile-overlap-309.mjs": "c05f02abc47f1dc6e86f718258ce5146b6fb198ad221d77a1e8754bd7548d8da"
+  },
+  "phases": [
+    {
+      "scenario": "wire-alone",
+      "phase": "wire-feed-309",
+      "steps": 843,
+      "runs": {
+        "before-1": {
+          "meanMs": 2.3195904042553246,
+          "p95Ms": 3.815041000000292,
+          "meanCosts": {
+            "assemblyMs": 0.09096440425534463,
+            "solveMs": 0.9962526170213212,
+            "applyMs": 0.026227021276602674,
+            "snapshotMs": 0.37935734042555347,
+            "restoreMs": 0,
+            "measureMs": 0.44004180851060426,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.19516748936173323,
+            "schurMs": 0.10857729787232258,
+            "contactSolveMs": 0.019101234042544945,
+            "reconstructionMs": 0.03198759574471741,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        },
+        "after-1": {
+          "meanMs": 2.2392199361701617,
+          "p95Ms": 3.2655829999998787,
+          "meanCosts": {
+            "assemblyMs": 0.08541651063830827,
+            "solveMs": 0.9829894468085281,
+            "applyMs": 0.025378765957418396,
+            "snapshotMs": 0.36181738297868155,
+            "restoreMs": 0,
+            "measureMs": 0.3913511489361244,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.18873040425527737,
+            "schurMs": 0.10856031914898538,
+            "contactSolveMs": 0.017226999999975498,
+            "reconstructionMs": 0.034553893617070806,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        },
+        "after-2": {
+          "meanMs": 2.227259744680831,
+          "p95Ms": 3.0890839999997297,
+          "meanCosts": {
+            "assemblyMs": 0.0907376170213401,
+            "solveMs": 0.9696195531914201,
+            "applyMs": 0.02626340425525841,
+            "snapshotMs": 0.35953559574464306,
+            "restoreMs": 0,
+            "measureMs": 0.3929952978723258,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.19201517021269382,
+            "schurMs": 0.10821557446812183,
+            "contactSolveMs": 0.017900702127598322,
+            "reconstructionMs": 0.032664148936177334,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        },
+        "before-2": {
+          "meanMs": 2.1750948723403996,
+          "p95Ms": 2.9225000000001273,
+          "meanCosts": {
+            "assemblyMs": 0.08859851063825191,
+            "solveMs": 0.9390976595744642,
+            "applyMs": 0.026120659574441193,
+            "snapshotMs": 0.3597695319148965,
+            "restoreMs": 0,
+            "measureMs": 0.39090685106384626,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.18485293617022955,
+            "schurMs": 0.1055442553190605,
+            "contactSolveMs": 0.01590774468082174,
+            "reconstructionMs": 0.030843212766053223,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        }
+      }
+    },
+    {
+      "scenario": "wire-alone",
+      "phase": "wire-hold",
+      "steps": 60,
+      "runs": {
+        "before-1": {
+          "meanMs": 0.9581966166666689,
+          "p95Ms": 1.815791999999874,
+          "meanCosts": {
+            "assemblyMs": 0.04686603333335218,
+            "solveMs": 0.5022354000000102,
+            "applyMs": 0.013186816666681504,
+            "snapshotMs": 0.09990418333334977,
+            "restoreMs": 0,
+            "measureMs": 0.16976751666662343,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.10460201666664186,
+            "schurMs": 0.06031394999997701,
+            "contactSolveMs": 0.009484083333336456,
+            "reconstructionMs": 0.017193016666707688,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009995572341077175
+        },
+        "after-1": {
+          "meanMs": 1.1062493499999997,
+          "p95Ms": 2.3575840000003154,
+          "meanCosts": {
+            "assemblyMs": 0.05393603333329035,
+            "solveMs": 0.5494442999999894,
+            "applyMs": 0.016390249999979765,
+            "snapshotMs": 0.14274373333331217,
+            "restoreMs": 0,
+            "measureMs": 0.17841458333330137,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.10692778333329897,
+            "schurMs": 0.06395345000004606,
+            "contactSolveMs": 0.008975733333371257,
+            "reconstructionMs": 0.01992288333333363,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009995572341077175
+        },
+        "after-2": {
+          "meanMs": 0.9765339999999469,
+          "p95Ms": 1.793166999999812,
+          "meanCosts": {
+            "assemblyMs": 0.050049416666661274,
+            "solveMs": 0.520352766666618,
+            "applyMs": 0.013728333333324372,
+            "snapshotMs": 0.10360209999998915,
+            "restoreMs": 0,
+            "measureMs": 0.16020288333333307,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.10336460000000898,
+            "schurMs": 0.0632951666666031,
+            "contactSolveMs": 0.007947899999991629,
+            "reconstructionMs": 0.017633233333329675,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009995572341077175
+        },
+        "before-2": {
+          "meanMs": 1.0567411166666791,
+          "p95Ms": 1.9107920000001286,
+          "meanCosts": {
+            "assemblyMs": 0.04969870000001417,
+            "solveMs": 0.545302016666642,
+            "applyMs": 0.014621550000022883,
+            "snapshotMs": 0.12275964999999663,
+            "restoreMs": 0,
+            "measureMs": 0.16900904999996177,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.4333333333333333,
+            "applyCalls": 1.4333333333333333,
+            "measureCalls": 1.8666666666666667,
+            "fullMeasureCalls": 1.8666666666666667,
+            "snapshotObjects": 133.9,
+            "snapshotBytes": 200768.96666666667,
+            "snapshots": 0.43333333333333335,
+            "restores": 0,
+            "condensedSetupMs": 0.10389716666666876,
+            "schurMs": 0.06588818333333772,
+            "contactSolveMs": 0.010247950000037538,
+            "reconstructionMs": 0.017828500000041457,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.4333333333333333,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 14.05,
+              "p50": 14,
+              "p95": 15,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.4,
+              "p50": 3,
+              "p95": 6,
+              "max": 9
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009995572341077175
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-20",
+      "steps": 47,
+      "runs": {
+        "before-1": {
+          "meanMs": 1.0780018510638214,
+          "p95Ms": 2.453458999999839,
+          "meanCosts": {
+            "assemblyMs": 0.13521982978730368,
+            "solveMs": 0.5725992765957558,
+            "applyMs": 0.02114010638297259,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.11599646808515396,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.045442361702101905,
+            "schurMs": 0.011906106382963464,
+            "contactSolveMs": 0.02749378723411668,
+            "reconstructionMs": 0.007583340425550519,
+            "seedMs": 0.010604595744678862
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 4,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        },
+        "after-1": {
+          "meanMs": 0.985850127659597,
+          "p95Ms": 2.5199170000000777,
+          "meanCosts": {
+            "assemblyMs": 0.0913857234042572,
+            "solveMs": 0.54538825531918,
+            "applyMs": 0.016725957446822655,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.07818525531910324,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.04319589361705554,
+            "schurMs": 0.012011574468110763,
+            "contactSolveMs": 0.01051846808511866,
+            "reconstructionMs": 0.003084191489380557,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        },
+        "after-2": {
+          "meanMs": 1.055522085106367,
+          "p95Ms": 3.6599590000000717,
+          "meanCosts": {
+            "assemblyMs": 0.09609217021279813,
+            "solveMs": 0.5915425106383175,
+            "applyMs": 0.017332382978711005,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.07624557446809163,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.04753542553191166,
+            "schurMs": 0.01446187234042806,
+            "contactSolveMs": 0.011314744680814639,
+            "reconstructionMs": 0.0022144893616236816,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        },
+        "before-2": {
+          "meanMs": 1.0739468085105999,
+          "p95Ms": 3.2840830000000096,
+          "meanCosts": {
+            "assemblyMs": 0.13656206382977465,
+            "solveMs": 0.580041723404278,
+            "applyMs": 0.019382063829778688,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.10507882978721526,
+            "geometryReuseCount": 0.9787234042553191,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0212765957446808,
+            "applyCalls": 1.0212765957446808,
+            "measureCalls": 1.0212765957446808,
+            "fullMeasureCalls": 1.0212765957446808,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.050093957446820915,
+            "schurMs": 0.01447780851064655,
+            "contactSolveMs": 0.02581289361701915,
+            "reconstructionMs": 0.006639170212788195,
+            "seedMs": 0.013979595744689157
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1.0212765957446808,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 4,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-50",
+      "steps": 70,
+      "runs": {
+        "before-1": {
+          "meanMs": 0.6893892127660229,
+          "p95Ms": 1.469665999999961,
+          "meanCosts": {
+            "assemblyMs": 0.018344829787227044,
+            "solveMs": 0.4409884680851374,
+            "applyMs": 0.011031085106404792,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.04198857446806172,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.04986785106380109,
+            "schurMs": 0.017609085106395216,
+            "contactSolveMs": 0.0076515319149117935,
+            "reconstructionMs": 0.0021116808510611164,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        },
+        "after-1": {
+          "meanMs": 0.7299654893617059,
+          "p95Ms": 1.7308750000001965,
+          "meanCosts": {
+            "assemblyMs": 0.019572680851079566,
+            "solveMs": 0.466289851063856,
+            "applyMs": 0.011399914893638894,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.04649287234038406,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.045094808510655525,
+            "schurMs": 0.015989297872296294,
+            "contactSolveMs": 0.007161297872331256,
+            "reconstructionMs": 0.0018402340425827208,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        },
+        "after-2": {
+          "meanMs": 0.6375726170212669,
+          "p95Ms": 0.8516659999995682,
+          "meanCosts": {
+            "assemblyMs": 0.014202148936148776,
+            "solveMs": 0.4204024680851112,
+            "applyMs": 0.008790829787213102,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.03638206382975887,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.045868765957454746,
+            "schurMs": 0.013813808510620104,
+            "contactSolveMs": 0.007222531914899167,
+            "reconstructionMs": 0.0016116808510269812,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        },
+        "before-2": {
+          "meanMs": 0.6930629361702213,
+          "p95Ms": 1.5442500000003747,
+          "meanCosts": {
+            "assemblyMs": 0.019100234042554724,
+            "solveMs": 0.4282632978723357,
+            "applyMs": 0.010151446808544897,
+            "snapshotMs": 0,
+            "restoreMs": 0,
+            "measureMs": 0.05247248936168151,
+            "geometryReuseCount": 1,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1,
+            "applyCalls": 1,
+            "measureCalls": 1,
+            "fullMeasureCalls": 1,
+            "snapshotObjects": 0,
+            "snapshotBytes": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "condensedSetupMs": 0.04607627659574876,
+            "schurMs": 0.01544506382976985,
+            "contactSolveMs": 0.006883851063814794,
+            "reconstructionMs": 0.0027074468085494176,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "trials": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 4,
+              "p50": 4,
+              "p95": 4,
+              "max": 4
+            },
+            "factorizations": {
+              "mean": 1,
+              "p50": 1,
+              "p95": 1,
+              "max": 1
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-feed-100",
+      "steps": 116,
+      "runs": {
+        "before-1": {
+          "meanMs": 1.671912255319125,
+          "p95Ms": 2.311749999999847,
+          "meanCosts": {
+            "assemblyMs": 0.038886468085114215,
+            "solveMs": 0.8794122978723707,
+            "applyMs": 0.02379431914888552,
+            "snapshotMs": 0.29031297872340495,
+            "restoreMs": 0,
+            "measureMs": 0.15163653191484627,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 255.27659574468086,
+            "snapshotBytes": 562757.2765957447,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.09514446808508821,
+            "schurMs": 0.052739276595768894,
+            "contactSolveMs": 0.022881276595727924,
+            "reconstructionMs": 0.0061018936170454405,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009928678738446717
+        },
+        "after-1": {
+          "meanMs": 1.8786215106382904,
+          "p95Ms": 2.8566249999998945,
+          "meanCosts": {
+            "assemblyMs": 0.045191446808491895,
+            "solveMs": 0.9581508085106218,
+            "applyMs": 0.02642472340422752,
+            "snapshotMs": 0.3739086382978654,
+            "restoreMs": 0,
+            "measureMs": 0.1621577872340706,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 243.36170212765958,
+            "snapshotBytes": 562593.8723404255,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.10589802127660346,
+            "schurMs": 0.062358212765967105,
+            "contactSolveMs": 0.029523127659539315,
+            "reconstructionMs": 0.00723238297877423,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009928678738446717
+        },
+        "after-2": {
+          "meanMs": 2.0005992765956586,
+          "p95Ms": 3.6627910000001975,
+          "meanCosts": {
+            "assemblyMs": 0.04574553191494178,
+            "solveMs": 0.9823608085106996,
+            "applyMs": 0.03181929787233264,
+            "snapshotMs": 0.3892279148936297,
+            "restoreMs": 0,
+            "measureMs": 0.187269638297871,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 243.36170212765958,
+            "snapshotBytes": 562593.8723404255,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.10241480851072025,
+            "schurMs": 0.06061797872339315,
+            "contactSolveMs": 0.031155042553148226,
+            "reconstructionMs": 0.006422042553261216,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009928678738446717
+        },
+        "before-2": {
+          "meanMs": 1.7207198723403963,
+          "p95Ms": 2.5908329999997477,
+          "meanCosts": {
+            "assemblyMs": 0.0373989787234329,
+            "solveMs": 0.8927189574467852,
+            "applyMs": 0.023276680851132426,
+            "snapshotMs": 0.3390620212766059,
+            "restoreMs": 0,
+            "measureMs": 0.1576170638297802,
+            "geometryReuseCount": 2.702127659574468,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.851063829787234,
+            "applyCalls": 1.851063829787234,
+            "measureCalls": 2.702127659574468,
+            "fullMeasureCalls": 2.702127659574468,
+            "snapshotObjects": 255.27659574468086,
+            "snapshotBytes": 562757.2765957447,
+            "snapshots": 0.851063829787234,
+            "restores": 0,
+            "condensedSetupMs": 0.1007314468085129,
+            "schurMs": 0.054382936170257266,
+            "contactSolveMs": 0.02527925531910327,
+            "reconstructionMs": 0.006257957446750686,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.851063829787234,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.723404255319149,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009928678738446717
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-hold-100",
+      "steps": 60,
+      "runs": {
+        "before-1": {
+          "meanMs": 0.9967403500000122,
+          "p95Ms": 2.1922920000001795,
+          "meanCosts": {
+            "assemblyMs": 0.03513540000002043,
+            "solveMs": 0.5877548833333549,
+            "applyMs": 0.01721735000000232,
+            "snapshotMs": 0.007579849999994319,
+            "restoreMs": 0,
+            "measureMs": 0.09381318333330455,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.266666666666667,
+            "snapshotBytes": 11020.866666666667,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.07632156666665348,
+            "schurMs": 0.043684750000026425,
+            "contactSolveMs": 0.017482700000005024,
+            "reconstructionMs": 0.006279066666653913,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00012533423077343286
+        },
+        "after-1": {
+          "meanMs": 0.8523450833333451,
+          "p95Ms": 1.6003329999998641,
+          "meanCosts": {
+            "assemblyMs": 0.027030549999979787,
+            "solveMs": 0.4988916833333936,
+            "applyMs": 0.013770899999993464,
+            "snapshotMs": 0.006576383333337313,
+            "restoreMs": 0,
+            "measureMs": 0.07412225000001248,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.033333333333333,
+            "snapshotBytes": 11017.666666666666,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.06547010000001592,
+            "schurMs": 0.03367991666666512,
+            "contactSolveMs": 0.01558949999999489,
+            "reconstructionMs": 0.005086750000009488,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00012533423077343286
+        },
+        "after-2": {
+          "meanMs": 0.8596702333333497,
+          "p95Ms": 1.9999170000000959,
+          "meanCosts": {
+            "assemblyMs": 0.042562450000021575,
+            "solveMs": 0.5009069333333855,
+            "applyMs": 0.015226400000058978,
+            "snapshotMs": 0.007283333333331635,
+            "restoreMs": 0,
+            "measureMs": 0.08689641666671075,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.033333333333333,
+            "snapshotBytes": 11017.666666666666,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.08102425000001859,
+            "schurMs": 0.03403543333335316,
+            "contactSolveMs": 0.017575099999961215,
+            "reconstructionMs": 0.004840266666663714,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00012533423077343286
+        },
+        "before-2": {
+          "meanMs": 0.8051112000000179,
+          "p95Ms": 1.3206669999999576,
+          "meanCosts": {
+            "assemblyMs": 0.026828483333368545,
+            "solveMs": 0.48098326666662766,
+            "applyMs": 0.016891650000025037,
+            "snapshotMs": 0.006844450000001719,
+            "restoreMs": 0,
+            "measureMs": 0.07702423333332717,
+            "geometryReuseCount": 1.0333333333333334,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.0166666666666666,
+            "applyCalls": 1.0166666666666666,
+            "measureCalls": 1.0333333333333334,
+            "fullMeasureCalls": 1.0333333333333334,
+            "snapshotObjects": 5.266666666666667,
+            "snapshotBytes": 11020.866666666667,
+            "snapshots": 0.016666666666666666,
+            "restores": 0,
+            "condensedSetupMs": 0.06809725000002041,
+            "schurMs": 0.031817966666706825,
+            "contactSolveMs": 0.020352749999983644,
+            "reconstructionMs": 0.004755449999970551,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.0166666666666666,
+              "p50": 1,
+              "p95": 1,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 6.666666666666667,
+              "p50": 7,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 2.033333333333333,
+              "p50": 2,
+              "p95": 2,
+              "max": 4
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00012533423077343286
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-withdraw-80",
+      "steps": 76,
+      "runs": {
+        "before-1": {
+          "meanMs": 1.0091613829786668,
+          "p95Ms": 1.5797499999998763,
+          "meanCosts": {
+            "assemblyMs": 0.023477085106373745,
+            "solveMs": 0.5528059361702308,
+            "applyMs": 0.011652446808569793,
+            "snapshotMs": 0.17840863829785142,
+            "restoreMs": 0,
+            "measureMs": 0.06237942553186858,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 228.59574468085106,
+            "snapshotBytes": 478338.55319148937,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.038237489361776206,
+            "schurMs": 0.016287361702141307,
+            "contactSolveMs": 0.004457404255380754,
+            "reconstructionMs": 0.0046631489361816224,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009143620462008784
+        },
+        "after-1": {
+          "meanMs": 1.0440725744680441,
+          "p95Ms": 1.790124999999989,
+          "meanCosts": {
+            "assemblyMs": 0.022595702127681704,
+            "solveMs": 0.559882000000045,
+            "applyMs": 0.011304893616987952,
+            "snapshotMs": 0.19781561702130274,
+            "restoreMs": 0,
+            "measureMs": 0.06360289361703295,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 218.46808510638297,
+            "snapshotBytes": 478199.6595744681,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.04154965957450065,
+            "schurMs": 0.018908744680813588,
+            "contactSolveMs": 0.006486723404258497,
+            "reconstructionMs": 0.0050106808510734365,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009143620462008784
+        },
+        "after-2": {
+          "meanMs": 1.1135824680850999,
+          "p95Ms": 2.187000000000353,
+          "meanCosts": {
+            "assemblyMs": 0.02544697872346002,
+            "solveMs": 0.5757545957446595,
+            "applyMs": 0.012091404255307739,
+            "snapshotMs": 0.22554785106383357,
+            "restoreMs": 0,
+            "measureMs": 0.08547240425534565,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 218.46808510638297,
+            "snapshotBytes": 478199.6595744681,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.04265591489367696,
+            "schurMs": 0.018459127659627213,
+            "contactSolveMs": 0.005788212765968095,
+            "reconstructionMs": 0.005665744680803247,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009143620462008784
+        },
+        "before-2": {
+          "meanMs": 1.0378784893616884,
+          "p95Ms": 1.6544589999998607,
+          "meanCosts": {
+            "assemblyMs": 0.02200785106379044,
+            "solveMs": 0.5546008723404641,
+            "applyMs": 0.013355489361759844,
+            "snapshotMs": 0.2012588085106743,
+            "restoreMs": 0,
+            "measureMs": 0.06313382978726409,
+            "geometryReuseCount": 2.4893617021276597,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.7446808510638299,
+            "applyCalls": 1.7446808510638299,
+            "measureCalls": 2.4893617021276597,
+            "fullMeasureCalls": 2.4893617021276597,
+            "snapshotObjects": 228.59574468085106,
+            "snapshotBytes": 478338.55319148937,
+            "snapshots": 0.7446808510638298,
+            "restores": 0,
+            "condensedSetupMs": 0.03953723404255799,
+            "schurMs": 0.01638838297867551,
+            "contactSolveMs": 0.005268638297869248,
+            "reconstructionMs": 0.004964574468102272,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.7446808510638299,
+              "p50": 2,
+              "p95": 2,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5,
+              "p50": 5,
+              "p95": 5,
+              "max": 5
+            },
+            "factorizations": {
+              "mean": 3.4893617021276597,
+              "p50": 4,
+              "p95": 4,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009143620462008784
+        }
+      }
+    },
+    {
+      "scenario": "catheter-alone",
+      "phase": "catheter-refeed-100",
+      "steps": 47,
+      "runs": {
+        "before-1": {
+          "meanMs": 1.2423031702127776,
+          "p95Ms": 1.816874999999527,
+          "meanCosts": {
+            "assemblyMs": 0.02525080851079265,
+            "solveMs": 0.6310798085106263,
+            "applyMs": 0.014617063829799472,
+            "snapshotMs": 0.2897969787234112,
+            "restoreMs": 0,
+            "measureMs": 0.07906840425548194,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 282.3829787234043,
+            "snapshotBytes": 590895.1489361703,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.0458829361702962,
+            "schurMs": 0.02235461702120835,
+            "contactSolveMs": 0.006113531914881141,
+            "reconstructionMs": 0.005945851063768985,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00044706091595703157
+        },
+        "after-1": {
+          "meanMs": 1.295093957446731,
+          "p95Ms": 2.1936249999998836,
+          "meanCosts": {
+            "assemblyMs": 0.025383808510439927,
+            "solveMs": 0.7077199999999199,
+            "applyMs": 0.015945978723411438,
+            "snapshotMs": 0.24510804255318208,
+            "restoreMs": 0,
+            "measureMs": 0.0836673191489605,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 269.8723404255319,
+            "snapshotBytes": 590723.5744680851,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.057895212766033315,
+            "schurMs": 0.0262242553189258,
+            "contactSolveMs": 0.008155021276542492,
+            "reconstructionMs": 0.007490319148841313,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00044706091595703157
+        },
+        "after-2": {
+          "meanMs": 1.2716329574467868,
+          "p95Ms": 2.317583999999897,
+          "meanCosts": {
+            "assemblyMs": 0.02697068085103154,
+            "solveMs": 0.6451586170212377,
+            "applyMs": 0.01468442553192638,
+            "snapshotMs": 0.29571902127659955,
+            "restoreMs": 0,
+            "measureMs": 0.07987234042544282,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 269.8723404255319,
+            "snapshotBytes": 590723.5744680851,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.0447047659574232,
+            "schurMs": 0.022084957446797025,
+            "contactSolveMs": 0.007027468085062595,
+            "reconstructionMs": 0.006001914893600925,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00044706091595703157
+        },
+        "before-2": {
+          "meanMs": 1.1825531914893601,
+          "p95Ms": 1.849416999999903,
+          "meanCosts": {
+            "assemblyMs": 0.02489706382978492,
+            "solveMs": 0.6394042340425198,
+            "applyMs": 0.013567382978800061,
+            "snapshotMs": 0.23660982978726872,
+            "restoreMs": 0,
+            "measureMs": 0.07393448936172137,
+            "geometryReuseCount": 2.9574468085106385,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.9787234042553192,
+            "applyCalls": 1.9787234042553192,
+            "measureCalls": 2.9574468085106385,
+            "fullMeasureCalls": 2.9574468085106385,
+            "snapshotObjects": 282.3829787234043,
+            "snapshotBytes": 590895.1489361703,
+            "snapshots": 0.9787234042553191,
+            "restores": 0,
+            "condensedSetupMs": 0.04659834042549266,
+            "schurMs": 0.020911340425542182,
+            "contactSolveMs": 0.00541931914899288,
+            "reconstructionMs": 0.005644489361724907,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "trials": {
+              "mean": 1.9787234042553192,
+              "p50": 2,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 7,
+              "max": 7
+            },
+            "factorizations": {
+              "mean": 3.9574468085106385,
+              "p50": 4,
+              "p95": 6,
+              "max": 6
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00044706091595703157
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "wire-feed-309",
+      "steps": 843,
+      "runs": {
+        "before-1": {
+          "meanMs": 2.6258182765957323,
+          "p95Ms": 3.954291999999441,
+          "meanCosts": {
+            "assemblyMs": 0.10434470212764628,
+            "solveMs": 1.1074724893616918,
+            "applyMs": 0.0387173404255628,
+            "snapshotMs": 0.4368660851063822,
+            "restoreMs": 0,
+            "measureMs": 0.4466407659576284,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.22695919148924426,
+            "schurMs": 0.12549293617014862,
+            "contactSolveMs": 0.019510702127650378,
+            "reconstructionMs": 0.036574468085088116,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        },
+        "after-1": {
+          "meanMs": 2.309827978723467,
+          "p95Ms": 3.3963330000005953,
+          "meanCosts": {
+            "assemblyMs": 0.09344682978716012,
+            "solveMs": 0.9963385744680094,
+            "applyMs": 0.03325963829778862,
+            "snapshotMs": 0.3527748297871593,
+            "restoreMs": 0,
+            "measureMs": 0.41408512765964917,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.20027761702124522,
+            "schurMs": 0.11698919148943303,
+            "contactSolveMs": 0.017211957446829244,
+            "reconstructionMs": 0.03309238297875476,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        },
+        "after-2": {
+          "meanMs": 2.7667570212766184,
+          "p95Ms": 4.861292000000503,
+          "meanCosts": {
+            "assemblyMs": 0.11382176595750625,
+            "solveMs": 1.1756542765956994,
+            "applyMs": 0.03849448936164256,
+            "snapshotMs": 0.4811241914893741,
+            "restoreMs": 0,
+            "measureMs": 0.48497076595740124,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.22206559574459925,
+            "schurMs": 0.12217638297882312,
+            "contactSolveMs": 0.024491042553253985,
+            "reconstructionMs": 0.04363291489356383,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        },
+        "before-2": {
+          "meanMs": 2.3729939361702295,
+          "p95Ms": 3.3391670000000886,
+          "meanCosts": {
+            "assemblyMs": 0.1115662765957321,
+            "solveMs": 0.9737535531915049,
+            "applyMs": 0.03183959574461698,
+            "snapshotMs": 0.3854317446808791,
+            "restoreMs": 0,
+            "measureMs": 0.44454355319155975,
+            "geometryReuseCount": 0,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 2.6382978723404253,
+            "applyCalls": 2.6382978723404253,
+            "measureCalls": 4.276595744680851,
+            "fullMeasureCalls": 4.276595744680851,
+            "snapshotObjects": 309,
+            "snapshotBytes": 463301.93617021275,
+            "snapshots": 1.6382978723404256,
+            "restores": 0,
+            "condensedSetupMs": 0.19950617021271333,
+            "schurMs": 0.11470402127660952,
+            "contactSolveMs": 0.01643891489354072,
+            "reconstructionMs": 0.034288127659702364,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "trials": {
+              "mean": 2.6382978723404253,
+              "p50": 3,
+              "p95": 3,
+              "max": 4
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.106382978723405,
+              "p50": 15,
+              "p95": 17,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 6.723404255319149,
+              "p50": 6,
+              "p95": 10,
+              "max": 12
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.00097955236086944
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-20",
+      "steps": 47,
+      "runs": {
+        "before-1": {
+          "meanMs": 4.871633000000057,
+          "p95Ms": 9.301167000000532,
+          "meanCosts": {
+            "assemblyMs": 0.5802943404254852,
+            "solveMs": 2.343773000000007,
+            "applyMs": 0.14068972340426122,
+            "snapshotMs": 0.3345939787234377,
+            "restoreMs": 0,
+            "measureMs": 0.9439636170211204,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.2978723404255319,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 277.4255319148936,
+            "snapshotBytes": 287224.1914893617,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.49065438297866226,
+            "schurMs": 0.10225708510637212,
+            "contactSolveMs": 0.06752204255329336,
+            "reconstructionMs": 0.05877931914884802,
+            "seedMs": 0.05760282978725956
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 26,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009990386808411689
+        },
+        "after-1": {
+          "meanMs": 3.0411408723403897,
+          "p95Ms": 5.941417000000001,
+          "meanCosts": {
+            "assemblyMs": 0.2213156595744488,
+            "solveMs": 1.5810982553191624,
+            "applyMs": 0.05572163829786772,
+            "snapshotMs": 0.31441925531915793,
+            "restoreMs": 0,
+            "measureMs": 0.467490212765892,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 235.72340425531914,
+            "snapshotBytes": 286652.27659574465,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.15123321276597051,
+            "schurMs": 0.07775619148933982,
+            "contactSolveMs": 0.024647148936213503,
+            "reconstructionMs": 0.02272514893618481,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009990386808411689
+        },
+        "after-2": {
+          "meanMs": 4.203699382978792,
+          "p95Ms": 9.138584000000264,
+          "meanCosts": {
+            "assemblyMs": 0.3358466382978998,
+            "solveMs": 1.9563714893615822,
+            "applyMs": 0.10438482978731778,
+            "snapshotMs": 0.4673333404255553,
+            "restoreMs": 0,
+            "measureMs": 0.7556250212767717,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 235.72340425531914,
+            "snapshotBytes": 286652.27659574465,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.20264623404255735,
+            "schurMs": 0.10165595744684709,
+            "contactSolveMs": 0.03258778723413846,
+            "reconstructionMs": 0.030109914893631518,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009990386808411689
+        },
+        "before-2": {
+          "meanMs": 4.513651617021269,
+          "p95Ms": 10.243583000000399,
+          "meanCosts": {
+            "assemblyMs": 0.41853897872346,
+            "solveMs": 2.236293574468154,
+            "applyMs": 0.14209487234038146,
+            "snapshotMs": 0.3760452127659285,
+            "restoreMs": 0,
+            "measureMs": 0.8882649574468892,
+            "geometryReuseCount": 3.404255319148936,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.2978723404255319,
+            "solveCalls": 1.6808510638297873,
+            "applyCalls": 1.6808510638297873,
+            "measureCalls": 2.1702127659574466,
+            "fullMeasureCalls": 2.1702127659574466,
+            "snapshotObjects": 277.4255319148936,
+            "snapshotBytes": 287224.1914893617,
+            "snapshots": 0.48936170212765956,
+            "restores": 0,
+            "condensedSetupMs": 0.5187712978721662,
+            "schurMs": 0.10424114893612568,
+            "contactSolveMs": 0.06450351063834572,
+            "reconstructionMs": 0.05804076595752044,
+            "seedMs": 0.056552425531953436
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.297872340425532,
+              "p50": 1,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.6808510638297873,
+              "p50": 1,
+              "p95": 3,
+              "max": 3
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 15.680851063829786,
+              "p50": 16,
+              "p95": 16,
+              "max": 17
+            },
+            "factorizations": {
+              "mean": 3.765957446808511,
+              "p50": 3,
+              "p95": 6,
+              "max": 10
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 26,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009990386808411689
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-50",
+      "steps": 70,
+      "runs": {
+        "before-1": {
+          "meanMs": 6.789410446808514,
+          "p95Ms": 10.700083000000632,
+          "meanCosts": {
+            "assemblyMs": 0.9625504893618276,
+            "solveMs": 2.3555522978723915,
+            "applyMs": 0.17982634042547285,
+            "snapshotMs": 0.9791932553191455,
+            "restoreMs": 0,
+            "measureMs": 1.8001018085105318,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.5957446808510638,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 1061.468085106383,
+            "snapshotBytes": 406713.5319148936,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.732804127659426,
+            "schurMs": 0.11515076595735585,
+            "contactSolveMs": 0.07671099999999492,
+            "reconstructionMs": 0.09196455319142068,
+            "seedMs": 0.07130138297874354
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 74,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009775797998439195
+        },
+        "after-1": {
+          "meanMs": 2.9277313829787555,
+          "p95Ms": 5.533916999999747,
+          "meanCosts": {
+            "assemblyMs": 0.2123981063829907,
+            "solveMs": 1.1513731276596213,
+            "applyMs": 0.040455617021236435,
+            "snapshotMs": 0.6558173829787151,
+            "restoreMs": 0,
+            "measureMs": 0.5386525106382288,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 732.9148936170212,
+            "snapshotBytes": 402207.6595744681,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.18026595744666996,
+            "schurMs": 0.09478468085122353,
+            "contactSolveMs": 0.010081489361835609,
+            "reconstructionMs": 0.027077042553154317,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009775797998439195
+        },
+        "after-2": {
+          "meanMs": 3.1495045531916555,
+          "p95Ms": 5.423291999999492,
+          "meanCosts": {
+            "assemblyMs": 0.2520496808511064,
+            "solveMs": 1.198888319148806,
+            "applyMs": 0.04624642553196107,
+            "snapshotMs": 0.636385680851008,
+            "restoreMs": 0,
+            "measureMs": 0.5814653404254483,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 732.9148936170212,
+            "snapshotBytes": 402207.6595744681,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.18928553191493305,
+            "schurMs": 0.09321995744696633,
+            "contactSolveMs": 0.011751872340395726,
+            "reconstructionMs": 0.027379340425524906,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009775797998439195
+        },
+        "before-2": {
+          "meanMs": 5.611750893617043,
+          "p95Ms": 9.417915999999423,
+          "meanCosts": {
+            "assemblyMs": 0.8084441489362051,
+            "solveMs": 1.7122634255318654,
+            "applyMs": 0.16445295744676727,
+            "snapshotMs": 0.8053324680850756,
+            "restoreMs": 0,
+            "measureMs": 1.617505361702202,
+            "geometryReuseCount": 17.872340425531913,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0.5957446808510638,
+            "solveCalls": 1.5957446808510638,
+            "applyCalls": 1.5957446808510638,
+            "measureCalls": 2.1914893617021276,
+            "fullMeasureCalls": 2.1914893617021276,
+            "snapshotObjects": 1061.468085106383,
+            "snapshotBytes": 406713.5319148936,
+            "snapshots": 0.5957446808510638,
+            "restores": 0,
+            "condensedSetupMs": 0.397050574468054,
+            "schurMs": 0.10475361702135566,
+            "contactSolveMs": 0.07264368085102337,
+            "reconstructionMs": 0.06291934042563183,
+            "seedMs": 0.06782263829793125
+          },
+          "counters": {
+            "passes": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "trials": {
+              "mean": 1.5957446808510638,
+              "p50": 2,
+              "p95": 2,
+              "max": 2
+            },
+            "backtracks": {
+              "mean": 0,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "rows": {
+              "mean": 16,
+              "p50": 16,
+              "p95": 16,
+              "max": 16
+            },
+            "factorizations": {
+              "mean": 3.5319148936170213,
+              "p50": 4,
+              "p95": 6,
+              "max": 8
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 74,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0,
+          "maximumRecordedWallPenetrationMm": 0.0009775797998439195
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-feed-100",
+      "steps": 116,
+      "runs": {
+        "before-1": {
+          "meanMs": 72.0007518297874,
+          "p95Ms": 109.68099999999868,
+          "meanCosts": {
+            "assemblyMs": 7.812094978723217,
+            "solveMs": 18.061178999999647,
+            "applyMs": 1.8025895319149912,
+            "snapshotMs": 14.926893595745145,
+            "restoreMs": 0.36538123404251893,
+            "measureMs": 28.07804721276652,
+            "geometryReuseCount": 218.2340425531915,
+            "frictionBatchReuseCount": 5.638297872340425,
+            "acceptedFrictionReuseCount": 5.48936170212766,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 3649.2340425531916,
+            "snapshotBytes": 711867.1489361703,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.879084234042587,
+            "schurMs": 2.3396673191491573,
+            "contactSolveMs": 4.1622237234043995,
+            "reconstructionMs": 0.9060790000000472,
+            "seedMs": 2.2502569574464477
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 156,
+          "maximumLumenTangentialForce": 0.3086981754700472,
+          "maximumRecordedLumenPenetrationMm": 0.053146868253480944,
+          "maximumRecordedWallPenetrationMm": 0.00037150598324159345
+        },
+        "after-1": {
+          "meanMs": 23.382405127659503,
+          "p95Ms": 54.14524999999958,
+          "meanCosts": {
+            "assemblyMs": 1.2653926170213456,
+            "solveMs": 7.859579021276659,
+            "applyMs": 0.2953092127653245,
+            "snapshotMs": 8.941473319148885,
+            "restoreMs": 0.2855788936170784,
+            "measureMs": 4.010294276594787,
+            "geometryReuseCount": 220.40425531914894,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.574468085106383,
+            "applyCalls": 6.74468085106383,
+            "measureCalls": 12.319148936170214,
+            "fullMeasureCalls": 12.319148936170214,
+            "snapshotObjects": 2351.0851063829787,
+            "snapshotBytes": 694060.1702127659,
+            "snapshots": 5.574468085106383,
+            "restores": 0.1702127659574468,
+            "condensedSetupMs": 1.660925361702442,
+            "schurMs": 0.884400595744487,
+            "contactSolveMs": 0.20228217021294187,
+            "reconstructionMs": 0.24708861702150356,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.574468085106383,
+              "p50": 6,
+              "p95": 10,
+              "max": 16
+            },
+            "trials": {
+              "mean": 6.74468085106383,
+              "p50": 6,
+              "p95": 10,
+              "max": 18
+            },
+            "backtracks": {
+              "mean": 0.1702127659574468,
+              "p50": 0,
+              "p95": 2,
+              "max": 2
+            },
+            "rows": {
+              "mean": 30.170212765957448,
+              "p50": 32,
+              "p95": 35,
+              "max": 36
+            },
+            "factorizations": {
+              "mean": 35.4468085106383,
+              "p50": 34,
+              "p95": 58,
+              "max": 78
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.04345334650340159,
+          "maximumRecordedWallPenetrationMm": 0.00037150598324159345
+        },
+        "after-2": {
+          "meanMs": 25.794614340425507,
+          "p95Ms": 53.00520899999992,
+          "meanCosts": {
+            "assemblyMs": 1.3964263617022648,
+            "solveMs": 8.450694042553241,
+            "applyMs": 0.30713755319157693,
+            "snapshotMs": 9.955046255319177,
+            "restoreMs": 0.16034572340432784,
+            "measureMs": 4.698130212766123,
+            "geometryReuseCount": 220.40425531914894,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.574468085106383,
+            "applyCalls": 6.74468085106383,
+            "measureCalls": 12.319148936170214,
+            "fullMeasureCalls": 12.319148936170214,
+            "snapshotObjects": 2351.0851063829787,
+            "snapshotBytes": 694060.1702127659,
+            "snapshots": 5.574468085106383,
+            "restores": 0.1702127659574468,
+            "condensedSetupMs": 1.7357011063831647,
+            "schurMs": 1.007624978723141,
+            "contactSolveMs": 0.2546109574469154,
+            "reconstructionMs": 0.26240072340427084,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.574468085106383,
+              "p50": 6,
+              "p95": 10,
+              "max": 16
+            },
+            "trials": {
+              "mean": 6.74468085106383,
+              "p50": 6,
+              "p95": 10,
+              "max": 18
+            },
+            "backtracks": {
+              "mean": 0.1702127659574468,
+              "p50": 0,
+              "p95": 2,
+              "max": 2
+            },
+            "rows": {
+              "mean": 30.170212765957448,
+              "p50": 32,
+              "p95": 35,
+              "max": 36
+            },
+            "factorizations": {
+              "mean": 35.4468085106383,
+              "p50": 34,
+              "p95": 58,
+              "max": 78
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.04345334650340159,
+          "maximumRecordedWallPenetrationMm": 0.00037150598324159345
+        },
+        "before-2": {
+          "meanMs": 67.42022785106384,
+          "p95Ms": 96.9390000000003,
+          "meanCosts": {
+            "assemblyMs": 7.362958425532018,
+            "solveMs": 17.113625234042704,
+            "applyMs": 1.7161783404258228,
+            "snapshotMs": 14.17694068085158,
+            "restoreMs": 0.29524108510633323,
+            "measureMs": 25.807454702128005,
+            "geometryReuseCount": 218.2340425531915,
+            "frictionBatchReuseCount": 5.638297872340425,
+            "acceptedFrictionReuseCount": 5.48936170212766,
+            "solveCalls": 6.48936170212766,
+            "applyCalls": 6.702127659574468,
+            "measureCalls": 12.191489361702128,
+            "fullMeasureCalls": 12.191489361702128,
+            "snapshotObjects": 3649.2340425531916,
+            "snapshotBytes": 711867.1489361703,
+            "snapshots": 5.48936170212766,
+            "restores": 0.2127659574468085,
+            "condensedSetupMs": 2.6177145319150323,
+            "schurMs": 2.200328872340601,
+            "contactSolveMs": 3.9012827021274172,
+            "reconstructionMs": 0.796052510638645,
+            "seedMs": 2.1461011702129986
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.48936170212766,
+              "p50": 6,
+              "p95": 9,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.702127659574468,
+              "p50": 6,
+              "p95": 9,
+              "max": 11
+            },
+            "backtracks": {
+              "mean": 0.2127659574468085,
+              "p50": 0,
+              "p95": 1,
+              "max": 2
+            },
+            "rows": {
+              "mean": 61.680851063829785,
+              "p50": 64,
+              "p95": 81,
+              "max": 82
+            },
+            "factorizations": {
+              "mean": 207.51063829787233,
+              "p50": 203,
+              "p95": 349,
+              "max": 453
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 156,
+          "maximumLumenTangentialForce": 0.3086981754700472,
+          "maximumRecordedLumenPenetrationMm": 0.053146868253480944,
+          "maximumRecordedWallPenetrationMm": 0.00037150598324159345
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-hold-100",
+      "steps": 60,
+      "runs": {
+        "before-1": {
+          "meanMs": 86.94335981666663,
+          "p95Ms": 157.24720799999886,
+          "meanCosts": {
+            "assemblyMs": 9.792485316666534,
+            "solveMs": 24.642500050000127,
+            "applyMs": 2.103786450000037,
+            "snapshotMs": 19.33753614999999,
+            "restoreMs": 0.7144590666666772,
+            "measureMs": 29.317269249999452,
+            "geometryReuseCount": 267.3333333333333,
+            "frictionBatchReuseCount": 3.3666666666666667,
+            "acceptedFrictionReuseCount": 5.916666666666667,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 4111,
+            "snapshotBytes": 719044,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 3.327449900000253,
+            "schurMs": 3.4284346333338362,
+            "contactSolveMs": 6.820174183333105,
+            "reconstructionMs": 1.2730578500001684,
+            "seedMs": 3.171324083333578
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 154,
+          "maximumLumenTangentialForce": 0.18608528019561177,
+          "maximumRecordedLumenPenetrationMm": 0.05246295482183877,
+          "maximumRecordedWallPenetrationMm": 1.2863587065425897e-05
+        },
+        "after-1": {
+          "meanMs": 20.535621483333337,
+          "p95Ms": 27.068750000000364,
+          "meanCosts": {
+            "assemblyMs": 1.0062411666666473,
+            "solveMs": 6.985149900000609,
+            "applyMs": 0.20522081666658779,
+            "snapshotMs": 8.240796516666615,
+            "restoreMs": 0.3729146333332513,
+            "measureMs": 3.210712516666566,
+            "geometryReuseCount": 256,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.616666666666666,
+            "applyCalls": 7.183333333333334,
+            "measureCalls": 12.8,
+            "fullMeasureCalls": 12.8,
+            "snapshotObjects": 2636,
+            "snapshotBytes": 698836,
+            "snapshots": 5.616666666666666,
+            "restores": 0.5666666666666667,
+            "condensedSetupMs": 1.4648667833337337,
+            "schurMs": 0.9293929500001165,
+            "contactSolveMs": 0.18399788333320732,
+            "reconstructionMs": 0.28103918333366285,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.616666666666666,
+              "p50": 7,
+              "p95": 8,
+              "max": 13
+            },
+            "trials": {
+              "mean": 7.183333333333334,
+              "p50": 7,
+              "p95": 10,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 0.5666666666666667,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 33.13333333333333,
+              "p50": 33,
+              "p95": 36,
+              "max": 36
+            },
+            "factorizations": {
+              "mean": 47,
+              "p50": 41,
+              "p95": 77,
+              "max": 81
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.020846214441854145,
+          "maximumRecordedWallPenetrationMm": 2.362146352574701e-06
+        },
+        "after-2": {
+          "meanMs": 26.44208675000006,
+          "p95Ms": 43.74866600000132,
+          "meanCosts": {
+            "assemblyMs": 1.3636604833329329,
+            "solveMs": 8.667866733333296,
+            "applyMs": 0.3147105666666903,
+            "snapshotMs": 10.746700816666513,
+            "restoreMs": 0.4550702000000456,
+            "measureMs": 4.24146213333385,
+            "geometryReuseCount": 256,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.616666666666666,
+            "applyCalls": 7.183333333333334,
+            "measureCalls": 12.8,
+            "fullMeasureCalls": 12.8,
+            "snapshotObjects": 2636,
+            "snapshotBytes": 698836,
+            "snapshots": 5.616666666666666,
+            "restores": 0.5666666666666667,
+            "condensedSetupMs": 1.7836133999999826,
+            "schurMs": 1.139393716666776,
+            "contactSolveMs": 0.23368459999995442,
+            "reconstructionMs": 0.3155181833336125,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.616666666666666,
+              "p50": 7,
+              "p95": 8,
+              "max": 13
+            },
+            "trials": {
+              "mean": 7.183333333333334,
+              "p50": 7,
+              "p95": 10,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 0.5666666666666667,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 33.13333333333333,
+              "p50": 33,
+              "p95": 36,
+              "max": 36
+            },
+            "factorizations": {
+              "mean": 47,
+              "p50": 41,
+              "p95": 77,
+              "max": 81
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.020846214441854145,
+          "maximumRecordedWallPenetrationMm": 2.362146352574701e-06
+        },
+        "before-2": {
+          "meanMs": 72.25484646666663,
+          "p95Ms": 110.70270900000105,
+          "meanCosts": {
+            "assemblyMs": 8.043622949999888,
+            "solveMs": 20.84246528333342,
+            "applyMs": 1.6494768833333788,
+            "snapshotMs": 16.22659438333309,
+            "restoreMs": 0.677947916666623,
+            "measureMs": 24.108421366666455,
+            "geometryReuseCount": 267.3333333333333,
+            "frictionBatchReuseCount": 3.3666666666666667,
+            "acceptedFrictionReuseCount": 5.916666666666667,
+            "solveCalls": 6.916666666666667,
+            "applyCalls": 7.45,
+            "measureCalls": 13.366666666666667,
+            "fullMeasureCalls": 13.366666666666667,
+            "snapshotObjects": 4111,
+            "snapshotBytes": 719044,
+            "snapshots": 5.916666666666667,
+            "restores": 0.5333333333333333,
+            "condensedSetupMs": 2.7039451000000856,
+            "schurMs": 2.921962483333603,
+            "contactSolveMs": 6.1074881833329835,
+            "reconstructionMs": 1.0200589499999295,
+            "seedMs": 2.739132566666103
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.916666666666667,
+              "p50": 7,
+              "p95": 10,
+              "max": 11
+            },
+            "trials": {
+              "mean": 7.45,
+              "p50": 7,
+              "p95": 12,
+              "max": 12
+            },
+            "backtracks": {
+              "mean": 0.5333333333333333,
+              "p50": 0,
+              "p95": 2,
+              "max": 4
+            },
+            "rows": {
+              "mean": 73.96666666666667,
+              "p50": 73,
+              "p95": 82,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 271.51666666666665,
+              "p50": 253,
+              "p95": 437,
+              "max": 569
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 154,
+          "maximumLumenTangentialForce": 0.18608528019561177,
+          "maximumRecordedLumenPenetrationMm": 0.05246295482183877,
+          "maximumRecordedWallPenetrationMm": 1.2863587065425897e-05
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-withdraw-80",
+      "steps": 76,
+      "runs": {
+        "before-1": {
+          "meanMs": 55.26141672340407,
+          "p95Ms": 78.6460420000003,
+          "meanCosts": {
+            "assemblyMs": 5.924545255319436,
+            "solveMs": 12.54744863829856,
+            "applyMs": 1.3688147021271009,
+            "snapshotMs": 13.884203851062766,
+            "restoreMs": 0.7807713191489691,
+            "measureMs": 20.014129297872213,
+            "geometryReuseCount": 193.17021276595744,
+            "frictionBatchReuseCount": 4.787234042553192,
+            "acceptedFrictionReuseCount": 4.914893617021277,
+            "solveCalls": 5.914893617021277,
+            "applyCalls": 6.468085106382978,
+            "measureCalls": 11.404255319148936,
+            "fullMeasureCalls": 11.404255319148936,
+            "snapshotObjects": 4177.04255319149,
+            "snapshotBytes": 720016.2553191489,
+            "snapshots": 4.914893617021277,
+            "restores": 0.574468085106383,
+            "condensedSetupMs": 1.9568414042540176,
+            "schurMs": 1.6207749361708417,
+            "contactSolveMs": 2.1460541489350944,
+            "reconstructionMs": 0.6576055744681458,
+            "seedMs": 1.1057217872342897
+          },
+          "counters": {
+            "passes": {
+              "mean": 5.914893617021277,
+              "p50": 6,
+              "p95": 8,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.468085106382978,
+              "p50": 6,
+              "p95": 10,
+              "max": 20
+            },
+            "backtracks": {
+              "mean": 0.5531914893617021,
+              "p50": 0,
+              "p95": 2,
+              "max": 14
+            },
+            "rows": {
+              "mean": 52.06382978723404,
+              "p50": 55,
+              "p95": 66,
+              "max": 67
+            },
+            "factorizations": {
+              "mean": 157.91489361702128,
+              "p50": 153,
+              "p95": 279,
+              "max": 294
+            }
+          },
+          "failures": 1,
+          "failedIndices": [
+            59
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 158,
+          "maximumLumenTangentialForce": 0.22249945058832274,
+          "maximumRecordedLumenPenetrationMm": 0.06816309033717173,
+          "maximumRecordedWallPenetrationMm": 6.758139580897993e-05
+        },
+        "after-1": {
+          "meanMs": 14.975854638297994,
+          "p95Ms": 23.43000000000029,
+          "meanCosts": {
+            "assemblyMs": 0.7468679787231095,
+            "solveMs": 4.883531042553048,
+            "applyMs": 0.13575974468097984,
+            "snapshotMs": 6.451575382978456,
+            "restoreMs": 0.023905127659592372,
+            "measureMs": 2.2334743404252104,
+            "geometryReuseCount": 165.7659574468085,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 5.382978723404255,
+            "applyCalls": 5.425531914893617,
+            "measureCalls": 9.808510638297872,
+            "fullMeasureCalls": 9.808510638297872,
+            "snapshotObjects": 2659.3617021276596,
+            "snapshotBytes": 699191.4042553192,
+            "snapshots": 4.382978723404255,
+            "restores": 0.0425531914893617,
+            "condensedSetupMs": 1.0010647234041554,
+            "schurMs": 0.5681161702126933,
+            "contactSolveMs": 0.08302634042554424,
+            "reconstructionMs": 0.16025002127579238,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 8,
+              "max": 8
+            },
+            "trials": {
+              "mean": 5.425531914893617,
+              "p50": 5,
+              "p95": 8,
+              "max": 8
+            },
+            "backtracks": {
+              "mean": 0.0425531914893617,
+              "p50": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "rows": {
+              "mean": 27.425531914893618,
+              "p50": 28,
+              "p95": 32,
+              "max": 33
+            },
+            "factorizations": {
+              "mean": 29.085106382978722,
+              "p50": 26,
+              "p95": 56,
+              "max": 67
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.05621184139771544,
+          "maximumRecordedWallPenetrationMm": 6.761139761740642e-05
+        },
+        "after-2": {
+          "meanMs": 21.626609893616912,
+          "p95Ms": 43.993375000000015,
+          "meanCosts": {
+            "assemblyMs": 1.1545974893617428,
+            "solveMs": 6.350674680851103,
+            "applyMs": 0.21100208510626467,
+            "snapshotMs": 9.565259702127847,
+            "restoreMs": 0.03125089361705288,
+            "measureMs": 3.59978270212691,
+            "geometryReuseCount": 165.7659574468085,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 5.382978723404255,
+            "applyCalls": 5.425531914893617,
+            "measureCalls": 9.808510638297872,
+            "fullMeasureCalls": 9.808510638297872,
+            "snapshotObjects": 2659.3617021276596,
+            "snapshotBytes": 699191.4042553192,
+            "snapshots": 4.382978723404255,
+            "restores": 0.0425531914893617,
+            "condensedSetupMs": 1.2942978297869558,
+            "schurMs": 0.72915519148936,
+            "contactSolveMs": 0.10838642553228946,
+            "reconstructionMs": 0.19453706382998287,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 5.382978723404255,
+              "p50": 5,
+              "p95": 8,
+              "max": 8
+            },
+            "trials": {
+              "mean": 5.425531914893617,
+              "p50": 5,
+              "p95": 8,
+              "max": 8
+            },
+            "backtracks": {
+              "mean": 0.0425531914893617,
+              "p50": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "rows": {
+              "mean": 27.425531914893618,
+              "p50": 28,
+              "p95": 32,
+              "max": 33
+            },
+            "factorizations": {
+              "mean": 29.085106382978722,
+              "p50": 26,
+              "p95": 56,
+              "max": 67
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.05621184139771544,
+          "maximumRecordedWallPenetrationMm": 6.761139761740642e-05
+        },
+        "before-2": {
+          "meanMs": 58.51537578723428,
+          "p95Ms": 101.06266600000163,
+          "meanCosts": {
+            "assemblyMs": 6.069596489361271,
+            "solveMs": 13.007817617021074,
+            "applyMs": 1.4508344042549148,
+            "snapshotMs": 15.31061778723419,
+            "restoreMs": 0.861031893617071,
+            "measureMs": 20.99283953191433,
+            "geometryReuseCount": 193.17021276595744,
+            "frictionBatchReuseCount": 4.787234042553192,
+            "acceptedFrictionReuseCount": 4.914893617021277,
+            "solveCalls": 5.914893617021277,
+            "applyCalls": 6.468085106382978,
+            "measureCalls": 11.404255319148936,
+            "fullMeasureCalls": 11.404255319148936,
+            "snapshotObjects": 4177.04255319149,
+            "snapshotBytes": 720016.2553191489,
+            "snapshots": 4.914893617021277,
+            "restores": 0.574468085106383,
+            "condensedSetupMs": 1.9726019361700542,
+            "schurMs": 1.6477356808507155,
+            "contactSolveMs": 2.2769689148938577,
+            "reconstructionMs": 0.6030195744685269,
+            "seedMs": 1.1780168510643094
+          },
+          "counters": {
+            "passes": {
+              "mean": 5.914893617021277,
+              "p50": 6,
+              "p95": 8,
+              "max": 9
+            },
+            "trials": {
+              "mean": 6.468085106382978,
+              "p50": 6,
+              "p95": 10,
+              "max": 20
+            },
+            "backtracks": {
+              "mean": 0.5531914893617021,
+              "p50": 0,
+              "p95": 2,
+              "max": 14
+            },
+            "rows": {
+              "mean": 52.06382978723404,
+              "p50": 55,
+              "p95": 66,
+              "max": 67
+            },
+            "factorizations": {
+              "mean": 157.91489361702128,
+              "p50": 153,
+              "p95": 279,
+              "max": 294
+            }
+          },
+          "failures": 1,
+          "failedIndices": [
+            59
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 158,
+          "maximumLumenTangentialForce": 0.22249945058832274,
+          "maximumRecordedLumenPenetrationMm": 0.06816309033717173,
+          "maximumRecordedWallPenetrationMm": 6.758139580897993e-05
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-refeed-100",
+      "steps": 47,
+      "runs": {
+        "before-1": {
+          "meanMs": 89.2001098936168,
+          "p95Ms": 180.46449999999822,
+          "meanCosts": {
+            "assemblyMs": 8.88322595744784,
+            "solveMs": 21.36401927659616,
+            "applyMs": 2.090644425532175,
+            "snapshotMs": 22.100647319149967,
+            "restoreMs": 0.5513759361699371,
+            "measureMs": 33.379411765957094,
+            "geometryReuseCount": 239.17021276595744,
+            "frictionBatchReuseCount": 6.404255319148936,
+            "acceptedFrictionReuseCount": 6,
+            "solveCalls": 7,
+            "applyCalls": 7.319148936170213,
+            "measureCalls": 13.319148936170214,
+            "fullMeasureCalls": 13.319148936170214,
+            "snapshotObjects": 4203.936170212766,
+            "snapshotBytes": 720426.4680851063,
+            "snapshots": 6,
+            "restores": 0.3191489361702128,
+            "condensedSetupMs": 2.9219670425522284,
+            "schurMs": 3.158798787234697,
+            "contactSolveMs": 4.887042340425824,
+            "reconstructionMs": 1.157450468084209,
+            "seedMs": 2.254570914893191
+          },
+          "counters": {
+            "passes": {
+              "mean": 7,
+              "p50": 7,
+              "p95": 10,
+              "max": 12
+            },
+            "trials": {
+              "mean": 7.319148936170213,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "backtracks": {
+              "mean": 0.3191489361702128,
+              "p50": 0,
+              "p95": 2,
+              "max": 5
+            },
+            "rows": {
+              "mean": 61.1063829787234,
+              "p50": 60,
+              "p95": 81,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 228.53191489361703,
+              "p50": 234,
+              "p95": 387,
+              "max": 419
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 158,
+          "maximumLumenTangentialForce": 0.2413511875383472,
+          "maximumRecordedLumenPenetrationMm": 0.05179896693845089,
+          "maximumRecordedWallPenetrationMm": 1.4451854984942614e-07
+        },
+        "after-1": {
+          "meanMs": 19.314271212765853,
+          "p95Ms": 30.85741600000074,
+          "meanCosts": {
+            "assemblyMs": 0.9663822553192539,
+            "solveMs": 6.265504489361968,
+            "applyMs": 0.17399538297866726,
+            "snapshotMs": 8.134444063829738,
+            "restoreMs": 0.27734048936160455,
+            "measureMs": 2.943032787234072,
+            "geometryReuseCount": 216.36170212765958,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.297872340425532,
+            "applyCalls": 6.76595744680851,
+            "measureCalls": 12.063829787234043,
+            "fullMeasureCalls": 12.063829787234043,
+            "snapshotObjects": 2679.276595744681,
+            "snapshotBytes": 699516.8510638297,
+            "snapshots": 5.297872340425532,
+            "restores": 0.46808510638297873,
+            "condensedSetupMs": 1.2801806170213859,
+            "schurMs": 0.7539940425532667,
+            "contactSolveMs": 0.10961429787203862,
+            "reconstructionMs": 0.20859159574471012,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.297872340425532,
+              "p50": 6,
+              "p95": 9,
+              "max": 12
+            },
+            "trials": {
+              "mean": 6.76595744680851,
+              "p50": 6,
+              "p95": 12,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 0.46808510638297873,
+              "p50": 0,
+              "p95": 2,
+              "max": 9
+            },
+            "rows": {
+              "mean": 29.78723404255319,
+              "p50": 31,
+              "p95": 36,
+              "max": 37
+            },
+            "factorizations": {
+              "mean": 33.61702127659574,
+              "p50": 31,
+              "p95": 60,
+              "max": 94
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.0429602245298477,
+          "maximumRecordedWallPenetrationMm": 6.620782320998497e-06
+        },
+        "after-2": {
+          "meanMs": 21.98446100000009,
+          "p95Ms": 36.52662500000042,
+          "meanCosts": {
+            "assemblyMs": 1.1262394468083856,
+            "solveMs": 6.908130340425564,
+            "applyMs": 0.19770272340409722,
+            "snapshotMs": 9.416808446808453,
+            "restoreMs": 0.2871011063829854,
+            "measureMs": 3.3724315319150846,
+            "geometryReuseCount": 216.36170212765958,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 6.297872340425532,
+            "applyCalls": 6.76595744680851,
+            "measureCalls": 12.063829787234043,
+            "fullMeasureCalls": 12.063829787234043,
+            "snapshotObjects": 2679.276595744681,
+            "snapshotBytes": 699516.8510638297,
+            "snapshots": 5.297872340425532,
+            "restores": 0.46808510638297873,
+            "condensedSetupMs": 1.4489087659576205,
+            "schurMs": 0.81488176595787,
+            "contactSolveMs": 0.12087053191452411,
+            "reconstructionMs": 0.2131730851065476,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 6.297872340425532,
+              "p50": 6,
+              "p95": 9,
+              "max": 12
+            },
+            "trials": {
+              "mean": 6.76595744680851,
+              "p50": 6,
+              "p95": 12,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 0.46808510638297873,
+              "p50": 0,
+              "p95": 2,
+              "max": 9
+            },
+            "rows": {
+              "mean": 29.78723404255319,
+              "p50": 31,
+              "p95": 36,
+              "max": 37
+            },
+            "factorizations": {
+              "mean": 33.61702127659574,
+              "p50": 31,
+              "p95": 60,
+              "max": 94
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.0429602245298477,
+          "maximumRecordedWallPenetrationMm": 6.620782320998497e-06
+        },
+        "before-2": {
+          "meanMs": 70.07428461702116,
+          "p95Ms": 125.87066700000287,
+          "meanCosts": {
+            "assemblyMs": 7.032532829787282,
+            "solveMs": 17.09197751063805,
+            "applyMs": 1.5998412553198385,
+            "snapshotMs": 17.324136489361834,
+            "restoreMs": 0.5705637872340454,
+            "measureMs": 25.72958710638263,
+            "geometryReuseCount": 239.17021276595744,
+            "frictionBatchReuseCount": 6.404255319148936,
+            "acceptedFrictionReuseCount": 6,
+            "solveCalls": 7,
+            "applyCalls": 7.319148936170213,
+            "measureCalls": 13.319148936170214,
+            "fullMeasureCalls": 13.319148936170214,
+            "snapshotObjects": 4203.936170212766,
+            "snapshotBytes": 720426.4680851063,
+            "snapshots": 6,
+            "restores": 0.3191489361702128,
+            "condensedSetupMs": 2.4522821702118196,
+            "schurMs": 2.470231319148994,
+            "contactSolveMs": 3.715824404254431,
+            "reconstructionMs": 0.8158066808510797,
+            "seedMs": 1.8469306382981774
+          },
+          "counters": {
+            "passes": {
+              "mean": 7,
+              "p50": 7,
+              "p95": 10,
+              "max": 12
+            },
+            "trials": {
+              "mean": 7.319148936170213,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "backtracks": {
+              "mean": 0.3191489361702128,
+              "p50": 0,
+              "p95": 2,
+              "max": 5
+            },
+            "rows": {
+              "mean": 61.1063829787234,
+              "p50": 60,
+              "p95": 81,
+              "max": 85
+            },
+            "factorizations": {
+              "mean": 228.53191489361703,
+              "p50": 234,
+              "p95": 387,
+              "max": 419
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 158,
+          "maximumLumenTangentialForce": 0.2413511875383472,
+          "maximumRecordedLumenPenetrationMm": 0.05179896693845089,
+          "maximumRecordedWallPenetrationMm": 1.4451854984942614e-07
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "both-feed-120",
+      "steps": 47,
+      "runs": {
+        "before-1": {
+          "meanMs": 132.8477305319151,
+          "p95Ms": 349.06545800000094,
+          "meanCosts": {
+            "assemblyMs": 12.069990170212785,
+            "solveMs": 35.17434397872282,
+            "applyMs": 3.1598899148938995,
+            "snapshotMs": 26.186983021276824,
+            "restoreMs": 3.7994929574462653,
+            "measureMs": 51.07573725531945,
+            "geometryReuseCount": 386.2340425531915,
+            "frictionBatchReuseCount": 8.76595744680851,
+            "acceptedFrictionReuseCount": 6.957446808510638,
+            "solveCalls": 7.957446808510638,
+            "applyCalls": 10.574468085106384,
+            "measureCalls": 17.638297872340427,
+            "fullMeasureCalls": 17.23404255319149,
+            "snapshotObjects": 4454.702127659574,
+            "snapshotBytes": 723872.9361702128,
+            "snapshots": 6.957446808510638,
+            "restores": 2.723404255319149,
+            "condensedSetupMs": 4.219105510637436,
+            "schurMs": 5.094832425531847,
+            "contactSolveMs": 11.696538042553197,
+            "reconstructionMs": 1.9269286382969244,
+            "seedMs": 5.143322574468023
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.957446808510638,
+              "p50": 7,
+              "p95": 15,
+              "max": 26
+            },
+            "trials": {
+              "mean": 10.574468085106384,
+              "p50": 7,
+              "p95": 38,
+              "max": 58
+            },
+            "backtracks": {
+              "mean": 2.617021276595745,
+              "p50": 0,
+              "p95": 14,
+              "max": 35
+            },
+            "rows": {
+              "mean": 90.97872340425532,
+              "p50": 90,
+              "p95": 123,
+              "max": 124
+            },
+            "factorizations": {
+              "mean": 464.8723404255319,
+              "p50": 389,
+              "p95": 1232,
+              "max": 1588
+            }
+          },
+          "failures": 5,
+          "failedIndices": [
+            9,
+            10,
+            15,
+            16,
+            18
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 190,
+          "maximumLumenTangentialForce": 0.29229598957537395,
+          "maximumRecordedLumenPenetrationMm": 0.6719431413250873,
+          "maximumRecordedWallPenetrationMm": 0.05611375605801189
+        },
+        "after-1": {
+          "meanMs": 30.04095561702103,
+          "p95Ms": 52.56083299999955,
+          "meanCosts": {
+            "assemblyMs": 1.3644768936174319,
+            "solveMs": 9.300607340425485,
+            "applyMs": 0.28575129787241943,
+            "snapshotMs": 11.495594042553266,
+            "restoreMs": 1.546554021276337,
+            "measureMs": 5.094652510638395,
+            "geometryReuseCount": 374.74468085106383,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7.808510638297872,
+            "applyCalls": 10.25531914893617,
+            "measureCalls": 17.170212765957448,
+            "fullMeasureCalls": 16.97872340425532,
+            "snapshotObjects": 2847.723404255319,
+            "snapshotBytes": 701988,
+            "snapshots": 6.808510638297872,
+            "restores": 2.5531914893617023,
+            "condensedSetupMs": 1.9071549574464177,
+            "schurMs": 1.3477958510637573,
+            "contactSolveMs": 0.25567691489394495,
+            "reconstructionMs": 0.4049256808511347,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.808510638297872,
+              "p50": 7,
+              "p95": 13,
+              "max": 15
+            },
+            "trials": {
+              "mean": 10.25531914893617,
+              "p50": 7,
+              "p95": 25,
+              "max": 38
+            },
+            "backtracks": {
+              "mean": 2.4468085106382977,
+              "p50": 0,
+              "p95": 17,
+              "max": 23
+            },
+            "rows": {
+              "mean": 40.191489361702125,
+              "p50": 40,
+              "p95": 47,
+              "max": 52
+            },
+            "factorizations": {
+              "mean": 71.57446808510639,
+              "p50": 61,
+              "p95": 119,
+              "max": 146
+            }
+          },
+          "failures": 5,
+          "failedIndices": [
+            9,
+            10,
+            22,
+            25,
+            26
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.40541274488767814,
+          "maximumRecordedWallPenetrationMm": 0.08242596378764633
+        },
+        "after-2": {
+          "meanMs": 33.553663106382956,
+          "p95Ms": 62.69520899999952,
+          "meanCosts": {
+            "assemblyMs": 1.5724634468086616,
+            "solveMs": 9.74412844680851,
+            "applyMs": 0.35075431914927013,
+            "snapshotMs": 13.106364425531904,
+            "restoreMs": 1.8498014468084953,
+            "measureMs": 5.875882234042829,
+            "geometryReuseCount": 374.74468085106383,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7.808510638297872,
+            "applyCalls": 10.25531914893617,
+            "measureCalls": 17.170212765957448,
+            "fullMeasureCalls": 16.97872340425532,
+            "snapshotObjects": 2847.723404255319,
+            "snapshotBytes": 701988,
+            "snapshots": 6.808510638297872,
+            "restores": 2.5531914893617023,
+            "condensedSetupMs": 1.9713482340426862,
+            "schurMs": 1.425330340425291,
+            "contactSolveMs": 0.2695533404254247,
+            "reconstructionMs": 0.38537934042544797,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.808510638297872,
+              "p50": 7,
+              "p95": 13,
+              "max": 15
+            },
+            "trials": {
+              "mean": 10.25531914893617,
+              "p50": 7,
+              "p95": 25,
+              "max": 38
+            },
+            "backtracks": {
+              "mean": 2.4468085106382977,
+              "p50": 0,
+              "p95": 17,
+              "max": 23
+            },
+            "rows": {
+              "mean": 40.191489361702125,
+              "p50": 40,
+              "p95": 47,
+              "max": 52
+            },
+            "factorizations": {
+              "mean": 71.57446808510639,
+              "p50": 61,
+              "p95": 119,
+              "max": 146
+            }
+          },
+          "failures": 5,
+          "failedIndices": [
+            9,
+            10,
+            22,
+            25,
+            26
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.40541274488767814,
+          "maximumRecordedWallPenetrationMm": 0.08242596378764633
+        },
+        "before-2": {
+          "meanMs": 122.63661965957432,
+          "p95Ms": 345.6514169999973,
+          "meanCosts": {
+            "assemblyMs": 11.391658063829496,
+            "solveMs": 32.50447344680922,
+            "applyMs": 2.782742191489617,
+            "snapshotMs": 23.907552510638276,
+            "restoreMs": 3.6580249361704387,
+            "measureMs": 47.10792429787065,
+            "geometryReuseCount": 386.2340425531915,
+            "frictionBatchReuseCount": 8.76595744680851,
+            "acceptedFrictionReuseCount": 6.957446808510638,
+            "solveCalls": 7.957446808510638,
+            "applyCalls": 10.574468085106384,
+            "measureCalls": 17.638297872340427,
+            "fullMeasureCalls": 17.23404255319149,
+            "snapshotObjects": 4454.702127659574,
+            "snapshotBytes": 723872.9361702128,
+            "snapshots": 6.957446808510638,
+            "restores": 2.723404255319149,
+            "condensedSetupMs": 3.940101042553037,
+            "schurMs": 4.699408531914316,
+            "contactSolveMs": 10.95854493617043,
+            "reconstructionMs": 1.5909618723403292,
+            "seedMs": 4.709790191489369
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.957446808510638,
+              "p50": 7,
+              "p95": 15,
+              "max": 26
+            },
+            "trials": {
+              "mean": 10.574468085106384,
+              "p50": 7,
+              "p95": 38,
+              "max": 58
+            },
+            "backtracks": {
+              "mean": 2.617021276595745,
+              "p50": 0,
+              "p95": 14,
+              "max": 35
+            },
+            "rows": {
+              "mean": 90.97872340425532,
+              "p50": 90,
+              "p95": 123,
+              "max": 124
+            },
+            "factorizations": {
+              "mean": 464.8723404255319,
+              "p50": 389,
+              "p95": 1232,
+              "max": 1588
+            }
+          },
+          "failures": 5,
+          "failedIndices": [
+            9,
+            10,
+            15,
+            16,
+            18
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 190,
+          "maximumLumenTangentialForce": 0.29229598957537395,
+          "maximumRecordedLumenPenetrationMm": 0.6719431413250873,
+          "maximumRecordedWallPenetrationMm": 0.05611375605801189
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "wire-withdraw-inside",
+      "steps": 48,
+      "runs": {
+        "before-1": {
+          "meanMs": 151.74696185106384,
+          "p95Ms": 246.13979200000176,
+          "meanCosts": {
+            "assemblyMs": 14.245923680853206,
+            "solveMs": 43.124664936171804,
+            "applyMs": 3.3467926595719506,
+            "snapshotMs": 31.77901772340494,
+            "restoreMs": 2.381220680852532,
+            "measureMs": 55.61026248935857,
+            "geometryReuseCount": 433.531914893617,
+            "frictionBatchReuseCount": 9.23404255319149,
+            "acceptedFrictionReuseCount": 7.851063829787234,
+            "solveCalls": 8.851063829787234,
+            "applyCalls": 10.212765957446809,
+            "measureCalls": 18.06382978723404,
+            "fullMeasureCalls": 18.06382978723404,
+            "snapshotObjects": 4996.765957446809,
+            "snapshotBytes": 732254.5531914893,
+            "snapshots": 7.851063829787234,
+            "restores": 1.3617021276595744,
+            "condensedSetupMs": 4.506955680853354,
+            "schurMs": 6.559353638297483,
+            "contactSolveMs": 15.558171042553868,
+            "reconstructionMs": 2.2991212340408658,
+            "seedMs": 7.25703544680932
+          },
+          "counters": {
+            "passes": {
+              "mean": 8.851063829787234,
+              "p50": 8,
+              "p95": 15,
+              "max": 17
+            },
+            "trials": {
+              "mean": 10.212765957446809,
+              "p50": 8,
+              "p95": 19,
+              "max": 22
+            },
+            "backtracks": {
+              "mean": 1.3617021276595744,
+              "p50": 0,
+              "p95": 5,
+              "max": 6
+            },
+            "rows": {
+              "mean": 108.25531914893617,
+              "p50": 107,
+              "p95": 124,
+              "max": 128
+            },
+            "factorizations": {
+              "mean": 570.6382978723404,
+              "p50": 498,
+              "p95": 1052,
+              "max": 1101
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 188,
+          "maximumLumenTangentialForce": 0.3916909144427753,
+          "maximumRecordedLumenPenetrationMm": 0.013489110929961773,
+          "maximumRecordedWallPenetrationMm": 1.1246689906041496e-06
+        },
+        "after-1": {
+          "meanMs": 30.27735461702124,
+          "p95Ms": 50.254666000000725,
+          "meanCosts": {
+            "assemblyMs": 1.3566009787234006,
+            "solveMs": 9.97933151063823,
+            "applyMs": 0.23598817021303012,
+            "snapshotMs": 12.575219787233978,
+            "restoreMs": 0.8588971276595715,
+            "measureMs": 4.561892063829138,
+            "geometryReuseCount": 391.1489361702128,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 8.063829787234043,
+            "applyCalls": 9.23404255319149,
+            "measureCalls": 16.29787234042553,
+            "fullMeasureCalls": 16.27659574468085,
+            "snapshotObjects": 3188.7021276595747,
+            "snapshotBytes": 707528.4255319149,
+            "snapshots": 7.0638297872340425,
+            "restores": 1.1702127659574468,
+            "condensedSetupMs": 2.025390191489544,
+            "schurMs": 1.5430602340432977,
+            "contactSolveMs": 0.31517808510603146,
+            "reconstructionMs": 0.4625328085105061,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 8.063829787234043,
+              "p50": 7,
+              "p95": 13,
+              "max": 15
+            },
+            "trials": {
+              "mean": 9.23404255319149,
+              "p50": 8,
+              "p95": 17,
+              "max": 23
+            },
+            "backtracks": {
+              "mean": 1.1702127659574468,
+              "p50": 0,
+              "p95": 4,
+              "max": 8
+            },
+            "rows": {
+              "mean": 44.1063829787234,
+              "p50": 44,
+              "p95": 52,
+              "max": 54
+            },
+            "factorizations": {
+              "mean": 87.04255319148936,
+              "p50": 87,
+              "p95": 143,
+              "max": 166
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.010886519580943041,
+          "maximumRecordedWallPenetrationMm": 3.999280555166962e-06
+        },
+        "after-2": {
+          "meanMs": 32.56540870212778,
+          "p95Ms": 53.268332999999984,
+          "meanCosts": {
+            "assemblyMs": 1.4637918723405396,
+            "solveMs": 10.421453936169703,
+            "applyMs": 0.27778099999921596,
+            "snapshotMs": 13.748160510638279,
+            "restoreMs": 0.9306188297872567,
+            "measureMs": 4.97617919148921,
+            "geometryReuseCount": 391.1489361702128,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 8.063829787234043,
+            "applyCalls": 9.23404255319149,
+            "measureCalls": 16.29787234042553,
+            "fullMeasureCalls": 16.27659574468085,
+            "snapshotObjects": 3188.7021276595747,
+            "snapshotBytes": 707528.4255319149,
+            "snapshots": 7.0638297872340425,
+            "restores": 1.1702127659574468,
+            "condensedSetupMs": 2.0478915319151207,
+            "schurMs": 1.6217337234039075,
+            "contactSolveMs": 0.3402142127660169,
+            "reconstructionMs": 0.45183282978719713,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 8.063829787234043,
+              "p50": 7,
+              "p95": 13,
+              "max": 15
+            },
+            "trials": {
+              "mean": 9.23404255319149,
+              "p50": 8,
+              "p95": 17,
+              "max": 23
+            },
+            "backtracks": {
+              "mean": 1.1702127659574468,
+              "p50": 0,
+              "p95": 4,
+              "max": 8
+            },
+            "rows": {
+              "mean": 44.1063829787234,
+              "p50": 44,
+              "p95": 52,
+              "max": 54
+            },
+            "factorizations": {
+              "mean": 87.04255319148936,
+              "p50": 87,
+              "p95": 143,
+              "max": 166
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.010886519580943041,
+          "maximumRecordedWallPenetrationMm": 3.999280555166962e-06
+        },
+        "before-2": {
+          "meanMs": 146.83358161702137,
+          "p95Ms": 267.6842919999981,
+          "meanCosts": {
+            "assemblyMs": 14.121402574467092,
+            "solveMs": 40.626397255318615,
+            "applyMs": 3.163535446807339,
+            "snapshotMs": 31.227227914894645,
+            "restoreMs": 2.275577978723611,
+            "measureMs": 54.24555240425546,
+            "geometryReuseCount": 433.531914893617,
+            "frictionBatchReuseCount": 9.23404255319149,
+            "acceptedFrictionReuseCount": 7.851063829787234,
+            "solveCalls": 8.851063829787234,
+            "applyCalls": 10.212765957446809,
+            "measureCalls": 18.06382978723404,
+            "fullMeasureCalls": 18.06382978723404,
+            "snapshotObjects": 4996.765957446809,
+            "snapshotBytes": 732254.5531914893,
+            "snapshots": 7.851063829787234,
+            "restores": 1.3617021276595744,
+            "condensedSetupMs": 4.193930872341452,
+            "schurMs": 6.1402226170202026,
+            "contactSolveMs": 14.582326425531488,
+            "reconstructionMs": 1.9871713617023798,
+            "seedMs": 6.66146719148929
+          },
+          "counters": {
+            "passes": {
+              "mean": 8.851063829787234,
+              "p50": 8,
+              "p95": 15,
+              "max": 17
+            },
+            "trials": {
+              "mean": 10.212765957446809,
+              "p50": 8,
+              "p95": 19,
+              "max": 22
+            },
+            "backtracks": {
+              "mean": 1.3617021276595744,
+              "p50": 0,
+              "p95": 5,
+              "max": 6
+            },
+            "rows": {
+              "mean": 108.25531914893617,
+              "p50": 107,
+              "p95": 124,
+              "max": 128
+            },
+            "factorizations": {
+              "mean": 570.6382978723404,
+              "p50": 498,
+              "p95": 1052,
+              "max": 1101
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 188,
+          "maximumLumenTangentialForce": 0.3916909144427753,
+          "maximumRecordedLumenPenetrationMm": 0.013489110929961773,
+          "maximumRecordedWallPenetrationMm": 1.1246689906041496e-06
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "wire-rotate-inside",
+      "steps": 30,
+      "runs": {
+        "before-1": {
+          "meanMs": 123.94212920000064,
+          "p95Ms": 184.91895800000202,
+          "meanCosts": {
+            "assemblyMs": 12.665962733335862,
+            "solveMs": 33.38915420000194,
+            "applyMs": 3.0673775333302427,
+            "snapshotMs": 28.292889066668188,
+            "restoreMs": 3.0803653333331265,
+            "measureMs": 42.54714023333751,
+            "geometryReuseCount": 378.4,
+            "frictionBatchReuseCount": 4.633333333333334,
+            "acceptedFrictionReuseCount": 5.7,
+            "solveCalls": 7.5,
+            "applyCalls": 9.233333333333333,
+            "measureCalls": 15.766666666666667,
+            "fullMeasureCalls": 15.533333333333333,
+            "snapshotObjects": 5302,
+            "snapshotBytes": 737028,
+            "snapshots": 6.5,
+            "restores": 1.7666666666666666,
+            "condensedSetupMs": 3.856982133332834,
+            "schurMs": 5.041272500001166,
+            "contactSolveMs": 10.7210929999972,
+            "reconstructionMs": 1.787098833333827,
+            "seedMs": 4.461615366669624
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.5,
+              "p50": 7,
+              "p95": 11,
+              "max": 12
+            },
+            "trials": {
+              "mean": 9.233333333333333,
+              "p50": 8,
+              "p95": 17,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 1.7333333333333334,
+              "p50": 0,
+              "p95": 9,
+              "max": 11
+            },
+            "rows": {
+              "mean": 95.36666666666666,
+              "p50": 96,
+              "p95": 111,
+              "max": 115
+            },
+            "factorizations": {
+              "mean": 332.1666666666667,
+              "p50": 320,
+              "p95": 533,
+              "max": 536
+            }
+          },
+          "failures": 1,
+          "failedIndices": [
+            25
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 186,
+          "maximumLumenTangentialForce": 0.21307910250059592,
+          "maximumRecordedLumenPenetrationMm": 0.06381592007650269,
+          "maximumRecordedWallPenetrationMm": 0.00588044192987025
+        },
+        "after-1": {
+          "meanMs": 34.17451939999974,
+          "p95Ms": 59.888208999998824,
+          "meanCosts": {
+            "assemblyMs": 1.526245866666189,
+            "solveMs": 10.440765099999771,
+            "applyMs": 0.30677506666634147,
+            "snapshotMs": 15.166569466666441,
+            "restoreMs": 0.9769069333331573,
+            "measureMs": 5.173848699999871,
+            "geometryReuseCount": 377.6,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7.833333333333333,
+            "applyCalls": 8.9,
+            "measureCalls": 15.733333333333333,
+            "fullMeasureCalls": 15.733333333333333,
+            "snapshotObjects": 3369,
+            "snapshotBytes": 710580,
+            "snapshots": 6.833333333333333,
+            "restores": 1.0666666666666667,
+            "condensedSetupMs": 2.166224966667384,
+            "schurMs": 1.5205404666664133,
+            "contactSolveMs": 0.26881369999949434,
+            "reconstructionMs": 0.43645396666731057,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.833333333333333,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "trials": {
+              "mean": 8.9,
+              "p50": 8,
+              "p95": 15,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 1.0666666666666667,
+              "p50": 1,
+              "p95": 4,
+              "max": 5
+            },
+            "rows": {
+              "mean": 42.06666666666667,
+              "p50": 44,
+              "p95": 47,
+              "max": 48
+            },
+            "factorizations": {
+              "mean": 70.1,
+              "p50": 77,
+              "p95": 108,
+              "max": 150
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.00018874958195184977,
+          "maximumRecordedWallPenetrationMm": 3.7948307965440797e-06
+        },
+        "after-2": {
+          "meanMs": 32.54360693333329,
+          "p95Ms": 56.70745900000111,
+          "meanCosts": {
+            "assemblyMs": 1.4654041000000386,
+            "solveMs": 9.772801266666283,
+            "applyMs": 0.284297033333011,
+            "snapshotMs": 14.440938833333227,
+            "restoreMs": 0.9971221333335658,
+            "measureMs": 5.043983800001055,
+            "geometryReuseCount": 377.6,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7.833333333333333,
+            "applyCalls": 8.9,
+            "measureCalls": 15.733333333333333,
+            "fullMeasureCalls": 15.733333333333333,
+            "snapshotObjects": 3369,
+            "snapshotBytes": 710580,
+            "snapshots": 6.833333333333333,
+            "restores": 1.0666666666666667,
+            "condensedSetupMs": 1.9349320666669276,
+            "schurMs": 1.494141433333425,
+            "contactSolveMs": 0.2710640333335808,
+            "reconstructionMs": 0.39716840000073717,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.833333333333333,
+              "p50": 7,
+              "p95": 11,
+              "max": 14
+            },
+            "trials": {
+              "mean": 8.9,
+              "p50": 8,
+              "p95": 15,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 1.0666666666666667,
+              "p50": 1,
+              "p95": 4,
+              "max": 5
+            },
+            "rows": {
+              "mean": 42.06666666666667,
+              "p50": 44,
+              "p95": 47,
+              "max": 48
+            },
+            "factorizations": {
+              "mean": 70.1,
+              "p50": 77,
+              "p95": 108,
+              "max": 150
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.00018874958195184977,
+          "maximumRecordedWallPenetrationMm": 3.7948307965440797e-06
+        },
+        "before-2": {
+          "meanMs": 118.8032846999995,
+          "p95Ms": 177.22466699999495,
+          "meanCosts": {
+            "assemblyMs": 11.94547953333434,
+            "solveMs": 31.09701536666544,
+            "applyMs": 2.8844499666677925,
+            "snapshotMs": 26.954148566665147,
+            "restoreMs": 3.1223499333328317,
+            "measureMs": 41.92540690000339,
+            "geometryReuseCount": 378.4,
+            "frictionBatchReuseCount": 4.633333333333334,
+            "acceptedFrictionReuseCount": 5.7,
+            "solveCalls": 7.5,
+            "applyCalls": 9.233333333333333,
+            "measureCalls": 15.766666666666667,
+            "fullMeasureCalls": 15.533333333333333,
+            "snapshotObjects": 5302,
+            "snapshotBytes": 737028,
+            "snapshots": 6.5,
+            "restores": 1.7666666666666666,
+            "condensedSetupMs": 3.4452056000001905,
+            "schurMs": 4.871594499995748,
+            "contactSolveMs": 9.914615400000912,
+            "reconstructionMs": 1.4932751333331302,
+            "seedMs": 3.9004955999987336
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.5,
+              "p50": 7,
+              "p95": 11,
+              "max": 12
+            },
+            "trials": {
+              "mean": 9.233333333333333,
+              "p50": 8,
+              "p95": 17,
+              "max": 17
+            },
+            "backtracks": {
+              "mean": 1.7333333333333334,
+              "p50": 0,
+              "p95": 9,
+              "max": 11
+            },
+            "rows": {
+              "mean": 95.36666666666666,
+              "p50": 96,
+              "p95": 111,
+              "max": 115
+            },
+            "factorizations": {
+              "mean": 332.1666666666667,
+              "p50": 320,
+              "p95": 533,
+              "max": 536
+            }
+          },
+          "failures": 1,
+          "failedIndices": [
+            25
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 186,
+          "maximumLumenTangentialForce": 0.21307910250059592,
+          "maximumRecordedLumenPenetrationMm": 0.06381592007650269,
+          "maximumRecordedWallPenetrationMm": 0.00588044192987025
+        }
+      }
+    },
+    {
+      "scenario": "overlap",
+      "phase": "catheter-rotate-over-wire",
+      "steps": 30,
+      "runs": {
+        "before-1": {
+          "meanMs": 112.46690980000106,
+          "p95Ms": 186.52387499999895,
+          "meanCosts": {
+            "assemblyMs": 12.120050266663505,
+            "solveMs": 31.687324900001112,
+            "applyMs": 2.512985933333645,
+            "snapshotMs": 25.844431633333684,
+            "restoreMs": 2.2747597666680424,
+            "measureMs": 37.3716696333339,
+            "geometryReuseCount": 388.8,
+            "frictionBatchReuseCount": 4.2,
+            "acceptedFrictionReuseCount": 5.966666666666667,
+            "solveCalls": 7.833333333333333,
+            "applyCalls": 9.333333333333334,
+            "measureCalls": 16.2,
+            "fullMeasureCalls": 16.2,
+            "snapshotObjects": 5302,
+            "snapshotBytes": 737028,
+            "snapshots": 6.833333333333333,
+            "restores": 1.5333333333333334,
+            "condensedSetupMs": 3.4693915333349046,
+            "schurMs": 4.553219199998906,
+            "contactSolveMs": 10.97875449999774,
+            "reconstructionMs": 1.5148527333326152,
+            "seedMs": 4.000671100001394
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.833333333333333,
+              "p50": 8,
+              "p95": 11,
+              "max": 13
+            },
+            "trials": {
+              "mean": 9.333333333333334,
+              "p50": 8,
+              "p95": 19,
+              "max": 26
+            },
+            "backtracks": {
+              "mean": 1.5,
+              "p50": 1,
+              "p95": 8,
+              "max": 13
+            },
+            "rows": {
+              "mean": 94.2,
+              "p50": 95,
+              "p95": 112,
+              "max": 113
+            },
+            "factorizations": {
+              "mean": 342.3666666666667,
+              "p50": 321,
+              "p95": 571,
+              "max": 667
+            }
+          },
+          "failures": 1,
+          "failedIndices": [
+            7
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 186,
+          "maximumLumenTangentialForce": 0.17616306596495454,
+          "maximumRecordedLumenPenetrationMm": 0.00018258892854525893,
+          "maximumRecordedWallPenetrationMm": 7.687609799833517e-05
+        },
+        "after-1": {
+          "meanMs": 30.445974999999635,
+          "p95Ms": 46.81379200000083,
+          "meanCosts": {
+            "assemblyMs": 1.3278835666659992,
+            "solveMs": 9.524977866666632,
+            "applyMs": 0.25267870000091835,
+            "snapshotMs": 13.290222099999058,
+            "restoreMs": 0.944898600000306,
+            "measureMs": 4.625851699999536,
+            "geometryReuseCount": 377.6,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7.766666666666667,
+            "applyCalls": 8.966666666666667,
+            "measureCalls": 15.733333333333333,
+            "fullMeasureCalls": 15.733333333333333,
+            "snapshotObjects": 3369,
+            "snapshotBytes": 710580,
+            "snapshots": 6.766666666666667,
+            "restores": 1.2,
+            "condensedSetupMs": 1.9779361666670714,
+            "schurMs": 1.337341533334014,
+            "contactSolveMs": 0.2292613666668937,
+            "reconstructionMs": 0.39685843333293935,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.766666666666667,
+              "p50": 8,
+              "p95": 11,
+              "max": 13
+            },
+            "trials": {
+              "mean": 8.966666666666667,
+              "p50": 8,
+              "p95": 15,
+              "max": 22
+            },
+            "backtracks": {
+              "mean": 1.2,
+              "p50": 1,
+              "p95": 4,
+              "max": 9
+            },
+            "rows": {
+              "mean": 40.2,
+              "p50": 41,
+              "p95": 45,
+              "max": 46
+            },
+            "factorizations": {
+              "mean": 65.4,
+              "p50": 66,
+              "p95": 112,
+              "max": 145
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.00019697887964611333,
+          "maximumRecordedWallPenetrationMm": 1.4215014171314877e-05
+        },
+        "after-2": {
+          "meanMs": 30.02242210000004,
+          "p95Ms": 45.70887500000026,
+          "meanCosts": {
+            "assemblyMs": 1.3743330666665619,
+            "solveMs": 9.205087366666824,
+            "applyMs": 0.24863750000016202,
+            "snapshotMs": 13.207962300000993,
+            "restoreMs": 0.9610860999998597,
+            "measureMs": 4.555855699999301,
+            "geometryReuseCount": 377.6,
+            "frictionBatchReuseCount": 0,
+            "acceptedFrictionReuseCount": 0,
+            "solveCalls": 7.766666666666667,
+            "applyCalls": 8.966666666666667,
+            "measureCalls": 15.733333333333333,
+            "fullMeasureCalls": 15.733333333333333,
+            "snapshotObjects": 3369,
+            "snapshotBytes": 710580,
+            "snapshots": 6.766666666666667,
+            "restores": 1.2,
+            "condensedSetupMs": 1.8794148000012987,
+            "schurMs": 1.317190133332042,
+            "contactSolveMs": 0.2260598333330563,
+            "reconstructionMs": 0.3483168333318948,
+            "seedMs": 0
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.766666666666667,
+              "p50": 8,
+              "p95": 11,
+              "max": 13
+            },
+            "trials": {
+              "mean": 8.966666666666667,
+              "p50": 8,
+              "p95": 15,
+              "max": 22
+            },
+            "backtracks": {
+              "mean": 1.2,
+              "p50": 1,
+              "p95": 4,
+              "max": 9
+            },
+            "rows": {
+              "mean": 40.2,
+              "p50": 41,
+              "p95": 45,
+              "max": 46
+            },
+            "factorizations": {
+              "mean": 65.4,
+              "p50": 66,
+              "p95": 112,
+              "max": 145
+            }
+          },
+          "failures": 0,
+          "failedIndices": [],
+          "finite": true,
+          "maximumLumenFrictionRows": 0,
+          "maximumLumenTangentialForce": 0,
+          "maximumRecordedLumenPenetrationMm": 0.00019697887964611333,
+          "maximumRecordedWallPenetrationMm": 1.4215014171314877e-05
+        },
+        "before-2": {
+          "meanMs": 120.16078203333333,
+          "p95Ms": 249.49725000000035,
+          "meanCosts": {
+            "assemblyMs": 12.577335133331022,
+            "solveMs": 32.00542346666771,
+            "applyMs": 2.7083652333337036,
+            "snapshotMs": 28.490958299999086,
+            "restoreMs": 2.6181819666664525,
+            "measureMs": 41.024138800000465,
+            "geometryReuseCount": 388.8,
+            "frictionBatchReuseCount": 4.2,
+            "acceptedFrictionReuseCount": 5.966666666666667,
+            "solveCalls": 7.833333333333333,
+            "applyCalls": 9.333333333333334,
+            "measureCalls": 16.2,
+            "fullMeasureCalls": 16.2,
+            "snapshotObjects": 5302,
+            "snapshotBytes": 737028,
+            "snapshots": 6.833333333333333,
+            "restores": 1.5333333333333334,
+            "condensedSetupMs": 3.5668862666699472,
+            "schurMs": 4.71291710000102,
+            "contactSolveMs": 10.522462700004205,
+            "reconstructionMs": 1.546653333332991,
+            "seedMs": 3.8426302666666743
+          },
+          "counters": {
+            "passes": {
+              "mean": 7.833333333333333,
+              "p50": 8,
+              "p95": 11,
+              "max": 13
+            },
+            "trials": {
+              "mean": 9.333333333333334,
+              "p50": 8,
+              "p95": 19,
+              "max": 26
+            },
+            "backtracks": {
+              "mean": 1.5,
+              "p50": 1,
+              "p95": 8,
+              "max": 13
+            },
+            "rows": {
+              "mean": 94.2,
+              "p50": 95,
+              "p95": 112,
+              "max": 113
+            },
+            "factorizations": {
+              "mean": 342.3666666666667,
+              "p50": 321,
+              "p95": 571,
+              "max": 667
+            }
+          },
+          "failures": 1,
+          "failedIndices": [
+            7
+          ],
+          "finite": true,
+          "maximumLumenFrictionRows": 186,
+          "maximumLumenTangentialForce": 0.17616306596495454,
+          "maximumRecordedLumenPenetrationMm": 0.00018258892854525893,
+          "maximumRecordedWallPenetrationMm": 7.687609799833517e-05
+        }
+      }
+    }
+  ]
+}

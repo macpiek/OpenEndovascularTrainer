@@ -1687,6 +1687,8 @@ endovascularWorld.addSheath({
 });
 xpbdContainment = endovascularWorld.addContainment(xpbdWireBody, xpbdCatheterBody, {
     model: 'kirchhoff',
+    // Ideal sliding/rotation between tools; retain reciprocal normal contact.
+    surfaceFrictionEnabled: false,
     innerRadius: PIGTAIL_CATHETER_INNER_RADIUS_MM,
     friction: DEFAULT_TOOL_PROFILES.catheter.lumenFriction,
     axialFriction:
@@ -1717,7 +1719,7 @@ xpbdContainment = endovascularWorld.addContainment(xpbdWireBody, xpbdCatheterBod
 if (coupledSolverSelection.biasMaterialMode)
     configureKirchhoffSplitBias(xpbdContainment, { materialMode: coupledSolverSelection.biasMaterialMode });
 xpbdExternalToolContact = endovascularWorld.addToolContact(xpbdWireBody, xpbdCatheterBody, {
-    friction: 0.08,
+    friction: 0,
     openDistalB: true,
     enabled: false
 });
