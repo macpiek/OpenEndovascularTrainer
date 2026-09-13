@@ -1022,7 +1022,8 @@ export class VesselContactField {
         precomputedLength = -1,
         precomputedSampleCount = 0,
         physicalGap = false,
-        finiteMeshContacts = false
+        finiteMeshContacts = false,
+        sampleVisitor = null
     ) {
         // Reuse the exact closest triangle from this material segment's
         // previous query as a branch-and-bound upper bound. The BVH still
@@ -1055,7 +1056,8 @@ export class VesselContactField {
             measureInsideClearance,
             knownNearWall,
             precomputedLength,
-            precomputedSampleCount
+            precomputedSampleCount,
+            sampleVisitor
         );
         } finally {
             this._physicalCapsuleGap = previousPhysicalGap;
@@ -1065,11 +1067,11 @@ export class VesselContactField {
 
     #queryCapsuleStored(ax, ay, az, bx, by, bz, radius, out,
         knownInside = false, measureInsideClearance = false, knownNearWall = false,
-        precomputedLength = -1, precomputedSampleCount = 0) {
+        precomputedLength = -1, precomputedSampleCount = 0, sampleVisitor = null) {
         const previousSkip = this._skipBvhValidation;
         try {
             return this.#queryCapsuleStoredImpl(ax, ay, az, bx, by, bz, radius, out,
-                knownInside, measureInsideClearance, knownNearWall, precomputedLength, precomputedSampleCount);
+                knownInside, measureInsideClearance, knownNearWall, precomputedLength, precomputedSampleCount, sampleVisitor);
         } catch (error) {
             this._capsuleEndpointX = NaN;
             throw error;
@@ -1091,7 +1093,8 @@ export class VesselContactField {
         measureInsideClearance = false,
         knownNearWall = false,
         precomputedLength = -1,
-        precomputedSampleCount = 0
+        precomputedSampleCount = 0,
+        sampleVisitor = null
     ) {
         if (!out) this.stats[STAT_RESULT_ALLOCATIONS]++;
         const target = out || createContactResult();
@@ -1147,6 +1150,10 @@ export class VesselContactField {
             if (this._finiteMeshContacts) this.#refineContactWithBvh(ax, ay, az, toolRadius, contact);
             this.stats[STAT_CAPSULE_SAMPLES] += 1;
         }
+        // The visitor consumes the already evaluated sphere result immediately;
+        // this scratch contact is reused for the next sample. Finite-mesh mode
+        // has already refined its face/normal, including endpoint-cache reuse.
+        if (sampleVisitor) sampleVisitor(contact, 0);
         bestGap = contact.values[CONTACT_SIGNED_GAP];
         if (measureInsideClearance) allSamplesInside = contact.inside;
         const startGap = bestGap;
@@ -1180,6 +1187,7 @@ export class VesselContactField {
             this._capsuleEndpointRadius = toolRadius;
             this._capsuleEndpointPhysicalGap = this._physicalCapsuleGap === true;
             this._capsuleEndpointFiniteMesh = this._finiteMeshContacts === true;
+            if (sampleVisitor) sampleVisitor(contact, 1);
             endGap = contact.values[CONTACT_SIGNED_GAP];
             normalAgreement =
                 startNormalX * contact.inward.values[0] +
@@ -1221,6 +1229,7 @@ export class VesselContactField {
             if (measureInsideClearance) {
                 allSamplesInside = allSamplesInside && contact.inside;
             }
+            if (sampleVisitor) sampleVisitor(contact, t);
             const gap = contact.values[CONTACT_SIGNED_GAP];
             if (gap < bestGap) {
                 bestGap = gap;

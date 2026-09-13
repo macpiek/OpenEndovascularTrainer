@@ -1,0 +1,60 @@
+{
+  "hashes": {
+    "src/physics/kirchhoffSharedAxisNative.js": "d92d615ebb281c6c22ac8cd677f3875491e71b81ab88e3e76247692dd72e4bf3",
+    "src/physics/kirchhoffSharedAxisTimeStep.js": "1702b5d74534155972f8e91d1110f27c0d743c8e161db0da957f1b6ebbb17e43",
+    "src/physics/kirchhoffSharedAxisWallFriction.js": "668d476112f4bedaeebbdc4b89073af86d18e3d6673a45f68970c9d3a1a6a635",
+    "src/physics/kirchhoffSharedAxisDynamics.js": "6e2cd0246c00fafb816112a83c85682f3fc3eaeeeee6f875d51f6f2881eb3dae",
+    "src/physics/kirchhoffSharedAxisLinear.js": "5930683f09d41be4cfe4f72fb5df2a400a0c59ffef370185686373cedf4b8476",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "fff65dcc2e2a78e98045983d7ddb9de3361ee4cf56ac0cd748f7b91977a83d00",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "e0fd15c0c2e58eaca5a57fdbc14e06d944ae76966195689ed0377f8f9534e89c",
+    "src/physics/kirchhoffSharedAxisConstraintRows.js": "21ae490ca1cefc242ae492418f68105c5ca21f63b69616f9e79566f4668fed6f",
+    "src/physics/kirchhoffSharedAxisMaterialTangent.js": "5cc93a82493f3ff18a133b058476ce9931cab34524e69b98a0de8e72a15cd68a",
+    "src/physics/kirchhoffSharedAxisGaussNewton.js": "62e54a93d92fcdd8e056062796bacc653b4c3feac9687ff7fc6eb74a6a21eee5",
+    "src/physics/kirchhoffSharedAxisActiveBasis.js": "98bcb9697c054e62015ebbd866d9a19960846a3bf627e37d8c4bff92656b4293"
+  },
+  "changedSources": [],
+  "runs": [
+    {
+      "live": false,
+      "failed": false,
+      "steps": 20,
+      "maxCatInsertion": 17.333333333333332,
+      "iterations": 142,
+      "LU": 301,
+      "frictionIterations": 63,
+      "fallbacks": 0,
+      "substepAttempts": 20,
+      "maxSubdivisions": 1,
+      "geometryRestarts": 0,
+      "failedDirections": 0,
+      "failedDirectionLU": 0,
+      "maxCertificate": 8.955128160681447e-07,
+      "maxPenetration": 7.399636459126668e-14,
+      "sumWallMs": 856.967873,
+      "sumAssemblyMs": 373.3104589999987,
+      "sumLinearMs": 359.1084989999996,
+      "maxStepMs": 116.80179199999998
+    },
+    {
+      "live": true,
+      "failed": false,
+      "steps": 20,
+      "maxCatInsertion": 17.333333333333332,
+      "iterations": 107,
+      "LU": 265,
+      "frictionIterations": 32,
+      "fallbacks": 0,
+      "substepAttempts": 20,
+      "maxSubdivisions": 1,
+      "geometryRestarts": 0,
+      "failedDirections": 0,
+      "failedDirectionLU": 0,
+      "maxCertificate": 6.373234331391586e-07,
+      "maxPenetration": 1.0355605262191148e-12,
+      "sumWallMs": 634.9680849999994,
+      "sumAssemblyMs": 235.6139570000007,
+      "sumLinearMs": 311.16133399999956,
+      "maxStepMs": 58.84274999999991
+    }
+  ]
+}

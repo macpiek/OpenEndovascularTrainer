@@ -25,8 +25,8 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
         reset(){pending=null;lastRejectedFrame=-1;epoch++;},
         dispose(){disposed=true;pending=null;deferred.clear();epoch++;},
         attempt(dt) {
-            if(!canAttempt())return{accepted:false,attempted:false,status:disposed?'disposed':'frame-blocked',durationMs:0};
-            const start=now();let accepted=false,context=null,error=null,status;
+            if(!canAttempt())return{accepted:false,pending:false,attempted:false,status:disposed?'disposed':'frame-blocked',durationMs:0};
+            const start=now();let accepted=false,cooperativePending=false,context=null,error=null,status;
             try {
                 if(!Number.isFinite(dt)||dt<=0||world.fixedDt!==dt)throw new Error('A prepared timestep must retain the World fixed dt');
                 if(!pending) {
@@ -56,13 +56,19 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
                     // Consume BEFORE any application accounting/presentation.
                     // A fallible UI update must never replay this solved dt.
                     pending=null;
-                } else lastRejectedFrame=frame;
+                } else {
+                    // An explicit cooperative yield retains the prepared dt
+                    // without declaring a numerical rejection. The scheduler
+                    // may continue it within the same frame's idle budget.
+                    cooperativePending=world.lastStepResult?.accepted===false&&world.lastStepResult.pending===true&&!world.lastStepResult.error;
+                    if(!cooperativePending)lastRejectedFrame=frame;
+                }
             } catch(caught) {
-                error=caught;status='error';lastRejectedFrame=frame;
+                error=caught;status='error';cooperativePending=false;lastRejectedFrame=frame;
                 // Keep the initiating failure when retries hit secondary guards.
                 if(pending)pending.firstError??=caught;
             }
-            return {accepted,attempted:true,status,context,error,firstError:pending?.firstError??null,durationMs:now()-start};
+            return {accepted,pending:cooperativePending,attempted:true,status,context,error,firstError:pending?.firstError??null,durationMs:now()-start};
         }
     };
 }

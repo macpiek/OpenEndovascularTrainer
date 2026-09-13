@@ -3329,7 +3329,11 @@ export class EndovascularPhysicsWorld {
     }
 
     getStats() {
-        const bodies = this.bodies.map(body => this.#bodyStats(body));
+        const bodies = this.bodies.map(body => {
+            const native=this.#bodyStats(body);
+            return this.wholeStepSystem?.id === 'shared-axis' && body.sharedAxisDiagnostics
+                ? {...native,...body.sharedAxisDiagnostics,id:body.id,constitutiveSolver:'shared-axis'} : native;
+        });
         return {
             mode: this.wholeStepSystem ? 'whole-step' : 'kirchhoff-direct',
             coupledSolver: this.lastCoupledSolver ?? 'independent',

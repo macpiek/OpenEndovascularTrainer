@@ -1,6 +1,7 @@
+import { createSharedAxisAppSystem } from './physics/kirchhoffSharedAxisAppSystem.js';
 import { CATHETER_PHYSICS_SPACING_MM, catheterPhysicsNodeCount, catheterNodeMass } from './physics/catheterDiscretization.js';
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
-import { ConstraintStageProfile } from './physics/constraintStageProfile.js';
+import { ConstraintStageProfile, recordSharedAxisQuality, assessSharedAxisBenchmarkTiming } from './physics/constraintStageProfile.js';
 import { SHORT_CATHETER_BENCHMARK_MODE, SHORT_CATHETER_BENCHMARK_DURATION_MS,
     sampleShortCatheterBenchmarkCommands, ShortCatheterBenchmarkMetrics,
     DEEP_CATHETER_BENCHMARK_MODE, DEEP_CATHETER_BENCHMARK_PHASES, DEEP_CATHETER_BENCHMARK_DURATION_MS
@@ -134,7 +135,7 @@ const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const axialBandSolve = new URLSearchParams(window.location.search).get('coupledLinearSolver') === 'axial-band';
-const PHYSICS_MODE = selectedCoupledSolver === 'composite-joint' ? 'composite-joint' : 'kirchhoff-direct';
+const PHYSICS_MODE = ['composite-joint','shared-axis'].includes(selectedCoupledSolver) ? selectedCoupledSolver : 'kirchhoff-direct';
 let compositeStepCommands = null;
 let compositeInitialEpoch = {};
 const compositeAppSystem = selectedCoupledSolver === 'composite-joint' ? createCompositeJointAppSystem({
@@ -147,15 +148,27 @@ const compositeAppSystem = selectedCoupledSolver === 'composite-joint' ? createC
     workSliceMs: 4,
     worldWall: {source: 'original-field', contactMode: 'material-points', rateMode: 'backward-euler-grid', seamUpdates: 'automatic'}
 }) : null;
-const compositeStatus = compositeAppSystem ? document.createElement('div') : null;
+const sharedAxisAppSystem = selectedCoupledSolver === 'shared-axis' ? createSharedAxisAppSystem({
+    readSheath: () => ({...vessel.sheath, innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
+    readTools: () => [
+        {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
+            type:activeGuidewireType,shaftStiffness:guidewireShaftStiffnessScale,tipStiffness:guidewireTipStiffnessScale,
+            nodeCoordinates:Array.from({length:xpbdWireBody.count},(_,i)=>guidewireTransport.insertedCoordinate(i))},
+        {id:'catheter',body:xpbdCatheterBody,insertion:pigtailCatheter.progress,rotation:pigtailCatheter.rotation,
+            type:pigtailCatheter.type,shaftStiffness:catheterShaftStiffnessScale,tipStiffness:catheterTipStiffnessScale,
+            nodeCoordinates:Array.from(xpbdCatheterBody.materialCoordinate)}
+    ]
+}) : null;
+const wholeAxisAppSystem = sharedAxisAppSystem ?? compositeAppSystem;
+const compositeStatus = wholeAxisAppSystem ? document.createElement('div') : null;
 if (compositeStatus) {
     compositeStatus.id = 'compositeSolverStatus';
     compositeStatus.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);max-width:560px;padding:7px 12px;background:#142431e8;color:#e7f5ff;border:1px solid #537084;border-radius:6px;font:12px/1.4 system-ui;z-index:1000;pointer-events:none';
     compositeStatus.textContent = 'Nowy wspólny solver — inicjalizacja';
     document.body.append(compositeStatus);
 }
-// The application uses the established position-history Kirchhoff mechanics
-// with a joint contact block. Split motion requires an experimental opt-in.
+// The default shares one spatial axis with independent native material frames.
+// Explicit legacy URLs remain available for controlled comparisons.
 const captureCoupledOperator = new URLSearchParams(window.location.search).get('captureCoupledOperator') === '1';
 let coupledOperatorCaptureStatus = 'disabled';
 function captureLoadedOperator({matrix,rhs,lower,upper,count,band,sourceGroups,sourceLower,sourceUpper,result,options}) {
@@ -175,7 +188,7 @@ const coupledSolverSelection = createCoupledSolverSelection(
         solveTwoChannel: axialBandSolve
             ? (constraint, dt, options) => solveKirchhoffTwoChannelSystem(constraint, dt, {...options, condensation:'none', matrixStorage:'general-band'})
             : solveKirchhoffTwoChannelSystem,
-        wholeStepSystem: compositeAppSystem }
+        wholeStepSystem: wholeAxisAppSystem }
 );
 // Both devices always use the shared direct Kirchhoff material solver.
 const XRAY_CAMERA_NEAR = 0.1;
@@ -1624,7 +1637,7 @@ pigtailCatheter = new PigtailCatheter({
     guidewireLength,
     tailProgressRef: () => guidewireTransport.progress,
     vessel,
-    retainMaterialTip: !!compositeAppSystem
+    retainMaterialTip: !!wholeAxisAppSystem
 });
 pigtailCatheter.setStiffnessScales({
     shaftStiffnessScale: catheterShaftStiffnessScale,
@@ -1651,7 +1664,7 @@ endovascularWorld = new EndovascularPhysicsWorld({
     jointMotionMode: coupledSolverSelection.jointMotionMode,
     contactField: vesselCollisionTarget.contactField || null,
     adaptiveLineSearch: new URLSearchParams(window.location.search).get('adaptiveLineSearch') !== '0',
-    fixedDt: 1 / 120,
+    fixedDt: sharedAxisAppSystem ? 1 / 60 : 1 / 120,
     maxSubsteps: 2,
     iterations: 6,
     penetrationIterations: 8,
@@ -2057,6 +2070,10 @@ function resetBrowserBenchmark() {
     browserBenchmarkAcceptedTimeStart = simulationAcceptedTime;
     browserBenchmarkAccumulatorStart = simulationAccumulator;
     browserBenchmarkPhysicsEnvelope.steps = 0;
+    browserBenchmarkPhysicsEnvelope.source = null;
+    browserBenchmarkPhysicsEnvelope.solverSteps = 0;
+    browserBenchmarkPhysicsEnvelope.sleepingSteps = 0;
+    browserBenchmarkPhysicsEnvelope.missingQualitySteps = 0;
     browserBenchmarkPhysicsEnvelope.nonlinearFailedSteps = 0;
     browserBenchmarkPhysicsEnvelope.firstNonlinearFailure = null;
     browserBenchmarkPhysicsEnvelope.lengthPeakNonlinearFailure = null;
@@ -2171,6 +2188,10 @@ runtime.listen(window, 'focus', () => {
 });
 
 function recordBrowserPhysicsEnvelope() {
+    if(sharedAxisAppSystem) {
+        recordSharedAxisQuality(browserBenchmarkPhysicsEnvelope,endovascularWorld.lastStepResult);
+        return;
+    }
     browserConstraintStageProfile.record(endovascularWorld);
     const envelope = browserBenchmarkPhysicsEnvelope;
     envelope.steps++;
@@ -2565,6 +2586,7 @@ function getBrowserBenchmarkReport() {
     const p99FrameMs = browserFramePercentile(0.99);
     const onePercentLowFps = browserOnePercentLowFps();
     const physics = endovascularWorld.getStats();
+    const stageProfile = browserConstraintStageProfile.report();
     const contactField = vesselCollisionTarget.contactField?.getStats?.() || null;
     const scenario = getBrowserBenchmarkScenarioStatus();
     const durationPass = !scenario.running &&
@@ -2574,12 +2596,16 @@ function getBrowserBenchmarkReport() {
     // Keep the strict 50 ms counter as a scheduling diagnostic. A visible GC pause
     // is assessed separately using frame, heap, and hot-path allocation evidence.
     const noLongFramePass = browserLongFrame50Count === 0;
-    const physicsBudgetPass = physics.phases.total.averageMs <= 4 &&
+    let physicsBudgetPass = stageProfile.steps > 0 && physics.phases.total.averageMs <= 4 &&
         physics.phases.total.p95Ms <= 6;
-    const penetrationPass = browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationMm <= 0.2;
-    const lengthPass = browserBenchmarkPhysicsEnvelope.maxSegmentErrorPercent <= 1;
-    const foldPass = browserBenchmarkPhysicsEnvelope.maxBendAngleDegrees < 150;
-    const finitePass = browserBenchmarkPhysicsEnvelope.finite;
+    const physicalSamplesPass=browserBenchmarkPhysicsEnvelope.steps>0&&(!sharedAxisAppSystem||
+        browserBenchmarkPhysicsEnvelope.solverSteps>0&&browserBenchmarkPhysicsEnvelope.missingQualitySteps===0);
+    const penetrationPass = physicalSamplesPass&&browserBenchmarkPhysicsEnvelope.maxPostStepPenetrationMm <= 0.2;
+    const lengthPass = physicalSamplesPass&&browserBenchmarkPhysicsEnvelope.maxSegmentErrorPercent <= 1;
+    const foldPass = physicalSamplesPass&&(sharedAxisAppSystem
+        ? Number.isFinite(browserBenchmarkPhysicsEnvelope.maxBendLimitDegrees)&&browserBenchmarkPhysicsEnvelope.maxBendAngleDegrees<=browserBenchmarkPhysicsEnvelope.maxBendLimitDegrees+1e-6
+        : browserBenchmarkPhysicsEnvelope.maxBendAngleDegrees < 150);
+    const finitePass = physicalSamplesPass&&browserBenchmarkPhysicsEnvelope.finite;
     const modePass = true;
     const contactFieldPass = !!endovascularWorld.contactField;
     const cameraProjectionChanges = Math.max(
@@ -2598,18 +2624,18 @@ function getBrowserBenchmarkReport() {
     const runtimeAssetPass = (contactField?.runtimeBytes ?? Infinity) <= 32 * 1024 * 1024;
     const noVisibleGcPausePass = browserMaxFrameMs < 100 &&
         memoryStabilityPass && narrowPhaseAllocationPass;
-    const guidewireTransportSeparationPass =
+    const guidewireTransportSeparationPass = sharedAxisAppSystem ? null :
         scenario.mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE ||
         browserBenchmarkPhysicsEnvelope
             .maxGuidewireSpeedWhileAdvancingMmPerSecond > 45;
-    const guidewireReleaseContinuityPass =
+    const guidewireReleaseContinuityPass = sharedAxisAppSystem ? null :
         scenario.mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE || (
             browserBenchmarkPhysicsEnvelope.guidewireReleaseEventCount >= 2 &&
             browserBenchmarkPhysicsEnvelope
                 .maxGuidewireReleaseSpeedIncreaseMmPerSecond <= 5 &&
             browserBenchmarkPhysicsEnvelope.maxGuidewireReleaseSpeedRatio <= 1.25
         );
-    const guidewireImpulsePass =
+    const guidewireImpulsePass = sharedAxisAppSystem ? null :
         scenario.mode !== BROWSER_BENCHMARK_MODE_GUIDEWIRE || (
             browserBenchmarkPhysicsEnvelope
                 .maxGuidewireProjectionLeakSpeedMmPerSecond <= 1e-6 &&
@@ -2633,6 +2659,14 @@ function getBrowserBenchmarkReport() {
     const accountingErrorSeconds =
         benchmarkAcceptedSeconds - accountedSeconds;
     const noDroppedStepsPass = Math.abs(accountingErrorSeconds) <= 1e-6;
+    const sharedTiming=sharedAxisAppSystem?assessSharedAxisBenchmarkTiming({profile:stageProfile,fixedDt,
+        executedSteps:benchmarkExecutedSteps,admittedSeconds:benchmarkAcceptedSeconds,
+        startBacklogSeconds:browserBenchmarkAccumulatorStart,endBacklogSeconds:simulationAccumulator,peakBacklogSeconds:simulationPeakBacklog,
+        renderingPass:onePercentLowPass&&noVisibleGcPausePass}):null;
+    if(sharedTiming)physicsBudgetPass=sharedTiming.physicsBudgetPass;
+    const guidewireChecksAvailable=!sharedAxisAppSystem||scenario.mode!==BROWSER_BENCHMARK_MODE_GUIDEWIRE;
+    const guidewireChecksPass=sharedAxisAppSystem?guidewireChecksAvailable:
+        guidewireTransportSeparationPass&&guidewireReleaseContinuityPass&&guidewireImpulsePass;
     return {
         mode: PHYSICS_MODE,
         coupledSolver: coupledSolverSelection.getReport(endovascularWorld),
@@ -2652,6 +2686,7 @@ function getBrowserBenchmarkReport() {
         longFrame50Count: browserLongFrame50Count,
         longFrameEvents: getBrowserLongFrameEvents(),
         frameCpu: getBrowserFrameCpuStats(),
+        sharedAxisTiming:sharedTiming,
         coupledOperatorCaptureStatus,
         physicsScheduler: {
             lastAttempt: simulationLastAttempt ? { ...simulationLastAttempt } : null,
@@ -2659,6 +2694,7 @@ function getBrowserBenchmarkReport() {
             maxStepsPerFrame: MAX_PHYSICS_STEPS_PER_FRAME,
             maxIdleSteps: MAX_IDLE_PHYSICS_STEPS,
             acceptedSeconds: benchmarkAcceptedSeconds,
+            completedSimulationSeconds:benchmarkExecutedSteps*fixedDt,
             accountedSeconds,
             accountingErrorSeconds,
             executedSteps: benchmarkExecutedSteps,
@@ -2684,7 +2720,7 @@ function getBrowserBenchmarkReport() {
         },
         physics,
         physicsEnvelope: { ...browserBenchmarkPhysicsEnvelope },
-        constraintStageProfile: browserConstraintStageProfile.report(),
+        constraintStageProfile: stageProfile,
         adaptiveLineSearch: endovascularWorld.adaptiveLineSearch,
         contactField,
         cameraProjectionChanges,
@@ -2703,6 +2739,9 @@ function getBrowserBenchmarkReport() {
             noLongFramePass,
             noVisibleGcPausePass,
             physicsBudgetPass,
+            physicalSamplesPass,
+            simulationRealtimePass:sharedTiming?.simulationRealtimePass??null,
+            realTime60FpsPass:sharedTiming?.realTime60FpsPass??null,
             narrowPhaseAllocationPass,
             memoryStabilityPass,
             runtimeAssetPass,
@@ -2718,13 +2757,13 @@ function getBrowserBenchmarkReport() {
             guidewireTransportSeparationPass,
             guidewireReleaseContinuityPass,
             guidewireImpulsePass,
+            guidewireChecksAvailable,
             passed: durationPass && onePercentLowPass && noVisibleGcPausePass &&
                 physicsBudgetPass && narrowPhaseAllocationPass && memoryStabilityPass &&
                 runtimeAssetPass && penetrationPass && lengthPass && foldPass &&
                 finitePass && modePass && contactFieldPass && cameraStablePass &&
                 focusPass && noDroppedStepsPass &&
-                guidewireTransportSeparationPass &&
-                guidewireReleaseContinuityPass && guidewireImpulsePass
+                guidewireChecksPass && (!sharedTiming||sharedTiming.simulationRealtimePass)
         }
     };
 }
@@ -2749,6 +2788,7 @@ function resetBrowserBenchmarkSimulation({ resetAccumulator = true } = {}) {
     simulationStepTransaction?.reset();
     simulationStepTransaction?.flushChanges();
     simulationCatchupPending = false;
+    simulationPendingStepCpuMs = 0;
     browserBenchmarkEpoch++;
     guidewireTransport.reset();
     tailProgress = guidewireTransport.progress;
@@ -3197,7 +3237,7 @@ function updateGuidewireResistance() {
     ui.updateGuidewireResistance(resistance.level, resistance.reason);
 }
 
-const fixedDt = 1 / 120;
+const fixedDt = endovascularWorld.fixedDt;
 const MAX_PHYSICS_STEPS_PER_FRAME = 2;
 const MAX_IDLE_PHYSICS_STEPS = 6;
 const TARGET_RENDER_FRAME_MS = 1000 / 60;
@@ -3224,6 +3264,7 @@ let simulationAcceptedTime = 0;
 let simulationStepEstimateMs = 1;
 let simulationCatchupPending = false;
 let simulationLastAttempt = null;
+let simulationPendingStepCpuMs = 0;
 simulationStepTransaction = createFixedStepTransaction({
     world: endovascularWorld,
     prepare: prepareSimulationStep,
@@ -3402,7 +3443,7 @@ function prepareSimulationStep(dt) {
         // body and finds the new contact-constrained equilibrium.
         xpbdWireBody.syncFromRodState(wire, XPBD_WIRE_SYNC_OPTIONS);
         xpbdWireBody.setActiveRange(
-            compositeAppSystem ? guidewireTransport.firstProximalSupportNodeIndex() :
+            wholeAxisAppSystem ? guidewireTransport.firstProximalSupportNodeIndex() :
                 Math.min(xpbdWireBody.count - 2, Math.max(0, guidewireTransport.firstInsertedNodeIndex() - 1)),
             xpbdWireBody.count - 1
         );
@@ -3818,12 +3859,23 @@ function processDsaRoadmapCapture() {
 }
 
 function executeAccumulatedPhysicsStep(idle = false) {
-    if (compositeAppSystem && (!loadingAssetsReady() || !endovascularWorld.contactField)) return false;
+    if (wholeAxisAppSystem && (!loadingAssetsReady() || !endovascularWorld.contactField)) return false;
     if (!simulationStepTransaction.canAttempt()) return false;
     const startedAt = performance.now();
     let result;
     try {
         result = stepSimulation(fixedDt);
+        if(sharedAxisAppSystem) {
+            // Sum synchronous work across every retry of this prepared dt.
+            // This includes input preparation and native buffer publication,
+            // but excludes the time waiting between cooperative slices.
+            simulationPendingStepCpuMs+=result.durationMs??0;
+            const sameBenchmark=browserBenchmarkScenario.running&&(!result.accepted||
+                result.context?.benchmarkEpoch===browserBenchmarkEpoch&&result.context?.benchmarkRunning);
+            if(sameBenchmark)browserConstraintStageProfile.record(endovascularWorld,
+                result.accepted?{fullStepCpuMs:simulationPendingStepCpuMs}:{});
+            if(result.accepted)simulationPendingStepCpuMs=0;
+        }
         simulationLastAttempt = { accepted: result.accepted, status: result.status,
             frame: simulationStepTransaction.frame, error: result.error?.message ?? null,
             firstError: result.firstError?.message ?? result.error?.message ?? null };
@@ -3870,8 +3922,13 @@ function runIdlePhysicsCatchup(deadline = null, epoch = simulationStepTransactio
             remainingMs <=
                 simulationStepEstimateMs + PHYSICS_IDLE_GUARD_MS
         ) break;
-        if (!executeAccumulatedPhysicsStep(true)) break;
+        const accepted = executeAccumulatedPhysicsStep(true);
+        // Bound work slices as well as complete steps. A cooperative yield
+        // keeps the same prepared dt and can use the remaining idle budget;
+        // numerical rejection/error still blocks this frame immediately.
         steps++;
+        if (!accepted && !(endovascularWorld.lastStepResult?.pending === true &&
+            simulationStepTransaction.canAttempt())) break;
     }
 }
 
@@ -3899,8 +3956,11 @@ function animate(time) {
     if (compositeStatus) {
         const result = endovascularWorld.lastStepResult;
         const progress = result?.diagnostics?.progress;
-        const status = `Nowy wspólny solver · zaakceptowane kroki: ${endovascularWorld.stepCount}` +
-            (result?.status === 'computing' ? ` · obliczanie: iteracja ${progress?.directions ?? 0}, ocena ${progress?.evaluations ?? 0}`
+        const status = (sharedAxisAppSystem
+            ? `Nowy wspólny solver · obliczenia: ${sharedAxisAppSystem.diagnostics.acceptedSteps} · kroki czasu: ${endovascularWorld.stepCount}`
+            : `Nowy wspólny solver · zaakceptowane kroki: ${endovascularWorld.stepCount}`) +
+            (result?.status === 'shared-axis-pending' ? ' · obliczanie wspólnego kroku'
+                : result?.status === 'computing' ? ` · obliczanie: iteracja ${progress?.directions ?? 0}, ocena ${progress?.evaluations ?? 0}`
                 : result?.accepted === false ? ` · wstrzymany: ${result.message || result.status}` : '');
         if (compositeStatus.textContent !== status) compositeStatus.textContent = status;
     }
@@ -3910,8 +3970,8 @@ function animate(time) {
     lastRenderTime = time;
     recordBrowserFrame(frameMs);
     if (browserBenchmarkScenario.running) shortCatheterBenchmarkMetrics?.recordFrame(frameMs);
-    const compositeReady = !compositeAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
-    const physicsDt = compositeAppSystem && (!compositeReady || !compositePhysicsClockStarted) ? 0 : dt;
+    const compositeReady = !wholeAxisAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
+    const physicsDt = wholeAxisAppSystem && (!compositeReady || !compositePhysicsClockStarted) ? 0 : dt;
     if (compositeReady) compositePhysicsClockStarted = true;
     simulationAcceptedTime += physicsDt;
     simulationAccumulator += physicsDt;
@@ -4232,7 +4292,7 @@ runtime.listen(window, 'resize', () => {
 
 runtime.onDispose(() => {
     simulationStepTransaction?.dispose();
-    if (compositeAppSystem && endovascularWorld) compositeAppSystem.reset(endovascularWorld);
+    if (wholeAxisAppSystem && endovascularWorld) wholeAxisAppSystem.reset(endovascularWorld);
     simulationCatchupPending = false;
     disposeCArmPreview();
     disposeThreeResources({

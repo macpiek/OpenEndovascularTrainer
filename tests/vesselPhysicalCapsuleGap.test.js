@@ -126,3 +126,24 @@ test('finite mesh capsule compares exact triangle distances at every sample, wit
     assert.throws(()=>new VesselContactField(asset).queryCapsuleSoA(...arrays,
         new Float64Array([radius,radius]),0,createContactResult(),-1,false,false,-1,false,-1,0,true,true),/mesh BVH/);
 });
+
+test('optional capsule visitor exposes every already evaluated finite sample without extra geometry queries',()=>{
+    const ordinary=fixture(),visited=fixture(),samples=8;
+    const snapshot=c=>({values:Array.from(c.values),face:c.faceIndex,source:c.source,normal:Array.from(c.inward.values)});
+    const call=(field,points,visitor=null)=>field.queryCapsuleSoA(...[0,1,2].map(k=>Float64Array.from(points,p=>p[k])),new Float64Array([radius,radius]),0,
+        createContactResult(),-1,false,false,354,false,4,samples,true,true,visitor);
+    for(const points of [base,[base[1],base[1].map((v,k)=>v+base[1][k]-base[0][k])]]) {
+        const collected=[],a=snapshot(call(ordinary,points)),b=snapshot(call(visited,points,(c,t)=>collected.push({t,...snapshot(c)})));
+        assert.deepEqual(a,b);assert.equal(collected.length,samples+1);
+        assert.deepEqual(collected.map(c=>c.t).sort((a,b)=>a-b),Array.from({length:samples+1},(_,i)=>i/samples));
+        assert.ok(collected.every(c=>c.face>=0));
+        const statsA=ordinary.getStats(),statsB=visited.getStats();
+        for(const key of ['capsuleSamples','bvhRefinements','bvhContactRefinements'])assert.equal(statsA[key],statsB[key],key);
+    }
+});
+
+test('a capsule visitor exception restores query flags and invalidates its partial endpoint cache',()=>{
+    const field=fixture(),arrays=[0,1,2].map(k=>Float64Array.from(base,p=>p[k]));
+    assert.throws(()=>field.queryCapsuleSoA(...arrays,new Float64Array([radius,radius]),0,createContactResult(),-1,false,false,354,false,4,8,true,true,()=>{throw new Error('visitor interrupted');}),/visitor interrupted/);
+    assert.deepEqual(query(field,0,false),query(fixture(),0,false));
+});
