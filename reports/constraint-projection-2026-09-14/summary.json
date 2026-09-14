@@ -1,0 +1,191 @@
+{
+  "note": "Final serial ABBA, sources unchanged during all four runs. Earlier runs were exploratory and are not used for the performance comparison.",
+  "scope": "Synchronous complete prepared physical step, including failed feed subdivisions; rendering excluded",
+  "terminalHash": "050a85d93c67ae03a3883b6dd8693338c5e126aa814007eff5afbc543893cc1b",
+  "exactPhysicalSampleParity": true,
+  "samplesPerRun": 1513,
+  "runs": {
+    "reference-b": {
+      "sourceTreeHash": "9d376514267f62397dbe9aac95515fd31717d0c0496eaeb140f69196bb1ca6af",
+      "phases": {
+        "wire": {
+          "samples": 819,
+          "meanMs": 29.150260627594577,
+          "p95Ms": 75.47754200000054,
+          "p99Ms": 140.77970899999855,
+          "maxMs": 261.8865829999995,
+          "assemblyMs": 12.530523808302812,
+          "linearMs": 12.692167266178336,
+          "frictionMs": 0.5132475018314774,
+          "projectionMs": 0.2502671086691311,
+          "fullAssemblies": 8.196581196581196,
+          "residualAssemblies": 8.117216117216117,
+          "promotedAssemblies": 3.7362637362637363
+        },
+        "catheter": {
+          "samples": 693,
+          "meanMs": 76.92726262193361,
+          "p95Ms": 155.51287500000035,
+          "p99Ms": 256.32937500000116,
+          "maxMs": 3672.5677089999954,
+          "assemblyMs": 40.990226828282644,
+          "linearMs": 26.701299829725723,
+          "frictionMs": 1.5444071890330173,
+          "projectionMs": 2.6251709783555452,
+          "fullAssemblies": 9.672438672438673,
+          "residualAssemblies": 11.468975468975469,
+          "promotedAssemblies": 5.01010101010101
+        }
+      },
+      "worst": {
+        "wire": 600,
+        "catheter": 492.2666666666694,
+        "totalMs": 3672.5677089999954,
+        "iterations": 169,
+        "factorizations": 1203,
+        "backtracks": 237,
+        "wallNormalFallbacks": 1
+      }
+    },
+    "reduced-b": {
+      "sourceTreeHash": "9d376514267f62397dbe9aac95515fd31717d0c0496eaeb140f69196bb1ca6af",
+      "phases": {
+        "wire": {
+          "samples": 819,
+          "meanMs": 28.964457540903535,
+          "p95Ms": 72.91308299999946,
+          "p99Ms": 132.42662500000006,
+          "maxMs": 220.62962500000003,
+          "assemblyMs": 12.523967811965866,
+          "linearMs": 12.459199908425145,
+          "frictionMs": 0.5289549291819804,
+          "projectionMs": 0.2226658534798489,
+          "fullAssemblies": 8.196581196581196,
+          "residualAssemblies": 8.117216117216117,
+          "promotedAssemblies": 3.7362637362637363
+        },
+        "catheter": {
+          "samples": 693,
+          "meanMs": 76.99524023088023,
+          "p95Ms": 162.8504580000008,
+          "p99Ms": 255.5412920000017,
+          "maxMs": 3304.6648749999877,
+          "assemblyMs": 41.36660848051933,
+          "linearMs": 26.346087238096008,
+          "frictionMs": 1.5153304646463757,
+          "projectionMs": 2.2546096911974227,
+          "fullAssemblies": 9.672438672438673,
+          "residualAssemblies": 11.468975468975469,
+          "promotedAssemblies": 5.01010101010101
+        }
+      },
+      "worst": {
+        "wire": 600,
+        "catheter": 492.2666666666694,
+        "totalMs": 3304.6648749999877,
+        "iterations": 169,
+        "factorizations": 1203,
+        "backtracks": 237,
+        "wallNormalFallbacks": 1
+      }
+    },
+    "reduced-c": {
+      "sourceTreeHash": "9d376514267f62397dbe9aac95515fd31717d0c0496eaeb140f69196bb1ca6af",
+      "phases": {
+        "wire": {
+          "samples": 819,
+          "meanMs": 31.53389118559223,
+          "p95Ms": 87.70433400000184,
+          "p99Ms": 183.038958000001,
+          "maxMs": 260.03145799999993,
+          "assemblyMs": 13.721069159950968,
+          "linearMs": 13.448026023199022,
+          "frictionMs": 0.576030191697191,
+          "projectionMs": 0.269927568986565,
+          "fullAssemblies": 8.196581196581196,
+          "residualAssemblies": 8.117216117216117,
+          "promotedAssemblies": 3.7362637362637363
+        },
+        "catheter": {
+          "samples": 693,
+          "meanMs": 90.02155150360743,
+          "p95Ms": 161.88662500000646,
+          "p99Ms": 295.0949580000015,
+          "maxMs": 3886.037458999999,
+          "assemblyMs": 49.29881103318789,
+          "linearMs": 29.947376870130608,
+          "frictionMs": 1.7616731341991385,
+          "projectionMs": 2.6107831688315506,
+          "fullAssemblies": 9.672438672438673,
+          "residualAssemblies": 11.468975468975469,
+          "promotedAssemblies": 5.01010101010101
+        }
+      },
+      "worst": {
+        "wire": 600,
+        "catheter": 492.2666666666694,
+        "totalMs": 3886.037458999999,
+        "iterations": 169,
+        "factorizations": 1203,
+        "backtracks": 237,
+        "wallNormalFallbacks": 1
+      }
+    },
+    "reference-c": {
+      "sourceTreeHash": "9d376514267f62397dbe9aac95515fd31717d0c0496eaeb140f69196bb1ca6af",
+      "phases": {
+        "wire": {
+          "samples": 819,
+          "meanMs": 38.925338694749705,
+          "p95Ms": 98.79404200000135,
+          "p99Ms": 181.27512500000012,
+          "maxMs": 339.9060419999996,
+          "assemblyMs": 16.994848809523738,
+          "linearMs": 16.651899244200106,
+          "frictionMs": 0.6800941477410973,
+          "projectionMs": 0.3484988888888935,
+          "fullAssemblies": 8.196581196581196,
+          "residualAssemblies": 8.117216117216117,
+          "promotedAssemblies": 3.7362637362637363
+        },
+        "catheter": {
+          "samples": 693,
+          "meanMs": 85.7907869292928,
+          "p95Ms": 151.77170900000056,
+          "p99Ms": 350.8032089999906,
+          "maxMs": 4140.798957999999,
+          "assemblyMs": 46.34382196536732,
+          "linearMs": 29.304995662337546,
+          "frictionMs": 1.639490266955569,
+          "projectionMs": 3.082973541125771,
+          "fullAssemblies": 9.672438672438673,
+          "residualAssemblies": 11.468975468975469,
+          "promotedAssemblies": 5.01010101010101
+        }
+      },
+      "worst": {
+        "wire": 600,
+        "catheter": 492.2666666666694,
+        "totalMs": 4140.798957999999,
+        "iterations": 169,
+        "factorizations": 1203,
+        "backtracks": 237,
+        "wallNormalFallbacks": 1
+      }
+    }
+  },
+  "pooled": {
+    "wire": {
+      "referenceMeanMs": 34.037799661172144,
+      "promotedMeanMs": 30.24917436324788,
+      "timeReductionPercent": 11.130641039191646,
+      "speedup": 1.1252472299715843
+    },
+    "catheter": {
+      "referenceMeanMs": 81.35902477561321,
+      "promotedMeanMs": 83.50839586724382,
+      "timeReductionPercent": -2.6418348764117416,
+      "speedup": 0.974261616819373
+    }
+  }
+}

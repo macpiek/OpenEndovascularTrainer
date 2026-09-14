@@ -1,0 +1,181 @@
+{
+  "failed": false,
+  "pairs": 1513,
+  "exactStates": true,
+  "phases": {
+    "initial": {
+      "count": 1,
+      "referenceMs": {
+        "mean": 20.726957999999968,
+        "median": 20.726957999999968,
+        "p95": 20.726957999999968,
+        "p99": 20.726957999999968,
+        "max": 20.726957999999968
+      },
+      "optimizedMs": {
+        "mean": 7.253582999999935,
+        "median": 7.253582999999935,
+        "p95": 7.253582999999935,
+        "p99": 7.253582999999935,
+        "max": 7.253582999999935
+      },
+      "counts": {
+        "iterations": [
+          5,
+          5
+        ],
+        "factorizations": [
+          15,
+          15
+        ],
+        "backtracks": [
+          0,
+          0
+        ],
+        "fullAssemblies": [
+          5,
+          5
+        ],
+        "residualAssemblies": [
+          6,
+          6
+        ],
+        "geometryRestarts": [
+          0,
+          0
+        ],
+        "substepAttempts": [
+          1,
+          1
+        ]
+      },
+      "maxCertificate": 3.0309905696412898e-9,
+      "maxPenetration": 6.38378239159465e-16,
+      "recoveries": 0,
+      "changed": []
+    },
+    "wire": {
+      "count": 819,
+      "referenceMs": {
+        "mean": 26.501200840048817,
+        "median": 22.226540999999997,
+        "p95": 69.14987499999552,
+        "p99": 117.74175000000105,
+        "max": 213.4877090000009
+      },
+      "optimizedMs": {
+        "mean": 26.50231009279608,
+        "median": 21.90362499999992,
+        "p95": 69.33099999999831,
+        "p99": 123.25908300000083,
+        "max": 210.92574999999852
+      },
+      "counts": {
+        "iterations": [
+          5732,
+          5732
+        ],
+        "factorizations": [
+          14417,
+          14417
+        ],
+        "backtracks": [
+          859,
+          859
+        ],
+        "fullAssemblies": [
+          6713,
+          6713
+        ],
+        "residualAssemblies": [
+          6648,
+          6648
+        ],
+        "geometryRestarts": [
+          1800,
+          1800
+        ],
+        "substepAttempts": [
+          921,
+          921
+        ]
+      },
+      "maxCertificate": 9.977372741332147e-7,
+      "maxPenetration": 6.187275136682047e-10,
+      "recoveries": 0,
+      "changed": []
+    },
+    "catheter": {
+      "count": 693,
+      "referenceMs": {
+        "mean": 75.15278409235202,
+        "median": 59.47349999999278,
+        "p95": 177.47366600000532,
+        "p99": 245.5595420000027,
+        "max": 3139.5358330000017
+      },
+      "optimizedMs": {
+        "mean": 70.14253950793712,
+        "median": 58.81770800000231,
+        "p95": 154.00129200000083,
+        "p99": 250.51837499999965,
+        "max": 514.3897080000024
+      },
+      "counts": {
+        "iterations": [
+          6286,
+          6149
+        ],
+        "factorizations": [
+          12389,
+          11367
+        ],
+        "backtracks": [
+          943,
+          739
+        ],
+        "fullAssemblies": [
+          6703,
+          6566
+        ],
+        "residualAssemblies": [
+          7948,
+          7335
+        ],
+        "geometryRestarts": [
+          1051,
+          1051
+        ],
+        "substepAttempts": [
+          693,
+          693
+        ]
+      },
+      "maxCertificate": 9.660243449616246e-7,
+      "maxPenetration": 2.1364222613229344e-9,
+      "recoveries": 0,
+      "changed": [
+        {
+          "wire": 600,
+          "catheter": 492.2666666666694,
+          "iterations": [
+            169,
+            32
+          ],
+          "factorizations": [
+            1203,
+            181
+          ],
+          "backtracks": [
+            237,
+            33
+          ],
+          "ms": [
+            3139.5358330000017,
+            514.3897080000024
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -31,7 +31,7 @@ export function sharedAxisConstraintEdgeGeometry(s) {
  * reaction-dependent Hessians are fresh, so saved Newton measures remain valid.
  * Pose geometry is shared read-only; callers must not mutate row Jacobians.
  */
-export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt}={}) {
+export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false}={}) {
     const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s),rows=new Array(s.definitions.length);
     for(let index=0;index<s.definitions.length;index++) {
         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
@@ -39,8 +39,8 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
         if(def.kind==='length') {
             gap=length-(s.coordinates[e+1]-s.coordinates[e]);J=geometry.jacobians[e];
         } else {
-            const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=withTangent&&s.multipliers[index]!==0;
-            const cache=s.cacheMechanicalAssembly?(s.wallGeometryCache??=new Map()):null,cached=cache?.get(def);
+            const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&s.multipliers[index]!==0;
+            const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(s.wallGeometryCache??=new Map()):null,cached=cache?.get(def);
             let contact;
             if(cached?.key===s.geometryKey&&(!needHessian||cached.withHessian)) {
                 contact=cached.contact;s.wallGeometryCacheHits=(s.wallGeometryCacheHits??0)+1;

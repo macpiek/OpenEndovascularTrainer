@@ -1,0 +1,16 @@
+{
+  "scope": "UI Debug: prowadnik 60 cm, potem cewnik 60 cm; domyślna aplikacja z promoteTrialAssembly=true; pojedynczy przebieg integracyjny, bez browser A/B",
+  "durationMs": 120925,
+  "acceptedSteps": 1512,
+  "failedSteps": 0,
+  "averageFps": 59.62021977876608,
+  "onePercentLowFps": 56.03186798095703,
+  "maxFrameMs": 83.30000000001746,
+  "finalPromotedAssemblies": 3,
+  "phases": {
+    "wire": {"samples":819,"meanCpuMs":33.64481074731429,"p95CpuMs":78.7999997138977,"maxCpuMs":351.69999969005585,"assemblyMs":16.530769236504085,"linearMs":11.345787551231291,"frictionMs":1.1438339453768236},
+    "catheter": {"samples":693,"meanCpuMs":79.2978355041658,"p95CpuMs":132.5,"maxCpuMs":408.0999997854233,"assemblyMs":44.31587301343034,"linearMs":21.5659451689383,"frictionMs":3.538239538067519}
+  },
+  "worst": {"wireMm":600.0000000000049,"catheterMm":304.20000000000107,"cpuMs":408.0999997854233,"iterations":15,"factorizations":97,"geometryRestarts":4,"substepAttempts":1,"wallNormalFallbacks":1},
+  "sharedAxisTiming": {"completedSeconds":25.2,"simulatedToAdmittedTimeRatio":0.20835245297804195,"physicsBudgetPass":false,"realTime60FpsPass":false,"renderingPass":false,"samplesPass":true,"simulationRealtimePass":false}
+}

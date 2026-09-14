@@ -21,7 +21,7 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true}}) {
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     let lastFailure=null;
@@ -118,8 +118,8 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
 
 /** Feed and rotation subdivision is identical in the UI and anatomy replay. */
 export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOptions={}) {
-    let last;const attempts=[];const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0};
-    const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0};
+    let last;const attempts=[];const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0};
+    const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     const result=()=>({...last,...totals,timings,attempts});
         for(const subdivisions of [1,2,4,8]) {
             let current=starting,currentRotations=startingRotations,failed=false;

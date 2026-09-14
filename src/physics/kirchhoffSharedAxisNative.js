@@ -11,6 +11,8 @@ import { EndovascularRodBody } from './endovascularPhysicsWorld.js';
 import { applyKirchhoffMaterialProfile } from './applyKirchhoffMaterialProfile.js';
 import { assembleSharedAxisGaussNewton } from './kirchhoffSharedAxisGaussNewton.js';
 import { createSharedAxisLayout, createSharedAxisLinear, iterateSharedAxisLinear, getSharedAxisLinearScratchStats } from './kirchhoffSharedAxisLinear.js';
+import {iterateSharedAxisProjection} from './kirchhoffSharedAxisProjection.js';
+import {createSharedAxisStagnationGuard} from './kirchhoffSharedAxisStagnationGuard.js';
 
 const XYZ = ['x', 'y', 'z'], Q = ['X', 'Y', 'Z', 'W'];
 const vec = p => new THREE.Vector3(...p);
@@ -232,24 +234,32 @@ export function rotateSharedAxisNative(s, id, angle) {
 /** Pull back the EXISTING native material rows, including each material's
  * intrinsic curvature. All world position variables belong to the chain;
  * only the spin about each material director remains independent. */
-export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true } = {}) {
+export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null } = {}) {
     const { layout, chain } = s, { hessian: H, gradient: g } = chain;
     H.fill(0); g.set(s.loads, 0); for (let i = 0; i < g.length; i++) g[i] = -g[i];
     let energy = 0;
     syncNativePositions(s);
+    // This cache is private to one nonlinear solve, whose material parameters
+    // are immutable. It never survives a timestep, cancellation or remesh.
+    const promote=promotion&&withTangent&&promotion.key===s.geometryKey&&promotion.dynamicStep===s.dynamicStep&&
+        promotion.materials===s.materials&&promotion.tangentMode===tangentMode;
+    const capture=promotion&&!withTangent&&tangentMode!=='gauss-newton';
+    if(capture){promotion.key=null;promotion.hinges??=[];}
+
     const cache=s.cacheMechanicalAssembly&&s.mechanicalAssemblyCache;
-    if(cache&&withTangent&&cache.key===s.geometryKey&&cache.dynamicStep===s.dynamicStep&&cache.tangentMode===tangentMode) {
+    const mechanicalReused=cache&&withTangent&&cache.key===s.geometryKey&&cache.dynamicStep===s.dynamicStep&&cache.tangentMode===tangentMode;
+    if(mechanicalReused) {
         energy=cache.energy;for(let i=0;i<g.length;i++)g[i]=cache.gradient[i]-s.loads[i];
         H.set(cache.hessian);chain.tangent=cache.tangent?.slice()??null;
     } else {
-    if (tangentMode !== 'gauss-newton') energy = assembleSharedAxisMaterialTangent(s,withTangent);
+    if (tangentMode !== 'gauss-newton') energy = assembleSharedAxisMaterialTangent(s,withTangent,promote?{reuse:promotion.hinges}:capture?{capture:promotion.hinges}:null);
     else energy = assembleSharedAxisGaussNewton(s,withTangent);
     energy+=assembleSharedAxisInertia(s,withTangent);
     if(s.cacheMechanicalAssembly&&withTangent)s.mechanicalAssemblyCache={key:s.geometryKey,dynamicStep:s.dynamicStep,tangentMode,energy,
         gradient:Float64Array.from(g,(v,i)=>v+s.loads[i]),hessian:H.slice(),tangent:chain.tangent?.slice()??null};
     }
     energy+=assembleSharedAxisWallFriction(s,withTangent);
-    const rows=assembleSharedAxisConstraintRows(s,{withTangent,outerMaterialAt:sharedAxisOuterMaterialAt});
+    const rows=assembleSharedAxisConstraintRows(s,{withTangent,outerMaterialAt:sharedAxisOuterMaterialAt,retainWallHessians:!!promotion});
     if(withTangent)for(const column of s.wallFrictionStep?.normalForceColumns??[]) {
         rows[column.rowIndex].extraForceDofs=column.dofs;
         rows[column.rowIndex].extraForceJacobian=column.values;
@@ -261,6 +271,8 @@ export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ??
         if (positionDofs[i]) force = Math.max(force, Math.abs(g[i])); else torque = Math.max(torque, Math.abs(g[i]));
     }
     rows.forEach((r, i) => { constraint = Math.max(constraint, Math.abs(s.definitions[i].kind === 'length' ? r.gap : Math.max(0, r.multiplier - r.gap) - r.multiplier)); });
+    if(capture){promotion.key=s.geometryKey;promotion.dynamicStep=s.dynamicStep;promotion.materials=s.materials;promotion.tangentMode=tangentMode;}
+    if(promote&&!mechanicalReused)promotion.hits++;
     chain.energy = energy; chain.hessianValid = withTangent;
     return { rows, energy, force, torque, constraint };
 }
@@ -284,10 +296,15 @@ export function applySharedAxisNativeIncrement(s, increment, multiplierIncrement
     syncNativePositions(s);
 }
 
-function* correctTrialConstraints(s,base,reuseStructure) {
+function* correctTrialConstraints(s,base,reuseStructure,projectionMode) {
     // Second-order SQP correction: restore the nonlinear lengths and gaps
     // after a finite tangent step. This is not an accepted physical update;
     // the caller still certifies energy and the full physical residual.
+    if(projectionMode) {
+        const direction=yield* iterateSharedAxisProjection(s,base,{reuseStructure,mode:projectionMode});
+        if(direction.converged)applySharedAxisNativeIncrement(s,direction.increment,direction.zeroReactions);
+        return direction;
+    }
     const chain={layout:s.layout,hessian:new Float64Array(s.layout.dofCount*s.layout.band)};
     for(let i=0;i<s.layout.dofCount;i++)chain.hessian[i*s.layout.band]=1;
     const w=s.projectionMixed??=createSharedAxisLinear(s.layout,s.definitions,{lazy:true});
@@ -299,18 +316,19 @@ function* correctTrialConstraints(s,base,reuseStructure) {
 
 // incrementalContacts is an opt-in research path. Full-step timing and strict
 // Pigtail parity gates have NOT passed; keep the application default false.
-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false } = {}) {
+export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false } = {}) {
     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
     const initial = captureSharedAxisNative(s), started = performance.now();
     let candidate = null;
-    let cycleGuard=null,detectedCycle=null;
-    const timings = { assemblyMs: 0, linearMs: 0, tangentAssemblyMs:0, residualAssemblyMs:0 };
+    let cycleGuard=null,detectedCycle=null,stagnationGuard=null,detectedStagnation=null;
+    const timings = { assemblyMs: 0, linearMs: 0, tangentAssemblyMs:0, residualAssemblyMs:0, projectionMs:0 };
     let fullAssemblies=0,residualAssemblies=0;
+    const promotion=promoteTrialAssembly?{hits:0}:null;
     const assemble = (tangentMode,withTangent=true) => {
         const start = performance.now();
-        try{return assembleSharedAxisNative(s,{tangentMode,withTangent});}
+        try{return assembleSharedAxisNative(s,{tangentMode,withTangent,promotion});}
         finally{const elapsed=performance.now()-start;timings.assemblyMs+=elapsed;
             timings[withTangent?'tangentAssemblyMs':'residualAssemblyMs']+=elapsed;
             if(withTangent)fullAssemblies++;else residualAssemblies++;}
@@ -318,7 +336,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
     let iterations = 0, factorizations = 0, workingSetReuses = 0, backtracks = 0, discoveryIterations = 0, geometryRestarts = 0, error = null, status = 'iteration-limit';
     const discover = error => {
         if(!localContactRestarts || error.message !== 'shared-axis-wall-discovery' || !s.pendingVesselRows?.size || geometryRestarts >= 64)return false;
-        extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();geometryRestarts++;cycleGuard=null;return true;
+        extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();geometryRestarts++;cycleGuard=null;stagnationGuard=null;return true;
     };
     const assembleDiscovered = () => {
         while(true) {try{return assemble();}catch(error){if(!discover(error))throw error;}}
@@ -334,6 +352,10 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
             if(earlyLiveFallback&&iterations>=8&&s.wallFrictionStep?.liveNormalLoad===true) {
                 detectedCycle=(cycleGuard??=createSharedAxisCycleGuard()).observe(s,base);
                 if(detectedCycle){status='live-contact-cycle';break;}
+                if(stagnationFallback) {
+                    detectedStagnation=(stagnationGuard??=createSharedAxisStagnationGuard(forceTolerance,lengthTolerance)).observe(base);
+                    if(detectedStagnation){status='live-contact-stagnation';break;}
+                }
             }
             if(!s.chain.hessianValid)base=assemble();
             const snapshot = captureSharedAxisNative(s);
@@ -384,21 +406,21 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                     try {
                     applySharedAxisNativeIncrement(s, direction.increment, direction.multiplierIncrement, trustScale * 2 ** -trial);
                     s.definitions.forEach((d, i) => { if (d.kind === 'wall') s.multipliers[i] = Math.max(0, s.multipliers[i]); });
-                    // Opt-in experiment: acceptance needs first derivatives, not a new Newton matrix.
-                    // Keep eager evaluation by default: rebuilding after accepted trials
-                    // regressed the complete feed benchmark despite fewer full matrices.
-                    // The next direction rebuilds it through hessianValid after acceptance.
-                    let candidate = assemble(undefined,!lazyTrialTangent);
+                    // Acceptance needs first derivatives. Promotion retains the local
+                    // material preparation and augments it when hessianValid requests
+                    // the next full matrix. Plain lazyTrialTangent (without reuse)
+                    // remains an opt-in experiment; the eager path is the reference.
+                    let candidate = assemble(undefined,!(lazyTrialTangent||promoteTrialAssembly));
                     let candidatePotential = candidate.energy - trustScale * 2 ** -trial * loadWork + penalty * violation(candidate);
                     let accept = candidatePotential < basePotential || merit(candidate) <= 1 ||
                         (merit(candidate) < merit(base) && candidate.constraint <= Math.max(lengthTolerance, base.constraint));
                     if(!accept&&trial<2&&violation(candidate)>0) {
                         const uncorrected=captureSharedAxisNative(s),uncorrectedMeasure=candidate,uncorrectedPotential=candidatePotential;
                         for(let correction=0;correction<2&&!accept;correction++) {
-                            const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate,reuseStructure);
-                            timings.linearMs+=projected.cpuMs??performance.now()-start;factorizations+=projected.factorizations;workingSetReuses+=projected.workingSetReuses??0;
+                            const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate,reuseStructure,projectionMode);
+                            const correctionMs=projected.cpuMs??performance.now()-start;timings.linearMs+=correctionMs;timings.projectionMs+=correctionMs;factorizations+=projected.factorizations;workingSetReuses+=projected.workingSetReuses??0;
                             if(!projected.converged)break;
-                            candidate=assemble(undefined,!lazyTrialTangent);candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
+                            candidate=assemble(undefined,!(lazyTrialTangent||promoteTrialAssembly));candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
                             accept=candidatePotential<basePotential||merit(candidate)<=1||
                                 (merit(candidate)<merit(base)&&candidate.constraint<=Math.max(lengthTolerance,base.constraint));
                         }
@@ -436,8 +458,8 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
         s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.gap]));
     }
     return { converged, status, error, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
-        timings,fullAssemblies,residualAssemblies, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
-        ...(detectedCycle?{detectedCycle}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
+        timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
+        ...(detectedCycle?{detectedCycle}:{}),...(detectedStagnation?{detectedStagnation}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
 }
 
 export function relaxSharedAxisNative(s,options={}) {

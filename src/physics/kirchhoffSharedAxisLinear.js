@@ -253,7 +253,7 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
         yield {kind:'linear-active-set',attempt,batchSize};
         activeSetAttempts++;
-        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache});
+        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey});
         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
         const setKey=activeSet.join(''),signature=setKey+'/'+Array.from(dual,v=>v.toPrecision(9)).join(',');
         if(visited.has(signature))return finish({converged:false,failure:'active-set-cycle'});

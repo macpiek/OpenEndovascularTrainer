@@ -1,0 +1,22 @@
+diff --git a/src/physics/kirchhoffSharedAxisLinear.js b/src/physics/kirchhoffSharedAxisLinear.js
+index 4262f5c..c3842c8 100644
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -2,6 +2,7 @@ import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.
+ import { createIncrementalContactLU } from './kirchhoffIncrementalContactLU.js';
+ import { prepareSharedAxisActiveBasis } from './kirchhoffSharedAxisActiveBasis.js';
+ import { createCoulombBandLU, createCoulombBandLUArena } from './kirchhoffCoulombBandLU.js';
++import {solveSharedAxisProjectionSchur} from '../../reports/constraint-projection-2026-09-14/schur-prototype.js';
+ 
+ // Band elimination is synchronous and overwrites its entire factor/RHS. All
+ // shared-axis workspaces can use one arena; retaining a different WASM memory
+@@ -226,7 +227,8 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
+         r.dofs.forEach((p,k)=>{gradient[p]-=(r.kind==='wall'?-1:1)*r.multiplier*r.jacobian[k];});
+         r.extraForceDofs?.forEach((p,k)=>{gradient[p]-=r.multiplier*r.extraForceJacobian[k];});
+     }
+-    const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
++    let result=options.identityProjection==='schur'?solveSharedAxisProjectionSchur(packed,activeRows,options.fixed,options.tolerance??1e-8):null;
++    if(!result)result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
+         rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
+     if(context&&result.converged) {
+         const lu=context.workspaces.get(packed);
