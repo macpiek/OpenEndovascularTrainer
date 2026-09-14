@@ -297,18 +297,23 @@ function* correctTrialConstraints(s,base,reuseStructure) {
     return direction;
 }
 
-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false } = {}) {
+// incrementalContacts is an opt-in research path. Full-step timing and strict
+// Pigtail parity gates have NOT passed; keep the application default false.
+export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false } = {}) {
     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
     const initial = captureSharedAxisNative(s), started = performance.now();
     let candidate = null;
     let cycleGuard=null,detectedCycle=null;
-    const timings = { assemblyMs: 0, linearMs: 0 };
+    const timings = { assemblyMs: 0, linearMs: 0, tangentAssemblyMs:0, residualAssemblyMs:0 };
+    let fullAssemblies=0,residualAssemblies=0;
     const assemble = (tangentMode,withTangent=true) => {
         const start = performance.now();
         try{return assembleSharedAxisNative(s,{tangentMode,withTangent});}
-        finally{timings.assemblyMs += performance.now()-start;}
+        finally{const elapsed=performance.now()-start;timings.assemblyMs+=elapsed;
+            timings[withTangent?'tangentAssemblyMs':'residualAssemblyMs']+=elapsed;
+            if(withTangent)fullAssemblies++;else residualAssemblies++;}
     };
     let iterations = 0, factorizations = 0, workingSetReuses = 0, backtracks = 0, discoveryIterations = 0, geometryRestarts = 0, error = null, status = 'iteration-limit';
     const discover = error => {
@@ -345,7 +350,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
                 const linearStart = performance.now();
                 const linearOptions = { rows: isGaussNewton ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
-                    trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet,reuseStructure, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(forceTolerance, lengthTolerance) * .01, 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                    observeLinearSystem,incrementalContacts:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet,reuseStructure, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(forceTolerance, lengthTolerance) * .01, 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
                 const direction = yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
                 timings.linearMs += direction.cpuMs ?? performance.now() - linearStart;
                 factorizations += direction.factorizations;workingSetReuses += direction.workingSetReuses ?? 0;
@@ -379,7 +384,11 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                     try {
                     applySharedAxisNativeIncrement(s, direction.increment, direction.multiplierIncrement, trustScale * 2 ** -trial);
                     s.definitions.forEach((d, i) => { if (d.kind === 'wall') s.multipliers[i] = Math.max(0, s.multipliers[i]); });
-                    let candidate = assemble();
+                    // Opt-in experiment: acceptance needs first derivatives, not a new Newton matrix.
+                    // Keep eager evaluation by default: rebuilding after accepted trials
+                    // regressed the complete feed benchmark despite fewer full matrices.
+                    // The next direction rebuilds it through hessianValid after acceptance.
+                    let candidate = assemble(undefined,!lazyTrialTangent);
                     let candidatePotential = candidate.energy - trustScale * 2 ** -trial * loadWork + penalty * violation(candidate);
                     let accept = candidatePotential < basePotential || merit(candidate) <= 1 ||
                         (merit(candidate) < merit(base) && candidate.constraint <= Math.max(lengthTolerance, base.constraint));
@@ -389,7 +398,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                             const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate,reuseStructure);
                             timings.linearMs+=projected.cpuMs??performance.now()-start;factorizations+=projected.factorizations;workingSetReuses+=projected.workingSetReuses??0;
                             if(!projected.converged)break;
-                            candidate=assemble();candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
+                            candidate=assemble(undefined,!lazyTrialTangent);candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
                             accept=candidatePotential<basePotential||merit(candidate)<=1||
                                 (merit(candidate)<merit(base)&&candidate.constraint<=Math.max(lengthTolerance,base.constraint));
                         }
@@ -427,7 +436,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
         s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.gap]));
     }
     return { converged, status, error, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
-        timings, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
+        timings,fullAssemblies,residualAssemblies, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
         ...(detectedCycle?{detectedCycle}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
 }
 

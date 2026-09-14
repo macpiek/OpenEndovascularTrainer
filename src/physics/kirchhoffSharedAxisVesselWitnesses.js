@@ -120,16 +120,17 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
 }
 
 export function* iterateSharedAxisWithContacts(s,options={}) {
-    const started=performance.now();let totalIterations=0,factorizations=0,backtracks=0,localRestarts=0;
-    const timings={assemblyMs:0,linearMs:0};
+    const started=performance.now();let totalIterations=0,factorizations=0,backtracks=0,localRestarts=0,fullAssemblies=0,residualAssemblies=0;
+    const timings={assemblyMs:0,linearMs:0,tangentAssemblyMs:0,residualAssemblyMs:0};
     for(let restarts=0;restarts<=64;restarts++) {
         const result=yield* iterateSharedAxisNative(s,options);
         localRestarts+=result.geometryRestarts??0;totalIterations+=result.iterations;factorizations+=result.factorizations;backtracks+=result.backtracks;
-        for(const k of Object.keys(timings))timings[k]+=result.timings[k];
+        for(const k of Object.keys(timings))timings[k]+=result.timings[k]??0;
+        fullAssemblies+=result.fullAssemblies??0;residualAssemblies+=result.residualAssemblies??0;
         if(result.error===NEED_ROWS&&s.pendingVesselRows?.size&&restarts<64) {
             extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();continue;
         }
-        return {...result,iterations:totalIterations,factorizations,backtracks,timings,geometryRestarts:restarts+localRestarts,ms:performance.now()-started};
+        return {...result,iterations:totalIterations,factorizations,backtracks,timings,fullAssemblies,residualAssemblies,geometryRestarts:restarts+localRestarts,ms:performance.now()-started};
     }
 }
 

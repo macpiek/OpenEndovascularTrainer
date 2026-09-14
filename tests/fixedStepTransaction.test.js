@@ -122,13 +122,13 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1}={}) {
     const world=stubWorld(outcomes,fixedDt),queue=[],errors=[];let clock=0;
     const originalAdvance=world.advance.bind(world);world.advance=(...args)=>{clock+=sliceMs;return originalAdvance(...args);};
     const state={world,queue,errors,performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
-        fixedDt,MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
+        fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
         TARGET_RENDER_FRAME_MS:1000/60,PHYSICS_IDLE_GUARD_MS:.75,PHYSICS_RENDER_RESERVE_MS:3.5,
         lastRenderTime:null,simulationAccumulator:0,simulationPeakBacklog:0,simulationPeakBacklogScenarioMs:0,
         simulationPeakBacklogElapsedMs:0,simulationPeakBacklogGuidewireMm:0,
         simulationExecutedSteps:0,simulationIdleExecutedSteps:0,simulationAcceptedTime:0,
         simulationStepEstimateMs:1,simulationCatchupPending:false,simulationLastAttempt:null,
-        compositeAppSystem:null,sharedAxisAppSystem:shared?{diagnostics:{acceptedSteps:0}}:null,wholeAxisAppSystem:null,
+        compositeAppSystem:null,sharedAxisAppSystem:shared?{diagnostics:{acceptedSteps:0},getLastFailure:()=>null}:null,wholeAxisAppSystem:null,
         compositeStatus:null,compositePhysicsClockStarted:false,endovascularWorld:world,
         simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,simulationAbandonedBacklog:0,
         browserConstraintStageProfile:{record:()=>{}},loadingAssetsReady:()=>true,
@@ -419,4 +419,17 @@ test('real two-channel World rolls back injected post-integration failures witho
         assert.equal(f.world.getStats().jointMotion.historyCommits,1);assert.ok(Math.abs(f.world.accumulator)<1e-12);
         assert.equal(f.catheter.progress,preparedSnapshot.catheterMm);
     } finally {f.dispose();}
+});
+
+
+test('diagnostic export failures cannot retain terminal timestep debt',()=>{
+    const s=schedulerHarness([{accepted:false,terminal:true,status:'linear-solve'}],{shared:true,fixedDt:1/60});
+    s.world.contactField={};
+    s.sharedAxisAppSystem.getLastFailure=()=>{throw new Error('capture unavailable');};
+    s.world.abandonFailedWholeStep=function(){this.pending=false;this.accumulator-=1/60;};
+    s.simulationStepTransaction=createFixedStepTransaction({world:s.world,prepare:()=>({}),
+        recovery:{readKey:()=>1,rollback:()=>{}}});
+    s.frame(0);s.frame(20);
+    assert.equal(s.simulationAccumulator,0);assert.equal(s.simulationStepTransaction.blocked,true);
+    assert.ok(s.errors.some(args=>args[0]==='Could not present rejected-step capture'));
 });

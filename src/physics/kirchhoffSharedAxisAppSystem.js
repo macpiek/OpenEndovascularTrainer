@@ -1,3 +1,4 @@
+import {captureSharedAxisReplay} from './kirchhoffSharedAxisReplay.js';
 import {createSharedAxisContacts} from './kirchhoffSharedAxisContacts.js';
 import {createSharedAxisNative,feedSharedAxisNative,rotateSharedAxisNative} from './kirchhoffSharedAxisNative.js';
 import {iterateSharedAxisTimeStep} from './kirchhoffSharedAxisTimeStep.js';
@@ -23,6 +24,20 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
 export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true}}) {
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
+    let lastFailure=null;
+    function recordFailure(entry,result) {
+        // The accepted state is never solved in-place: feed creates private candidates.
+        // Serialize once at rejection, not on every successful frame or cooperative yield.
+        try {
+            lastFailure={...captureSharedAxisReplay(state,entry.sheath),
+                stepRequest:structuredClone({dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools,
+                    options:Object.fromEntries(Object.entries(physicsOptions).filter(([,v])=>typeof v!=='function'))}),
+                failure:structuredClone({capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,result})};
+        } catch(error) {
+            lastFailure={version:1,failure:{capturedAt:new Date().toISOString(),result,
+                captureError:error.message},stepRequest:{dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools}};
+        }
+    }
     const diagnostics={initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:'shared-axis'};
     function publish(tools,dt) {
         for(const input of tools) {
@@ -47,13 +62,14 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
     }
     function* solve(world,dt,tools) {
         if(!state) {
-            state=createSharedAxisNative({...createSharedAxisContacts({sheath:readSheath(),contactField:world.contactField,localCoordinates:true}),
+            state=createSharedAxisNative({...createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true}),
                 maxBendAngle:Math.PI/4, tools:tools.map(t=>({...profile(t),insertion:0}))});
-            rotations=Object.fromEntries(tools.map(t=>[t.id,0]));diagnostics.initializations++;
+            rotations=Object.fromEntries(tools.map(t=>[t.id,0]));pending.rotations={...rotations};diagnostics.initializations++;
         }
         return yield* advanceSharedAxis(state,{...rotations},dt,tools,physicsOptions);
     }
     const system={id:'shared-axis',diagnostics,
+        getLastFailure:()=>lastFailure?structuredClone(lastFailure):null,
         step(world,dt) {
             if(!Number.isFinite(dt)||dt<=0)throw new RangeError('Positive shared-axis timestep required');
             if(pending&&pending.dt!==dt)throw new RangeError('Pending shared-axis timestep cannot change');
@@ -62,19 +78,22 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
                 const tools=readTools(),key=JSON.stringify(tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})));
                 if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
-                pending={iterator:solve(world,dt,tools),tools,dt,key,started:performance.now(),cpuMs:0};
+                pending={iterator:solve(world,dt,tools),tools,dt,key,started:performance.now(),cpuMs:0,
+                    sheath:structuredClone(readSheath()),rotations:{...rotations},
+                    requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
             }
             const start=performance.now();
             do {
                 let next;
                 try { next=pending.iterator.next(); } catch(error) {
-                    failedKey=pending.key;pending=null;diagnostics.failedSteps++;
-                    diagnostics.last={status:'shared-axis-error',error:error.message};
+                    const entry=pending;failedKey=pending.key;pending=null;diagnostics.failedSteps++;
+                    diagnostics.last={status:'shared-axis-error',error:error.message,stack:error.stack};
+                    recordFailure(entry,diagnostics.last);
                     return failedResult={accepted:false,terminal:true,dt,status:'shared-axis-error',diagnostics:{...diagnostics}};
                 }
                 if(next.done) {
-                    const {tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,cpuMs,wallMs:performance.now()-started};
-                    if(!next.value.state){failedKey=key;diagnostics.failedSteps++;return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
+                    const entry=pending,{tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,cpuMs,wallMs:performance.now()-started};
+                    if(!next.value.state){failedKey=key;diagnostics.failedSteps++;recordFailure(entry,diagnostics.last);return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
                     failedKey=null;failedResult=null;
                     state=next.value.state;rotations=next.value.rotations;
                     const speed=Math.max(0,...state.velocities.flat().map(Math.abs),...Object.values(state.angularVelocities).flat(2).map(v=>Math.abs(v)*60));
@@ -99,9 +118,9 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
 
 /** Feed and rotation subdivision is identical in the UI and anatomy replay. */
 export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOptions={}) {
-    let last;const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0};
-    const timings={assemblyMs:0,linearMs:0,frictionMs:0};
-    const result=()=>({...last,...totals,timings});
+    let last;const attempts=[];const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0};
+    const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0};
+    const result=()=>({...last,...totals,timings,attempts});
         for(const subdivisions of [1,2,4,8]) {
             let current=starting,currentRotations=startingRotations,failed=false;
             for(let index=1;index<=subdivisions;index++) {
@@ -116,6 +135,9 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
                 for(const t of tools)rotateSharedAxisNative(candidate,t.id,angleDifference(nextRotations[t.id],currentRotations[t.id]));
                 const feedById=Object.fromEntries(current.materials.map(m=>[m.spec.id,feeds[m.spec.id]-m.spec.insertion]));
                 last=yield* iterateSharedAxisTimeStep(candidate,dt/subdivisions,{...physicsOptions,feedById});
+                attempts.push({subdivisions,index,dt:dt/subdivisions,status:last.status,error:last.error,converged:last.converged,
+                    residual:last.residual,friction:last.friction,wallNormalFallback:last.wallNormalFallback,
+                    iterations:last.iterations,factorizations:last.factorizations});
                 totals.substepAttempts++;for(const key of Object.keys(totals))if(key!=='substepAttempts')
                     totals[key]+=last[key]??(key==='wallNormalFallbacks'?Number(last.wallNormalFallback?.attempted===true):0);
                 for(const key of Object.keys(timings))timings[key]+=last.timings[key]??0;

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {Quaternion,Vector3} from 'three';
 import {createSharedAxisAppSystem,sampleSharedAxisPosition,advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {EndovascularPhysicsWorld,DEFAULT_TOOL_PROFILES} from '../src/physics/endovascularPhysicsWorld.js';
@@ -240,4 +241,33 @@ test('whole-step diagnostics sum wall-load fallbacks and their cost across rejec
     assert.equal(r.wallNormalFallback,undefined,'Last substep itself did not fallback');
     assert.equal(r.iterations,6);assert.equal(r.factorizations,12);assert.equal(r.timings.assemblyMs,6);
     assert.equal(r.timings.linearMs,12);assert.equal(r.timings.frictionMs,18);
+});
+
+
+test('rejection records the accepted state and frozen command; replay survives JSON and later recovery',()=>{
+    const f=fixture();f.tools[0].insertion=11;finish(f);
+    assert.equal(f.system.getLastFailure(),null,'No snapshot on successful steps');
+    f.tools[0].insertion=12;f.controls.throwQuery=true;
+    let failed;
+    for(let i=0;i<1000;i++) {failed=f.system.step(f.world,dt);if(failed.terminal)break;}
+    assert.equal(failed.terminal,true);
+    const report=JSON.parse(JSON.stringify(f.system.getLastFailure()));
+    assert.equal(report.failure.captureError,undefined);
+    assert.equal(report.tools[0].insertion,11);
+    assert.equal(report.stepRequest.tools[0].insertion,12);
+    assert.equal(report.stepRequest.dt,dt);
+    assert.ok(report.acceptedWallGaps,'Contact retention state must be included');
+    const restored=restoreSharedAxisReplay(report,f.world.contactField);
+    const req=report.stepRequest;
+    const iterator=advanceSharedAxis(restored,req.rotations,req.dt,req.tools,req.options);
+    let next;do{next=iterator.next();}while(!next.done);
+    assert.equal(next.value.state,undefined);
+    assert.equal(next.value.result.status,report.failure.result.status);
+    assert.deepEqual(JSON.parse(JSON.stringify(next.value.result.attempts)),report.failure.result.attempts);
+    assert.deepEqual(captureSharedAxisReplay(restored,report.sheath),captureSharedAxisReplay(restoreSharedAxisReplay(report,f.world.contactField),report.sheath),
+        'Failed replay must preserve its incoming physical state');
+    // Caller mutations, recovery and reset must not erase or mutate the evidence.
+    f.system.getLastFailure().positions[0][0]=999;
+    f.controls.throwQuery=false;f.tools[0].insertion=10;finish(f);f.system.reset();
+    assert.deepEqual(JSON.parse(JSON.stringify(f.system.getLastFailure())),report);
 });

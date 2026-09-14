@@ -23,6 +23,7 @@ const sourceFiles=[...readdirSync(physicsRoot).filter(name=>/^kirchhoffSharedAxi
 const sourceHashes=Object.fromEntries(sourceFiles.map(path=>[path,createHash('sha256').update(readFileSync(new URL(path,root))).digest('hex')]));
 let gitHead=null;try{gitHead=execFileSync('git',['rev-parse','HEAD'],{cwd:fileURLToPath(root),encoding:'utf8'}).trim();}catch{/* Hashes still identify an exported checkout. */}
 const dt=Number(process.env.SHARED_AXIS_DT??1/60),samples=[],options={forceTolerance:Number(process.env.SHARED_AXIS_FORCE_TOLERANCE??1e-6),lengthTolerance:1e-5,liveWallNormalLoad:process.env.SHARED_AXIS_LIVE_WALL_NORMAL==='1'};
+options.lazyTrialTangent=process.env.SHARED_AXIS_LAZY_TRIAL_TANGENT==='1';
 options.reuseStructure=process.env.SHARED_AXIS_REUSE_STRUCTURE!=='0';
 options.earlyLiveFallback=process.env.SHARED_AXIS_EARLY_FALLBACK!=='0';
 const wireTarget=Number(process.env.SHARED_AXIS_WIRE_MM??309),catheterTarget=Number(process.env.SHARED_AXIS_CATHETER_MM??100);
@@ -32,9 +33,9 @@ if(![wireTarget,catheterTarget].every(v=>Number.isFinite(v)&&v>=0&&v<=900))throw
 // the solver fallback 1.4 instead of the actual UI mass 1.75.
 const toolProfiles=[
     {id:'wire',type:'glidewire',mass:DEFAULT_TOOL_PROFILES.guidewire.mass,radius:DEFAULT_TOOL_PROFILES.guidewire.radius,
-        wallStaticFriction:.006,wallKineticFriction:.002,shaftStiffness:39,tipStiffness:30.7},
+        wallStaticFriction:.006,wallKineticFriction:.002,shaftStiffness:Number(process.env.SHARED_AXIS_WIRE_SHAFT??5.7),tipStiffness:Number(process.env.SHARED_AXIS_WIRE_TIP??2.95)},
     {id:'catheter',type:process.env.SHARED_AXIS_CATHETER_TYPE??'berenstein',mass:catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass),radius:DEFAULT_TOOL_PROFILES.catheter.radius,
-        wallStaticFriction:DEFAULT_TOOL_PROFILES.catheter.wallFriction,wallKineticFriction:DEFAULT_TOOL_PROFILES.catheter.wallFriction,shaftStiffness:58.1,tipStiffness:87}
+        wallStaticFriction:DEFAULT_TOOL_PROFILES.catheter.wallFriction,wallKineticFriction:DEFAULT_TOOL_PROFILES.catheter.wallFriction,shaftStiffness:Number(process.env.SHARED_AXIS_CATHETER_SHAFT??40.65),tipStiffness:Number(process.env.SHARED_AXIS_CATHETER_TIP??59.5)}
 ];
 const metadata={reportVersion:2,createdAt:new Date().toISOString(),gitHead,sourceHashes,sourceTreeHash:createHash('sha256').update(JSON.stringify(sourceHashes)).digest('hex'),nodeVersion:process.version,
     timingScope:'Synchronous complete prepared physical step, including failed feed subdivisions; rendering excluded',

@@ -1,0 +1,505 @@
+{
+  "scope": "Repeated immutable linearizations from one accepted prepared step; not a browser or full-trajectory benchmark. Repeat 0 is warmup. Includes workspace assembly and solve, excludes material/contact geometry assembly.",
+  "sourceFixture": "reports/incremental-contact-factor-2026-09-14/capture/captured-incoming.json",
+  "stepResult": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "iterations": 37,
+    "factorizations": 233,
+    "workingSetReuses": 0,
+    "backtracks": 39,
+    "geometryRestarts": 2,
+    "ms": 1037.0781250000002,
+    "timings": {
+      "assemblyMs": 434.1213320000006,
+      "linearMs": 386.6910919999998,
+      "frictionMs": 4.049666000000116,
+      "tangentAssemblyMs": 434.1213320000006,
+      "residualAssemblyMs": 0
+    },
+    "fullAssemblies": 135,
+    "residualAssemblies": 0,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 8.759659664292485e-14,
+      "contacts": 20,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.3739009929743683e-14,
+          "maxBendAngleDegrees": 44.74727293351748,
+          "maxBendNode": 124,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 16.21951553509583,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 2324.7516541450595
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 7.460698725481052e-15,
+          "maxBendAngleDegrees": 8.726225208597441,
+          "maxBendNode": 68,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 16.21951553509583,
+          "activeWallContacts": 14,
+          "currentNormalLoad": 44856.98692905584
+        }
+      ]
+    },
+    "residual": {
+      "force": 1.6536003233369456e-8,
+      "torque": 4.952420695758519e-10,
+      "length": 5.240252676230739e-14
+    },
+    "dofs": 590,
+    "matrixEntries": 28480,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 524288,
+      "grows": 0,
+      "viewBuilds": 9,
+      "requests": 233
+    },
+    "interToolRows": 0,
+    "certificateBound": 3.656502900462044e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 2.0029025771250986e-8,
+      "contacts": 14,
+      "sliding": 14
+    },
+    "frictionIterations": 5,
+    "wallNormalFallback": {
+      "attempted": true,
+      "liveFailure": "live-contact-cycle",
+      "converged": true,
+      "detectedCycle": {
+        "period": 2,
+        "repeatedComparisons": 4
+      }
+    },
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.6536003233369456e-8,
+          "torque": 4.952420695758519e-10,
+          "length": 5.240252676230739e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 2.0029025771250986e-8,
+          "contacts": 14,
+          "sliding": 14
+        },
+        "wallNormalFallback": {
+          "attempted": true,
+          "liveFailure": "live-contact-cycle",
+          "converged": true,
+          "detectedCycle": {
+            "period": 2,
+            "repeatedComparisons": 4
+          }
+        },
+        "iterations": 37,
+        "factorizations": 233
+      }
+    ],
+    "subdivisions": 1
+  },
+  "systems": 37,
+  "sizes": [
+    {
+      "primal": 590,
+      "rows": 977
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    }
+  ],
+  "samples": [
+    {
+      "repeat": 0,
+      "name": "compact",
+      "totalMs": 191.47850199999948,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 0,
+      "name": "full",
+      "totalMs": 494.9019559999997,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 0,
+      "name": "incremental",
+      "totalMs": 636.2449979999992,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 1,
+      "name": "incremental",
+      "totalMs": 533.9389170000022,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 1,
+      "name": "full",
+      "totalMs": 428.9785859999997,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 1,
+      "name": "compact",
+      "totalMs": 135.35778799999844,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 2,
+      "name": "compact",
+      "totalMs": 150.1469999999972,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 2,
+      "name": "full",
+      "totalMs": 425.62721000000056,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 2,
+      "name": "incremental",
+      "totalMs": 428.8104579999999,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 3,
+      "name": "incremental",
+      "totalMs": 421.14458399999967,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 3,
+      "name": "full",
+      "totalMs": 413.92629299999953,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 3,
+      "name": "compact",
+      "totalMs": 128.9211239999977,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 4,
+      "name": "compact",
+      "totalMs": 135.33392299999832,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 4,
+      "name": "full",
+      "totalMs": 442.7364619999971,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0
+    },
+    {
+      "repeat": 4,
+      "name": "incremental",
+      "totalMs": 511.9684139999972,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0
+    }
+  ]
+}

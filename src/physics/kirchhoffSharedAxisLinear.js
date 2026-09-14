@@ -1,3 +1,5 @@
+import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
+import { createIncrementalContactLU } from './kirchhoffIncrementalContactLU.js';
 import { prepareSharedAxisActiveBasis } from './kirchhoffSharedAxisActiveBasis.js';
 import { createCoulombBandLU, createCoulombBandLUArena } from './kirchhoffCoulombBandLU.js';
 
@@ -81,7 +83,7 @@ export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
         lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
 }
 
-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[] }) {
+function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext }) {
     // Optional force support can appear after an originally normal-only
     // workspace was created. Rebuild the reference band when it no longer
     // contains that support; compact workspaces are keyed by both supports.
@@ -89,7 +91,7 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
         const key=rowSupportKey(rows);
         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
-        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows});
+        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext});
     }
     const { matrix: A, residual: F, band: { starts, ends, offsets }, primal, dual } = w;
     A.fill(0); F.fill(0); w.fixed.fill(0);
@@ -136,13 +138,22 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         for (let j = starts[i]; j <= ends[i]; j++) maximum = Math.max(maximum, Math.abs(A[offsets[i] + j]));
         w.scales[i] = 1 / Math.sqrt(Math.max(maximum, 1e-30));
     }
-    const solved = w.lu.solve(A, F, w.scales, 0, w.solution);
+    // Experimental factors belong to one immutable linearization. Their
+    // memory stays exclusive while yielded; the ordinary arena is overwritten
+    // by other solvers. Compact mode uses this LU as its border-update base.
+    let lu=w.lu;
+    if(incrementalContext) {
+        lu=incrementalContext.workspaces.get(w);
+        if(!lu){lu=createIncrementalContactLU(w.band,w.count,{maxRank:incrementalContext.maxRank});incrementalContext.workspaces.set(w,lu);incrementalContext.allDiagnostics.push(lu.diagnostics);}
+    }
+    const factorsBefore=incrementalContext?lu.diagnostics.factorizations:0;
+    const solved = lu.solve(A, F, w.scales, 0, w.solution);
     // A rejected factorization does not write a valid solution. Do not report
     // a residual computed from the previous solve's scratch as this direction.
     if (!solved) {
         w.increment.fill(0); w.multiplierIncrement.fill(0);
         return {increment:w.increment,multiplierIncrement:w.multiplierIncrement,
-            factorizations:1,residual:Infinity,converged:false,failure:'band-lu-rejected'};
+            factorizations:incrementalContext?lu.diagnostics.factorizations-factorsBefore:1,residual:Infinity,converged:false,failure:'band-lu-rejected'};
     }
     for (let i = 0; i < w.count; i++) w.solution[i] *= w.scales[i];
     let residual = Infinity, factorizations = 1;
@@ -162,16 +173,24 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         }
         if (residual <= tolerance || !solved || attempt === 2) break;
         factorizations++;
-        if (!w.lu.solve(A, w.error, w.scales, 0, w.correction)) break;
+        if (!lu.solve(A, w.error, w.scales, 0, w.correction)) break;
         for (let i = 0; i < w.count; i++) w.solution[i] += w.correction[i] * w.scales[i];
     }
     primal.forEach((p, i) => { w.increment[i] = w.solution[p]; });
     dual.forEach((d, i) => { w.multiplierIncrement[i] = w.solution[d]; });
-    return { increment: w.increment, multiplierIncrement: w.multiplierIncrement, factorizations, residual,
+    return { increment: w.increment, multiplierIncrement: w.multiplierIncrement, factorizations:incrementalContext?lu.diagnostics.factorizations-factorsBefore:factorizations, residual,
         converged: solved && residual <= tolerance };
 }
 
 function solveCompactWorkingSet(w,chain,options,activeSet) {
+    const context=options.incrementalContext;
+    if(context?.bordered) {
+        const updated=context.bordered.solve(activeSet,options.tolerance??1e-8,w,context.maxRank);
+        if(updated)return updated;
+        // Rebase on the current compact layout after an unstable or large change.
+        for(const lu of context.workspaces.values())lu.dispose();
+        context.workspaces.clear();context.bordered=null;
+    }
     let scratch;
     if(options.reuseStructure!==false) {
         scratch=w.compactScratch;
@@ -209,6 +228,11 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
     }
     const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
         rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
+    if(context&&result.converged) {
+        const lu=context.workspaces.get(packed);
+        context.bordered=createBorderedContactUpdates(packed,lu,indices,options.rows);
+        context.borderDiagnostics.push(context.bordered.diagnostics);
+    }
     w.increment.set(result.increment);
     options.rows.forEach((r,i)=>{w.multiplierIncrement[i]=-r.multiplier;});
     indices.forEach((index,i)=>{w.multiplierIncrement[index]=result.multiplierIncrement[i];});
@@ -300,24 +324,28 @@ function* iterateWithFallback(w,chain,options,batchSize) {
     const solutionCache=options.reuseWorkingSet===false?null:new Map();
     // Only normalized Jacobian prefixes share this token. No cache survives
     // a different linearization (or changed fixed mask/geometry/coefficients).
-    options={...options,basisCache:options.reuseStructure===false?null:Symbol('linear-basis')};
-    const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
-    if(first.converged||batchSize===1)return {...first,batchActivation:batchSize>1,batchFallback:false};
-    // Restart from the original physical rows, reactions, gradient and Hessian.
-    // Only scratch buffers have changed. The reference result may alias them,
-    // so save scalar accounting before the second solve overwrites those views.
-    const failedFactorizations=first.factorizations,failedAttempts=first.activeSetAttempts;
-    options.trace?.push({kind:'batch-fallback',failure:first.failure});
-    const reference=yield* iterateActiveSet(w,chain,options,1,solutionCache);
-    return {...reference,factorizations:failedFactorizations+reference.factorizations,
-        activeSetAttempts:failedAttempts+reference.activeSetAttempts,workingSetReuses:first.workingSetReuses+reference.workingSetReuses,batchActivation:true,batchFallback:true,
-        batchFailure:first.failure,batchFactorizations:failedFactorizations,referenceFactorizations:reference.factorizations,
-        batchAttempts:failedAttempts,referenceAttempts:reference.activeSetAttempts};
+    options={...options,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:options.reuseStructure===false?null:Symbol('linear-basis')};
+    try {
+        const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
+        const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};
+        if(first.converged||batchSize===1)return {...first,...incrementalStats(),batchActivation:batchSize>1,batchFallback:false};
+        // Restart from the original physical rows, reactions, gradient and Hessian.
+        // Only scratch buffers have changed. The reference result may alias them,
+        // so save scalar accounting before the second solve overwrites those views.
+        const failedFactorizations=first.factorizations,failedAttempts=first.activeSetAttempts;
+        options.trace?.push({kind:'batch-fallback',failure:first.failure});
+        const reference=yield* iterateActiveSet(w,chain,options,1,solutionCache);
+        return {...reference,...incrementalStats(),factorizations:failedFactorizations+reference.factorizations,
+            activeSetAttempts:failedAttempts+reference.activeSetAttempts,workingSetReuses:first.workingSetReuses+reference.workingSetReuses,batchActivation:true,batchFallback:true,
+            batchFailure:first.failure,batchFactorizations:failedFactorizations,referenceFactorizations:reference.factorizations,
+            batchAttempts:failedAttempts,referenceAttempts:reference.activeSetAttempts};
+    } finally {for(const lu of options.incrementalContext?.workspaces.values()??[])lu.dispose();}
 }
 
 /** Yield between active-set/LU attempts while preserving the synchronous API.
  * CPU timing excludes consumer pauses, including pauses before a fallback. */
 export function* iterateSharedAxisLinear(w,chain,options) {
+    options.observeLinearSystem?.({chain,options});
     options.rows.forEach(r=>validateExtraForce(r,chain.layout.dofCount));
     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');
     const batchSize=options.batchActivation===false?1:(options.batchActivationSize??8);
