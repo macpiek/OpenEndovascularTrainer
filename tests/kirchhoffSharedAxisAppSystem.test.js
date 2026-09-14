@@ -5,6 +5,8 @@ import {Quaternion,Vector3} from 'three';
 import {createSharedAxisAppSystem,sampleSharedAxisPosition,advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {EndovascularPhysicsWorld,DEFAULT_TOOL_PROFILES} from '../src/physics/endovascularPhysicsWorld.js';
 import {createCoupledSolverSelection,resolveAppCoupledSolver} from '../src/physics/coupledSolverSelection.js';
+import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js';
+import {createPreparedInputCheckpoint} from '../src/physics/preparedInputCheckpoint.js';
 
 const dt=1/120;
 function fixture({workSliceMs=0,origin=[127,-83,29]}={}) {
@@ -161,6 +163,39 @@ test('a throwing geometry callback preserves both published bodies and reset per
     f.tools.forEach((t,i)=>{assert.equal(t.body.jointStateView,saved[i].view);assert.deepEqual(positions(t.body),saved[i].points);});
     f.system.reset();f.controls.throwQuery=false;f.tools[0].insertion=1;
     assert.equal(finish(f).accepted,true);
+});
+
+test('terminal failure is latched, rolls back input, and a changed command resumes without resetting the accepted solver',()=>{
+    const f=fixture();f.tools[0].insertion=11;finish(f);
+    const saved=f.tools.map(t=>({view:t.body.jointStateView,points:positions(t.body),insertion:t.insertion}));
+    const checkpoint=createPreparedInputCheckpoint();let command=1,preparations=0,rollbacks=0;
+    const transaction=createFixedStepTransaction({world:f.world,
+        prepare:()=>{checkpoint.capture([...f.tools,...f.tools.map(t=>t.body)]);preparations++;
+            f.tools[0].insertion+=command;f.tools[0].body.x[0]+=command;return {command};},
+        recovery:{readKey:()=>command,rollback:()=>{checkpoint.restore();rollbacks++;}}});
+    f.controls.throwQuery=true;
+    let result;
+    for(let i=0;i<1000;i++){
+        transaction.beginFrame();result=transaction.attempt(dt);
+        if(result.terminal)break;
+        assert.equal(result.pending,true);
+        assert.throws(()=>f.world.abandonFailedWholeStep(),/terminally rejected/);
+    }
+    assert.equal(result.terminal,true);assert.equal(transaction.pending,false);assert.equal(transaction.blocked,true);
+    assert.equal(rollbacks,1);assert.equal(preparations,1);assert.equal(f.world.stepCount,0);close(f.world.accumulator,0);
+    const queries=f.controls.queries,failures=f.system.diagnostics.failedSteps;
+    for(let i=0;i<120;i++){transaction.beginFrame();assert.equal(transaction.canAttempt(),false);assert.equal(transaction.attempt(dt).attempted,false);}
+    assert.equal(f.controls.queries,queries);assert.equal(f.system.diagnostics.failedSteps,failures);
+    f.tools.forEach((t,i)=>{assert.equal(t.insertion,saved[i].insertion);assert.deepEqual(positions(t.body),saved[i].points);assert.equal(t.body.jointStateView,saved[i].view);});
+    // Even direct callers cannot restart the exact rejected target.
+    f.tools[0].insertion=12;
+    assert.equal(f.system.step(f.world,dt).terminal,true);assert.equal(f.controls.queries,queries);
+    f.tools[0].insertion=11;
+    f.controls.throwQuery=false;command=-1;
+    for(let i=0;i<1000;i++){transaction.beginFrame();result=transaction.attempt(dt);if(result.accepted)break;assert.equal(result.pending,true);}
+    assert.equal(result.accepted,true);assert.equal(transaction.blocked,false);assert.equal(f.world.stepCount,1);close(f.world.accumulator,0);
+    assert.equal(f.system.diagnostics.initializations,1,'Recovery must retain the accepted native state');
+    assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),10);assert.equal(preparations,2);
 });
 
 test('catheter material stiffness changes the solved transient shape, not only the command key',()=>{

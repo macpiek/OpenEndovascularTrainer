@@ -1,0 +1,1440 @@
+{
+  "scope": "Node complete synchronous physical steps; excludes rendering, cooperative scheduling waits, app input preparation and native render-buffer publication. Reconstructed trajectory, not captured live-browser history. Timers include failed internal attempts; CPU sampler only covers catheter feed.",
+  "profiled": {
+    "wire": {
+      "steps": 779,
+      "totalMs": {
+        "mean": 30.36279266110393,
+        "median": 24.154083000000355,
+        "p95": 79.71245800000088,
+        "maximum": 224.07129099999975,
+        "sum": 23652.615482999972
+      },
+      "stages": {
+        "assemblyMs": {
+          "mean": 13.497007912708543,
+          "median": 11.638292000000547,
+          "p95": 32.38850099999763,
+          "maximum": 123.08537400000023,
+          "sum": 10514.169163999957
+        },
+        "linearMs": {
+          "mean": 13.124490403080992,
+          "median": 8.896083999999973,
+          "p95": 42.53775200000018,
+          "maximum": 189.46128399999907,
+          "sum": 10223.978024000093
+        },
+        "frictionMs": {
+          "mean": 0.5114541347882329,
+          "median": 0.44045900000037363,
+          "p95": 1.185457999998107,
+          "maximum": 5.175665000002482,
+          "sum": 398.42277100003344
+        },
+        "otherMs": {
+          "mean": 3.229840210526164,
+          "median": 2.9523760000010952,
+          "p95": 6.334955999991507,
+          "maximum": 43.852709999999206,
+          "sum": 2516.0455239998814
+        }
+      },
+      "counters": {
+        "iterations": {
+          "mean": 5.654685494223363,
+          "median": 5,
+          "p95": 11,
+          "maximum": 26,
+          "sum": 4405
+        },
+        "factorizations": {
+          "mean": 13.232349165596919,
+          "median": 9,
+          "p95": 40,
+          "maximum": 257,
+          "sum": 10308
+        },
+        "geometryRestarts": {
+          "mean": 1.6238767650834403,
+          "median": 2,
+          "p95": 4,
+          "maximum": 7,
+          "sum": 1265
+        },
+        "frictionIterations": {
+          "mean": 1.6469833119383825,
+          "median": 2,
+          "p95": 3,
+          "maximum": 7,
+          "sum": 1283
+        },
+        "substepAttempts": {
+          "mean": 1.0025673940949935,
+          "median": 1,
+          "p95": 1,
+          "maximum": 3,
+          "sum": 781
+        },
+        "wallNormalFallbacks": {
+          "mean": 0.0012836970474967907,
+          "median": 0,
+          "p95": 0,
+          "maximum": 1,
+          "sum": 1
+        },
+        "backtracks": {
+          "mean": 0.008985879332477536,
+          "median": 0,
+          "p95": 0,
+          "maximum": 6,
+          "sum": 7
+        }
+      },
+      "allConverged": true,
+      "interToolRows": 0,
+      "maxPenetrationMm": 7.060296791649989e-12,
+      "maxCertificateBound": 9.982654063378504e-07
+    },
+    "catheter": {
+      "steps": 231,
+      "totalMs": {
+        "mean": 112.94117424675322,
+        "median": 81.0625,
+        "p95": 285.53174999999464,
+        "maximum": 2574.8779589999976,
+        "sum": 26089.411250999994
+      },
+      "stages": {
+        "assemblyMs": {
+          "mean": 53.99224680086628,
+          "median": 38.76308300000892,
+          "p95": 164.72283000000607,
+          "maximum": 1259.8416179998821,
+          "sum": 12472.209011000112
+        },
+        "linearMs": {
+          "mean": 49.98118053246673,
+          "median": 33.68399899999713,
+          "p95": 116.83195799998066,
+          "maximum": 1186.3666229998198,
+          "sum": 11545.652702999814
+        },
+        "frictionMs": {
+          "mean": 1.2380847705622664,
+          "median": 1.083374999994703,
+          "p95": 2.2123329999958514,
+          "maximum": 3.2477489999946556,
+          "sum": 285.99758199988355
+        },
+        "otherMs": {
+          "mean": 7.729662142857942,
+          "median": 6.1260829999737325,
+          "p95": 16.378961999944295,
+          "maximum": 126.40692700030195,
+          "sum": 1785.5519550001845
+        }
+      },
+      "counters": {
+        "iterations": {
+          "mean": 9.662337662337663,
+          "median": 9,
+          "p95": 13,
+          "maximum": 171,
+          "sum": 2232
+        },
+        "factorizations": {
+          "mean": 27.51082251082251,
+          "median": 18,
+          "p95": 63,
+          "maximum": 821,
+          "sum": 6355
+        },
+        "geometryRestarts": {
+          "mean": 1.567099567099567,
+          "median": 2,
+          "p95": 3,
+          "maximum": 5,
+          "sum": 362
+        },
+        "frictionIterations": {
+          "mean": 2.5584415584415585,
+          "median": 2,
+          "p95": 5,
+          "maximum": 7,
+          "sum": 591
+        },
+        "substepAttempts": {
+          "mean": 1,
+          "median": 1,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 231
+        },
+        "wallNormalFallbacks": {
+          "mean": 0.06926406926406926,
+          "median": 0,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 16
+        },
+        "backtracks": {
+          "mean": 1.7056277056277056,
+          "median": 0,
+          "p95": 24,
+          "maximum": 80,
+          "sum": 394
+        }
+      },
+      "allConverged": true,
+      "interToolRows": 0,
+      "maxPenetrationMm": 1.5077383785921938e-12,
+      "maxCertificateBound": 9.9098605232939e-07
+    },
+    "catheter134to200": {
+      "steps": 77,
+      "totalMs": {
+        "mean": 138.40719975324652,
+        "median": 80.46899999999732,
+        "p95": 326.1541670000006,
+        "maximum": 2574.8779589999976,
+        "sum": 10657.354380999983
+      },
+      "stages": {
+        "assemblyMs": {
+          "mean": 69.72967015584389,
+          "median": 39.34904299999471,
+          "p95": 181.71528899999248,
+          "maximum": 1259.8416179998821,
+          "sum": 5369.184601999979
+        },
+        "linearMs": {
+          "mean": 58.64502662337034,
+          "median": 29.448543000020436,
+          "p95": 124.96042099996703,
+          "maximum": 1186.3666229998198,
+          "sum": 4515.667049999516
+        },
+        "frictionMs": {
+          "mean": 1.201320779219938,
+          "median": 0.986125000003085,
+          "p95": 1.9631249999874854,
+          "maximum": 3.2218749999956344,
+          "sum": 92.50169999993523
+        },
+        "otherMs": {
+          "mean": 8.831182194812365,
+          "median": 5.894833999984257,
+          "p95": 17.392085999970732,
+          "maximum": 126.40692700030195,
+          "sum": 680.0010290005521
+        }
+      },
+      "counters": {
+        "iterations": {
+          "mean": 10.883116883116884,
+          "median": 8,
+          "p95": 14,
+          "maximum": 171,
+          "sum": 838
+        },
+        "factorizations": {
+          "mean": 32.54545454545455,
+          "median": 14,
+          "p95": 64,
+          "maximum": 821,
+          "sum": 2506
+        },
+        "geometryRestarts": {
+          "mean": 1.8571428571428572,
+          "median": 2,
+          "p95": 3,
+          "maximum": 5,
+          "sum": 143
+        },
+        "frictionIterations": {
+          "mean": 2.6233766233766236,
+          "median": 2,
+          "p95": 5,
+          "maximum": 6,
+          "sum": 202
+        },
+        "substepAttempts": {
+          "mean": 1,
+          "median": 1,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 77
+        },
+        "wallNormalFallbacks": {
+          "mean": 0.09090909090909091,
+          "median": 0,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 7
+        },
+        "backtracks": {
+          "mean": 3.038961038961039,
+          "median": 0,
+          "p95": 24,
+          "maximum": 80,
+          "sum": 234
+        }
+      },
+      "allConverged": true,
+      "interToolRows": 0,
+      "maxPenetrationMm": 2.35977903884077e-13,
+      "maxCertificateBound": 9.589412570676359e-07
+    },
+    "catheterBins": {
+      "0-50": {
+        "steps": 57,
+        "totalMs": {
+          "mean": 101.05010159649119,
+          "median": 90.36391699999876,
+          "p95": 147.5152080000007,
+          "maximum": 461.1810000000005,
+          "sum": 5759.855790999998
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 43.78518078947475,
+            "median": 40.41754299999957,
+            "p95": 56.97141600000759,
+            "maximum": 196.37087600000814,
+            "sum": 2495.7553050000606
+          },
+          "linearMs": {
+            "mean": 49.19772992982574,
+            "median": 42.88187599998855,
+            "p95": 82.58441800000583,
+            "maximum": 238.2700429999968,
+            "sum": 2804.2706060000673
+          },
+          "frictionMs": {
+            "mean": 1.1808647368423153,
+            "median": 1.0502909999995609,
+            "p95": 1.8521659999969415,
+            "maximum": 2.566624999999476,
+            "sum": 67.30929000001197
+          },
+          "otherMs": {
+            "mean": 6.886326140348389,
+            "median": 6.543372000014642,
+            "p95": 8.788081999999122,
+            "maximum": 23.973455999996077,
+            "sum": 392.5205899998582
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 9.859649122807017,
+            "median": 9,
+            "p95": 13,
+            "maximum": 17,
+            "sum": 562
+          },
+          "factorizations": {
+            "mean": 29,
+            "median": 27,
+            "p95": 45,
+            "maximum": 114,
+            "sum": 1653
+          },
+          "geometryRestarts": {
+            "mean": 1.5789473684210527,
+            "median": 2,
+            "p95": 3,
+            "maximum": 3,
+            "sum": 90
+          },
+          "frictionIterations": {
+            "mean": 2.4035087719298245,
+            "median": 2,
+            "p95": 3,
+            "maximum": 5,
+            "sum": 137
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 57
+          },
+          "wallNormalFallbacks": {
+            "mean": 0.05263157894736842,
+            "median": 0,
+            "p95": 0,
+            "maximum": 1,
+            "sum": 3
+          },
+          "backtracks": {
+            "mean": 0.43859649122807015,
+            "median": 0,
+            "p95": 0,
+            "maximum": 25,
+            "sum": 25
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 1.5077383785921938e-12,
+        "maxCertificateBound": 8.669911579772815e-07
+      },
+      "50-100": {
+        "steps": 58,
+        "totalMs": {
+          "mean": 72.4276895862072,
+          "median": 71.21777100000145,
+          "p95": 101.3828330000033,
+          "maximum": 140.89579199999935,
+          "sum": 4200.805996000017
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 36.27145368965711,
+            "median": 34.86114599999746,
+            "p95": 50.906749000016134,
+            "maximum": 81.12808300000324,
+            "sum": 2103.7443140001124
+          },
+          "linearMs": {
+            "mean": 28.738621189654403,
+            "median": 26.23343900000509,
+            "p95": 52.56758499999705,
+            "maximum": 75.19583499999862,
+            "sum": 1666.8400289999554
+          },
+          "frictionMs": {
+            "mean": 1.0988284655170368,
+            "median": 0.890604499998517,
+            "p95": 2.2307920000021113,
+            "maximum": 2.761458999997558,
+            "sum": 63.73205099998813
+          },
+          "otherMs": {
+            "mean": 6.318786241378645,
+            "median": 5.870896999998877,
+            "p95": 9.024418000000878,
+            "maximum": 12.721249000009266,
+            "sum": 366.48960199996145
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 7.9655172413793105,
+            "median": 8.0,
+            "p95": 11,
+            "maximum": 12,
+            "sum": 462
+          },
+          "factorizations": {
+            "mean": 15.46551724137931,
+            "median": 13.0,
+            "p95": 29,
+            "maximum": 42,
+            "sum": 897
+          },
+          "geometryRestarts": {
+            "mean": 0.8620689655172413,
+            "median": 1.0,
+            "p95": 2,
+            "maximum": 3,
+            "sum": 50
+          },
+          "frictionIterations": {
+            "mean": 2.1551724137931036,
+            "median": 2.0,
+            "p95": 3,
+            "maximum": 4,
+            "sum": 125
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 58
+          },
+          "wallNormalFallbacks": {
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0,
+            "sum": 0
+          },
+          "backtracks": {
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0,
+            "sum": 0
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 1.6936452240656763e-13,
+        "maxCertificateBound": 9.9098605232939e-07
+      },
+      "100-150": {
+        "steps": 58,
+        "totalMs": {
+          "mean": 196.60241524137908,
+          "median": 92.70122899999842,
+          "p95": 486.796583000003,
+          "maximum": 2574.8779589999976,
+          "sum": 11402.940083999987
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 92.91591996551493,
+            "median": 41.272791999996116,
+            "p95": 232.58374999996886,
+            "maximum": 1259.8416179998821,
+            "sum": 5389.123357999866
+          },
+          "linearMs": {
+            "mean": 90.8050088793075,
+            "median": 34.11110200000985,
+            "p95": 200.7655470000318,
+            "maximum": 1186.3666229998198,
+            "sum": 5266.690514999835
+          },
+          "frictionMs": {
+            "mean": 1.552674482757319,
+            "median": 1.4578125000043656,
+            "p95": 2.314416999994137,
+            "maximum": 3.2477489999946556,
+            "sum": 90.0551199999245
+          },
+          "otherMs": {
+            "mean": 11.32881191379934,
+            "median": 6.995436500019423,
+            "p95": 24.840375999985554,
+            "maximum": 126.40692700030195,
+            "sum": 657.0710910003618
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 12.620689655172415,
+            "median": 9.0,
+            "p95": 15,
+            "maximum": 171,
+            "sum": 732
+          },
+          "factorizations": {
+            "mean": 50.37931034482759,
+            "median": 16.0,
+            "p95": 121,
+            "maximum": 821,
+            "sum": 2922
+          },
+          "geometryRestarts": {
+            "mean": 2.2241379310344827,
+            "median": 2.0,
+            "p95": 4,
+            "maximum": 5,
+            "sum": 129
+          },
+          "frictionIterations": {
+            "mean": 3.3275862068965516,
+            "median": 3.0,
+            "p95": 6,
+            "maximum": 7,
+            "sum": 193
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 58
+          },
+          "wallNormalFallbacks": {
+            "mean": 0.20689655172413793,
+            "median": 0.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 12
+          },
+          "backtracks": {
+            "mean": 5.948275862068965,
+            "median": 0.0,
+            "p95": 25,
+            "maximum": 80,
+            "sum": 345
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 2.35977903884077e-13,
+        "maxCertificateBound": 9.386526329535627e-07
+      },
+      "150-200": {
+        "steps": 58,
+        "totalMs": {
+          "mean": 81.47947206896536,
+          "median": 76.03620900000169,
+          "p95": 155.4518339999995,
+          "maximum": 326.1541670000006,
+          "sum": 4725.8093799999915
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 42.82044886207022,
+            "median": 38.153751000008924,
+            "p95": 64.65728999998828,
+            "maximum": 204.83370599999034,
+            "sum": 2483.5860340000727
+          },
+          "linearMs": {
+            "mean": 31.16985436206822,
+            "median": 25.687624500005768,
+            "p95": 68.77058299997589,
+            "maximum": 99.43938000001799,
+            "sum": 1807.8515529999568
+          },
+          "frictionMs": {
+            "mean": 1.1189848448268784,
+            "median": 0.9075210000046354,
+            "p95": 1.9341260000073817,
+            "maximum": 3.2218749999956344,
+            "sum": 64.90112099995895
+          },
+          "otherMs": {
+            "mean": 6.370184000000053,
+            "median": 5.7820620000311465,
+            "p95": 8.589216999956989,
+            "maximum": 19.562455999999656,
+            "sum": 369.4706720000031
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 8.206896551724139,
+            "median": 8.0,
+            "p95": 12,
+            "maximum": 14,
+            "sum": 476
+          },
+          "factorizations": {
+            "mean": 15.224137931034482,
+            "median": 12.5,
+            "p95": 30,
+            "maximum": 64,
+            "sum": 883
+          },
+          "geometryRestarts": {
+            "mean": 1.603448275862069,
+            "median": 2.0,
+            "p95": 3,
+            "maximum": 3,
+            "sum": 93
+          },
+          "frictionIterations": {
+            "mean": 2.3448275862068964,
+            "median": 2.0,
+            "p95": 3,
+            "maximum": 6,
+            "sum": 136
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 58
+          },
+          "wallNormalFallbacks": {
+            "mean": 0.017241379310344827,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 1,
+            "sum": 1
+          },
+          "backtracks": {
+            "mean": 0.41379310344827586,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 24,
+            "sum": 24
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 2.350897254643769e-13,
+        "maxCertificateBound": 9.589412570676359e-07
+      }
+    }
+  },
+  "unprofiled": {
+    "wire": {
+      "steps": 779,
+      "totalMs": {
+        "mean": 31.467277129653382,
+        "median": 25.563540999999532,
+        "p95": 82.6606670000001,
+        "maximum": 389.7580419999995,
+        "sum": 24513.00888399998
+      },
+      "stages": {
+        "assemblyMs": {
+          "mean": 13.953812440308013,
+          "median": 12.57300000000032,
+          "p95": 32.44899900000382,
+          "maximum": 136.3203749999975,
+          "sum": 10870.019890999944
+        },
+        "linearMs": {
+          "mean": 13.722281369704728,
+          "median": 8.81145899999683,
+          "p95": 44.62270799999942,
+          "maximum": 179.31446000000324,
+          "sum": 10689.657186999979
+        },
+        "frictionMs": {
+          "mean": 0.5663994082157068,
+          "median": 0.44474999999874854,
+          "p95": 1.2722500000018044,
+          "maximum": 33.931000000000495,
+          "sum": 441.2251390000356
+        },
+        "otherMs": {
+          "mean": 3.2247839114249364,
+          "median": 3.1026230000024952,
+          "p95": 6.1236669999993865,
+          "maximum": 40.192206999998234,
+          "sum": 2512.1066670000255
+        }
+      },
+      "counters": {
+        "iterations": {
+          "mean": 5.654685494223363,
+          "median": 5,
+          "p95": 11,
+          "maximum": 26,
+          "sum": 4405
+        },
+        "factorizations": {
+          "mean": 13.232349165596919,
+          "median": 9,
+          "p95": 40,
+          "maximum": 257,
+          "sum": 10308
+        },
+        "geometryRestarts": {
+          "mean": 1.6238767650834403,
+          "median": 2,
+          "p95": 4,
+          "maximum": 7,
+          "sum": 1265
+        },
+        "frictionIterations": {
+          "mean": 1.6469833119383825,
+          "median": 2,
+          "p95": 3,
+          "maximum": 7,
+          "sum": 1283
+        },
+        "substepAttempts": {
+          "mean": 1.0025673940949935,
+          "median": 1,
+          "p95": 1,
+          "maximum": 3,
+          "sum": 781
+        },
+        "wallNormalFallbacks": {
+          "mean": 0.0012836970474967907,
+          "median": 0,
+          "p95": 0,
+          "maximum": 1,
+          "sum": 1
+        },
+        "backtracks": {
+          "mean": 0.008985879332477536,
+          "median": 0,
+          "p95": 0,
+          "maximum": 6,
+          "sum": 7
+        }
+      },
+      "allConverged": true,
+      "interToolRows": 0,
+      "maxPenetrationMm": 7.060296791649989e-12,
+      "maxCertificateBound": 9.982654063378504e-07
+    },
+    "catheter": {
+      "steps": 231,
+      "totalMs": {
+        "mean": 124.30528696536797,
+        "median": 90.03045800000109,
+        "p95": 314.5020829999994,
+        "maximum": 2629.6718330000003,
+        "sum": 28714.521289
+      },
+      "stages": {
+        "assemblyMs": {
+          "mean": 60.07421312121194,
+          "median": 43.739502000003995,
+          "p95": 176.52508500001568,
+          "maximum": 1299.8282949999993,
+          "sum": 13877.143230999958
+        },
+        "linearMs": {
+          "mean": 54.23204140692517,
+          "median": 36.86850199998662,
+          "p95": 125.08746199999587,
+          "maximum": 1194.8787139999768,
+          "sum": 12527.601564999713
+        },
+        "frictionMs": {
+          "mean": 1.3843903073594561,
+          "median": 1.1547910000008414,
+          "p95": 2.458291000002646,
+          "maximum": 10.081749999997555,
+          "sum": 319.79416100003436
+        },
+        "otherMs": {
+          "mean": 8.614642129871404,
+          "median": 6.88712600000872,
+          "p95": 18.51057900001615,
+          "maximum": 132.5065330000216,
+          "sum": 1989.9823320002943
+        }
+      },
+      "counters": {
+        "iterations": {
+          "mean": 9.662337662337663,
+          "median": 9,
+          "p95": 13,
+          "maximum": 171,
+          "sum": 2232
+        },
+        "factorizations": {
+          "mean": 27.51082251082251,
+          "median": 18,
+          "p95": 63,
+          "maximum": 821,
+          "sum": 6355
+        },
+        "geometryRestarts": {
+          "mean": 1.567099567099567,
+          "median": 2,
+          "p95": 3,
+          "maximum": 5,
+          "sum": 362
+        },
+        "frictionIterations": {
+          "mean": 2.5584415584415585,
+          "median": 2,
+          "p95": 5,
+          "maximum": 7,
+          "sum": 591
+        },
+        "substepAttempts": {
+          "mean": 1,
+          "median": 1,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 231
+        },
+        "wallNormalFallbacks": {
+          "mean": 0.06926406926406926,
+          "median": 0,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 16
+        },
+        "backtracks": {
+          "mean": 1.7056277056277056,
+          "median": 0,
+          "p95": 24,
+          "maximum": 80,
+          "sum": 394
+        }
+      },
+      "allConverged": true,
+      "interToolRows": 0,
+      "maxPenetrationMm": 1.5077383785921938e-12,
+      "maxCertificateBound": 9.9098605232939e-07
+    },
+    "catheter134to200": {
+      "steps": 77,
+      "totalMs": {
+        "mean": 143.22992958441554,
+        "median": 82.65129100000195,
+        "p95": 372.36754199999996,
+        "maximum": 2629.6718330000003,
+        "sum": 11028.704577999997
+      },
+      "stages": {
+        "assemblyMs": {
+          "mean": 73.51435755844224,
+          "median": 41.446376000014425,
+          "p95": 194.61645900001167,
+          "maximum": 1299.8282949999993,
+          "sum": 5660.605532000052
+        },
+        "linearMs": {
+          "mean": 59.14233838961119,
+          "median": 30.375582000022405,
+          "p95": 130.9025830000246,
+          "maximum": 1194.8787139999768,
+          "sum": 4553.960056000062
+        },
+        "frictionMs": {
+          "mean": 1.3282336623382576,
+          "median": 1.0873330000031274,
+          "p95": 2.236166000002413,
+          "maximum": 6.781374999998661,
+          "sum": 102.27399200004584
+        },
+        "otherMs": {
+          "mean": 9.24499997402386,
+          "median": 6.280251000025601,
+          "p95": 19.592032999978983,
+          "maximum": 132.5065330000216,
+          "sum": 711.8649979998372
+        }
+      },
+      "counters": {
+        "iterations": {
+          "mean": 10.883116883116884,
+          "median": 8,
+          "p95": 14,
+          "maximum": 171,
+          "sum": 838
+        },
+        "factorizations": {
+          "mean": 32.54545454545455,
+          "median": 14,
+          "p95": 64,
+          "maximum": 821,
+          "sum": 2506
+        },
+        "geometryRestarts": {
+          "mean": 1.8571428571428572,
+          "median": 2,
+          "p95": 3,
+          "maximum": 5,
+          "sum": 143
+        },
+        "frictionIterations": {
+          "mean": 2.6233766233766236,
+          "median": 2,
+          "p95": 5,
+          "maximum": 6,
+          "sum": 202
+        },
+        "substepAttempts": {
+          "mean": 1,
+          "median": 1,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 77
+        },
+        "wallNormalFallbacks": {
+          "mean": 0.09090909090909091,
+          "median": 0,
+          "p95": 1,
+          "maximum": 1,
+          "sum": 7
+        },
+        "backtracks": {
+          "mean": 3.038961038961039,
+          "median": 0,
+          "p95": 24,
+          "maximum": 80,
+          "sum": 234
+        }
+      },
+      "allConverged": true,
+      "interToolRows": 0,
+      "maxPenetrationMm": 2.35977903884077e-13,
+      "maxCertificateBound": 9.589412570676359e-07
+    },
+    "catheterBins": {
+      "0-50": {
+        "steps": 57,
+        "totalMs": {
+          "mean": 126.7535497543862,
+          "median": 109.6125830000019,
+          "p95": 198.71208399999887,
+          "maximum": 529.1383749999986,
+          "sum": 7224.952336000013
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 55.90566521052709,
+            "median": 48.62483200000497,
+            "p95": 86.95591599999898,
+            "maximum": 256.08400000000984,
+            "sum": 3186.6229170000443
+          },
+          "linearMs": {
+            "mean": 60.79640994736735,
+            "median": 52.23258400001578,
+            "p95": 110.45346199999403,
+            "maximum": 240.9199619999781,
+            "sum": 3465.395366999939
+          },
+          "frictionMs": {
+            "mean": 1.3238158070176214,
+            "median": 1.1547910000008414,
+            "p95": 2.18133300000045,
+            "maximum": 2.6542090000002645,
+            "sum": 75.45750100000441
+          },
+          "otherMs": {
+            "mean": 8.727658789474127,
+            "median": 7.722079999995913,
+            "p95": 12.278538000013214,
+            "maximum": 29.792456000010134,
+            "sum": 497.4765510000252
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 9.859649122807017,
+            "median": 9,
+            "p95": 13,
+            "maximum": 17,
+            "sum": 562
+          },
+          "factorizations": {
+            "mean": 29,
+            "median": 27,
+            "p95": 45,
+            "maximum": 114,
+            "sum": 1653
+          },
+          "geometryRestarts": {
+            "mean": 1.5789473684210527,
+            "median": 2,
+            "p95": 3,
+            "maximum": 3,
+            "sum": 90
+          },
+          "frictionIterations": {
+            "mean": 2.4035087719298245,
+            "median": 2,
+            "p95": 3,
+            "maximum": 5,
+            "sum": 137
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 57
+          },
+          "wallNormalFallbacks": {
+            "mean": 0.05263157894736842,
+            "median": 0,
+            "p95": 0,
+            "maximum": 1,
+            "sum": 3
+          },
+          "backtracks": {
+            "mean": 0.43859649122807015,
+            "median": 0,
+            "p95": 0,
+            "maximum": 25,
+            "sum": 25
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 1.5077383785921938e-12,
+        "maxCertificateBound": 8.669911579772815e-07
+      },
+      "50-100": {
+        "steps": 58,
+        "totalMs": {
+          "mean": 83.88248708620675,
+          "median": 79.87102100000266,
+          "p95": 131.49929200000042,
+          "maximum": 181.3062080000018,
+          "sum": 4865.1842509999915
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 42.89311103448224,
+            "median": 41.58452149999357,
+            "p95": 58.160170000002836,
+            "maximum": 110.56716700000834,
+            "sum": 2487.80043999997
+          },
+          "linearMs": {
+            "mean": 32.593855379308636,
+            "median": 28.826041500007705,
+            "p95": 56.19979300000705,
+            "maximum": 75.52612099998078,
+            "sum": 1890.443611999901
+          },
+          "frictionMs": {
+            "mean": 1.193416672413401,
+            "median": 0.9872505000021192,
+            "p95": 2.0829589999993914,
+            "maximum": 3.063000000001921,
+            "sum": 69.21816699997726
+          },
+          "otherMs": {
+            "mean": 7.202104000002472,
+            "median": 6.515748500001791,
+            "p95": 10.141373000013118,
+            "maximum": 23.094250000016473,
+            "sum": 417.7220320001434
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 7.9655172413793105,
+            "median": 8.0,
+            "p95": 11,
+            "maximum": 12,
+            "sum": 462
+          },
+          "factorizations": {
+            "mean": 15.46551724137931,
+            "median": 13.0,
+            "p95": 29,
+            "maximum": 42,
+            "sum": 897
+          },
+          "geometryRestarts": {
+            "mean": 0.8620689655172413,
+            "median": 1.0,
+            "p95": 2,
+            "maximum": 3,
+            "sum": 50
+          },
+          "frictionIterations": {
+            "mean": 2.1551724137931036,
+            "median": 2.0,
+            "p95": 3,
+            "maximum": 4,
+            "sum": 125
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 58
+          },
+          "wallNormalFallbacks": {
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0,
+            "sum": 0
+          },
+          "backtracks": {
+            "mean": 0,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 0,
+            "sum": 0
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 1.6936452240656763e-13,
+        "maxCertificateBound": 9.9098605232939e-07
+      },
+      "100-150": {
+        "steps": 58,
+        "totalMs": {
+          "mean": 200.61714362068972,
+          "median": 83.76397949999955,
+          "p95": 446.4942910000027,
+          "maximum": 2629.6718330000003,
+          "sum": 11635.794330000004
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 95.36281643103248,
+            "median": 43.63377100001162,
+            "p95": 275.66983700000856,
+            "maximum": 1299.8282949999993,
+            "sum": 5531.0433529998845
+          },
+          "linearMs": {
+            "mean": 91.76789646551684,
+            "median": 31.991313500006072,
+            "p95": 224.67850400003954,
+            "maximum": 1194.8787139999768,
+            "sum": 5322.537994999977
+          },
+          "frictionMs": {
+            "mean": 1.737681620690198,
+            "median": 1.3681454999932612,
+            "p95": 2.8119169999918086,
+            "maximum": 10.081749999997555,
+            "sum": 100.78553400003148
+          },
+          "otherMs": {
+            "mean": 11.748749103450196,
+            "median": 7.138001999992412,
+            "p95": 24.72707700003957,
+            "maximum": 132.5065330000216,
+            "sum": 681.4274480001113
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 12.620689655172415,
+            "median": 9.0,
+            "p95": 15,
+            "maximum": 171,
+            "sum": 732
+          },
+          "factorizations": {
+            "mean": 50.37931034482759,
+            "median": 16.0,
+            "p95": 121,
+            "maximum": 821,
+            "sum": 2922
+          },
+          "geometryRestarts": {
+            "mean": 2.2241379310344827,
+            "median": 2.0,
+            "p95": 4,
+            "maximum": 5,
+            "sum": 129
+          },
+          "frictionIterations": {
+            "mean": 3.3275862068965516,
+            "median": 3.0,
+            "p95": 6,
+            "maximum": 7,
+            "sum": 193
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 58
+          },
+          "wallNormalFallbacks": {
+            "mean": 0.20689655172413793,
+            "median": 0.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 12
+          },
+          "backtracks": {
+            "mean": 5.948275862068965,
+            "median": 0.0,
+            "p95": 25,
+            "maximum": 80,
+            "sum": 345
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 2.35977903884077e-13,
+        "maxCertificateBound": 9.386526329535627e-07
+      },
+      "150-200": {
+        "steps": 58,
+        "totalMs": {
+          "mean": 86.01017882758606,
+          "median": 77.90804200000275,
+          "p95": 121.82250000000204,
+          "maximum": 389.9612500000003,
+          "sum": 4988.5903719999915
+        },
+        "stages": {
+          "assemblyMs": {
+            "mean": 46.063388293104474,
+            "median": 40.65768649999882,
+            "p95": 61.502668000000995,
+            "maximum": 245.07070999999996,
+            "sum": 2671.6765210000594
+          },
+          "linearMs": {
+            "mean": 31.883182603446492,
+            "median": 28.468209999991814,
+            "p95": 58.94274999998743,
+            "maximum": 120.4833339999459,
+            "sum": 1849.2245909998965
+          },
+          "frictionMs": {
+            "mean": 1.2816027413796762,
+            "median": 0.9665419999946607,
+            "p95": 2.165540999994846,
+            "maximum": 6.781374999998661,
+            "sum": 74.33295900002122
+          },
+          "otherMs": {
+            "mean": 6.78200518965542,
+            "median": 6.272541499994986,
+            "p95": 8.767955999988772,
+            "maximum": 21.82053900005849,
+            "sum": 393.35630100001435
+          }
+        },
+        "counters": {
+          "iterations": {
+            "mean": 8.206896551724139,
+            "median": 8.0,
+            "p95": 12,
+            "maximum": 14,
+            "sum": 476
+          },
+          "factorizations": {
+            "mean": 15.224137931034482,
+            "median": 12.5,
+            "p95": 30,
+            "maximum": 64,
+            "sum": 883
+          },
+          "geometryRestarts": {
+            "mean": 1.603448275862069,
+            "median": 2.0,
+            "p95": 3,
+            "maximum": 3,
+            "sum": 93
+          },
+          "frictionIterations": {
+            "mean": 2.3448275862068964,
+            "median": 2.0,
+            "p95": 3,
+            "maximum": 6,
+            "sum": 136
+          },
+          "substepAttempts": {
+            "mean": 1,
+            "median": 1.0,
+            "p95": 1,
+            "maximum": 1,
+            "sum": 58
+          },
+          "wallNormalFallbacks": {
+            "mean": 0.017241379310344827,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 1,
+            "sum": 1
+          },
+          "backtracks": {
+            "mean": 0.41379310344827586,
+            "median": 0.0,
+            "p95": 0,
+            "maximum": 24,
+            "sum": 24
+          }
+        },
+        "allConverged": true,
+        "interToolRows": 0,
+        "maxPenetrationMm": 2.350897254643769e-13,
+        "maxCertificateBound": 9.589412570676359e-07
+      }
+    }
+  },
+  "terminalBitIdentical": true,
+  "anatomySHA256": {
+    "res/Aorta_plain.stl": "f7a0baf87cd490daa4223c106726f2d84574b1d0a19370bc0780407282d41fc2",
+    "res/Aorta_plain.collision.bin": "e8b38e8e4bd07398b153df72b3052a80bc71c134b191fbc82c6ece34ac45b5a3",
+    "src/aortaTransform.js": "adb884a6af19064e873e8d2c87218e10046005f841a133e987b718c308899de0",
+    "src/physics/collision/vesselContactField.js": "dcf703d74ee040904b38e8eecdb48cda7797f281c031f22249cbdbeb41aa85a9"
+  },
+  "worstCatheterSteps": [
+    {
+      "catheter": 138.6666666666663,
+      "totalMs": 2629.6718330000003,
+      "iterations": 171,
+      "factorizations": 821,
+      "backtracks": 80,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 6
+    },
+    {
+      "catheter": 108.33333333333302,
+      "totalMs": 811.5543340000004,
+      "iterations": 17,
+      "factorizations": 250,
+      "backtracks": 24,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 6
+    },
+    {
+      "catheter": 145.59999999999968,
+      "totalMs": 577.0796249999985,
+      "iterations": 16,
+      "factorizations": 127,
+      "backtracks": 33,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 5
+    },
+    {
+      "catheter": 0.8666666666666667,
+      "totalMs": 529.1383749999986,
+      "iterations": 17,
+      "factorizations": 114,
+      "backtracks": 25,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 5
+    },
+    {
+      "catheter": 119.5999999999996,
+      "totalMs": 446.4942910000027,
+      "iterations": 15,
+      "factorizations": 85,
+      "backtracks": 39,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 6
+    },
+    {
+      "catheter": 139.53333333333296,
+      "totalMs": 417.2492910000001,
+      "iterations": 14,
+      "factorizations": 121,
+      "backtracks": 24,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 5
+    },
+    {
+      "catheter": 38.13333333333335,
+      "totalMs": 405.3231250000026,
+      "iterations": 13,
+      "factorizations": 30,
+      "backtracks": 0,
+      "wallNormalFallbacks": 0,
+      "frictionIterations": 3
+    },
+    {
+      "catheter": 190.66666666666674,
+      "totalMs": 389.9612500000003,
+      "iterations": 14,
+      "factorizations": 64,
+      "backtracks": 24,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 6
+    },
+    {
+      "catheter": 147.33333333333303,
+      "totalMs": 372.36754199999996,
+      "iterations": 15,
+      "factorizations": 74,
+      "backtracks": 25,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 5
+    },
+    {
+      "catheter": 111.79999999999966,
+      "totalMs": 335.2516659999965,
+      "iterations": 13,
+      "factorizations": 57,
+      "backtracks": 24,
+      "wallNormalFallbacks": 1,
+      "frictionIterations": 6
+    }
+  ]
+}

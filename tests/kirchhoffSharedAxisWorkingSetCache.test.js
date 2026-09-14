@@ -15,6 +15,23 @@ function independent(n = 12) {
 const output = r => ({ increment: Array.from(r.increment), multiplierIncrement: Array.from(r.multiplierIncrement),
     converged: r.converged, residual: r.residual, failure: r.failure });
 
+test('reused compact maps refresh coefficients, masks and extra-force supports and match a fresh reference',()=>{
+    const f=independent(12),w=createSharedAxisLinear(f.layout,f.rows,{lazy:true});
+    for(let trial=0;trial<32;trial++) {
+        for(let i=0;i<f.rows.length;i++) {
+            const r=f.rows[i];r.gap=trial%3===0&&i%2?2:-.5-i/20;r.multiplier=(trial+i)%3?.1:0;
+            r.jacobian[0]=1+trial/32;
+            r.extraForceDofs=[(i+trial)%12];r.extraForceJacobian=[.01];
+        }
+        f.chain.hessian.fill(1+trial/10);f.gradient.fill(-trial/100);
+        const expected=solveSharedAxisLinear(createSharedAxisLinear(f.layout,f.rows,{lazy:true}),f.chain,{...f,reuseStructure:false,trace:[]});
+        const actual=solveSharedAxisLinear(w,f.chain,{...f,reuseStructure:true,trace:[]});
+        assert.deepEqual(output(actual),output(expected));
+        for(const key of ['factorizations','activeSetAttempts','workingSetReuses','batchFallback'])assert.equal(actual[key],expected[key]);
+        assert.ok(actual.converged);
+    }
+});
+
 test('fallback reuses certified results with owned solution copies and counts only actual factorizations', () => {
     const f = independent(), results = [];
     for (const reuseWorkingSet of [false, true]) {

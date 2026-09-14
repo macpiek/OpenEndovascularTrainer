@@ -1574,17 +1574,23 @@ export function initUI(options) {
   }
   let perfElapsed = 0;
   let perfFrames = 0;
-  function updatePerfStats(dtSeconds) {
+  let perfPhysicsStepsStart = 0;
+  function updatePerfStats(dtSeconds, completedPhysicsSteps) {
     if (!perfStatsEl) return;
     perfElapsed += dtSeconds;
     perfFrames++;
     if (perfElapsed < 0.25) return;
     const fps = (perfFrames / Math.max(1e-6, perfElapsed)).toFixed(1);
+    // Count committed timesteps, including work completed between render
+    // frames. Cooperative slices and rejected trials must not inflate this.
+    const physicsHz = (Math.max(0, completedPhysicsSteps - perfPhysicsStepsStart) /
+      Math.max(1e-6, perfElapsed)).toFixed(1);
     let mem = 'N/A';
     if (performance.memory) {
       mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
     }
-    perfStatsEl.textContent = `FPS: ${fps} | Mem: ${mem}`;
+    perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz | Mem: ${mem}`;
+    perfPhysicsStepsStart = completedPhysicsSteps;
     perfElapsed = 0;
     perfFrames = 0;
   }

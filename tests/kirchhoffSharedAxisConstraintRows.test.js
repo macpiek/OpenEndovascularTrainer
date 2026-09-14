@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {BufferGeometry,Float32BufferAttribute} from 'three';
+import {createSharedAxisVesselWitness} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
 import {createSharedAxisNative,sharedAxisOuterMaterialAt,captureSharedAxisNative,restoreSharedAxisNative,
     applySharedAxisNativeIncrement,extendSharedAxisNativeRows} from '../src/physics/kirchhoffSharedAxisNative.js';
 import {assembleSharedAxisConstraintRows,sharedAxisConstraintEdgeGeometry,sharedAxisPositionDofMask}
@@ -52,4 +54,44 @@ test('position mask is reusable and classifies every material spin separately',(
     const s=fixture(),mask=sharedAxisPositionDofMask(s.layout),old=new Set(Array.from(s.layout.positions).flatMap(p=>[p,p+1,p+2]));
     assert.equal(mask,sharedAxisPositionDofMask(s.layout));
     for(let i=0;i<s.layout.dofCount;i++)assert.equal(!!mask[i],old.has(i));
+});
+
+test('contact scratch preserves exact face, edge and vertex derivatives and never overwrites earlier results',()=>{
+    const geometry=new BufferGeometry().setAttribute('position',new Float32BufferAttribute([0,0,0,10,0,0,0,10,0],3));
+    const field={fallbackGeometry:geometry},definition={kind:'wall',edge:0,witness:{face:0,t:.3}};
+    const fast=createSharedAxisVesselWitness(field,definition),reference=createSharedAxisVesselWitness(field,definition,{reuseBuffers:false});
+    const saved=[];
+    try {
+        for(const point of [[2,2,3],[4,-1,2],[-1,4,2],[6,6,2],[-2,-1,1],[11,-1,1],[-1,11,1]]) {
+            for(const needHessian of [true,false,true]) {
+                const input={a:point,b:point,radius:.8,state:{origin:[0,0,0]},needHessian};
+                const actual=fast.evaluate(input);
+                assert.deepEqual(actual,reference.evaluate(input));saved.push([actual,structuredClone(actual)]);
+            }
+        }
+        assert.throws(()=>fast.evaluate({a:[0,0,0],b:[0,0,0],state:{},radius:.8}),/reached the surface/);
+        for(const [actual,expected] of saved)assert.deepEqual(actual,expected,'later geometry evaluations must not mutate saved derivatives');
+    }finally{geometry.dispose();}
+});
+
+test('owned contacts avoid duplicate copies while borrowed output and saved trial rows stay isolated',()=>{
+    const geometry=new BufferGeometry().setAttribute('position',new Float32BufferAttribute([0,0,0,10,0,0,0,10,0],3));
+    const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}],samplePosition:x=>[x,1,2]});
+    const e=2,dofs=[s.layout.positions[e],s.layout.positions[e+1]].flatMap(p=>[p,p+1,p+2]);
+    const witness=createSharedAxisVesselWitness({fallbackGeometry:geometry},{kind:'wall',edge:e,id:'owned',dofs,witness:{face:0,t:.3}});
+    let output;const evaluate=witness.evaluate;
+    witness.evaluate=Object.assign(input=>(output=evaluate(input)),{contactOutputOwned:true});
+    const scratch={gap:1,jacobian:new Array(6).fill(.1),hessian:new Float64Array(36).fill(.02)};
+    extendSharedAxisNativeRows(s,[witness,{kind:'wall',edge:e,id:'borrowed',dofs,evaluate:()=>scratch}]);
+    s.cacheMechanicalAssembly=true;s.multipliers[s.multipliers.length-2]=3;
+    const assemble=()=>assembleSharedAxisConstraintRows(s,{outerMaterialAt:sharedAxisOuterMaterialAt});
+    try {
+        const rows=assemble(),saved=rows.map(r=>({gap:r.gap,jacobian:r.jacobian.slice(),hessian:r.geometricHessian?.slice()})),pose=captureSharedAxisNative(s);
+        assert.equal(rows.at(-2).jacobian,output.jacobian,'owned output should not be defensively copied');
+        assert.notEqual(rows.at(-1).jacobian,scratch.jacobian);
+        scratch.jacobian.fill(.7);scratch.hessian.fill(.8);
+        applySharedAxisNativeIncrement(s,Float64Array.from(s.chain.gradient,(_,i)=>.001*Math.sin(i)),new Float64Array(s.multipliers.length));
+        assemble();restoreSharedAxisNative(s,pose);assemble();
+        assert.deepEqual(rows.map(r=>({gap:r.gap,jacobian:r.jacobian,hessian:r.geometricHessian})),saved);
+    }finally{geometry.dispose();}
 });

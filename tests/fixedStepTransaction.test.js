@@ -73,6 +73,22 @@ test('a partial preparation exception cannot apply input again before explicit r
 });
 
 const cooperative = () => ({accepted:false,pending:true,status:'shared-axis-pending'});
+test('terminal recovery uses the prepared command key, deferred changes can unblock it, and rollback is never repeated',()=>{
+    for(const changeDuringWork of [false,true]) {
+        const world=stubWorld([cooperative(),{accepted:false,terminal:true,status:'linear-solve'},true]);
+        world.abandonFailedWholeStep=function(){this.pending=false;this.accumulator-=dt;};
+        let key=1,feed=0,rollbacks=0,prepares=0;
+        const owner=createFixedStepTransaction({world,prepare:()=>{prepares++;const before=feed;feed+=key;return {before};},
+            recovery:{readKey:()=>key,rollback:c=>{rollbacks++;feed=c.before;}}});
+        owner.beginFrame();assert.equal(owner.attempt(dt).pending,true);
+        if(changeDuringWork)key=-1;
+        assert.equal(owner.attempt(dt).terminal,true);assert.equal(feed,0);assert.equal(rollbacks,1);assert.equal(world.stepCount,0);
+        owner.beginFrame();
+        if(!changeDuringWork){assert.equal(owner.canAttempt(),false);owner.change('stiffness',()=>{});}
+        assert.equal(owner.canAttempt(),true);assert.equal(owner.attempt(dt).accepted,true);
+        assert.equal(prepares,2);assert.equal(rollbacks,1);assert.equal(world.stepCount,1);assert.equal(world.accumulator,0);
+    }
+});
 test('explicit cooperative yields may resume within one frame without preparing or consuming the same dt twice',()=>{
     const world=stubWorld([cooperative(),cooperative(),true]),prepared=[];
     let command=1,parameter=2;
@@ -114,7 +130,7 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1}={}) {
         simulationStepEstimateMs:1,simulationCatchupPending:false,simulationLastAttempt:null,
         compositeAppSystem:null,sharedAxisAppSystem:shared?{diagnostics:{acceptedSteps:0}}:null,wholeAxisAppSystem:null,
         compositeStatus:null,compositePhysicsClockStarted:false,endovascularWorld:world,
-        simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,
+        simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,simulationAbandonedBacklog:0,
         browserConstraintStageProfile:{record:()=>{}},loadingAssetsReady:()=>true,
         browserBenchmarkScenario:{running:false},shortCatheterBenchmarkMetrics:null,guidewireTransport:{progress:0},
         recordBrowserFrame:()=>{},document:{visibilityState:'visible'},runtime:{timeout:cb=>queue.push(cb)},
@@ -132,6 +148,24 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1}={}) {
     state.elapse=duration=>{clock+=duration;};
     return state;
 }
+
+test('actual scheduler pauses terminal failures without accumulating catch-up debt and resumes on changed input',()=>{
+    const fixedDt=1/60,s=schedulerHarness([{accepted:false,terminal:true,status:'linear-solve'},true],{shared:true,fixedDt});
+    s.world.contactField={};let command=-1,rollbacks=0;
+    s.world.abandonFailedWholeStep=function(){this.pending=false;this.accumulator-=fixedDt;};
+    s.simulationStepTransaction=createFixedStepTransaction({world:s.world,prepare:()=>({}),
+        recovery:{readKey:()=>command,rollback:()=>rollbacks++}});
+    s.compositeStatus={textContent:''};
+    s.frame(0);s.frame(20);
+    assert.equal(rollbacks,1);assert.equal(s.world.attempts,1);assert.equal(s.simulationAccumulator,0);
+    assert.equal(s.simulationAbandonedBacklog,.02);assert.equal(s.commits,0);
+    s.frame(60000);assert.equal(s.world.attempts,1);assert.equal(s.simulationAccumulator,0);
+    assert.match(s.compositeStatus.textContent,/ruch odrzucony/);
+    assert.equal(s.simulationAcceptedTime,.02);
+    command=1;s.frame(60020);
+    assert.equal(s.world.stepCount,1);assert.equal(s.commits,1);assert.equal(s.contrastTime,fixedDt);
+    assert.ok(s.simulationAccumulator<fixedDt);
+});
 
 for(const shared of [false,true])test(`${shared?'Shared-axis':'Composite'} physics starts after vessel loading without preparing an empty field or admitting loading time`,()=>{
     const s=schedulerHarness([true],{shared});s.wholeAxisAppSystem=shared?s.sharedAxisAppSystem:(s.compositeAppSystem={});s.assetsReady=false;s.loadingAssetsReady=()=>s.assetsReady;

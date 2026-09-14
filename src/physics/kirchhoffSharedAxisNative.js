@@ -1,4 +1,6 @@
 import {assembleSharedAxisConstraintRows,sharedAxisPositionDofMask} from './kirchhoffSharedAxisConstraintRows.js';
+import {preserveSharedAxisBends} from './kirchhoffSharedAxisRemesh.js';
+import {createSharedAxisCycleGuard} from './kirchhoffSharedAxisCycleGuard.js';
 import * as THREE from 'three';
 import {assembleSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
 import {measureSharedAxisQuality} from './kirchhoffSharedAxisDiagnostics.js';
@@ -46,7 +48,7 @@ function interpolate(xs, values, x) {
  * Dynamic feed/history transactions are supplied by SharedAxisTimeStep.
  */
 export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x => [x, 0, 0],
-    wallSample = null, wallSamples = wallSample ? [wallSample] : [], startCoordinate = 0, boundaryCoordinates = [], previous = null, minimumEdgeLength=.5, origin=[0,0,0], maxBendAngle=Infinity, rebaseNearTips=false, fractionalTipThreshold=1e-3 }) {
+    wallSample = null, wallSamples = wallSample ? [wallSample] : [], startCoordinate = 0, boundaryCoordinates = [], previous = null, minimumEdgeLength=.5, origin=[0,0,0], maxBendAngle=Infinity, rebaseNearTips=false, fractionalTipThreshold=1e-3, spatialKnots=[] }) {
     if (!Array.isArray(tools) || !tools.length || tools.length > 2 || new Set(tools.map(t => t.id)).size !== tools.length)
         throw new TypeError('One or two uniquely named materials are required');
     if (!(spacing > 0) || !Number.isFinite(spacing)) throw new RangeError('Positive finite spacing required');
@@ -57,11 +59,15 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
     if (!(maxBendAngle > 0 && maxBendAngle <= Math.PI) && maxBendAngle !== Infinity) throw new RangeError('Invalid bend limit');
     if(!(fractionalTipThreshold>=0&&Number.isFinite(fractionalTipThreshold)))throw new RangeError('Invalid fractional tip threshold');
     const end = Math.max(...tools.map(t => t.insertion));
+    if(!Array.isArray(spatialKnots)||!spatialKnots.every(x=>Number.isFinite(x)&&x>=startCoordinate&&x<=end))throw new RangeError('Invalid spatial knots');
     const physicalKnots=tools.map(t=>t.insertion).filter(x=>x===end||end-x>=fractionalTipThreshold);
     const knots = [startCoordinate, end, ...physicalKnots, ...boundaryCoordinates.filter(x => x > startCoordinate && x < end && !tools.some(t=>Math.abs(t.insertion-x)<minimumEdgeLength))];
     const boundaries=knots.slice();
     for (let x = Math.ceil(startCoordinate / spacing) * spacing; x < end; x += spacing)
         if (x > startCoordinate&&!boundaries.some(b=>Math.abs(b-x)<minimumEdgeLength)) knots.push(x);
+    // Serialization may supply retained geometry knots. They are not fixed
+    // boundaries and feed reconsiders them using the accepted bend geometry.
+    knots.push(...spatialKnots);
     const coordinates = [];
     for (const x of knots.sort((a,b) => a-b)) {
         if (!coordinates.length || x - coordinates.at(-1) > 1e-9) coordinates.push(x);
@@ -78,6 +84,7 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
         if (p.length !== 3 || !p.every(Number.isFinite)) throw new RangeError('Finite spatial positions required');
         return p.slice();
     });
+    preserveSharedAxisBends(coordinates,positions,previous,maxBendAngle);
     const edgeTools = coordinates.slice(0,-1).map(x => tools.filter(t => x < t.insertion-1e-12).map(t => t.id));
     const layout = createSharedAxisLayout(edgeTools);
     const materials = tools.map(input => {
@@ -129,7 +136,7 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
         dofs:[layout.positions[e],layout.positions[e+1],layout.positions[e+2]].flatMap(i=>[i,i+1,i+2]),
         evaluate:evaluateBendLimit});
     const state = { fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
-        definitions, mixed: createSharedAxisLinear(layout, definitions,{lazy:true}),
+        definitions, definitionIds: new Set(definitions.map(row=>row.id)), mixed: createSharedAxisLinear(layout, definitions,{lazy:true}),
         chain: { layout, hessian: new Float64Array(layout.dofCount * layout.band), gradient: new Float64Array(layout.dofCount), hessianValid: true },
         multipliers: new Float64Array(definitions.length), fixed: new Uint8Array(layout.dofCount), loads: new Float64Array(layout.dofCount),
         acceptedSolves: 0, interToolRows: 0 };
@@ -207,6 +214,7 @@ export function feedSharedAxisNative(s, insertionById) {
 export function extendSharedAxisNativeRows(s, rows) {
     if(!rows.length)return;
     s.definitions.push(...rows);
+    for(const row of rows)s.definitionIds.add(row.id);
     const multipliers=new Float64Array(s.definitions.length);multipliers.set(s.multipliers);s.multipliers=multipliers;
     const cache=s.mixed.activeWorkspaces;
     s.mixed=createSharedAxisLinear(s.layout,s.definitions,{lazy:true});s.mixed.activeWorkspaces=cache;
@@ -276,7 +284,7 @@ export function applySharedAxisNativeIncrement(s, increment, multiplierIncrement
     syncNativePositions(s);
 }
 
-function* correctTrialConstraints(s,base) {
+function* correctTrialConstraints(s,base,reuseStructure) {
     // Second-order SQP correction: restore the nonlinear lengths and gaps
     // after a finite tangent step. This is not an accepted physical update;
     // the caller still certifies energy and the full physical residual.
@@ -284,17 +292,18 @@ function* correctTrialConstraints(s,base) {
     for(let i=0;i<s.layout.dofCount;i++)chain.hessian[i*s.layout.band]=1;
     const w=s.projectionMixed??=createSharedAxisLinear(s.layout,s.definitions,{lazy:true});
     const direction=yield* iterateSharedAxisLinear(w,chain,{fixed:s.fixed,gradient:new Float64Array(s.layout.dofCount),
-        rows:base.rows.map(r=>({...r,multiplier:0,geometricHessian:undefined,extraForceDofs:undefined,extraForceJacobian:undefined})),tolerance:1e-10});
+        rows:base.rows.map(r=>({...r,multiplier:0,geometricHessian:undefined,extraForceDofs:undefined,extraForceJacobian:undefined})),tolerance:1e-10,reuseStructure});
     if(direction.converged)applySharedAxisNativeIncrement(s,direction.increment,new Float64Array(s.multipliers.length));
     return direction;
 }
 
-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true } = {}) {
+export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false } = {}) {
     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
     const initial = captureSharedAxisNative(s), started = performance.now();
     let candidate = null;
+    let cycleGuard=null,detectedCycle=null;
     const timings = { assemblyMs: 0, linearMs: 0 };
     const assemble = (tangentMode,withTangent=true) => {
         const start = performance.now();
@@ -304,7 +313,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
     let iterations = 0, factorizations = 0, workingSetReuses = 0, backtracks = 0, discoveryIterations = 0, geometryRestarts = 0, error = null, status = 'iteration-limit';
     const discover = error => {
         if(!localContactRestarts || error.message !== 'shared-axis-wall-discovery' || !s.pendingVesselRows?.size || geometryRestarts >= 64)return false;
-        extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();geometryRestarts++;return true;
+        extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();geometryRestarts++;cycleGuard=null;return true;
     };
     const assembleDiscovered = () => {
         while(true) {try{return assemble();}catch(error){if(!discover(error))throw error;}}
@@ -317,6 +326,10 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
             yield {kind:'iteration',iteration:iterations};
             observeIteration?.({state:s,iteration:iterations,base});
             if (merit(base) <= 1) { status = 'converged'; break; }
+            if(earlyLiveFallback&&iterations>=8&&s.wallFrictionStep?.liveNormalLoad===true) {
+                detectedCycle=(cycleGuard??=createSharedAxisCycleGuard()).observe(s,base);
+                if(detectedCycle){status='live-contact-cycle';break;}
+            }
             if(!s.chain.hessianValid)base=assemble();
             const snapshot = captureSharedAxisNative(s);
             try {
@@ -332,7 +345,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
                 const linearStart = performance.now();
                 const linearOptions = { rows: isGaussNewton ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
-                    trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(forceTolerance, lengthTolerance) * .01, 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                    trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet,reuseStructure, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(forceTolerance, lengthTolerance) * .01, 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
                 const direction = yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
                 timings.linearMs += direction.cpuMs ?? performance.now() - linearStart;
                 factorizations += direction.factorizations;workingSetReuses += direction.workingSetReuses ?? 0;
@@ -373,7 +386,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                     if(!accept&&trial<2&&violation(candidate)>0) {
                         const uncorrected=captureSharedAxisNative(s),uncorrectedMeasure=candidate,uncorrectedPotential=candidatePotential;
                         for(let correction=0;correction<2&&!accept;correction++) {
-                            const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate);
+                            const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate,reuseStructure);
                             timings.linearMs+=projected.cpuMs??performance.now()-start;factorizations+=projected.factorizations;workingSetReuses+=projected.workingSetReuses??0;
                             if(!projected.converged)break;
                             candidate=assemble();candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
@@ -415,7 +428,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
     }
     return { converged, status, error, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
         timings, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
-        dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
+        ...(detectedCycle?{detectedCycle}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
 }
 
 export function relaxSharedAxisNative(s,options={}) {

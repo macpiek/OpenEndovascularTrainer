@@ -45,10 +45,14 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
             if(cached?.key===s.geometryKey&&(!needHessian||cached.withHessian)) {
                 contact=cached.contact;s.wallGeometryCacheHits=(s.wallGeometryCacheHits??0)+1;
             } else {
-                contact=(def.evaluate??s.wallSamples[def.sample])({state:s,a,b,edge:e,radius:owner.body.radius,owner:owner.spec.id,needHessian,sampleT:def.sampleT,
+                const evaluate=def.evaluate??s.wallSamples[def.sample];
+                contact=evaluate({state:s,a,b,edge:e,radius:owner.body.radius,owner:owner.spec.id,needHessian,sampleT:def.sampleT,
                     coordinateA:s.coordinates[e],coordinateB:s.coordinates[e+1]});
                 if(cache&&contact) {
-                    contact={...contact,jacobian:contact.jacobian?.slice(),hessian:contact.hessian?.slice()};
+                    // Native evaluators return owned immutable-for-the-caller
+                    // output. Custom evaluators may reuse scratch and still
+                    // require a defensive copy before another call overwrites it.
+                    if(!evaluate.contactOutputOwned)contact={...contact,jacobian:contact.jacobian?.slice(),hessian:contact.hessian?.slice()};
                     cache.set(def,{key:s.geometryKey,withHessian:needHessian,contact});
                 }
             }

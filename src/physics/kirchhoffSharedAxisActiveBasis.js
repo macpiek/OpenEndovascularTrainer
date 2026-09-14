@@ -1,18 +1,32 @@
 const sign = row => row.kind === 'wall' ? -1 : 1;
 
 // A fixed mask identifies the lifetime of one spatial solve. Repeated active
-// sets reuse numerical storage, but no rank decision or coefficient survives
-// the next call. Weak ownership lets a discarded spatial state release it.
+// sets reuse storage. Normalized prefixes may survive only within an explicit
+// immutable-linearization token. Weak ownership releases discarded states.
 const workspaces=new WeakMap();
 function workspaceFor(fixed,rowCount) {
     let w=workspaces.get(fixed);
     if(!w||w.rowCount!==rowCount||w.dofCount!==fixed.length) {
         w={rowCount,dofCount:fixed.length,pool:[],order:[],basis:[],normValues:[],stamp:0,
+            orderKinds:new Uint8Array(rowCount),orderActive:new Uint8Array(rowCount),
+            cachedOrder:[],cachedBasisCounts:[],cachedCount:0,basisCache:null,
             spatialMarks:new Uint32Array(fixed.length),reactionMarks:new Uint32Array(rowCount),
             next:new Float64Array(rowCount),forceError:new Float64Array(fixed.length)};
         workspaces.set(fixed,w);
     }
     return w;
+}
+function prepareOrder(w,rows,activeSet) {
+    let changed=false;
+    for(let i=0;i<rows.length;i++) {
+        const kind=rows[i].kind==='length'?1:rows[i].kind==='wall'?2:0,active=activeSet[i]?1:0;
+        if(w.orderKinds[i]!==kind||w.orderActive[i]!==active)changed=true;
+        w.orderKinds[i]=kind;w.orderActive[i]=active;
+    }
+    if(changed) {
+        w.order.length=0;
+        for(const kind of [1,2])for(let i=0;i<rows.length;i++)if(w.orderKinds[i]===kind&&w.orderActive[i])w.order.push(i);
+    }
 }
 function nextRow(w,index,dofCount) {
     let r=w.pool[index];
@@ -42,18 +56,35 @@ function supportedNorm(w,support,values) {
  * remain inequalities in the active-set search. Length reactions are signed,
  * wall reactions nonnegative. Fixed degrees of freedom cannot restrict motion.
  */
-export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace}) {
+export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null}) {
     let pivots=0;
     const w=workspaceFor(fixed,rows.length),{spatialMarks,reactionMarks,order,basis}=w;
+    if(!reuseStructure||!basisCache||w.basisCache!==basisCache){w.cachedCount=0;w.basisCache=basisCache;}
     for(let pass=0;pass<=rows.length;pass++) {
         // Sparse row echelon elimination: a Kirchhoff length/contact row
         // has local support. Orthogonalizing every row against the entire
         // growing chain destroys that locality and costs cubic work.
-        basis.length=order.length=0;
-        for(let i=0;i<rows.length;i++)if(rows[i].kind==='length'&&activeSet[i])order.push(i);
-        for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i])order.push(i);
+
+        if(reuseStructure)prepareOrder(w,rows,activeSet);
+        else {
+            order.length=0;
+            for(let i=0;i<rows.length;i++)if(rows[i].kind==='length'&&activeSet[i])order.push(i);
+            for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i])order.push(i);
+            w.orderKinds.fill(0);w.orderActive.fill(0);
+        }
+        // This token is scoped to one immutable linearization. Reuse only
+        // the common input prefix; a changed active row invalidates everything
+        // after it. Dual values/gaps select pivots but never enter these cached
+        // normalized Jacobian rows. New linearizations get a new token.
+        let prefix=0;
+        if(reuseStructure&&basisCache)while(prefix<w.cachedCount&&prefix<order.length&&w.cachedOrder[prefix]===order[prefix])prefix++;
+        const kept=prefix?w.cachedBasisCounts[prefix-1]:0;
+        basis.length=kept;for(let i=0;i<kept;i++)basis[i]=w.pool[i];
+        w.cachedCount=prefix;
+        const remember=(position,index)=>{if(reuseStructure&&basisCache){w.cachedOrder[position]=index;w.cachedBasisCounts[position]=basis.length;w.cachedCount=position+1;}};
         let dependent=null;
-        for(const index of order) {
+        for(let position=prefix;position<order.length;position++) {
+            const index=order[position];
             const row=rows[index],working=nextRow(w,basis.length,fixed.length),{v,c,support,coefficients}=working;
             coefficients.push(index);
             if(++w.stamp>=0xffffffff){spatialMarks.fill(0);reactionMarks.fill(0);w.stamp=1;}
@@ -62,7 +93,7 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace}) 
                 v[p]+=rowSign*row.jacobian[k];
                 if(v[p]!==0&&spatialMarks[p]!==stamp){spatialMarks[p]=stamp;support.push(p);}
             }}
-            const originalNorm=supportedNorm(w,support,v);if(originalNorm===0)continue;
+            const originalNorm=supportedNorm(w,support,v);if(originalNorm===0){remember(position,index);continue;}
             c[index]=1;reactionMarks[index]=stamp;
             for(const q of basis) {
                 const projection=v[q.pivot];if(projection===0)continue;
@@ -84,7 +115,8 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace}) 
             for(const j of coefficients)c[j]/=factor;
             // Only exact zeros disappear. Small terms remain available for
             // rank detection and the unchanged generalized-force certificate.
-            working.pivot=pivot;compactExactNonzeros(support,v);compactExactNonzeros(coefficients,c);basis.push(working);
+            working.pivot=pivot;compactExactNonzeros(support,v);compactExactNonzeros(coefficients,c);
+            basis.push(working);remember(position,index);
         }
         if(!dependent)return {converged:true,pivots};
         // Along this null direction the force is constant. Choose the sign
@@ -102,7 +134,12 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace}) 
         };
         let {step,drop}=bound(orientation);
         if(drop<0&&Math.abs(slope)<1e-12) {orientation=-orientation;({step,drop}=bound(orientation));}
-        if(drop<0)return {converged:false,pivots,failure:'incompatible-active-constraints'};
+        if(drop<0){
+            if(trace?.captureConflicts)trace.push({kind:'incompatible-active-constraints',slope,orientation,
+                rows:rows.flatMap((r,i)=>Math.abs(dependent[i])>1e-12?[{index:i,id:r.id,kind:r.kind,edge:r.edge,
+                    coefficient:dependent[i],gap:r.gap,multiplier:r.multiplier,jacobian:Array.from(r.jacobian)}]:[])});
+            return {converged:false,pivots,failure:'incompatible-active-constraints'};
+        }
         const next=w.next;next.set(dual);
         for(let i=0;i<rows.length;i++) {
             next[i]+=orientation*step*dependent[i];

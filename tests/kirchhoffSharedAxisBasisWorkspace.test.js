@@ -70,3 +70,36 @@ test('sparse basis reuse retains ascending elimination when fill-in reaches late
     ];
     for(let i=0;i<5;i++)compare(rows,fixed,[1,1,1,1,1,1],[-1,2,-3,2,5,1]);
 });
+
+test('cached row order follows in-place kind and active-mask changes without retaining numerical pivots',()=>{
+    const fixed=new Uint8Array(15),rng=random(3719),rows=rowSet(rng,4),active=new Uint8Array(rows.length).fill(1),dual=new Float64Array(rows.length).fill(2);
+    for(let trial=0;trial<40;trial++) {
+        for(let i=0;i<rows.length;i++) {
+            rows[i].kind=(trial+i)%3?'wall':'length';active[i]=(trial+i)%5?1:0;
+            rows[i].jacobian=rows[i].jacobian.map(v=>-v);
+        }
+        fixed[trial%fixed.length]=1-fixed[trial%fixed.length];
+        compare(rows,fixed,active,dual);
+    }
+});
+
+test('unchanged linearizations reuse a numerical prefix but new tokens and active-order changes rebuild it',()=>{
+    const fixed=new Uint8Array(18),rows=Array.from({length:12},(_,i)=>({kind:'wall',id:i,dofs:[i],jacobian:[1],gap:0}));
+    let reads=0;
+    for(const r of rows){const values=r.jacobian;Object.defineProperty(r,'jacobian',{get(){reads++;return values;},enumerable:true});}
+    let basisCache=Symbol(),active=new Uint8Array(rows.length).fill(1),dual=new Float64Array(rows.length).fill(1);
+    const cached=input=>optimized({...input,basisCache});
+    run(cached,rows,fixed,active,dual);reads=0;
+    run(cached,rows,fixed,active,dual);assert.equal(reads,0,'unchanged independent prefix should not repeat elimination');
+    for(const index of [10,11,0,7,4,0,10]) {
+        active[index]=1-active[index];dual[index]+=.3;
+        assert.deepEqual(run(cached,rows,fixed,active,dual),run(reference,rows,fixed,active,dual));
+    }
+    rows[5].jacobian[0]=2;fixed[7]=1;basisCache=Symbol();reads=0;
+    const actual=run(cached,rows,fixed,active,dual);assert.ok(reads>0);
+    assert.deepEqual(actual,run(reference,rows,fixed,active,dual));
+    // Another solve using the same fixed-mask storage must invalidate the
+    // first token's prefix, even if the first generator later resumes.
+    run(input=>optimized({...input,basisCache:Symbol()}),rows,fixed,active,dual);
+    assert.deepEqual(run(cached,rows,fixed,active,dual),run(reference,rows,fixed,active,dual));
+});

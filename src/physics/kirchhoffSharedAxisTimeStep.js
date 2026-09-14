@@ -49,10 +49,12 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
  * outer corrections, retaining only discovered static geometry. Cancellation
  * cannot enter this fallback: generator.return unwinds the attempt's finally. */
 export function* iterateSharedAxisTimeStep(s,dt,options={}) {
-    const first=yield* iterateTimeStepAttempt(s,dt,options);
+    const first=yield* iterateTimeStepAttempt(s,dt,{...options,
+        earlyLiveFallback:options.earlyLiveFallback!==false&&options.liveWallNormalLoad===true&&options.wallNormalFallback!==false});
     if(first.converged||options.liveWallNormalLoad!==true||options.wallNormalFallback===false)return first;
     const fallback=yield* iterateTimeStepAttempt(s,dt,{...options,liveWallNormalLoad:false});
-    const result={...fallback,wallNormalFallback:{attempted:true,liveFailure:first.status,converged:fallback.converged}};
+    const result={...fallback,wallNormalFallback:{attempted:true,liveFailure:first.status,converged:fallback.converged,
+        ...(first.detectedCycle?{detectedCycle:first.detectedCycle}:{})}};
     for(const key of ['iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','ms'])result[key]=(first[key]??0)+(fallback[key]??0);
     result.timings=Object.fromEntries(Object.keys(fallback.timings).map(key=>[key,(first.timings[key]??0)+fallback.timings[key]]));
     return result;

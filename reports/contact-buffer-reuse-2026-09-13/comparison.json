@@ -1,0 +1,44 @@
+{
+  "reference": {
+    "steps": 231,
+    "meanMs": 114.89210839393958,
+    "medianMs": 84.5784590000003,
+    "p95Ms": 293.64712500000314,
+    "maxMs": 2746.159749999999,
+    "stageMeansMs": {
+      "assemblyMs": 50.218591303030486,
+      "linearMs": 54.25741154112409,
+      "frictionMs": 1.4091021038959723
+    }
+  },
+  "reuse": {
+    "steps": 231,
+    "meanMs": 109.82087772727297,
+    "medianMs": 80.46970800000418,
+    "p95Ms": 278.4863750000004,
+    "maxMs": 2722.582749999994,
+    "stageMeansMs": {
+      "assemblyMs": 47.4013998268394,
+      "linearMs": 52.46155688744408,
+      "frictionMs": 1.3571628787879007
+    }
+  },
+  "stepCount": 1011,
+  "identicalStepResults": true,
+  "terminalSHA256": {
+    "reference": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98",
+    "reuse": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98"
+  },
+  "terminalBitIdentical": true,
+  "reductionPercent": 4.413906871025885,
+  "anatomySHA256": {
+    "res/Aorta_plain.stl": "f7a0baf87cd490daa4223c106726f2d84574b1d0a19370bc0780407282d41fc2",
+    "res/Aorta_plain.collision.bin": "e8b38e8e4bd07398b153df72b3052a80bc71c134b191fbc82c6ece34ac45b5a3",
+    "src/physics/collision/vesselContactField.js": "dcf703d74ee040904b38e8eecdb48cda7797f281c031f22249cbdbeb41aa85a9"
+  },
+  "tests": {
+    "total": 152,
+    "passed": 150,
+    "knownExistingFailures": 2
+  }
+}

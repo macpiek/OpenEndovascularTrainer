@@ -172,15 +172,35 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
 }
 
 function solveCompactWorkingSet(w,chain,options,activeSet) {
-    const indices=[],inactiveRows=[];
-    options.rows.forEach((r,i)=>{if(activeSet[i])indices.push(i);else inactiveRows.push(r);});
-    const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(indices.map(i=>options.rows[i])),cache=w.activeWorkspaces??=new Map();
+    let scratch;
+    if(options.reuseStructure!==false) {
+        scratch=w.compactScratch;
+        if(!scratch||scratch.mask.length!==activeSet.length||scratch.gradient.length!==options.gradient.length)
+            scratch=w.compactScratch={mask:new Uint8Array(activeSet.length),initialized:false,indices:[],inactiveIndices:[],rows:[],inactiveRows:[],gradient:new Float64Array(options.gradient.length)};
+        let changed=!scratch.initialized;
+        for(let i=0;i<activeSet.length;i++)if(scratch.mask[i]!==activeSet[i]){changed=true;break;}
+        if(changed) {
+            scratch.indices.length=scratch.inactiveIndices.length=0;
+            for(let i=0;i<activeSet.length;i++)(activeSet[i]?scratch.indices:scratch.inactiveIndices).push(i);
+            scratch.mask.set(activeSet);scratch.initialized=true;
+        }
+        scratch.rows.length=scratch.indices.length;scratch.inactiveRows.length=scratch.inactiveIndices.length;
+        for(let i=0;i<scratch.indices.length;i++)scratch.rows[i]=options.rows[scratch.indices[i]];
+        for(let i=0;i<scratch.inactiveIndices.length;i++)scratch.inactiveRows[i]=options.rows[scratch.inactiveIndices[i]];
+        scratch.gradient.set(options.gradient);
+    }
+    const indices=scratch?.indices??[],inactiveRows=scratch?.inactiveRows??[];
+    if(!scratch)options.rows.forEach((r,i)=>{if(activeSet[i])indices.push(i);else inactiveRows.push(r);});
+    const activeRows=scratch?.rows??indices.map(i=>options.rows[i]);
+    // Recheck actual supports even with a reused index map: contact/friction
+    // derivatives can change their sparsity without changing the active mask.
+    const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows),cache=w.activeWorkspaces??=new Map();
     let packed=cache.get(key);
     if(!packed) {
         if(cache.size>=8)cache.delete(cache.keys().next().value);
-        packed=createSharedAxisLinear(chain.layout,indices.map(i=>options.rows[i]));cache.set(key,packed);
+        packed=createSharedAxisLinear(chain.layout,activeRows);cache.set(key,packed);
     }
-    const gradient=Float64Array.from(options.gradient);
+    const gradient=scratch?.gradient??Float64Array.from(options.gradient);
     // Inactive equations are delta-lambda = -lambda. Eliminate their force
     // columns exactly, retaining the physical geometric Hessian at entry.
     for(const r of inactiveRows) {
@@ -188,7 +208,7 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
         r.extraForceDofs?.forEach((p,k)=>{gradient[p]-=r.multiplier*r.extraForceJacobian[k];});
     }
     const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
-        rows:indices.map(i=>options.rows[i]),activeSet:new Uint8Array(indices.length).fill(1)});
+        rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
     w.increment.set(result.increment);
     options.rows.forEach((r,i)=>{w.multiplierIncrement[i]=-r.multiplier;});
     indices.forEach((index,i)=>{w.multiplierIncrement[index]=result.multiplierIncrement[i];});
@@ -209,7 +229,7 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
         yield {kind:'linear-active-set',attempt,batchSize};
         activeSetAttempts++;
-        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace});
+        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache});
         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
         const setKey=activeSet.join(''),signature=setKey+'/'+Array.from(dual,v=>v.toPrecision(9)).join(',');
         if(visited.has(signature))return finish({converged:false,failure:'active-set-cycle'});
@@ -278,6 +298,9 @@ function* iterateWithFallback(w,chain,options,batchSize) {
     // physical multipliers are fixed only for this one linearization. The
     // reference activation fallback solves the same equations and may reuse it.
     const solutionCache=options.reuseWorkingSet===false?null:new Map();
+    // Only normalized Jacobian prefixes share this token. No cache survives
+    // a different linearization (or changed fixed mask/geometry/coefficients).
+    options={...options,basisCache:options.reuseStructure===false?null:Symbol('linear-basis')};
     const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
     if(first.converged||batchSize===1)return {...first,batchActivation:batchSize>1,batchFallback:false};
     // Restart from the original physical rows, reactions, gradient and Hessian.

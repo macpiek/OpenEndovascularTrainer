@@ -21,7 +21,7 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * are published only after the complete requested timestep has been accepted.
  */
 export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true}}) {
-    let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null;
+    let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     const diagnostics={initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:'shared-axis'};
     function publish(tools,dt) {
@@ -60,6 +60,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
             if(!world.contactField)return {accepted:false,dt,status:'geometry-not-ready'};
             if(!pending) {
                 const tools=readTools(),key=JSON.stringify(tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})));
+                if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
                 pending={iterator:solve(world,dt,tools),tools,dt,key,started:performance.now(),cpuMs:0};
             }
@@ -67,13 +68,14 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
             do {
                 let next;
                 try { next=pending.iterator.next(); } catch(error) {
-                    pending=null;diagnostics.failedSteps++;
+                    failedKey=pending.key;pending=null;diagnostics.failedSteps++;
                     diagnostics.last={status:'shared-axis-error',error:error.message};
-                    return {accepted:false,dt,status:'shared-axis-error',diagnostics:{...diagnostics}};
+                    return failedResult={accepted:false,terminal:true,dt,status:'shared-axis-error',diagnostics:{...diagnostics}};
                 }
                 if(next.done) {
                     const {tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,cpuMs,wallMs:performance.now()-started};
-                    if(!next.value.state){diagnostics.failedSteps++;return {accepted:false,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
+                    if(!next.value.state){failedKey=key;diagnostics.failedSteps++;return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
+                    failedKey=null;failedResult=null;
                     state=next.value.state;rotations=next.value.rotations;
                     const speed=Math.max(0,...state.velocities.flat().map(Math.abs),...Object.values(state.angularVelocities).flat(2).map(v=>Math.abs(v)*60));
                     sleepFrames=key===lastKey&&speed<1?sleepFrames+1:0;lastKey=key;
@@ -87,7 +89,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
             pending.cpuMs+=performance.now()-start;diagnostics.pendingSlices++;return {accepted:false,pending:true,dt,status:'shared-axis-pending',diagnostics:{...diagnostics}};
         },
         reset() {
-            pending?.iterator.return();pending=null;state=null;rotations={};sleepFrames=0;lastKey=null;
+            pending?.iterator.return();pending=null;state=null;rotations={};sleepFrames=0;lastKey=null;failedKey=null;failedResult=null;
             for(const body of publication.keys()){body.jointStateView=null;body.sharedAxisDiagnostics=null;}publication.clear();
             diagnostics.initializations=diagnostics.acceptedSteps=diagnostics.pendingSlices=diagnostics.failedSteps=0;diagnostics.last=null;
         }

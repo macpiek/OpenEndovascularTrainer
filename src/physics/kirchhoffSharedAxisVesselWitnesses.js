@@ -6,16 +6,22 @@ import { extendSharedAxisNativeRows, iterateSharedAxisNative, sharedAxisOuterInt
 const NEED_ROWS='shared-axis-wall-discovery';
 const outsideError=message=>Object.assign(new Error(message),{code:'trial-outside-vessel'});
 function gapForWitness(field,face,t,geometryScratch,{a,b,radius,state,needHessian=true}) {
-    const point=a.map((v,i)=>(1-t)*v+t*b[i]+(state.origin?.[i]??0));
-    const g=evaluateKirchhoffWallWitnessGeometry({geometry:field.fallbackGeometry,faceIndex:face,point},geometryScratch);
+    const query=geometryScratch.contactQuery;
+    const point=query?.point??a.map((v,i)=>(1-t)*v+t*b[i]+(state.origin?.[i]??0));
+    if(query) {
+        for(let i=0;i<3;i++)point[i]=(1-t)*a[i]+t*b[i]+(state.origin?.[i]??0);
+        query.geometry=field.fallbackGeometry;
+    }
+    const g=evaluateKirchhoffWallWitnessGeometry(query??{geometry:field.fallbackGeometry,faceIndex:face,point},geometryScratch);
     if(!g.normalDefined)throw outsideError('Retained vessel witness reached the surface');
-    const n=g.direction,jacobian=[...n.map(v=>(1-t)*v),...n.map(v=>t*v)];
+    const n=g.direction,jacobian=query?new Array(6):[...n.map(v=>(1-t)*v),...n.map(v=>t*v)];
+    if(query)for(let i=0;i<3;i++){jacobian[i]=(1-t)*n[i];jacobian[i+3]=t*n[i];}
     let hessian;
     if(needHessian&&g.feature!=='face') {
-        const edge=[0,0,0];
+        const edge=geometryScratch.contactEdge??[0,0,0];edge.fill(0);
         if(g.feature==='edge') {
-            const vertices=[0,1,2].filter(i=>g.featureMask&(1<<i));
-            for(let a=0;a<3;a++)edge[a]=g.triangleVertices[vertices[1]*3+a]-g.triangleVertices[vertices[0]*3+a];
+            const first=g.featureMask&1?0:1,second=g.featureMask&4?2:1;
+            for(let a=0;a<3;a++)edge[a]=g.triangleVertices[second*3+a]-g.triangleVertices[first*3+a];
             const norm=Math.hypot(...edge);for(let a=0;a<3;a++)edge[a]/=norm;
         }
         hessian=new Float64Array(36);
@@ -27,10 +33,15 @@ function gapForWitness(field,face,t,geometryScratch,{a,b,radius,state,needHessia
 
 // Keep witness geometry explicit so a failing state can be replayed without
 // replaying hundreds of preceding feed steps or serializing closures.
-export function createSharedAxisVesselWitness(field, definition) {
+export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=true}={}) {
     const scratch=createKirchhoffWallWitnessGeometryWorkspace();
     const {face,t}=definition.witness;
-    return {...definition,evaluate:input=>gapForWitness(field,face,t,scratch,input)};
+    if(reuseBuffers){scratch.contactQuery={geometry:null,faceIndex:face,point:[0,0,0]};scratch.contactEdge=[0,0,0];}
+    const evaluate=input=>gapForWitness(field,face,t,scratch,input);
+    // Only temporary geometry uses scratch. Every returned derivative owns
+    // its storage and remains valid across later trials, feed and rollback.
+    evaluate.contactOutputOwned=reuseBuffers;
+    return {...definition,evaluate};
 }
 
 /** Discover with the current mesh/BVH kernel, retain each finite surface
@@ -38,9 +49,10 @@ export function createSharedAxisVesselWitness(field, definition) {
  * in the normal cone of a mesh corner. Discovery is transactional: restart
  * from the incoming pose with extra geometry, never with a rejected force.
  */
-export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true}={}) {
+export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true,indexedContacts=true,reuseContactBuffers=true}={}) {
     const clearance=createSharedAxisDiscoveryCache();
     const x=new Float64Array(2),y=x.slice(),z=x.slice(),r=x.slice(),out=createContactResult();
+    const query=reuseContactBuffers?{a:[0,0,0],b:[0,0,0],sampleCount:0,geometryToken:null,gridToken:null,radius:0}:null;
     const sample=({state,a,b,edge,radius,coordinateA,coordinateB})=>{
         if(coordinateB<=sheathLength)return {gap:1,jacobian:[0,0,0,0,0,0]};
         const exposedStart=Math.max(0,(sheathLength-coordinateA)/(coordinateB-coordinateA));
@@ -49,12 +61,24 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
         for(const interval of intervals) {
             const start=Math.max(exposedStart,interval.start),end=interval.end;
             if(end<=start)continue;
-            const clipped=a.map((v,k)=>(1-start)*v+start*b[k]),tip=a.map((v,k)=>(1-end)*v+end*b[k]);
             const radius=interval.material.body.radius;
-            x[0]=clipped[0]+origin[0];x[1]=tip[0]+origin[0];y[0]=clipped[1]+origin[1];y[1]=tip[1]+origin[1];z[0]=clipped[2]+origin[2];z[1]=tip[2]+origin[2];r.fill(radius);
+            if(query) {
+                for(let k=0;k<3;k++) {
+                    query.a[k]=(1-start)*a[k]+start*b[k]+origin[k];
+                    query.b[k]=(1-end)*a[k]+end*b[k]+origin[k];
+                }
+                x[0]=query.a[0];x[1]=query.b[0];y[0]=query.a[1];y[1]=query.b[1];z[0]=query.a[2];z[1]=query.b[2];
+            } else {
+                const clipped=a.map((v,k)=>(1-start)*v+start*b[k]),tip=a.map((v,k)=>(1-end)*v+end*b[k]);
+                x[0]=clipped[0]+origin[0];x[1]=tip[0]+origin[0];y[0]=clipped[1]+origin[1];y[1]=tip[1]+origin[1];z[0]=clipped[2]+origin[2];z[1]=tip[2]+origin[2];
+            }
+            r.fill(radius);
             const length=(coordinateB-coordinateA)*(end-start),count=Math.max(1,Math.ceil(length/Math.max(field.voxelSize*4,Math.max(.5,radius))));
-            const key=`${coordinateA}/${coordinateB}/${start}/${end}`,descriptor={a:[x[0],y[0],z[0]],b:[x[1],y[1],z[1]],sampleCount:count,
+            const key=`${coordinateA}/${coordinateB}/${start}/${end}`,descriptor=query??{a:[x[0],y[0],z[0]],b:[x[1],y[1],z[1]],sampleCount:count,
                 geometryToken:field.fallbackGeometry?.boundsTree,gridToken:key,radius};
+            // lookup is synchronous; begin copies both endpoints and tokens
+            // into its certificate before this descriptor can be reused.
+            if(query){query.sampleCount=count;query.geometryToken=field.fallbackGeometry?.boundsTree;query.gridToken=key;query.radius=radius;}
             const proof=queryReuse&&allSamples?clearance.lookup(key,descriptor):null;
             if(proof?.skip)continue;
             // The initial sign is the same physical classification used by
@@ -68,10 +92,14 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
                     const t=start+(end-start)*localT,face=contact.faceIndex;
                     const owner=intervals.length>1?interval.material.spec.id:null;
                     const id=`vessel/${coordinateA}/${coordinateB}/${t}/${face}${owner?'/'+owner:''}`;
-                    if(!state.definitions.some(r=>r.id===id)&&!state.pendingVesselRows?.has(id)) {
+                    // Native rows are append-only within one state. Feed/replay
+                    // rebuild their own index; pending discoveries stay separate
+                    // until extendSharedAxisNativeRows accepts their topology.
+                    const retained=indexedContacts&&state.definitionIds?state.definitionIds.has(id):state.definitions.some(r=>r.id===id);
+                    if(!retained&&!state.pendingVesselRows?.has(id)) {
                         const pending=state.pendingVesselRows??=new Map();
                         pending.set(id,createSharedAxisVesselWitness(field,{kind:'wall',edge,id,witness:{face,t,...(owner?{owner}:{})},
-                            dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(i=>[i,i+1,i+2])}));
+                            dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(i=>[i,i+1,i+2])},{reuseBuffers:reuseContactBuffers}));
                     }
                 }
                 if(contact.signedDistance<=0)throw outsideError('Shared axis crossed the vessel surface');

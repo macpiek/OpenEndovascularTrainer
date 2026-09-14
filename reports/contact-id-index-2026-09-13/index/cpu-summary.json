@@ -1,0 +1,1081 @@
+{
+  "samples": 18072,
+  "sampledMs": 22636.083,
+  "note": "Loop only: physics plus benchmark bookkeeping; excludes anatomy loading. Inclusive times overlap and must not be added.",
+  "self": [
+    {
+      "name": "prepareSharedAxisActiveBasis",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "line": 45,
+      "selfMs": 3267.316,
+      "selfPercent": 14.434105052539344,
+      "inclusiveMs": 4202.594,
+      "inclusivePercent": 18.565906477724084
+    },
+    {
+      "name": "iterateActiveSet",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 204,
+      "selfMs": 1778.45,
+      "selfPercent": 7.8567038298984855,
+      "inclusiveMs": 10257.356,
+      "inclusivePercent": 45.314182670208446
+    },
+    {
+      "name": "assembleSharedAxisConstraintRows",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisConstraintRows.js",
+      "line": 34,
+      "selfMs": 1280.796,
+      "selfPercent": 5.658205087867897,
+      "inclusiveMs": 6053.829,
+      "inclusivePercent": 26.74415445463776
+    },
+    {
+      "name": "toArray",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/node_modules/three/build/three.module.js",
+      "line": 4558,
+      "selfMs": 1192.67,
+      "selfPercent": 5.268888614695396,
+      "inclusiveMs": 1192.67,
+      "inclusivePercent": 5.268888614695396
+    },
+    {
+      "name": "solveSharedAxisLinearOnce",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 84,
+      "selfMs": 939.058,
+      "selfPercent": 4.148500427392849,
+      "inclusiveMs": 2648.558,
+      "inclusivePercent": 11.70060208738411
+    },
+    {
+      "name": "solveCompactWorkingSet",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 174,
+      "selfMs": 918.576,
+      "selfPercent": 4.058016574687414,
+      "inclusiveMs": 4067.269,
+      "inclusivePercent": 17.96807778094823
+    },
+    {
+      "name": "nativeHingeTorqueTangent",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "line": 24,
+      "selfMs": 775.117,
+      "selfPercent": 3.424254099085959,
+      "inclusiveMs": 1187.528,
+      "inclusivePercent": 5.246172670421822
+    },
+    {
+      "name": "solve",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCoulombBandLU.js",
+      "line": 105,
+      "selfMs": 727.746,
+      "selfPercent": 3.214982026704885,
+      "inclusiveMs": 1303.956,
+      "inclusivePercent": 5.760519609333469
+    },
+    {
+      "name": "supportedNorm",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "line": 31,
+      "selfMs": 674.783,
+      "selfPercent": 2.9810060335968904,
+      "inclusiveMs": 674.783,
+      "inclusivePercent": 2.9810060335968904
+    },
+    {
+      "name": "gapForWitness",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 8,
+      "selfMs": 670.54,
+      "selfPercent": 2.9622616245045577,
+      "inclusiveMs": 2612.706,
+      "inclusivePercent": 11.542217794483259
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "selfMs": 665.42,
+      "selfPercent": 2.9396428701909247,
+      "inclusiveMs": 665.42,
+      "inclusivePercent": 2.9396428701909247
+    },
+    {
+      "name": "assembleSharedAxisMaterialTangent",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "line": 63,
+      "selfMs": 593.046,
+      "selfPercent": 2.6199144083364603,
+      "inclusiveMs": 1781.824,
+      "inclusivePercent": 7.871609235573134
+    },
+    {
+      "name": "wasm-function[4]",
+      "url": "wasm://wasm/3b727612",
+      "line": 1,
+      "selfMs": 571.086,
+      "selfPercent": 2.5229011574131444,
+      "inclusiveMs": 571.086,
+      "inclusivePercent": 2.5229011574131444
+    },
+    {
+      "name": "assembleSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 228,
+      "selfMs": 559.673,
+      "selfPercent": 2.472481656830822,
+      "inclusiveMs": 9150.333,
+      "inclusivePercent": 40.42365898729033
+    },
+    {
+      "name": "evaluateKirchhoffWallWitnessGeometry",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffWallWitnessGeometry.js",
+      "line": 18,
+      "selfMs": 523.96,
+      "selfPercent": 2.314711427767781,
+      "inclusiveMs": 1872.207,
+      "inclusivePercent": 8.27089651509053
+    },
+    {
+      "name": "closestPointToPointScalarBvh",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "line": 221,
+      "selfMs": 426.87,
+      "selfPercent": 1.8857944636446153,
+      "inclusiveMs": 831.532,
+      "inclusivePercent": 3.673480080453849
+    },
+    {
+      "name": "considerTriangle",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "line": 57,
+      "selfMs": 424.622,
+      "selfPercent": 1.8758634168287862,
+      "inclusiveMs": 424.622,
+      "inclusivePercent": 1.8758634168287862
+    },
+    {
+      "name": "createSharedAxisLinear",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 54,
+      "selfMs": 371.881,
+      "selfPercent": 1.642868158771109,
+      "inclusiveMs": 390.923,
+      "inclusivePercent": 1.7269904868258346
+    },
+    {
+      "name": "iterateSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 293,
+      "selfMs": 325.791,
+      "selfPercent": 1.439255192693895,
+      "inclusiveMs": 20696.397,
+      "inclusivePercent": 91.43099978914196
+    },
+    {
+      "name": "#queryCenterline",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 2052,
+      "selfMs": 286.999,
+      "selfPercent": 1.2678827869645115,
+      "inclusiveMs": 326.5,
+      "inclusivePercent": 1.442387360039279
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 112,
+      "selfMs": 272.378,
+      "selfPercent": 1.2032912231325534,
+      "inclusiveMs": 384.252,
+      "inclusivePercent": 1.697519840336334
+    },
+    {
+      "name": "nextRow",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "line": 17,
+      "selfMs": 220.203,
+      "selfPercent": 0.9727963976806411,
+      "inclusiveMs": 220.203,
+      "inclusivePercent": 0.9727963976806411
+    },
+    {
+      "name": "evaluateBendTwistLocalConstraintNormalized",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/discreteKirchhoffRod.js",
+      "line": 691,
+      "selfMs": 205.204,
+      "selfPercent": 0.9065349336278719,
+      "inclusiveMs": 205.204,
+      "inclusivePercent": 0.9065349336278719
+    },
+    {
+      "name": "assembleSharedAxisInertia",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisDynamics.js",
+      "line": 62,
+      "selfMs": 202.583,
+      "selfPercent": 0.8949560752184906,
+      "inclusiveMs": 277.706,
+      "inclusivePercent": 1.2268288643401775
+    },
+    {
+      "name": "visit",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 65,
+      "selfMs": 199.126,
+      "selfPercent": 0.8796839983313367,
+      "inclusiveMs": 202.876,
+      "inclusivePercent": 0.8962504687758921
+    },
+    {
+      "name": "evaluateSharedAxisBendLimit",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisBendLimit.js",
+      "line": 2,
+      "selfMs": 198.713,
+      "selfPercent": 0.8778594777197097,
+      "inclusiveMs": 198.754,
+      "inclusivePercent": 0.8780406044632368
+    },
+    {
+      "name": "matrix",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "line": 5,
+      "selfMs": 192.166,
+      "selfPercent": 0.8489366291862421,
+      "inclusiveMs": 192.166,
+      "inclusivePercent": 0.8489366291862421
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 214,
+      "selfMs": 167.834,
+      "selfPercent": 0.7414445334910638,
+      "inclusiveMs": 167.834,
+      "inclusivePercent": 0.7414445334910638
+    },
+    {
+      "name": "kinematics",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 88,
+      "selfMs": 162.92,
+      "selfPercent": 0.7197358306205185,
+      "inclusiveMs": 381.177,
+      "inclusivePercent": 1.6839353345717982
+    },
+    {
+      "name": "iterateWithFallback",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 276,
+      "selfMs": 162.915,
+      "selfPercent": 0.7197137419932591,
+      "inclusiveMs": 10422.771,
+      "inclusivePercent": 46.04494072583141
+    },
+    {
+      "name": "sample",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 44,
+      "selfMs": 132.249,
+      "selfPercent": 0.584239773285864,
+      "inclusiveMs": 1892.119,
+      "inclusivePercent": 8.358862264288392
+    },
+    {
+      "name": "(program)",
+      "url": "",
+      "line": 0,
+      "selfMs": 131.875,
+      "selfPercent": 0.5825875439668603,
+      "inclusiveMs": 131.875,
+      "inclusivePercent": 0.5825875439668603
+    },
+    {
+      "name": "assemble",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 300,
+      "selfMs": 119.668,
+      "selfPercent": 0.528660369375744,
+      "inclusiveMs": 9271.293,
+      "inclusivePercent": 40.95802705794991
+    },
+    {
+      "name": "evaluate",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 101,
+      "selfMs": 115.169,
+      "selfPercent": 0.5087850225677296,
+      "inclusiveMs": 503.011,
+      "inclusivePercent": 2.2221644972763177
+    },
+    {
+      "name": "lookup",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisDiscoveryCache.js",
+      "line": 27,
+      "selfMs": 101.664,
+      "selfPercent": 0.44912364034007124,
+      "inclusiveMs": 101.664,
+      "inclusivePercent": 0.44912364034007124
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 10,
+      "selfMs": 96.628,
+      "selfPercent": 0.42687597496439644,
+      "inclusiveMs": 96.628,
+      "inclusivePercent": 0.42687597496439644
+    },
+    {
+      "name": "iterateSharedAxisWithContacts",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 98,
+      "selfMs": 93.419,
+      "selfPercent": 0.41269949398930905,
+      "inclusiveMs": 20792.4,
+      "inclusivePercent": 91.85511468569894
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 159,
+      "selfMs": 85.29,
+      "selfPercent": 0.3767878037909651,
+      "inclusiveMs": 193.084,
+      "inclusivePercent": 0.8529921011510693
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 19,
+      "selfMs": 84.415,
+      "selfPercent": 0.37292229402056887,
+      "inclusiveMs": 84.415,
+      "inclusivePercent": 0.37292229402056887
+    },
+    {
+      "name": "feedSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 171,
+      "selfMs": 83.747,
+      "selfPercent": 0.36997125341871206,
+      "inclusiveMs": 441.335,
+      "inclusivePercent": 1.9496968623060802
+    }
+  ],
+  "inclusive": [
+    {
+      "name": "(root)",
+      "url": "",
+      "line": 0,
+      "selfMs": 0,
+      "selfPercent": 0,
+      "inclusiveMs": 22636.083,
+      "inclusivePercent": 100
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/scripts/physics/profile-shared-axis-dynamic.mjs",
+      "line": 0,
+      "selfMs": 4.959,
+      "selfPercent": 0.02190750051587989,
+      "inclusiveMs": 21767.325,
+      "inclusivePercent": 96.16206567187442
+    },
+    {
+      "name": "step",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/scripts/physics/profile-shared-axis-dynamic.mjs",
+      "line": 54,
+      "selfMs": 6.291,
+      "selfPercent": 0.02779191081778592,
+      "inclusiveMs": 21675.074,
+      "inclusivePercent": 95.7545260812129
+    },
+    {
+      "name": "advanceSharedAxis",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisAppSystem.js",
+      "line": 99,
+      "selfMs": 5.042,
+      "selfPercent": 0.022274171728386048,
+      "inclusiveMs": 21668.783,
+      "inclusivePercent": 95.7267341703951
+    },
+    {
+      "name": "iterateSharedAxisTimeStep",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisTimeStep.js",
+      "line": 51,
+      "selfMs": 7.875,
+      "selfPercent": 0.03478958793356607,
+      "inclusiveMs": 21221.072,
+      "inclusivePercent": 93.74886989060785
+    },
+    {
+      "name": "iterateTimeStepAttempt",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisTimeStep.js",
+      "line": 9,
+      "selfMs": 15.084,
+      "selfPercent": 0.06663697071617912,
+      "inclusiveMs": 21213.197,
+      "inclusivePercent": 93.71408030267428
+    },
+    {
+      "name": "iterateSharedAxisWithContacts",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 98,
+      "selfMs": 93.419,
+      "selfPercent": 0.41269949398930905,
+      "inclusiveMs": 20792.4,
+      "inclusivePercent": 91.85511468569894
+    },
+    {
+      "name": "iterateSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 293,
+      "selfMs": 325.791,
+      "selfPercent": 1.439255192693895,
+      "inclusiveMs": 20696.397,
+      "inclusivePercent": 91.43099978914196
+    },
+    {
+      "name": "iterateSharedAxisLinear",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 297,
+      "selfMs": 22.669,
+      "selfPercent": 0.10014541826869959,
+      "inclusiveMs": 10476.691,
+      "inclusivePercent": 46.28314448219685
+    },
+    {
+      "name": "iterateWithFallback",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 276,
+      "selfMs": 162.915,
+      "selfPercent": 0.7197137419932591,
+      "inclusiveMs": 10422.771,
+      "inclusivePercent": 46.04494072583141
+    },
+    {
+      "name": "iterateActiveSet",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 204,
+      "selfMs": 1778.45,
+      "selfPercent": 7.8567038298984855,
+      "inclusiveMs": 10257.356,
+      "inclusivePercent": 45.314182670208446
+    },
+    {
+      "name": "assemble",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 300,
+      "selfMs": 119.668,
+      "selfPercent": 0.528660369375744,
+      "inclusiveMs": 9271.293,
+      "inclusivePercent": 40.95802705794991
+    },
+    {
+      "name": "assembleSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 228,
+      "selfMs": 559.673,
+      "selfPercent": 2.472481656830822,
+      "inclusiveMs": 9150.333,
+      "inclusivePercent": 40.42365898729033
+    },
+    {
+      "name": "assembleSharedAxisConstraintRows",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisConstraintRows.js",
+      "line": 34,
+      "selfMs": 1280.796,
+      "selfPercent": 5.658205087867897,
+      "inclusiveMs": 6053.829,
+      "inclusivePercent": 26.74415445463776
+    },
+    {
+      "name": "prepareSharedAxisActiveBasis",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "line": 45,
+      "selfMs": 3267.316,
+      "selfPercent": 14.434105052539344,
+      "inclusiveMs": 4202.594,
+      "inclusivePercent": 18.565906477724084
+    },
+    {
+      "name": "solveCompactWorkingSet",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 174,
+      "selfMs": 918.576,
+      "selfPercent": 4.058016574687414,
+      "inclusiveMs": 4067.269,
+      "inclusivePercent": 17.96807778094823
+    },
+    {
+      "name": "evaluate",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 33,
+      "selfMs": 46.497,
+      "selfPercent": 0.2054109803361297,
+      "inclusiveMs": 2659.203,
+      "inclusivePercent": 11.74762877481939
+    },
+    {
+      "name": "solveSharedAxisLinearOnce",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 84,
+      "selfMs": 939.058,
+      "selfPercent": 4.148500427392849,
+      "inclusiveMs": 2648.558,
+      "inclusivePercent": 11.70060208738411
+    },
+    {
+      "name": "gapForWitness",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 8,
+      "selfMs": 670.54,
+      "selfPercent": 2.9622616245045577,
+      "inclusiveMs": 2612.706,
+      "inclusivePercent": 11.542217794483259
+    },
+    {
+      "name": "sample",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 44,
+      "selfMs": 132.249,
+      "selfPercent": 0.584239773285864,
+      "inclusiveMs": 1892.119,
+      "inclusivePercent": 8.358862264288392
+    },
+    {
+      "name": "evaluateKirchhoffWallWitnessGeometry",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffWallWitnessGeometry.js",
+      "line": 18,
+      "selfMs": 523.96,
+      "selfPercent": 2.314711427767781,
+      "inclusiveMs": 1872.207,
+      "inclusivePercent": 8.27089651509053
+    },
+    {
+      "name": "assembleSharedAxisMaterialTangent",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "line": 63,
+      "selfMs": 593.046,
+      "selfPercent": 2.6199144083364603,
+      "inclusiveMs": 1781.824,
+      "inclusivePercent": 7.871609235573134
+    },
+    {
+      "name": "correctTrialConstraints",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 280,
+      "selfMs": 25.917,
+      "selfPercent": 0.11449419053641038,
+      "inclusiveMs": 1684.413,
+      "inclusivePercent": 7.441274181579914
+    },
+    {
+      "name": "queryCapsuleSoA",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 1014,
+      "selfMs": 5.083,
+      "selfPercent": 0.022455298471913184,
+      "inclusiveMs": 1563.331,
+      "inclusivePercent": 6.90636714841521
+    },
+    {
+      "name": "#queryCapsuleStored",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 1072,
+      "selfMs": 0,
+      "selfPercent": 0,
+      "inclusiveMs": 1558.248,
+      "inclusivePercent": 6.883911849943296
+    },
+    {
+      "name": "#queryCapsuleStoredImpl",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 1087,
+      "selfMs": 37.543,
+      "selfPercent": 0.1658546666399836,
+      "inclusiveMs": 1555.623,
+      "inclusivePercent": 6.872315320632108
+    },
+    {
+      "name": "assembleDiscovered",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 310,
+      "selfMs": 0,
+      "selfPercent": 0,
+      "inclusiveMs": 1549.426,
+      "inclusivePercent": 6.844938676006798
+    },
+    {
+      "name": "solve",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCoulombBandLU.js",
+      "line": 105,
+      "selfMs": 727.746,
+      "selfPercent": 3.214982026704885,
+      "inclusiveMs": 1303.956,
+      "inclusivePercent": 5.760519609333469
+    },
+    {
+      "name": "toArray",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/node_modules/three/build/three.module.js",
+      "line": 4558,
+      "selfMs": 1192.67,
+      "selfPercent": 5.268888614695396,
+      "inclusiveMs": 1192.67,
+      "inclusivePercent": 5.268888614695396
+    },
+    {
+      "name": "nativeHingeTorqueTangent",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "line": 24,
+      "selfMs": 775.117,
+      "selfPercent": 3.424254099085959,
+      "inclusiveMs": 1187.528,
+      "inclusivePercent": 5.246172670421822
+    },
+    {
+      "name": "#refineContactWithBvh",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 1395,
+      "selfMs": 16.25,
+      "selfPercent": 0.07178803859307284,
+      "inclusiveMs": 871.617,
+      "inclusivePercent": 3.850564605192515
+    },
+    {
+      "name": "#refineWithBvh",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 2713,
+      "selfMs": 16.376,
+      "selfPercent": 0.0723446720000099,
+      "inclusiveMs": 854.117,
+      "inclusivePercent": 3.7732544097845904
+    },
+    {
+      "name": "closestPointToPointScalarBvh",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "line": 221,
+      "selfMs": 426.87,
+      "selfPercent": 1.8857944636446153,
+      "inclusiveMs": 831.532,
+      "inclusivePercent": 3.673480080453849
+    },
+    {
+      "name": "supportedNorm",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "line": 31,
+      "selfMs": 674.783,
+      "selfPercent": 2.9810060335968904,
+      "inclusiveMs": 674.783,
+      "inclusivePercent": 2.9810060335968904
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "selfMs": 665.42,
+      "selfPercent": 2.9396428701909247,
+      "inclusiveMs": 665.42,
+      "inclusivePercent": 2.9396428701909247
+    },
+    {
+      "name": "js-to-wasm:iiiiii:i",
+      "url": "wasm://wasm/3b727612",
+      "line": 1,
+      "selfMs": 1.291,
+      "selfPercent": 0.005703283558378895,
+      "inclusiveMs": 572.377,
+      "inclusivePercent": 2.528604440971523
+    },
+    {
+      "name": "wasm-function[4]",
+      "url": "wasm://wasm/3b727612",
+      "line": 1,
+      "selfMs": 571.086,
+      "selfPercent": 2.5229011574131444,
+      "inclusiveMs": 571.086,
+      "inclusivePercent": 2.5229011574131444
+    },
+    {
+      "name": "evaluate",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 101,
+      "selfMs": 115.169,
+      "selfPercent": 0.5087850225677296,
+      "inclusiveMs": 503.011,
+      "inclusivePercent": 2.2221644972763177
+    },
+    {
+      "name": "#querySphereCoordinates",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 926,
+      "selfMs": 15.126,
+      "selfPercent": 0.06682251518515814,
+      "inclusiveMs": 442.379,
+      "inclusivePercent": 1.9543089676778442
+    },
+    {
+      "name": "feedSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 171,
+      "selfMs": 83.747,
+      "selfPercent": 0.36997125341871206,
+      "inclusiveMs": 441.335,
+      "inclusivePercent": 1.9496968623060802
+    },
+    {
+      "name": "#queryDistance",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 1564,
+      "selfMs": 20.001,
+      "selfPercent": 0.08835892676307999,
+      "inclusiveMs": 428.503,
+      "inclusivePercent": 1.893008609307538
+    },
+    {
+      "name": "considerTriangle",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "line": 57,
+      "selfMs": 424.622,
+      "selfPercent": 1.8758634168287862,
+      "inclusiveMs": 424.622,
+      "inclusivePercent": 1.8758634168287862
+    },
+    {
+      "name": "assembleSharedAxisWallFriction",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 168,
+      "selfMs": 11.54,
+      "selfPercent": 0.05098055171471142,
+      "inclusiveMs": 407.882,
+      "inclusivePercent": 1.8019106927642914
+    },
+    {
+      "name": "createSharedAxisLinear",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 54,
+      "selfMs": 371.881,
+      "selfPercent": 1.642868158771109,
+      "inclusiveMs": 390.923,
+      "inclusivePercent": 1.7269904868258346
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 112,
+      "selfMs": 272.378,
+      "selfPercent": 1.2032912231325534,
+      "inclusiveMs": 384.252,
+      "inclusivePercent": 1.697519840336334
+    },
+    {
+      "name": "kinematics",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 88,
+      "selfMs": 162.92,
+      "selfPercent": 0.7197358306205185,
+      "inclusiveMs": 381.177,
+      "inclusivePercent": 1.6839353345717982
+    },
+    {
+      "name": "refreshSharedAxisWallFriction",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 153,
+      "selfMs": 40.498,
+      "selfPercent": 0.17890904535029314,
+      "inclusiveMs": 336.958,
+      "inclusivePercent": 1.4885879328150546
+    },
+    {
+      "name": "#queryCenterline",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "line": 2052,
+      "selfMs": 286.999,
+      "selfPercent": 1.2678827869645115,
+      "inclusiveMs": 326.5,
+      "inclusivePercent": 1.442387360039279
+    },
+    {
+      "name": "assembleSharedAxisInertia",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisDynamics.js",
+      "line": 62,
+      "selfMs": 202.583,
+      "selfPercent": 0.8949560752184906,
+      "inclusiveMs": 277.706,
+      "inclusivePercent": 1.2268288643401775
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 18,
+      "selfMs": 22.376,
+      "selfPercent": 0.09885102471129832,
+      "inclusiveMs": 221.13,
+      "inclusivePercent": 0.9768916291745353
+    },
+    {
+      "name": "nextRow",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "line": 17,
+      "selfMs": 220.203,
+      "selfPercent": 0.9727963976806411,
+      "inclusiveMs": 220.203,
+      "inclusivePercent": 0.9727963976806411
+    },
+    {
+      "name": "applySharedAxisNativeIncrement",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 270,
+      "selfMs": 72.83,
+      "selfPercent": 0.3217429446605228,
+      "inclusiveMs": 215.831,
+      "inclusivePercent": 0.9534821020050157
+    },
+    {
+      "name": "evaluateBendTwistLocalConstraintNormalized",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/discreteKirchhoffRod.js",
+      "line": 691,
+      "selfMs": 205.204,
+      "selfPercent": 0.9065349336278719,
+      "inclusiveMs": 205.204,
+      "inclusivePercent": 0.9065349336278719
+    },
+    {
+      "name": "visit",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 65,
+      "selfMs": 199.126,
+      "selfPercent": 0.8796839983313367,
+      "inclusiveMs": 202.876,
+      "inclusivePercent": 0.8962504687758921
+    },
+    {
+      "name": "evaluateSharedAxisBendLimit",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisBendLimit.js",
+      "line": 2,
+      "selfMs": 198.713,
+      "selfPercent": 0.8778594777197097,
+      "inclusiveMs": 198.754,
+      "inclusivePercent": 0.8780406044632368
+    },
+    {
+      "name": "createSharedAxisNative",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 48,
+      "selfMs": 30.21,
+      "selfPercent": 0.13345948590133724,
+      "inclusiveMs": 193.166,
+      "inclusivePercent": 0.8533543546381237
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "line": 159,
+      "selfMs": 85.29,
+      "selfPercent": 0.3767878037909651,
+      "inclusiveMs": 193.084,
+      "inclusivePercent": 0.8529921011510693
+    },
+    {
+      "name": "matrix",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "line": 5,
+      "selfMs": 192.166,
+      "selfPercent": 0.8489366291862421,
+      "inclusiveMs": 192.166,
+      "inclusivePercent": 0.8489366291862421
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "line": 214,
+      "selfMs": 167.834,
+      "selfPercent": 0.7414445334910638,
+      "inclusiveMs": 167.834,
+      "inclusivePercent": 0.7414445334910638
+    },
+    {
+      "name": "(anonymous)",
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "line": 83,
+      "selfMs": 16.416,
+      "selfPercent": 0.07252138101808515,
+      "inclusiveMs": 139.122,
+      "inclusivePercent": 0.6146028003166449
+    }
+  ],
+  "files": [
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisLinear.js",
+      "selfMs": 4993.061,
+      "percent": 22.05797266249642
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisActiveBasis.js",
+      "selfMs": 4202.594,
+      "percent": 18.565906477724084
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisNative.js",
+      "selfMs": 1930.384,
+      "percent": 8.527906528704635
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisMaterialTangent.js",
+      "selfMs": 1570.329,
+      "percent": 6.937282391127475
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/node_modules/three/build/three.module.js",
+      "selfMs": 1343.168,
+      "percent": 5.933747459752644
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisConstraintRows.js",
+      "selfMs": 1283.171,
+      "percent": 5.668697185816115
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisVesselWitnesses.js",
+      "selfMs": 1223.165,
+      "percent": 5.40360715235052
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/scalarMeshBvhClosestPoint.js",
+      "selfMs": 851.492,
+      "percent": 3.761657880473402
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisWallFriction.js",
+      "selfMs": 745.301,
+      "percent": 3.292535197012663
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffCoulombBandLU.js",
+      "selfMs": 731.579,
+      "percent": 3.2319151683619465
+    },
+    {
+      "url": "(garbage collector)",
+      "selfMs": 665.42,
+      "percent": 2.9396428701909247
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffWallWitnessGeometry.js",
+      "selfMs": 590.583,
+      "percent": 2.6090335505484763
+    },
+    {
+      "url": "wasm://wasm/3b727612",
+      "selfMs": 572.377,
+      "percent": 2.528604440971523
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/collision/vesselContactField.js",
+      "selfMs": 530.214,
+      "percent": 2.3423398827438473
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisDynamics.js",
+      "selfMs": 306.625,
+      "percent": 1.3545850666831358
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/discreteKirchhoffRod.js",
+      "selfMs": 215.245,
+      "percent": 0.9508933148902131
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisBendLimit.js",
+      "selfMs": 198.754,
+      "percent": 0.8780406044632368
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisDiscoveryCache.js",
+      "selfMs": 194.914,
+      "percent": 0.8610765387280123
+    },
+    {
+      "url": "(program)",
+      "selfMs": 131.875,
+      "percent": 0.5825875439668603
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffMaterialProfile.js",
+      "selfMs": 85.791,
+      "percent": 0.3790010842423577
+    },
+    {
+      "url": "node:inspector",
+      "selfMs": 83.667,
+      "percent": 0.36961783538256154
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisDiagnostics.js",
+      "selfMs": 72.124,
+      "percent": 0.31862403049149446
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisContacts.js",
+      "selfMs": 41.915,
+      "percent": 0.18516896231560911
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisTimeStep.js",
+      "selfMs": 22.959,
+      "percent": 0.10142655864974519
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/endovascularPhysicsWorld.js",
+      "selfMs": 14.874,
+      "percent": 0.06570924837128403
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/scripts/physics/profile-shared-axis-dynamic.mjs",
+      "selfMs": 11.25,
+      "percent": 0.049699411333665816
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisAppSystem.js",
+      "selfMs": 6.334,
+      "percent": 0.027981873012216822
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/kirchhoffSharedAxisGaussNewton.js",
+      "selfMs": 4.459,
+      "percent": 0.019698637789939185
+    },
+    {
+      "url": "node:internal/util",
+      "selfMs": 2.542,
+      "percent": 0.011229858098682533
+    },
+    {
+      "url": "consoleCall",
+      "selfMs": 2.5,
+      "percent": 0.011044313629703513
+    },
+    {
+      "url": "node:internal/perf/performance",
+      "selfMs": 2.5,
+      "percent": 0.011044313629703513
+    },
+    {
+      "url": "file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/src/physics/applyKirchhoffMaterialProfile.js",
+      "selfMs": 2.5,
+      "percent": 0.011044313629703513
+    },
+    {
+      "url": "now",
+      "selfMs": 1.292,
+      "percent": 0.005707701283830776
+    },
+    {
+      "url": "dispatch",
+      "selfMs": 1.125,
+      "percent": 0.004969941133366581
+    }
+  ]
+}
