@@ -8,7 +8,7 @@ import { createCoupledRuntimeFixture } from './helpers/coupledRuntimeFixture.js'
 const kernel = { solve: solveKirchhoffCoupledSystem, apply: applyKirchhoffCoupledCorrection };
 
 test('application restores position-history and a shared contact block for old experimental bookmarks', () => {
-    for (const search of ['', '?coupledSolver=composite-joint', '?coupledSolver=joint-two-channel',
+    for (const search of ['?coupledSolver=composite-joint', '?coupledSolver=joint-two-channel',
         '?coupledSolver=joint-two-channel&coupledLinearSolver=axial-band']) {
         const selected = createCoupledSolverSelection(resolveAppCoupledSolver(search), kernel);
         assert.equal(selected.id, 'joint-active-coulomb');
@@ -22,6 +22,16 @@ test('application restores position-history and a shared contact block for old e
     assert.equal(resolveAppCoupledSolver('?coupledSolver=joint-full-band'), 'joint-full-band');
 });
 
+test('application defaults to the shared-axis provider while explicit legacy selections remain available', () => {
+    const system = { id: 'shared-axis', step() {}, reset() {} };
+    for (const search of ['', '?', '?benchmarkWallLimitMs=60000', '?coupledSolver=', '?coupledSolver=shared-axis']) {
+        const selected = createCoupledSolverSelection(resolveAppCoupledSolver(search), { ...kernel, wholeStepSystem: system });
+        assert.equal(selected.id, 'shared-axis'); assert.equal(selected.wholeStepSystem, system); assert.equal(selected.coupledSystem, null);
+    }
+    for (const id of ['reference', 'joint', 'joint-active-coulomb', 'joint-full-band', 'joint-wall-witnesses', 'joint-axial-sections'])
+        assert.equal(resolveAppCoupledSolver('?coupledSolver=' + id), id);
+});
+
 test('composite selection requires and reports the installed complete-step provider without selecting an older coupled kernel',()=>{
     assert.throws(()=>createCoupledSolverSelection('composite-joint',kernel),/whole-step/);
     const system={id:'composite-joint',step(){},reset(){},diagnostics:{accepted:2}},selection=createCoupledSolverSelection('composite-joint',{...kernel,wholeStepSystem:system});
@@ -31,7 +41,24 @@ test('composite selection requires and reports the installed complete-step provi
     assert.deepEqual(selection.getReport({wholeStepSystem:system}).wholeStep,{accepted:2});
 });
 
-test('reference remains the default and an unknown or incomplete opt-in fails visibly', () => {
+test('whole-step reports snapshot counters and nested diagnostics independently of later provider mutation',()=>{
+    for(const id of ['shared-axis','composite-joint']) {
+        const system={id,step(){},reset(){},diagnostics:{acceptedSteps:2,pendingSlices:3,
+            last:{cpuMs:4,quality:{finite:true,bodies:[{id:'wire',maxSpeed:5}]}}}};
+        const selection=createCoupledSolverSelection(id,{wholeStepSystem:system});
+        const report=selection.getReport({wholeStepSystem:system}),snapshot=structuredClone(report);
+        system.diagnostics.acceptedSteps=1151;system.diagnostics.pendingSlices++;
+        system.diagnostics.last.quality.bodies[0].maxSpeed=20;
+        system.diagnostics.last={cpuMs:17,quality:{finite:false,bodies:[]}};
+        assert.deepEqual(report,snapshot,'Cached benchmark counters and nested quality must describe the same earlier instant');
+        const current=selection.getReport({wholeStepSystem:system});
+        assert.equal(current.wholeStep.acceptedSteps,1151);assert.equal(current.wholeStep.last.cpuMs,17);
+        current.wholeStep.last.quality.finite=true;
+        assert.equal(system.diagnostics.last.quality.finite,false,'Consumers cannot mutate the provider through a report');
+    }
+});
+
+test('kernel factory retains its reference default and an unknown or incomplete opt-in fails visibly', () => {
     const selected = createCoupledSolverSelection();
     assert.equal(selected.coupledSystem, null);
     assert.equal(selected.getReport({ coupledSystem: null }).installed, true);
@@ -172,5 +199,5 @@ test('finite wall witness runtime is explicit and retains the common position-hi
     assert.equal(selected.coupledSystem.wallWitnesses,true);
     assert.equal(selected.coupledSystem.independentComponents,true);
     assert.equal(selected.jointMotionMode,'position-history');
-    assert.equal(createCoupledSolverSelection(resolveAppCoupledSolver(''),kernel).coupledSystem.wallWitnesses,undefined);
+    assert.equal(createCoupledSolverSelection(resolveAppCoupledSolver('?coupledSolver=joint-active-coulomb'),kernel).coupledSystem.wallWitnesses,undefined);
 });

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wspólna oś — laboratorium</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;color:#e5edf5;background:#111923}body{max-width:1100px;margin:36px auto;padding:0 22px}h1{font-size:28px;margin-bottom:10px}p{color:#b0becc;line-height:1.55;max-width:900px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:25px 0}fieldset{border:1px solid #33465a;border-radius:12px;padding:18px}legend{font-weight:600}label{display:block;margin:10px 0}input{display:block;width:100%;margin:12px 0;accent-color:#62b8ff}output{float:right;font-variant-numeric:tabular-nums}svg{width:100%;height:auto;background:#172333;border:1px solid #33465a;border-radius:12px}.plots{display:grid;grid-template-columns:1fr 1fr;gap:14px}button{padding:10px 18px;border:1px solid #668198;border-radius:8px;background:#203248;color:inherit;cursor:pointer}#status{white-space:pre-wrap;line-height:1.6;margin:22px 0;font-variant-numeric:tabular-nums}.legend{color:#61cbd6}.wire{color:#ffce67}a{color:#81bfff}@media(max-width:650px){.controls,.plots{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Wspólna oś cewnika i prowadnika</h1>
+<p>Prototyp quasi-statyczny oparty na obecnych równaniach materiałowych. Na odcinku nasunięcia oba narzędzia mają jedną geometrię i niezależny obrót. Zmień wartość i puść suwak, aby obliczyć nową równowagę. Tryb koszulki pozwala rozpocząć od zera i wysuwać każde narzędzie przez jej wylot. Ten widok nie symuluje czasu rzeczywistego ani anatomii.</p>
+<label><input id="sheath-mode" type="checkbox" style="display:inline;width:auto" checked> Koszulka 70 mm i podparcie proksymalne</label>
+<div class="controls">
+<fieldset><legend class="wire">Prowadnik</legend>
+<label>Wprowadzenie <output id="wire-feed-value"></output><input aria-label="Wprowadzenie prowadnika" id="wire-feed" type="range" min="0" max="320" step="1" value="0"></label>
+<label>Obrót proksymalny <output id="wire-spin-value"></output><input aria-label="Obrót prowadnika" id="wire-spin" type="range" min="-30" max="30" step="1" value="0"></label>
+</fieldset>
+<fieldset><legend class="legend">Cewnik Berenstein</legend>
+<label>Wprowadzenie <output id="catheter-feed-value"></output><input aria-label="Wprowadzenie cewnika" id="catheter-feed" type="range" min="0" max="300" step="1" value="0"></label>
+<label>Obrót proksymalny <output id="catheter-spin-value"></output><input aria-label="Obrót cewnika" id="catheter-spin" type="range" min="-30" max="30" step="1" value="0"></label>
+</fieldset></div>
+<div class="plots"><section><p>Rzut XY</p><svg id="xy" viewBox="0 0 500 260" role="img" aria-label="Rzut wspólnej osi XY"></svg></section><section><p>Rzut XZ</p><svg id="xz" viewBox="0 0 500 260" role="img" aria-label="Rzut wspólnej osi XZ"></svg></section></div>
+<p><span class="legend">Gruba turkusowa linia: cewnik.</span> <span class="wire">Cienka żółta linia: prowadnik.</span> Wspólne węzły wyznaczają obie geometrie na odcinku nasunięcia.</p>
+<button id="reset">Ustaw stan początkowy</button>
+<div id="status" role="status" aria-live="polite"></div>
+<p>Koszulka ogranicza ruch poprzeczny; oba narzędzia przesuwają się niezależnie. Integracja dynamiczna i pełna anatomia nadal wymagają weryfikacji. Nie ma tu historii tarcia o ścianę. Czas pojedynczej relaksacji nie jest pomiarem FPS aplikacji.</p>
+<script type="module" src="/src/benchmark/sharedAxisLab.js"></script>
+</body></html>

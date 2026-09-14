@@ -1,0 +1,31 @@
+{
+  "source": "Actual in-app browser, Debug wire60-catheter benchmark report",
+  "trajectory": "wire 0 to 600 mm, then Berenstein catheter 0 to 600 mm",
+  "parameters": {"wireShaft":5.7,"wireTip":2.95,"catheterShaft":40.65,"catheterTip":59.5,"dt":0.016666666666666666},
+  "render": {"meanFps":59.551898429832285,"onePercentLowFps":54.5565071105957,"focusLossCount":0},
+  "timing": {"physicalSeconds":25.2,"wallSeconds":111.46580000001455,"backlogSeconds":86.265800000007,"executedSteps":1512,"droppedSteps":0},
+  "wire": {"steps":819,"cpuMeanMs":28.83858363677876,"cpuP95Ms":57.299999833106995,"cpuMaxMs":639.8000003099442,"assemblyMs":13.375457865123492,"linearMs":10.478632480088026,"frictionRefreshMs":1.0056166072468182,"physicsHz":24.02957486136784,"renderFps":59.85388610157557,"wallSeconds":34.083},
+  "catheter": {"steps":693,"cpuMeanMs":76.97186148149454,"cpuP95Ms":144.20000004768372,"cpuMaxMs":522.799999833107,"assemblyMs":40.6225108348618,"linearMs":24.189033198666262,"frictionRefreshMs":2.8766233754192423,"physicsHz":8.955478478421561,"renderFps":59.418888952066865,"wallSeconds":77.3828,"fallbackSteps":30},
+  "bins": [
+    {"fromMm":0,"toMm":100,"cpuMeanMs":95.91652174721594,"physicsHz":7.590759075907591,"renderFps":59.6039603960396},
+    {"fromMm":100,"toMm":200,"cpuMeanMs":94.73652174058168,"physicsHz":7.286274559497188,"renderFps":58.92378556810769},
+    {"fromMm":200,"toMm":300,"cpuMeanMs":61.38879310981981,"physicsHz":11.26224526451712,"renderFps":59.612229244944075},
+    {"fromMm":300,"toMm":400,"cpuMeanMs":74.35217393895854,"physicsHz":8.950043193686723,"renderFps":59.38159092854757},
+    {"fromMm":400,"toMm":500,"cpuMeanMs":59.2034782834675,"physicsHz":11.57628773618143,"renderFps":59.59271599842962},
+    {"fromMm":500,"toMm":550,"cpuMeanMs":79.99655171098381,"physicsHz":8.305647840531547,"renderFps":59.42834230725159},
+    {"fromMm":550,"toMm":600,"cpuMeanMs":72.82372881396343,"physicsHz":9.242723313594643,"renderFps":59.68606071999253}
+  ],
+  "slowCatheterSteps": [
+    {"catheterMm":1.7333333333333334,"cpuMs":522.799999833107,"assemblyMs":175.40000009536743,"linearMs":316.2999997138977,"factorizations":330,"fallbacks":1,"geometryRestarts":8},
+    {"catheterMm":125.66666666666622,"cpuMs":479.2000004053116,"assemblyMs":310.6000006198883,"linearMs":125.80000066757202,"factorizations":79,"fallbacks":1,"geometryRestarts":3},
+    {"catheterMm":529.5333333333364,"cpuMs":461.399999499321,"assemblyMs":273.0999993085861,"linearMs":137.5999995470047,"factorizations":118,"fallbacks":1,"geometryRestarts":0},
+    {"catheterMm":325.00000000000125,"cpuMs":382.7000002861023,"assemblyMs":254.0000001192093,"linearMs":92.50000011920928,"factorizations":73,"fallbacks":1,"geometryRestarts":2}
+  ],
+  "slowFrames": [
+    {"catheterMm":125.66666666666622,"frameMs":83.3,"previousSimulationCpuMs":95.3,"previousUpdateMs":0.7,"previousRenderMs":2.2},
+    {"catheterMm":99.66666666666642,"frameMs":67.7,"previousSimulationCpuMs":70.3,"previousUpdateMs":0.1,"previousRenderMs":0.1},
+    {"catheterMm":443.7333333333356,"frameMs":66.2,"previousSimulationCpuMs":4.6,"previousUpdateMs":0.4,"previousRenderMs":2.1},
+    {"catheterMm":116.13333333333296,"frameMs":51,"previousSimulationCpuMs":58.1,"previousUpdateMs":0.2,"previousRenderMs":0.4}
+  ],
+  "notes": "Browser values summarized from the completed DOM report. Physics Hz uses committed steps divided by frame wall time within each depth bin; boundary frames make it approximate. Native CPU sampling is a separate run. No browser and native profile runs overlapped. No dropped physical steps; complete route accepted."
+}

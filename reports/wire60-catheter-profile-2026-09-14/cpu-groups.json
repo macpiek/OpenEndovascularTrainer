@@ -1,0 +1,35 @@
+{
+  "totalMs": 54006.417,
+  "groups": [
+    {
+      "group": "active-set solve",
+      "ms": 19120.388999999963,
+      "percent": 35.40392061187833
+    },
+    {
+      "group": "constraint geometry/rows",
+      "ms": 16270.736999999677,
+      "percent": 30.127414303377464
+    },
+    {
+      "group": "other",
+      "ms": 10555.370000000003,
+      "percent": 19.54465892451262
+    },
+    {
+      "group": "material tangent",
+      "ms": 5946.916000000047,
+      "percent": 11.011498874291265
+    },
+    {
+      "group": "friction assembly",
+      "ms": 1158.05,
+      "percent": 2.1442822248326525
+    },
+    {
+      "group": "inertia",
+      "ms": 954.9550000000007,
+      "percent": 1.7682250611070915
+    }
+  ]
+}

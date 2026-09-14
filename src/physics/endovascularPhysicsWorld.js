@@ -3234,6 +3234,18 @@ export class EndovascularPhysicsWorld {
         }
     }
 
+    abandonFailedWholeStep() {
+        const pending=this._pendingWholeSubstep;
+        this.#assertWholeConfiguration();
+        if(!pending||pending.running||pending.preparationFailed||this.lastStepResult?.terminal!==true||
+            this.lastStepResult.accepted!==false||this.lastStepResult.pending===true)
+            throw new Error('Only a terminally rejected whole timestep can be abandoned');
+        // Release only the rejected transaction. Accepted geometry, material
+        // history, solver state and physical clocks remain untouched.
+        if(pending.consumesAccumulator)this.accumulator=Math.max(0,this.accumulator-pending.dt);
+        this._pendingWholeSubstep=null;
+    }
+
     resetSimulationState() {
         if (this._pendingWholeSubstep?.running) throw new Error('Cannot reset a running whole timestep');
         // Reset the saved pending owner too if configuration was changed
@@ -3329,7 +3341,11 @@ export class EndovascularPhysicsWorld {
     }
 
     getStats() {
-        const bodies = this.bodies.map(body => this.#bodyStats(body));
+        const bodies = this.bodies.map(body => {
+            const native=this.#bodyStats(body);
+            return this.wholeStepSystem?.id === 'shared-axis' && body.sharedAxisDiagnostics
+                ? {...native,...body.sharedAxisDiagnostics,id:body.id,constitutiveSolver:'shared-axis'} : native;
+        });
         return {
             mode: this.wholeStepSystem ? 'whole-step' : 'kirchhoff-direct',
             coupledSolver: this.lastCoupledSolver ?? 'independent',

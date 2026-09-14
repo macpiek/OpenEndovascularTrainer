@@ -1,0 +1,3407 @@
+[
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 1.8189894035458565e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 1.8189894035458565e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 1.8189894035458565e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 3.126388037344441e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 3.126388037344441e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 3.126388037344441e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.1827872842550278e-11,
+    "factorizations": 7
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.27898793606,
+    "candidatePotential": 161039.84550710476,
+    "predictedSlope": -4490.475365160532,
+    "accept": true,
+    "candidate": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": false,
+    "linearResidual": 5.093170329928398e-11,
+    "factorizations": 4
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 524.7012712568086,
+      "torque": 20.793047544746823,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": true,
+    "linearResidual": 3.346940502524376e-10,
+    "factorizations": 3
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.1827872842550278e-11,
+    "factorizations": 7
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.27898793606,
+    "candidatePotential": 161039.84550710476,
+    "predictedSlope": -4490.475365160532,
+    "accept": true,
+    "candidate": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": false,
+    "linearResidual": 5.093170329928398e-11,
+    "factorizations": 4
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 524.7012712568086,
+      "torque": 20.793047544746823,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": true,
+    "linearResidual": 3.346940502524376e-10,
+    "factorizations": 3
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.1827872842550278e-11,
+    "factorizations": 7
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.27898793606,
+    "candidatePotential": 161039.84550710476,
+    "predictedSlope": -4490.475365160532,
+    "accept": true,
+    "candidate": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": false,
+    "linearResidual": 5.093170329928398e-11,
+    "factorizations": 4
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 524.7012712568086,
+      "torque": 20.793047544746823,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": true,
+    "linearResidual": 3.346940502524376e-10,
+    "factorizations": 3
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.1827872842550278e-11,
+    "factorizations": 7
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.27898793606,
+    "candidatePotential": 161039.84550710476,
+    "predictedSlope": -4490.475365160532,
+    "accept": true,
+    "candidate": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": false,
+    "linearResidual": 5.093170329928398e-11,
+    "factorizations": 4
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 524.7012712568086,
+      "torque": 20.793047544746823,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": true,
+    "linearResidual": 3.346940502524376e-10,
+    "factorizations": 3
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.1827872842550278e-11,
+    "factorizations": 7
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.27898793606,
+    "candidatePotential": 161039.84550710476,
+    "predictedSlope": -4490.475365160532,
+    "accept": true,
+    "candidate": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": false,
+    "linearResidual": 5.093170329928398e-11,
+    "factorizations": 4
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 524.7012712568086,
+      "torque": 20.793047544746823,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": true,
+    "linearResidual": 3.7834979593753815e-10,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.1827872842550278e-11,
+    "factorizations": 9
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.27898793606,
+    "candidatePotential": 161039.84550710476,
+    "predictedSlope": -4490.475365160532,
+    "accept": true,
+    "candidate": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 524.7012712568088,
+      "torque": 20.793047544773078,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": false,
+    "linearResidual": 5.093170329928398e-11,
+    "factorizations": 4
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 524.7012712568086,
+      "torque": 20.793047544746823,
+      "constraint": 0.008878280162207375,
+      "energy": 160895.37589322345
+    },
+    "linearConverged": true,
+    "linearResidual": 4.3655745685100555e-10,
+    "factorizations": 7
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 283749.59858427977,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 13995.53141925114,
+      "torque": 572.6492348913225,
+      "constraint": 0.46348558376939764,
+      "energy": 160512.26245790638
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 181738.2362844264,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 8348.333123328124,
+      "torque": 273.457773883702,
+      "constraint": 0.15074374184223416,
+      "energy": 160588.0272383792
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 164988.2150870374,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 4206.021739835821,
+      "torque": 123.97719595030259,
+      "constraint": 0.042975869295332814,
+      "energy": 160712.87145136742
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161734.0518336215,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 1900.9927597161764,
+      "torque": 49.241873082977676,
+      "constraint": 0.01227516945800744,
+      "energy": 160797.03066295027
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161198.71137726156,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 725.7418371937054,
+      "torque": 14.50668454198761,
+      "constraint": 0.009323136537204846,
+      "energy": 160844.54351975454
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161079.32925460525,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 493.7555302105209,
+      "torque": 14.73171601044267,
+      "constraint": 0.00906664901140175,
+      "energy": 160869.65809476585
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161057.30467638184,
+    "predictedSlope": -1011.9420712577557,
+    "accept": true,
+    "candidate": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 0,
+    "base": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    },
+    "linearConverged": false,
+    "linearResidual": 3.092281986027956e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 1,
+    "base": {
+      "force": 493.4682922693895,
+      "torque": 20.6861822155793,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.5548957806
+    },
+    "linearConverged": true,
+    "linearResidual": 4.0745362639427185e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 203133.11476649126,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 9731.156735762355,
+      "torque": 386.3123826255362,
+      "constraint": 0.23211914660259936,
+      "energy": 160724.59420069391
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 167963.6474863875,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 5147.979380630988,
+      "torque": 184.96706112477767,
+      "constraint": 0.06858793758419779,
+      "energy": 160756.2613526053
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 162395.56857052015,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 2527.4318427023027,
+      "torque": 84.38567535639092,
+      "constraint": 0.019204203019398847,
+      "energy": 160807.58332097382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161324.18864234607,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 1184.261615928209,
+      "torque": 34.110840475410924,
+      "constraint": 0.009363973666040692,
+      "energy": 160842.11347293382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161111.04427205535,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 512.86800664939,
+      "torque": 12.038245491100753,
+      "constraint": 0.009142199221059855,
+      "energy": 160861.59535419595
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161065.76271628664,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 487.64938535221887,
+      "torque": 12.357843412068704,
+      "constraint": 0.009040372729032242,
+      "energy": 160871.89042778718
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161058.54065269584,
+    "predictedSlope": -526.2320768203707,
+    "accept": true,
+    "candidate": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 0,
+    "base": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    },
+    "linearConverged": false,
+    "linearResidual": 3.001332515850663e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 1,
+    "base": {
+      "force": 490.6213715399325,
+      "torque": 16.520317866678827,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.17648880772
+    },
+    "linearConverged": true,
+    "linearResidual": 1.3096723705530167e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 173300.2693297727,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 5277.638659326982,
+      "torque": 260.7738578701819,
+      "constraint": 0.10890418094277265,
+      "energy": 160807.4985347173
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 163348.2970538043,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 2808.2737146535064,
+      "torque": 125.39571662009804,
+      "constraint": 0.030421954906159954,
+      "energy": 160822.28545506363
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161491.71368982774,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 1407.5348081388836,
+      "torque": 57.75002374831888,
+      "constraint": 0.009293327334034984,
+      "energy": 160844.71936958784
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161147.82733603372,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 689.0598866331669,
+      "torque": 23.935943049926426,
+      "constraint": 0.009119441901020764,
+      "energy": 160859.69523345178
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161071.72356289648,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 472.4009528439148,
+      "torque": 10.329139150305913,
+      "constraint": 0.009049810173564765,
+      "energy": 160868.1227145711
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161057.86782428954,
+    "predictedSlope": -332.87592487402605,
+    "accept": true,
+    "candidate": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 0,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    },
+    "linearConverged": false,
+    "linearResidual": 1.6484591469634324e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 1,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560875916,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858263
+    },
+    "linearConverged": true,
+    "linearResidual": 6.548361852765083e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161718.83161510568,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 1892.077230353003,
+      "torque": 118.00475074033722,
+      "constraint": 0.015537676160420233,
+      "energy": 160855.6847193762
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161165.71395914597,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 862.8053989928112,
+      "torque": 58.2911080156346,
+      "constraint": 0.009298012218096119,
+      "energy": 160858.7849573277
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161057.36356500807,
+    "predictedSlope": -224.1802052942813,
+    "accept": true,
+    "candidate": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 0,
+    "base": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    },
+    "linearConverged": false,
+    "linearResidual": 1.1823431123048067e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 1,
+    "base": {
+      "force": 390.7463130453705,
+      "torque": 28.435000505169793,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.3424130228
+    },
+    "linearConverged": true,
+    "linearResidual": 3.637978807091713e-10,
+    "factorizations": 13
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 283749.59858427977,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 13995.53141925114,
+      "torque": 572.6492348913225,
+      "constraint": 0.46348558376939764,
+      "energy": 160512.26245790638
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 181738.2362844264,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 8348.333123328124,
+      "torque": 273.457773883702,
+      "constraint": 0.15074374184223416,
+      "energy": 160588.0272383792
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 164988.2150870374,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 4206.021739835821,
+      "torque": 123.97719595030259,
+      "constraint": 0.042975869295332814,
+      "energy": 160712.87145136742
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161734.0518336215,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 1900.9927597161764,
+      "torque": 49.241873082977676,
+      "constraint": 0.01227516945800744,
+      "energy": 160797.03066295027
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161198.71137726156,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 725.7418371937054,
+      "torque": 14.50668454198761,
+      "constraint": 0.009323136537204846,
+      "energy": 160844.54351975454
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161079.32925460525,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 493.7555302105209,
+      "torque": 14.73171601044267,
+      "constraint": 0.00906664901140175,
+      "energy": 160869.65809476585
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161057.30467638184,
+    "predictedSlope": -1011.9420712577557,
+    "accept": true,
+    "candidate": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 0,
+    "base": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    },
+    "linearConverged": false,
+    "linearResidual": 3.092281986027956e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 1,
+    "base": {
+      "force": 493.4682922693895,
+      "torque": 20.6861822155793,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.5548957806
+    },
+    "linearConverged": true,
+    "linearResidual": 4.0745362639427185e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 203133.11476649126,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 9731.156735762355,
+      "torque": 386.3123826255362,
+      "constraint": 0.23211914660259936,
+      "energy": 160724.59420069391
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 167963.6474863875,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 5147.979380630988,
+      "torque": 184.96706112477767,
+      "constraint": 0.06858793758419779,
+      "energy": 160756.2613526053
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 162395.56857052015,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 2527.4318427023027,
+      "torque": 84.38567535639092,
+      "constraint": 0.019204203019398847,
+      "energy": 160807.58332097382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161324.18864234607,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 1184.261615928209,
+      "torque": 34.110840475410924,
+      "constraint": 0.009363973666040692,
+      "energy": 160842.11347293382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161111.04427205535,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 512.86800664939,
+      "torque": 12.038245491100753,
+      "constraint": 0.009142199221059855,
+      "energy": 160861.59535419595
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161065.76271628664,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 487.64938535221887,
+      "torque": 12.357843412068704,
+      "constraint": 0.009040372729032242,
+      "energy": 160871.89042778718
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161058.54065269584,
+    "predictedSlope": -526.2320768203707,
+    "accept": true,
+    "candidate": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 0,
+    "base": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    },
+    "linearConverged": false,
+    "linearResidual": 3.001332515850663e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 1,
+    "base": {
+      "force": 490.6213715399325,
+      "torque": 16.520317866678827,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.17648880772
+    },
+    "linearConverged": true,
+    "linearResidual": 1.3096723705530167e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 173300.2693297727,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 5277.638659326982,
+      "torque": 260.7738578701819,
+      "constraint": 0.10890418094277265,
+      "energy": 160807.4985347173
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 163348.2970538043,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 2808.2737146535064,
+      "torque": 125.39571662009804,
+      "constraint": 0.030421954906159954,
+      "energy": 160822.28545506363
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161491.71368982774,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 1407.5348081388836,
+      "torque": 57.75002374831888,
+      "constraint": 0.009293327334034984,
+      "energy": 160844.71936958784
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161147.82733603372,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 689.0598866331669,
+      "torque": 23.935943049926426,
+      "constraint": 0.009119441901020764,
+      "energy": 160859.69523345178
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161071.72356289648,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 472.4009528439148,
+      "torque": 10.329139150305913,
+      "constraint": 0.009049810173564765,
+      "energy": 160868.1227145711
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161057.86782428954,
+    "predictedSlope": -332.87592487402605,
+    "accept": true,
+    "candidate": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 0,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    },
+    "linearConverged": false,
+    "linearResidual": 1.6484591469634324e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 1,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560875916,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858263
+    },
+    "linearConverged": true,
+    "linearResidual": 6.548361852765083e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161718.83161510568,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 1892.077230353003,
+      "torque": 118.00475074033722,
+      "constraint": 0.015537676160420233,
+      "energy": 160855.6847193762
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161165.71395914597,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 862.8053989928112,
+      "torque": 58.2911080156346,
+      "constraint": 0.009298012218096119,
+      "energy": 160858.7849573277
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161057.36356500807,
+    "predictedSlope": -224.1802052942813,
+    "accept": true,
+    "candidate": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 0,
+    "base": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    },
+    "linearConverged": false,
+    "linearResidual": 1.1823431123048067e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 1,
+    "base": {
+      "force": 390.7463130453705,
+      "torque": 28.435000505169793,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.3424130228
+    },
+    "linearConverged": true,
+    "linearResidual": 3.637978807091713e-10,
+    "factorizations": 13
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293397,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028665235,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 283749.59858427977,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 13995.53141925114,
+      "torque": 572.6492348913225,
+      "constraint": 0.46348558376939764,
+      "energy": 160512.26245790638
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 181738.2362844264,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 8348.333123328124,
+      "torque": 273.457773883702,
+      "constraint": 0.15074374184223416,
+      "energy": 160588.0272383792
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 164988.2150870374,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 4206.021739835821,
+      "torque": 123.97719595030259,
+      "constraint": 0.042975869295332814,
+      "energy": 160712.87145136742
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161734.0518336215,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 1900.9927597161764,
+      "torque": 49.241873082977676,
+      "constraint": 0.01227516945800744,
+      "energy": 160797.03066295027
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161198.71137726156,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 725.7418371937054,
+      "torque": 14.50668454198761,
+      "constraint": 0.009323136537204846,
+      "energy": 160844.54351975454
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161079.32925460525,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 493.7555302105209,
+      "torque": 14.73171601044267,
+      "constraint": 0.00906664901140175,
+      "energy": 160869.65809476585
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161057.30467638184,
+    "predictedSlope": -1011.9420712577557,
+    "accept": true,
+    "candidate": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 0,
+    "base": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    },
+    "linearConverged": false,
+    "linearResidual": 3.092281986027956e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 1,
+    "base": {
+      "force": 493.4682922693895,
+      "torque": 20.6861822155793,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.5548957806
+    },
+    "linearConverged": true,
+    "linearResidual": 4.0745362639427185e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 203133.11476649126,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 9731.156735762355,
+      "torque": 386.3123826255362,
+      "constraint": 0.23211914660259936,
+      "energy": 160724.59420069391
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 167963.6474863875,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 5147.979380630988,
+      "torque": 184.96706112477767,
+      "constraint": 0.06858793758419779,
+      "energy": 160756.2613526053
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 162395.56857052015,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 2527.4318427023027,
+      "torque": 84.38567535639092,
+      "constraint": 0.019204203019398847,
+      "energy": 160807.58332097382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161324.18864234607,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 1184.261615928209,
+      "torque": 34.110840475410924,
+      "constraint": 0.009363973666040692,
+      "energy": 160842.11347293382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161111.04427205535,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 512.86800664939,
+      "torque": 12.038245491100753,
+      "constraint": 0.009142199221059855,
+      "energy": 160861.59535419595
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161065.76271628664,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 487.64938535221887,
+      "torque": 12.357843412068704,
+      "constraint": 0.009040372729032242,
+      "energy": 160871.89042778718
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161058.54065269584,
+    "predictedSlope": -526.2320768203707,
+    "accept": true,
+    "candidate": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 0,
+    "base": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    },
+    "linearConverged": false,
+    "linearResidual": 3.001332515850663e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 1,
+    "base": {
+      "force": 490.6213715399325,
+      "torque": 16.520317866678827,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.17648880772
+    },
+    "linearConverged": true,
+    "linearResidual": 1.3096723705530167e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 173300.2693297727,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 5277.638659326982,
+      "torque": 260.7738578701819,
+      "constraint": 0.10890418094277265,
+      "energy": 160807.4985347173
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 163348.2970538043,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 2808.2737146535064,
+      "torque": 125.39571662009804,
+      "constraint": 0.030421954906159954,
+      "energy": 160822.28545506363
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161491.71368982774,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 1407.5348081388836,
+      "torque": 57.75002374831888,
+      "constraint": 0.009293327334034984,
+      "energy": 160844.71936958784
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161147.82733603372,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 689.0598866331669,
+      "torque": 23.935943049926426,
+      "constraint": 0.009119441901020764,
+      "energy": 160859.69523345178
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161071.72356289648,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 472.4009528439148,
+      "torque": 10.329139150305913,
+      "constraint": 0.009049810173564765,
+      "energy": 160868.1227145711
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161057.86782428954,
+    "predictedSlope": -332.87592487402605,
+    "accept": true,
+    "candidate": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 0,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    },
+    "linearConverged": false,
+    "linearResidual": 1.6484591469634324e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 1,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560875916,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858263
+    },
+    "linearConverged": true,
+    "linearResidual": 6.548361852765083e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161718.83161510568,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 1892.077230353003,
+      "torque": 118.00475074033722,
+      "constraint": 0.015537676160420233,
+      "energy": 160855.6847193762
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161165.71395914597,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 862.8053989928112,
+      "torque": 58.2911080156346,
+      "constraint": 0.009298012218096119,
+      "energy": 160858.7849573277
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161057.36356500807,
+    "predictedSlope": -224.1802052942813,
+    "accept": true,
+    "candidate": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 0,
+    "base": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    },
+    "linearConverged": false,
+    "linearResidual": 1.1823431123048067e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 1,
+    "base": {
+      "force": 390.7463130453705,
+      "torque": 28.435000505169793,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.3424130228
+    },
+    "linearConverged": true,
+    "linearResidual": 3.637978807091713e-10,
+    "factorizations": 13
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 0,
+    "base": {
+      "force": 483.7359439648601,
+      "torque": 2.1173040647364e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.59510982037
+    },
+    "linearConverged": false,
+    "linearResidual": 6.759037773917953e-12,
+    "factorizations": 5
+  },
+  {
+    "kind": "direction",
+    "iteration": 0,
+    "method": 1,
+    "base": {
+      "force": 483.73594396501676,
+      "torque": 2.261408421489442e-9,
+      "constraint": 0.06634638339132176,
+      "energy": 160911.5951098203
+    },
+    "linearConverged": true,
+    "linearResidual": 2.7284841053187847e-11,
+    "factorizations": 12
+  },
+  {
+    "kind": "trial",
+    "iteration": 0,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 165357.70800293662,
+    "candidatePotential": 161064.18249354398,
+    "predictedSlope": -4488.511028667873,
+    "accept": true,
+    "candidate": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 0,
+    "base": {
+      "force": 572.9739022099163,
+      "torque": 26.646794204638645,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": false,
+    "linearResidual": 5.4569682106375694e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 1,
+    "method": 1,
+    "base": {
+      "force": 572.9739022099154,
+      "torque": 26.646794204646973,
+      "constraint": 0.008826664586194966,
+      "energy": 160895.6780298355
+    },
+    "linearConverged": true,
+    "linearResidual": 5.238689482212067e-10,
+    "factorizations": 16
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 283749.59858427977,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 13995.53141925114,
+      "torque": 572.6492348913225,
+      "constraint": 0.46348558376939764,
+      "energy": 160512.26245790638
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 181738.2362844264,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 8348.333123328124,
+      "torque": 273.457773883702,
+      "constraint": 0.15074374184223416,
+      "energy": 160588.0272383792
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 164988.2150870374,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 4206.021739835821,
+      "torque": 123.97719595030259,
+      "constraint": 0.042975869295332814,
+      "energy": 160712.87145136742
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161734.0518336215,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 1900.9927597161764,
+      "torque": 49.241873082977676,
+      "constraint": 0.01227516945800744,
+      "energy": 160797.03066295027
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161198.71137726156,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 725.7418371937054,
+      "torque": 14.50668454198761,
+      "constraint": 0.009323136537204846,
+      "energy": 160844.54351975454
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161079.32925460525,
+    "predictedSlope": -1011.9420712577557,
+    "accept": false,
+    "candidate": {
+      "force": 493.7555302105209,
+      "torque": 14.73171601044267,
+      "constraint": 0.00906664901140175,
+      "energy": 160869.65809476585
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 1,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161060.49701693945,
+    "candidatePotential": 161057.30467638184,
+    "predictedSlope": -1011.9420712577557,
+    "accept": true,
+    "candidate": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 0,
+    "base": {
+      "force": 493.46829226939184,
+      "torque": 20.68618221556332,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.55489578066
+    },
+    "linearConverged": false,
+    "linearResidual": 3.092281986027956e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 2,
+    "method": 1,
+    "base": {
+      "force": 493.4682922693895,
+      "torque": 20.6861822155793,
+      "constraint": 0.008944592231273418,
+      "energy": 160882.5548957806
+    },
+    "linearConverged": true,
+    "linearResidual": 4.0745362639427185e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 203133.11476649126,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 9731.156735762355,
+      "torque": 386.3123826255362,
+      "constraint": 0.23211914660259936,
+      "energy": 160724.59420069391
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 167963.6474863875,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 5147.979380630988,
+      "torque": 184.96706112477767,
+      "constraint": 0.06858793758419779,
+      "energy": 160756.2613526053
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 162395.56857052015,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 2527.4318427023027,
+      "torque": 84.38567535639092,
+      "constraint": 0.019204203019398847,
+      "energy": 160807.58332097382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161324.18864234607,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 1184.261615928209,
+      "torque": 34.110840475410924,
+      "constraint": 0.009363973666040692,
+      "energy": 160842.11347293382
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161111.04427205535,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 512.86800664939,
+      "torque": 12.038245491100753,
+      "constraint": 0.009142199221059855,
+      "energy": 160861.59535419595
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161065.76271628664,
+    "predictedSlope": -526.2320768203707,
+    "accept": false,
+    "candidate": {
+      "force": 487.64938535221887,
+      "torque": 12.357843412068704,
+      "constraint": 0.009040372729032242,
+      "energy": 160871.89042778718
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 2,
+    "method": 1,
+    "trial": 6,
+    "scale": 0.015625,
+    "basePotential": 161061.6139130623,
+    "candidatePotential": 161058.54065269584,
+    "predictedSlope": -526.2320768203707,
+    "accept": true,
+    "candidate": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 0,
+    "base": {
+      "force": 490.62137153993245,
+      "torque": 16.520317866678774,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.1764888077
+    },
+    "linearConverged": false,
+    "linearResidual": 3.001332515850663e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 3,
+    "method": 1,
+    "base": {
+      "force": 490.6213715399325,
+      "torque": 16.520317866678827,
+      "constraint": 0.008991726485874096,
+      "energy": 160877.17648880772
+    },
+    "linearConverged": true,
+    "linearResidual": 1.3096723705530167e-10,
+    "factorizations": 5
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 173300.2693297727,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 5277.638659326982,
+      "torque": 260.7738578701819,
+      "constraint": 0.10890418094277265,
+      "energy": 160807.4985347173
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 163348.2970538043,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 2808.2737146535064,
+      "torque": 125.39571662009804,
+      "constraint": 0.030421954906159954,
+      "energy": 160822.28545506363
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161491.71368982774,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 1407.5348081388836,
+      "torque": 57.75002374831888,
+      "constraint": 0.009293327334034984,
+      "energy": 160844.71936958784
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161147.82733603372,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 689.0598866331669,
+      "torque": 23.935943049926426,
+      "constraint": 0.009119441901020764,
+      "energy": 160859.69523345178
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161071.72356289648,
+    "predictedSlope": -332.87592487402605,
+    "accept": false,
+    "candidate": {
+      "force": 472.4009528439148,
+      "torque": 10.329139150305913,
+      "constraint": 0.009049810173564765,
+      "energy": 160868.1227145711
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 3,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161060.18198379598,
+    "candidatePotential": 161057.86782428954,
+    "predictedSlope": -332.87592487402605,
+    "accept": true,
+    "candidate": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 0,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560876032,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858272
+    },
+    "linearConverged": false,
+    "linearResidual": 1.6484591469634324e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 4,
+    "method": 1,
+    "base": {
+      "force": 481.68814147789254,
+      "torque": 10.561076560875916,
+      "constraint": 0.009019324525979755,
+      "energy": 160872.57131858263
+    },
+    "linearConverged": true,
+    "linearResidual": 6.548361852765083e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161718.83161510568,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 1892.077230353003,
+      "torque": 118.00475074033722,
+      "constraint": 0.015537676160420233,
+      "energy": 160855.6847193762
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161165.71395914597,
+    "predictedSlope": -224.1802052942813,
+    "accept": false,
+    "candidate": {
+      "force": 862.8053989928112,
+      "torque": 58.2911080156346,
+      "constraint": 0.009298012218096119,
+      "energy": 160858.7849573277
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 4,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161058.49319776287,
+    "candidatePotential": 161057.36356500807,
+    "predictedSlope": -224.1802052942813,
+    "accept": true,
+    "candidate": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 0,
+    "base": {
+      "force": 390.74631304537064,
+      "torque": 28.435000505169633,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.34241302285
+    },
+    "linearConverged": false,
+    "linearResidual": 1.1823431123048067e-11,
+    "factorizations": 6
+  },
+  {
+    "kind": "direction",
+    "iteration": 5,
+    "method": 1,
+    "base": {
+      "force": 390.7463130453705,
+      "torque": 28.435000505169793,
+      "constraint": 0.009097901074710535,
+      "energy": 160864.3424130228
+    },
+    "linearConverged": true,
+    "linearResidual": 2.6193447411060333e-10,
+    "factorizations": 15
+  },
+  {
+    "kind": "trial",
+    "iteration": 5,
+    "method": 1,
+    "trial": 0,
+    "scale": 1,
+    "basePotential": 161053.51758934965,
+    "candidatePotential": 179729.73900068417,
+    "predictedSlope": -382.87418639387505,
+    "accept": false,
+    "candidate": {
+      "force": 5839.5848424839205,
+      "torque": 287.0256467330219,
+      "constraint": 0.15495084588474128,
+      "energy": 160780.82731193452
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 5,
+    "method": 1,
+    "trial": 1,
+    "scale": 0.5,
+    "basePotential": 161053.51758934965,
+    "candidatePotential": 164674.281579241,
+    "predictedSlope": -382.87418639387505,
+    "accept": false,
+    "candidate": {
+      "force": 3276.498138161828,
+      "torque": 129.50615905188144,
+      "constraint": 0.04439555526641925,
+      "energy": 160795.04634766968
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 5,
+    "method": 1,
+    "trial": 2,
+    "scale": 0.25,
+    "basePotential": 161053.51758934965,
+    "candidatePotential": 161714.15681657018,
+    "predictedSlope": -382.87418639387505,
+    "accept": false,
+    "candidate": {
+      "force": 1731.8989179807336,
+      "torque": 50.59165233826853,
+      "constraint": 0.01574851094765961,
+      "energy": 160822.8068388752
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 5,
+    "method": 1,
+    "trial": 3,
+    "scale": 0.125,
+    "basePotential": 161053.51758934965,
+    "candidatePotential": 161196.01943582197,
+    "predictedSlope": -382.87418639387505,
+    "accept": false,
+    "candidate": {
+      "force": 922.4448031191912,
+      "torque": 11.092768407063154,
+      "constraint": 0.018130932031915847,
+      "energy": 160841.8524265096
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 5,
+    "method": 1,
+    "trial": 4,
+    "scale": 0.0625,
+    "basePotential": 161053.51758934965,
+    "candidatePotential": 161077.25343182907,
+    "predictedSlope": -382.87418639387505,
+    "accept": false,
+    "candidate": {
+      "force": 526.6928630184989,
+      "torque": 11.07031893971839,
+      "constraint": 0.019372035559996448,
+      "energy": 160852.6668337769
+    }
+  },
+  {
+    "kind": "trial",
+    "iteration": 5,
+    "method": 1,
+    "trial": 5,
+    "scale": 0.03125,
+    "basePotential": 161053.51758934965,
+    "candidatePotential": 161053.4731319934,
+    "predictedSlope": -382.87418639387505,
+    "accept": true,
+    "candidate": {
+      "force": 387.0363908278004,
+      "torque": 18.550303699819928,
+      "constraint": 0.020004945097992888,
+      "energy": 160858.3969725816
+    }
+  },
+  {
+    "kind": "direction",
+    "iteration": 6,
+    "method": 0,
+    "base": {
+      "force": 387.0363908278004,
+      "torque": 18.550303699819928,
+      "constraint": 0.020004945097992888,
+      "energy": 160858.3969725816
+    },
+    "linearConverged": false,
+    "linearResidual": 739.0192277589921,
+    "factorizations": 1
+  },
+  {
+    "kind": "direction",
+    "iteration": 6,
+    "method": 1,
+    "base": {
+      "force": 387.03639082779927,
+      "torque": 18.55030369983349,
+      "constraint": 0.020004945097992888,
+      "energy": 160858.39697258157
+    },
+    "linearConverged": false,
+    "linearResidual": 748.9963399227531,
+    "factorizations": 1
+  }
+]

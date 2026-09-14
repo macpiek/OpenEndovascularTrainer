@@ -1536,6 +1536,8 @@ const portCatheter = new PigtailCatheter({
     vessel: null
 });
 const catheterBody = {
+    activeStart: 0,
+    activeEnd: 9,
     x: new Float64Array(10),
     y: new Float64Array(10),
     z: new Float64Array(10)

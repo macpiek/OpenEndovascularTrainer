@@ -1,0 +1,5558 @@
+{
+  "scope": "Quasi-static native-law shared-axis laboratory, not application FPS or anatomy replay",
+  "warmupRepeats": 1,
+  "summaries": [
+    {
+      "tools": "wire",
+      "phase": "initial",
+      "samples": 3,
+      "ms": {
+        "mean": 0.6726389999999659,
+        "max": 1.3460000000000036
+      },
+      "transferMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "assemblyMs": {
+        "mean": 0.6707363333333282,
+        "max": 1.3435830000000806
+      },
+      "linearMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "iterations": {
+        "mean": 0,
+        "max": 0
+      },
+      "dofs": {
+        "mean": 251,
+        "max": 251
+      },
+      "matrixEntries": {
+        "mean": 8269,
+        "max": 8269
+      },
+      "maximumConstraint": 0
+    },
+    {
+      "tools": "wire",
+      "phase": "feed",
+      "samples": 36,
+      "ms": {
+        "mean": 0.3601561388889094,
+        "max": 1.0738750000000437
+      },
+      "transferMs": {
+        "mean": 0.7054688055555592,
+        "max": 2.290292000000022
+      },
+      "assemblyMs": {
+        "mean": 0.3594825000000065,
+        "max": 1.071374999999989
+      },
+      "linearMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "iterations": {
+        "mean": 0,
+        "max": 0
+      },
+      "dofs": {
+        "mean": 253.66666666666666,
+        "max": 255
+      },
+      "matrixEntries": {
+        "mean": 8359,
+        "max": 8404
+      },
+      "maximumConstraint": 0
+    },
+    {
+      "tools": "wire",
+      "phase": "rotate",
+      "samples": 12,
+      "ms": {
+        "mean": 1.4872985000000085,
+        "max": 2.231916999999953
+      },
+      "transferMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "assemblyMs": {
+        "mean": 1.2507672500000144,
+        "max": 1.7489170000000058
+      },
+      "linearMs": {
+        "mean": 0.1832706666666771,
+        "max": 0.364832999999976
+      },
+      "iterations": {
+        "mean": 1,
+        "max": 1
+      },
+      "dofs": {
+        "mean": 255,
+        "max": 255
+      },
+      "matrixEntries": {
+        "mean": 8404,
+        "max": 8404
+      },
+      "maximumConstraint": 0
+    },
+    {
+      "tools": "catheter",
+      "phase": "initial",
+      "samples": 3,
+      "ms": {
+        "mean": 1.7666113333332685,
+        "max": 2.5790419999999585
+      },
+      "transferMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "assemblyMs": {
+        "mean": 1.372304999999983,
+        "max": 2.0410409999998365
+      },
+      "linearMs": {
+        "mean": 0.2959033333333612,
+        "max": 0.39412499999991724
+      },
+      "iterations": {
+        "mean": 5,
+        "max": 5
+      },
+      "dofs": {
+        "mean": 83,
+        "max": 83
+      },
+      "matrixEntries": {
+        "mean": 2599,
+        "max": 2599
+      },
+      "maximumConstraint": 8.171241461241152e-14
+    },
+    {
+      "tools": "catheter",
+      "phase": "feed",
+      "samples": 36,
+      "ms": {
+        "mean": 1.3373634444444318,
+        "max": 3.9650830000000497
+      },
+      "transferMs": {
+        "mean": 0.2858286388888871,
+        "max": 1.7492500000000746
+      },
+      "assemblyMs": {
+        "mean": 1.0057394444444394,
+        "max": 3.0833739999999352
+      },
+      "linearMs": {
+        "mean": 0.24201274999999908,
+        "max": 0.9448340000000144
+      },
+      "iterations": {
+        "mean": 3,
+        "max": 3
+      },
+      "dofs": {
+        "mean": 87,
+        "max": 87
+      },
+      "matrixEntries": {
+        "mean": 2734,
+        "max": 2734
+      },
+      "maximumConstraint": 8.881784197001252e-15
+    },
+    {
+      "tools": "catheter",
+      "phase": "rotate",
+      "samples": 12,
+      "ms": {
+        "mean": 1.0160589999999559,
+        "max": 2.1893329999999196
+      },
+      "transferMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "assemblyMs": {
+        "mean": 0.7960035000000403,
+        "max": 1.6381670000000668
+      },
+      "linearMs": {
+        "mean": 0.16406241666664792,
+        "max": 0.37370999999996
+      },
+      "iterations": {
+        "mean": 3,
+        "max": 3
+      },
+      "dofs": {
+        "mean": 87,
+        "max": 87
+      },
+      "matrixEntries": {
+        "mean": 2734,
+        "max": 2734
+      },
+      "maximumConstraint": 7.105427357601002e-15
+    },
+    {
+      "tools": "wire+catheter",
+      "phase": "initial",
+      "samples": 3,
+      "ms": {
+        "mean": 3.391027666666673,
+        "max": 3.7689169999999876
+      },
+      "transferMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "assemblyMs": {
+        "mean": 2.7501803333330677,
+        "max": 3.095873999999867
+      },
+      "linearMs": {
+        "mean": 0.47379133333337603,
+        "max": 0.48345800000004147
+      },
+      "iterations": {
+        "mean": 3,
+        "max": 3
+      },
+      "dofs": {
+        "mean": 271,
+        "max": 271
+      },
+      "matrixEntries": {
+        "mean": 10083,
+        "max": 10083
+      },
+      "maximumConstraint": 4.627409566637652e-13
+    },
+    {
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "samples": 36,
+      "ms": {
+        "mean": 3.0483089722222334,
+        "max": 6.147083000000066
+      },
+      "transferMs": {
+        "mean": 0.7730613333333167,
+        "max": 1.872165999999993
+      },
+      "assemblyMs": {
+        "mean": 2.558527750000012,
+        "max": 5.584249999999997
+      },
+      "linearMs": {
+        "mean": 0.3775844166666944,
+        "max": 0.8313749999998663
+      },
+      "iterations": {
+        "mean": 2,
+        "max": 2
+      },
+      "dofs": {
+        "mean": 278.6666666666667,
+        "max": 280
+      },
+      "matrixEntries": {
+        "mean": 10372.333333333334,
+        "max": 10424
+      },
+      "maximumConstraint": 5.5067062021407764e-14
+    },
+    {
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "samples": 12,
+      "ms": {
+        "mean": 60.771232416666685,
+        "max": 72.21733300000005
+      },
+      "transferMs": {
+        "mean": 0,
+        "max": 0
+      },
+      "assemblyMs": {
+        "mean": 48.7690015833331,
+        "max": 56.383335000000216
+      },
+      "linearMs": {
+        "mean": 8.53698233333345,
+        "max": 10.524872000000869
+      },
+      "iterations": {
+        "mean": 46.25,
+        "max": 49
+      },
+      "dofs": {
+        "mean": 280,
+        "max": 280
+      },
+      "matrixEntries": {
+        "mean": 10424,
+        "max": 10424
+      },
+      "maximumConstraint": 3.8191672047105385e-14
+    }
+  ],
+  "runs": [
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 2.7362500000000054,
+      "timings": {
+        "assemblyMs": 2.6992499999999993,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 1.3497079999999997,
+      "timings": {
+        "assemblyMs": 1.3441669999999988,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 2.6614999999999966
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 1.1100000000000065,
+      "timings": {
+        "assemblyMs": 1.1042079999999999,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 1.1280420000000007
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.9893329999999949,
+      "timings": {
+        "assemblyMs": 0.9851670000000041,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 1.0401670000000038
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.9308750000000003,
+      "timings": {
+        "assemblyMs": 0.923917000000003,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.9668330000000012
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.9464170000000109,
+      "timings": {
+        "assemblyMs": 0.942417000000006,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.8513329999999968
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.9826249999999987,
+      "timings": {
+        "assemblyMs": 0.977209000000002,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.8690829999999892
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.8868329999999958,
+      "timings": {
+        "assemblyMs": 0.8791669999999954,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.961459000000005
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.8473749999999995,
+      "timings": {
+        "assemblyMs": 0.8408749999999969,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.8757090000000005
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.5323750000000018,
+      "timings": {
+        "assemblyMs": 0.5260829999999999,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.8607920000000036
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3122500000000059,
+      "timings": {
+        "assemblyMs": 0.30954200000000753,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.7111249999999956
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3286249999999882,
+      "timings": {
+        "assemblyMs": 0.3273330000000101,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.7901250000000033
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.44216699999999776,
+      "timings": {
+        "assemblyMs": 0.44120800000000315,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.7571670000000097
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 5.96575,
+      "timings": {
+        "assemblyMs": 2.81916600000001,
+        "linearMs": 2.9209999999999923
+      },
+      "residual": {
+        "force": 6.04687749007514e-10,
+        "torque": 1.6370904631912695e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 4.367500000000007,
+      "timings": {
+        "assemblyMs": 2.940792000000002,
+        "linearMs": 1.3247499999999945
+      },
+      "residual": {
+        "force": 7.265260818186848e-10,
+        "torque": 2.7281776850001388e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 2.784917000000007,
+      "timings": {
+        "assemblyMs": 1.7538749999999936,
+        "linearMs": 0.9085830000000072
+      },
+      "residual": {
+        "force": 9.082344119504052e-10,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 2.7558329999999955,
+      "timings": {
+        "assemblyMs": 1.8105840000000057,
+        "linearMs": 0.8425410000000113
+      },
+      "residual": {
+        "force": 2.542890632873489e-9,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "initial",
+      "nodes": 21,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 5,
+      "factorizations": 5,
+      "backtracks": 0,
+      "ms": 4.1043750000000045,
+      "timings": {
+        "assemblyMs": 2.4004170000000187,
+        "linearMs": 1.5273750000000206
+      },
+      "residual": {
+        "force": 3.785591258081112e-9,
+        "torque": 1.7922913796798027e-10,
+        "length": 8.171241461241152e-14
+      },
+      "dofs": 83,
+      "matrixEntries": 2599,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.663624999999996,
+      "timings": {
+        "assemblyMs": 1.8220419999999962,
+        "linearMs": 0.7415410000000122
+      },
+      "residual": {
+        "force": 2.294847138345341e-8,
+        "torque": 1.8816117495270503e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.40987499999999955
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 4.36737500000001,
+      "timings": {
+        "assemblyMs": 2.728334000000004,
+        "linearMs": 1.51616700000001
+      },
+      "residual": {
+        "force": 1.1415043205083465e-8,
+        "torque": 3.334634156106273e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.3430829999999929
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 3.110916000000003,
+      "timings": {
+        "assemblyMs": 2.508747999999983,
+        "linearMs": 0.47229200000001015
+      },
+      "residual": {
+        "force": 4.980350495008889e-9,
+        "torque": 3.1311683856098236e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.4231669999999923
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.408417,
+      "timings": {
+        "assemblyMs": 1.8765420000000006,
+        "linearMs": 0.43783399999999517
+      },
+      "residual": {
+        "force": 6.948304953257157e-9,
+        "torque": 1.3305682252610692e-10,
+        "length": 5.773159728050814e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.6244159999999965
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.617291999999992,
+      "timings": {
+        "assemblyMs": 1.1337919999999997,
+        "linearMs": 0.400209000000018
+      },
+      "residual": {
+        "force": 3.078151546267694e-9,
+        "torque": 9.53049264742286e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.348124999999996
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.700458999999995,
+      "timings": {
+        "assemblyMs": 1.20774999999999,
+        "linearMs": 0.409583000000012
+      },
+      "residual": {
+        "force": 1.882847516861032e-9,
+        "torque": 1.9218706560972842e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.3363329999999962
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.6758339999999947,
+      "timings": {
+        "assemblyMs": 1.1587909999999937,
+        "linearMs": 0.43070799999999565
+      },
+      "residual": {
+        "force": 2.044762951209849e-9,
+        "torque": 7.74557337405076e-11,
+        "length": 7.771561172376096e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.35908299999999826
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.4749999999999943,
+      "timings": {
+        "assemblyMs": 0.9960430000000002,
+        "linearMs": 0.38983400000000756
+      },
+      "residual": {
+        "force": 2.1633715205224037e-9,
+        "torque": 3.2661320789205263e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.2847500000000025
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.3755000000000024,
+      "timings": {
+        "assemblyMs": 1.1212909999999994,
+        "linearMs": 1.1632510000000025
+      },
+      "residual": {
+        "force": 6.001536632605301e-10,
+        "torque": 2.2882928618122192e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.2688749999999942
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.5466669999999993,
+      "timings": {
+        "assemblyMs": 1.0210429999999917,
+        "linearMs": 0.4268330000000162
+      },
+      "residual": {
+        "force": 3.763607379924757e-10,
+        "torque": 1.0163853673043556e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.3079999999999927
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.473040999999995,
+      "timings": {
+        "assemblyMs": 1.0004590000000064,
+        "linearMs": 0.38912399999999536
+      },
+      "residual": {
+        "force": 7.750095631573976e-10,
+        "torque": 1.6636554363763986e-10,
+        "length": 8.881784197001252e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.45224999999999227
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.787582999999998,
+      "timings": {
+        "assemblyMs": 1.3133330000000143,
+        "linearMs": 0.39804199999998957
+      },
+      "residual": {
+        "force": 4.3627472323683267e-10,
+        "torque": 2.443800683097062e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.29562500000000114
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.4738329999999848,
+      "timings": {
+        "assemblyMs": 0.9965420000000051,
+        "linearMs": 0.4052499999999952
+      },
+      "residual": {
+        "force": 5.160049387767641e-10,
+        "torque": 1.5504166410410789e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.6369159999999852,
+      "timings": {
+        "assemblyMs": 1.0970010000000343,
+        "linearMs": 0.4615009999999984
+      },
+      "residual": {
+        "force": 3.2699718277933907e-10,
+        "torque": 9.52134412733903e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.6107079999999883,
+      "timings": {
+        "assemblyMs": 0.9589169999999854,
+        "linearMs": 0.5120000000000289
+      },
+      "residual": {
+        "force": 4.30669507187617e-10,
+        "torque": 1.6605820410261761e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.312041999999991,
+      "timings": {
+        "assemblyMs": 1.507125000000002,
+        "linearMs": 0.6770840000000078
+      },
+      "residual": {
+        "force": 3.133637142898171e-10,
+        "torque": 8.106936190676549e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 6.475999999999999,
+      "timings": {
+        "assemblyMs": 4.742582999999996,
+        "linearMs": 1.3669999999999902
+      },
+      "residual": {
+        "force": 1.420698026591099e-8,
+        "torque": 1.7462298274040212e-10,
+        "length": 4.627409566637652e-13
+      },
+      "dofs": 271,
+      "matrixEntries": 10083,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 4.220708000000002,
+      "timings": {
+        "assemblyMs": 3.669791000000032,
+        "linearMs": 0.3758749999999793
+      },
+      "residual": {
+        "force": 1.0132816656093551e-7,
+        "torque": 2.5012699813760654e-10,
+        "length": 4.973799150320701e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 1.7558750000000032
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 7.835958000000005,
+      "timings": {
+        "assemblyMs": 5.77841699999999,
+        "linearMs": 1.875834000000026
+      },
+      "residual": {
+        "force": 6.584012013886398e-8,
+        "torque": 2.619344741106032e-10,
+        "length": 3.907985046680551e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 1.3535000000000252
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 5.243500000000012,
+      "timings": {
+        "assemblyMs": 4.267458000000005,
+        "linearMs": 0.7545419999999865
+      },
+      "residual": {
+        "force": 6.581830791185894e-8,
+        "torque": 4.304448246074227e-10,
+        "length": 3.019806626980426e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 2.2641249999999786
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 7.815915999999987,
+      "timings": {
+        "assemblyMs": 6.429083999999989,
+        "linearMs": 1.1557490000000143
+      },
+      "residual": {
+        "force": 6.784642560507262e-8,
+        "torque": 8.257167387458486e-10,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 1.9003329999999892
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 3.9927079999999933,
+      "timings": {
+        "assemblyMs": 3.1064170000000217,
+        "linearMs": 0.7170830000000024
+      },
+      "residual": {
+        "force": 6.86704722785387e-8,
+        "torque": 1.5452859221879262e-9,
+        "length": 3.6415315207705135e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 2.22145900000001
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 6.295333999999997,
+      "timings": {
+        "assemblyMs": 4.674125000000004,
+        "linearMs": 1.2457500000000152
+      },
+      "residual": {
+        "force": 6.989283487808679e-8,
+        "torque": 3.1008575287724503e-9,
+        "length": 4.085620730620576e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 2.575499999999977
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 11.478291999999982,
+      "timings": {
+        "assemblyMs": 8.663582999999988,
+        "linearMs": 1.7367089999999905
+      },
+      "residual": {
+        "force": 6.864137411045755e-8,
+        "torque": 5.951218165659668e-9,
+        "length": 3.375077994860476e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 3.0543329999999855
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 6.912832999999978,
+      "timings": {
+        "assemblyMs": 5.811332999999962,
+        "linearMs": 0.9331669999999974
+      },
+      "residual": {
+        "force": 6.504016143535412e-8,
+        "torque": 1.0858967063541863e-8,
+        "length": 3.963496197911809e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 2.000458000000009
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 6.604917,
+      "timings": {
+        "assemblyMs": 5.783374999999978,
+        "linearMs": 0.5585829999999987
+      },
+      "residual": {
+        "force": 1.1549141312144332e-7,
+        "torque": 1.8868223550769607e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 1.1597079999999949
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 7.3865419999999915,
+      "timings": {
+        "assemblyMs": 5.559958999999992,
+        "linearMs": 1.275000000000034
+      },
+      "residual": {
+        "force": 2.0264304493967437e-7,
+        "torque": 3.218966677004708e-8,
+        "length": 5.5067062021407764e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 1.9544159999999806
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 6.675290999999987,
+      "timings": {
+        "assemblyMs": 3.325915999999978,
+        "linearMs": 3.1850840000000176
+      },
+      "residual": {
+        "force": 3.4688599589660664e-7,
+        "torque": 5.3514123861091605e-8,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 1.4571669999999983
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 6.072457999999983,
+      "timings": {
+        "assemblyMs": 3.7409580000000346,
+        "linearMs": 2.1815429999999765
+      },
+      "residual": {
+        "force": 5.921329681280942e-7,
+        "torque": 8.920765308794599e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 1.3113329999999905
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 139.347375,
+      "timings": {
+        "assemblyMs": 108.04928900000004,
+        "linearMs": 19.92004200000028
+      },
+      "residual": {
+        "force": 4.842580516396344e-7,
+        "torque": 6.671348538728292e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 49,
+      "factorizations": 49,
+      "backtracks": 17,
+      "ms": 134.98258400000003,
+      "timings": {
+        "assemblyMs": 113.66574999999978,
+        "linearMs": 13.608834000000172
+      },
+      "residual": {
+        "force": 3.440338071132213e-8,
+        "torque": 9.889266671053015e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 67.40245900000002,
+      "timings": {
+        "assemblyMs": 55.015247999999474,
+        "linearMs": 8.519247999999834
+      },
+      "residual": {
+        "force": 4.855332846050304e-7,
+        "torque": 6.670059258814046e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 0,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 48,
+      "factorizations": 48,
+      "backtracks": 19,
+      "ms": 85.151208,
+      "timings": {
+        "assemblyMs": 65.74145899999974,
+        "linearMs": 13.724542999999926
+      },
+      "residual": {
+        "force": 8.561452838252019e-7,
+        "torque": 3.1371706054608384e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3861249999999927,
+      "timings": {
+        "assemblyMs": 0.3839590000000044,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3184170000000677,
+      "timings": {
+        "assemblyMs": 0.316791999999964,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.6151250000000346
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.43716700000004494,
+      "timings": {
+        "assemblyMs": 0.4361670000000686,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.6234590000000253
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2669580000000451,
+      "timings": {
+        "assemblyMs": 0.2661249999999882,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.9494169999999258
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.7835420000000113,
+      "timings": {
+        "assemblyMs": 0.7819999999999254,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 1.0395829999999933
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.26375000000007276,
+      "timings": {
+        "assemblyMs": 0.26299999999991996,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.6497080000000324
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3201249999999618,
+      "timings": {
+        "assemblyMs": 0.3196250000000873,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5259170000000495
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2748749999999518,
+      "timings": {
+        "assemblyMs": 0.2744160000000875,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5727920000000495
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.26845800000000963,
+      "timings": {
+        "assemblyMs": 0.2680000000000291,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5125420000000531
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 1.0738750000000437,
+      "timings": {
+        "assemblyMs": 1.071374999999989,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 2.2102919999999813
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.6210419999999885,
+      "timings": {
+        "assemblyMs": 0.6184170000000222,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 2.290292000000022
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.33170800000004874,
+      "timings": {
+        "assemblyMs": 0.33029099999998834,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.6183750000000146
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3249580000000378,
+      "timings": {
+        "assemblyMs": 0.323709000000008,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5902090000000726
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.5230000000000246,
+      "timings": {
+        "assemblyMs": 1.3269999999999982,
+        "linearMs": 0.1341660000000502
+      },
+      "residual": {
+        "force": 6.04687749007514e-10,
+        "torque": 1.6370904631912695e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 2.231916999999953,
+      "timings": {
+        "assemblyMs": 1.7489170000000058,
+        "linearMs": 0.364832999999976
+      },
+      "residual": {
+        "force": 7.265260818186848e-10,
+        "torque": 2.7281776850001388e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.4844580000000178,
+      "timings": {
+        "assemblyMs": 1.270167000000015,
+        "linearMs": 0.15812500000004093
+      },
+      "residual": {
+        "force": 9.082344119504052e-10,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.3355410000000347,
+      "timings": {
+        "assemblyMs": 1.1241240000000516,
+        "linearMs": 0.15724999999997635
+      },
+      "residual": {
+        "force": 2.542890632873489e-9,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "initial",
+      "nodes": 21,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 5,
+      "factorizations": 5,
+      "backtracks": 0,
+      "ms": 2.5790419999999585,
+      "timings": {
+        "assemblyMs": 2.0410409999998365,
+        "linearMs": 0.39412499999991724
+      },
+      "residual": {
+        "force": 3.785591258081112e-9,
+        "torque": 1.7922913796798027e-10,
+        "length": 8.171241461241152e-14
+      },
+      "dofs": 83,
+      "matrixEntries": 2599,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.3865410000000793,
+      "timings": {
+        "assemblyMs": 1.5306249999999864,
+        "linearMs": 0.7914169999999103
+      },
+      "residual": {
+        "force": 2.294847138345341e-8,
+        "torque": 1.8816117495270503e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.2863750000000209
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.8021669999999403,
+      "timings": {
+        "assemblyMs": 0.7912499999999909,
+        "linearMs": 0.9448340000000144
+      },
+      "residual": {
+        "force": 1.1415043205083465e-8,
+        "torque": 3.334634156106273e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 1.7492500000000746
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.2838329999999587,
+      "timings": {
+        "assemblyMs": 0.9172499999999673,
+        "linearMs": 0.23358399999983703
+      },
+      "residual": {
+        "force": 4.980350495008889e-9,
+        "torque": 3.1311683856098236e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.21758300000010422
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.0303749999999354,
+      "timings": {
+        "assemblyMs": 1.6346240000000307,
+        "linearMs": 0.18870800000013332
+      },
+      "residual": {
+        "force": 6.948304953257157e-9,
+        "torque": 1.3305682252610692e-10,
+        "length": 5.773159728050814e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.26400000000001
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.6326250000000755,
+      "timings": {
+        "assemblyMs": 1.869207000000074,
+        "linearMs": 0.4939160000000129
+      },
+      "residual": {
+        "force": 3.078151546267694e-9,
+        "torque": 9.53049264742286e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.6309999999999718
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.2564579999999523,
+      "timings": {
+        "assemblyMs": 0.9390410000000884,
+        "linearMs": 0.23325199999987944
+      },
+      "residual": {
+        "force": 1.882847516861032e-9,
+        "torque": 1.9218706560972842e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.31150000000002365
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 3.9650830000000497,
+      "timings": {
+        "assemblyMs": 3.0833739999999352,
+        "linearMs": 0.5618330000000924
+      },
+      "residual": {
+        "force": 2.044762951209849e-9,
+        "torque": 7.74557337405076e-11,
+        "length": 7.771561172376096e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 1.1429580000000215
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.0226249999999482,
+      "timings": {
+        "assemblyMs": 0.7687080000000606,
+        "linearMs": 0.1789169999999558
+      },
+      "residual": {
+        "force": 2.1633715205224037e-9,
+        "torque": 3.2661320789205263e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.32379200000002584
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.0945409999999356,
+      "timings": {
+        "assemblyMs": 0.8879169999999021,
+        "linearMs": 0.14629100000001927
+      },
+      "residual": {
+        "force": 6.001536632605301e-10,
+        "torque": 2.2882928618122192e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.21520799999996143
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.64650000000006,
+      "timings": {
+        "assemblyMs": 0.9267499999998563,
+        "linearMs": 0.5117500000000064
+      },
+      "residual": {
+        "force": 3.763607379924757e-10,
+        "torque": 1.0163853673043556e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.18195800000000872
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 3.411666999999966,
+      "timings": {
+        "assemblyMs": 2.404209000000151,
+        "linearMs": 0.5419170000000122
+      },
+      "residual": {
+        "force": 7.750095631573976e-10,
+        "torque": 1.6636554363763986e-10,
+        "length": 8.881784197001252e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.27016600000001745
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9201669999999922,
+      "timings": {
+        "assemblyMs": 0.7219160000001921,
+        "linearMs": 0.14754100000004655
+      },
+      "residual": {
+        "force": 4.3627472323683267e-10,
+        "torque": 2.443800683097062e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.45575000000008004
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.1554159999999456,
+      "timings": {
+        "assemblyMs": 0.9543749999997999,
+        "linearMs": 0.1512070000001131
+      },
+      "residual": {
+        "force": 5.160049387767641e-10,
+        "torque": 1.5504166410410789e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8972079999999778,
+      "timings": {
+        "assemblyMs": 0.7005409999999301,
+        "linearMs": 0.14612499999998363
+      },
+      "residual": {
+        "force": 3.2699718277933907e-10,
+        "torque": 9.52134412733903e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8663750000000618,
+      "timings": {
+        "assemblyMs": 0.6761260000000675,
+        "linearMs": 0.14520900000002257
+      },
+      "residual": {
+        "force": 4.30669507187617e-10,
+        "torque": 1.6605820410261761e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 2.1893329999999196,
+      "timings": {
+        "assemblyMs": 1.6381670000000668,
+        "linearMs": 0.37370999999996
+      },
+      "residual": {
+        "force": 3.133637142898171e-10,
+        "torque": 8.106936190676549e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 3.7689169999999876,
+      "timings": {
+        "assemblyMs": 3.095873999999867,
+        "linearMs": 0.48345800000004147
+      },
+      "residual": {
+        "force": 1.420698026591099e-8,
+        "torque": 1.7462298274040212e-10,
+        "length": 4.627409566637652e-13
+      },
+      "dofs": 271,
+      "matrixEntries": 10083,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 5.525209000000018,
+      "timings": {
+        "assemblyMs": 4.680582999999956,
+        "linearMs": 0.6222490000000107
+      },
+      "residual": {
+        "force": 1.0132816656093551e-7,
+        "torque": 2.5012699813760654e-10,
+        "length": 4.973799150320701e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 1.78712500000006
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 6.147083000000066,
+      "timings": {
+        "assemblyMs": 5.584249999999997,
+        "linearMs": 0.41537500000004
+      },
+      "residual": {
+        "force": 6.584012013886398e-8,
+        "torque": 2.619344741106032e-10,
+        "length": 3.907985046680551e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 1.1757499999999936
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 4.997332999999912,
+      "timings": {
+        "assemblyMs": 4.0262500000000045,
+        "linearMs": 0.8313749999998663
+      },
+      "residual": {
+        "force": 6.581830791185894e-8,
+        "torque": 4.304448246074227e-10,
+        "length": 3.019806626980426e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.7844159999999647
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 3.8152089999999816,
+      "timings": {
+        "assemblyMs": 3.2887929999998278,
+        "linearMs": 0.4152090000000044
+      },
+      "residual": {
+        "force": 6.784642560507262e-8,
+        "torque": 8.257167387458486e-10,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 1.872165999999993
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 3.2278330000000324,
+      "timings": {
+        "assemblyMs": 2.73012499999993,
+        "linearMs": 0.37333300000000236
+      },
+      "residual": {
+        "force": 6.86704722785387e-8,
+        "torque": 1.5452859221879262e-9,
+        "length": 3.6415315207705135e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7763340000000198
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.6914170000000013,
+      "timings": {
+        "assemblyMs": 2.222667000000115,
+        "linearMs": 0.35950100000002294
+      },
+      "residual": {
+        "force": 6.989283487808679e-8,
+        "torque": 3.1008575287724503e-9,
+        "length": 4.085620730620576e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7595420000000104
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.7313330000000633,
+      "timings": {
+        "assemblyMs": 2.265957999999955,
+        "linearMs": 0.35883400000000165
+      },
+      "residual": {
+        "force": 6.864137411045755e-8,
+        "torque": 5.951218165659668e-9,
+        "length": 3.375077994860476e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.9190830000000005
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.778542000000016,
+      "timings": {
+        "assemblyMs": 2.3278739999999516,
+        "linearMs": 0.34883300000001327
+      },
+      "residual": {
+        "force": 6.504016143535412e-8,
+        "torque": 1.0858967063541863e-8,
+        "length": 3.963496197911809e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.815166999999974
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.686374999999998,
+      "timings": {
+        "assemblyMs": 2.245833000000175,
+        "linearMs": 0.3394159999999147
+      },
+      "residual": {
+        "force": 1.1549141312144332e-7,
+        "torque": 1.8868223550769607e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6577499999999645
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.651583999999957,
+      "timings": {
+        "assemblyMs": 2.193583999999987,
+        "linearMs": 0.35245900000006714
+      },
+      "residual": {
+        "force": 2.0264304493967437e-7,
+        "torque": 3.218966677004708e-8,
+        "length": 5.5067062021407764e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6781670000000304
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.887458000000038,
+      "timings": {
+        "assemblyMs": 2.4057490000000143,
+        "linearMs": 0.36991699999987304
+      },
+      "residual": {
+        "force": 3.4688599589660664e-7,
+        "torque": 5.3514123861091605e-8,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6514160000000402
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.7568330000000287,
+      "timings": {
+        "assemblyMs": 2.3092499999999063,
+        "linearMs": 0.34304199999996854
+      },
+      "residual": {
+        "force": 5.921329681280942e-7,
+        "torque": 8.920765308794599e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7481249999999591
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 54.582583,
+      "timings": {
+        "assemblyMs": 43.70475199999942,
+        "linearMs": 7.846627000000467
+      },
+      "residual": {
+        "force": 4.842580516396344e-7,
+        "torque": 6.671348538728292e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 49,
+      "factorizations": 49,
+      "backtracks": 17,
+      "ms": 65.006167,
+      "timings": {
+        "assemblyMs": 52.778372999999306,
+        "linearMs": 8.800622999999632
+      },
+      "residual": {
+        "force": 3.440338071132213e-8,
+        "torque": 9.889266671053015e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 59.16370900000004,
+      "timings": {
+        "assemblyMs": 47.729290999999535,
+        "linearMs": 8.410208000000466
+      },
+      "residual": {
+        "force": 4.855332846050304e-7,
+        "torque": 6.670059258814046e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 1,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 48,
+      "factorizations": 48,
+      "backtracks": 19,
+      "ms": 61.52829099999997,
+      "timings": {
+        "assemblyMs": 49.60066600000005,
+        "linearMs": 8.581291000000078
+      },
+      "residual": {
+        "force": 8.561452838252019e-7,
+        "torque": 3.1371706054608384e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.28579199999990124,
+      "timings": {
+        "assemblyMs": 0.2846669999998994,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2717079999999896,
+      "timings": {
+        "assemblyMs": 0.27150000000006,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.5442500000001473
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2617079999999987,
+      "timings": {
+        "assemblyMs": 0.2614579999999478,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.5053749999999582
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2582910000000993,
+      "timings": {
+        "assemblyMs": 0.25804199999993216,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.6749999999999545
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2794169999999667,
+      "timings": {
+        "assemblyMs": 0.27908300000012787,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.5186249999999291
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.25908300000014606,
+      "timings": {
+        "assemblyMs": 0.2588749999999891,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.48416599999995924
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2976249999999254,
+      "timings": {
+        "assemblyMs": 0.29712500000005093,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.64712499999996
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2937500000000455,
+      "timings": {
+        "assemblyMs": 0.29320800000004965,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.55074999999988
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2713330000001406,
+      "timings": {
+        "assemblyMs": 0.27095900000017537,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5327079999999569
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.28354200000012497,
+      "timings": {
+        "assemblyMs": 0.28312499999992724,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.52150000000006
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.258542000000034,
+      "timings": {
+        "assemblyMs": 0.2583340000001044,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5445409999999811
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2613330000001497,
+      "timings": {
+        "assemblyMs": 0.26104099999997743,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.4857499999998254
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.25975000000016735,
+      "timings": {
+        "assemblyMs": 0.2595409999998992,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.4948330000001988
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 0.9166669999999613,
+      "timings": {
+        "assemblyMs": 0.7517500000001291,
+        "linearMs": 0.12349999999992178
+      },
+      "residual": {
+        "force": 6.04687749007514e-10,
+        "torque": 1.6370904631912695e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.2151249999999436,
+      "timings": {
+        "assemblyMs": 1.025124999999889,
+        "linearMs": 0.1522500000000946
+      },
+      "residual": {
+        "force": 7.265260818186848e-10,
+        "torque": 2.7281776850001388e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.421833000000106,
+      "timings": {
+        "assemblyMs": 1.2287079999998696,
+        "linearMs": 0.15254200000003948
+      },
+      "residual": {
+        "force": 9.082344119504052e-10,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.1987910000000284,
+      "timings": {
+        "assemblyMs": 1.0161670000002232,
+        "linearMs": 0.1449999999999818
+      },
+      "residual": {
+        "force": 2.542890632873489e-9,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "initial",
+      "nodes": 21,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 5,
+      "factorizations": 5,
+      "backtracks": 0,
+      "ms": 1.2352499999999509,
+      "timings": {
+        "assemblyMs": 0.943583000000217,
+        "linearMs": 0.21941800000013245
+      },
+      "residual": {
+        "force": 3.785591258081112e-9,
+        "torque": 1.7922913796798027e-10,
+        "length": 8.171241461241152e-14
+      },
+      "dofs": 83,
+      "matrixEntries": 2599,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9231669999999212,
+      "timings": {
+        "assemblyMs": 0.7295839999999316,
+        "linearMs": 0.14449999999987995
+      },
+      "residual": {
+        "force": 2.294847138345341e-8,
+        "torque": 1.8816117495270503e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.17195799999990413
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9022500000000946,
+      "timings": {
+        "assemblyMs": 0.7115019999998822,
+        "linearMs": 0.14654099999984282
+      },
+      "residual": {
+        "force": 1.1415043205083465e-8,
+        "torque": 3.334634156106273e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.1831250000000182
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9015420000000631,
+      "timings": {
+        "assemblyMs": 0.715874999999869,
+        "linearMs": 0.1411239999999907
+      },
+      "residual": {
+        "force": 4.980350495008889e-9,
+        "torque": 3.1311683856098236e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.163124999999809
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8959580000000642,
+      "timings": {
+        "assemblyMs": 0.7086239999996451,
+        "linearMs": 0.1412070000001222
+      },
+      "residual": {
+        "force": 6.948304953257157e-9,
+        "torque": 1.3305682252610692e-10,
+        "length": 5.773159728050814e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.1585419999998976
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.4949999999998909,
+      "timings": {
+        "assemblyMs": 1.0686659999998938,
+        "linearMs": 0.312874999999849
+      },
+      "residual": {
+        "force": 3.078151546267694e-9,
+        "torque": 9.53049264742286e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.1738749999999527
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.03449999999998,
+      "timings": {
+        "assemblyMs": 0.8337089999999989,
+        "linearMs": 0.15095799999994597
+      },
+      "residual": {
+        "force": 1.882847516861032e-9,
+        "torque": 1.9218706560972842e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.2239159999999174
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9317920000000868,
+      "timings": {
+        "assemblyMs": 0.7348329999997532,
+        "linearMs": 0.15249999999991815
+      },
+      "residual": {
+        "force": 2.044762951209849e-9,
+        "torque": 7.74557337405076e-11,
+        "length": 7.771561172376096e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.19012500000008004
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9047499999999218,
+      "timings": {
+        "assemblyMs": 0.7173739999998361,
+        "linearMs": 0.1409579999997277
+      },
+      "residual": {
+        "force": 2.1633715205224037e-9,
+        "torque": 3.2661320789205263e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.1585410000000138
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8948330000000624,
+      "timings": {
+        "assemblyMs": 0.7075420000003305,
+        "linearMs": 0.14366700000027777
+      },
+      "residual": {
+        "force": 6.001536632605301e-10,
+        "torque": 2.2882928618122192e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.15274999999996908
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9029590000000098,
+      "timings": {
+        "assemblyMs": 0.7137499999998909,
+        "linearMs": 0.14387499999998
+      },
+      "residual": {
+        "force": 3.763607379924757e-10,
+        "torque": 1.0163853673043556e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.15304199999991397
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9034169999999904,
+      "timings": {
+        "assemblyMs": 0.7154579999998987,
+        "linearMs": 0.14249999999992724
+      },
+      "residual": {
+        "force": 7.750095631573976e-10,
+        "torque": 1.6636554363763986e-10,
+        "length": 8.881784197001252e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.15433299999995143
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8867499999998927,
+      "timings": {
+        "assemblyMs": 0.7039590000001681,
+        "linearMs": 0.14029200000004494
+      },
+      "residual": {
+        "force": 4.3627472323683267e-10,
+        "torque": 2.443800683097062e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.1590000000001055
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8641249999998308,
+      "timings": {
+        "assemblyMs": 0.677583000000368,
+        "linearMs": 0.1429160000000138
+      },
+      "residual": {
+        "force": 5.160049387767641e-10,
+        "torque": 1.5504166410410789e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.029207999999926,
+      "timings": {
+        "assemblyMs": 0.8397090000000844,
+        "linearMs": 0.1458749999999327
+      },
+      "residual": {
+        "force": 3.2699718277933907e-10,
+        "torque": 9.52134412733903e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8569999999999709,
+      "timings": {
+        "assemblyMs": 0.6716240000000653,
+        "linearMs": 0.1432079999999587
+      },
+      "residual": {
+        "force": 4.30669507187617e-10,
+        "torque": 1.6605820410261761e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8551250000000437,
+      "timings": {
+        "assemblyMs": 0.6674169999998867,
+        "linearMs": 0.14533400000004804
+      },
+      "residual": {
+        "force": 3.133637142898171e-10,
+        "torque": 8.106936190676549e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 3.105250000000069,
+      "timings": {
+        "assemblyMs": 2.482792999999674,
+        "linearMs": 0.4731669999996484
+      },
+      "residual": {
+        "force": 1.420698026591099e-8,
+        "torque": 1.7462298274040212e-10,
+        "length": 4.627409566637652e-13
+      },
+      "dofs": 271,
+      "matrixEntries": 10083,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 3.194833000000017,
+      "timings": {
+        "assemblyMs": 2.7480419999999413,
+        "linearMs": 0.33979199999998855
+      },
+      "residual": {
+        "force": 1.0132816656093551e-7,
+        "torque": 2.5012699813760654e-10,
+        "length": 4.973799150320701e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.6304999999999836
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.547958000000108,
+      "timings": {
+        "assemblyMs": 2.1192909999999756,
+        "linearMs": 0.3296250000000782
+      },
+      "residual": {
+        "force": 6.584012013886398e-8,
+        "torque": 2.619344741106032e-10,
+        "length": 3.907985046680551e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.6434169999999995
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.543583000000126,
+      "timings": {
+        "assemblyMs": 2.109626000000162,
+        "linearMs": 0.33229099999994105
+      },
+      "residual": {
+        "force": 6.581830791185894e-8,
+        "torque": 4.304448246074227e-10,
+        "length": 3.019806626980426e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.6127500000000055
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.732040999999981,
+      "timings": {
+        "assemblyMs": 2.2485420000002705,
+        "linearMs": 0.3826250000001892
+      },
+      "residual": {
+        "force": 6.784642560507262e-8,
+        "torque": 8.257167387458486e-10,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.621791999999914
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.593499999999949,
+      "timings": {
+        "assemblyMs": 2.1477920000002086,
+        "linearMs": 0.34195900000008805
+      },
+      "residual": {
+        "force": 6.86704722785387e-8,
+        "torque": 1.5452859221879262e-9,
+        "length": 3.6415315207705135e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6489159999998719
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.9068749999999,
+      "timings": {
+        "assemblyMs": 2.4495819999997366,
+        "linearMs": 0.347749000000249
+      },
+      "residual": {
+        "force": 6.989283487808679e-8,
+        "torque": 3.1008575287724503e-9,
+        "length": 4.085620730620576e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6795410000001993
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.832291999999825,
+      "timings": {
+        "assemblyMs": 2.332666000000245,
+        "linearMs": 0.3961659999999938
+      },
+      "residual": {
+        "force": 6.864137411045755e-8,
+        "torque": 5.951218165659668e-9,
+        "length": 3.375077994860476e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7173330000000533
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.611499999999978,
+      "timings": {
+        "assemblyMs": 2.160333000000037,
+        "linearMs": 0.3492910000002212
+      },
+      "residual": {
+        "force": 6.504016143535412e-8,
+        "torque": 1.0858967063541863e-8,
+        "length": 3.963496197911809e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6268749999999272
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.6140000000000327,
+      "timings": {
+        "assemblyMs": 2.1749589999999444,
+        "linearMs": 0.33716599999979735
+      },
+      "residual": {
+        "force": 1.1549141312144332e-7,
+        "torque": 1.8868223550769607e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6074999999998454
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.8234999999999673,
+      "timings": {
+        "assemblyMs": 2.3850009999998747,
+        "linearMs": 0.3350420000001577
+      },
+      "residual": {
+        "force": 2.0264304493967437e-7,
+        "torque": 3.218966677004708e-8,
+        "length": 5.5067062021407764e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6392089999999371
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.6855829999999514,
+      "timings": {
+        "assemblyMs": 2.233290999999781,
+        "linearMs": 0.3463739999999689
+      },
+      "residual": {
+        "force": 3.4688599589660664e-7,
+        "torque": 5.3514123861091605e-8,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7245829999999387
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.781791999999996,
+      "timings": {
+        "assemblyMs": 2.330750999999964,
+        "linearMs": 0.3464160000000902
+      },
+      "residual": {
+        "force": 5.921329681280942e-7,
+        "torque": 8.920765308794599e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7019999999999982
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 53.84674999999993,
+      "timings": {
+        "assemblyMs": 43.100875999999516,
+        "linearMs": 7.815376999999216
+      },
+      "residual": {
+        "force": 4.842580516396344e-7,
+        "torque": 6.671348538728292e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 49,
+      "factorizations": 49,
+      "backtracks": 17,
+      "ms": 61.572541,
+      "timings": {
+        "assemblyMs": 49.33562700000175,
+        "linearMs": 8.883712000000287
+      },
+      "residual": {
+        "force": 3.440338071132213e-8,
+        "torque": 9.889266671053015e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 64.01566600000001,
+      "timings": {
+        "assemblyMs": 51.400254999999106,
+        "linearMs": 8.454461999999921
+      },
+      "residual": {
+        "force": 4.855332846050304e-7,
+        "torque": 6.670059258814046e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 2,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 48,
+      "factorizations": 48,
+      "backtracks": 19,
+      "ms": 65.7627500000001,
+      "timings": {
+        "assemblyMs": 53.761921000000484,
+        "linearMs": 8.545580999999856
+      },
+      "residual": {
+        "force": 8.561452838252019e-7,
+        "torque": 3.1371706054608384e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 1.3460000000000036,
+      "timings": {
+        "assemblyMs": 1.3435830000000806,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.65037499999994,
+      "timings": {
+        "assemblyMs": 0.6494579999998678,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 1.9566670000001523
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.6180000000001655,
+      "timings": {
+        "assemblyMs": 0.6174579999999423,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.5538329999999405
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.35879099999988284,
+      "timings": {
+        "assemblyMs": 0.3581659999999829,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.5837080000001151
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2934580000001006,
+      "timings": {
+        "assemblyMs": 0.2931250000001455,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 251,
+      "matrixEntries": 8269,
+      "interToolRows": 0,
+      "transferMs": 0.505333999999948
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2929999999998927,
+      "timings": {
+        "assemblyMs": 0.2927079999999478,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5052080000000387
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2986249999999018,
+      "timings": {
+        "assemblyMs": 0.2984160000000884,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.4973339999999098
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3031659999999192,
+      "timings": {
+        "assemblyMs": 0.30283299999996416,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.4939999999999145
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.4277079999999387,
+      "timings": {
+        "assemblyMs": 0.4268329999999878,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5473750000001019
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.3018329999999878,
+      "timings": {
+        "assemblyMs": 0.301290999999992,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5331249999999272
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2941249999998945,
+      "timings": {
+        "assemblyMs": 0.2938329999999496,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5264170000000377
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.2934579999998732,
+      "timings": {
+        "assemblyMs": 0.29312499999991815,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.5004169999999704
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 0,
+      "factorizations": 0,
+      "backtracks": 0,
+      "ms": 0.29212500000016917,
+      "timings": {
+        "assemblyMs": 0.2919160000001284,
+        "linearMs": 0
+      },
+      "residual": {
+        "force": 0,
+        "torque": 0,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0,
+      "transferMs": 0.4911250000000109
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.6953330000001188,
+      "timings": {
+        "assemblyMs": 1.4683330000000296,
+        "linearMs": 0.17399999999997817
+      },
+      "residual": {
+        "force": 6.04687749007514e-10,
+        "torque": 1.6370904631912695e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.6962499999999636,
+      "timings": {
+        "assemblyMs": 1.424250000000029,
+        "linearMs": 0.22054099999991195
+      },
+      "residual": {
+        "force": 7.265260818186848e-10,
+        "torque": 2.7281776850001388e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.5857499999999618,
+      "timings": {
+        "assemblyMs": 1.3220000000001164,
+        "linearMs": 0.21908299999995506
+      },
+      "residual": {
+        "force": 9.082344119504052e-10,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire",
+      "phase": "rotate",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 1,
+      "factorizations": 1,
+      "backtracks": 0,
+      "ms": 1.5429169999999885,
+      "timings": {
+        "assemblyMs": 1.3026659999998174,
+        "linearMs": 0.1979580000001988
+      },
+      "residual": {
+        "force": 2.542890632873489e-9,
+        "torque": 3.27418092638254e-11,
+        "length": 0
+      },
+      "dofs": 255,
+      "matrixEntries": 8404,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "initial",
+      "nodes": 21,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 5,
+      "factorizations": 5,
+      "backtracks": 0,
+      "ms": 1.4855419999998958,
+      "timings": {
+        "assemblyMs": 1.1322909999998956,
+        "linearMs": 0.274167000000034
+      },
+      "residual": {
+        "force": 3.785591258081112e-9,
+        "torque": 1.7922913796798027e-10,
+        "length": 8.171241461241152e-14
+      },
+      "dofs": 83,
+      "matrixEntries": 2599,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.099999999999909,
+      "timings": {
+        "assemblyMs": 0.8634590000001481,
+        "linearMs": 0.17920900000012807
+      },
+      "residual": {
+        "force": 2.294847138345341e-8,
+        "torque": 1.8816117495270503e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.18716700000004494
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.3293750000000273,
+      "timings": {
+        "assemblyMs": 1.0972919999999249,
+        "linearMs": 0.18400099999985287
+      },
+      "residual": {
+        "force": 1.1415043205083465e-8,
+        "torque": 3.334634156106273e-10,
+        "length": 3.552713678800501e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.17791600000009566
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.0895410000000538,
+      "timings": {
+        "assemblyMs": 0.8852500000000418,
+        "linearMs": 0.15266599999995378
+      },
+      "residual": {
+        "force": 4.980350495008889e-9,
+        "torque": 3.1311683856098236e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.16508399999997891
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.0947920000000977,
+      "timings": {
+        "assemblyMs": 0.8965830000001915,
+        "linearMs": 0.14775000000031469
+      },
+      "residual": {
+        "force": 6.948304953257157e-9,
+        "torque": 1.3305682252610692e-10,
+        "length": 5.773159728050814e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.18699999999989814
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.0453749999999218,
+      "timings": {
+        "assemblyMs": 0.8540829999997186,
+        "linearMs": 0.1437079999998332
+      },
+      "residual": {
+        "force": 3.078151546267694e-9,
+        "torque": 9.53049264742286e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.16162500000018554
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.043666999999914,
+      "timings": {
+        "assemblyMs": 0.8528740000003836,
+        "linearMs": 0.14304199999992306
+      },
+      "residual": {
+        "force": 1.882847516861032e-9,
+        "torque": 1.9218706560972842e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.19379099999991922
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.3167919999998503,
+      "timings": {
+        "assemblyMs": 1.0947499999999764,
+        "linearMs": 0.15583300000025702
+      },
+      "residual": {
+        "force": 2.044762951209849e-9,
+        "torque": 7.74557337405076e-11,
+        "length": 7.771561172376096e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.16204199999992852
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.1057089999999334,
+      "timings": {
+        "assemblyMs": 0.9035010000000057,
+        "linearMs": 0.15287499999999454
+      },
+      "residual": {
+        "force": 2.1633715205224037e-9,
+        "torque": 3.2661320789205263e-10,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.26791700000012497
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.057790999999952,
+      "timings": {
+        "assemblyMs": 0.8681659999999738,
+        "linearMs": 0.14270900000019537
+      },
+      "residual": {
+        "force": 6.001536632605301e-10,
+        "torque": 2.2882928618122192e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.1792089999999007
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 1.1351670000001377,
+      "timings": {
+        "assemblyMs": 0.9377070000000458,
+        "linearMs": 0.1473759999998947
+      },
+      "residual": {
+        "force": 3.763607379924757e-10,
+        "torque": 1.0163853673043556e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.16487499999993815
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.9124580000000151,
+      "timings": {
+        "assemblyMs": 0.7186670000000959,
+        "linearMs": 0.14675000000011096
+      },
+      "residual": {
+        "force": 7.750095631573976e-10,
+        "torque": 1.6636554363763986e-10,
+        "length": 8.881784197001252e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.18583300000000236
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "feed",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8849169999998594,
+      "timings": {
+        "assemblyMs": 0.6985409999999774,
+        "linearMs": 0.1415830000000824
+      },
+      "residual": {
+        "force": 4.3627472323683267e-10,
+        "torque": 2.443800683097062e-10,
+        "length": 6.217248937900877e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0,
+      "transferMs": 0.16550000000006548
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8680839999999534,
+      "timings": {
+        "assemblyMs": 0.6814160000001266,
+        "linearMs": 0.142748999999867
+      },
+      "residual": {
+        "force": 5.160049387767641e-10,
+        "torque": 1.5504166410410789e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8726669999998649,
+      "timings": {
+        "assemblyMs": 0.683667000000014,
+        "linearMs": 0.14433400000007168
+      },
+      "residual": {
+        "force": 3.2699718277933907e-10,
+        "torque": 9.52134412733903e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8712920000000395,
+      "timings": {
+        "assemblyMs": 0.6830420000001141,
+        "linearMs": 0.14404099999978826
+      },
+      "residual": {
+        "force": 4.30669507187617e-10,
+        "torque": 1.6605820410261761e-10,
+        "length": 5.329070518200751e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "catheter",
+      "phase": "rotate",
+      "nodes": 22,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 0.8668749999999363,
+      "timings": {
+        "assemblyMs": 0.67837499999996,
+        "linearMs": 0.14404100000001563
+      },
+      "residual": {
+        "force": 3.133637142898171e-10,
+        "torque": 8.106936190676549e-11,
+        "length": 7.105427357601002e-15
+      },
+      "dofs": 87,
+      "matrixEntries": 2734,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "initial",
+      "nodes": 63,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 3,
+      "factorizations": 3,
+      "backtracks": 0,
+      "ms": 3.298915999999963,
+      "timings": {
+        "assemblyMs": 2.6718739999996615,
+        "linearMs": 0.4647490000004382
+      },
+      "residual": {
+        "force": 1.420698026591099e-8,
+        "torque": 1.7462298274040212e-10,
+        "length": 4.627409566637652e-13
+      },
+      "dofs": 271,
+      "matrixEntries": 10083,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.887958000000026,
+      "timings": {
+        "assemblyMs": 2.441124999999829,
+        "linearMs": 0.3428750000002765
+      },
+      "residual": {
+        "force": 1.0132816656093551e-7,
+        "torque": 2.5012699813760654e-10,
+        "length": 4.973799150320701e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.6994589999999334
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.6390420000000177,
+      "timings": {
+        "assemblyMs": 2.1793340000001535,
+        "linearMs": 0.354624000000058
+      },
+      "residual": {
+        "force": 6.584012013886398e-8,
+        "torque": 2.619344741106032e-10,
+        "length": 3.907985046680551e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.750791000000163
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.8199580000000424,
+      "timings": {
+        "assemblyMs": 2.3763750000000528,
+        "linearMs": 0.34141700000009223
+      },
+      "residual": {
+        "force": 6.581830791185894e-8,
+        "torque": 4.304448246074227e-10,
+        "length": 3.019806626980426e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.6419590000000426
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 64,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.5909999999998945,
+      "timings": {
+        "assemblyMs": 2.152625000000171,
+        "linearMs": 0.33741699999995944
+      },
+      "residual": {
+        "force": 6.784642560507262e-8,
+        "torque": 8.257167387458486e-10,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 276,
+      "matrixEntries": 10269,
+      "interToolRows": 0,
+      "transferMs": 0.6274169999999231
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.622833000000128,
+      "timings": {
+        "assemblyMs": 2.179292000000032,
+        "linearMs": 0.3396260000001803
+      },
+      "residual": {
+        "force": 6.86704722785387e-8,
+        "torque": 1.5452859221879262e-9,
+        "length": 3.6415315207705135e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6499579999999696
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 3.05987499999992,
+      "timings": {
+        "assemblyMs": 2.55953999999997,
+        "linearMs": 0.3954169999997248
+      },
+      "residual": {
+        "force": 6.989283487808679e-8,
+        "torque": 3.1008575287724503e-9,
+        "length": 4.085620730620576e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6332920000002105
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.8800830000000133,
+      "timings": {
+        "assemblyMs": 2.3713330000000497,
+        "linearMs": 0.3860010000000784
+      },
+      "residual": {
+        "force": 6.864137411045755e-8,
+        "torque": 5.951218165659668e-9,
+        "length": 3.375077994860476e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7329999999999472
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.9443750000000364,
+      "timings": {
+        "assemblyMs": 2.470959000000221,
+        "linearMs": 0.3621659999998883
+      },
+      "residual": {
+        "force": 6.504016143535412e-8,
+        "torque": 1.0858967063541863e-8,
+        "length": 3.963496197911809e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6918339999999716
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.67512499999998,
+      "timings": {
+        "assemblyMs": 2.2181259999997565,
+        "linearMs": 0.3510409999998956
+      },
+      "residual": {
+        "force": 1.1549141312144332e-7,
+        "torque": 1.8868223550769607e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.6505829999998696
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.871458000000075,
+      "timings": {
+        "assemblyMs": 2.3895830000001297,
+        "linearMs": 0.36849900000015623
+      },
+      "residual": {
+        "force": 2.0264304493967437e-7,
+        "torque": 3.218966677004708e-8,
+        "length": 5.5067062021407764e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7224999999998545
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 3.0952920000001996,
+      "timings": {
+        "assemblyMs": 2.6250820000000203,
+        "linearMs": 0.3546670000000631
+      },
+      "residual": {
+        "force": 3.4688599589660664e-7,
+        "torque": 5.3514123861091605e-8,
+        "length": 3.9968028886505635e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7747079999999187
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "feed",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 2,
+      "factorizations": 2,
+      "backtracks": 0,
+      "ms": 2.888458000000128,
+      "timings": {
+        "assemblyMs": 2.4228330000000824,
+        "linearMs": 0.3452500000000782
+      },
+      "residual": {
+        "force": 5.921329681280942e-7,
+        "torque": 8.920765308794599e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0,
+      "transferMs": 0.7752499999999145
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 55.31779099999994,
+      "timings": {
+        "assemblyMs": 44.40925399999924,
+        "linearMs": 7.861126000000013
+      },
+      "residual": {
+        "force": 4.842580516396344e-7,
+        "torque": 6.671348538728292e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 49,
+      "factorizations": 49,
+      "backtracks": 17,
+      "ms": 61.958708000000115,
+      "timings": {
+        "assemblyMs": 49.699290999999675,
+        "linearMs": 8.740372000000434
+      },
+      "residual": {
+        "force": 3.440338071132213e-8,
+        "torque": 9.889266671053015e-8,
+        "length": 3.730349362740526e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 44,
+      "factorizations": 44,
+      "backtracks": 14,
+      "ms": 54.28250000000003,
+      "timings": {
+        "assemblyMs": 43.32437799999889,
+        "linearMs": 7.979537000000164
+      },
+      "residual": {
+        "force": 4.855332846050304e-7,
+        "torque": 6.670059258814046e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    },
+    {
+      "repeat": 3,
+      "tools": "wire+catheter",
+      "phase": "rotate",
+      "nodes": 65,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 48,
+      "factorizations": 48,
+      "backtracks": 19,
+      "ms": 72.21733300000005,
+      "timings": {
+        "assemblyMs": 56.383335000000216,
+        "linearMs": 10.524872000000869
+      },
+      "residual": {
+        "force": 8.561452838252019e-7,
+        "torque": 3.1371706054608384e-7,
+        "length": 3.8191672047105385e-14
+      },
+      "dofs": 280,
+      "matrixEntries": 10424,
+      "interToolRows": 0
+    }
+  ]
+}

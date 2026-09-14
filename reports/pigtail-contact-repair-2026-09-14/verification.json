@@ -1,0 +1,26 @@
+{
+  "checkpoint": {
+    "converged": true,
+    "iterations": 14,
+    "factorizations": 144,
+    "certificateBound": 1.9965341380157042e-08,
+    "subdivisions": 1
+  },
+  "fullRoute": {
+    "failed": false,
+    "steps": 1093,
+    "withdrawalSteps": 488,
+    "wireFinalMm": 0,
+    "catheterFinalMm": 215,
+    "finalNodes": 53,
+    "maxBendAngleDegrees": 45.0000000000963,
+    "maxPenetrationMm": 7.332631168921466e-09,
+    "maxCertificateBound": 9.985533040435257e-07
+  },
+  "sourceHashes": {
+    "src/physics/kirchhoffSharedAxisRemesh.js": "4a016b020f323886758afd03bcdede8f9ac0500f6037aa55470a0c0ecdfc6201",
+    "src/physics/kirchhoffSharedAxisNative.js": "39a4b06906b75bb1f211e8a3e49a20565919c4ff2e9d589a05d0a9a1c96c13e7",
+    "src/physics/kirchhoffSharedAxisActiveBasis.js": "1b10fea1f59251ee9b4820c63f87e1e3a602f1879ba7bafb95f30c34e6df7028",
+    "tests/helpers/sharedAxisReplay.js": "041c145e0bf60e1d0ecbd2fec78143085f7a5a845c790fcfb42e6f7c7870344f"
+  }
+}

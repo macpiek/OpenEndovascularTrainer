@@ -3,6 +3,7 @@
 const variants = Object.freeze({
     reference: null,
     'composite-joint': null,
+    'shared-axis': null,
     joint: Object.freeze({ activeCondensation: false, simultaneousCoulomb: false }),
     'joint-active-coulomb': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
     'joint-wall-witnesses': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
@@ -11,15 +12,16 @@ const variants = Object.freeze({
     'joint-full-band': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true, coulombStructure: 'full-band' })
 });
 
-// Application bookmarks from the experimental rebuild must restore the
-// established position-history mechanics, not merely an older experiment.
-// Split motion remains available only through an explicit experimental flag.
+// The application opens the shared-axis whole-step solver by default. Explicit
+// legacy URLs retain their existing selection/bookmark compatibility rules;
+// split motion remains available through its explicit experimental flag.
 export function resolveAppCoupledSolver(search = '') {
     const params = new URLSearchParams(search);
     const requested = params.get('coupledSolver');
+    if (!requested) return 'shared-axis';
     if (params.get('experimentalSplitMotion') === '1' && requested === 'joint-two-channel')
         return requested;
-    return !requested || requested === 'composite-joint' || requested === 'joint-two-channel'
+    return requested === 'composite-joint' || requested === 'joint-two-channel'
         ? 'joint-active-coulomb' : requested;
 }
 
@@ -27,7 +29,7 @@ export function createCoupledSolverSelection(id = 'reference', kernel = {}) {
     if (!Object.hasOwn(variants, id)) throw new RangeError(`Unknown coupled solver: ${id}`);
     const options = variants[id];
     const twoChannel = id === 'joint-two-channel';
-    const composite = id === 'composite-joint';
+    const composite = id === 'composite-joint' || id === 'shared-axis';
     const solveKernel = id === 'joint-axial-sections' ? kernel.solveAxial : kernel.solve;
     if (composite && (typeof kernel.wholeStepSystem?.step !== 'function' || typeof kernel.wholeStepSystem?.reset !== 'function'))
         throw new TypeError(`${id} requires its whole-step system`);
@@ -92,7 +94,7 @@ export function createCoupledSolverSelection(id = 'reference', kernel = {}) {
                 jointMotionMode: world?.jointMotionMode ?? null,
                 biasMaterialMode: twoChannel ? 'coupled-compliance' : null,
                 installed: world ? composite ? world.wholeStepSystem === kernel.wholeStepSystem : world.coupledSystem === coupledSystem : null,
-                ...(composite ? {wholeStep: kernel.wholeStepSystem.diagnostics ?? null} : {}),
+                ...(composite ? {wholeStep: structuredClone(kernel.wholeStepSystem.diagnostics ?? null)} : {}),
                 lastStepSolver: world?.lastCoupledSolver ?? null,
                 independentComponents: coupledSystem?.independentComponents ?? false,
                 // Counts since reset, including failed linear proposals.

@@ -1,3 +1,4 @@
+import {createSolverFailurePanel} from './solverFailurePanel.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js';
 import { setupCArmControls } from '../carmControls.js';
@@ -223,6 +224,8 @@ export function initUI(options) {
   const reproduceRetrogradeGapButton = document.getElementById('reproduceRetrogradeGap');
   const reproduceArchBolusButton = document.getElementById('reproduceArchBolus');
   const catheterAortaSetupStatusEl = document.getElementById('catheterAortaSetupStatus');
+  const runWire60BenchmarkButton = document.getElementById('runWire60Benchmark');
+  runWire60BenchmarkButton?.addEventListener('click',()=>onStartBrowserBenchmark?.({mode:'wire60-catheter',skipWarmup:true,automated:true}));
   const runSoloCatheterBenchmarkButton = document.getElementById('runSoloCatheterBenchmark');
   const runGuidewireBenchmarkButton = document.getElementById('runGuidewireBenchmark');
   const runGuidewireBenchmarkFullButton = document.getElementById('runGuidewireBenchmarkFull');
@@ -233,6 +236,17 @@ export function initUI(options) {
   const stopBrowserBenchmarkButton = document.getElementById('stopBrowserBenchmark');
   const browserBenchmarkStatusEl = document.getElementById('browserBenchmarkStatus');
   const browserBenchmarkReportEl = document.getElementById('browserBenchmarkReport');
+  const solverFailurePanel = createSolverFailurePanel({
+    button: document.getElementById('downloadSolverFailure'),
+    output: document.getElementById('solverFailureDetails'),
+    storage: {getItem:key=>sessionStorage.getItem(key),setItem:(key,value)=>sessionStorage.setItem(key,value)},
+    download: (json,filename) => {
+      const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+      const link=document.createElement('a');link.href=url;link.download=filename;
+      document.body.append(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+  });
 
   // Initial UI state
   if (guidewireDiameterEl) {
@@ -1574,22 +1588,29 @@ export function initUI(options) {
   }
   let perfElapsed = 0;
   let perfFrames = 0;
-  function updatePerfStats(dtSeconds) {
+  let perfPhysicsStepsStart = 0;
+  function updatePerfStats(dtSeconds, completedPhysicsSteps) {
     if (!perfStatsEl) return;
     perfElapsed += dtSeconds;
     perfFrames++;
     if (perfElapsed < 0.25) return;
     const fps = (perfFrames / Math.max(1e-6, perfElapsed)).toFixed(1);
+    // Count committed timesteps, including work completed between render
+    // frames. Cooperative slices and rejected trials must not inflate this.
+    const physicsHz = (Math.max(0, completedPhysicsSteps - perfPhysicsStepsStart) /
+      Math.max(1e-6, perfElapsed)).toFixed(1);
     let mem = 'N/A';
     if (performance.memory) {
       mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
     }
-    perfStatsEl.textContent = `FPS: ${fps} | Mem: ${mem}`;
+    perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz | Mem: ${mem}`;
+    perfPhysicsStepsStart = completedPhysicsSteps;
     perfElapsed = 0;
     perfFrames = 0;
   }
   function updateBrowserBenchmarkStatus(status, report = null) {
     const running = !!status?.running;
+    if (runWire60BenchmarkButton) runWire60BenchmarkButton.disabled = running;
     if (runSoloCatheterBenchmarkButton) runSoloCatheterBenchmarkButton.disabled = running;
     if (runGuidewireBenchmarkButton) runGuidewireBenchmarkButton.disabled = running;
     if (runGuidewireBenchmarkFullButton) runGuidewireBenchmarkFullButton.disabled = running;
@@ -2002,6 +2023,7 @@ export function initUI(options) {
     updatePerfStats,
     updateCatheterAortaSetupStatus,
     updateBrowserBenchmarkStatus,
+    updateSolverFailure: report => solverFailurePanel.record(report),
     updateDsaRoadmapState,
     setAutomatedBenchmarkMode,
     getCArmRevision: () => cArmControls?.getRevision?.() ?? 0,

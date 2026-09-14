@@ -1,0 +1,20 @@
+✔ one authoritative axis; independent spins and one length equation per spatial edge (7.520583ms)
+✔ native energy pullback has the correct spatial and independent spin derivatives (13.383042ms)
+✔ external cantilever oracle: shared rigidity is the sum; unloading recovers the straight shape (14.299208ms)
+✔ a stiff straight wire counteracts the native curved catheter energy (3.933459ms)
+✔ frictionless independent rotation: catheter torque does not rotate the wire (1.234083ms)
+✔ independent feed/withdrawal crosses mesh nodes and either tool may extend beyond the other (82.588375ms)
+✔ planar wall acts on the outer catheter radius in overlap and wire radius beyond it (9.048ms)
+✔ nonconverged solve is atomic and never commits a partial relaxation (1.970084ms)
+✔ a failed geometry callback restores the complete accepted state (0.665792ms)
+✔ invalid and degenerate geometry is rejected explicitly (0.662084ms)
+✔ partial-overlap cantilever agrees with the piecewise rigidity integral (5.902166ms)
+✔ long wire / short overlap remains converged after feed and curved-material rotation (118.331208ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 359.524625

@@ -195,6 +195,128 @@
       (local.set $i (i32.sub (local.get $i) (i32.const 1))) (br $back)))
     (local.get $swaps))
 
+  ;; Opt-in incremental-contact prototype: isolated retained factor storage.
+  (func (export "factorRetainedGeneralBandLU") (param $a i32) (param $rhs i32) (param $right i32)
+    (param $n i32) (param $kl i32) (param $ku i32) (param $pivots i32) (param $lower i32) (result i32)
+    (local $stride i32) (local $k i32) (local $i i32) (local $j i32) (local $last i32)
+    (local $pivot i32) (local $swaps i32) (local $end i32) (local $ke i32) (local $pe i32)
+    (local $kb i32) (local $ib i32) (local $pb i32) (local $p i32) (local $q i32)
+    (local $best f64) (local $value f64) (local $temp f64) (local $ratio f64) (local $diagonal f64)
+    (local.set $stride (i32.add (i32.mul (local.get $kl) (i32.const 2)) (local.get $ku)))
+    ;; stride here is the row-base difference after subtracting the row index.
+    (block $done (loop $columns
+      (br_if $done (i32.ge_s (local.get $k) (local.get $n)))
+      (local.set $kb (i32.add (local.get $a) (i32.mul (i32.add (i32.mul (local.get $k) (local.get $stride)) (local.get $kl)) (i32.const 8))))
+      (local.set $pivot (local.get $k))
+      (local.set $best (f64.abs (f64.load (i32.add (local.get $kb) (i32.mul (local.get $k) (i32.const 8))))))
+      (local.set $last (i32.add (local.get $k) (local.get $kl)))
+      (if (i32.ge_s (local.get $last) (local.get $n)) (then (local.set $last (i32.sub (local.get $n) (i32.const 1)))))
+      (local.set $i (i32.add (local.get $k) (i32.const 1)))
+      (block $pivotDone (loop $scan
+        (br_if $pivotDone (i32.gt_s (local.get $i) (local.get $last)))
+        (local.set $ib (i32.add (local.get $a) (i32.mul (i32.add (i32.mul (local.get $i) (local.get $stride)) (local.get $kl)) (i32.const 8))))
+        (local.set $value (f64.abs (f64.load (i32.add (local.get $ib) (i32.mul (local.get $k) (i32.const 8))))))
+        (if (f64.gt (local.get $value) (local.get $best)) (then (local.set $best (local.get $value)) (local.set $pivot (local.get $i))))
+        (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $scan)))
+      (if (i32.eqz (f64.gt (local.get $best) (f64.const 1e-15))) (then (return (i32.const -1))))
+      (i32.store (i32.add (local.get $pivots) (i32.mul (local.get $k) (i32.const 4))) (local.get $pivot))
+      (local.set $ke (i32.load (i32.add (local.get $right) (i32.mul (local.get $k) (i32.const 4)))))
+      (if (i32.ne (local.get $pivot) (local.get $k)) (then
+        (local.set $pb (i32.add (local.get $a) (i32.mul (i32.add (i32.mul (local.get $pivot) (local.get $stride)) (local.get $kl)) (i32.const 8))))
+        (local.set $pe (i32.load (i32.add (local.get $right) (i32.mul (local.get $pivot) (i32.const 4)))))
+        (local.set $end (if (result i32) (i32.gt_s (local.get $ke) (local.get $pe)) (then (local.get $ke)) (else (local.get $pe))))
+        (local.set $j (local.get $k))
+        (block $swapDone (loop $swap
+          (br_if $swapDone (i32.gt_s (local.get $j) (local.get $end)))
+          (local.set $p (i32.add (local.get $kb) (i32.mul (local.get $j) (i32.const 8))))
+          (local.set $q (i32.add (local.get $pb) (i32.mul (local.get $j) (i32.const 8))))
+          (local.set $temp (f64.load (local.get $p))) (f64.store (local.get $p) (f64.load (local.get $q))) (f64.store (local.get $q) (local.get $temp))
+          (local.set $j (i32.add (local.get $j) (i32.const 1))) (br $swap)))
+        (i32.store (i32.add (local.get $right) (i32.mul (local.get $k) (i32.const 4))) (local.get $pe))
+        (i32.store (i32.add (local.get $right) (i32.mul (local.get $pivot) (i32.const 4))) (local.get $ke))
+        (local.set $ke (local.get $pe))
+        (local.set $p (i32.add (local.get $rhs) (i32.mul (local.get $k) (i32.const 8))))
+        (local.set $q (i32.add (local.get $rhs) (i32.mul (local.get $pivot) (i32.const 8))))
+        (local.set $temp (f64.load (local.get $p))) (f64.store (local.get $p) (f64.load (local.get $q))) (f64.store (local.get $q) (local.get $temp))
+        (local.set $swaps (i32.add (local.get $swaps) (i32.const 1)))))
+      (local.set $diagonal (f64.load (i32.add (local.get $kb) (i32.mul (local.get $k) (i32.const 8)))))
+      (local.set $i (i32.add (local.get $k) (i32.const 1)))
+      (block $eliminateDone (loop $eliminate
+        (br_if $eliminateDone (i32.gt_s (local.get $i) (local.get $last)))
+        (local.set $ib (i32.add (local.get $a) (i32.mul (i32.add (i32.mul (local.get $i) (local.get $stride)) (local.get $kl)) (i32.const 8))))
+        (local.set $ratio (f64.div (f64.load (i32.add (local.get $ib) (i32.mul (local.get $k) (i32.const 8)))) (local.get $diagonal)))
+        (f64.store (i32.add (local.get $lower) (i32.mul (i32.add (i32.mul (local.get $k) (local.get $kl)) (i32.sub (local.get $i) (i32.add (local.get $k) (i32.const 1)))) (i32.const 8))) (local.get $ratio))
+        (if (f64.ne (local.get $ratio) (f64.const 0)) (then
+          (local.set $j (i32.add (local.get $k) (i32.const 1)))
+          (block $updateDone (loop $update
+            (br_if $updateDone (i32.gt_s (local.get $j) (local.get $ke)))
+            (local.set $p (i32.add (local.get $ib) (i32.mul (local.get $j) (i32.const 8))))
+            (f64.store (local.get $p) (f64.sub (f64.load (local.get $p)) (f64.mul (local.get $ratio) (f64.load (i32.add (local.get $kb) (i32.mul (local.get $j) (i32.const 8)))))))
+            (local.set $j (i32.add (local.get $j) (i32.const 1))) (br $update)))
+          (local.set $p (i32.add (local.get $right) (i32.mul (local.get $i) (i32.const 4))))
+          (if (i32.gt_s (local.get $ke) (i32.load (local.get $p))) (then (i32.store (local.get $p) (local.get $ke))))
+          (local.set $p (i32.add (local.get $rhs) (i32.mul (local.get $i) (i32.const 8))))
+          (f64.store (local.get $p) (f64.sub (f64.load (local.get $p)) (f64.mul (local.get $ratio) (f64.load (i32.add (local.get $rhs) (i32.mul (local.get $k) (i32.const 8)))))))))
+        (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $eliminate)))
+      (local.set $k (i32.add (local.get $k) (i32.const 1))) (br $columns)))
+    (local.set $i (i32.sub (local.get $n) (i32.const 1)))
+    (block $backDone (loop $back
+      (br_if $backDone (i32.lt_s (local.get $i) (i32.const 0)))
+      (local.set $ib (i32.add (local.get $a) (i32.mul (i32.add (i32.mul (local.get $i) (local.get $stride)) (local.get $kl)) (i32.const 8))))
+      (local.set $p (i32.add (local.get $rhs) (i32.mul (local.get $i) (i32.const 8))))
+      (local.set $value (f64.load (local.get $p)))
+      (local.set $end (i32.load (i32.add (local.get $right) (i32.mul (local.get $i) (i32.const 4)))))
+      (local.set $j (i32.add (local.get $i) (i32.const 1)))
+      (block $sumDone (loop $sum
+        (br_if $sumDone (i32.gt_s (local.get $j) (local.get $end)))
+        (local.set $value (f64.sub (local.get $value) (f64.mul (f64.load (i32.add (local.get $ib) (i32.mul (local.get $j) (i32.const 8)))) (f64.load (i32.add (local.get $rhs) (i32.mul (local.get $j) (i32.const 8)))))))
+        (local.set $j (i32.add (local.get $j) (i32.const 1))) (br $sum)))
+      (f64.store (local.get $p) (f64.div (local.get $value) (f64.load (i32.add (local.get $ib) (i32.mul (local.get $i) (i32.const 8))))))
+      (local.set $i (i32.sub (local.get $i) (i32.const 1))) (br $back)))
+    (local.get $swaps))
+
+  ;; Reapply the recorded elementary row operations to a new RHS. Lower
+  ;; factors are kept in elimination order, so later row pivots cannot erase them.
+  (func (export "solveRetainedGeneralBandLU") (param $a i32) (param $rhs i32) (param $right i32)
+    (param $n i32) (param $kl i32) (param $ku i32) (param $pivots i32) (param $lower i32)
+    (local $stride i32) (local $k i32) (local $i i32) (local $j i32) (local $last i32)
+    (local $pivot i32) (local $end i32) (local $ib i32) (local $p i32) (local $q i32)
+    (local $value f64) (local $temp f64) (local $ratio f64)
+    (local.set $stride (i32.add (i32.mul (local.get $kl) (i32.const 2)) (local.get $ku)))
+    (block $done (loop $columns
+      (br_if $done (i32.ge_s (local.get $k) (local.get $n)))
+      (local.set $pivot (i32.load (i32.add (local.get $pivots) (i32.mul (local.get $k) (i32.const 4)))))
+      (local.set $p (i32.add (local.get $rhs) (i32.mul (local.get $k) (i32.const 8))))
+      (local.set $q (i32.add (local.get $rhs) (i32.mul (local.get $pivot) (i32.const 8))))
+      (local.set $temp (f64.load (local.get $p)))
+      (f64.store (local.get $p) (f64.load (local.get $q))) (f64.store (local.get $q) (local.get $temp))
+      (local.set $last (i32.add (local.get $k) (local.get $kl)))
+      (if (i32.ge_s (local.get $last) (local.get $n)) (then (local.set $last (i32.sub (local.get $n) (i32.const 1)))))
+      (local.set $i (i32.add (local.get $k) (i32.const 1)))
+      (block $rowsDone (loop $rows
+        (br_if $rowsDone (i32.gt_s (local.get $i) (local.get $last)))
+        (local.set $ratio (f64.load (i32.add (local.get $lower) (i32.mul (i32.add (i32.mul (local.get $k) (local.get $kl)) (i32.sub (local.get $i) (i32.add (local.get $k) (i32.const 1)))) (i32.const 8)))))
+        (if (f64.ne (local.get $ratio) (f64.const 0)) (then
+          (local.set $q (i32.add (local.get $rhs) (i32.mul (local.get $i) (i32.const 8))))
+          (f64.store (local.get $q) (f64.sub (f64.load (local.get $q)) (f64.mul (local.get $ratio) (f64.load (local.get $p)))))))
+        (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $rows)))
+      (local.set $k (i32.add (local.get $k) (i32.const 1))) (br $columns)))
+    (local.set $i (i32.sub (local.get $n) (i32.const 1)))
+    (block $backDone (loop $back
+      (br_if $backDone (i32.lt_s (local.get $i) (i32.const 0)))
+      (local.set $ib (i32.add (local.get $a) (i32.mul (i32.add (i32.mul (local.get $i) (local.get $stride)) (local.get $kl)) (i32.const 8))))
+      (local.set $p (i32.add (local.get $rhs) (i32.mul (local.get $i) (i32.const 8))))
+      (local.set $value (f64.load (local.get $p)))
+      (local.set $end (i32.load (i32.add (local.get $right) (i32.mul (local.get $i) (i32.const 4)))))
+      (local.set $j (i32.add (local.get $i) (i32.const 1)))
+      (block $sumDone (loop $sum
+        (br_if $sumDone (i32.gt_s (local.get $j) (local.get $end)))
+        (local.set $value (f64.sub (local.get $value) (f64.mul (f64.load (i32.add (local.get $ib) (i32.mul (local.get $j) (i32.const 8)))) (f64.load (i32.add (local.get $rhs) (i32.mul (local.get $j) (i32.const 8)))))))
+        (local.set $j (i32.add (local.get $j) (i32.const 1))) (br $sum)))
+      (f64.store (local.get $p) (f64.div (local.get $value) (f64.load (i32.add (local.get $ib) (i32.mul (local.get $i) (i32.const 8))))))
+      (local.set $i (i32.sub (local.get $i) (i32.const 1))) (br $back)))
+  )
+
   ;; Full residual in the same subtraction order as the original JS loop:
   ;; copy rhs; visit each row's diagonal, then lower entries in column order.
   ;; Leading structural zeros are omitted; no residual equation is removed.

@@ -1,0 +1,91 @@
+{
+  "earlyLiveFallback": false,
+  "totalMs": 281.900708,
+  "result": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "iterations": 14,
+    "factorizations": 144,
+    "workingSetReuses": 30,
+    "backtracks": 0,
+    "geometryRestarts": 6,
+    "ms": 277.3595,
+    "timings": {
+      "assemblyMs": 92.07803899999988,
+      "linearMs": 172.83933400000194,
+      "frictionMs": 1.0284999999998945
+    },
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 2.020605904817785e-14,
+      "contacts": 14,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 3.0198066269804257e-15,
+          "maxBendAngleDegrees": 43.25025169895009,
+          "maxBendNode": 47,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 51.38268316725007,
+          "activeWallContacts": 0,
+          "currentNormalLoad": 0
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.0198066269804257e-15,
+          "maxBendAngleDegrees": 45.00000000000001,
+          "maxBendNode": 50,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 61.545831559795126,
+          "activeWallContacts": 14,
+          "currentNormalLoad": 461235.16759512725
+        }
+      ]
+    },
+    "residual": {
+      "force": 1.9964318198617548e-8,
+      "torque": 2.3525581482886082e-9,
+      "length": 1.509903313490213e-14
+    },
+    "dofs": 259,
+    "matrixEntries": 11794,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 262144,
+      "grows": 0,
+      "viewBuilds": 10,
+      "requests": 144
+    },
+    "interToolRows": 0,
+    "certificateBound": 1.9965341380157042e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 1.0231815394945443e-12,
+      "contacts": 9,
+      "sliding": 9
+    },
+    "frictionIterations": 2,
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 0,
+    "subdivisions": 1
+  },
+  "directions": {
+    "live/0/success": {
+      "count": 10,
+      "factorizations": 87
+    },
+    "live/0/active-set-cycle": {
+      "count": 4,
+      "factorizations": 31
+    },
+    "live/1/success": {
+      "count": 4,
+      "factorizations": 26
+    }
+  }
+}
