@@ -1,0 +1,255 @@
+{
+  "failed": false,
+  "timeout": false,
+  "wallMs": 95377.97670900001,
+  "terminalInsertion": 0,
+  "hashes": {
+    "src/physics/kirchhoffSharedAxisNative.js": "f55678a11a2373bd3125769b457a349c0f21da9616e65e27f9b7cc12cb8a3be5",
+    "src/physics/kirchhoffSharedAxisTimeStep.js": "03b934a836147abf1b38a8a7ad21fe3aac0dcd6f59552319c75e841047fd4a3c",
+    "src/physics/kirchhoffSharedAxisWallFriction.js": "668d476112f4bedaeebbdc4b89073af86d18e3d6673a45f68970c9d3a1a6a635",
+    "src/physics/kirchhoffSharedAxisDynamics.js": "6e2cd0246c00fafb816112a83c85682f3fc3eaeeeee6f875d51f6f2881eb3dae",
+    "src/physics/kirchhoffSharedAxisLinear.js": "5bf941a08cb7509c571618bdb71e437bc1aa335063c12f4f971d26ebd8cf7b2c",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "fff65dcc2e2a78e98045983d7ddb9de3361ee4cf56ac0cd748f7b91977a83d00",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "c90fc49c0888f38b7d32d897c6c658803505528e449cd183ec4bb434bf8f2f21",
+    "src/physics/kirchhoffSharedAxisConstraintRows.js": "21ae490ca1cefc242ae492418f68105c5ca21f63b69616f9e79566f4668fed6f",
+    "src/physics/kirchhoffSharedAxisMaterialTangent.js": "5cc93a82493f3ff18a133b058476ce9931cab34524e69b98a0de8e72a15cd68a",
+    "src/physics/kirchhoffSharedAxisGaussNewton.js": "62e54a93d92fcdd8e056062796bacc653b4c3feac9687ff7fc6eb74a6a21eee5",
+    "src/physics/kirchhoffSharedAxisActiveBasis.js": "f1446f867335b524418f0f34b938fb676673c21b6fea676e9f52d320d71aef1d",
+    "src/physics/kirchhoffSharedAxisDiscoveryCache.js": "70536e3a6738c29e6a18dd46219a4c754cf418e2851ee73c93d1e7d83c3ee8d1"
+  },
+  "steps": 695,
+  "accepted": 695,
+  "fallbacks": 29,
+  "fallbackSteps": [
+    {
+      "phase": "feed",
+      "insertion": 88.39999999999984,
+      "count": 1,
+      "LU": 141,
+      "ms": 61.53379199999995
+    },
+    {
+      "phase": "feed",
+      "insertion": 91.86666666666648,
+      "count": 1,
+      "LU": 190,
+      "ms": 74.69412499999999
+    },
+    {
+      "phase": "feed",
+      "insertion": 92.73333333333314,
+      "count": 1,
+      "LU": 114,
+      "ms": 49.06720899999982
+    },
+    {
+      "phase": "feed",
+      "insertion": 93.5999999999998,
+      "count": 1,
+      "LU": 274,
+      "ms": 115.05437500000016
+    },
+    {
+      "phase": "feed",
+      "insertion": 94.46666666666646,
+      "count": 1,
+      "LU": 471,
+      "ms": 212.63483299999962
+    },
+    {
+      "phase": "feed",
+      "insertion": 95.33333333333312,
+      "count": 1,
+      "LU": 661,
+      "ms": 250.20645799999966
+    },
+    {
+      "phase": "feed",
+      "insertion": 97.06666666666644,
+      "count": 1,
+      "LU": 237,
+      "ms": 91.50883299999987
+    },
+    {
+      "phase": "feed",
+      "insertion": 102.2666666666664,
+      "count": 1,
+      "LU": 328,
+      "ms": 131.93170800000007
+    },
+    {
+      "phase": "feed",
+      "insertion": 103.99999999999972,
+      "count": 1,
+      "LU": 369,
+      "ms": 151.05404100000032
+    },
+    {
+      "phase": "feed",
+      "insertion": 110.06666666666634,
+      "count": 1,
+      "LU": 806,
+      "ms": 331.47441699999945
+    },
+    {
+      "phase": "feed",
+      "insertion": 110.933333333333,
+      "count": 1,
+      "LU": 421,
+      "ms": 187.64095799999996
+    },
+    {
+      "phase": "feed",
+      "insertion": 111.79999999999966,
+      "count": 1,
+      "LU": 256,
+      "ms": 129.80179099999987
+    },
+    {
+      "phase": "feed",
+      "insertion": 113.53333333333298,
+      "count": 1,
+      "LU": 885,
+      "ms": 410.85062500000004
+    },
+    {
+      "phase": "feed",
+      "insertion": 116.99999999999962,
+      "count": 1,
+      "LU": 329,
+      "ms": 180.12362500000017
+    },
+    {
+      "phase": "feed",
+      "insertion": 118.73333333333294,
+      "count": 1,
+      "LU": 450,
+      "ms": 227.0396669999991
+    },
+    {
+      "phase": "feed",
+      "insertion": 128.2666666666662,
+      "count": 1,
+      "LU": 827,
+      "ms": 419.0731250000008
+    },
+    {
+      "phase": "feed",
+      "insertion": 129.13333333333287,
+      "count": 1,
+      "LU": 1022,
+      "ms": 558.280917
+    },
+    {
+      "phase": "feed",
+      "insertion": 140.39999999999964,
+      "count": 1,
+      "LU": 1786,
+      "ms": 1169.0655000000006
+    },
+    {
+      "phase": "feed",
+      "insertion": 176.79999999999995,
+      "count": 1,
+      "LU": 319,
+      "ms": 337.78962500000125
+    },
+    {
+      "phase": "feed",
+      "insertion": 182.86666666666667,
+      "count": 1,
+      "LU": 901,
+      "ms": 667.5320410000022
+    },
+    {
+      "phase": "feed",
+      "insertion": 183.73333333333335,
+      "count": 1,
+      "LU": 485,
+      "ms": 368.117374999998
+    },
+    {
+      "phase": "feed",
+      "insertion": 184.60000000000002,
+      "count": 1,
+      "LU": 956,
+      "ms": 702.8145420000037
+    },
+    {
+      "phase": "feed",
+      "insertion": 219.266666666667,
+      "count": 1,
+      "LU": 292,
+      "ms": 359.5424590000039
+    },
+    {
+      "phase": "feed",
+      "insertion": 225.3333333333337,
+      "count": 1,
+      "LU": 589,
+      "ms": 715.898500000003
+    },
+    {
+      "phase": "feed",
+      "insertion": 227.06666666666706,
+      "count": 1,
+      "LU": 304,
+      "ms": 397.0071250000037
+    },
+    {
+      "phase": "feed",
+      "insertion": 227.93333333333374,
+      "count": 1,
+      "LU": 631,
+      "ms": 730.5097079999978
+    },
+    {
+      "phase": "withdrawal",
+      "insertion": 221.13333333333264,
+      "count": 1,
+      "LU": 115,
+      "ms": 176.71729200000118
+    },
+    {
+      "phase": "withdrawal",
+      "insertion": 203.79999999999916,
+      "count": 1,
+      "LU": 517,
+      "ms": 907.4004589999968
+    },
+    {
+      "phase": "withdrawal",
+      "insertion": 110.19999999999864,
+      "count": 1,
+      "LU": 219,
+      "ms": 152.51004200000898
+    }
+  ],
+  "maxCertificate": 9.679319132871456e-07,
+  "maxConstraint": 5.752727433305793e-09,
+  "maxPenetration": 5.752727433305793e-09,
+  "maxBend": 45.000000000057376,
+  "avgStepMs": 136.00114863165447,
+  "maxStepMs": 1170.7772909999985,
+  "totalLU": 113730,
+  "avgLU": 163.64028776978418,
+  "avgFrictionIterations": 2.2258992805755398,
+  "totalAssemblyMs": 20788.601467000062,
+  "totalLinearMs": 69891.18495400017,
+  "subdivisionsGreaterThan1": 43,
+  "changedFilesDuringRun": [],
+  "feed": {
+    "steps": 347,
+    "avgStepMs": 159.40705873198849,
+    "avgLU": 205.13256484149855,
+    "avgFrictionIterations": 2.452449567723343,
+    "fallbacks": 26
+  },
+  "withdrawal": {
+    "steps": 347,
+    "avgStepMs": 112.91397298847217,
+    "avgLU": 122.53602305475505,
+    "avgFrictionIterations": 2.0028818443804033,
+    "fallbacks": 3
+  }
+}

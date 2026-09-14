@@ -1,0 +1,60 @@
+{
+  "scan": {
+    "steps": 231,
+    "meanMs": 110.92796409523824,
+    "medianMs": 83.04699999999866,
+    "p95Ms": 262.0679999999993,
+    "maxMs": 2507.2668330000015,
+    "stageMeansMs": {
+      "assemblyMs": 53.48099025108143,
+      "linearMs": 48.3062676363628,
+      "frictionMs": 1.2377543246757143
+    }
+  },
+  "index": {
+    "steps": 231,
+    "meanMs": 96.81298400000001,
+    "medianMs": 69.42833299999984,
+    "p95Ms": 244.07458400000178,
+    "maxMs": 2315.524375000001,
+    "stageMeansMs": {
+      "assemblyMs": 40.986789930736535,
+      "linearMs": 47.10363754978273,
+      "frictionMs": 1.1733102987012214
+    }
+  },
+  "indexSampled": {
+    "steps": 231,
+    "meanMs": 97.59659492207794,
+    "medianMs": 69.28895900000134,
+    "p95Ms": 249.14887499999895,
+    "maxMs": 2421.2024999999994,
+    "stageMeansMs": {
+      "assemblyMs": 41.41987231168821,
+      "linearMs": 47.43370768398329,
+      "frictionMs": 1.1926392077923667
+    }
+  },
+  "stepTimeReductionPercent": 12.724456101186243,
+  "verifiedStepCount": 1011,
+  "perStepResultsIdentical": true,
+  "terminalSHA256": {
+    "scan": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98",
+    "index": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98",
+    "index-unprofiled": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98"
+  },
+  "terminalBitIdentical": true,
+  "anatomySHA256": {
+    "res/Aorta_plain.stl": "f7a0baf87cd490daa4223c106726f2d84574b1d0a19370bc0780407282d41fc2",
+    "res/Aorta_plain.collision.bin": "e8b38e8e4bd07398b153df72b3052a80bc71c134b191fbc82c6ece34ac45b5a3",
+    "src/physics/collision/vesselContactField.js": "dcf703d74ee040904b38e8eecdb48cda7797f281c031f22249cbdbeb41aa85a9"
+  },
+  "validation": {
+    "sharedAxisTests": 150,
+    "passed": 148,
+    "knownExistingFailures": [
+      "frozen terminal contacts expose an inconsistent equality subset independently of new-face discovery",
+      "actual pigtail withdrawal recovers live-load cycling with a certified atomic frozen fallback"
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "earlyLiveFallback": false,
+  "totalMs": 8661.405625,
+  "result": {
+    "converged": false,
+    "status": "linear-solve",
+    "error": null,
+    "iterations": 126,
+    "factorizations": 7766,
+    "workingSetReuses": 295,
+    "backtracks": 56,
+    "geometryRestarts": 73,
+    "ms": 950.8041670000002,
+    "timings": {
+      "assemblyMs": 1191.875199999985,
+      "linearMs": 7204.361993999964,
+      "frictionMs": 12.515457999998944
+    },
+    "quality": null,
+    "residual": {
+      "force": 235793.09276339476,
+      "torque": 21645.288047537244,
+      "length": 1.4047386418096721
+    },
+    "dofs": 255,
+    "matrixEntries": 15374,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 262144,
+      "grows": 0,
+      "viewBuilds": 2922,
+      "requests": 7766
+    },
+    "interToolRows": 0,
+    "frictionIterations": 31,
+    "wallNormalFallback": {
+      "attempted": true,
+      "liveFailure": "linear-solve",
+      "converged": false
+    },
+    "substepAttempts": 11,
+    "wallNormalFallbacks": 5
+  },
+  "directions": {
+    "live/0/active-set-limit": {
+      "count": 57,
+      "factorizations": 1617
+    },
+    "live/1/success": {
+      "count": 56,
+      "factorizations": 2662
+    },
+    "live/1/incompatible-active-constraints": {
+      "count": 2,
+      "factorizations": 112
+    },
+    "live/2/incompatible-active-constraints": {
+      "count": 1,
+      "factorizations": 58
+    },
+    "frozen/0/active-set-limit": {
+      "count": 6,
+      "factorizations": 169
+    },
+    "frozen/1/incompatible-active-constraints": {
+      "count": 1,
+      "factorizations": 76
+    },
+    "frozen/2/incompatible-active-constraints": {
+      "count": 1,
+      "factorizations": 58
+    },
+    "live/0/success": {
+      "count": 63,
+      "factorizations": 204
+    },
+    "live/2/success": {
+      "count": 5,
+      "factorizations": 256
+    },
+    "live/2/active-set-cycle": {
+      "count": 1,
+      "factorizations": 32
+    },
+    "frozen/1/success": {
+      "count": 5,
+      "factorizations": 306
+    },
+    "frozen/2/success": {
+      "count": 3,
+      "factorizations": 226
+    },
+    "frozen/0/success": {
+      "count": 9,
+      "factorizations": 20
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "before": {
+    "feed": {
+      "count": 160,
+      "dynamic": false,
+      "factorizations": 0,
+      "held": {
+        "states": 160,
+        "positions": 160,
+        "bodies": 160,
+        "latestAlive": true,
+        "cacheSize": 0
+      },
+      "released": {
+        "states": 0,
+        "positions": 0,
+        "bodies": 0,
+        "latestAlive": false,
+        "cacheAlive": false
+      }
+    },
+    "dynamic": {
+      "count": 30,
+      "dynamic": true,
+      "factorizations": 48,
+      "held": {
+        "states": 30,
+        "positions": 30,
+        "bodies": 30,
+        "latestAlive": true,
+        "cacheSize": 2
+      },
+      "released": {
+        "states": 0,
+        "positions": 0,
+        "bodies": 0,
+        "latestAlive": false,
+        "cacheAlive": false
+      }
+    }
+  },
+  "after": {
+    "feed": {
+      "count": 160,
+      "dynamic": false,
+      "factorizations": 0,
+      "held": {
+        "states": 0,
+        "positions": 0,
+        "bodies": 0,
+        "latestAlive": true,
+        "cacheSize": 0
+      },
+      "released": {
+        "states": 0,
+        "positions": 0,
+        "bodies": 0,
+        "latestAlive": false,
+        "cacheAlive": false
+      }
+    },
+    "dynamic": {
+      "count": 30,
+      "dynamic": true,
+      "factorizations": 48,
+      "held": {
+        "states": 0,
+        "positions": 0,
+        "bodies": 0,
+        "latestAlive": true,
+        "cacheSize": 2
+      },
+      "released": {
+        "states": 0,
+        "positions": 0,
+        "bodies": 0,
+        "latestAlive": false,
+        "cacheAlive": false
+      }
+    }
+  }
+}

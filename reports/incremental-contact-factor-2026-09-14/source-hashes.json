@@ -1,0 +1,11 @@
+{
+  "src/physics/kirchhoffIncrementalContactLU.js": "cf011073507c383dad63ee9971ef4601985da29b6b9b532cfbc962454bd57e2f",
+  "src/physics/kirchhoffBorderedContactUpdates.js": "047a33d1ea719e3da6b24137b3e2e9fd08a914ef1656d1d1591b2fb1af34ec29",
+  "src/physics/kirchhoffSharedAxisLinear.js": "10d0e99b411549dd64ad53a0d57058720631889e4a5caa1321cd3fe32b90b0bb",
+  "src/physics/kirchhoffSharedAxisNative.js": "fb07ffc6d6313f66b773ec4638f6521cd05f7380fe7dbc3b5f4ff3e1f98359d2",
+  "src/physics/kirchhoffLinearKernelBytes.js": "6d6a7c48c7ecfc83024472233e17121407e2adb6fc220b854a5da32de01a9dac",
+  "scripts/physics/kirchhoffLinearKernel.wat": "132d2b78566858e295ed0463f3d1f9b52800b2edc8ca8f948a40482aeb232e26",
+  "scripts/physics/benchmark-incremental-contacts.mjs": "1f12af9ad9902200da9d544735cffb366f6166ed144c8a1327e3c8d80e810f09",
+  "scripts/physics/benchmark-incremental-step.mjs": "64a46334986b97cea557bd6ef5fe17af154f6e7d91bc8de5a32ba92e3c9565e4",
+  "tests/kirchhoffIncrementalContactLU.test.js": "c8b6be068a353ddaeafd62ae6d17d212eba7533f690b4f79ed5f82de2f91e712"
+}

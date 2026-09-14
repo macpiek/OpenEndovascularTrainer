@@ -1,0 +1,101 @@
+{
+  "wallMs": 73330.38283399999,
+  "dt": 0.016666666666666666,
+  "options": {
+    "forceTolerance": 1e-06,
+    "lengthTolerance": 1e-05,
+    "semismoothFirst": false
+  },
+  "sourceHashes": {
+    "src/physics/kirchhoffSharedAxisNative.js": "20e6405cd73f60d9804cdf09896c21af0f5f004e960704b551b40b6a6859173e",
+    "src/physics/kirchhoffSharedAxisGaussNewton.js": "62e54a93d92fcdd8e056062796bacc653b4c3feac9687ff7fc6eb74a6a21eee5",
+    "src/physics/kirchhoffSharedAxisLinear.js": "383ecff445eae079fcbfb0e312620c276f558a6d8b2638820cf0ad84896f901c",
+    "src/physics/kirchhoffSharedAxisActiveBasis.js": "30ebe748e1b7b1e9e88e4f98ba61a73a426b1fa7b1e9ae10df71fe35f1ebcfeb",
+    "src/physics/kirchhoffSharedAxisMaterialTangent.js": "5cc93a82493f3ff18a133b058476ce9931cab34524e69b98a0de8e72a15cd68a",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "a566ff8c5a9c621542f1033ccb836c2ccd2b668810241ca41d7de366c5dd053b",
+    "src/physics/kirchhoffSharedAxisWallFriction.js": "869a1214238598e36b14ff015d8d7146fb0a25dce862fe1d13895e4c42175110",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "fff65dcc2e2a78e98045983d7ddb9de3361ee4cf56ac0cd748f7b91977a83d00",
+    "src/physics/kirchhoffSharedAxisDynamics.js": "7a7ecc1546eb050c43a6e091958710d735beafc37d9c5361952edef5db06afd4",
+    "src/physics/kirchhoffSharedAxisTimeStep.js": "1593eb60d183abfa6e6c822e9c0707d82793c44e6009bb65d176e3ea81365bbb"
+  },
+  "complete": true,
+  "failed": false,
+  "failure": null,
+  "terminal": [
+    {
+      "id": "wire",
+      "insertion": 400,
+      "mass": 1,
+      "type": "glidewire"
+    },
+    {
+      "id": "catheter",
+      "insertion": 0,
+      "mass": 1.75,
+      "type": "berenstein"
+    }
+  ],
+  "rotations": {
+    "wire": 1.5707963267948966,
+    "catheter": -1.5707963267948966
+  },
+  "steps": 1525,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "meanMs": 29.821583000000032,
+      "medianMs": 29.821583000000032,
+      "p95Ms": 29.821583000000032,
+      "maxMs": 29.821583000000032,
+      "factorizations": 19
+    },
+    "wire": {
+      "steps": 546,
+      "meanMs": 28.17882898168496,
+      "medianMs": 23.957875000000058,
+      "p95Ms": 78.81320800000049,
+      "maxMs": 302.19662500000004,
+      "factorizations": 8573
+    },
+    "catheter": {
+      "steps": 347,
+      "meanMs": 65.2290786887608,
+      "medianMs": 53.67766699999629,
+      "p95Ms": 145.85666599999968,
+      "maxMs": 635.6638330000023,
+      "factorizations": 6231
+    },
+    "wire-rotate-plus90": {
+      "steps": 34,
+      "meanMs": 50.472006205882174,
+      "medianMs": 47.95933299999888,
+      "p95Ms": 69.14570899999671,
+      "maxMs": 77.86070800000016,
+      "factorizations": 376
+    },
+    "catheter-rotate-minus90": {
+      "steps": 34,
+      "meanMs": 59.114764705883694,
+      "medianMs": 56.36041700000351,
+      "p95Ms": 84.65770799999882,
+      "maxMs": 100.98391699999775,
+      "factorizations": 382
+    },
+    "catheter-withdrawal": {
+      "steps": 563,
+      "meanMs": 55.99258293605681,
+      "medianMs": 45.15220899999986,
+      "p95Ms": 124.05037500000617,
+      "maxMs": 471.2497499999881,
+      "factorizations": 9026
+    }
+  },
+  "qualitySummary": {
+    "finite": true,
+    "maxPenetrationMm": 1.0574874309554616e-13,
+    "maxRelativeLengthError": 2.8801849794035663e-12,
+    "maxBendAngleDegrees": 31.608486181620574,
+    "maxForceCertificateBound": 9.99402800516691e-07,
+    "maxInterToolRows": 0
+  }
+}

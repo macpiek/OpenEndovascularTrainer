@@ -1,0 +1,35 @@
+{
+  "failed": false,
+  "timeout": false,
+  "wallMs": 70162.644083,
+  "terminalInsertion": 0,
+  "hashes": {
+    "src/physics/kirchhoffSharedAxisNative.js": "dc52aede49678827776bc13ffe3248ebce1c80e5cd4ed5a45729e39928e4c098",
+    "src/physics/kirchhoffSharedAxisTimeStep.js": "1702b5d74534155972f8e91d1110f27c0d743c8e161db0da957f1b6ebbb17e43",
+    "src/physics/kirchhoffSharedAxisWallFriction.js": "668d476112f4bedaeebbdc4b89073af86d18e3d6673a45f68970c9d3a1a6a635",
+    "src/physics/kirchhoffSharedAxisDynamics.js": "6e2cd0246c00fafb816112a83c85682f3fc3eaeeeee6f875d51f6f2881eb3dae",
+    "src/physics/kirchhoffSharedAxisLinear.js": "f335031ea65ea5d21d59cb6f0499486203c9109d4286744a2619875dc2720cb9",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "fff65dcc2e2a78e98045983d7ddb9de3361ee4cf56ac0cd748f7b91977a83d00",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "f5c94b7833e975621dd312b1d9bd637b2ceea71bd50accb1c35ee3364bd48365",
+    "src/physics/kirchhoffSharedAxisConstraintRows.js": "21ae490ca1cefc242ae492418f68105c5ca21f63b69616f9e79566f4668fed6f",
+    "src/physics/kirchhoffSharedAxisMaterialTangent.js": "5cc93a82493f3ff18a133b058476ce9931cab34524e69b98a0de8e72a15cd68a",
+    "src/physics/kirchhoffSharedAxisGaussNewton.js": "62e54a93d92fcdd8e056062796bacc653b4c3feac9687ff7fc6eb74a6a21eee5",
+    "src/physics/kirchhoffSharedAxisActiveBasis.js": "98bcb9697c054e62015ebbd866d9a19960846a3bf627e37d8c4bff92656b4293",
+    "src/physics/kirchhoffSharedAxisDiscoveryCache.js": "70536e3a6738c29e6a18dd46219a4c754cf418e2851ee73c93d1e7d83c3ee8d1"
+  },
+  "type": "sim1",
+  "steps": 695,
+  "accepted": 695,
+  "fallbacks": 4,
+  "maxCertificate": 9.903501667629655e-07,
+  "maxConstraint": 8.649709212771306e-09,
+  "maxPenetration": 8.649709212771306e-09,
+  "maxBend": 38.81900835981309,
+  "avgStepMs": 96.16670850791355,
+  "maxStepMs": 4190.916833000003,
+  "totalLU": 27266,
+  "subdivisionsGreaterThan1": 0,
+  "changedFilesDuringRun": [
+    "src/physics/kirchhoffSharedAxisAppSystem.js"
+  ]
+}

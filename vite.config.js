@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { writeFile } from 'node:fs/promises';
 
 export default defineConfig({
+    build: { rollupOptions: { input: ['index.html', 'shared-axis-lab.html'] } },
     plugins: [{name:'local-physics-capture',configureServer(server){
         server.middlewares.use('/__physics-capture',async(req,res)=>{
             if(req.method!=='POST'||!['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress)||

@@ -1,0 +1,118 @@
+{
+  "baseline vs guard": {
+    "steps": [
+      1011,
+      1011
+    ],
+    "failed": [
+      false,
+      false
+    ],
+    "diagnosticDifferences": [],
+    "terminalIdentical": true,
+    "terminalSha256": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98",
+    "reference": {
+      "meanMs": 102.09374457575768,
+      "medianMs": 76.02566699999807,
+      "p95Ms": 264.14100000000326,
+      "maxMs": 2492.893458000006,
+      "assemblyMeanMs": 50.04621675757594,
+      "linearMeanMs": 41.066270588744764,
+      "iterations": 2232,
+      "factorizations": 6355,
+      "worstCycleStep": {
+        "totalMs": 2492.893458000006,
+        "iterations": 171,
+        "factorizations": 821,
+        "fallback": {
+          "attempted": true,
+          "liveFailure": "iteration-limit",
+          "converged": true
+        }
+      }
+    },
+    "guard": {
+      "meanMs": 71.62031058441562,
+      "medianMs": 59.40687500000058,
+      "p95Ms": 198.99399999999878,
+      "maxMs": 409.89366599999994,
+      "assemblyMeanMs": 33.602732008657654,
+      "linearMeanMs": 29.884975467532247,
+      "iterations": 2085,
+      "factorizations": 5623,
+      "worstCycleStep": {
+        "totalMs": 231.8032920000005,
+        "iterations": 24,
+        "factorizations": 89,
+        "fallback": {
+          "attempted": true,
+          "liveFailure": "live-contact-cycle",
+          "converged": true,
+          "detectedCycle": {
+            "period": 2,
+            "repeatedComparisons": 4
+          }
+        }
+      }
+    },
+    "meanReductionPercent": 29.848482997633162
+  },
+  "repeat-reference vs repeat-guard": {
+    "steps": [
+      1011,
+      1011
+    ],
+    "failed": [
+      false,
+      false
+    ],
+    "diagnosticDifferences": [],
+    "terminalIdentical": true,
+    "terminalSha256": "d9b6cf528523e32acdc82753c71bfe08b4f0c14749a1c9cb085a3841c5a8de98",
+    "reference": {
+      "meanMs": 78.58895127705634,
+      "medianMs": 58.85475000000224,
+      "p95Ms": 197.31308300000092,
+      "maxMs": 1889.4444159999985,
+      "assemblyMeanMs": 37.27434272294419,
+      "linearMeanMs": 32.839509203463095,
+      "iterations": 2232,
+      "factorizations": 6355,
+      "worstCycleStep": {
+        "totalMs": 1889.4444159999985,
+        "iterations": 171,
+        "factorizations": 821,
+        "fallback": {
+          "attempted": true,
+          "liveFailure": "iteration-limit",
+          "converged": true
+        }
+      }
+    },
+    "guard": {
+      "meanMs": 72.46666756709955,
+      "medianMs": 58.762957999999344,
+      "p95Ms": 201.81587500000023,
+      "maxMs": 433.1905829999996,
+      "assemblyMeanMs": 33.9229586493509,
+      "linearMeanMs": 30.083023424242064,
+      "iterations": 2085,
+      "factorizations": 5623,
+      "worstCycleStep": {
+        "totalMs": 235.34616599999936,
+        "iterations": 24,
+        "factorizations": 89,
+        "fallback": {
+          "attempted": true,
+          "liveFailure": "live-contact-cycle",
+          "converged": true,
+          "detectedCycle": {
+            "period": 2,
+            "repeatedComparisons": 4
+          }
+        }
+      }
+    },
+    "meanReductionPercent": 7.790260094416301
+  }
+}

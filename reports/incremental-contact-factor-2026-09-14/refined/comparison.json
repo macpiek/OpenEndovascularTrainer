@@ -1,0 +1,2200 @@
+{
+  "scope": "Repeated immutable linearizations from one accepted prepared step; not a browser or full-trajectory benchmark. Repeat 0 is warmup. Includes workspace assembly and solve, excludes material/contact geometry assembly.",
+  "sourceFixture": "reports/incremental-contact-factor-2026-09-14/capture/captured-incoming.json",
+  "stepResult": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "iterations": 37,
+    "factorizations": 233,
+    "workingSetReuses": 0,
+    "backtracks": 39,
+    "geometryRestarts": 2,
+    "ms": 1404.878584,
+    "timings": {
+      "assemblyMs": 625.5669620000033,
+      "linearMs": 482.30625299999315,
+      "frictionMs": 3.383915999999317,
+      "tangentAssemblyMs": 625.5669620000033,
+      "residualAssemblyMs": 0
+    },
+    "fullAssemblies": 135,
+    "residualAssemblies": 0,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 8.759659664292485e-14,
+      "contacts": 20,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.3739009929743683e-14,
+          "maxBendAngleDegrees": 44.74727293351748,
+          "maxBendNode": 124,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 16.21951553509583,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 2324.7516541450595
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 7.460698725481052e-15,
+          "maxBendAngleDegrees": 8.726225208597441,
+          "maxBendNode": 68,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 16.21951553509583,
+          "activeWallContacts": 14,
+          "currentNormalLoad": 44856.98692905584
+        }
+      ]
+    },
+    "residual": {
+      "force": 1.6536003233369456e-8,
+      "torque": 4.952420695758519e-10,
+      "length": 5.240252676230739e-14
+    },
+    "dofs": 590,
+    "matrixEntries": 28480,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 524288,
+      "grows": 0,
+      "viewBuilds": 9,
+      "requests": 233
+    },
+    "interToolRows": 0,
+    "certificateBound": 3.656502900462044e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 2.0029025771250986e-8,
+      "contacts": 14,
+      "sliding": 14
+    },
+    "frictionIterations": 5,
+    "wallNormalFallback": {
+      "attempted": true,
+      "liveFailure": "live-contact-cycle",
+      "converged": true,
+      "detectedCycle": {
+        "period": 2,
+        "repeatedComparisons": 4
+      }
+    },
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.6536003233369456e-8,
+          "torque": 4.952420695758519e-10,
+          "length": 5.240252676230739e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 2.0029025771250986e-8,
+          "contacts": 14,
+          "sliding": 14
+        },
+        "wallNormalFallback": {
+          "attempted": true,
+          "liveFailure": "live-contact-cycle",
+          "converged": true,
+          "detectedCycle": {
+            "period": 2,
+            "repeatedComparisons": 4
+          }
+        },
+        "iterations": 37,
+        "factorizations": 233
+      }
+    ],
+    "subdivisions": 1
+  },
+  "systems": 37,
+  "sizes": [
+    {
+      "primal": 590,
+      "rows": 977
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 978
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    },
+    {
+      "primal": 590,
+      "rows": 980
+    }
+  ],
+  "samples": [
+    {
+      "repeat": 0,
+      "name": "compact",
+      "totalMs": 213.13745899999913,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "full",
+      "totalMs": 474.8129529999983,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "incrementalFull",
+      "totalMs": 712.5257939999997,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "incremental",
+      "totalMs": 164.43954399999984,
+      "factorizations": 37,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 1.8739694951364072e-7,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "name": "incremental",
+      "totalMs": 136.2354140000025,
+      "factorizations": 37,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 1.8739694951364072e-7,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "name": "incrementalFull",
+      "totalMs": 600.0194990000018,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "full",
+      "totalMs": 418.8343320000022,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "compact",
+      "totalMs": 134.35174899999856,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "compact",
+      "totalMs": 131.64041599999746,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "full",
+      "totalMs": 402.57362600000215,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "incrementalFull",
+      "totalMs": 420.39774800000123,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "incremental",
+      "totalMs": 137.30229000000054,
+      "factorizations": 37,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 1.8739694951364072e-7,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 3,
+      "name": "incremental",
+      "totalMs": 118.66508099999828,
+      "factorizations": 37,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 1.8739694951364072e-7,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 3,
+      "name": "incrementalFull",
+      "totalMs": 427.7268759999979,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "full",
+      "totalMs": 424.2002899999952,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "compact",
+      "totalMs": 137.89079200000106,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "compact",
+      "totalMs": 134.95300600000337,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "full",
+      "totalMs": 417.82929199999853,
+      "factorizations": 103,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 7.540066349065455e-10,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "incrementalFull",
+      "totalMs": 436.5020019999956,
+      "factorizations": 37,
+      "updates": 92,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {
+        "1": 31,
+        "2": 45,
+        "3": 16
+      },
+      "maxDifference": 3.3515075870127475e-7,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "incremental",
+      "totalMs": 143.5186670000021,
+      "factorizations": 37,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 172,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 1.8739694951364072e-7,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    }
+  ]
+}

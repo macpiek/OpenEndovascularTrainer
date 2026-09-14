@@ -1,0 +1,65 @@
+{
+  "reference-a": {
+    "failed": false,
+    "steps": 1513,
+    "allStepPhysicalResultsMatch": true,
+    "terminalSha256": "d2920e38e7dc4bcb5d99e95f315d1561a22ee07d112b2828a1bbd66dbe760eb2",
+    "meanMs": 71.01381401731598,
+    "p95Ms": 163.10887499999808,
+    "maxMs": 596.7817919999943,
+    "assemblyMs": 35.510432365079346,
+    "linearMs": 26.833715424242346,
+    "fullAssemblies": 10889,
+    "residualAssemblies": 0,
+    "factorizations": 13457
+  },
+  "optimized-a": {
+    "failed": false,
+    "steps": 1513,
+    "allStepPhysicalResultsMatch": true,
+    "terminalSha256": "d2920e38e7dc4bcb5d99e95f315d1561a22ee07d112b2828a1bbd66dbe760eb2",
+    "meanMs": 85.39271416161627,
+    "p95Ms": 199.73599999999715,
+    "maxMs": 695.6805830000012,
+    "assemblyMs": 44.036038878787366,
+    "linearMs": 31.09253831601629,
+    "fullAssemblies": 6802,
+    "residualAssemblies": 7545,
+    "factorizations": 13457
+  },
+  "optimized-b": {
+    "failed": false,
+    "steps": 1513,
+    "allStepPhysicalResultsMatch": true,
+    "terminalSha256": "d2920e38e7dc4bcb5d99e95f315d1561a22ee07d112b2828a1bbd66dbe760eb2",
+    "meanMs": 92.86757600432901,
+    "p95Ms": 200.1793749999997,
+    "maxMs": 1013.6844580000034,
+    "assemblyMs": 48.537228907648796,
+    "linearMs": 33.469754086578995,
+    "fullAssemblies": 6802,
+    "residualAssemblies": 7545,
+    "factorizations": 13457
+  },
+  "reference-b": {
+    "failed": false,
+    "steps": 1513,
+    "allStepPhysicalResultsMatch": true,
+    "terminalSha256": "d2920e38e7dc4bcb5d99e95f315d1561a22ee07d112b2828a1bbd66dbe760eb2",
+    "meanMs": 98.2854092597404,
+    "p95Ms": 222.38079199999993,
+    "maxMs": 950.5330830000021,
+    "assemblyMs": 50.77210355844193,
+    "linearMs": 36.15066615728889,
+    "fullAssemblies": 10889,
+    "residualAssemblies": 0,
+    "factorizations": 13457
+  },
+  "comparison": {
+    "referenceMeanMs": 84.6496116385282,
+    "experimentalMeanMs": 89.13014508297263,
+    "changePercent": 5.293034850032452,
+    "enabledByDefault": false,
+    "note": "Substantial run-to-run timing variation; no demonstrated throughput improvement. Same physics in all runs. Detail assembly timers were not yet forwarded by the witness wrapper in these four runs; use aggregate assemblyMs and counts. Final code fixes their propagation."
+  }
+}

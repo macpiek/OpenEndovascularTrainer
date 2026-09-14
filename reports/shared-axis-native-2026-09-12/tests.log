@@ -1,0 +1,37 @@
+✔ nonsymmetric band LU solves original equations with pivot fill (4/1/1) (1.188917ms)
+✔ nonsymmetric band LU solves original equations with pivot fill (23/3/2) (3.120083ms)
+✔ nonsymmetric band LU solves original equations with pivot fill (51/7/4) (1.208917ms)
+✔ nonsymmetric band LU solves original equations with pivot fill (19/0/3) (0.200625ms)
+✔ nonsymmetric band LU solves original equations with pivot fill (17/4/0) (0.161125ms)
+✔ nonsymmetric band LU solves original equations with pivot fill (0/0/0) (0.118334ms)
+✔ LU rejects a singular pivot instead of imposing an SPD floor (0.187125ms)
+✔ large partial-pivot growth rejects an inaccurate Newton solve through original linear backward error (1.695084ms)
+✔ exact envelopes retain tiny coefficients and distant non-associated normal and pair columns (0.207667ms)
+✔ packed Newton Jacobian and direction equal dense reference for loaded, unloaded and fixed ellipses (4.031875ms)
+Direct Kirchhoff mechanics passed [{"spacing":5,"dt":0.008333333333333333,"iterations":6,"actual":1.6564017959640742,"expected":1.6666666666666667},{"spacing":2.5,"dt":0.008333333333333333,"iterations":6,"actual":1.6636654206043682,"expected":1.6666666666666667},{"spacing":5,"dt":0.016666666666666666,"iterations":2,"actual":1.6564017959640955,"expected":1.6666666666666667},{"spacing":5,"dt":0.004166666666666667,"iterations":6,"actual":1.6564017959640565,"expected":1.6666666666666667}]
+✔ tests/kirchhoffDirectSolver.test.js (1273.093333ms)
+✔ frictionless normal contact never reads or transports tangent history while retaining normal loads (1.229917ms)
+✔ normal-only coupled runtime omits friction rows, residuals, repair and history scratch (49.789667ms)
+✔ free axial and rotational motion agrees with the zero-friction full-row reference (64.773667ms)
+✔ normal-only contact loads survive trial rollback without resurrecting friction (10.694666ms)
+✔ zero-friction external tool contacts allocate no tangential contact state (0.248792ms)
+✔ one authoritative axis; independent spins and one length equation per spatial edge (11.363291ms)
+✔ native energy pullback has the correct spatial and independent spin derivatives (24.415125ms)
+✔ external cantilever oracle: shared rigidity is the sum; unloading recovers the straight shape (27.358ms)
+✔ a stiff straight wire counteracts the native curved catheter energy (6.27575ms)
+✔ frictionless independent rotation: catheter torque does not rotate the wire (1.919041ms)
+✔ independent feed/withdrawal crosses mesh nodes and either tool may extend beyond the other (106.369417ms)
+✔ planar wall acts on the outer catheter radius in overlap and wire radius beyond it (10.64275ms)
+✔ nonconverged solve is atomic and never commits a partial relaxation (1.35425ms)
+✔ a failed geometry callback restores the complete accepted state (0.520792ms)
+✔ invalid and degenerate geometry is rejected explicitly (0.904416ms)
+✔ partial-overlap cantilever agrees with the piecewise rigidity integral (6.176166ms)
+✔ long wire / short overlap remains converged after feed and curved-material rotation (147.441166ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1284.227709

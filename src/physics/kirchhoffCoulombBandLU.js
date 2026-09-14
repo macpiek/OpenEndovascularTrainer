@@ -1,5 +1,45 @@
 import { createKirchhoffLinearKernel } from './kirchhoffLinearKernel.js';
 
+/** Shared temporary factor storage for sequential synchronous solves. A LU
+ * retains no factors between calls, so differently shaped workspaces may use
+ * one arena. Do not retain these views across calls or suspend while using
+ * them. Growth replaces the current kernel geometrically; old shape views
+ * are discarded and LU instances acquire fresh views on their next solve.
+ */
+export function createCoulombBandLUArena() {
+    let kernel=null,buffer=null,capacityBytes=0,allocations=0,grows=0,viewBuilds=0,requests=0;
+    const shapes=new Map();
+    const diagnostics=Object.freeze({
+        get allocations(){return allocations;},get capacityBytes(){return capacityBytes;},
+        get grows(){return grows;},get viewBuilds(){return viewBuilds;},get requests(){return requests;}
+    });
+    return {diagnostics,
+        getViews(count,stride) {
+            const entries=count*stride,required=8*entries+16*count+128;
+            if(!Number.isSafeInteger(count)||count<0||!Number.isSafeInteger(stride)||stride<1||
+                !Number.isSafeInteger(required)||required>0x100000000)
+                throw new RangeError('Invalid Coulomb band arena shape');
+            requests++;
+            if(required>capacityBytes) {
+                let nextCapacity=65536;while(nextCapacity<required)nextCapacity*=2;
+                const nextKernel=createKirchhoffLinearKernel(nextCapacity);
+                const nextBuffer=nextKernel.alloc(Uint8Array,nextCapacity).buffer;
+                if(kernel)grows++;
+                kernel=nextKernel;buffer=nextBuffer;capacityBytes=nextCapacity;allocations++;shapes.clear();
+            }
+            const key=`${count}/${stride}`;
+            let views=shapes.get(key);
+            if(!views) {
+                if(shapes.size>=32)shapes.delete(shapes.keys().next().value);
+                views={kernel,factor:new Float64Array(buffer,0,entries),rhs:new Float64Array(buffer,8*entries,count),
+                    right:new Int32Array(buffer,8*(entries+count),count)};
+                shapes.set(key,views);viewBuilds++;
+            }
+            return views;
+        }
+    };
+}
+
 /** Validate storage without allocating or deriving another row layout. */
 export function validateCoulombGeneralBandMatrix(matrix,count) {
     if(!Number.isSafeInteger(count)||count<0||!(matrix?.values instanceof Float64Array)||
@@ -53,16 +93,17 @@ export function createCoulombBandLayout(matrix, count, band, groups, matrixForma
  * it never needs to swap previously stored L entries outside this band.
  * No positive-definiteness assumption or diagonal pivot replacement is used.
  */
-export function createCoulombBandLU(layout, count) {
+export function createCoulombBandLU(layout, count, {arena}={}) {
     const { starts, ends, offsets, kl, ku } = layout, stride = 2 * kl + ku + 1;
-    const kernel = createKirchhoffLinearKernel(8 * count * stride + 16 * count + 128);
-    const factor = kernel.alloc(Float64Array, count * stride), rhs = kernel.alloc(Float64Array, count);
-    const right = kernel.alloc(Int32Array, count);
+    const ownedKernel=arena?null:createKirchhoffLinearKernel(8*count*stride+16*count+128);
+    const owned=ownedKernel?{kernel:ownedKernel,factor:ownedKernel.alloc(Float64Array,count*stride),
+        rhs:ownedKernel.alloc(Float64Array,count),right:ownedKernel.alloc(Int32Array,count)}:null;
     const diagnostics = { linearSolver: 'band-lu', jacobianEntries: layout.entries,
-        factorEntries: factor.length, lowerBandwidth: kl, upperBandwidth: ku, rowSwaps: 0,
+        factorEntries: count*stride, lowerBandwidth: kl, upperBandwidth: ku, rowSwaps: 0,
         maximumLinearBackwardError: 0, maximumPivotGrowth: 0, linearResidualFailures: 0 };
     return { diagnostics,
         solve(J, F, scales, shift, direction) {
+            const {kernel,factor,rhs,right}=owned??arena.getViews(count,stride);
             factor.fill(0); right.set(ends);
             let originalMaximum = 0;
             for (let i = 0; i < count; i++) {

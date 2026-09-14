@@ -123,12 +123,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="58.1"
+                                    value="40.65"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="catheterShaftStiffnessRange"
                                 >
-                                <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">58,10×</output>
+                                <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">40,65×</output>
                             </span>
                             <span id="catheterShaftStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
@@ -145,12 +145,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="87"
+                                    value="59.5"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="catheterTipStiffnessRange"
                                 >
-                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">87,00×</output>
+                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">59,50×</output>
                             </span>
                             <span id="catheterTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
@@ -200,12 +200,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="39"
+                                    value="5.7"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireStiffnessRange"
                                 >
-                                <output id="guidewireStiffnessValue" for="stiffness">39,00×</output>
+                                <output id="guidewireStiffnessValue" for="stiffness">5,70×</output>
                             </span>
                             <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
@@ -222,12 +222,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="30.7"
+                                    value="2.95"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireTipStiffnessRange"
                                 >
-                                <output id="guidewireTipStiffnessValue" for="tipStiffness">30,70×</output>
+                                <output id="guidewireTipStiffnessValue" for="tipStiffness">2,95×</output>
                             </span>
                             <span id="guidewireTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
@@ -501,6 +501,7 @@
         </div>
 
         <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
+            <div id="compositeSolverStatus" class="browser-benchmark-status" aria-label="Status wspólnego solvera" hidden>Nowy wspólny solver — inicjalizacja</div>
             <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
             <div id="contrastDiagnostics" class="contrast-diagnostics">Contrast: model loading</div>
             <div class="debug-hemodynamics compact-grid" aria-label="Parametry hemodynamiczne kontrastu">
@@ -575,6 +576,11 @@
                 <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox" checked> Centerline</label>
                 <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
             </div>
+            <div class="browser-benchmark" aria-label="Diagnostyka odrzuconego kroku">
+                <button id="downloadSolverFailure" type="button" disabled>Pobierz zapis odrzuconego kroku</button>
+                <textarea id="solverFailureDetails" class="browser-benchmark-report" rows="6"
+                    aria-label="Szczegóły odrzuconego kroku" readonly>Brak zapisanego odrzucenia.</textarea>
+            </div>
             <div class="browser-benchmark" aria-label="Browser benchmark">
                 <div class="browser-benchmark-actions">
                     <button id="prepareCatheterAorta" type="button">Prowadnik + cewnik do aorty</button>
@@ -586,6 +592,7 @@
                     Gotowe do ustawienia
                 </output>
                 <div class="browser-benchmark-actions">
+                    <button id="runWire60Benchmark" type="button">Profil: prowadnik 60 cm → cewnik 60 cm</button>
                     <button id="runSoloCatheterBenchmark" type="button">Sam cewnik pełny cykl</button>
                     <button id="runGuidewireBenchmark" type="button">Prowadnik 28 s</button>
                     <button id="runGuidewireBenchmarkFull" type="button">Prowadnik 10 min</button>

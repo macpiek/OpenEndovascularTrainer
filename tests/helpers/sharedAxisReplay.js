@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {restoreSharedAxisWallFriction} from '../../src/physics/kirchhoffSharedAxisWallFriction.js';
+import { createSharedAxisContacts } from '../../src/physics/kirchhoffSharedAxisContacts.js';
+import { createSharedAxisNative, restoreSharedAxisNative, extendSharedAxisNativeRows } from '../../src/physics/kirchhoffSharedAxisNative.js';
+import { createSharedAxisVesselWitness } from '../../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
+
+export {captureSharedAxisReplay} from '../../src/physics/kirchhoffSharedAxisReplay.js';
+
+export function restoreSharedAxisReplay(fixture,field) {
+    assert.equal(fixture.version,1);
+    const s=createSharedAxisNative({...createSharedAxisContacts({sheath:fixture.sheath,contactField:field,localCoordinates:!!fixture.origin}),
+        fractionalTipThreshold:fixture.fractionalTipThreshold??0,rebaseNearTips:fixture.rebaseNearTips??false,spacing:fixture.spacing,tools:fixture.tools,maxBendAngle:fixture.maxBendAngle??Infinity,minimumEdgeLength:fixture.minimumEdgeLength??0,
+        spatialKnots:fixture.coordinates});
+    if(fixture.origin)s.origin=fixture.origin.slice();
+    assert.deepEqual(s.coordinates,fixture.coordinates,'Replay topology changed');
+    assert.deepEqual(s.definitions.map(({evaluate,...d})=>d),fixture.definitions.slice(0,s.definitions.length),'Replay base rows changed');
+    extendSharedAxisNativeRows(s,fixture.definitions.slice(s.definitions.length).map(d=>createSharedAxisVesselWitness(field,d)));
+    assert.equal(s.multipliers.length,fixture.multipliers.length);
+    restoreSharedAxisNative(s,fixture);s.loads.set(fixture.loads);s.fixed.set(fixture.fixed);
+    if(fixture.velocities){s.velocities=structuredClone(fixture.velocities);s.angularVelocities=structuredClone(fixture.angularVelocities);}
+    if(fixture.dynamicStep)s.dynamicStep={...structuredClone(fixture.dynamicStep),masses:Float64Array.from(fixture.dynamicStep.masses)};
+    if(fixture.wallFriction)restoreSharedAxisWallFriction(s,fixture.wallFriction);
+    if(fixture.acceptedWallGaps)s.acceptedWallGaps=new Map(fixture.acceptedWallGaps);
+    if(fixture.acceptedSolves!==undefined)s.acceptedSolves=fixture.acceptedSolves;
+    return s;
+}

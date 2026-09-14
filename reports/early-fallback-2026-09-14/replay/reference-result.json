@@ -1,0 +1,82 @@
+{
+  "earlyLiveFallback": false,
+  "totalMs": 2205.887084,
+  "result": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "iterations": 171,
+    "factorizations": 821,
+    "workingSetReuses": 0,
+    "backtracks": 80,
+    "geometryRestarts": 2,
+    "ms": 2200.130417,
+    "timings": {
+      "assemblyMs": 1077.2879080000012,
+      "linearMs": 959.3595170000037,
+      "frictionMs": 5.163916000000427
+    },
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 8.049116928532385e-14,
+      "contacts": 21,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 7.815970093361103e-15,
+          "maxBendAngleDegrees": 26.925089498378366,
+          "maxBendNode": 118,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 6.2010734167531805,
+          "activeWallContacts": 11,
+          "currentNormalLoad": 61205.79600530579
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 1.6956133467004143e-15,
+          "maxBendAngleDegrees": 7.339475503517036,
+          "maxBendNode": 29,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 6.2010734167531805,
+          "activeWallContacts": 10,
+          "currentNormalLoad": 171002.40503632248
+        }
+      ]
+    },
+    "residual": {
+      "force": 6.030677468515933e-8,
+      "torque": 3.735425302409112e-9,
+      "length": 5.684341886080802e-14
+    },
+    "dofs": 535,
+    "matrixEntries": 26179,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 524288,
+      "grows": 0,
+      "viewBuilds": 8,
+      "requests": 821
+    },
+    "interToolRows": 0,
+    "certificateBound": 6.598480695174658e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 5.678032266587252e-9,
+      "contacts": 14,
+      "sliding": 14
+    },
+    "frictionIterations": 6,
+    "wallNormalFallback": {
+      "attempted": true,
+      "liveFailure": "iteration-limit",
+      "converged": true
+    },
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 1,
+    "subdivisions": 1
+  }
+}

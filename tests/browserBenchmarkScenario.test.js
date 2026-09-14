@@ -1,3 +1,4 @@
+import {sampleWire60Benchmark,wire60BenchmarkSteps} from '../src/benchmark/wire60CatheterBenchmark.js';
 import assert from 'node:assert/strict';
 import {
     BROWSER_BENCHMARK_DEFAULT_DURATION_MS,
@@ -190,4 +191,21 @@ for(const [time,advance] of [[0,1],[11999,1],[12000,0],[13999,0],[14000,-1],[259
  sampleCatheterBrowserBenchmarkCommands(time,command);
  assert.equal(command.guidewireAdvance,0);assert.equal(command.catheterAdvance,advance);
  assert.equal(command.catheterRotation,0);assert.equal(command.catheterType,'berenstein');
+}
+
+
+// Profile trajectory must reach exactly 600 mm before switching tools, at
+// both supported timesteps, with a fractional final command and no overshoot.
+for (const dt of [1/60,1/120]) {
+    const counts=wire60BenchmarkSteps(dt);let wire=0,catheter=0;
+    for(let step=0;step<counts.wire+counts.catheter;step++) {
+        const cmd=sampleWire60Benchmark(step*dt*1000,dt,{});
+        if(step>=counts.wire)assert.ok(Math.abs(wire-600)<1e-8);
+        else assert.equal(catheter,0);
+        wire+=cmd.guidewireAdvance*44*dt;catheter+=cmd.catheterAdvance*52*dt;
+        assert.ok(wire<=600+1e-8&&catheter<=600+1e-8);
+    }
+    assert.ok(Math.abs(catheter-600)<1e-8);
+    const end=sampleWire60Benchmark((counts.wire+counts.catheter)*dt*1000,dt,{});
+    assert.equal(end.guidewireAdvance,0);assert.equal(end.catheterAdvance,0);
 }
