@@ -1,3 +1,6 @@
 node_modules
+.pages-dist/
+test-results/
+playwright-report/
 out/centerline-diagnostics
 out/collision-asset-report.json

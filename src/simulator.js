@@ -199,6 +199,7 @@ const loadingStepIndicators = Array.from(
     document.querySelectorAll('.loading-steps span')
 );
 const loadingMilestones = new Set(['aorta', 'skeleton', 'firstFrame']);
+for (const name of loadingMilestones) document.body.dataset[`${name}Load`] = 'loading';
 let loadingDismissed = false;
 let firstFrameFallbackTimer = null;
 
@@ -237,6 +238,7 @@ function hideLoadingScreen() {
 
 function completeLoadingMilestone(name, message) {
     if (!loadingMilestones.has(name)) return;
+    document.body.dataset[`${name}Load`] = 'ready';
     loadingMilestones.delete(name);
     if (name === 'firstFrame' && firstFrameFallbackTimer) {
         runtime.clearTimeout(firstFrameFallbackTimer);
@@ -249,6 +251,7 @@ function completeLoadingMilestone(name, message) {
 
 function failLoadingMilestone(name) {
     completeLoadingMilestone(name, 'Loading fallback view');
+    document.body.dataset[`${name}Load`] = 'failed';
 }
 
 function scheduleFirstFrameFallback() {
@@ -558,7 +561,8 @@ function alignVascularRenderObject(object) {
 let vesselGroup;
 const { group: skeletonModel, material: boneMaterial } = createBoneModel({
     signal: runtime.signal,
-    onLoaded: () => {
+    onLoaded: ({ object }) => {
+        document.body.dataset.skeletonMeshes = String(object.children.length);
         anatomyProjectionValid = false;
         completeLoadingMilestone(
             'skeleton',
