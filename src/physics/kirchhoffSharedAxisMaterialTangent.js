@@ -1,4 +1,5 @@
 import { evaluateBendTwistLocalConstraintNormalized, quaternionExp } from './discreteKirchhoffRod.js';
+import {sharedAxisMaterialKernelWorkspace} from './kirchhoffSharedAxisMaterialKernel.js';
 
 const dot = (a,b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const tmul = (A,v) => [A[0]*v[0]+A[3]*v[1]+A[6]*v[2],A[1]*v[0]+A[4]*v[1]+A[7]*v[2],A[2]*v[0]+A[5]*v[1]+A[8]*v[2]];
@@ -21,15 +22,24 @@ function coefficient(x) {
  * includes the derivative of the logarithm Jacobian and moving local frames.
  * This differentiates the existing native constitutive law, not a new energy.
  */
-export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true) {
-    const state=evaluateBendTwistLocalConstraintNormalized(q0,q1,rest,{});
-    const phi=[state.strain.x,state.strain.y,state.strain.z],A=state.localGradient,R=matrix(state.relative);
-    const p=phi.map((v,i)=>v/compliance[i]),u=tmul(A,p);
-    const torque=[-u[0],-u[1],-u[2],...tmul(R,u)];
+export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,preparation=null,kernelRecord=null) {
+    const cached=preparation?.reuse;
+    const state=cached?null:evaluateBendTwistLocalConstraintNormalized(q0,q1,rest,{});
+    const phi=cached?.phi??[state.strain.x,state.strain.y,state.strain.z],A=cached?.A??state.localGradient,R=cached?.R??matrix(state.relative);
+    const p=cached?.p??phi.map((v,i)=>v/compliance[i]),u=cached?.u??tmul(A,p);
+    const torque=cached?.torque??[-u[0],-u[1],-u[2],...tmul(R,u)];
+    if(preparation?.store)preparation.value={phi,A,R,p,u,torque};
     if(!withTangent)return {energy:.5*dot(phi,p),torque};
-    const restR=matrix(quaternionExp(rest)),jacobian=new Float64Array(36);
-    const dphi=new Float64Array(3),dp=new Float64Array(3),dJ=new Float64Array(9),dA=new Float64Array(9),du=new Float64Array(3),spun=new Float64Array(3);
+    const restR=matrix(quaternionExp(rest));
     const x=dot(phi,phi),[a,ap]=coefficient(x);
+    if(kernelRecord) {
+        kernelRecord.set(phi,44);kernelRecord.set(A,47);kernelRecord.set(R,56);
+        kernelRecord.set(p,65);kernelRecord.set(u,68);kernelRecord.set(torque,71);
+        kernelRecord.set(restR,77);kernelRecord.set(compliance,86);kernelRecord[89]=a;kernelRecord[90]=ap;
+        return {energy:.5*dot(phi,p),torque};
+    }
+    const jacobian=new Float64Array(36);
+    const dphi=new Float64Array(3),dp=new Float64Array(3),dJ=new Float64Array(9),dA=new Float64Array(9),du=new Float64Array(3),spun=new Float64Array(3);
     for(let col=0;col<6;col++) {
         const axis=col%3,dx=col<3?(axis===0?-1:0):R[axis],dy=col<3?(axis===1?-1:0):R[3+axis],dz=col<3?(axis===2?-1:0):R[6+axis];
         for(let i=0;i<3;i++){dphi[i]=A[i*3]*dx+A[i*3+1]*dy+A[i*3+2]*dz;dp[i]=dphi[i]/compliance[i];}
@@ -60,42 +70,62 @@ export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true)
  * Off equilibrium this derivative need not be symmetric: spin is measured in
  * a moving material frame. Preserve both triangles for the Newton solve.
  */
-export function assembleSharedAxisMaterialTangent(s,withTangent=true) {
+export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=null,wasmMaterial=false) {
     const {layout,chain}=s,n=layout.dofCount,width=2*layout.band-1,half=layout.band-1;
-    const H=chain.tangent??=new Float64Array(n*width),g=chain.gradient;
+    const kernel=withTangent&&wasmMaterial?sharedAxisMaterialKernelWorkspace(chain,s.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0)):null;
+    const H=kernel?(chain.tangent=kernel.tangent):(chain.tangent??=new Float64Array(n*width)),g=chain.gradient;
     H.fill(0);for(let i=0;i<n;i++)g[i]=-s.loads[i];
     // Scratch belongs to this synchronous assembly call. Every material hinge
     // reuses it; no temporary vectors or columns are created in the 11-column
     // derivative loop. Both triangles of the moving-frame tangent are kept.
     const dofs=new Int32Array(11),frames=new Float64Array(18),d1=new Float64Array(6),d2=new Float64Array(6);
     const lengths=new Float64Array(2),tangents=new Float64Array(6),forces=new Float64Array(6);
-    const angular=withTangent?new Float64Array(66):null,dLengths=withTangent?new Float64Array(22):null;
-    const dTorque=withTangent?new Float64Array(6):null,column=withTangent?new Float64Array(11):null;
-    let energy=0;
+    const angular=withTangent&&!kernel?new Float64Array(66):null,dLengths=withTangent&&!kernel?new Float64Array(22):null;
+    const dTorque=withTangent&&!kernel?new Float64Array(6):null,column=withTangent&&!kernel?new Float64Array(11):null;
+    let energy=0,hinge=0;
     for(const {body,spec,last} of s.materials) {
         const spins=layout.spins.get(spec.id);
         for(let e=1;e<last;e++) {
             for(let node=0;node<3;node++)for(let a=0;a<3;a++)dofs[node*3+a]=layout.positions[e-1+node]+a;
             dofs[9]=spins[e-1];dofs[10]=spins[e];
-            const q0=readQ(body,e-1),q1=readQ(body,e);matrix(q0,frames,0);matrix(q1,frames,9);
-            for(let j=0;j<2;j++) {
-                const at=3*j,m=9*j,a=s.positions[e-1+j],b=s.positions[e+j];
-                const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],length=Math.sqrt(dx*dx+dy*dy+dz*dz);
-                lengths[j]=length;tangents[at]=dx/length;tangents[at+1]=dy/length;tangents[at+2]=dz/length;
-                for(let k=0;k<3;k++){d1[at+k]=frames[m+3*k];d2[at+k]=frames[m+3*k+1];}
+            const saved=promotion?.reuse?.[hinge],q0=readQ(body,e-1),q1=readQ(body,e);
+            if(saved) {
+                frames.set(saved.geometry.subarray(0,18));d1.set(saved.geometry.subarray(18,24));d2.set(saved.geometry.subarray(24,30));
+                lengths.set(saved.geometry.subarray(30,32));tangents.set(saved.geometry.subarray(32,38));forces.set(saved.geometry.subarray(38,44));
+            } else {
+                matrix(q0,frames,0);matrix(q1,frames,9);
+                for(let j=0;j<2;j++) {
+                    const at=3*j,m=9*j,a=s.positions[e-1+j],b=s.positions[e+j];
+                    const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],length=Math.sqrt(dx*dx+dy*dy+dz*dz);
+                    lengths[j]=length;tangents[at]=dx/length;tangents[at+1]=dy/length;tangents[at+2]=dz/length;
+                    for(let k=0;k<3;k++){d1[at+k]=frames[m+3*k];d2[at+k]=frames[m+3*k+1];}
+                }
             }
+            const preparation=saved?{reuse:saved.material}:promotion?.capture?{store:true}:null;
+            const packed=kernel?.records[hinge];
             const material=nativeHingeTorqueTangent(q0,q1,{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]},
-                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent);
+                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data);
             energy+=material.energy;
             for(let j=0;j<2;j++) {
                 const at=3*j;
                 for(let a=0;a<3;a++) {
-                    const force=(-d2[at+a]*material.torque[at]+d1[at+a]*material.torque[at+1])/lengths[j];
+                    const force=saved?forces[at+a]:(-d2[at+a]*material.torque[at]+d1[at+a]*material.torque[at+1])/lengths[j];
                     forces[at+a]=force;g[dofs[at+a]]-=force;g[dofs[at+3+a]]+=force;
                 }
                 g[dofs[9+j]]+=material.torque[at+2];
             }
+            if(promotion?.capture) {
+                const entry=promotion.capture[hinge]??={geometry:new Float64Array(44)};
+                entry.geometry.set(frames,0);entry.geometry.set(d1,18);entry.geometry.set(d2,24);
+                entry.geometry.set(lengths,30);entry.geometry.set(tangents,32);entry.geometry.set(forces,38);entry.material=preparation.value;
+            }
+            hinge++;
             if(!withTangent)continue;
+            if(packed) {
+                packed.dofs.set(dofs);packed.data.set(frames,0);packed.data.set(d1,18);packed.data.set(d2,24);
+                packed.data.set(lengths,30);packed.data.set(tangents,32);packed.data.set(forces,38);
+                continue;
+            }
             for(let col=0;col<11;col++)for(let j=0;j<2;j++) {
                 const at=3*j,sign=col>=at&&col<at+3?-1:col>=at+3&&col<at+6?1:0;
                 const dx=col%3===0?sign:0,dy=col%3===1?sign:0,dz=col%3===2?sign:0;
@@ -128,5 +158,6 @@ export function assembleSharedAxisMaterialTangent(s,withTangent=true) {
             }
         }
     }
+    kernel?.assemble();
     return energy;
 }

@@ -1,0 +1,114 @@
+anatomy-berenstein-feed-138.67-live-cycle 0 [
+  {
+    ms: 419.27091699999994,
+    iterations: 24,
+    factors: 89,
+    assemblies: 70
+  },
+  {
+    ms: 200.35008300000004,
+    iterations: 24,
+    factors: 89,
+    assemblies: 70
+  }
+] 0
+anatomy-berenstein-feed-138.67-live-cycle 1 [
+  { ms: 174.272375, iterations: 24, factors: 89, assemblies: 70 },
+  { ms: 176.364458, iterations: 24, factors: 89, assemblies: 70 }
+] 0
+anatomy-berenstein-feed-138.67-live-cycle 2 [
+  {
+    ms: 159.08845799999995,
+    iterations: 24,
+    factors: 89,
+    assemblies: 70
+  },
+  {
+    ms: 163.6600000000003,
+    iterations: 24,
+    factors: 89,
+    assemblies: 70
+  }
+] 0
+anatomy-berenstein-feed-138.67-live-cycle 3 [
+  {
+    ms: 160.45445800000016,
+    iterations: 24,
+    factors: 89,
+    assemblies: 70
+  },
+  {
+    ms: 171.3343329999998,
+    iterations: 24,
+    factors: 89,
+    assemblies: 70
+  }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 0 [
+  {
+    ms: 126.35883299999978,
+    iterations: 14,
+    factors: 144,
+    assemblies: 33
+  },
+  {
+    ms: 99.11850000000004,
+    iterations: 14,
+    factors: 145,
+    assemblies: 33
+  }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 1 [
+  {
+    ms: 86.91504200000008,
+    iterations: 14,
+    factors: 144,
+    assemblies: 33
+  },
+  {
+    ms: 91.08012499999995,
+    iterations: 14,
+    factors: 145,
+    assemblies: 33
+  }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 2 [
+  {
+    ms: 81.7035420000002,
+    iterations: 14,
+    factors: 144,
+    assemblies: 33
+  },
+  {
+    ms: 97.70570899999984,
+    iterations: 14,
+    factors: 145,
+    assemblies: 33
+  }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 3 [
+  {
+    ms: 84.78533299999981,
+    iterations: 14,
+    factors: 144,
+    assemblies: 33
+  },
+  {
+    ms: 95.49295800000027,
+    iterations: 14,
+    factors: 145,
+    assemblies: 33
+  }
+] 0
+anatomy-berenstein-feed-138.67-live-cycle {
+  referenceMs: 164.60509700000003,
+  optimizedMs: 170.45293033333337,
+  referenceLinearMs: 67.89266733333231,
+  optimizedLinearMs: 72.18195333333301
+}
+anatomy-pigtail-wire-withdraw-200.27-incoming {
+  referenceMs: 84.46797233333336,
+  optimizedMs: 94.75959733333336,
+  referenceLinearMs: 56.763725333335366,
+  optimizedLinearMs: 64.13830966666622
+}

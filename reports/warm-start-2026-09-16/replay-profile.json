@@ -1,0 +1,74 @@
+[
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 0,
+    "warmup": true,
+    "referenceMs": 419.27091699999994,
+    "optimizedMs": 200.35008300000004,
+    "referenceLinearMs": 181.80120800000168,
+    "optimizedLinearMs": 79.95658800000069
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 1,
+    "warmup": false,
+    "referenceMs": 174.272375,
+    "optimizedMs": 176.364458,
+    "referenceLinearMs": 71.85679799999912,
+    "optimizedLinearMs": 68.92566000000011
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 2,
+    "warmup": false,
+    "referenceMs": 159.08845799999995,
+    "optimizedMs": 163.6600000000003,
+    "referenceLinearMs": 66.74475099999768,
+    "optimizedLinearMs": 71.3561579999996
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 3,
+    "warmup": false,
+    "referenceMs": 160.45445800000016,
+    "optimizedMs": 171.3343329999998,
+    "referenceLinearMs": 65.07645300000013,
+    "optimizedLinearMs": 76.26404199999934
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 0,
+    "warmup": true,
+    "referenceMs": 126.35883299999978,
+    "optimizedMs": 99.11850000000004,
+    "referenceLinearMs": 86.42549600000439,
+    "optimizedLinearMs": 67.20983400000478
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 1,
+    "warmup": false,
+    "referenceMs": 86.91504200000008,
+    "optimizedMs": 91.08012499999995,
+    "referenceLinearMs": 55.6496270000016,
+    "optimizedLinearMs": 62.363664000004974
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 2,
+    "warmup": false,
+    "referenceMs": 81.7035420000002,
+    "optimizedMs": 97.70570899999984,
+    "referenceLinearMs": 55.9310410000021,
+    "optimizedLinearMs": 66.23509099999364
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 3,
+    "warmup": false,
+    "referenceMs": 84.78533299999981,
+    "optimizedMs": 95.49295800000027,
+    "referenceLinearMs": 58.71050800000239,
+    "optimizedLinearMs": 63.816174000000046
+  }
+]

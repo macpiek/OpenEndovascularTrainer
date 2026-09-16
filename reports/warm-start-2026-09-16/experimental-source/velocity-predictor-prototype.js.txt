@@ -1,0 +1,30 @@
+// A numerical starting guess only: dynamic targets, prescribed coordinates,
+// material frames/history and the final equilibrium tolerances are unchanged.
+export function sharedAxisVelocityPredictor(s) {
+    const dynamic=s.dynamicStep;
+    if(!dynamic)return null;
+    const increment=new Float64Array(s.layout.dofCount),decay=.98**(dynamic.dt*120);
+    let magnitude=0,relative=0;
+    for(let n=0;n<s.positions.length;n++)for(let k=0;k<3;k++) {
+        const i=s.layout.positions[n]+k;
+        if(!s.fixed[i])increment[i]=dynamic.predicted[n][k]-dynamic.positions[n][k];
+        magnitude=Math.max(magnitude,Math.abs(increment[i]));
+    }
+    for(let e=0;e+1<s.positions.length;e++) {
+        const a=s.positions[e],b=s.positions[e+1],p=s.layout.positions[e],q=s.layout.positions[e+1];
+        const length=Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2]);
+        relative=Math.max(relative,Math.hypot(increment[q]-increment[p],increment[q+1]-increment[p+1],increment[q+2]-increment[p+2])/length);
+        for(const material of s.materials)if(e<material.last) {
+            const spin=s.layout.spins.get(material.spec.id)[e],omega=s.angularVelocities?.[material.spec.id]?.[e];
+            if(!s.fixed[spin]&&omega) {
+                increment[spin]=dynamic.dt*decay*(omega[0]*(b[0]-a[0])+omega[1]*(b[1]-a[1])+omega[2]*(b[2]-a[2]))/length;
+                relative=Math.max(relative,Math.abs(increment[spin]));
+                magnitude=Math.max(magnitude,Math.abs(increment[spin]));
+            }
+        }
+    }
+    if(!Number.isFinite(relative)||!Number.isFinite(magnitude)||magnitude<1e-5)return null;
+    const scale=Math.min(1,.05/Math.max(relative,1e-30),.1/Math.max(magnitude,1e-30));
+    for(let i=0;i<increment.length;i++)increment[i]*=scale;
+    return increment;
+}

@@ -20,7 +20,7 @@ function compare(s,withTangent=true) {
     const initial=Float64Array.from(s.chain.gradient,(_,i)=>Math.cos(i*.2));s.chain.gradient.set(initial);
     const expected=assembleSharedAxisConstraintRowsReference(s,{withTangent}),gradient=s.chain.gradient.slice();
     s.chain.gradient.set(initial);
-    const actual=assembleSharedAxisConstraintRows(s,{withTangent,outerMaterialAt:sharedAxisOuterMaterialAt});
+    const actual=assembleSharedAxisConstraintRows(s,{withTangent,outerMaterialAt:sharedAxisOuterMaterialAt,reuseConstraintWork:true});
     assert.deepEqual(actual,expected);assert.deepEqual(s.chain.gradient,gradient);return actual;
 }
 

@@ -1,0 +1,162 @@
+{
+  "sourceRoot": "/Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/",
+  "target": "/tmp/oet-solver-stages-20260915",
+  "createdAt": "2026-09-15T02:08:44.232Z",
+  "manifest": [
+    {
+      "file": "kirchhoffSharedAxisAppSystem.js",
+      "before": "0b34c174cffec922db7650ff693f2963437ed19cdf1fc926088f52493fe20984",
+      "after": "4c3e845ab32c1dd9ebfe91e99fecd9859e4340f3d10b35fdde8dd04adcb19474",
+      "entries": [
+        [
+          "advanceSharedAxis",
+          "step",
+          "root"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisNative.js",
+      "before": "dba3abe06477184621fe0bc43af1a35b4dd84a1e8acdb016b70a5532bc280595",
+      "after": "0698047570f7a502fea3bb6d1143a5a89216c07ed28433b4838482e07aa2394f",
+      "entries": [
+        [
+          "assembleSharedAxisNative",
+          "assembly"
+        ],
+        [
+          "feedSharedAxisNative",
+          "feed-remesh"
+        ],
+        [
+          "captureSharedAxisNative",
+          "snapshot"
+        ],
+        [
+          "restoreSharedAxisNative",
+          "restore"
+        ],
+        [
+          "applySharedAxisNativeIncrement",
+          "apply"
+        ],
+        [
+          "correctTrialConstraints",
+          "projection"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisMaterialTangent.js",
+      "before": "f40ee3d20c4b7cbec7bfed19eaa5ef18d3562209b548e712556f44bc304ddb71",
+      "after": "e8cfbf5894691af2a96ea1968e35f6d252849ac8e9418d02c9b2348d744f19d5",
+      "entries": [
+        [
+          "assembleSharedAxisMaterialTangent",
+          "material"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisConstraintRows.js",
+      "before": "0221355c4a07d8d3289b97085394168cad02057d763ca841bc8d106825f61672",
+      "after": "b19c6a2a901a431cee438ae0bda60fe8c637075653725442c2e38e5444fecf6a",
+      "entries": [
+        [
+          "assembleSharedAxisConstraintRows",
+          "constraint-rows"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisDynamics.js",
+      "before": "6e2cd0246c00fafb816112a83c85682f3fc3eaeeeee6f875d51f6f2881eb3dae",
+      "after": "6b155dfa03ee15ccf2e43e89da68da73215b3f38855e2add35b54af9f15f1e46",
+      "entries": [
+        [
+          "assembleSharedAxisInertia",
+          "inertia"
+        ],
+        [
+          "prepareSharedAxisDynamicStep",
+          "prepare-dynamics"
+        ],
+        [
+          "completeSharedAxisDynamicStep",
+          "complete-dynamics"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisWallFriction.js",
+      "before": "668d476112f4bedaeebbdc4b89073af86d18e3d6673a45f68970c9d3a1a6a635",
+      "after": "94df559cd7059f964829fe56acad82fb51409cf1c06130ccb57d4994359b3ba3",
+      "entries": [
+        [
+          "assembleSharedAxisWallFriction",
+          "friction-assembly"
+        ],
+        [
+          "refreshSharedAxisWallFriction",
+          "friction-certify"
+        ],
+        [
+          "prepareSharedAxisWallFriction",
+          "friction-prepare"
+        ],
+        [
+          "commitSharedAxisWallFriction",
+          "friction-commit"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisActiveBasis.js",
+      "before": "c775275a86734014d61d28d824ddf67a691a67f0c62d3cd653e05ea0e0dce20f",
+      "after": "2985ce5f9c0907eff6a666bca30fd66d943225028b5e7a54fb4f1d8e4396db41",
+      "entries": [
+        [
+          "prepareSharedAxisActiveBasis",
+          "active-basis"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisLinear.js",
+      "before": "8c9daf4360e2162a6df01f54b7b3d8047d5b438a4460370f5a19b7a9d8f4ad83",
+      "after": "1443e5395ba6c172d17bae2aea1d4f74f080334970580a3d489f81d7971c942a",
+      "entries": [
+        [
+          "iterateSharedAxisLinear",
+          "linear"
+        ],
+        [
+          "solveSharedAxisLinearOnce",
+          "linear-build-certify"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffSharedAxisDiagnostics.js",
+      "before": "f64b6235bd67bd2027548815f2d3a6948977f40d4af5d01282e0cdba25c8fdd4",
+      "after": "6502205782ff40ca696e625af188b85ae9da0380ca3ff6b8776b29d74af6aede",
+      "entries": [
+        [
+          "measureSharedAxisQuality",
+          "quality"
+        ]
+      ]
+    },
+    {
+      "file": "kirchhoffWallWitnessGeometry.js",
+      "before": "eb9c8a44837b787a9a2e66c79c5854e6e924889eb8ff5c94d7e853a36eb704ae",
+      "after": "928bd3c603337c3ed517fc32251c54d9e6161e7160867d76900b875b72320c95",
+      "entries": [
+        [
+          "evaluateKirchhoffWallWitnessGeometry",
+          "wall-geometry"
+        ]
+      ]
+    }
+  ]
+}

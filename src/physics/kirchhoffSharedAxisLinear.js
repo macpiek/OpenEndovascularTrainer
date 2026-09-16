@@ -1,6 +1,7 @@
+import { assemblePreparedSharedAxisMatrix, applyPreparedSharedAxisFixedMask } from './kirchhoffSharedAxisMatrixAssembly.js';
 import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
 import { createIncrementalContactLU } from './kirchhoffIncrementalContactLU.js';
-import { prepareSharedAxisActiveBasis } from './kirchhoffSharedAxisActiveBasis.js';
+import { prepareSharedAxisActiveBasis, sharedAxisBasisLinearization } from './kirchhoffSharedAxisActiveBasis.js';
 import { createCoulombBandLU, createCoulombBandLUArena } from './kirchhoffCoulombBandLU.js';
 
 // Band elimination is synchronous and overwrites its entire factor/RHS. All
@@ -9,7 +10,27 @@ import { createCoulombBandLU, createCoulombBandLUArena } from './kirchhoffCoulom
 const sharedLinearScratchArena=createCoulombBandLUArena();
 export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics});
 
-const rowSupportKey = rows => rows.map(r => r.dofs.join('.') + (r.extraForceDofs?.length ? ':' + r.extraForceDofs.join('.') : '')).join(',');
+const rowSupportKey = (rows,cache) => {
+    if(!cache)return rows.map(r=>r.dofs.join('.')+(r.extraForceDofs?.length?':'+r.extraForceDofs.join('.'):'')).join(',');
+    return rows.map(r => {
+    let key=cache?.get(r);
+    if(key===undefined){key=r.dofs.join('.')+(r.extraForceDofs?.length?':'+r.extraForceDofs.join('.'):'');cache?.set(r,key);}
+    return key;
+}).join(',');
+};
+
+// Preserve exactly the previous toPrecision(9) cycle equivalence. Most active
+// sets are visited only once: copy their dual, and format numbers only if that
+// same set returns. Snapshots belong to this linear call, never the next pose.
+export function repeatedSharedAxisDual(visited,key,dual) {
+    const previous=visited.get(key);
+    if(previous)for(const saved of previous) {
+        let same=true;
+        for(let i=0;i<dual.length;i++)if(saved[i].toPrecision(9)!==dual[i].toPrecision(9)){same=false;break;}
+        if(same)return true;
+    }
+    const saved=dual.slice();if(previous)previous.push(saved);else visited.set(key,[saved]);return false;
+}
 function validateExtraForce(row, dofCount) {
     if (!row.extraForceDofs && !row.extraForceJacobian) return;
     if (!row.extraForceDofs || !row.extraForceJacobian || row.extraForceDofs.length !== row.extraForceJacobian.length)
@@ -83,17 +104,19 @@ export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
         lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
 }
 
-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext }) {
+function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,supportKeyCache,matrixAssembly }) {
     // Optional force support can appear after an originally normal-only
     // workspace was created. Rebuild the reference band when it no longer
     // contains that support; compact workspaces are keyed by both supports.
     if(!w.primal||rows.some((r,index)=>r.extraForceDofs?.some(p=>
         w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
-        const key=rowSupportKey(rows);
+        const key=rowSupportKey(rows,supportKeyCache);
         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
-        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext});
+        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,supportKeyCache,matrixAssembly});
     }
     const { matrix: A, residual: F, band: { starts, ends, offsets }, primal, dual } = w;
+    if(matrixAssembly)assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows},matrixAssembly);
+    else {
     A.fill(0); F.fill(0); w.fixed.fill(0);
     const add = (i, j, v) => {
         if (!v) return;
@@ -131,9 +154,13 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
     });
     for(const r of inactiveRows)if(r.geometricHessian)
         r.dofs.forEach((p,i)=>r.dofs.forEach((q,j)=>add(primal[p],primal[q],r.geometricHessian[i*r.dofs.length+j])));
+    }
+    if(matrixAssembly)applyPreparedSharedAxisFixedMask(w);
     for (let i = 0; i < w.count; i++) {
-        for (let j = starts[i]; j <= ends[i]; j++) if (w.fixed[i] || w.fixed[j]) A[offsets[i] + j] = i === j ? 1 : 0;
-        if (w.fixed[i]) F[i] = 0;
+        if(!matrixAssembly) {
+            for(let j=starts[i];j<=ends[i];j++)if(w.fixed[i]||w.fixed[j])A[offsets[i]+j]=i===j?1:0;
+            if(w.fixed[i])F[i]=0;
+        }
         let maximum = 0;
         for (let j = starts[i]; j <= ends[i]; j++) maximum = Math.max(maximum, Math.abs(A[offsets[i] + j]));
         w.scales[i] = 1 / Math.sqrt(Math.max(maximum, 1e-30));
@@ -213,7 +240,7 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
     const activeRows=scratch?.rows??indices.map(i=>options.rows[i]);
     // Recheck actual supports even with a reused index map: contact/friction
     // derivatives can change their sparsity without changing the active mask.
-    const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows),cache=w.activeWorkspaces??=new Map();
+    const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows,options.supportKeyCache),cache=w.activeWorkspaces??=new Map();
     let packed=cache.get(key);
     if(!packed) {
         if(cache.size>=8)cache.delete(cache.keys().next().value);
@@ -248,16 +275,21 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
 function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     const { rows, tolerance = 1e-8 } = options;
     const activeSet=Uint8Array.from(rows,r=>r.kind==='length'||r.multiplier>tolerance);
-    let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?Math.max(0,r.multiplier):r.multiplier);
+    let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?Math.max(0,r.multiplier):r.multiplier);
     const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses});
     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
         yield {kind:'linear-active-set',attempt,batchSize};
         activeSetAttempts++;
-        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache});
+        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey});
         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
-        const setKey=activeSet.join(''),signature=setKey+'/'+Array.from(dual,v=>v.toPrecision(9)).join(',');
-        if(visited.has(signature))return finish({converged:false,failure:'active-set-cycle'});
-        visited.add(signature);
+        const setKey=activeSet.join('');
+        if(options.reuseConstraintWork) {
+            if(repeatedSharedAxisDual(visited,setKey,dual))return finish({converged:false,failure:'active-set-cycle'});
+        } else {
+            const signature=setKey+'/'+Array.from(dual,v=>v.toPrecision(9)).join(',');
+            if(visited.has(signature))return finish({converged:false,failure:'active-set-cycle'});
+            visited.add(signature);
+        }
         const saved=solutionCache?.get(setKey);
         if(saved) {
             // The feasible dual iterate chooses the next pivot, but does not
@@ -322,9 +354,10 @@ function* iterateWithFallback(w,chain,options,batchSize) {
     // physical multipliers are fixed only for this one linearization. The
     // reference activation fallback solves the same equations and may reuse it.
     const solutionCache=options.reuseWorkingSet===false?null:new Map();
-    // Only normalized Jacobian prefixes share this token. No cache survives
-    // a different linearization (or changed fixed mask/geometry/coefficients).
-    options={...options,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:options.reuseStructure===false?null:Symbol('linear-basis')};
+    // Numerical Jacobian prefixes may survive another solve only after exact
+    // support/Jacobian/fixed-mask validation. Matrix and solution caches below
+    // remain local to this immutable linearization.
+    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:options.reuseStructure===false?null:options.reuseConstraintWork?sharedAxisBasisLinearization(options.rows,options.fixed):Symbol('linear-basis')};
     try {
         const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
         const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};

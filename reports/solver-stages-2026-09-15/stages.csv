@@ -1,0 +1,15 @@
+stage,mean_self_ms,slow5_mean_self_ms
+"Wiersze ograniczeń: składanie, pochodne, reakcje",17.82352093459896,43.66666670309173
+"Geometria kontaktu z zachowaną cechą ściany",7.520923520579482,20.661111093229717
+"Przygotowanie bazy aktywnych ograniczeń",8.476046180140232,21.82777770691448
+"Pozostała obsługa układów liniowych i ich certyfikacja",11.549350648559361,36.7083334657881
+"Pakowanie, skalowanie i certyfikat LU",2.232900429597665,9.472222106324303
+"Jądro LU WASM",1.7142857184141744,4.544444455040826
+"Wkłady materiałowe",5.049639236703408,10.972222175863054
+"Tarcie o ścianę: składanie, certyfikacja i historia",5.169552661467768,9.319444437821707
+"Wsuwanie i przebudowa siatki",1.9932178938371623,3.2333333359824286
+"Zapis i odtwarzanie stanu",0.44747474320867187,0.8916666905085245
+"Bezwładność i przygotowanie/zakończenie dynamiki",1.2698412763779985,2.6833333141273923
+"Aplikacja przyrostu i obsługa projekcji",0.9111111215698771,2.802777800295088
+"Obsługa składania i kontrola jakości",1.958585847851862,4.850000060266918
+"Pozostała praca wewnątrz kroku",2.645743152795932,5.858333319425583

@@ -1,0 +1,6 @@
+{
+  "exclusiveAccounting": "PASS",
+  "consumerWaitExcluded": "PASS",
+  "generatorCancellation": "PASS",
+  "fourForwardAndWithdrawalStepsExact": "PASS"
+}

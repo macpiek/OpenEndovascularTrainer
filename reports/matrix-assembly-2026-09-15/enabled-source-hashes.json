@@ -1,0 +1,8 @@
+{
+  "src/physics/kirchhoffSharedAxisMatrixAssembly.js": "f00d6904b62ac7a5d047846d4777b60d43f6a34cb934a171f61748e222e46165",
+  "src/physics/kirchhoffSharedAxisLinear.js": "45a275f1f9bd14f3849798798f4093557d180e18be87549e0fe50082ef0cb66f",
+  "src/physics/kirchhoffSharedAxisNative.js": "d16b2dfa569160bab4dd38d15bf075ef1f2ac01aef07da204a469baaf5e572db",
+  "src/physics/kirchhoffSharedAxisProjection.js": "dce44275dc6ca6ad7d04d1fe07ad61e1a777cb4bb72e759938182d913d09356a",
+  "src/physics/kirchhoffSharedAxisAppSystem.js": "269821412343dd010de662b3f52571414b4a01f300ad7137ae2c5a2300a8fef5",
+  "scripts/physics/profile-shared-axis-dynamic.mjs": "b5ac67eb38748b3e7fbaa203681288f5d4f850cf2343eee9e2403cfe14316c97"
+}
