@@ -5,17 +5,17 @@ import { extendSharedAxisNativeRows, iterateSharedAxisNative, sharedAxisOuterInt
 
 const NEED_ROWS='shared-axis-wall-discovery';
 const outsideError=message=>Object.assign(new Error(message),{code:'trial-outside-vessel'});
-function gapForWitness(field,face,t,geometryScratch,{a,b,radius,state,needHessian=true}) {
+function gapForWitness(field,face,t,geometryScratch,{a,b,radius,state,needHessian=true,reuseGeometry=false,contactStorage=null}) {
     const query=geometryScratch.contactQuery;
     const point=query?.point??a.map((v,i)=>(1-t)*v+t*b[i]+(state.origin?.[i]??0));
     if(query) {
         for(let i=0;i<3;i++)point[i]=(1-t)*a[i]+t*b[i]+(state.origin?.[i]??0);
-        query.geometry=field.fallbackGeometry;
+        query.geometry=field.fallbackGeometry;query.reuseTriangle=reuseGeometry;
     }
-    const g=evaluateKirchhoffWallWitnessGeometry(query??{geometry:field.fallbackGeometry,faceIndex:face,point},geometryScratch);
+    const g=evaluateKirchhoffWallWitnessGeometry(query??{geometry:field.fallbackGeometry,faceIndex:face,point,reuseTriangle:reuseGeometry},geometryScratch);
     if(!g.normalDefined)throw outsideError('Retained vessel witness reached the surface');
-    const n=g.direction,jacobian=query?new Array(6):[...n.map(v=>(1-t)*v),...n.map(v=>t*v)];
-    if(query)for(let i=0;i<3;i++){jacobian[i]=(1-t)*n[i];jacobian[i+3]=t*n[i];}
+    const n=g.direction,jacobian=contactStorage?.contact.jacobian??(query?new Array(6):[...n.map(v=>(1-t)*v),...n.map(v=>t*v)]);
+    if(query||contactStorage)for(let i=0;i<3;i++){jacobian[i]=(1-t)*n[i];jacobian[i+3]=t*n[i];}
     let hessian;
     if(needHessian&&g.feature!=='face') {
         const edge=geometryScratch.contactEdge??[0,0,0];edge.fill(0);
@@ -24,10 +24,11 @@ function gapForWitness(field,face,t,geometryScratch,{a,b,radius,state,needHessia
             for(let a=0;a<3;a++)edge[a]=g.triangleVertices[second*3+a]-g.triangleVertices[first*3+a];
             const norm=Math.hypot(...edge);for(let a=0;a<3;a++)edge[a]/=norm;
         }
-        hessian=new Float64Array(36);
+        hessian=contactStorage?(contactStorage.hessian??=new Float64Array(36)):new Float64Array(36);
         for(let i=0;i<6;i++)for(let j=0;j<6;j++)hessian[i*6+j]=(i<3?1-t:t)*(j<3?1-t:t)*
             ((i%3===j%3?1:0)-edge[i%3]*edge[j%3]-n[i%3]*n[j%3])/g.distance;
     }
+    if(contactStorage){const out=contactStorage.contact;out.gap=g.distance-radius;out.hessian=hessian;return out;}
     return {gap:g.distance-radius,jacobian,hessian};
 }
 
@@ -38,9 +39,10 @@ export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=tr
     const {face,t}=definition.witness;
     if(reuseBuffers){scratch.contactQuery={geometry:null,faceIndex:face,point:[0,0,0]};scratch.contactEdge=[0,0,0];}
     const evaluate=input=>gapForWitness(field,face,t,scratch,input);
-    // Only temporary geometry uses scratch. Every returned derivative owns
-    // its storage and remains valid across later trials, feed and rollback.
+    // Default outputs own their derivatives. The solver can explicitly supply
+    // private contact storage and copy derivatives into its protected row bank.
     evaluate.contactOutputOwned=reuseBuffers;
+    evaluate.contactStorageSupported=reuseBuffers;
     return {...definition,evaluate};
 }
 

@@ -1,0 +1,14 @@
+{
+  "comparedSteps": 1512,
+  "differingStepFields": {
+    "accepted": 0,
+    "status": 0,
+    "wire": 0,
+    "catheter": 0,
+    "iterations": 0,
+    "factorizations": 0,
+    "substepAttempts": 0,
+    "geometryRestarts": 0
+  },
+  "warning": "All sampled commands, acceptances and solver counters match in 1512/1512 steps. Full live-browser physical states were not recorded. Timing variation between runs does not isolate instrumentation overhead."
+}

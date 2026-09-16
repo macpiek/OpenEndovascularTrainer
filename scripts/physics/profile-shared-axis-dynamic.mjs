@@ -18,12 +18,16 @@ const root=new URL('../../',import.meta.url),physicsRoot=new URL('src/physics/',
 const sourceFiles=[...readdirSync(physicsRoot).filter(name=>/^kirchhoffSharedAxis.*\.js$/.test(name)).map(name=>'src/physics/'+name),
     'scripts/physics/profile-shared-axis-dynamic.mjs','tests/helpers/coupledRuntimeFixture.js',
     'src/physics/endovascularPhysicsWorld.js','src/physics/catheterDiscretization.js','src/physics/discreteKirchhoffRod.js',
-    'src/physics/kirchhoffCoulombBandLU.js','src/physics/kirchhoffLinearKernel.js','src/physics/kirchhoffLinearKernelBytes.js',
+    'src/physics/kirchhoffWallWitnessGeometry.js','src/physics/kirchhoffCoulombBandLU.js','src/physics/kirchhoffLinearKernel.js','src/physics/kirchhoffLinearKernelBytes.js',
     'src/physics/applyKirchhoffMaterialProfile.js','src/physics/kirchhoffMaterialProfile.js','src/toolDimensions.js'].sort();
 const sourceHashes=Object.fromEntries(sourceFiles.map(path=>[path,createHash('sha256').update(readFileSync(new URL(path,root))).digest('hex')]));
 let gitHead=null;try{gitHead=execFileSync('git',['rev-parse','HEAD'],{cwd:fileURLToPath(root),encoding:'utf8'}).trim();}catch{/* Hashes still identify an exported checkout. */}
 const dt=Number(process.env.SHARED_AXIS_DT??1/60),samples=[],options={forceTolerance:Number(process.env.SHARED_AXIS_FORCE_TOLERANCE??1e-6),lengthTolerance:1e-5,liveWallNormalLoad:process.env.SHARED_AXIS_LIVE_WALL_NORMAL==='1'};
 options.stagnationFallback=process.env.SHARED_AXIS_STAGNATION!=='0';
+options.reuseRowBuffers=process.env.SHARED_AXIS_ROW_BUFFERS!=='0';
+options.reuseMatrixAssembly=process.env.SHARED_AXIS_MATRIX_ASSEMBLY!=='0';
+options.reuseConstraintWork=process.env.SHARED_AXIS_CONSTRAINT_WORK!=='0';
+options.wasmMaterial=process.env.SHARED_AXIS_WASM_MATERIAL!=='0';
 options.projectionMode=process.env.SHARED_AXIS_PROJECTION==='0'?false:(process.env.SHARED_AXIS_PROJECTION??'reduced');
 options.promoteTrialAssembly=process.env.SHARED_AXIS_PROMOTE_ASSEMBLY!=='0';
 options.lazyTrialTangent=process.env.SHARED_AXIS_LAZY_TRIAL_TANGENT==='1';
@@ -64,7 +68,14 @@ const pairedProjection=process.env.SHARED_AXIS_COMPARE_PROJECTION==='1';
 metadata.pairedProjection=pairedProjection;
 const pairedStagnation=process.env.SHARED_AXIS_COMPARE_STAGNATION==='1';
 metadata.pairedStagnation=pairedStagnation;
-if(pairedProjection&&pairedStagnation)throw new Error('Compare one optimization at a time');
+const pairedMaterial=process.env.SHARED_AXIS_COMPARE_MATERIAL==='1';
+metadata.pairedMaterial=pairedMaterial;
+const pairedConstraintWork=process.env.SHARED_AXIS_COMPARE_CONSTRAINT_WORK==='1';metadata.pairedConstraintWork=pairedConstraintWork;
+const pairedMatrixAssembly=process.env.SHARED_AXIS_COMPARE_MATRIX_ASSEMBLY==='1';metadata.pairedMatrixAssembly=pairedMatrixAssembly;
+const pairedRowBuffers=process.env.SHARED_AXIS_COMPARE_ROW_BUFFERS==='1';metadata.pairedRowBuffers=pairedRowBuffers;
+const reversePairOrder=process.env.SHARED_AXIS_PAIR_REVERSE_ORDER==='1';
+metadata.reversePairOrder=reversePairOrder;
+if([pairedProjection,pairedStagnation,pairedMaterial,pairedConstraintWork,pairedMatrixAssembly,pairedRowBuffers].filter(Boolean).length>1)throw new Error('Compare one optimization at a time');
 const captureCatheterMm=Number(process.env.SHARED_AXIS_CAPTURE_CATHETER_MM??NaN);
 function step(phase,feeds,spins={}) {
     const start=performance.now();
@@ -82,12 +93,13 @@ function step(phase,feeds,spins={}) {
         else if(e.kind==='trial')trace.push({kind:e.kind,iteration:e.iteration,method:e.method,trial:e.trial,scale:e.scale,accept:e.accept,force:e.candidate.force,torque:e.candidate.torque,constraint:e.candidate.constraint});
     }}:options;
     let next,paired=null;
-    if(pairedProjection||pairedStagnation) {
+    if(pairedProjection||pairedStagnation||pairedMaterial||pairedConstraintWork||pairedMatrixAssembly||pairedRowBuffers) {
         // Same incoming physical state, alternating order at every step to
         // reduce slow thermal/load drift. Serialization is outside both timers.
         const outputs=[];
-        for(const mode of (samples.length%2?[1,0]:[0,1])) {
-            const variant=pairedStagnation?{stagnationFallback:Boolean(mode)}:{projectionMode:mode?'reduced':false};
+        const referenceFirst=(samples.length%2===0)!==reversePairOrder;
+        for(const mode of (referenceFirst?[0,1]:[1,0])) {
+            const variant=pairedRowBuffers?{reuseRowBuffers:Boolean(mode)}:pairedMatrixAssembly?{reuseMatrixAssembly:Boolean(mode)}:pairedConstraintWork?{reuseConstraintWork:Boolean(mode)}:pairedMaterial?{wasmMaterial:Boolean(mode)}:pairedStagnation?{stagnationFallback:Boolean(mode)}:{projectionMode:mode?'reduced':false};
             const begin=performance.now(),iterator=advanceSharedAxis(s,rotations,dt,tools,{...traced,...variant});
             let item;do{item=iterator.next();}while(!item.done);
             outputs[mode]={value:item.value,ms:performance.now()-begin};
@@ -99,8 +111,8 @@ function step(phase,feeds,spins={}) {
         }
         paired={referenceMs:outputs[0].ms,optimizedMs:outputs[1].ms,
             referenceProjectionMs:outputs[0].value.result.timings.projectionMs,optimizedProjectionMs:outputs[1].value.result.timings.projectionMs,
-            exactState:true,referenceFirst:samples.length%2===0};
-        if(pairedStagnation)paired.optimizedResult=outputs[1].value.result;
+            exactState:true,referenceFirst};
+        if(pairedStagnation||pairedMaterial||pairedConstraintWork||pairedMatrixAssembly||pairedRowBuffers)paired.optimizedResult=outputs[1].value.result;
         next={value:outputs[0].value};
     } else {
         const iterator=advanceSharedAxis(s,rotations,dt,tools,traced);do{next=iterator.next();}while(!next.done);

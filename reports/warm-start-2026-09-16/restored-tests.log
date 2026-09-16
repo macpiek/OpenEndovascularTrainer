@@ -1,0 +1,27 @@
+✔ shared-axis selection installs its whole-step provider without the split coupled kernel (2.630583ms)
+✔ pending global solves publish both tools atomically and freeze prepared controls (13.320667ms)
+✔ World consumes one prepared dt only after cooperative completion (1.768ms)
+✔ independent feed and proximal spin share exactly one overlap curve in world coordinates (8.097291ms)
+✔ sampling translates local coordinates once and extrapolates the exposed proximal reservoir (0.071917ms)
+✔ reset abandons private work and clears both published curves and solver counters (2.7035ms)
+✔ missing anatomy rejects without preparing tools or publishing geometry (0.1435ms)
+✔ unchanged settled commands sleep with stable diagnostics and parameter changes wake the solver (16.140042ms)
+✔ a throwing geometry callback preserves both published bodies and reset permits recovery (20.934125ms)
+✔ terminal failure is latched, rolls back input, and a changed command resumes without resetting the accepted solver (6.373834ms)
+✔ catheter material stiffness changes the solved transient shape, not only the command key (65.590292ms)
+✔ whole-step diagnostics sum wall-load fallbacks and their cost across rejected and accepted subdivisions (1.592792ms)
+✔ rejection records the accepted state and frozen command; replay survives JSON and later recovery (8.877958ms)
+✔ three banks preserve base and uncorrected trial while repeated corrected poses reuse numeric storage (15.479417ms)
+✔ time step cancellation and completion release private contact storage and preserve atomic state (6.837667ms)
+✔ reused rows clear inactive derivatives and update definitions after discovery; observed measures own their data (1.337583ms)
+✔ buffered finite-triangle contacts preserve retained rows across feature changes, Hessian promotion and throwing evaluations (7.087416ms)
+✔ reusable constraint banks preserve every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (521.125167ms)
+✔ reusable constraint banks preserve every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (256.727792ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2007.226083

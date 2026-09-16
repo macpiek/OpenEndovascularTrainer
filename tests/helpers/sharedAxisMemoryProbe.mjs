@@ -9,9 +9,10 @@ const sourceRoot=new URL(process.argv[2]);
 const {createSharedAxisNative,feedSharedAxisNative}=await import(new URL('src/physics/kirchhoffSharedAxisNative.js',sourceRoot));
 const {stepSharedAxis}=await import(new URL('src/physics/kirchhoffSharedAxisTimeStep.js',sourceRoot));
 const {defineKirchhoffMaterialProfile}=await import(new URL('src/physics/kirchhoffMaterialProfile.js',sourceRoot));
-const dynamic=process.argv[3]==='dynamic',count=dynamic?30:160;
+const {sharedAxisMaterialKernelWorkspace}=await import(new URL('src/physics/kirchhoffSharedAxisMaterialKernel.js',sourceRoot));
+const wasmMaterial=process.argv[3]==='wasm',dynamic=wasmMaterial||process.argv[3]==='dynamic',count=dynamic?30:160;
 const beam=defineKirchhoffMaterialProfile({id:'memory-lifecycle-beam',sampleEI1:()=>1e6,sampleGJ:()=>1e6/1.3});
-const oldStates=[],oldPositions=[],oldBodies=[];
+const oldStates=[],oldPositions=[],oldBodies=[],oldMaterialMemories=[];
 let factorizations=0;
 function build() {
     let state=createSharedAxisNative({tools:[
@@ -20,9 +21,13 @@ function build() {
     for(let i=0;i<count;i++) {
         if(dynamic) {
             state.loads[state.layout.positions.at(-1)+1]=1;
-            const result=stepSharedAxis(state,1/60,{liveWallNormalLoad:true});
+            const result=stepSharedAxis(state,1/60,{liveWallNormalLoad:true,wasmMaterial,reuseConstraintWork:wasmMaterial,reuseMatrixAssembly:wasmMaterial,reuseRowBuffers:wasmMaterial});
             assert.ok(result.converged,JSON.stringify(result));
             factorizations+=result.factorizations;
+            if(wasmMaterial) {
+                const w=sharedAxisMaterialKernelWorkspace(state.chain,state.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0));
+                oldMaterialMemories.push(new WeakRef(w.memory.buffer));
+            }
         }
         oldStates.push(new WeakRef(state));
         oldPositions.push(new WeakRef(state.positions));
@@ -40,10 +45,10 @@ async function collect() {
 const alive=refs=>refs.reduce((n,r)=>n+(r.deref()===undefined?0:1),0);
 const {latest,cache}=build();
 await collect();
-const held={states:alive(oldStates),positions:alive(oldPositions),bodies:alive(oldBodies),
+const held={states:alive(oldStates),positions:alive(oldPositions),bodies:alive(oldBodies),materialMemories:alive(oldMaterialMemories),
     latestAlive:latest.deref()!==undefined,cacheSize:cache?.deref()?.size??0};
 globalThis.currentMemoryProbeState=null;
 await collect();
-const released={states:alive(oldStates),positions:alive(oldPositions),bodies:alive(oldBodies),
+const released={states:alive(oldStates),positions:alive(oldPositions),bodies:alive(oldBodies),materialMemories:alive(oldMaterialMemories),
     latestAlive:latest.deref()!==undefined,cacheAlive:cache?.deref()!==undefined};
-process.stdout.write(JSON.stringify({count,dynamic,factorizations,held,released}));
+process.stdout.write(JSON.stringify({count,dynamic,factorizations,materialMemoryCount:oldMaterialMemories.length,held,released}));

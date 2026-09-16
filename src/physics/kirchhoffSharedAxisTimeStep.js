@@ -39,7 +39,7 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     }
     return {...result,converged:false,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,friction,ms:performance.now()-started};
     } finally {
-        s.cacheMechanicalAssembly=false;s.mechanicalAssemblyCache=null;s.wallGeometryCache=null;
+        s.cacheMechanicalAssembly=false;s.mechanicalAssemblyCache=null;s.wallGeometryCache=null;s.bufferedWallGeometryCache=null;
         if(!committed){restoreSharedAxisNative(s,incoming);s.acceptedSolves=acceptedSolves;s.acceptedWallGaps=gaps;
             s.wallFrictionHistory=history;s.velocities=velocities;s.angularVelocities=angularVelocities;s.wallFrictionStep=null;s.dynamicStep=null;}
     }

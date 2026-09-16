@@ -1,0 +1,270 @@
+{
+  "duplicate-guard": {
+    "pairs": 1663,
+    "failed": false,
+    "exactStates": 1657,
+    "drift": {
+      "position": 5.695433295429594e-14,
+      "frame": 0,
+      "velocity": 0,
+      "angular": 0,
+      "history": 0
+    },
+    "phases": {
+      "initial": {
+        "n": 1,
+        "referenceMs": {
+          "mean": 9.252707999999984,
+          "p95": 9.252707999999984,
+          "p99": 9.252707999999984,
+          "max": 9.252707999999984
+        },
+        "optimizedMs": {
+          "mean": 20.460749999999962,
+          "p95": 20.460749999999962,
+          "p99": 20.460749999999962,
+          "max": 20.460749999999962
+        },
+        "changePercent": 121.13255924643896,
+        "referenceFactors": 15,
+        "optimizedFactors": 14,
+        "referenceIterations": 5,
+        "optimizedIterations": 5
+      },
+      "wire": {
+        "n": 819,
+        "referenceMs": {
+          "mean": 21.22056994627597,
+          "p95": 55.24699999999939,
+          "p99": 86.36441599999989,
+          "max": 178.7527500000001
+        },
+        "optimizedMs": {
+          "mean": 22.05810568253964,
+          "p95": 55.92795800000022,
+          "p99": 91.61645799999678,
+          "max": 178.10775000000012
+        },
+        "changePercent": 3.9468107519452067,
+        "referenceFactors": 14417,
+        "optimizedFactors": 14947,
+        "referenceIterations": 5732,
+        "optimizedIterations": 5732
+      },
+      "catheter": {
+        "n": 693,
+        "referenceMs": {
+          "mean": 48.095081158730274,
+          "p95": 84.56004199999734,
+          "p99": 162.6168749999997,
+          "max": 319.5386670000007
+        },
+        "optimizedMs": {
+          "mean": 49.59333098556976,
+          "p95": 83.7286660000027,
+          "p99": 171.4380000000092,
+          "max": 321.2417080000014
+        },
+        "changePercent": 3.1151830722454754,
+        "referenceFactors": 11367,
+        "optimizedFactors": 11182,
+        "referenceIterations": 6149,
+        "optimizedIterations": 6148
+      },
+      "simultaneous": {
+        "n": 60,
+        "referenceMs": {
+          "mean": 53.109911049999454,
+          "p95": 85.72266699999454,
+          "p99": 95.18241700000362,
+          "max": 102.98104199999943
+        },
+        "optimizedMs": {
+          "mean": 54.60799023333263,
+          "p95": 85.74725000000035,
+          "p99": 94.59070800000336,
+          "max": 103.13104100000055
+        },
+        "changePercent": 2.820714916887801,
+        "referenceFactors": 990,
+        "optimizedFactors": 1022,
+        "referenceIterations": 483,
+        "optimizedIterations": 483
+      },
+      "rotation": {
+        "n": 30,
+        "referenceMs": {
+          "mean": 66.93919036666581,
+          "p95": 78.1376670000027,
+          "p99": 84.68362500000512,
+          "max": 264.02562499999476
+        },
+        "optimizedMs": {
+          "mean": 69.44704309999992,
+          "p95": 90.67366600000241,
+          "p99": 97.36437500000466,
+          "max": 273.0237080000079
+        },
+        "changePercent": 3.746464096140234,
+        "referenceFactors": 540,
+        "optimizedFactors": 530,
+        "referenceIterations": 300,
+        "optimizedIterations": 300
+      },
+      "withdrawal": {
+        "n": 60,
+        "referenceMs": {
+          "mean": 48.27653824999943,
+          "p95": 66.13908399999491,
+          "p99": 71.9933330000058,
+          "max": 72.26745800000208
+        },
+        "optimizedMs": {
+          "mean": 49.36216594999981,
+          "p95": 64.5820829999866,
+          "p99": 73.38079100000323,
+          "max": 87.17933300000732
+        },
+        "changePercent": 2.2487687380948307,
+        "referenceFactors": 647,
+        "optimizedFactors": 648,
+        "referenceIterations": 428,
+        "optimizedIterations": 428
+      }
+    }
+  },
+  "cost-gated": {
+    "pairs": 1663,
+    "failed": false,
+    "exactStates": 1663,
+    "drift": {
+      "position": 5.695433295429594e-14,
+      "frame": 0,
+      "velocity": 0,
+      "angular": 0,
+      "history": 0
+    },
+    "phases": {
+      "initial": {
+        "n": 1,
+        "referenceMs": {
+          "mean": 8.377958000000035,
+          "p95": 8.377958000000035,
+          "p99": 8.377958000000035,
+          "max": 8.377958000000035
+        },
+        "optimizedMs": {
+          "mean": 37.830375000000004,
+          "p95": 37.830375000000004,
+          "p99": 37.830375000000004,
+          "max": 37.830375000000004
+        },
+        "changePercent": 351.5464866259755,
+        "referenceFactors": 15,
+        "optimizedFactors": 14,
+        "referenceIterations": 5,
+        "optimizedIterations": 5
+      },
+      "wire": {
+        "n": 819,
+        "referenceMs": {
+          "mean": 20.827432380952395,
+          "p95": 50.9151660000025,
+          "p99": 93.69416700000147,
+          "max": 182.84991600000103
+        },
+        "optimizedMs": {
+          "mean": 21.656328781440706,
+          "p95": 54.83454200000051,
+          "p99": 93.58591700000397,
+          "max": 172.08137499999975
+        },
+        "changePercent": 3.979829992132755,
+        "referenceFactors": 14417,
+        "optimizedFactors": 14791,
+        "referenceIterations": 5732,
+        "optimizedIterations": 5732
+      },
+      "catheter": {
+        "n": 693,
+        "referenceMs": {
+          "mean": 47.106265480519376,
+          "p95": 84.80545800000255,
+          "p99": 150.83337500000198,
+          "max": 312.7415420000034
+        },
+        "optimizedMs": {
+          "mean": 47.91034896681121,
+          "p95": 82.6782499999972,
+          "p99": 153.01924999999756,
+          "max": 344.11699999999837
+        },
+        "changePercent": 1.7069565546951715,
+        "referenceFactors": 11367,
+        "optimizedFactors": 11191,
+        "referenceIterations": 6149,
+        "optimizedIterations": 6149
+      },
+      "simultaneous": {
+        "n": 60,
+        "referenceMs": {
+          "mean": 51.381845783332395,
+          "p95": 86.24770799999533,
+          "p99": 95.432707999993,
+          "max": 97.44224999999278
+        },
+        "optimizedMs": {
+          "mean": 52.06474233333356,
+          "p95": 78.06120799999917,
+          "p99": 91.20562500000233,
+          "max": 97.49270899999829
+        },
+        "changePercent": 1.3290619275936777,
+        "referenceFactors": 990,
+        "optimizedFactors": 1021,
+        "referenceIterations": 483,
+        "optimizedIterations": 483
+      },
+      "rotation": {
+        "n": 30,
+        "referenceMs": {
+          "mean": 64.03925689999984,
+          "p95": 73.79029200000514,
+          "p99": 74.27737500000512,
+          "max": 255.73637499999313
+        },
+        "optimizedMs": {
+          "mean": 65.37246946666613,
+          "p95": 75.40699999999197,
+          "p99": 76.21791700000176,
+          "max": 253.06595899999957
+        },
+        "changePercent": 2.081867640575785,
+        "referenceFactors": 540,
+        "optimizedFactors": 532,
+        "referenceIterations": 300,
+        "optimizedIterations": 300
+      },
+      "withdrawal": {
+        "n": 60,
+        "referenceMs": {
+          "mean": 45.642825033334276,
+          "p95": 62.96158300001116,
+          "p99": 72.40308400000504,
+          "max": 81.28745899999922
+        },
+        "optimizedMs": {
+          "mean": 46.327675683332686,
+          "p95": 60.22795800000313,
+          "p99": 62.975875000003725,
+          "max": 63.661332999996375
+        },
+        "changePercent": 1.5004563137760218,
+        "referenceFactors": 647,
+        "optimizedFactors": 647,
+        "referenceIterations": 428,
+        "optimizedIterations": 428
+      }
+    }
+  }
+}

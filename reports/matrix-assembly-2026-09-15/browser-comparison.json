@@ -1,0 +1,347 @@
+{
+  "sameStepInputsAndCounters": true,
+  "sameQualityEnvelope": true,
+  "conditions": "Both reloaded normal 5173 tab, contrast0, no ROADMAP, same defaults and benchmark; sequential reference then optimized, no overlapping CPU tests/benchmarks. One run per variant; not a confidence interval.",
+  "runs": [
+    {
+      "variant": "reference",
+      "durationMs": 98175.60000002384,
+      "wire": {
+        "n": 819,
+        "cpu": {
+          "mean": 29.675213676087004,
+          "p95": 70.39999997615814,
+          "p99": 102.89999997615814,
+          "max": 280.100000500679
+        },
+        "hz": 24.06000017628059
+      },
+      "catheter": {
+        "n": 693,
+        "cpu": {
+          "mean": 67.33564213223616,
+          "p95": 98.10000014305115,
+          "p99": 235.8999993801117,
+          "max": 322.39999985694885
+        },
+        "hz": 10.805972755862559,
+        "timings": {
+          "assemblyMs": {
+            "mean": 31.7574314604934,
+            "p95": 44.30000030994415,
+            "p99": 125.299999833107,
+            "max": 176.89999997615814
+          },
+          "linearMs": {
+            "mean": 23.84877343955322,
+            "p95": 41.5,
+            "p99": 89.69999969005585,
+            "max": 137.59999978542328
+          },
+          "frictionMs": {
+            "mean": 3.1076479059621196,
+            "p95": 4.100000023841858,
+            "p99": 4.799999952316284,
+            "max": 5.5
+          },
+          "tangentAssemblyMs": {
+            "mean": 11.57474747416261,
+            "p95": 16.399999976158142,
+            "p99": 23.59999978542328,
+            "max": 35.60000026226044
+          },
+          "residualAssemblyMs": {
+            "mean": 20.18268398633079,
+            "p95": 26.99999988079071,
+            "p99": 100.50000023841858,
+            "max": 150.10000014305115
+          },
+          "projectionMs": {
+            "mean": 0.7513708486873523,
+            "p95": 0,
+            "p99": 30.699999928474426,
+            "max": 50.19999957084656
+          }
+        }
+      },
+      "render": {
+        "fps": 59.99075185013923,
+        "low1": 59,
+        "p99FrameMs": 18.299999237060547,
+        "maxFrameMs": 33.29999999999927,
+        "long33": 0,
+        "long50": 0
+      },
+      "quality": {
+        "steps": 1512,
+        "maxPostStepPenetrationMm": 7.014368252900027e-9,
+        "maxPostStepPenetrationStep": 1266,
+        "maxPostStepPenetrationBodyId": null,
+        "maxPostStepPenetrationSegment": null,
+        "maxPostStepPenetrationT": null,
+        "maxPostStepPenetrationX": null,
+        "maxPostStepPenetrationY": null,
+        "maxPostStepPenetrationZ": null,
+        "maxTransientPenetrationMm": null,
+        "maxTransientPenetrationStep": null,
+        "maxSegmentErrorPercent": 1.1868905858136714e-8,
+        "maxSegmentErrorBodyId": "wire",
+        "maxSegmentErrorNodeIndex": null,
+        "maxSegmentErrorStep": 46,
+        "maxBendAngleDegrees": 40.68247161213839,
+        "maxBendBodyId": "wire",
+        "maxBendNodeIndex": 124,
+        "maxBendStep": 834,
+        "maxBendX": null,
+        "maxBendY": null,
+        "maxBendZ": null,
+        "maxGuidewireMaterialSpeedMmPerSecond": null,
+        "maxGuidewireMaterialSpeedStep": null,
+        "maxGuidewireMaterialSpeedNode": null,
+        "maxGuidewireMaterialSpeedX": null,
+        "maxGuidewireMaterialSpeedY": null,
+        "maxGuidewireMaterialSpeedZ": null,
+        "maxGuidewireMaterialSpeedNormalMmPerSecond": null,
+        "maxGuidewireMaterialSpeedTangentMmPerSecond": null,
+        "maxGuidewireMaterialSpeedAtWall": null,
+        "maxGuidewireRawDisplacementSpeedMmPerSecond": null,
+        "maxGuidewireRawDisplacementSpeedStep": null,
+        "maxGuidewireWallProjectionSpeedMmPerSecond": null,
+        "maxGuidewireWallProjectionSpeedStep": null,
+        "maxGuidewireWallProjectionSpeedNode": null,
+        "maxGuidewireRejectedWallProjectionSpeedMmPerSecond": null,
+        "maxGuidewireRejectedWallProjectionSpeedStep": null,
+        "maxGuidewireReconstructedSpeedMmPerSecond": null,
+        "maxGuidewireReconstructedSpeedStep": null,
+        "maxGuidewireProjectionLeakSpeedMmPerSecond": null,
+        "maxGuidewireSpeedWhileAdvancingMmPerSecond": null,
+        "maxGuidewireSpeedWhileRetractingMmPerSecond": null,
+        "maxGuidewireSpeedWhileIdleMmPerSecond": null,
+        "guidewireReleaseEventCount": null,
+        "maxGuidewireSpeedBeforeReleaseMmPerSecond": null,
+        "maxGuidewireSpeedAfterReleaseMmPerSecond": null,
+        "maxGuidewireReleaseSpeedIncreaseMmPerSecond": null,
+        "maxGuidewireReleaseSpeedRatio": null,
+        "finite": true,
+        "source": "shared-axis-quality",
+        "solverSteps": 1512,
+        "sleepingSteps": 0,
+        "missingQualitySteps": 0,
+        "nonlinearFailedSteps": 0,
+        "firstNonlinearFailure": null,
+        "lengthPeakNonlinearFailure": null,
+        "maxSharedAxisSpeedMmPerSecond": 90.7975530015136,
+        "maxCertifiedResidual": 9.978778656716258e-7,
+        "maxBendLimitDegrees": 45
+      },
+      "scenario": {
+        "running": false,
+        "warmingUp": false,
+        "warmupPhase": "complete",
+        "warmupElapsedMs": 204000,
+        "durationMs": 25200,
+        "elapsedMs": 25200,
+        "simulationElapsedMs": 25200.000000000404,
+        "progress": 1,
+        "cycleIndex": 0,
+        "catheterType": "berenstein",
+        "stopReason": "duration",
+        "automated": true,
+        "mode": "wire60-catheter"
+      },
+      "page": {
+        "visibilityState": "visible",
+        "hasFocus": true,
+        "focusLossCount": 0,
+        "focusLossMs": 0
+      },
+      "heap": {
+        "supported": true,
+        "samples": 99,
+        "startBytes": 418704613,
+        "minimumBytes": 418704613,
+        "maximumBytes": 567450386,
+        "endBytes": 499176778,
+        "growthBytes": 80472165,
+        "rangeBytes": 148745773
+      },
+      "counters": {
+        "iterations": 11956,
+        "factorizations": 24713,
+        "backtracks": 1131,
+        "geometryRestarts": 2888,
+        "substepAttempts": 1612
+      }
+    },
+    {
+      "variant": "optimized",
+      "durationMs": 96361.39999997616,
+      "wire": {
+        "n": 819,
+        "cpu": {
+          "mean": 28.867521363736945,
+          "p95": 67.89999985694885,
+          "p99": 102.80000042915344,
+          "max": 265.4000002145767
+        },
+        "hz": 24.80037064295563
+      },
+      "catheter": {
+        "n": 693,
+        "cpu": {
+          "mean": 66.47113997698862,
+          "p95": 91.90000009536743,
+          "p99": 226.69999957084656,
+          "max": 313.5000001192093
+        },
+        "hz": 10.943147741956743,
+        "timings": {
+          "assemblyMs": {
+            "mean": 31.54834054576026,
+            "p95": 42.699999928474426,
+            "p99": 118.79999959468842,
+            "max": 163.99999976158142
+          },
+          "linearMs": {
+            "mean": 23.14718615561509,
+            "p95": 39.19999980926514,
+            "p99": 86.29999995231628,
+            "max": 132.79999947547913
+          },
+          "frictionMs": {
+            "mean": 3.12611832659998,
+            "p95": 4.199999928474426,
+            "p99": 4.900000095367432,
+            "max": 6.5
+          },
+          "tangentAssemblyMs": {
+            "mean": 11.493073595550669,
+            "p95": 16.399999976158142,
+            "p99": 22.99999976158142,
+            "max": 36.19999980926514
+          },
+          "residualAssemblyMs": {
+            "mean": 20.055266950209592,
+            "p95": 26.700000286102295,
+            "p99": 96.799999833107,
+            "max": 138.4999998807907
+          },
+          "projectionMs": {
+            "mean": 0.7308802307082117,
+            "p95": 0,
+            "p99": 30.40000009536743,
+            "max": 46.40000069141388
+          }
+        }
+      },
+      "render": {
+        "fps": 60.00091319272933,
+        "low1": 59.89817428588867,
+        "p99FrameMs": 18.299999237060547,
+        "maxFrameMs": 18.700000000000728,
+        "long33": 0,
+        "long50": 0
+      },
+      "quality": {
+        "steps": 1512,
+        "maxPostStepPenetrationMm": 7.014368252900027e-9,
+        "maxPostStepPenetrationStep": 1266,
+        "maxPostStepPenetrationBodyId": null,
+        "maxPostStepPenetrationSegment": null,
+        "maxPostStepPenetrationT": null,
+        "maxPostStepPenetrationX": null,
+        "maxPostStepPenetrationY": null,
+        "maxPostStepPenetrationZ": null,
+        "maxTransientPenetrationMm": null,
+        "maxTransientPenetrationStep": null,
+        "maxSegmentErrorPercent": 1.1868905858136714e-8,
+        "maxSegmentErrorBodyId": "wire",
+        "maxSegmentErrorNodeIndex": null,
+        "maxSegmentErrorStep": 46,
+        "maxBendAngleDegrees": 40.68247161213839,
+        "maxBendBodyId": "wire",
+        "maxBendNodeIndex": 124,
+        "maxBendStep": 834,
+        "maxBendX": null,
+        "maxBendY": null,
+        "maxBendZ": null,
+        "maxGuidewireMaterialSpeedMmPerSecond": null,
+        "maxGuidewireMaterialSpeedStep": null,
+        "maxGuidewireMaterialSpeedNode": null,
+        "maxGuidewireMaterialSpeedX": null,
+        "maxGuidewireMaterialSpeedY": null,
+        "maxGuidewireMaterialSpeedZ": null,
+        "maxGuidewireMaterialSpeedNormalMmPerSecond": null,
+        "maxGuidewireMaterialSpeedTangentMmPerSecond": null,
+        "maxGuidewireMaterialSpeedAtWall": null,
+        "maxGuidewireRawDisplacementSpeedMmPerSecond": null,
+        "maxGuidewireRawDisplacementSpeedStep": null,
+        "maxGuidewireWallProjectionSpeedMmPerSecond": null,
+        "maxGuidewireWallProjectionSpeedStep": null,
+        "maxGuidewireWallProjectionSpeedNode": null,
+        "maxGuidewireRejectedWallProjectionSpeedMmPerSecond": null,
+        "maxGuidewireRejectedWallProjectionSpeedStep": null,
+        "maxGuidewireReconstructedSpeedMmPerSecond": null,
+        "maxGuidewireReconstructedSpeedStep": null,
+        "maxGuidewireProjectionLeakSpeedMmPerSecond": null,
+        "maxGuidewireSpeedWhileAdvancingMmPerSecond": null,
+        "maxGuidewireSpeedWhileRetractingMmPerSecond": null,
+        "maxGuidewireSpeedWhileIdleMmPerSecond": null,
+        "guidewireReleaseEventCount": null,
+        "maxGuidewireSpeedBeforeReleaseMmPerSecond": null,
+        "maxGuidewireSpeedAfterReleaseMmPerSecond": null,
+        "maxGuidewireReleaseSpeedIncreaseMmPerSecond": null,
+        "maxGuidewireReleaseSpeedRatio": null,
+        "finite": true,
+        "source": "shared-axis-quality",
+        "solverSteps": 1512,
+        "sleepingSteps": 0,
+        "missingQualitySteps": 0,
+        "nonlinearFailedSteps": 0,
+        "firstNonlinearFailure": null,
+        "lengthPeakNonlinearFailure": null,
+        "maxSharedAxisSpeedMmPerSecond": 90.7975530015136,
+        "maxCertifiedResidual": 9.978778656716258e-7,
+        "maxBendLimitDegrees": 45
+      },
+      "scenario": {
+        "running": false,
+        "warmingUp": false,
+        "warmupPhase": "complete",
+        "warmupElapsedMs": 204000,
+        "durationMs": 25200,
+        "elapsedMs": 25200,
+        "simulationElapsedMs": 25200.000000000404,
+        "progress": 1,
+        "cycleIndex": 0,
+        "catheterType": "berenstein",
+        "stopReason": "duration",
+        "automated": true,
+        "mode": "wire60-catheter"
+      },
+      "page": {
+        "visibilityState": "visible",
+        "hasFocus": true,
+        "focusLossCount": 0,
+        "focusLossMs": 0
+      },
+      "heap": {
+        "supported": true,
+        "samples": 97,
+        "startBytes": 405890982,
+        "minimumBytes": 405890982,
+        "maximumBytes": 552004608,
+        "endBytes": 474568026,
+        "growthBytes": 68677044,
+        "rangeBytes": 146113626
+      },
+      "counters": {
+        "iterations": 11956,
+        "factorizations": 24713,
+        "backtracks": 1131,
+        "geometryRestarts": 2888,
+        "substepAttempts": 1612
+      }
+    }
+  ]
+}

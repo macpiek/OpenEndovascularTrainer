@@ -21,7 +21,7 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     let lastFailure=null;

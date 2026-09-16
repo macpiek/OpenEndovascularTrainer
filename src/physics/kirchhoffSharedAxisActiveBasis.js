@@ -3,7 +3,25 @@ const sign = row => row.kind === 'wall' ? -1 : 1;
 // A fixed mask identifies the lifetime of one spatial solve. Repeated active
 // sets reuse storage. Normalized prefixes may survive only within an explicit
 // immutable-linearization token. Weak ownership releases discarded states.
-const workspaces=new WeakMap();
+const workspaces=new WeakMap(),linearizations=new WeakMap();
+
+// Only normalized Jacobians are reusable across solves. Gaps, loads, Hessians
+// and dual iterates still participate in every current active-set decision.
+// Compare values, not object identities: callers may update arrays in place.
+export function sharedAxisBasisLinearization(rows,fixed) {
+    let saved=linearizations.get(fixed),same=!!saved&&saved.rows.length===rows.length;
+    if(same)for(let i=0;i<fixed.length;i++)if(saved.fixed[i]!==fixed[i]){same=false;break;}
+    if(same)for(let i=0;i<rows.length;i++) {
+        const a=rows[i],b=saved.rows[i];
+        if(a.kind!==b.kind||a.dofs.length!==b.dofs.length||a.jacobian.length!==b.jacobian.length){same=false;break;}
+        for(let j=0;j<a.dofs.length;j++)if(a.dofs[j]!==b.dofs[j]||!Object.is(a.jacobian[j],b.jacobian[j])){same=false;break;}
+        if(!same)break;
+    }
+    if(same)return saved.token;
+    saved={token:Symbol('basis-jacobians'),fixed:fixed.slice(),rows:rows.map(r=>({kind:r.kind,dofs:r.dofs.slice(),jacobian:r.jacobian.slice()}))};
+    linearizations.set(fixed,saved);return saved.token;
+}
+
 function workspaceFor(fixed,rowCount,key=fixed) {
     let w=workspaces.get(key);
     if(!w||w.rowCount!==rowCount||w.dofCount<fixed.length) {
