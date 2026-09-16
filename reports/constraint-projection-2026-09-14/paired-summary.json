@@ -1,0 +1,31 @@
+{
+  "scope": "Paired complete advanceSharedAxis per identical incoming state, alternating execution order; serialization excluded",
+  "sourceTreeHash": "a289a8127d7eaa6ace3c8f112067db77ab38a0599809d2988b784818b324d103",
+  "failed": false,
+  "samples": 1513,
+  "allExact": true,
+  "phases": {
+    "wire": {
+      "samples": 819,
+      "referenceMs": 29.3494634358974,
+      "optimizedMs": 29.411220899878,
+      "reductionPercent": -0.2104211005951928,
+      "referenceProjectionMs": 0.3088091526251724,
+      "optimizedProjectionMs": 0.23051027960922782,
+      "projectionReductionPercent": 25.35510115238796,
+      "medianSavedMs": 0.03958299999976589,
+      "optimizedFasterSteps": 432
+    },
+    "catheter": {
+      "samples": 693,
+      "referenceMs": 84.80411423232343,
+      "optimizedMs": 84.84839400288601,
+      "reductionPercent": -0.05221417729954769,
+      "referenceProjectionMs": 3.0077775281382433,
+      "optimizedProjectionMs": 2.432021955267233,
+      "projectionReductionPercent": 19.14222602851189,
+      "medianSavedMs": 0.03400000001420267,
+      "optimizedFasterSteps": 349
+    }
+  }
+}

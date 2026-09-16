@@ -1,0 +1,42 @@
+[
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "exactState": true,
+    "exactTrace": true,
+    "firstDifference": -1,
+    "reference": {
+      "status": "converged",
+      "iterations": 24,
+      "factorizations": 89,
+      "backtracks": 7,
+      "ms": 358.6529999999999
+    },
+    "schur": {
+      "status": "converged",
+      "iterations": 24,
+      "factorizations": 89,
+      "backtracks": 7,
+      "ms": 269.862707
+    }
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "exactState": true,
+    "exactTrace": true,
+    "firstDifference": -1,
+    "reference": {
+      "status": "converged",
+      "iterations": 14,
+      "factorizations": 144,
+      "backtracks": 0,
+      "ms": 162.12587499999995
+    },
+    "schur": {
+      "status": "converged",
+      "iterations": 14,
+      "factorizations": 144,
+      "backtracks": 0,
+      "ms": 105.464833
+    }
+  }
+]

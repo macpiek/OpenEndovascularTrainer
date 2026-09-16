@@ -1,0 +1,16 @@
+wire 25.67 1.0
+wire 50.60 1.3
+wire 75.53 1.6
+wire 100.47 1.4
+wire 125.40 2.2
+wire 150.33 29.4
+wire 175.27 11.5
+file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/scripts/physics/profile-shared-axis-dynamic.mjs:119
+            throw new Error('Optimization pair failed at '+phase+' '+tools[1].insertion+': '+error.message);
+                  ^
+
+Error: Optimization pair failed at wire 0: Position drift 0.0010711766419905014 mm
+    at step (file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/scripts/physics/profile-shared-axis-dynamic.mjs:119:19)
+    at file:///Users/macpiek/.codex/worktrees/901c/OpenEndovascularTrainer/scripts/physics/profile-shared-axis-dynamic.mjs:145:83
+
+Node.js v24.6.0

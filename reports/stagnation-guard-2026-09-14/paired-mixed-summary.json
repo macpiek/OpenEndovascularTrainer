@@ -1,0 +1,313 @@
+{
+  "failed": false,
+  "pairs": 472,
+  "exactStates": true,
+  "phases": {
+    "initial": {
+      "count": 1,
+      "referenceMs": {
+        "mean": 18.859874999999988,
+        "median": 18.859874999999988,
+        "p95": 18.859874999999988,
+        "p99": 18.859874999999988,
+        "max": 18.859874999999988
+      },
+      "optimizedMs": {
+        "mean": 6.966749999999934,
+        "median": 6.966749999999934,
+        "p95": 6.966749999999934,
+        "p99": 6.966749999999934,
+        "max": 6.966749999999934
+      },
+      "counts": {
+        "iterations": [
+          5,
+          5
+        ],
+        "factorizations": [
+          15,
+          15
+        ],
+        "backtracks": [
+          0,
+          0
+        ],
+        "fullAssemblies": [
+          5,
+          5
+        ],
+        "residualAssemblies": [
+          6,
+          6
+        ],
+        "geometryRestarts": [
+          0,
+          0
+        ],
+        "substepAttempts": [
+          1,
+          1
+        ]
+      },
+      "maxCertificate": 3.0309905696412898e-9,
+      "maxPenetration": 6.38378239159465e-16,
+      "recoveries": 0,
+      "changed": []
+    },
+    "wire": {
+      "count": 205,
+      "referenceMs": {
+        "mean": 2.849640068292684,
+        "median": 1.2909159999999247,
+        "p95": 9.924249999999802,
+        "p99": 16.723916000000145,
+        "max": 21.593875000000025
+      },
+      "optimizedMs": {
+        "mean": 2.8737367707316968,
+        "median": 1.241457999999966,
+        "p95": 9.781541999999718,
+        "p99": 17.609333000000106,
+        "max": 27.383374999999887
+      },
+      "counts": {
+        "iterations": [
+          662,
+          662
+        ],
+        "factorizations": [
+          1000,
+          1000
+        ],
+        "backtracks": [
+          0,
+          0
+        ],
+        "fullAssemblies": [
+          734,
+          734
+        ],
+        "residualAssemblies": [
+          665,
+          665
+        ],
+        "geometryRestarts": [
+          139,
+          139
+        ],
+        "substepAttempts": [
+          205,
+          205
+        ]
+      },
+      "maxCertificate": 9.900619346581152e-7,
+      "maxPenetration": 1.0852985177223218e-12,
+      "recoveries": 0,
+      "changed": []
+    },
+    "catheter": {
+      "count": 116,
+      "referenceMs": {
+        "mean": 14.47950683620689,
+        "median": 12.210124999999607,
+        "p95": 34.87804200000028,
+        "p99": 38.489708000000064,
+        "max": 49.42820799999981
+      },
+      "optimizedMs": {
+        "mean": 14.510950818965473,
+        "median": 12.155999999999949,
+        "p95": 35.89191699999992,
+        "p99": 38.79320900000039,
+        "max": 43.48770799999966
+      },
+      "counts": {
+        "iterations": [
+          1033,
+          1033
+        ],
+        "factorizations": [
+          2223,
+          2223
+        ],
+        "backtracks": [
+          147,
+          147
+        ],
+        "fullAssemblies": [
+          1077,
+          1077
+        ],
+        "residualAssemblies": [
+          1313,
+          1313
+        ],
+        "geometryRestarts": [
+          116,
+          116
+        ],
+        "substepAttempts": [
+          116,
+          116
+        ]
+      },
+      "maxCertificate": 9.33442365180781e-7,
+      "maxPenetration": 5.182521078950231e-12,
+      "recoveries": 0,
+      "changed": []
+    },
+    "simultaneous": {
+      "count": 60,
+      "referenceMs": {
+        "mean": 23.56415205,
+        "median": 18.791957999999795,
+        "p95": 56.7987920000005,
+        "p99": 69.27674999999999,
+        "max": 99.54029100000025
+      },
+      "optimizedMs": {
+        "mean": 23.670671499999994,
+        "median": 18.823624999999993,
+        "p95": 53.248374999999214,
+        "p99": 69.25991700000031,
+        "max": 108.1742919999997
+      },
+      "counts": {
+        "iterations": [
+          557,
+          557
+        ],
+        "factorizations": [
+          2159,
+          2159
+        ],
+        "backtracks": [
+          20,
+          20
+        ],
+        "fullAssemblies": [
+          651,
+          651
+        ],
+        "residualAssemblies": [
+          574,
+          574
+        ],
+        "geometryRestarts": [
+          211,
+          211
+        ],
+        "substepAttempts": [
+          66,
+          66
+        ]
+      },
+      "maxCertificate": 7.336928788959085e-7,
+      "maxPenetration": 7.230188669993254e-13,
+      "recoveries": 0,
+      "changed": []
+    },
+    "rotation": {
+      "count": 30,
+      "referenceMs": {
+        "mean": 19.13098476666655,
+        "median": 16.536957999998776,
+        "p95": 26.64287499999955,
+        "p99": 29.7310839999991,
+        "max": 62.282500000001164
+      },
+      "optimizedMs": {
+        "mean": 19.150069600000098,
+        "median": 16.574916999999914,
+        "p95": 27.40479200000118,
+        "p99": 30.566749999999956,
+        "max": 61.81141600000046
+      },
+      "counts": {
+        "iterations": [
+          266,
+          266
+        ],
+        "factorizations": [
+          448,
+          448
+        ],
+        "backtracks": [
+          24,
+          24
+        ],
+        "fullAssemblies": [
+          269,
+          269
+        ],
+        "residualAssemblies": [
+          303,
+          303
+        ],
+        "geometryRestarts": [
+          40,
+          40
+        ],
+        "substepAttempts": [
+          30,
+          30
+        ]
+      },
+      "maxCertificate": 5.534913454230406e-7,
+      "maxPenetration": 4.7883919052083e-13,
+      "recoveries": 0,
+      "changed": []
+    },
+    "withdrawal": {
+      "count": 60,
+      "referenceMs": {
+        "mean": 14.927215983333463,
+        "median": 13.610916999999972,
+        "p95": 23.6373339999991,
+        "p99": 28.710415999999896,
+        "max": 31.779833999999028
+      },
+      "optimizedMs": {
+        "mean": 14.855294433333377,
+        "median": 13.35383400000137,
+        "p95": 24.776208999999653,
+        "p99": 28.14799999999923,
+        "max": 31.301542000001064
+      },
+      "counts": {
+        "iterations": [
+          410,
+          410
+        ],
+        "factorizations": [
+          952,
+          952
+        ],
+        "backtracks": [
+          0,
+          0
+        ],
+        "fullAssemblies": [
+          470,
+          470
+        ],
+        "residualAssemblies": [
+          410,
+          410
+        ],
+        "geometryRestarts": [
+          137,
+          137
+        ],
+        "substepAttempts": [
+          60,
+          60
+        ]
+      },
+      "maxCertificate": 8.932591946120283e-7,
+      "maxPenetration": 8.126971318134224e-13,
+      "recoveries": 0,
+      "changed": []
+    }
+  }
+}

@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+
+// Fixed before the trajectory comparison: sub-micron position accuracy, well
+// below the 5 mm mechanical grid. Reaction coordinates are not compared: the
+// mesh admits duplicate contacts, whose individual multipliers are nonunique.
+export function compareSharedAxisWarmStart(a,b,ra,rb) {
+    assert.ok(a&&b,'Both trajectories must accept every requested step');
+    assert.deepEqual(a.coordinates,b.coordinates,'The mechanical grids must agree');
+    assert.deepEqual(a.tools,b.tools,'Physical tools and inputs must agree');
+    for(const r of [ra,rb]) {
+        assert.ok(r.quality.finite&&r.certificateBound<=1e-6,'Unchanged full physical certificate');
+        assert.ok(r.quality.maxPenetration<=1e-5,'Unchanged wall tolerance');
+    }
+    const difference=(x,y)=>typeof x==='number'?Math.abs(x-y):Math.max(0,...Object.keys(x).map(k=>difference(x[k],y[k])));
+    const position=Math.max(0,...a.positions.map((p,i)=>Math.hypot(...p.map((v,k)=>v+a.origin[k]-b.positions[i][k]-b.origin[k]))));
+    const frame=difference(a.frames,b.frames),velocity=difference(a.velocities,b.velocities),angular=difference(a.angularVelocities,b.angularVelocities);
+    assert.ok(position<=1e-3,`Position drift ${position} mm`);
+    assert.ok(frame<=1e-4,`Frame drift ${frame}`);
+    assert.ok(velocity<=.1&&angular<=.01,`Velocity drift ${velocity} mm/s, ${angular} rad/s`);
+    const historyKey=h=>`${h.owner}/${h.face}/${h.siteCoordinate}`;
+    const old=new Map(a.wallFriction.history.map(h=>[historyKey(h),h]));
+    let history=0;
+    for(const h of b.wallFriction.history) {
+        const previous=old.get(historyKey(h));
+        assert.ok(previous,'The same physical friction sites must survive');
+        assert.equal(h.mode,previous.mode,'The same friction branch must survive');
+        history=Math.max(history,difference(h.elastic,previous.elastic));old.delete(historyKey(h));
+    }
+    assert.equal(old.size,0);assert.ok(history<=1e-3,`Elastic wall history drift ${history}`);
+    return {position,frame,velocity,angular,history};
+}

@@ -1,0 +1,156 @@
+[
+  {
+    "path": "reference/captured-incoming.json",
+    "exactState": true,
+    "reference": {
+      "status": "converged",
+      "iterations": 169,
+      "factorizations": 1203,
+      "backtracks": 237,
+      "ms": 2844.968375,
+      "cpuMs": 4113.202,
+      "residual": {
+        "force": 1.8998150608240394e-8,
+        "torque": 7.838432125595318e-10,
+        "length": 4.884981308350689e-14
+      },
+      "certificate": 4.2456505866539374e-8,
+      "fallback": {
+        "attempted": true,
+        "liveFailure": "iteration-limit",
+        "converged": true
+      },
+      "subdivisions": 1
+    },
+    "guard": {
+      "status": "converged",
+      "iterations": 32,
+      "factorizations": 181,
+      "backtracks": 33,
+      "ms": 456.14912500000037,
+      "cpuMs": 729.433,
+      "residual": {
+        "force": 1.8998150608240394e-8,
+        "torque": 7.838432125595318e-10,
+        "length": 4.884981308350689e-14
+      },
+      "certificate": 4.2456505866539374e-8,
+      "fallback": {
+        "attempted": true,
+        "liveFailure": "live-contact-stagnation",
+        "converged": true,
+        "detectedStagnation": {
+          "window": 16,
+          "before": [
+            14838169.11261512,
+            7698736.582240401,
+            0.00237008723757981
+          ],
+          "after": [
+            14838169.144239374,
+            7698736.582254707,
+            0.002370086615854916
+          ],
+          "minimumRelativeProgress": 0.01
+        }
+      },
+      "subdivisions": 1
+    }
+  },
+  {
+    "path": "../../tests/fixtures/shared-axis/anatomy-berenstein-feed-312.87-projection.json",
+    "exactState": true,
+    "reference": {
+      "status": "converged",
+      "iterations": 37,
+      "factorizations": 233,
+      "backtracks": 39,
+      "ms": 506.990041,
+      "cpuMs": 712.869,
+      "residual": {
+        "force": 1.6536003233369456e-8,
+        "torque": 4.952420695758519e-10,
+        "length": 5.240252676230739e-14
+      },
+      "certificate": 3.656502900462044e-8,
+      "fallback": {
+        "attempted": true,
+        "liveFailure": "live-contact-cycle",
+        "converged": true,
+        "detectedCycle": {
+          "period": 2,
+          "repeatedComparisons": 4
+        }
+      },
+      "subdivisions": 1
+    },
+    "guard": {
+      "status": "converged",
+      "iterations": 34,
+      "factorizations": 204,
+      "backtracks": 33,
+      "ms": 397.64441700000043,
+      "cpuMs": 466.446,
+      "residual": {
+        "force": 1.6536003233369456e-8,
+        "torque": 4.952420695758519e-10,
+        "length": 5.240252676230739e-14
+      },
+      "certificate": 3.656502900462044e-8,
+      "fallback": {
+        "attempted": true,
+        "liveFailure": "live-contact-stagnation",
+        "converged": true,
+        "detectedStagnation": {
+          "window": 16,
+          "before": [
+            13420918.963503845,
+            3923630.544756785,
+            0.007913857569263882
+          ],
+          "after": [
+            13420918.963345308,
+            3923630.544981018,
+            0.007913856681085463
+          ],
+          "minimumRelativeProgress": 0.01
+        }
+      },
+      "subdivisions": 1
+    }
+  },
+  {
+    "path": "../../tests/fixtures/shared-axis/anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+    "exactState": true,
+    "reference": {
+      "status": "converged",
+      "iterations": 14,
+      "factorizations": 144,
+      "backtracks": 0,
+      "ms": 167.421875,
+      "cpuMs": 418.425,
+      "residual": {
+        "force": 1.9964318198617548e-8,
+        "torque": 2.3525581482886082e-9,
+        "length": 1.509903313490213e-14
+      },
+      "certificate": 1.9965341380157042e-8,
+      "subdivisions": 1
+    },
+    "guard": {
+      "status": "converged",
+      "iterations": 14,
+      "factorizations": 144,
+      "backtracks": 0,
+      "ms": 113.53016599999955,
+      "cpuMs": 179.714,
+      "residual": {
+        "force": 1.9964318198617548e-8,
+        "torque": 2.3525581482886082e-9,
+        "length": 1.509903313490213e-14
+      },
+      "certificate": 1.9965341380157042e-8,
+      "subdivisions": 1
+    }
+  }
+]

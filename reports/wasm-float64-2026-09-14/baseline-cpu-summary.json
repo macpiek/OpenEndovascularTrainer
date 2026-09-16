@@ -1,0 +1,183 @@
+{
+  "sampleMs": 44583.375,
+  "self": [
+    {
+      "function": "assembleSharedAxisConstraintRows kirchhoffSharedAxisConstraintRows.js",
+      "sampleMs": 3358.636,
+      "percent": 7.533382118334469
+    },
+    {
+      "function": "prepareSharedAxisActiveBasis kirchhoffSharedAxisActiveBasis.js",
+      "sampleMs": 3065.795,
+      "percent": 6.876543106034481
+    },
+    {
+      "function": "iterateActiveSet kirchhoffSharedAxisLinear.js",
+      "sampleMs": 2969.011,
+      "percent": 6.659457701441401
+    },
+    {
+      "function": "toArray three.module.js",
+      "sampleMs": 2889.121,
+      "percent": 6.480265345546406
+    },
+    {
+      "function": "evaluateKirchhoffWallWitnessGeometry kirchhoffWallWitnessGeometry.js",
+      "sampleMs": 1892.909,
+      "percent": 4.24577322824932
+    },
+    {
+      "function": "assembleSharedAxisMaterialTangent kirchhoffSharedAxisMaterialTangent.js",
+      "sampleMs": 1759.586,
+      "percent": 3.946731264737136
+    },
+    {
+      "function": "solveSharedAxisLinearOnce kirchhoffSharedAxisLinear.js",
+      "sampleMs": 1684.88,
+      "percent": 3.779166561526578
+    },
+    {
+      "function": "assembleSharedAxisNative kirchhoffSharedAxisNative.js",
+      "sampleMs": 1324.104,
+      "percent": 2.9699501215419426
+    },
+    {
+      "function": "nativeHingeTorqueTangent kirchhoffSharedAxisMaterialTangent.js",
+      "sampleMs": 1315.82,
+      "percent": 2.9513692043278463
+    },
+    {
+      "function": "solve kirchhoffCoulombBandLU.js",
+      "sampleMs": 1310.143,
+      "percent": 2.938635758284338
+    },
+    {
+      "function": " kirchhoffSharedAxisLinear.js",
+      "sampleMs": 1307.029,
+      "percent": 2.9316510919148673
+    },
+    {
+      "function": "wasm-function[4] df5b3faa",
+      "sampleMs": 1212.163,
+      "percent": 2.7188677393759444
+    },
+    {
+      "function": "considerTriangle scalarMeshBvhClosestPoint.js",
+      "sampleMs": 1180.25,
+      "percent": 2.6472872455259386
+    },
+    {
+      "function": "(garbage collector) ",
+      "sampleMs": 1163.372,
+      "percent": 2.6094300846447807
+    },
+    {
+      "function": "closestPointToPointScalarBvh scalarMeshBvhClosestPoint.js",
+      "sampleMs": 1158.182,
+      "percent": 2.597788974028996
+    },
+    {
+      "function": " kirchhoffSharedAxisNative.js",
+      "sampleMs": 1056.906,
+      "percent": 2.3706280648335842
+    },
+    {
+      "function": "solveCompactWorkingSet kirchhoffSharedAxisLinear.js",
+      "sampleMs": 1012.33,
+      "percent": 2.2706446068741992
+    },
+    {
+      "function": "iterateSharedAxisNative kirchhoffSharedAxisNative.js",
+      "sampleMs": 1000.237,
+      "percent": 2.243520146242854
+    },
+    {
+      "function": "#queryCenterline vesselContactField.js",
+      "sampleMs": 922.083,
+      "percent": 2.068221618484469
+    },
+    {
+      "function": "evaluateBendTwistLocalConstraintNormalized discreteKirchhoffRod.js",
+      "sampleMs": 734.917,
+      "percent": 1.6484104220463345
+    },
+    {
+      "function": "supportedNorm kirchhoffSharedAxisActiveBasis.js",
+      "sampleMs": 721.748,
+      "percent": 1.6188725057266302
+    },
+    {
+      "function": " kirchhoffSharedAxisWallFriction.js",
+      "sampleMs": 581.837,
+      "percent": 1.3050537335946415
+    },
+    {
+      "function": "matrix kirchhoffSharedAxisMaterialTangent.js",
+      "sampleMs": 556.119,
+      "percent": 1.2473685538611645
+    },
+    {
+      "function": "assembleSharedAxisInertia kirchhoffSharedAxisDynamics.js",
+      "sampleMs": 520.753,
+      "percent": 1.1680430205205417
+    },
+    {
+      "function": "nextRow kirchhoffSharedAxisActiveBasis.js",
+      "sampleMs": 519.419,
+      "percent": 1.16505087378423
+    },
+    {
+      "function": "visit kirchhoffSharedAxisVesselWitnesses.js",
+      "sampleMs": 513.046,
+      "percent": 1.1507563077043854
+    },
+    {
+      "function": "createSharedAxisLinear kirchhoffSharedAxisLinear.js",
+      "sampleMs": 451.081,
+      "percent": 1.0117695217107274
+    },
+    {
+      "function": "gapForWitness kirchhoffSharedAxisVesselWitnesses.js",
+      "sampleMs": 443.42,
+      "percent": 0.994585986368237
+    },
+    {
+      "function": "evaluateSharedAxisBendLimit kirchhoffSharedAxisBendLimit.js",
+      "sampleMs": 437.711,
+      "percent": 0.9817807646908742
+    },
+    {
+      "function": "assemble kirchhoffSharedAxisNative.js",
+      "sampleMs": 429.041,
+      "percent": 0.9623340538934075
+    }
+  ],
+  "inclusive": [
+    {
+      "function": "assembleSharedAxisConstraintRows",
+      "sampleMs": 14639.644,
+      "percent": 32.83655398452898
+    },
+    {
+      "function": "prepareSharedAxisActiveBasis",
+      "sampleMs": 4485.503,
+      "percent": 10.060931905671117
+    },
+    {
+      "function": "assembleSharedAxisMaterialTangent",
+      "sampleMs": 4404.484,
+      "percent": 9.87920721569419
+    },
+    {
+      "function": "assembleSharedAxisWallFriction",
+      "sampleMs": 1095.837,
+      "percent": 2.4579498523833156
+    },
+    {
+      "function": "assembleSharedAxisInertia",
+      "sampleMs": 796.753,
+      "percent": 1.7871078625160164
+    }
+  ],
+  "note": "Inclusive entries contain child functions; do not add them to self entries."
+}

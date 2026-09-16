@@ -1,0 +1,170 @@
+{
+  "failed": false,
+  "pairs": 1513,
+  "exactStates": true,
+  "sameDecisions": true,
+  "phases": {
+    "initial": {
+      "count": 1,
+      "referenceMs": {
+        "mean": 34.2817500000001,
+        "median": 34.2817500000001,
+        "p95": 34.2817500000001,
+        "p99": 34.2817500000001,
+        "max": 34.2817500000001
+      },
+      "optimizedMs": {
+        "mean": 7.910666999999876,
+        "median": 7.910666999999876,
+        "p95": 7.910666999999876,
+        "p99": 7.910666999999876,
+        "max": 7.910666999999876
+      },
+      "meanReductionPercent": 76.92455315145857,
+      "pairedSavingMs": {
+        "mean": 26.371083000000226,
+        "median": 26.371083000000226,
+        "p95": 26.371083000000226,
+        "p99": 26.371083000000226,
+        "max": 26.371083000000226
+      },
+      "stages": {
+        "assemblyMs": {
+          "referenceMean": 18.49466799999982,
+          "optimizedMean": 2.780790999999681
+        },
+        "tangentAssemblyMs": {
+          "referenceMean": 15.775876000000153,
+          "optimizedMean": 1.5822069999999258
+        },
+        "residualAssemblyMs": {
+          "referenceMean": 2.7187919999996666,
+          "optimizedMean": 1.1985839999997552
+        },
+        "linearMs": {
+          "referenceMean": 9.504500000000235,
+          "optimizedMean": 3.5215419999997266
+        },
+        "frictionMs": {
+          "referenceMean": 0.05999999999994543,
+          "optimizedMean": 0.0420000000001437
+        }
+      },
+      "counters": {
+        "iterations": 5,
+        "factorizations": 15,
+        "backtracks": 0
+      },
+      "maxCertificate": 3.0309905696412898e-9,
+      "maxPenetration": 6.38378239159465e-16
+    },
+    "wire": {
+      "count": 819,
+      "referenceMs": {
+        "mean": 28.936779253968233,
+        "median": 24.36987500000032,
+        "p95": 72.9998329999944,
+        "p99": 138.34287499999482,
+        "max": 257.69954099999995
+      },
+      "optimizedMs": {
+        "mean": 28.1878447728937,
+        "median": 23.52116599999863,
+        "p95": 72.53608300000633,
+        "p99": 146.08316699999705,
+        "max": 225.92404200000055
+      },
+      "meanReductionPercent": 2.5881749814013144,
+      "pairedSavingMs": {
+        "mean": 0.7489344810745296,
+        "median": 0.25054200000158744,
+        "p95": 8.60150000000067,
+        "p99": 22.56512500000008,
+        "max": 89.86125000000084
+      },
+      "stages": {
+        "assemblyMs": {
+          "referenceMean": 12.15303609523834,
+          "optimizedMean": 12.230013455433461
+        },
+        "tangentAssemblyMs": {
+          "referenceMean": 5.01737074969496,
+          "optimizedMean": 5.146311177045114
+        },
+        "residualAssemblyMs": {
+          "referenceMean": 7.135665345543379,
+          "optimizedMean": 7.083702278388347
+        },
+        "linearMs": {
+          "referenceMean": 12.932547023199229,
+          "optimizedMean": 12.145819439560587
+        },
+        "frictionMs": {
+          "referenceMean": 0.5312810329671895,
+          "optimizedMean": 0.5208186349206809
+        }
+      },
+      "counters": {
+        "iterations": 5732,
+        "factorizations": 14417,
+        "backtracks": 859
+      },
+      "maxCertificate": 9.977372741332147e-7,
+      "maxPenetration": 6.187275136682047e-10
+    },
+    "catheter": {
+      "count": 693,
+      "referenceMs": {
+        "mean": 64.63937536219292,
+        "median": 54.291666000004625,
+        "p95": 119.94275000000198,
+        "p99": 245.5216670000009,
+        "max": 462.58887499998673
+      },
+      "optimizedMs": {
+        "mean": 63.99802635353541,
+        "median": 54.001957999993465,
+        "p95": 121.00408400000015,
+        "p99": 215.95304199999373,
+        "max": 466.23925000001327
+      },
+      "meanReductionPercent": 0.9921955542791849,
+      "pairedSavingMs": {
+        "mean": 0.6413490086575138,
+        "median": 0.483498999994481,
+        "p95": 9.69045899999037,
+        "p99": 26.362332999997307,
+        "max": 76.26991600000474
+      },
+      "stages": {
+        "assemblyMs": {
+          "referenceMean": 33.356836043289604,
+          "optimizedMean": 33.58878940548459
+        },
+        "tangentAssemblyMs": {
+          "referenceMean": 11.413455634921188,
+          "optimizedMean": 11.666963753247028
+        },
+        "residualAssemblyMs": {
+          "referenceMean": 21.943380408368416,
+          "optimizedMean": 21.921825652237565
+        },
+        "linearMs": {
+          "referenceMean": 23.156204930735782,
+          "optimizedMean": 22.32528482106659
+        },
+        "frictionMs": {
+          "referenceMean": 1.3946532164509349,
+          "optimizedMean": 1.3955845627701917
+        }
+      },
+      "counters": {
+        "iterations": 6149,
+        "factorizations": 11367,
+        "backtracks": 739
+      },
+      "maxCertificate": 9.660243449616246e-7,
+      "maxPenetration": 2.1364222613229344e-9
+    }
+  }
+}

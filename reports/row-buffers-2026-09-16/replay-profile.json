@@ -1,0 +1,272 @@
+[
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 0,
+    "warmup": true,
+    "referenceMs": 395.58737499999984,
+    "optimizedMs": 254.48708399999987,
+    "referenceLinearMs": 171.53945000000022,
+    "optimizedLinearMs": 96.7477449999999
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 1,
+    "warmup": true,
+    "referenceMs": 215.39733400000023,
+    "optimizedMs": 217.46141699999998,
+    "referenceLinearMs": 85.61450100000138,
+    "optimizedLinearMs": 89.74353600000086
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 2,
+    "warmup": true,
+    "referenceMs": 207.27695800000038,
+    "optimizedMs": 218.28208300000006,
+    "referenceLinearMs": 86.7027969999931,
+    "optimizedLinearMs": 86.99604399999907
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 3,
+    "warmup": false,
+    "referenceMs": 197.15520800000013,
+    "optimizedMs": 196.4303749999999,
+    "referenceLinearMs": 84.0373390000027,
+    "optimizedLinearMs": 82.74537700000246
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 4,
+    "warmup": false,
+    "referenceMs": 200.32320800000025,
+    "optimizedMs": 192.09529199999997,
+    "referenceLinearMs": 82.18337199999951,
+    "optimizedLinearMs": 78.8650910000024
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 5,
+    "warmup": false,
+    "referenceMs": 204.79004199999963,
+    "optimizedMs": 210.22775000000001,
+    "referenceLinearMs": 86.63667699999951,
+    "optimizedLinearMs": 84.44641299999785
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 6,
+    "warmup": false,
+    "referenceMs": 218.7644580000001,
+    "optimizedMs": 183.1654580000004,
+    "referenceLinearMs": 91.21599899999956,
+    "optimizedLinearMs": 80.26520299999584
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 7,
+    "warmup": false,
+    "referenceMs": 241.4325829999998,
+    "optimizedMs": 193.45658300000014,
+    "referenceLinearMs": 91.87170700000206,
+    "optimizedLinearMs": 82.54357799999889
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 8,
+    "warmup": false,
+    "referenceMs": 218.16612499999974,
+    "optimizedMs": 231.76966700000048,
+    "referenceLinearMs": 88.6089150000007,
+    "optimizedLinearMs": 98.97699499999999
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 9,
+    "warmup": false,
+    "referenceMs": 210.09816599999976,
+    "optimizedMs": 193.0768339999995,
+    "referenceLinearMs": 83.56962799999565,
+    "optimizedLinearMs": 80.71096300000227
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 10,
+    "warmup": false,
+    "referenceMs": 203.26858400000037,
+    "optimizedMs": 168.7425000000003,
+    "referenceLinearMs": 86.24258300000383,
+    "optimizedLinearMs": 76.2824570000057
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 11,
+    "warmup": false,
+    "referenceMs": 205.91349999999966,
+    "optimizedMs": 199.6790000000001,
+    "referenceLinearMs": 85.88753900000302,
+    "optimizedLinearMs": 90.93770399999812
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 12,
+    "warmup": false,
+    "referenceMs": 180.77750000000015,
+    "optimizedMs": 187.03070900000057,
+    "referenceLinearMs": 80.14980099999957,
+    "optimizedLinearMs": 75.65832500000124
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 13,
+    "warmup": false,
+    "referenceMs": 185.01829199999975,
+    "optimizedMs": 187.97350000000006,
+    "referenceLinearMs": 80.5296709999966,
+    "optimizedLinearMs": 80.23529399999643
+  },
+  {
+    "name": "anatomy-berenstein-feed-138.67-live-cycle",
+    "repeat": 14,
+    "warmup": false,
+    "referenceMs": 184.4108329999999,
+    "optimizedMs": 172.20033300000068,
+    "referenceLinearMs": 78.09750399999575,
+    "optimizedLinearMs": 71.25661899999886
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 0,
+    "warmup": true,
+    "referenceMs": 134.99062500000036,
+    "optimizedMs": 98.40983299999971,
+    "referenceLinearMs": 92.77770400000827,
+    "optimizedLinearMs": 66.95291900000029
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 1,
+    "warmup": true,
+    "referenceMs": 90.81991600000038,
+    "optimizedMs": 92.94083300000057,
+    "referenceLinearMs": 63.86942099999942,
+    "optimizedLinearMs": 65.09284299999854
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 2,
+    "warmup": true,
+    "referenceMs": 91.87504200000058,
+    "optimizedMs": 88.70775000000049,
+    "referenceLinearMs": 66.00620300000537,
+    "optimizedLinearMs": 63.57837400000244
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 3,
+    "warmup": false,
+    "referenceMs": 90.31062500000007,
+    "optimizedMs": 90.51116700000057,
+    "referenceLinearMs": 64.21091699998124,
+    "optimizedLinearMs": 64.5370350000012
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 4,
+    "warmup": false,
+    "referenceMs": 91.3456669999996,
+    "optimizedMs": 87.25354100000004,
+    "referenceLinearMs": 65.79925500000172,
+    "optimizedLinearMs": 63.26804100001027
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 5,
+    "warmup": false,
+    "referenceMs": 97.62391699999898,
+    "optimizedMs": 97.12791600000128,
+    "referenceLinearMs": 69.45475299999634,
+    "optimizedLinearMs": 63.34879499999806
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 6,
+    "warmup": false,
+    "referenceMs": 92.25845899999877,
+    "optimizedMs": 90.24554100000023,
+    "referenceLinearMs": 65.34025099999053,
+    "optimizedLinearMs": 64.53145799999947
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 7,
+    "warmup": false,
+    "referenceMs": 90.46741699999984,
+    "optimizedMs": 88.9706669999996,
+    "referenceLinearMs": 64.716374000016,
+    "optimizedLinearMs": 62.95953700001883
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 8,
+    "warmup": false,
+    "referenceMs": 90.23212500000045,
+    "optimizedMs": 92.52124999999978,
+    "referenceLinearMs": 64.58309200000076,
+    "optimizedLinearMs": 64.11567099999775
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 9,
+    "warmup": false,
+    "referenceMs": 132.81187499999942,
+    "optimizedMs": 115.64516699999876,
+    "referenceLinearMs": 96.69420300000638,
+    "optimizedLinearMs": 80.06107200000588
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 10,
+    "warmup": false,
+    "referenceMs": 97.6742919999997,
+    "optimizedMs": 98.65816600000107,
+    "referenceLinearMs": 68.73911899998348,
+    "optimizedLinearMs": 72.0804159999916
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 11,
+    "warmup": false,
+    "referenceMs": 101.40058299999873,
+    "optimizedMs": 90.31195800000023,
+    "referenceLinearMs": 72.55012400000123,
+    "optimizedLinearMs": 64.28600300000835
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 12,
+    "warmup": false,
+    "referenceMs": 94.99758399999882,
+    "optimizedMs": 89.84737499999937,
+    "referenceLinearMs": 64.44062299998404,
+    "optimizedLinearMs": 64.25012599999536
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 13,
+    "warmup": false,
+    "referenceMs": 90.71099999999933,
+    "optimizedMs": 91.7529169999998,
+    "referenceLinearMs": 63.77953299999717,
+    "optimizedLinearMs": 64.20507599998746
+  },
+  {
+    "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+    "repeat": 14,
+    "warmup": false,
+    "referenceMs": 90.23641599999974,
+    "optimizedMs": 89.81450000000041,
+    "referenceLinearMs": 64.87766399998873,
+    "optimizedLinearMs": 64.13691500000095
+  }
+]

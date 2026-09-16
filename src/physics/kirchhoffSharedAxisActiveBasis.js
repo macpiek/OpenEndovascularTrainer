@@ -3,16 +3,34 @@ const sign = row => row.kind === 'wall' ? -1 : 1;
 // A fixed mask identifies the lifetime of one spatial solve. Repeated active
 // sets reuse storage. Normalized prefixes may survive only within an explicit
 // immutable-linearization token. Weak ownership releases discarded states.
-const workspaces=new WeakMap();
-function workspaceFor(fixed,rowCount) {
-    let w=workspaces.get(fixed);
-    if(!w||w.rowCount!==rowCount||w.dofCount!==fixed.length) {
+const workspaces=new WeakMap(),linearizations=new WeakMap();
+
+// Only normalized Jacobians are reusable across solves. Gaps, loads, Hessians
+// and dual iterates still participate in every current active-set decision.
+// Compare values, not object identities: callers may update arrays in place.
+export function sharedAxisBasisLinearization(rows,fixed) {
+    let saved=linearizations.get(fixed),same=!!saved&&saved.rows.length===rows.length;
+    if(same)for(let i=0;i<fixed.length;i++)if(saved.fixed[i]!==fixed[i]){same=false;break;}
+    if(same)for(let i=0;i<rows.length;i++) {
+        const a=rows[i],b=saved.rows[i];
+        if(a.kind!==b.kind||a.dofs.length!==b.dofs.length||a.jacobian.length!==b.jacobian.length){same=false;break;}
+        for(let j=0;j<a.dofs.length;j++)if(a.dofs[j]!==b.dofs[j]||!Object.is(a.jacobian[j],b.jacobian[j])){same=false;break;}
+        if(!same)break;
+    }
+    if(same)return saved.token;
+    saved={token:Symbol('basis-jacobians'),fixed:fixed.slice(),rows:rows.map(r=>({kind:r.kind,dofs:r.dofs.slice(),jacobian:r.jacobian.slice()}))};
+    linearizations.set(fixed,saved);return saved.token;
+}
+
+function workspaceFor(fixed,rowCount,key=fixed) {
+    let w=workspaces.get(key);
+    if(!w||w.rowCount!==rowCount||w.dofCount<fixed.length) {
         w={rowCount,dofCount:fixed.length,pool:[],order:[],basis:[],normValues:[],stamp:0,
             orderKinds:new Uint8Array(rowCount),orderActive:new Uint8Array(rowCount),
             cachedOrder:[],cachedBasisCounts:[],cachedCount:0,basisCache:null,
             spatialMarks:new Uint32Array(fixed.length),reactionMarks:new Uint32Array(rowCount),
             next:new Float64Array(rowCount),forceError:new Float64Array(fixed.length)};
-        workspaces.set(fixed,w);
+        workspaces.set(key,w);
     }
     return w;
 }
@@ -28,9 +46,9 @@ function prepareOrder(w,rows,activeSet) {
         for(const kind of [1,2])for(let i=0;i<rows.length;i++)if(w.orderKinds[i]===kind&&w.orderActive[i])w.order.push(i);
     }
 }
-function nextRow(w,index,dofCount) {
+function nextRow(w,index) {
     let r=w.pool[index];
-    if(!r)r=w.pool[index]={v:new Float64Array(dofCount),c:new Float64Array(w.rowCount),support:[],coefficients:[],pivot:0};
+    if(!r)r=w.pool[index]={v:new Float64Array(w.dofCount),c:new Float64Array(w.rowCount),support:[],coefficients:[],pivot:0};
     // Every nonzero belongs to its recorded support. Exact zeros removed by
     // compaction are already zero, so global padding needs no clearing.
     for(const i of r.support)r.v[i]=0;
@@ -56,9 +74,12 @@ function supportedNorm(w,support,values) {
  * remain inequalities in the active-set search. Length reactions are signed,
  * wall reactions nonnegative. Fixed degrees of freedom cannot restrict motion.
  */
-export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null}) {
+export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null,basisWorkspaceKey=fixed}) {
     let pivots=0;
-    const w=workspaceFor(fixed,rows.length),{spatialMarks,reactionMarks,order,basis}=w;
+    // A reduced identity projection can borrow the owning state's larger
+    // basis buffers. Only storage is shared: each linearization token resets
+    // cached coefficients before a different indexing/fixed mask is used.
+    const w=workspaceFor(fixed,rows.length,basisWorkspaceKey),{spatialMarks,reactionMarks,order,basis}=w;
     if(!reuseStructure||!basisCache||w.basisCache!==basisCache){w.cachedCount=0;w.basisCache=basisCache;}
     for(let pass=0;pass<=rows.length;pass++) {
         // Sparse row echelon elimination: a Kirchhoff length/contact row
@@ -85,7 +106,7 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,re
         let dependent=null;
         for(let position=prefix;position<order.length;position++) {
             const index=order[position];
-            const row=rows[index],working=nextRow(w,basis.length,fixed.length),{v,c,support,coefficients}=working;
+            const row=rows[index],working=nextRow(w,basis.length),{v,c,support,coefficients}=working;
             coefficients.push(index);
             if(++w.stamp>=0xffffffff){spatialMarks.fill(0);reactionMarks.fill(0);w.stamp=1;}
             const stamp=w.stamp,rowSign=sign(row);

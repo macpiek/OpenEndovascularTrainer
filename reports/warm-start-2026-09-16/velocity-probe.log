@@ -1,0 +1,44 @@
+anatomy-berenstein-feed-138.67-live-cycle 0 [
+  { ms: 348.01695800000016, iterations: 24, assemblies: 70 },
+  { ms: 234.0362500000001, iterations: 24, assemblies: 72 }
+] 5.364597654988756e-13
+anatomy-berenstein-feed-138.67-live-cycle 1 [
+  { ms: 270.2957500000002, iterations: 24, assemblies: 70 },
+  { ms: 234.5144170000001, iterations: 24, assemblies: 72 }
+] 5.364597654988756e-13
+anatomy-berenstein-feed-138.67-live-cycle 2 [
+  { ms: 191.42104100000006, iterations: 24, assemblies: 70 },
+  { ms: 184.9359159999999, iterations: 24, assemblies: 72 }
+] 5.364597654988756e-13
+anatomy-berenstein-feed-138.67-live-cycle 3 [
+  { ms: 155.3665000000001, iterations: 24, assemblies: 70 },
+  { ms: 170.20512499999995, iterations: 24, assemblies: 72 }
+] 5.364597654988756e-13
+anatomy-pigtail-wire-withdraw-200.27-incoming 0 [
+  { ms: 133.01650000000018, iterations: 14, assemblies: 33 },
+  { ms: 85.40854200000012, iterations: 14, assemblies: 36 }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 1 [
+  { ms: 97.18354199999976, iterations: 14, assemblies: 33 },
+  { ms: 83.1847499999999, iterations: 14, assemblies: 36 }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 2 [
+  { ms: 88.52125000000024, iterations: 14, assemblies: 33 },
+  { ms: 77.53104099999973, iterations: 14, assemblies: 36 }
+] 0
+anatomy-pigtail-wire-withdraw-200.27-incoming 3 [
+  { ms: 82.41829200000029, iterations: 14, assemblies: 33 },
+  { ms: 84.2900410000002, iterations: 14, assemblies: 36 }
+] 0
+anatomy-berenstein-feed-138.67-live-cycle {
+  referenceMs: 205.69443033333346,
+  optimizedMs: 196.55181933333333,
+  referenceLinearMs: 86.91618133333411,
+  optimizedLinearMs: 77.04501400000004
+}
+anatomy-pigtail-wire-withdraw-200.27-incoming {
+  referenceMs: 89.37436133333343,
+  optimizedMs: 81.66861066666661,
+  referenceLinearMs: 59.64169466666893,
+  optimizedLinearMs: 55.12403266666691
+}

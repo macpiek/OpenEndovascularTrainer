@@ -1297,7 +1297,15 @@ export function initUI(options) {
     updateToolSelectionLocks();
   }
   function updateCatheterLength(cm, rotationRadians = 0) {
+    const wasInserted = catheterLengthCm > 0;
     catheterLengthCm = Math.max(0, cm);
+    const isInserted = catheterLengthCm > 0;
+    // Follow accepted insertion/removal, before rounding the displayed length.
+    // A manual source choice persists until the next insertion/removal boundary.
+    if (isInserted !== wasInserted && injSourceSelect) {
+      injSourceSelect.value = isInserted ? 'catheter' : 'sheath';
+      updateInjectionDuration();
+    }
     catheterAutoWithdraw.updateLength(catheterLengthCm);
     const nextTenths = Math.round(catheterLengthCm * 10);
     const nextRotationDegrees = Math.round(
