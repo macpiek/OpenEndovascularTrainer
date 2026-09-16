@@ -8101,6 +8101,15 @@ function buildMedialSliceCenterline(geometry, {
     const invalidRerouteMs = nowMs() - invalidRerouteStartedAt;
     profileStage('medial invalid reroute', invalidRerouteMs);
     const cyclePruning = removeCenterlineCycles(allSegments);
+    // Rerouting can insert edges longer than the requested spacing after the
+    // earlier refinement passes. Subdivide the final paths without moving them.
+    const finalResamplingStartedAt = nowMs();
+    const finalResampling = resampleCenterlineSegments(allSegments, centerlineNodeSpacing);
+    if (finalResampling.segments !== allSegments) {
+        allSegments.length = 0;
+        allSegments.push(...finalResampling.segments);
+    }
+    const finalResamplingMs = nowMs() - finalResamplingStartedAt;
     const components = segmentComponents(allSegments);
     const topology = measureCenterlineTopology(allSegments);
     const centeringStartedAt = nowMs();
@@ -8140,6 +8149,7 @@ function buildMedialSliceCenterline(geometry, {
             centeringCorrectionMs,
             postCenteringBacktrackMs,
             invalidRerouteMs,
+            finalResamplingMs,
             centeringMs,
             totalMs
         },
@@ -8166,6 +8176,7 @@ function buildMedialSliceCenterline(geometry, {
         uncoveredNodeCount: coverage.uncoveredSampleCount,
         centerlineCoverage: coverage,
         centerlineNodeSpacing,
+        finalResampleInsertedNodeCount: finalResampling.insertedNodeCount,
         centerlineMinLumenArea,
         centerlineMinCompactness,
         centerlineGraphNodeCount: topology.nodeCount,

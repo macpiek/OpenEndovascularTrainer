@@ -35,11 +35,8 @@ jobs:
       - name: Uruchom cel generowania dokumentacji
         run: npm run docs:generate
 
-      - name: Sprawdź dokumentację i aplikację
-        run: |
-          npm run docs:check
-          npm test
-          npm run build
+      - name: Sprawdź dokumentację
+        run: npm run docs:check
 
       - name: Zapisz aktualizację na gałęzi docelowej
         run: |
