@@ -1,3 +1,4 @@
+import {clearDeferredSharedAxisContact,deferSharedAxisContact,materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
 // Geometry is immutable for a pose token. It contains no reactions: multiplier
 // updates at an unchanged pose must still assemble fresh forces and tangents.
 const poseGeometry = new WeakMap(), positionMasks = new WeakMap();
@@ -43,6 +44,7 @@ export function createSharedAxisConstraintRowPool(contacts=new Map()) {
     }};
 }
 export function snapshotSharedAxisConstraintMeasure(measure) {
+    materializeSharedAxisContacts(measure.rows);
     return {...measure,rows:measure.rows.map(r=>({...r,jacobian:r.jacobian.slice(),geometricHessian:r.geometricHessian?.slice(),
         ...(r.extraForceDofs?{extraForceDofs:r.extraForceDofs.slice(),extraForceJacobian:r.extraForceJacobian.slice()}: {})}))};
 }
@@ -58,14 +60,20 @@ function hessianBuffer(storage,index,count) {
  * reaction-dependent Hessians are fresh unless the caller supplies a private
  * bank. Bank owners must protect every still-live Newton measure from reuse.
  * Default pose geometry is shared read-only; callers must not mutate it.
+ * Native's private prepareOnly pass requires an owning contact cache and no
+ * contact deferral. Its prepared results are consumed in the same synchronous
+ * assembly, before any pose/reaction changes or cooperative yield.
  */
-export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null}={}) {
-    const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=storage?.rows??new Array(s.definitions.length);
-    rows.length=s.definitions.length;
+export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
+    if(prepared?.error&&prepared.index===undefined)throw prepared.error;
+    const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly?null:(storage?.rows??new Array(s.definitions.length));
+    if(rows)rows.length=s.definitions.length;
     for(let index=0;index<s.definitions.length;index++) {
+        if(prepareOnly)prepareOnly.index=index;
+        if(prepared?.error&&prepared.index===index)throw prepared.error;
         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
         let gap,J,gapHessian=null,row;
-        if(storage) {
+        if(storage&&!prepareOnly) {
             row=rows[index];
             if(storage.definitions[index]!==def) {
                 storage.definitions[index]=def;storage.hessians[index]=null;
@@ -73,11 +81,15 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
                     extraForceDofs:undefined,extraForceJacobian:undefined};
             }
             // No force column or Hessian from the preceding use may survive.
+            clearDeferredSharedAxisContact(row);
             row.geometricHessian=undefined;row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
         }
 
         if(def.kind==='length') {
             gap=length-(s.coordinates[e+1]-s.coordinates[e]);J=geometry.jacobians[e];
+        } else if(prepared?.contacts) {
+            const contact=prepared.contacts[index];
+            gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
         } else {
             const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&s.multipliers[index]!==0;
             const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
@@ -90,6 +102,17 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
                 contact=cached.contact;s.wallGeometryCacheHits=(s.wallGeometryCacheHits??0)+1;
             } else {
                 const evaluate=def.evaluate??s.wallSamples[def.sample];
+                if(cullInactiveContacts&&storage&&s.geometryKey!==undefined&&s.multipliers[index]===0&&evaluate.inactiveClearance&&def.witness&&def.dofs.length===6) {
+                    const input={state:s,a,b,radius:owner.body.radius};
+                    const lowerGap=record?.lowerKey===s.geometryKey?record.lowerGap:evaluate.inactiveClearance(input);
+                    if(record){record.lowerKey=s.geometryKey;record.lowerGap=lowerGap;}
+                    if(lowerGap>1e-8&&Number.isFinite(lowerGap)) {
+                        const holder=storage.geometryCache;
+                        if(holder.contactPose?.key!==s.geometryKey)holder.contactPose={key:s.geometryKey,positions:s.positions.map(p=>p.slice()),origin:(s.origin??[0,0,0]).slice()};
+                        row.multiplier=0;deferSharedAxisContact(row,evaluate,input,lowerGap,record,holder.contactPose);
+                        continue;
+                    }
+                }
                 if(record)record.key=null; // A throwing evaluation cannot leave a valid cache key.
                 const contactStorage=record&&evaluate.contactStorageSupported?
                     (record.output??={contact:{gap:NaN,jacobian:new Array(def.dofs.length),hessian:undefined},hessian:null}):undefined;
@@ -108,8 +131,10 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
                 if(record)record.key=null;
                 throw new RangeError('Wall sample must supply its signed gap and exact edge Jacobian');
             }
+            if(prepareOnly)prepareOnly.contacts[index]=contact;
             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
         }
+        if(prepareOnly)continue;
         const multiplier=s.multipliers[index],sign=def.kind==='wall'?-1:1;
         for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
         let geometricHessian;

@@ -1,0 +1,69 @@
+{
+  "referenceHash": "aeac68cecf3bae74befa5f20fbfa5598654d7a2661f906b7be4cc303177f7b3a",
+  "experimentHash": "aeac68cecf3bae74befa5f20fbfa5598654d7a2661f906b7be4cc303177f7b3a",
+  "steps": 1663,
+  "note": "Independent trajectories: max shape difference uses the union of both piecewise-linear mechanical grids. Timing is sequential, not paired.",
+  "worst": {
+    "index": 804,
+    "phase": "wire",
+    "wire": 589.6000000000047,
+    "catheter": 0,
+    "deviationMm": 24.986010376424584
+  },
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "maxTipDeviationMm": 0,
+      "maxShapeDeviationMm": 0,
+      "maxPenetrationMm": 6.38378239159465e-16,
+      "maxCertificate": 7.604668894600763e-9,
+      "referenceMs": 22.564499999999953,
+      "optimizedMs": 65.87466700000004
+    },
+    "wire": {
+      "steps": 819,
+      "maxTipDeviationMm": 24.986010376424584,
+      "maxShapeDeviationMm": 24.986010376424584,
+      "maxPenetrationMm": 4.620495652751799e-9,
+      "maxCertificate": 0.00009962300106458599,
+      "referenceMs": 16060.496222000033,
+      "optimizedMs": 14257.601167999988
+    },
+    "catheter": {
+      "steps": 693,
+      "maxTipDeviationMm": 17.590116862489865,
+      "maxShapeDeviationMm": 17.590116862489865,
+      "maxPenetrationMm": 2.8069540247699365e-7,
+      "maxCertificate": 0.00009748556522026774,
+      "referenceMs": 30333.385316,
+      "optimizedMs": 25357.14609900019
+    },
+    "simultaneous": {
+      "steps": 60,
+      "maxTipDeviationMm": 2.1443811012578102,
+      "maxShapeDeviationMm": 2.1443811012578102,
+      "maxPenetrationMm": 9.554843027892446e-12,
+      "maxCertificate": 0.00009775067167083762,
+      "referenceMs": 2617.1691679999785,
+      "optimizedMs": 2144.7767970000205
+    },
+    "rotation": {
+      "steps": 30,
+      "maxTipDeviationMm": 2.1033185341059206,
+      "maxShapeDeviationMm": 2.1033185341059206,
+      "maxPenetrationMm": 1.6431300764452317e-13,
+      "maxCertificate": 0.00009076218811010506,
+      "referenceMs": 1699.1119619999372,
+      "optimizedMs": 1872.117086000013
+    },
+    "withdrawal": {
+      "steps": 60,
+      "maxTipDeviationMm": 0.8623632106750593,
+      "maxShapeDeviationMm": 0.8623632106750593,
+      "maxPenetrationMm": 4.964237354521117e-12,
+      "maxCertificate": 0.00007655088895103246,
+      "referenceMs": 2903.058211999887,
+      "optimizedMs": 2136.866455999996
+    }
+  }
+}

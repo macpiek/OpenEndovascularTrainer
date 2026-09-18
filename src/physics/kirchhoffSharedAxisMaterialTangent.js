@@ -1,6 +1,15 @@
 import { evaluateBendTwistLocalConstraintNormalized, quaternionExp } from './discreteKirchhoffRod.js';
 import {sharedAxisMaterialKernelWorkspace} from './kirchhoffSharedAxisMaterialKernel.js';
 
+// Per-body ownership isolates tools and remeshed states without retaining old
+// simulations. The evaluator invalidates its rest-frame cache by scalar values.
+const materialScratch = new WeakMap();
+function hingeScratch(body) {
+    let scratch=materialScratch.get(body);
+    if(!scratch){scratch=[];materialScratch.set(body,scratch);}
+    return scratch;
+}
+
 const dot = (a,b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const tmul = (A,v) => [A[0]*v[0]+A[3]*v[1]+A[6]*v[2],A[1]*v[0]+A[4]*v[1]+A[7]*v[2],A[2]*v[0]+A[5]*v[1]+A[8]*v[2]];
 function matrix(q,out=new Float64Array(9),offset=0) {
@@ -22,13 +31,15 @@ function coefficient(x) {
  * includes the derivative of the logarithm Jacobian and moving local frames.
  * This differentiates the existing native constitutive law, not a new energy.
  */
-export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,preparation=null,kernelRecord=null) {
+export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,preparation=null,kernelRecord=null,evaluationScratch=null) {
     const cached=preparation?.reuse;
-    const state=cached?null:evaluateBendTwistLocalConstraintNormalized(q0,q1,rest,{});
+    const state=cached?null:evaluateBendTwistLocalConstraintNormalized(q0,q1,rest,evaluationScratch??{});
     const phi=cached?.phi??[state.strain.x,state.strain.y,state.strain.z],A=cached?.A??state.localGradient,R=cached?.R??matrix(state.relative);
     const p=cached?.p??phi.map((v,i)=>v/compliance[i]),u=cached?.u??tmul(A,p);
     const torque=cached?.torque??[-u[0],-u[1],-u[2],...tmul(R,u)];
-    if(preparation?.store)preparation.value={phi,A,R,p,u,torque};
+    // Promotion may outlive another evaluation at a rejected/restored pose.
+    // Own the gradient snapshot instead of aliasing the mutable evaluator.
+    if(preparation?.store)preparation.value={phi,A:evaluationScratch?A.slice():A,R,p,u,torque};
     if(!withTangent)return {energy:.5*dot(phi,p),torque};
     const restR=matrix(quaternionExp(rest));
     const x=dot(phi,phi),[a,ap]=coefficient(x);
@@ -70,7 +81,7 @@ export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,
  * Off equilibrium this derivative need not be symmetric: spin is measured in
  * a moving material frame. Preserve both triangles for the Newton solve.
  */
-export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=null,wasmMaterial=false) {
+export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=null,wasmMaterial=false,reuseMaterialScratch=false) {
     const {layout,chain}=s,n=layout.dofCount,width=2*layout.band-1,half=layout.band-1;
     const kernel=withTangent&&wasmMaterial?sharedAxisMaterialKernelWorkspace(chain,s.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0)):null;
     const H=kernel?(chain.tangent=kernel.tangent):(chain.tangent??=new Float64Array(n*width)),g=chain.gradient;
@@ -84,7 +95,7 @@ export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=n
     const dTorque=withTangent&&!kernel?new Float64Array(6):null,column=withTangent&&!kernel?new Float64Array(11):null;
     let energy=0,hinge=0;
     for(const {body,spec,last} of s.materials) {
-        const spins=layout.spins.get(spec.id);
+        const spins=layout.spins.get(spec.id),scratch=reuseMaterialScratch?hingeScratch(body):null;
         for(let e=1;e<last;e++) {
             for(let node=0;node<3;node++)for(let a=0;a<3;a++)dofs[node*3+a]=layout.positions[e-1+node]+a;
             dofs[9]=spins[e-1];dofs[10]=spins[e];
@@ -104,7 +115,7 @@ export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=n
             const preparation=saved?{reuse:saved.material}:promotion?.capture?{store:true}:null;
             const packed=kernel?.records[hinge];
             const material=nativeHingeTorqueTangent(q0,q1,{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]},
-                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data);
+                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data,scratch?(scratch[e]??={}):null);
             energy+=material.energy;
             for(let j=0;j<2;j++) {
                 const at=3*j;

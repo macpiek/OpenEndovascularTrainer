@@ -1,4 +1,5 @@
 import {Vector3,Triangle} from 'three';
+import {evaluateKirchhoffWallTriangleKernel} from './kirchhoffWallTriangleKernel.js';
 
 export function createKirchhoffWallWitnessGeometryWorkspace() {
     const a=new Vector3(),b=new Vector3(),c=new Vector3();
@@ -15,7 +16,7 @@ export function createKirchhoffWallWitnessGeometryWorkspace() {
  * Returned arrays belong to out and are reused on its next evaluation. The
  * immutable triangleKey includes the copied vertex values, not a live owner.
  */
-export function evaluateKirchhoffWallWitnessGeometry({geometry,faceIndex,point,reuseTriangle=false},out=createKirchhoffWallWitnessGeometryWorkspace()) {
+export function evaluateKirchhoffWallWitnessGeometry({geometry,faceIndex,point,reuseTriangle=false,reuseTriangleKernel=false},out=createKirchhoffWallWitnessGeometryWorkspace()) {
     out.normalDefined=false;out.feature=null;out.distance=NaN;out.direction.fill(NaN);
     const positions=geometry?.attributes?.position,index=geometry?.index,count=index?.count??positions?.count;
     if(!positions||positions.itemSize!==3||!Number.isInteger(count)||count%3!==0||
@@ -28,10 +29,15 @@ export function evaluateKirchhoffWallWitnessGeometry({geometry,faceIndex,point,r
     for(let i=0;i<3;i++) {
         const at=index?index.getX(3*faceIndex+i):3*faceIndex+i;
         if(!Number.isInteger(at)||at<0||at>=positions.count)throw new RangeError('Invalid triangle vertex index');
+        if(reuseTriangleKernel) {
+            out.triangleVertices[3*i]=positions.getX(at);out.triangleVertices[3*i+1]=positions.getY(at);out.triangleVertices[3*i+2]=positions.getZ(at);
+            continue;
+        }
         vertices[i].set(positions.getX(at),positions.getY(at),positions.getZ(at));
         if(reuseTriangle){const at=3*i;out.triangleVertices[at]=vertices[i].x;out.triangleVertices[at+1]=vertices[i].y;out.triangleVertices[at+2]=vertices[i].z;}
         else vertices[i].toArray(out.triangleVertices,3*i);
     }
+    if(reuseTriangleKernel)return evaluateKirchhoffWallTriangleKernel(geometry,faceIndex,point,out);
     const sameTriangle=out.faceIndex===faceIndex&&!out.triangleVertices.some((v,i)=>v!==out._keyVertices[i]);
     const reuseNormal=reuseTriangle&&sameTriangle&&out._normalKey!==null&&out._normalKey===out.triangleKey;
     if(reuseNormal)out._cross.copy(out._triangleNormal);

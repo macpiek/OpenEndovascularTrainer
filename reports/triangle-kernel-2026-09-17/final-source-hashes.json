@@ -1,0 +1,10 @@
+{
+  "src/physics/kirchhoffWallTriangleKernel.js": "0236aacd74eecd08acd3cc1b43c43e298ac8d7bc6796caaf28ba350f3dc3b9a7",
+  "src/physics/kirchhoffWallWitnessGeometry.js": "7ec912436bc2a8714da445f5500b35ca778d389bb169a27448c034dca6625b48",
+  "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "8be1ba7c4321ce4486b7980de4301b76f6bfe2f65255715ed90c3fb6f5ae7b2d",
+  "src/physics/kirchhoffSharedAxisTimeStep.js": "6e7e1381499a3debbe62c0f0f00fc0e175e748f0a7dd608eecf10eb8d7e331d9",
+  "src/physics/kirchhoffSharedAxisAppSystem.js": "b7cfff06006c8b01f3b0ed2f59808c380cb8f6a8bdd87ddee83c67a583c8844b",
+  "scripts/physics/profile-shared-axis-dynamic.mjs": "ec0a68fa463c211fa88f1d04233d0441f1235952f83cd1a5609da113ca5053b4",
+  "tests/kirchhoffWallTriangleKernel.test.js": "ce4aa5b8fd8cfc5c7ae8e98aaeb7bfc12ca67222add5a552f6a367c129d2970d",
+  "tests/kirchhoffSharedAxisTriangleKernelReplay.test.js": "16c85d015d1eb9838c63eace2a9099f05500f73d8cff9a2621d3061942e0e9c7"
+}

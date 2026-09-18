@@ -1,0 +1,97 @@
+{
+  "scope": "Repeated local material evaluator on terminal rotations; excludes assembly, promotion, nonlinear solve and rendering",
+  "sourceHashes": {
+    "src/physics/discreteKirchhoffRod.js": "f4877eef38e9608c77e56a587c597cbc67c2c3a07eda2de35fa7b660cce63f98",
+    "src/physics/kirchhoffSharedAxisMaterialTangent.js": "f40ee3d20c4b7cbec7bfed19eaa5ef18d3562209b548e712556f44bc304ddb71"
+  },
+  "node": "v24.6.0",
+  "changingOrientations": true,
+  "hinges": 230,
+  "evaluationsPerBatch": 46000,
+  "restChangeParity": true,
+  "freshMeanMs": 18.443208124999984,
+  "reusedMeanMs": 2.5408228750000035,
+  "reductionPercent": 86.2235308641565,
+  "pairs": [
+    {
+      "fresh": {
+        "ms": 18.423291000000006,
+        "checksum": 47444.35152696248
+      },
+      "reused": {
+        "ms": 3.93587500000001,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "reused": {
+        "ms": 2.958250000000021,
+        "checksum": 47444.35152696248
+      },
+      "fresh": {
+        "ms": 18.712041999999997,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "fresh": {
+        "ms": 19.65637499999997,
+        "checksum": 47444.35152696248
+      },
+      "reused": {
+        "ms": 2.240916000000027,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "reused": {
+        "ms": 2.2659589999999525,
+        "checksum": 47444.35152696248
+      },
+      "fresh": {
+        "ms": 20.681708000000015,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "fresh": {
+        "ms": 17.809290999999973,
+        "checksum": 47444.35152696248
+      },
+      "reused": {
+        "ms": 2.23116600000003,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "reused": {
+        "ms": 2.262917000000016,
+        "checksum": 47444.35152696248
+      },
+      "fresh": {
+        "ms": 17.566832999999974,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "fresh": {
+        "ms": 17.59462499999995,
+        "checksum": 47444.35152696248
+      },
+      "reused": {
+        "ms": 2.2142499999999927,
+        "checksum": 47444.35152696248
+      }
+    },
+    {
+      "reused": {
+        "ms": 2.2172499999999786,
+        "checksum": 47444.35152696248
+      },
+      "fresh": {
+        "ms": 17.101499999999987,
+        "checksum": 47444.35152696248
+      }
+    }
+  ]
+}

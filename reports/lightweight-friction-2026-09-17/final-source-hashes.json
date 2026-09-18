@@ -1,0 +1,8 @@
+{
+  "src/physics/kirchhoffSharedAxisWallFriction.js": "5ae5b94eb3307cb448f93c2eb20e99984ae93998bbf2bb1f17a4c707e44b4c7b",
+  "src/physics/kirchhoffSharedAxisTimeStep.js": "84e4e365b9a44a28044e663742c813d795fb086c25fb0f47d7846cfe8f4765aa",
+  "src/physics/kirchhoffSharedAxisAppSystem.js": "c3aef5aa27a1990e3b758edbf8e87c437632837d40e61653752501111562f4db",
+  "scripts/physics/profile-shared-axis-dynamic.mjs": "e172a95c7070f1316154267af64fa594d0401605724da1cefa4e54979a61b650",
+  "tests/kirchhoffSharedAxisLightweightFriction.test.js": "3b99c0256f71307f503a5e2bac73dc908eb42cefc61cd921a5a2f65147e4240a",
+  "tests/kirchhoffSharedAxisLightweightFrictionReplay.test.js": "60290bfb0e4c291819133afc66b76ba7fbff7b81a49adf8243dc0e42ffbc5361"
+}

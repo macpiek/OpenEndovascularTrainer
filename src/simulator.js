@@ -1,5 +1,7 @@
 import {WIRE60_BENCHMARK_MODE,wire60BenchmarkSteps,sampleWire60Benchmark} from './benchmark/wire60CatheterBenchmark.js';
 import { createSharedAxisAppSystem } from './physics/kirchhoffSharedAxisAppSystem.js';
+import {initSolverDebugControls} from './ui/solverDebugControls.js';
+import {createRodNodesDebug} from './ui/rodNodesDebug.js';
 import { CATHETER_PHYSICS_SPACING_MM, catheterPhysicsNodeCount, catheterNodeMass } from './physics/catheterDiscretization.js';
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
 import { ConstraintStageProfile, recordSharedAxisQuality, assessSharedAxisBenchmarkTiming } from './physics/constraintStageProfile.js';
@@ -137,7 +139,19 @@ const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
 const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const axialBandSolve = new URLSearchParams(window.location.search).get('coupledLinearSolver') === 'axial-band';
-const PHYSICS_MODE = ['composite-joint','shared-axis'].includes(selectedCoupledSolver) ? selectedCoupledSolver : 'kirchhoff-direct';
+const PHYSICS_MODE = ['composite-joint','shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(selectedCoupledSolver) ? selectedCoupledSolver : 'kirchhoff-direct';
+initSolverDebugControls({select:document.getElementById('debugSolverSelect'),button:document.getElementById('applyDebugSolver'),
+    current:selectedCoupledSolver,href:window.location.href,navigate:url=>window.location.assign(url),
+    modifiedNewtonToggle:document.getElementById('debugModifiedNewton'),
+    pruneWitnessesToggle:document.getElementById('debugPruneWitnesses'),
+    tolerance:document.getElementById('debugShapeTolerance'),toleranceOutput:document.getElementById('debugShapeToleranceValue'),
+    onToleranceChange:value=>changePhysicsSetting('adaptive-shape-tolerance',()=>sharedAxisAppSystem?.setAdaptiveShapeTolerance(value)),
+    contactMargin:document.getElementById('debugContactMargin'),contactMarginOutput:document.getElementById('debugContactMarginValue'),
+    onContactMarginChange:value=>changePhysicsSetting('adaptive-contact-margin',()=>sharedAxisAppSystem?.setAdaptiveContactMargin(value)),
+    maxArcLoss:document.getElementById('debugMaxArcLoss'),maxArcLossOutput:document.getElementById('debugMaxArcLossValue'),
+    onMaxArcLossChange:value=>changePhysicsSetting('adaptive-arc-loss',()=>sharedAxisAppSystem?.setAdaptiveMaxArcLoss(value/100)),
+    maxSpacing:document.getElementById('debugMaxSpacing'),maxSpacingOutput:document.getElementById('debugMaxSpacingValue'),
+    onMaxSpacingChange:value=>changePhysicsSetting('adaptive-max-spacing',()=>sharedAxisAppSystem?.setAdaptiveMaxSpacing(value))});
 let compositeStepCommands = null;
 let compositeInitialEpoch = {};
 const compositeAppSystem = selectedCoupledSolver === 'composite-joint' ? createCompositeJointAppSystem({
@@ -150,7 +164,11 @@ const compositeAppSystem = selectedCoupledSolver === 'composite-joint' ? createC
     workSliceMs: 4,
     worldWall: {source: 'original-field', contactMode: 'material-points', rateMode: 'backward-euler-grid', seamUpdates: 'automatic'}
 }) : null;
-const sharedAxisAppSystem = selectedCoupledSolver === 'shared-axis' ? createSharedAxisAppSystem({
+const sharedAxisAppSystem = ['shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(selectedCoupledSolver) ? createSharedAxisAppSystem({
+    adaptiveMesh:['shared-axis-adaptive','shared-axis-projective'].includes(selectedCoupledSolver),
+    projectiveDynamics:selectedCoupledSolver==='shared-axis-projective',
+    modifiedNewton:new URLSearchParams(window.location.search).get('modifiedNewton')==='1',
+    pruneInactiveWitnesses:new URLSearchParams(window.location.search).get('pruneWitnesses')==='1',
     readSheath: () => ({...vessel.sheath, innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
     readTools: () => [
         {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
@@ -582,9 +600,9 @@ let xpbdContainment = null;
 let xpbdExternalToolContact = null;
 let xpbdPortalInnerDriven = true;
 let catheterShaftStiffnessScale = 40.65;
-let catheterTipStiffnessScale = 59.5;
-let guidewireShaftStiffnessScale = 11.9;
-let guidewireTipStiffnessScale = 14.45;
+let catheterTipStiffnessScale = 66.8;
+let guidewireShaftStiffnessScale = 9.6;
+let guidewireTipStiffnessScale = 6.8;
 const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
 const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
 const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
@@ -741,8 +759,11 @@ const debugLayerVisibility = {
     stlModel: true,
     lumenCast: false,
     sections: false,
-    centerline: true,
-    capsules: false
+    centerline: false,
+    capsules: false,
+    vesselLabels: false,
+    wallContacts: false,
+    rodNodes: true
 };
 function applyDebugLayerVisibility() {
     lumenDebugGroup.traverse(object => {
@@ -1045,13 +1066,13 @@ const ui = initUI({
     onModeChange: (f) => {
         fluoroscopy = f;
         anatomyLabelRenderer.domElement.style.display =
-            fluoroscopy ? 'none' : 'block';
+            !fluoroscopy && debugLayerVisibility.vesselLabels ? 'block' : 'none';
         vesselGroup.visible = !fluoroscopy;
         sheathFluoroMesh.visible = fluoroscopy;
         lumenDebugGroup.visible = !fluoroscopy;
-        if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
-        if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
-        if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
+        if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
+        if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
+        if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && debugLayerVisibility.wallContacts && !!wallWorstPointMarker.userData.hasPoint;
         if (xpbdContactDebugGroup) {
             xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
         }
@@ -1062,6 +1083,11 @@ const ui = initUI({
     onDebugLayerChange: layers => {
         Object.assign(debugLayerVisibility, layers);
         applyDebugLayerVisibility();
+        anatomyLabelRenderer.domElement.style.display =
+            !fluoroscopy && debugLayerVisibility.vesselLabels ? 'block' : 'none';
+        if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
+        if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
+        if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && debugLayerVisibility.wallContacts && !!wallWorstPointMarker.userData.hasPoint;
         if (xpbdContactDebugGroup) {
             xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
         }
@@ -1626,6 +1652,16 @@ xpbdContactDebugGroup.add(xpbdContactNormalLines, xpbdActiveBranchLines);
 xpbdContactDebugGroup.visible = !fluoroscopy && !!debugLayerVisibility.capsules;
 alignVascularRenderObject(xpbdContactDebugGroup);
 scene.add(xpbdContactDebugGroup);
+const rodNodesDebug = createRodNodesDebug();
+alignVascularRenderObject(rodNodesDebug.group);
+scene.add(rodNodesDebug.group);
+runtime.onDispose(()=>rodNodesDebug.dispose());
+const mechanicalMeshOutput = document.getElementById('debugMechanicalMesh');
+const newtonDebugOutput = document.getElementById('debugNewtonStats');
+if(new URLSearchParams(window.location.search).get('solverDebug')==='1')runtime.timeout(()=>{
+    document.querySelector('[data-control-tab="debug"]')?.click();
+    if(ui.getFluoroscopy())document.getElementById('modeToggle')?.click();
+},0);
 
 // Preserve the velocity produced by the previous XPBD step. With boundary
 // driven feeding this is genuine rod state, not duplicated kinematic motion.
@@ -3219,7 +3255,7 @@ function sampleGuidewireContactMarkers() {
             lumenDiagnostics.worstPoint.z
         );
         wallWorstPointMarker.userData.hasPoint = true;
-        wallWorstPointMarker.visible = true;
+        wallWorstPointMarker.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
     } else {
         wallWorstPointMarker.userData.hasPoint = false;
         wallWorstPointMarker.visible = false;
@@ -4017,7 +4053,7 @@ function animate(time) {
         const result = endovascularWorld.lastStepResult;
         const progress = result?.diagnostics?.progress;
         const status = (sharedAxisAppSystem
-            ? `Nowy wspólny solver · obliczenia: ${sharedAxisAppSystem.diagnostics.acceptedSteps} · kroki czasu: ${endovascularWorld.stepCount}`
+            ? `${sharedAxisAppSystem.diagnostics.projectiveDynamics?'Projective Dynamics':sharedAxisAppSystem.diagnostics.solver==='shared-axis-adaptive'?'Solver adaptacyjny':'Solver referencyjny'} · obliczenia: ${sharedAxisAppSystem.diagnostics.acceptedSteps} · kroki czasu: ${endovascularWorld.stepCount}`
             : `Nowy wspólny solver · zaakceptowane kroki: ${endovascularWorld.stepCount}`) +
             (simulationStepTransaction.blocked ? ` · ruch odrzucony (${result?.status ?? 'błąd'}) — szczegóły w Debug`
                 : result?.status === 'shared-axis-pending' ? ' · obliczanie wspólnego kroku'
@@ -4067,6 +4103,21 @@ function animate(time) {
     scheduleIdlePhysicsCatchup();
     const frameSimulationEndedAt = performance.now();
 
+    rodNodesDebug.update(xpbdWireBody,xpbdCatheterBody,!fluoroscopy&&debugLayerVisibility.rodNodes);
+    if(mechanicalMeshOutput) {
+        const mesh=sharedAxisAppSystem?.diagnostics.mesh;
+        const description=mesh?`${mesh.adaptive?'Adaptacyjna':'Referencyjna'} · ${mesh.nodes} węzłów osi · ${mesh.dofs} niewiadomych · odcinki ${mesh.minSpacing.toFixed(2)}–${mesh.maxSpacing.toFixed(1)} mm${mesh.adaptive?` · próg ${mesh.shapeTolerance.toFixed(2).replace('.',',')} mm · ochrona kontaktów ${mesh.contactMargin.toFixed(2).replace('.',',')} mm · skrócenie łuku ${(100*mesh.maxArcLoss).toFixed(2).replace('.',',')}% · limit odcinka ${mesh.maxAllowedSpacing.toFixed(0)} mm`:''}`:
+            sharedAxisAppSystem?'Siatka: inicjalizacja':'Siatka starszego solvera · osobne węzły obu narzędzi';
+        if(mechanicalMeshOutput.textContent!==description)mechanicalMeshOutput.textContent=description;
+    }
+
+    if(newtonDebugOutput) {
+        const diag=sharedAxisAppSystem?.diagnostics;
+        const description=diag?.projectiveDynamics?`PD eksperymentalny · ${diag.last?.iterations??0} iteracji · ${diag.last?.factorizations??0} faktoryzacji · błąd długości ${((diag.last?.pd?.maxLengthError??0)*100).toFixed(2)}% · penetracja ${(diag.last?.quality?.maxPenetration??0).toFixed(3)} mm · ${diag.last?.pd?.localGlobalConverged?'zbieżny':'budżet iteracji'} · przybliżone tarcie` :diag?.modifiedNewton?`Newton eksperymentalny · ostatni krok: ${diag.last?.modifiedAccepted??0}/${diag.last?.modifiedAttempts??0} prób z zachowaną macierzą przyjętych · ${diag.last?.modifiedFallbacks??0} powrotów do pełnej macierzy`:'Newton: dotychczasowa metoda';
+        const text=description+(diag?.pruneInactiveWitnesses?' · przerzedzanie kontaktów':'');
+        if(newtonDebugOutput.textContent!==text)newtonDebugOutput.textContent=text;
+    }
+
     // Physiology is cheap and owns a fixed-step clock derived from presented
     // wall time. It must not inherit backlog from the much more expensive rod
     // solver: otherwise the screen cursor eventually outruns the ECG/BP sample
@@ -4112,9 +4163,9 @@ function animate(time) {
     }
     vesselGroup.visible = !fluoroscopy;
     sheathFluoroMesh.visible = fluoroscopy;
-    if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy;
-    if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy;
-    if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && !!wallWorstPointMarker.userData.hasPoint;
+    if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
+    if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
+    if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && debugLayerVisibility.wallContacts && !!wallWorstPointMarker.userData.hasPoint;
     skeletonModel.visible = fluoroscopy;
     injectionUiAccumulator += dt;
     if (injectionUiAccumulator >= 0.1) {
@@ -4278,7 +4329,7 @@ function animate(time) {
         updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
         renderer.render(scene, camera);
-        anatomyLabelRenderer.render(scene, camera);
+        if (debugLayerVisibility.vesselLabels) anatomyLabelRenderer.render(scene, camera);
         completeFirstLoadedFrame();
     }
 

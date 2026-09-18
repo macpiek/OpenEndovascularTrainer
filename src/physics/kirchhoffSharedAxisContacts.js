@@ -32,6 +32,7 @@ export function createSharedAxisContacts({sheath,contactField=null,localCoordina
         }
         return {gap:clearance-rho,jacobian,hessian};
     });
+    wallSamples[0].sharedAxisGeometryOnly=true;
     wallSamples[0].sharedAxisSheath=true;
     wallSamples[0].contactOutputOwned=true;
     if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length));

@@ -1,0 +1,21 @@
+✔ shared triangle kernel preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (832.881708ms)
+✔ shared triangle kernel preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (379.031167ms)
+✔ cached finite triangle matches every output in all regions, including coplanar and boundary points (4.927917ms)
+✔ cached arithmetic is exact for randomized rotated triangles at several scales (47.200667ms)
+✔ shared constants invalidate on raw vertex/index writes, replacements, signed zero and geometry changes (0.7545ms)
+✔ indexed and interleaved attributes keep the same index and BVH validation (0.314791ms)
+✔ bounded cache eviction preserves results when a face is revisited (20.974042ms)
+✔ finite-feature gap, Jacobian and Hessian stay exact with and without caller-owned contact buffers (1.00425ms)
+✔ retained finite triangle face (1.09625ms)
+✔ retained finite triangle edge (0.184833ms)
+✔ retained finite triangle vertex (0.542625ms)
+✔ zero distance is explicitly undefined; scratch arrays and owned keys are reused safely (0.290208ms)
+✔ actual aorta retained faces evaluate captured near-wall point with finite-feature gradients (757.456459ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3474.6695

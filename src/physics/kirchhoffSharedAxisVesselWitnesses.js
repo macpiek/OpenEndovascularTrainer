@@ -10,9 +10,9 @@ function gapForWitness(field,face,t,geometryScratch,{a,b,radius,state,needHessia
     const point=query?.point??a.map((v,i)=>(1-t)*v+t*b[i]+(state.origin?.[i]??0));
     if(query) {
         for(let i=0;i<3;i++)point[i]=(1-t)*a[i]+t*b[i]+(state.origin?.[i]??0);
-        query.geometry=field.fallbackGeometry;query.reuseTriangle=reuseGeometry;
+        query.geometry=field.fallbackGeometry;query.reuseTriangle=reuseGeometry;query.reuseTriangleKernel=state.reuseTriangleKernel===true;
     }
-    const g=evaluateKirchhoffWallWitnessGeometry(query??{geometry:field.fallbackGeometry,faceIndex:face,point,reuseTriangle:reuseGeometry},geometryScratch);
+    const g=evaluateKirchhoffWallWitnessGeometry(query??{geometry:field.fallbackGeometry,faceIndex:face,point,reuseTriangle:reuseGeometry,reuseTriangleKernel:state.reuseTriangleKernel===true},geometryScratch);
     if(!g.normalDefined)throw outsideError('Retained vessel witness reached the surface');
     const n=g.direction,jacobian=contactStorage?.contact.jacobian??(query?new Array(6):[...n.map(v=>(1-t)*v),...n.map(v=>t*v)]);
     if(query||contactStorage)for(let i=0;i<3;i++){jacobian[i]=(1-t)*n[i];jacobian[i+3]=t*n[i];}
@@ -38,11 +38,44 @@ export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=tr
     const scratch=createKirchhoffWallWitnessGeometryWorkspace();
     const {face,t}=definition.witness;
     if(reuseBuffers){scratch.contactQuery={geometry:null,faceIndex:face,point:[0,0,0]};scratch.contactEdge=[0,0,0];}
-    const evaluate=input=>gapForWitness(field,face,t,scratch,input);
+    const evaluate=input=>{
+        if(scratch.clearance)scratch.clearance.valid=false;
+        const contact=gapForWitness(field,face,t,scratch,input);
+        if(scratch.clearance) {
+            const c=scratch.clearance;
+            for(let k=0;k<3;k++)c.point[k]=(1-t)*input.a[k]+t*input.b[k]+(input.state.origin?.[k]??0);
+            c.distance=scratch.distance;c.valid=true;
+        }
+        return contact;
+    };
+    // Distance to a fixed finite triangle is 1-Lipschitz. Validate all vertex
+    // values, even when BufferAttribute.version was not bumped by an editor.
+    // The exact evaluator still owns face/edge/vertex classification.
+    evaluate.inactiveClearance=({a,b,state,radius})=>{
+        const c=scratch.clearance??={point:[0,0,0],distance:NaN,valid:false};
+        if(!c.valid||!(t>=0&&t<=1))return -Infinity;
+        const geometry=field.fallbackGeometry,positions=geometry?.attributes?.position,index=geometry?.index;
+        if(!positions||positions.itemSize!==3||(index?.count??positions.count)%3!==0||
+            !Number.isInteger(face)||face<0||3*face+2>=(index?.count??positions.count)||
+            geometry.boundsTree&&(geometry.boundsTree.geometry!==geometry||geometry.boundsTree.indirect))return -Infinity;
+        let scale=Math.max(1,Math.abs(radius),c.distance),movement=0;
+        for(let i=0;i<3;i++) {
+            const at=index?index.getX(3*face+i):3*face+i;
+            if(!Number.isInteger(at)||at<0||at>=positions.count)return -Infinity;
+            const x=positions.getX(at),y=positions.getY(at),z=positions.getZ(at);
+            if(x!==scratch.triangleVertices[3*i]||y!==scratch.triangleVertices[3*i+1]||z!==scratch.triangleVertices[3*i+2])return -Infinity;
+            const point=(1-t)*a[i]+t*b[i]+(state.origin?.[i]??0);
+            movement+=Math.abs(point-c.point[i]);
+            scale=Math.max(scale,Math.abs(point),Math.abs(c.point[i]),Math.abs(x),Math.abs(y),Math.abs(z));
+        }
+        return c.distance-movement-radius-256*Number.EPSILON*scale;
+    };
     // Default outputs own their derivatives. The solver can explicitly supply
     // private contact storage and copy derivatives into its protected row bank.
+    evaluate.sharedAxisGeometryOnly=true;
     evaluate.contactOutputOwned=reuseBuffers;
     evaluate.contactStorageSupported=reuseBuffers;
+    evaluate.retarget=next=>createSharedAxisVesselWitness(field,next,{reuseBuffers});
     return {...definition,evaluate};
 }
 
@@ -117,22 +150,25 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
         }
         return {gap:1,jacobian:[0,0,0,0,0,0]};
     };
+    sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
+    sample.sharedAxisCompleteDiscovery=allSamples;
     sample.discoveryCache=clearance;
     return sample;
 }
 
 export function* iterateSharedAxisWithContacts(s,options={}) {
-    const started=performance.now();let totalIterations=0,factorizations=0,backtracks=0,localRestarts=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0;
+    const started=performance.now();let totalIterations=0,factorizations=0,backtracks=0,localRestarts=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
     const timings={assemblyMs:0,linearMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     for(let restarts=0;restarts<=64;restarts++) {
         const result=yield* iterateSharedAxisNative(s,options);
         localRestarts+=result.geometryRestarts??0;totalIterations+=result.iterations;factorizations+=result.factorizations;backtracks+=result.backtracks;
         for(const k of Object.keys(timings))timings[k]+=result.timings[k]??0;
         fullAssemblies+=result.fullAssemblies??0;residualAssemblies+=result.residualAssemblies??0;promotedAssemblies+=result.promotedAssemblies??0;
+        modifiedAttempts+=result.modifiedAttempts??0;modifiedAccepted+=result.modifiedAccepted??0;modifiedFallbacks+=result.modifiedFallbacks??0;
         if(result.error===NEED_ROWS&&s.pendingVesselRows?.size&&restarts<64) {
             extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();continue;
         }
-        return {...result,iterations:totalIterations,factorizations,backtracks,timings,fullAssemblies,residualAssemblies,promotedAssemblies,geometryRestarts:restarts+localRestarts,ms:performance.now()-started};
+        return {...result,iterations:totalIterations,factorizations,backtracks,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,geometryRestarts:restarts+localRestarts,ms:performance.now()-started};
     }
 }
 

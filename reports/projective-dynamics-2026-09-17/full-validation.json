@@ -1,0 +1,72 @@
+{
+  "note": "Final functional long-trajectory validation with concurrent tests/build/browser smoke. Do not use timings as a paired speed comparison.",
+  "steps": 1663,
+  "failed": false,
+  "sourceHash": "ca12e23e16da3519344d9ad18a855c87a79eacd9ea38ab6b00622f7f234404a8",
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 600,
+    "catheterTarget": 600,
+    "adaptiveMesh": true,
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "projectiveDynamics": true,
+      "projective": {
+        "iterations": 16,
+        "tolerance": 0.002,
+        "axialRigidity": 2000000,
+        "rotationPenalty": 8,
+        "contactWeight": 2000000,
+        "maxLengthError": 0.03,
+        "maxPenetration": 0.1,
+        "maxShear": 0.1
+      },
+      "modifiedNewton": false,
+      "stagnationFallback": true,
+      "reuseRowBuffers": true,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 9.6,
+        "tipStiffness": 6.8
+      },
+      {
+        "id": "catheter",
+        "type": "berenstein",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 66.8
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "allFinite": true,
+  "maxLengthErrorPercent": 2.7933498814922686,
+  "maxPenetrationMm": 0.06563668996094951,
+  "maxShear": 0.04572557909751863,
+  "iterationBudgetSteps": 1253
+}

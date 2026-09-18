@@ -1,0 +1,65 @@
+{
+  "note": "Functional pigtail validation including wire withdrawal. Concurrent development activity: do not use timings as a speed comparison. Same numerical solver as final; a later change adds default-parameter reporting only.",
+  "steps": 1096,
+  "failed": false,
+  "sourceHash": "acf383d300c110de5219dd1736b1f88b7879ab7a52285140623639663f1c1bb6",
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 300,
+    "catheterTarget": 200,
+    "adaptiveMesh": true,
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "projectiveDynamics": true,
+      "projective": {
+        "iterations": 16
+      },
+      "modifiedNewton": false,
+      "stagnationFallback": true,
+      "reuseRowBuffers": true,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 9.6,
+        "tipStiffness": 6.8
+      },
+      {
+        "id": "catheter",
+        "type": "pigtail",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 66.8
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "allFinite": true,
+  "maxLengthErrorPercent": 1.151748974249912,
+  "maxPenetrationMm": 0.055629991568729276,
+  "maxShear": 0.07201142236670313,
+  "iterationBudgetSteps": 830
+}

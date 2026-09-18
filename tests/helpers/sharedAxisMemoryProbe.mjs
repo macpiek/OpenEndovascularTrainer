@@ -21,7 +21,7 @@ function build() {
     for(let i=0;i<count;i++) {
         if(dynamic) {
             state.loads[state.layout.positions.at(-1)+1]=1;
-            const result=stepSharedAxis(state,1/60,{liveWallNormalLoad:true,wasmMaterial,reuseConstraintWork:wasmMaterial,reuseMatrixAssembly:wasmMaterial,reuseRowBuffers:wasmMaterial});
+            const result=stepSharedAxis(state,1/60,{liveWallNormalLoad:true,wasmMaterial,reuseConstraintWork:wasmMaterial,reuseMatrixAssembly:wasmMaterial,reuseRowBuffers:wasmMaterial,reuseMaterialScratch:wasmMaterial,lightweightFriction:wasmMaterial});
             assert.ok(result.converged,JSON.stringify(result));
             factorizations+=result.factorizations;
             if(wasmMaterial) {

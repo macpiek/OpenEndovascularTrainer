@@ -1,0 +1,27 @@
+✔ force-only friction matches the full law at zero load, stick, slide and return boundaries (2.686709ms)
+✔ buffered friction preserves every force, both tangents, refresh and history (live=false) (14.223458ms)
+✔ buffered friction preserves every force, both tangents, refresh and history (live=true) (7.731625ms)
+✔ published live-load columns survive a later buffered contact and force-only assembly (0.523209ms)
+✔ lightweight friction preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (960.231917ms)
+✔ lightweight friction preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (469.180375ms)
+✔ optional live normal force columns match multiplier finite differences including surface torque (5.063708ms)
+✔ normal derivative selects a valid radial return branch and a sliding one-sided derivative at zero (0.396084ms)
+✔ live loads remove load-only outer changes but retain mode changes and new-contact certification (1.431ms)
+✔ live friction remains exterior-only and replay/rollback reconstructs columns without stale trial output (1.5025ms)
+✔ wall friction has a static elastic cone, bounded kinetic traction and no zero-load resistance (0.09575ms)
+✔ feed friction belongs only to the exterior material; guidewire can slide freely inside a catheter (0.6375ms)
+✔ wall surface friction includes spin and has the exact global gradient and tangent (5.273833ms)
+✔ normal-load changes require global relaxation and rejected trials cannot commit friction history (0.468583ms)
+✔ global dynamic solve releases static wall sticking into kinetic sliding under independent feed (16.41975ms)
+✔ prepared wall friction replays exactly and gradient-only trials leave the Hessian untouched (0.4825ms)
+✔ an identical vessel site retains its elastic history when only the containing edge ID changes (0.267167ms)
+✔ cancelling a prepared global step restores the incoming pose and accepted friction history (1.486083ms)
+✔ reused friction tangent scratch scatters every contact and switches safely between exact and positive tangents (0.902709ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3355.373166

@@ -1,0 +1,212 @@
+{
+  "note": "One sequential Node pair of independent trajectories. Same mesh/tolerances/material settings; only modifiedNewton differs. Timings are not browser FPS or confidence intervals.",
+  "steps": 838,
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 300,
+    "catheterTarget": 240,
+    "adaptiveMesh": true,
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "modifiedNewton": false,
+      "stagnationFallback": true,
+      "reuseRowBuffers": true,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 9.6,
+        "tipStiffness": 6.8
+      },
+      {
+        "id": "catheter",
+        "type": "berenstein",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 66.8
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "referenceSourceHash": "f97a050bc46040bd25a45a0d35680b9caf551f9f1cab9a0b9e1a48e3eeac22f2",
+  "experimentSourceHash": "f97a050bc46040bd25a45a0d35680b9caf551f9f1cab9a0b9e1a48e3eeac22f2",
+  "maxTipDeviationMm": 0.2610543559265137,
+  "allFinite": true,
+  "maxPenetrationMm": 9.564069203271686e-8,
+  "maxCertifiedResidual": 0.00009992482472398478,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "reference": {
+        "meanMs": 29.517291999999998,
+        "p95Ms": 29.517291999999998,
+        "iterations": 5,
+        "fullAssemblies": 5,
+        "factorizations": 15,
+        "modifiedAttempts": 0,
+        "modifiedAccepted": 0,
+        "modifiedFallbacks": 0
+      },
+      "experiment": {
+        "meanMs": 28.311500000000024,
+        "p95Ms": 28.311500000000024,
+        "iterations": 6,
+        "fullAssemblies": 4,
+        "factorizations": 14,
+        "modifiedAttempts": 2,
+        "modifiedAccepted": 2,
+        "modifiedFallbacks": 0
+      },
+      "timeReductionPercent": 4.08503598500829,
+      "maxTipDeviationMm": 1.7933287870340508e-13
+    },
+    "wire": {
+      "steps": 410,
+      "reference": {
+        "meanMs": 21.852664463414637,
+        "p95Ms": 63.50554200000079,
+        "iterations": 2229,
+        "fullAssemblies": 2674,
+        "factorizations": 7794,
+        "modifiedAttempts": 0,
+        "modifiedAccepted": 0,
+        "modifiedFallbacks": 0
+      },
+      "experiment": {
+        "meanMs": 24.31652095365851,
+        "p95Ms": 77.516208,
+        "iterations": 2598,
+        "fullAssemblies": 2318,
+        "factorizations": 7745,
+        "modifiedAttempts": 820,
+        "modifiedAccepted": 705,
+        "modifiedFallbacks": 115
+      },
+      "timeReductionPercent": -11.27485618226931,
+      "maxTipDeviationMm": 0.13784968845362727
+    },
+    "catheter": {
+      "steps": 277,
+      "reference": {
+        "meanMs": 35.462245346570334,
+        "p95Ms": 70.13358299999891,
+        "iterations": 2064,
+        "fullAssemblies": 2175,
+        "factorizations": 4262,
+        "modifiedAttempts": 0,
+        "modifiedAccepted": 0,
+        "modifiedFallbacks": 0
+      },
+      "experiment": {
+        "meanMs": 25.6654648050541,
+        "p95Ms": 47.68083299999853,
+        "iterations": 2625,
+        "fullAssemblies": 1579,
+        "factorizations": 3335,
+        "modifiedAttempts": 1271,
+        "modifiedAccepted": 1137,
+        "modifiedFallbacks": 134
+      },
+      "timeReductionPercent": 27.625945412573017,
+      "maxTipDeviationMm": 0.2610543559265137
+    },
+    "simultaneous": {
+      "steps": 60,
+      "reference": {
+        "meanMs": 35.71062505000021,
+        "p95Ms": 71.00141699999949,
+        "iterations": 352,
+        "fullAssemblies": 389,
+        "factorizations": 800,
+        "modifiedAttempts": 0,
+        "modifiedAccepted": 0,
+        "modifiedFallbacks": 0
+      },
+      "experiment": {
+        "meanMs": 35.06921458333345,
+        "p95Ms": 77.23250000000189,
+        "iterations": 424,
+        "fullAssemblies": 320,
+        "factorizations": 769,
+        "modifiedAttempts": 165,
+        "modifiedAccepted": 140,
+        "modifiedFallbacks": 25
+      },
+      "timeReductionPercent": 1.7961334078266389,
+      "maxTipDeviationMm": 0.00788135179851332
+    },
+    "rotation": {
+      "steps": 30,
+      "reference": {
+        "meanMs": 31.782052533333747,
+        "p95Ms": 46.52316599999904,
+        "iterations": 207,
+        "fullAssemblies": 207,
+        "factorizations": 293,
+        "modifiedAttempts": 0,
+        "modifiedAccepted": 0,
+        "modifiedFallbacks": 0
+      },
+      "experiment": {
+        "meanMs": 32.44357220000008,
+        "p95Ms": 44.47808299999815,
+        "iterations": 255,
+        "fullAssemblies": 140,
+        "factorizations": 182,
+        "modifiedAttempts": 118,
+        "modifiedAccepted": 116,
+        "modifiedFallbacks": 2
+      },
+      "timeReductionPercent": -2.081425250847202,
+      "maxTipDeviationMm": 0.010911948415240307
+    },
+    "withdrawal": {
+      "steps": 60,
+      "reference": {
+        "meanMs": 24.645401433333305,
+        "p95Ms": 35.37108299999818,
+        "iterations": 277,
+        "fullAssemblies": 318,
+        "factorizations": 427,
+        "modifiedAttempts": 0,
+        "modifiedAccepted": 0,
+        "modifiedFallbacks": 0
+      },
+      "experiment": {
+        "meanMs": 30.0065312499999,
+        "p95Ms": 56.30920799999876,
+        "iterations": 327,
+        "fullAssemblies": 256,
+        "factorizations": 345,
+        "modifiedAttempts": 127,
+        "modifiedAccepted": 111,
+        "modifiedFallbacks": 16
+      },
+      "timeReductionPercent": -21.753063471774414,
+      "maxTipDeviationMm": 0.007490859494515067
+    }
+  }
+}

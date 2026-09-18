@@ -163,7 +163,48 @@ out/                        Generated preview frame and video
 
 ## Collision And Physics
 
-The default application uses the previous `joint-two-channel` solver while
+The default application uses `shared-axis` with a reference 5 mm mechanical grid.
+The **Debug → Solver fizyki** selector also offers the experimental
+`shared-axis-adaptive` variant and older solvers. Apply the selection with
+**Zmień solver i zresetuj scenę**; switching reloads the scene. The adaptive
+variant merges quiet shaft regions up to 20 mm, preserves fine tip/curvature/contact
+regions, and uses a 0.15 mm local shape simplification threshold. This threshold
+is not a bound on accumulated trajectory error. It also relaxes the nonlinear
+force/torque residual to `1e-4` and geometric residual to `1e-3`; the reference
+retains `1e-6` / `1e-5`. Actual tool endpoints can create shorter cells.
+In the debug view, **Węzły pręta** draws accepted mechanical nodes (cyan wire,
+orange catheter); the panel reports the shared node count, DOFs and segment lengths.
+The experimental mode is also available at `?coupledSolver=shared-axis-adaptive`.
+
+Debug also offers **Newton: ponowne użycie macierzy i faktoryzacji** for both
+shared-axis grids. It is opt-in (`modifiedNewton=1`), applied with the solver
+restart button. The experiment retains the full KKT matrix and pivoted LU for
+at most two additional directions after a small, productive Newton step.
+Changed active contacts/supports, poor progress, rejected directions or newly
+discovered contacts refresh the tangent. Current nonlinear residuals and
+contact/friction acceptance remain mandatory; a failed experimental timestep
+retries the original method. The Debug counter reports accepted frozen-matrix
+attempts and full-matrix fallbacks. This is an approximation, not exact reuse
+of a current Jacobian, and its speed benefit depends on the motion.
+See `reports/modified-newton-2026-09-17/` for comparisons and limitations.
+
+Debug additionally offers **Projective Dynamics — pręt podatny, siatka adaptacyjna**
+(`?coupledSolver=shared-axis-projective&solverDebug=1`). This opt-in experiment
+uses local SO(3)/length/contact projections and a reusable SPD band Cholesky
+factor, with 16 local/global iterations per substep. The shared centerline and
+independent material frames preserve both tool profiles and proximal rotation.
+It is a different, approximate Cosserat penalty model: finite stretch/shear,
+chordal bend/twist, penalty wall contact and a positional Coulomb approximation.
+It does not claim the reference solver's force/friction certificate. Debug shows
+iterations, factorizations, geometric errors and whether the iteration budget
+was exhausted. Accepted steps must stay within 3% segment length error, 0.1 mm
+wall penetration, a 0.1 director/tangent mismatch and the bend limit + 2 degrees.
+The adaptive mesh sliders also work in PD. Modified Newton is unavailable for PD.
+See [the PD experiment report](reports/projective-dynamics-2026-09-17/README.md)
+for measurements and limitations. The default solver remains `shared-axis`.
+
+Historical composite integration notes below describe an earlier rollout:
+the application then used the previous `joint-two-channel` solver while
 an insertion regression in the new model is being repaired. The experimental
 `?coupledSolver=composite-joint` model solves both tools in one common/relative
 system with independent material feed, spin, stiffness and contact reactions.

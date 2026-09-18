@@ -1,7 +1,9 @@
 import {captureSharedAxisReplay} from './kirchhoffSharedAxisReplay.js';
 import {createSharedAxisContacts} from './kirchhoffSharedAxisContacts.js';
 import {createSharedAxisNative,feedSharedAxisNative,rotateSharedAxisNative} from './kirchhoffSharedAxisNative.js';
+import {iterateSharedAxisProjective} from './kirchhoffSharedAxisProjective.js';
 import {iterateSharedAxisTimeStep} from './kirchhoffSharedAxisTimeStep.js';
+import {adaptiveMeshOptions,ADAPTIVE_SOLVE_OPTIONS} from './kirchhoffSharedAxisAdaptiveMesh.js';
 
 const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 const profile=t=>({id:t.id,type:t.type,shaftStiffness:t.shaftStiffness,tipStiffness:t.tipStiffness,length:t.length??1000,mass:t.mass??t.body?.mass,radius:t.radius??t.body?.radius,
@@ -21,7 +23,12 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,modifiedNewton=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+    adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
+    modifiedNewton=modifiedNewton&&!projectiveDynamics;
+    pruneInactiveWitnesses=pruneInactiveWitnesses&&!projectiveDynamics;
+    physicsOptions={...physicsOptions,modifiedNewton,projectiveDynamics,pruneInactiveWitnesses};
+    if(adaptiveMesh)physicsOptions={...ADAPTIVE_SOLVE_OPTIONS,...physicsOptions};
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     let lastFailure=null;
@@ -29,7 +36,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
         // The accepted state is never solved in-place: feed creates private candidates.
         // Serialize once at rejection, not on every successful frame or cooperative yield.
         try {
-            lastFailure={...captureSharedAxisReplay(state,entry.sheath),
+            lastFailure={...captureSharedAxisReplay({...state,adaptiveMesh:entry.adaptiveMesh},entry.sheath),
                 stepRequest:structuredClone({dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools,
                     options:Object.fromEntries(Object.entries(physicsOptions).filter(([,v])=>typeof v!=='function'))}),
                 failure:structuredClone({capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,result})};
@@ -38,8 +45,13 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
                 captureError:error.message},stepRequest:{dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools}};
         }
     }
-    const diagnostics={initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:'shared-axis'};
+    const diagnostics={modifiedNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
     function publish(tools,dt) {
+        diagnostics.mesh={nodes:state.coordinates.length,dofs:diagnostics.last?.pd?.dofs??state.layout.dofCount,
+            minSpacing:Math.min(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
+            maxSpacing:Math.max(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
+            adaptive:!!state.adaptiveMesh,shapeTolerance:state.adaptiveMesh?.shapeTolerance??0,contactMargin:state.adaptiveMesh?.contactMargin??0,
+            maxArcLoss:state.adaptiveMesh?.maxArcLoss??0,maxAllowedSpacing:state.adaptiveMesh?.maxSpacing??state.spacing};
         for(const input of tools) {
             const body=input.body,material=state.materials.find(m=>m.spec.id===input.id),coordinates=material.coordinates;
             const positions=new Float64Array(coordinates.length*3);
@@ -63,22 +75,46 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
     function* solve(world,dt,tools) {
         if(!state) {
             state=createSharedAxisNative({...createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true}),
-                maxBendAngle:Math.PI/4, tools:tools.map(t=>({...profile(t),insertion:0}))});
+                maxBendAngle:Math.PI/4,adaptiveMesh:pending.adaptiveMesh, tools:tools.map(t=>({...profile(t),insertion:0}))});
             rotations=Object.fromEntries(tools.map(t=>[t.id,0]));pending.rotations={...rotations};diagnostics.initializations++;
         }
-        return yield* advanceSharedAxis(state,{...rotations},dt,tools,physicsOptions);
+        // Snapshot the budget for this entire cooperative step. A UI change
+        // may arrive between yields and must only affect the following step.
+        const source = {...state,adaptiveMesh:pending.adaptiveMesh};
+        return yield* advanceSharedAxis(source,{...rotations},dt,tools,physicsOptions);
     }
-    const system={id:'shared-axis',diagnostics,
+    const system={id:diagnostics.solver,diagnostics,
         getLastFailure:()=>lastFailure?structuredClone(lastFailure):null,
+        setAdaptiveShapeTolerance(shapeTolerance) {
+            if (!adaptiveMesh) return false;
+            adaptiveMesh=adaptiveMeshOptions({...adaptiveMesh,shapeTolerance});
+            return true;
+        },
+        setAdaptiveContactMargin(contactMargin) {
+            if (!adaptiveMesh) return false;
+            adaptiveMesh=adaptiveMeshOptions({...adaptiveMesh,contactMargin});
+            return true;
+        },
+        setAdaptiveMaxArcLoss(maxArcLoss) {
+            if (!adaptiveMesh) return false;
+            adaptiveMesh=adaptiveMeshOptions({...adaptiveMesh,maxArcLoss});
+            return true;
+        },
+        setAdaptiveMaxSpacing(maxSpacing) {
+            if (!adaptiveMesh) return false;
+            if (maxSpacing < (state?.spacing ?? 5)) throw new RangeError('Adaptive max spacing must cover the fine spacing');
+            adaptiveMesh=adaptiveMeshOptions({...adaptiveMesh,maxSpacing});
+            return true;
+        },
         step(world,dt) {
             if(!Number.isFinite(dt)||dt<=0)throw new RangeError('Positive shared-axis timestep required');
             if(pending&&pending.dt!==dt)throw new RangeError('Pending shared-axis timestep cannot change');
             if(!world.contactField)return {accepted:false,dt,status:'geometry-not-ready'};
             if(!pending) {
-                const tools=readTools(),key=JSON.stringify(tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})));
+                const tools=readTools(),key=JSON.stringify({tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
                 if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
-                pending={iterator:solve(world,dt,tools),tools,dt,key,started:performance.now(),cpuMs:0,
+                pending={iterator:solve(world,dt,tools),tools,dt,key,adaptiveMesh,started:performance.now(),cpuMs:0,
                     sheath:structuredClone(readSheath()),rotations:{...rotations},
                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
             }
@@ -97,7 +133,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
                     failedKey=null;failedResult=null;
                     state=next.value.state;rotations=next.value.rotations;
                     const speed=Math.max(0,...state.velocities.flat().map(Math.abs),...Object.values(state.angularVelocities).flat(2).map(v=>Math.abs(v)*60));
-                    sleepFrames=key===lastKey&&speed<1?sleepFrames+1:0;lastKey=key;
+                    sleepFrames=key===lastKey&&speed<1&&(!projectiveDynamics||diagnostics.last.pd?.localGlobalConverged)?sleepFrames+1:0;lastKey=key;
                     publish(tools,dt);diagnostics.acceptedSteps++;
                     const quality=diagnostics.last.quality;
                     if(quality){world.contactCount=quality.contacts;world.maxPenetration=world.settledMaxPenetration=quality.maxPenetration;
@@ -110,7 +146,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
         reset() {
             pending?.iterator.return();pending=null;state=null;rotations={};sleepFrames=0;lastKey=null;failedKey=null;failedResult=null;
             for(const body of publication.keys()){body.jointStateView=null;body.sharedAxisDiagnostics=null;}publication.clear();
-            diagnostics.initializations=diagnostics.acceptedSteps=diagnostics.pendingSlices=diagnostics.failedSteps=0;diagnostics.last=null;
+            diagnostics.initializations=diagnostics.acceptedSteps=diagnostics.pendingSlices=diagnostics.failedSteps=0;diagnostics.last=null;diagnostics.mesh=null;
         }
     };
     return system;
@@ -118,7 +154,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ph
 
 /** Feed and rotation subdivision is identical in the UI and anatomy replay. */
 export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOptions={}) {
-    let last;const attempts=[];const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0};
+    let last;const attempts=[];const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     const result=()=>({...last,...totals,timings,attempts});
         for(const subdivisions of [1,2,4,8]) {
@@ -131,10 +167,10 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
                     return [t.id,old+fraction*(t.insertion-old)];
                 }));
                 const nextRotations=Object.fromEntries(tools.map(t=>[t.id,startingRotations[t.id]+fraction*angleDifference(t.rotation,startingRotations[t.id])]));
-                const candidate=feedSharedAxisNative(source,feeds);
+                const candidate=feedSharedAxisNative(source,feeds,{pruneInactiveWitnesses:physicsOptions.pruneInactiveWitnesses===true});
                 for(const t of tools)rotateSharedAxisNative(candidate,t.id,angleDifference(nextRotations[t.id],currentRotations[t.id]));
                 const feedById=Object.fromEntries(current.materials.map(m=>[m.spec.id,feeds[m.spec.id]-m.spec.insertion]));
-                last=yield* iterateSharedAxisTimeStep(candidate,dt/subdivisions,{...physicsOptions,feedById});
+                last=yield* (physicsOptions.projectiveDynamics?iterateSharedAxisProjective:iterateSharedAxisTimeStep)(candidate,dt/subdivisions,{...physicsOptions,feedById});
                 attempts.push({subdivisions,index,dt:dt/subdivisions,status:last.status,error:last.error,converged:last.converged,
                     residual:last.residual,friction:last.friction,wallNormalFallback:last.wallNormalFallback,
                     iterations:last.iterations,factorizations:last.factorizations});

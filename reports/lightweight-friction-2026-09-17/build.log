@@ -1,0 +1,31 @@
+
+> openendovasculartrainer@1.0.0 build
+> vite build --outDir /tmp/oet-lightweight-friction-build
+
+vite v7.3.5 building client environment for production...
+transforming...
+✓ 309 modules transformed.
+
+(!) outDir /tmp/oet-lightweight-friction-build is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../../../tmp/oet-lightweight-friction-build/shared-axis-lab.html                                 3.79 kB │ gzip:   1.74 kB
+../../../../../../tmp/oet-lightweight-friction-build/index.html                                          50.53 kB │ gzip:   8.95 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/skeleton.worker-DkRGimbZ.js                 125.31 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/skeleton-Dp2oxfet.obj                    19,214.17 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/Aorta_plain-CK0GjdR4.stl                 50,720.63 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/Aorta_plain.collision-C2iv_z0R.bin       63,885.02 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/index-DMIugAIR.css                           37.95 kB │ gzip:   8.19 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/modulepreload-polyfill-B5Qt9EMX.js            0.71 kB │ gzip:   0.40 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/index-BpnWmZvW.js                             1.79 kB │ gzip:   1.01 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/shared-axis-lab-BkRcPTfd.js                   3.67 kB │ gzip:   1.73 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/kirchhoffSharedAxisContacts-CH6qa7AW.js   1,168.42 kB │ gzip: 332.93 kB
+../../../../../../tmp/oet-lightweight-friction-build/assets/simulator-N5OTs4FZ.js                     3,442.14 kB │ gzip: 742.78 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.37s

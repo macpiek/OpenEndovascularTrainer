@@ -1,0 +1,3818 @@
+[
+  {
+    "metadata": {
+      "reportVersion": 2,
+      "createdAt": "2026-09-16T23:07:45.972Z",
+      "gitHead": "b9c0ca0f5b281537a5d8ed46e8dcf9269010f910",
+      "sourceHashes": {
+        "scripts/physics/profile-shared-axis-dynamic.mjs": "dc07a4b1508283d4d5c07addff831bd640a011a9cfff276f6a6e6154f930779a",
+        "src/physics/applyKirchhoffMaterialProfile.js": "8ee844e33bacd45fd41fa704fd7e59fdbba0cdb8e8b9f3200793ffc2a29341e4",
+        "src/physics/catheterDiscretization.js": "6310ef50e5241a5e569ba9c2f43e0777b68f637df2164edf52483903add9087d",
+        "src/physics/discreteKirchhoffRod.js": "f4877eef38e9608c77e56a587c597cbc67c2c3a07eda2de35fa7b660cce63f98",
+        "src/physics/endovascularPhysicsWorld.js": "b5c2d35bf2b6b6192ad5cee3545327426652935129dfec0253a290749bcc35a5",
+        "src/physics/kirchhoffCoulombBandLU.js": "c0284a6e4d1d7a3459674ee7b054bd5a0daa141fdcfdd8c0f8776a00bc84ff02",
+        "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+        "src/physics/kirchhoffLinearKernelBytes.js": "6d6a7c48c7ecfc83024472233e17121407e2adb6fc220b854a5da32de01a9dac",
+        "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+        "src/physics/kirchhoffSharedAxisActiveBasis.js": "38da5f147b7ccd8e319a7c752bcb185bf3f8635be348c43479ec68f1e4d0b638",
+        "src/physics/kirchhoffSharedAxisAdaptiveMesh.js": "476109134d52a361d2b4f5447f7a42f4e66d0c91f461d1d62b64ebd91dbf2b7a",
+        "src/physics/kirchhoffSharedAxisAppSystem.js": "da5ce9d1d49042d8b4b17cd56c5553909c9237a24668fa2cda13a5f645eca7e3",
+        "src/physics/kirchhoffSharedAxisBendLimit.js": "fba562014984311b73a842da7545947c015104de5fea342aca80f3b5f94c967b",
+        "src/physics/kirchhoffSharedAxisConstraintRows.js": "2204dcabb4093f9e212e94643ff22b7cef400189a9b239def1b5a2d7f53c324f",
+        "src/physics/kirchhoffSharedAxisContacts.js": "2d331b68260a7e0cab58677caec9cc2140e55529c1557032d0f384be954b8dfa",
+        "src/physics/kirchhoffSharedAxisCycleGuard.js": "c24a046ab29f5b92c029946c030a747830e059b10641b57d16f71d3c519922de",
+        "src/physics/kirchhoffSharedAxisDiagnostics.js": "f64b6235bd67bd2027548815f2d3a6948977f40d4af5d01282e0cdba25c8fdd4",
+        "src/physics/kirchhoffSharedAxisDiscoveryCache.js": "70536e3a6738c29e6a18dd46219a4c754cf418e2851ee73c93d1e7d83c3ee8d1",
+        "src/physics/kirchhoffSharedAxisDynamics.js": "6e2cd0246c00fafb816112a83c85682f3fc3eaeeeee6f875d51f6f2881eb3dae",
+        "src/physics/kirchhoffSharedAxisGaussNewton.js": "62e54a93d92fcdd8e056062796bacc653b4c3feac9687ff7fc6eb74a6a21eee5",
+        "src/physics/kirchhoffSharedAxisLinear.js": "12b673a2b40e9c652b9f2d4da7ce82dad3f33cac889298fe32609c2030c3a079",
+        "src/physics/kirchhoffSharedAxisMaterialKernel.js": "f1e12f42e4bff5466b7e4324a847784a3f7b84a156f51104e02cd3037f92b117",
+        "src/physics/kirchhoffSharedAxisMaterialKernelBytes.js": "d29abaf2030c6b9aec32c0aa0aa93026f06b25f1ecd4eac7e2e081cdb54242f4",
+        "src/physics/kirchhoffSharedAxisMaterialTangent.js": "f40ee3d20c4b7cbec7bfed19eaa5ef18d3562209b548e712556f44bc304ddb71",
+        "src/physics/kirchhoffSharedAxisMatrixAssembly.js": "f00d6904b62ac7a5d047846d4777b60d43f6a34cb934a171f61748e222e46165",
+        "src/physics/kirchhoffSharedAxisModifiedNewton.js": "7a421e0254fc77be7b161f4bdfb8fcf2ab2349411c9d5ee2a8c77eec0e5c43d6",
+        "src/physics/kirchhoffSharedAxisNative.js": "98bd6cf2c32400e7597ae4ac43b8fc1261e828cf62d351b455506e430bdf1bde",
+        "src/physics/kirchhoffSharedAxisProjection.js": "dce44275dc6ca6ad7d04d1fe07ad61e1a777cb4bb72e759938182d913d09356a",
+        "src/physics/kirchhoffSharedAxisProjective.js": "e551ccf8e81a7118dcf67a82048cd76294b87d006cf11c91db9ac9fbe96d0fa0",
+        "src/physics/kirchhoffSharedAxisRemesh.js": "4a016b020f323886758afd03bcdede8f9ac0500f6037aa55470a0c0ecdfc6201",
+        "src/physics/kirchhoffSharedAxisReplay.js": "12fdead970d3c1b60c79fddae8fa366263bc75135e98d54542cb6d527eaee7b1",
+        "src/physics/kirchhoffSharedAxisStagnationGuard.js": "060fd1ec10a008f55f3b590d2a0c86ffb4ddf66f30116d09469007f5e334654d",
+        "src/physics/kirchhoffSharedAxisTimeStep.js": "6f2b30584a44b3aef0ab0527298c7d6752402eeb1e19342ce396254649e5c53f",
+        "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "ea496d35aed503528e5a2a6ece63a6973f110800c8c6612bc8541fa3cadfa9f5",
+        "src/physics/kirchhoffSharedAxisWallFriction.js": "668d476112f4bedaeebbdc4b89073af86d18e3d6673a45f68970c9d3a1a6a635",
+        "src/physics/kirchhoffWallWitnessGeometry.js": "1dd896024b2a33d187fe869c697aa6f73494746f3b6b768e33cd81c54aa5778d",
+        "src/physics/projectiveRodMath.js": "971460f0f8a6068d00e5cd0ff9ce7e59a349a22d672b65c51c2b4a847f94d60a",
+        "src/toolDimensions.js": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+        "tests/helpers/coupledRuntimeFixture.js": "69732e6a397b2c41e9c5a605e23865fac107d8dbb9d9cadc514c125dfd380edd"
+      },
+      "sourceTreeHash": "ca12e23e16da3519344d9ad18a855c87a79eacd9ea38ab6b00622f7f234404a8",
+      "nodeVersion": "v24.6.0",
+      "timingScope": "Synchronous complete prepared physical step, including failed feed subdivisions; rendering excluded",
+      "historicalComparisonNote": "Reports without reportVersion:2 used implicit catheter mass 1.4; this report uses the UI grid-scaled mass (1.75 at 5 mm). Compare only matching modelParameters and source hashes.",
+      "modelParameters": {
+        "dt": 0.016666666666666666,
+        "wireTarget": 300,
+        "catheterTarget": 240,
+        "adaptiveMesh": true,
+        "spacing": 5,
+        "maxBendAngle": 0.7853981633974483,
+        "options": {
+          "forceTolerance": 0.0001,
+          "lengthTolerance": 0.001,
+          "liveWallNormalLoad": true,
+          "projectiveDynamics": false,
+          "modifiedNewton": false,
+          "stagnationFallback": true,
+          "reuseRowBuffers": true,
+          "reuseMatrixAssembly": true,
+          "reuseConstraintWork": true,
+          "wasmMaterial": true,
+          "projectionMode": "reduced",
+          "promoteTrialAssembly": true,
+          "lazyTrialTangent": false,
+          "reuseStructure": true,
+          "earlyLiveFallback": true
+        },
+        "tools": [
+          {
+            "id": "wire",
+            "type": "glidewire",
+            "mass": 1,
+            "radius": 0.4445,
+            "wallStaticFriction": 0.006,
+            "wallKineticFriction": 0.002,
+            "shaftStiffness": 9.6,
+            "tipStiffness": 6.8
+          },
+          {
+            "id": "catheter",
+            "type": "berenstein",
+            "mass": 1.75,
+            "radius": 0.8333333333333333,
+            "wallStaticFriction": 0.002,
+            "wallKineticFriction": 0.002,
+            "shaftStiffness": 40.65,
+            "tipStiffness": 66.8
+          }
+        ],
+        "sheath": {
+          "innerRadius": 0.9,
+          "proximalExtension": 40
+        }
+      },
+      "indexedContacts": true,
+      "reuseContactBuffers": true,
+      "feedOnly": true,
+      "pairedProjection": false,
+      "pairedStagnation": false,
+      "pairedMaterial": false,
+      "pairedConstraintWork": false,
+      "pairedMatrixAssembly": false,
+      "pairedRowBuffers": false,
+      "reversePairOrder": false,
+      "dt": 0.016666666666666666,
+      "failed": false
+    },
+    "phases": {
+      "initial": {
+        "steps": 1,
+        "failures": 0,
+        "meanMs": 25.2417089999999,
+        "p95Ms": 25.2417089999999,
+        "maxMs": 25.2417089999999,
+        "timings": {
+          "assemblyMs": 7.599748999999974,
+          "linearMs": 12.191791000000421,
+          "frictionMs": 0.05600000000004002,
+          "tangentAssemblyMs": 5.31145800000013,
+          "residualAssemblyMs": 2.2882909999998446,
+          "projectionMs": 1.0543339999999262
+        },
+        "averages": {
+          "iterations": 5,
+          "factorizations": 15,
+          "geometryRestarts": 0,
+          "backtracks": 0,
+          "fullAssemblies": 5,
+          "residualAssemblies": 6,
+          "frictionIterations": 1,
+          "substepAttempts": 1,
+          "mechanicalNodes": 9,
+          "mechanicalDofs": 43
+        },
+        "maxNodes": 9
+      },
+      "wire": {
+        "steps": 410,
+        "failures": 0,
+        "meanMs": 16.319194092682945,
+        "p95Ms": 48.76637500000015,
+        "maxMs": 237.06845800000065,
+        "timings": {
+          "assemblyMs": 6.607744275609788,
+          "linearMs": 7.0033269317072575,
+          "frictionMs": 0.3445545609756215,
+          "tangentAssemblyMs": 2.5883741268292275,
+          "residualAssemblyMs": 4.01937014878056,
+          "projectionMs": 0.0564272390243964
+        },
+        "averages": {
+          "iterations": 5.4365853658536585,
+          "factorizations": 19.009756097560974,
+          "geometryRestarts": 1.9073170731707316,
+          "backtracks": 2.1926829268292685,
+          "fullAssemblies": 6.521951219512195,
+          "residualAssemblies": 7.663414634146341,
+          "frictionIterations": 1.7536585365853659,
+          "substepAttempts": 1.0585365853658537,
+          "mechanicalNodes": 34.2,
+          "mechanicalDofs": 143.8
+        },
+        "maxNodes": 65
+      },
+      "catheter": {
+        "steps": 277,
+        "failures": 0,
+        "meanMs": 22.133359335740064,
+        "p95Ms": 37.746083,
+        "maxMs": 117.92733399999997,
+        "timings": {
+          "assemblyMs": 10.614414519855695,
+          "linearMs": 7.520708657039681,
+          "frictionMs": 0.6811997256318005,
+          "tangentAssemblyMs": 4.22057699638986,
+          "residualAssemblyMs": 6.393837523465834,
+          "projectionMs": 0.33062407581223113
+        },
+        "averages": {
+          "iterations": 7.451263537906137,
+          "factorizations": 15.386281588447654,
+          "geometryRestarts": 1.5703971119133573,
+          "backtracks": 0.19133574007220217,
+          "fullAssemblies": 7.851985559566787,
+          "residualAssemblies": 8.108303249097473,
+          "frictionIterations": 2.2815884476534296,
+          "substepAttempts": 1,
+          "mechanicalNodes": 58.151624548736464,
+          "mechanicalDofs": 257.12996389891697
+        },
+        "maxNodes": 66
+      }
+    },
+    "terminal": {
+      "nodes": 61,
+      "definitions": 506,
+      "rowKinds": {
+        "length": 60,
+        "wall": 120,
+        "bend-limit": 59,
+        "vessel-witness": 267
+      },
+      "vesselWitnessesWithPositiveReaction": 10,
+      "vesselWitnessesWithZeroReaction": 257
+    },
+    "cpu": {
+      "phase": "catheter",
+      "sampledMs": 6189.792,
+      "selfByFile": [
+        {
+          "name": "kirchhoffSharedAxisLinear.js",
+          "ms": 837.993,
+          "percent": 13.53830629526808
+        },
+        {
+          "name": "kirchhoffSharedAxisNative.js",
+          "ms": 721.791,
+          "percent": 11.660989577678862
+        },
+        {
+          "name": "kirchhoffSharedAxisWallFriction.js",
+          "ms": 541.119,
+          "percent": 8.742119282845046
+        },
+        {
+          "name": "kirchhoffSharedAxisConstraintRows.js",
+          "ms": 489.665,
+          "percent": 7.910847408119691
+        },
+        {
+          "name": "kirchhoffSharedAxisActiveBasis.js",
+          "ms": 460.951,
+          "percent": 7.446954598797504
+        },
+        {
+          "name": "scalarMeshBvhClosestPoint.js",
+          "ms": 352.169,
+          "percent": 5.689512668600172
+        },
+        {
+          "name": "kirchhoffWallWitnessGeometry.js",
+          "ms": 290.702,
+          "percent": 4.696474453422668
+        },
+        {
+          "name": "kirchhoffSharedAxisVesselWitnesses.js",
+          "ms": 280.375,
+          "percent": 4.529635244609189
+        },
+        {
+          "name": "kirchhoffSharedAxisMaterialTangent.js",
+          "ms": 268.29,
+          "percent": 4.334394435224964
+        },
+        {
+          "name": "kirchhoffSharedAxisMatrixAssembly.js",
+          "ms": 261.583,
+          "percent": 4.226038613252271
+        },
+        {
+          "name": "df5b3faa",
+          "ms": 240.087,
+          "percent": 3.8787571537137273
+        },
+        {
+          "name": "kirchhoffCoulombBandLU.js",
+          "ms": 227.256,
+          "percent": 3.671464243063418
+        },
+        {
+          "name": "vesselContactField.js",
+          "ms": 206.673,
+          "percent": 3.3389328752888625
+        },
+        {
+          "name": "(garbage collector)",
+          "ms": 157.88,
+          "percent": 2.550651136581003
+        },
+        {
+          "name": "kirchhoffSharedAxisDynamics.js",
+          "ms": 124.174,
+          "percent": 2.0061094136927378
+        },
+        {
+          "name": "discreteKirchhoffRod.js",
+          "ms": 123.5,
+          "percent": 1.9952205179107796
+        },
+        {
+          "name": "three.module.js",
+          "ms": 70.793,
+          "percent": 1.143705636635286
+        },
+        {
+          "name": "cea25de6",
+          "ms": 66.751,
+          "percent": 1.0784045732069834
+        },
+        {
+          "name": "kirchhoffSharedAxisDiscoveryCache.js",
+          "ms": 63.458,
+          "percent": 1.0252040779399372
+        },
+        {
+          "name": "kirchhoffSharedAxisBendLimit.js",
+          "ms": 57.791,
+          "percent": 0.933650112960177
+        },
+        {
+          "name": "node:inspector",
+          "ms": 55.417,
+          "percent": 0.8952966432474629
+        },
+        {
+          "name": "kirchhoffMaterialProfile.js",
+          "ms": 51.539,
+          "percent": 0.832645103421892
+        },
+        {
+          "name": "(program)",
+          "ms": 50.831,
+          "percent": 0.8212069161613185
+        },
+        {
+          "name": "kirchhoffSharedAxisDiagnostics.js",
+          "ms": 36.626,
+          "percent": 0.591716167522269
+        },
+        {
+          "name": "kirchhoffSharedAxisAdaptiveMesh.js",
+          "ms": 36.584,
+          "percent": 0.5910376309898621
+        },
+        {
+          "name": "kirchhoffSharedAxisContacts.js",
+          "ms": 15.793,
+          "percent": 0.25514589181672015
+        },
+        {
+          "name": "endovascularPhysicsWorld.js",
+          "ms": 13.917,
+          "percent": 0.2248379267025451
+        },
+        {
+          "name": "Memory",
+          "ms": 13.126,
+          "percent": 0.2120588220088817
+        },
+        {
+          "name": "kirchhoffSharedAxisMaterialKernel.js",
+          "ms": 10.251,
+          "percent": 0.1656113808024567
+        },
+        {
+          "name": "kirchhoffSharedAxisTimeStep.js",
+          "ms": 8.834,
+          "percent": 0.14271885064958564
+        },
+        {
+          "name": "applyKirchhoffMaterialProfile.js",
+          "ms": 7.417,
+          "percent": 0.11982632049671459
+        },
+        {
+          "name": "kirchhoffSharedAxisCycleGuard.js",
+          "ms": 7.374,
+          "percent": 0.11913162833258371
+        },
+        {
+          "name": "Instance",
+          "ms": 6.499,
+          "percent": 0.10499545057410653
+        },
+        {
+          "name": "profile-shared-axis-dynamic.mjs",
+          "ms": 6.374,
+          "percent": 0.10297599660860979
+        },
+        {
+          "name": "kirchhoffSharedAxisProjection.js",
+          "ms": 6.25,
+          "percent": 0.10097269827483703
+        },
+        {
+          "name": "kirchhoffSharedAxisRemesh.js",
+          "ms": 6.167,
+          "percent": 0.09963178084174719
+        },
+        {
+          "name": "kirchhoffSharedAxisAppSystem.js",
+          "ms": 3.708,
+          "percent": 0.05990508243249531
+        },
+        {
+          "name": "now",
+          "ms": 2.584,
+          "percent": 0.041746152374748616
+        },
+        {
+          "name": "get buffer",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "consoleCall",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "catheterMaterialProfile.js",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "inspect",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "performance",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "colors",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        }
+      ],
+      "inclusiveByFunction": [
+        {
+          "name": "(root) @ :0",
+          "ms": 6189.792,
+          "percent": 100
+        },
+        {
+          "name": "(anonymous) @ profile-shared-axis-dynamic.mjs:0",
+          "ms": 5939.499,
+          "percent": 95.95635846891139
+        },
+        {
+          "name": "step @ profile-shared-axis-dynamic.mjs:87",
+          "ms": 5879.04,
+          "percent": 94.97960513051166
+        },
+        {
+          "name": "advanceSharedAxis @ kirchhoffSharedAxisAppSystem.js:155",
+          "ms": 5873.958,
+          "percent": 94.89750221009042
+        },
+        {
+          "name": "iterateSharedAxisTimeStep @ kirchhoffSharedAxisTimeStep.js:53",
+          "ms": 5559.964,
+          "percent": 89.82473078255295
+        },
+        {
+          "name": "iterateTimeStepAttempt @ kirchhoffSharedAxisTimeStep.js:9",
+          "ms": 5558.714,
+          "percent": 89.80453624289798
+        },
+        {
+          "name": "iterateSharedAxisWithContacts @ kirchhoffSharedAxisVesselWitnesses.js:125",
+          "ms": 5278.505,
+          "percent": 85.27758283315498
+        },
+        {
+          "name": "iterateSharedAxisNative @ kirchhoffSharedAxisNative.js:347",
+          "ms": 5254.005,
+          "percent": 84.88176985591761
+        },
+        {
+          "name": "assemble @ kirchhoffSharedAxisNative.js:364",
+          "ms": 2880.383,
+          "percent": 46.53440697199518
+        },
+        {
+          "name": "assembleSharedAxisNative @ kirchhoffSharedAxisNative.js:262",
+          "ms": 2852.505,
+          "percent": 46.084020270794234
+        },
+        {
+          "name": "iterateSharedAxisLinear @ kirchhoffSharedAxisLinear.js:383",
+          "ms": 2014.995,
+          "percent": 32.55351714564883
+        },
+        {
+          "name": "iterateWithFallback @ kirchhoffSharedAxisLinear.js:355",
+          "ms": 1989.868,
+          "percent": 32.14757458732054
+        },
+        {
+          "name": "iterateActiveSet @ kirchhoffSharedAxisLinear.js:278",
+          "ms": 1922.369,
+          "percent": 31.057085601584028
+        },
+        {
+          "name": "assembleSharedAxisConstraintRows @ kirchhoffSharedAxisConstraintRows.js:62",
+          "ms": 1751.546,
+          "percent": 28.29733212359963
+        },
+        {
+          "name": "solveCompactWorkingSet @ kirchhoffSharedAxisLinear.js:214",
+          "ms": 1154.707,
+          "percent": 18.655021041094756
+        },
+        {
+          "name": "solveSharedAxisLinearOnce @ kirchhoffSharedAxisLinear.js:107",
+          "ms": 889.546,
+          "percent": 14.371177577534107
+        },
+        {
+          "name": "sample @ kirchhoffSharedAxisVesselWitnesses.js:59",
+          "ms": 730.971,
+          "percent": 11.809298276904943
+        },
+        {
+          "name": "assembleDiscovered @ kirchhoffSharedAxisNative.js:376",
+          "ms": 724.042,
+          "percent": 11.697355904689527
+        },
+        {
+          "name": "queryCapsuleSoA @ vesselContactField.js:1014",
+          "ms": 631.511,
+          "percent": 10.202459145638496
+        },
+        {
+          "name": "#queryCapsuleStoredImpl @ vesselContactField.js:1087",
+          "ms": 630.261,
+          "percent": 10.182264605983528
+        },
+        {
+          "name": "#queryCapsuleStored @ vesselContactField.js:1072",
+          "ms": 630.261,
+          "percent": 10.182264605983528
+        },
+        {
+          "name": "assembleSharedAxisMaterialTangent @ kirchhoffSharedAxisMaterialTangent.js:73",
+          "ms": 484.667,
+          "percent": 7.83010156076327
+        },
+        {
+          "name": "evaluate @ kirchhoffSharedAxisVesselWitnesses.js:41",
+          "ms": 467.367,
+          "percent": 7.550609131938521
+        },
+        {
+          "name": "solve @ kirchhoffCoulombBandLU.js:105",
+          "ms": 465.801,
+          "percent": 7.525309412658777
+        },
+        {
+          "name": "gapForWitness @ kirchhoffSharedAxisVesselWitnesses.js:8",
+          "ms": 437.577,
+          "percent": 7.069332862881337
+        },
+        {
+          "name": "prepareSharedAxisActiveBasis @ kirchhoffSharedAxisActiveBasis.js:77",
+          "ms": 430.994,
+          "percent": 6.962980339242417
+        },
+        {
+          "name": "evaluate @ kirchhoffSharedAxisWallFriction.js:101",
+          "ms": 356.957,
+          "percent": 5.76686583329456
+        },
+        {
+          "name": "#refineContactWithBvh @ vesselContactField.js:1395",
+          "ms": 348.337,
+          "percent": 5.627604287833905
+        },
+        {
+          "name": "#refineWithBvh @ vesselContactField.js:2713",
+          "ms": 344.587,
+          "percent": 5.567020668869002
+        },
+        {
+          "name": "closestPointToPointScalarBvh @ scalarMeshBvhClosestPoint.js:221",
+          "ms": 338.254,
+          "percent": 5.464707053161075
+        },
+        {
+          "name": "evaluateKirchhoffWallWitnessGeometry @ kirchhoffWallWitnessGeometry.js:18",
+          "ms": 326.953,
+          "percent": 5.2821322590484465
+        },
+        {
+          "name": "kinematics @ kirchhoffSharedAxisWallFriction.js:88",
+          "ms": 312.755,
+          "percent": 5.052754599831465
+        },
+        {
+          "name": "feedSharedAxisNative @ kirchhoffSharedAxisNative.js:188",
+          "ms": 307.828,
+          "percent": 4.973155802327445
+        },
+        {
+          "name": "assembleSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:168",
+          "ms": 293.581,
+          "percent": 4.742986517155988
+        },
+        {
+          "name": "nativeHingeTorqueTangent @ kirchhoffSharedAxisMaterialTangent.js:25",
+          "ms": 277.664,
+          "percent": 4.485837327005496
+        },
+        {
+          "name": "wasm-function[4] @ df5b3faa:1",
+          "ms": 240.087,
+          "percent": 3.8787571537137273
+        },
+        {
+          "name": "js-to-wasm:iiiiii:i @ df5b3faa:1",
+          "ms": 240.087,
+          "percent": 3.8787571537137273
+        },
+        {
+          "name": "refreshSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:153",
+          "ms": 230.543,
+          "percent": 3.7245678045401203
+        },
+        {
+          "name": "assemblePreparedSharedAxisMatrix @ kirchhoffSharedAxisMatrixAssembly.js:63",
+          "ms": 227.29,
+          "percent": 3.672013534542033
+        },
+        {
+          "name": "#querySphereCoordinates @ vesselContactField.js:926",
+          "ms": 175.296,
+          "percent": 2.832017618685733
+        },
+        {
+          "name": "#queryDistance @ vesselContactField.js:1564",
+          "ms": 172.837,
+          "percent": 2.792290920276481
+        },
+        {
+          "name": "createSharedAxisNative @ kirchhoffSharedAxisNative.js:54",
+          "ms": 170.288,
+          "percent": 2.7511102150120714
+        },
+        {
+          "name": "considerTriangle @ scalarMeshBvhClosestPoint.js:57",
+          "ms": 165.832,
+          "percent": 2.6791207200500438
+        },
+        {
+          "name": "(garbage collector) @ :0",
+          "ms": 157.88,
+          "percent": 2.550651136581003
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:159",
+          "ms": 138.667,
+          "percent": 2.240252984268292
+        },
+        {
+          "name": "#queryCenterline @ vesselContactField.js:2052",
+          "ms": 130.167,
+          "percent": 2.1029301146145136
+        },
+        {
+          "name": "evaluateBendTwistLocalConstraintNormalized @ discreteKirchhoffRod.js:691",
+          "ms": 118.5,
+          "percent": 1.91444235929091
+        },
+        {
+          "name": "assembleSharedAxisInertia @ kirchhoffSharedAxisDynamics.js:62",
+          "ms": 110.256,
+          "percent": 1.781255331358469
+        },
+        {
+          "name": "correctTrialConstraints @ kirchhoffSharedAxisNative.js:327",
+          "ms": 95.251,
+          "percent": 1.5388400773402402
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:100",
+          "ms": 92.496,
+          "percent": 1.494331311940692
+        },
+        {
+          "name": "iterateSharedAxisProjection @ kirchhoffSharedAxisProjection.js:8",
+          "ms": 90.126,
+          "percent": 1.4560424647548738
+        },
+        {
+          "name": "visit @ kirchhoffSharedAxisVesselWitnesses.js:92",
+          "ms": 85.293,
+          "percent": 1.377962296632908
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:95",
+          "ms": 81.704,
+          "percent": 1.3199797343755655
+        },
+        {
+          "name": "add @ kirchhoffSharedAxisWallFriction.js:6",
+          "ms": 79.084,
+          "percent": 1.2776519792587537
+        },
+        {
+          "name": "matrix @ kirchhoffSharedAxisMaterialTangent.js:6",
+          "ms": 78.873,
+          "percent": 1.2742431409649952
+        },
+        {
+          "name": "createSharedAxisLinear @ kirchhoffSharedAxisLinear.js:77",
+          "ms": 78.791,
+          "percent": 1.2729183791636294
+        },
+        {
+          "name": "makeRecord @ kirchhoffSharedAxisWallFriction.js:53",
+          "ms": 77.959,
+          "percent": 1.259476893569283
+        },
+        {
+          "name": "nextRow @ kirchhoffSharedAxisActiveBasis.js:49",
+          "ms": 72.084,
+          "percent": 1.1645625571909364
+        },
+        {
+          "name": "applySharedAxisNativeIncrement @ kirchhoffSharedAxisNative.js:317",
+          "ms": 70.043,
+          "percent": 1.1315889128423056
+        },
+        {
+          "name": "prepareSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:45",
+          "ms": 68.208,
+          "percent": 1.1019433286288134
+        },
+        {
+          "name": "assemble @ kirchhoffSharedAxisMaterialKernel.js:23",
+          "ms": 68.043,
+          "percent": 1.0992776493943577
+        },
+        {
+          "name": "js-to-wasm:iiiiiii: @ cea25de6:1",
+          "ms": 66.751,
+          "percent": 1.0784045732069834
+        },
+        {
+          "name": "wasm-function[0] @ cea25de6:1",
+          "ms": 65.501,
+          "percent": 1.058210033552016
+        },
+        {
+          "name": "supportedNorm @ kirchhoffSharedAxisActiveBasis.js:63",
+          "ms": 65.457,
+          "percent": 1.057499185756161
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:24",
+          "ms": 61.5,
+          "percent": 0.9935713510243963
+        },
+        {
+          "name": "evaluateSharedAxisBendLimit @ kirchhoffSharedAxisBendLimit.js:2",
+          "ms": 57.791,
+          "percent": 0.933650112960177
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:94",
+          "ms": 57.421,
+          "percent": 0.9276725292223067
+        },
+        {
+          "name": "applyKirchhoffMaterialProfile @ applyKirchhoffMaterialProfile.js:137",
+          "ms": 56.539,
+          "percent": 0.9134232620417616
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "ms": 55.417,
+          "percent": 0.8952966432474629
+        },
+        {
+          "name": "(anonymous) @ util:481",
+          "ms": 55.417,
+          "percent": 0.8952966432474629
+        },
+        {
+          "name": "fn @ util:480",
+          "ms": 55.417,
+          "percent": 0.8952966432474629
+        },
+        {
+          "name": "discretizeKirchhoffProfile @ kirchhoffMaterialProfile.js:374",
+          "ms": 52.789,
+          "percent": 0.8528396430768594
+        },
+        {
+          "name": "(program) @ :0",
+          "ms": 50.831,
+          "percent": 0.8212069161613185
+        },
+        {
+          "name": "scale @ kirchhoffSharedAxisWallFriction.js:7",
+          "ms": 48.665,
+          "percent": 0.786213817847191
+        },
+        {
+          "name": "rowSupportKey @ kirchhoffSharedAxisLinear.js:13",
+          "ms": 43.916,
+          "percent": 0.7094907227900388
+        },
+        {
+          "name": "project @ kirchhoffSharedAxisWallFriction.js:8",
+          "ms": 42.663,
+          "percent": 0.6892477162398994
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:231",
+          "ms": 40.665,
+          "percent": 0.6569687640553996
+        },
+        {
+          "name": "(anonymous) @ kirchhoffWallWitnessGeometry.js:35",
+          "ms": 39.915,
+          "percent": 0.6448520402624192
+        },
+        {
+          "name": "commonPrimal @ kirchhoffSharedAxisMatrixAssembly.js:4",
+          "ms": 38.542,
+          "percent": 0.6226703579054029
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:15",
+          "ms": 37.666,
+          "percent": 0.6085180245152018
+        },
+        {
+          "name": "measureSharedAxisQuality @ kirchhoffSharedAxisDiagnostics.js:5",
+          "ms": 36.626,
+          "percent": 0.591716167522269
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:25",
+          "ms": 35.791,
+          "percent": 0.5782262150327507
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:6",
+          "ms": 35.209,
+          "percent": 0.5688236373693979
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:206",
+          "ms": 34.751,
+          "percent": 0.5614243580398178
+        },
+        {
+          "name": "frame @ kirchhoffSharedAxisNative.js:25",
+          "ms": 33.459,
+          "percent": 0.5405512818524435
+        },
+        {
+          "name": "applyPreparedSharedAxisFixedMask @ kirchhoffSharedAxisMatrixAssembly.js:108",
+          "ms": 33.043,
+          "percent": 0.5338305390552703
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDiagnostics.js:6",
+          "ms": 32.917,
+          "percent": 0.5317949294580496
+        },
+        {
+          "name": "coarsenSharedAxisMesh @ kirchhoffSharedAxisAdaptiveMesh.js:68",
+          "ms": 32.875,
+          "percent": 0.5311163929256427
+        },
+        {
+          "name": "rotationalInertiaInto @ kirchhoffSharedAxisDynamics.js:13",
+          "ms": 31.625,
+          "percent": 0.5109218532706753
+        },
+        {
+          "name": "closestPointToPoint @ three.module.js:8405",
+          "ms": 31.083,
+          "percent": 0.5021655008762814
+        },
+        {
+          "name": "sharedAxisBasisLinearization @ kirchhoffSharedAxisActiveBasis.js:11",
+          "ms": 29.957,
+          "percent": 0.4839742595550868
+        },
+        {
+          "name": "sharedAxisMaterialKernelWorkspace @ kirchhoffSharedAxisMaterialKernel.js:8",
+          "ms": 29.834,
+          "percent": 0.481987116853038
+        },
+        {
+          "name": "lookup @ kirchhoffSharedAxisDiscoveryCache.js:27",
+          "ms": 29.709,
+          "percent": 0.4799676628875413
+        },
+        {
+          "name": "mapsFor @ kirchhoffSharedAxisMatrixAssembly.js:32",
+          "ms": 27.417,
+          "percent": 0.44293895497619307
+        },
+        {
+          "name": "integrateScalar @ kirchhoffMaterialProfile.js:73",
+          "ms": 26.497,
+          "percent": 0.42807577379013706
+        },
+        {
+          "name": "#querySdf @ vesselContactField.js:2478",
+          "ms": 26.253,
+          "percent": 0.42413379964948744
+        },
+        {
+          "name": "sharedAxisFrictionPotential @ kirchhoffSharedAxisWallFriction.js:18",
+          "ms": 25.332,
+          "percent": 0.4092544628317074
+        },
+        {
+          "name": "integrateScaledRigidity @ kirchhoffMaterialProfile.js:84",
+          "ms": 25.042,
+          "percent": 0.404569329631755
+        },
+        {
+          "name": "commit @ kirchhoffSharedAxisDiscoveryCache.js:74",
+          "ms": 25.041,
+          "percent": 0.40455317400003105
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:428",
+          "ms": 24.957,
+          "percent": 0.4031961009352172
+        },
+        {
+          "name": "dot @ kirchhoffSharedAxisWallFriction.js:4",
+          "ms": 20.123,
+          "percent": 0.32509977718152727
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisActiveBasis.js:21",
+          "ms": 18.709,
+          "percent": 0.30225571392382816
+        },
+        {
+          "name": "EndovascularRodBody @ endovascularPhysicsWorld.js:231",
+          "ms": 17.667,
+          "percent": 0.2854215456674473
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:385",
+          "ms": 17.502,
+          "percent": 0.2827558664329916
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:281",
+          "ms": 17.166,
+          "percent": 0.2773275741737364
+        },
+        {
+          "name": "commitSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:191",
+          "ms": 16.955,
+          "percent": 0.2739187358799779
+        },
+        {
+          "name": "violation @ kirchhoffSharedAxisNative.js:380",
+          "ms": 16.041,
+          "percent": 0.2591524884842657
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisContacts.js:17",
+          "ms": 15.793,
+          "percent": 0.25514589181672015
+        },
+        {
+          "name": "captureSharedAxisNative @ kirchhoffSharedAxisNative.js:308",
+          "ms": 15.418,
+          "percent": 0.24908752992022995
+        },
+        {
+          "name": "restoreSharedAxisNative @ kirchhoffSharedAxisNative.js:311",
+          "ms": 15.332,
+          "percent": 0.2476981455919682
+        },
+        {
+          "name": "integrate @ kirchhoffMaterialProfile.js:149",
+          "ms": 15.123,
+          "percent": 0.24432161856165766
+        },
+        {
+          "name": "prepareOrder @ kirchhoffSharedAxisActiveBasis.js:37",
+          "ms": 13.792,
+          "percent": 0.22281847273704836
+        },
+        {
+          "name": "Memory @ :0",
+          "ms": 13.126,
+          "percent": 0.2120588220088817
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:309",
+          "ms": 12.834,
+          "percent": 0.20734137754548135
+        },
+        {
+          "name": "cross @ kirchhoffSharedAxisWallFriction.js:5",
+          "ms": 12.585,
+          "percent": 0.20331862524621183
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:230",
+          "ms": 12.291,
+          "percent": 0.1985688695193635
+        },
+        {
+          "name": "#writeSdfValue @ vesselContactField.js:2800",
+          "ms": 11.543,
+          "percent": 0.186484456989831
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:194",
+          "ms": 11.498,
+          "percent": 0.18575745356225218
+        },
+        {
+          "name": "completeSharedAxisDynamicStep @ kirchhoffSharedAxisDynamics.js:118",
+          "ms": 11.293,
+          "percent": 0.18244554905883753
+        },
+        {
+          "name": "canMerge @ kirchhoffSharedAxisAdaptiveMesh.js:78",
+          "ms": 10.583,
+          "percent": 0.17097505053481604
+        },
+        {
+          "name": "#considerCenterlineSegment @ vesselContactField.js:2315",
+          "ms": 10.126,
+          "percent": 0.16359192683695994
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:4",
+          "ms": 10.124,
+          "percent": 0.163559615573512
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:280",
+          "ms": 10.082,
+          "percent": 0.1628810790411051
+        },
+        {
+          "name": "certificate @ kirchhoffSharedAxisWallFriction.js:12",
+          "ms": 10.082,
+          "percent": 0.1628810790411051
+        },
+        {
+          "name": "EI @ kirchhoffMaterialProfile.js:213",
+          "ms": 10.041,
+          "percent": 0.16221869814042217
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:380",
+          "ms": 9.999,
+          "percent": 0.16154016160801526
+        },
+        {
+          "name": "getBarycoord @ three.module.js:8199",
+          "ms": 9.751,
+          "percent": 0.15753356494046972
+        },
+        {
+          "name": "getBarycoord @ three.module.js:8361",
+          "ms": 9.751,
+          "percent": 0.15753356494046972
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:37",
+          "ms": 9.75,
+          "percent": 0.15751740930874575
+        },
+        {
+          "name": "orient @ kirchhoffSharedAxisNative.js:32",
+          "ms": 9.458,
+          "percent": 0.15279996484534536
+        },
+        {
+          "name": "geometricTransition @ kirchhoffMaterialProfile.js:68",
+          "ms": 8.833,
+          "percent": 0.14270269501786167
+        },
+        {
+          "name": "(anonymous) @ kirchhoffMaterialProfile.js:92",
+          "ms": 8.832,
+          "percent": 0.1426865393861377
+        },
+        {
+          "name": "compactExactNonzeros @ kirchhoffSharedAxisActiveBasis.js:59",
+          "ms": 8.792,
+          "percent": 0.14204031411717874
+        },
+        {
+          "name": "toArray @ three.module.js:4558",
+          "ms": 8.709,
+          "percent": 0.1406993966840889
+        },
+        {
+          "name": "begin @ kirchhoffSharedAxisDiscoveryCache.js:51",
+          "ms": 8.708,
+          "percent": 0.14068324105236493
+        },
+        {
+          "name": "key @ kirchhoffSharedAxisNative.js:204",
+          "ms": 8.665,
+          "percent": 0.13998854888823406
+        },
+        {
+          "name": "repeatedSharedAxisDual @ kirchhoffSharedAxisLinear.js:25",
+          "ms": 8.625,
+          "percent": 0.1393423236192751
+        },
+        {
+          "name": "prepareSharedAxisDynamicStep @ kirchhoffSharedAxisDynamics.js:42",
+          "ms": 7.667,
+          "percent": 0.12386522842770807
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:121",
+          "ms": 7.584,
+          "percent": 0.12252431099461823
+        },
+        {
+          "name": "sample @ kirchhoffMaterialProfile.js:138",
+          "ms": 7.541,
+          "percent": 0.12182961883048736
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:209",
+          "ms": 7.417,
+          "percent": 0.11982632049671459
+        },
+        {
+          "name": "observe @ kirchhoffSharedAxisCycleGuard.js:10",
+          "ms": 7.374,
+          "percent": 0.11913162833258371
+        },
+        {
+          "name": "Instance @ :0",
+          "ms": 6.499,
+          "percent": 0.10499545057410653
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:323",
+          "ms": 6.416,
+          "percent": 0.10365453314101669
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:424",
+          "ms": 6.292,
+          "percent": 0.10165123480724393
+        },
+        {
+          "name": "Vector3 @ three.module.js:3899",
+          "ms": 6.292,
+          "percent": 0.10165123480724393
+        },
+        {
+          "name": "rotate @ kirchhoffSharedAxisWallFriction.js:10",
+          "ms": 6.251,
+          "percent": 0.100988853906561
+        },
+        {
+          "name": "vec @ kirchhoffSharedAxisNative.js:20",
+          "ms": 6.25,
+          "percent": 0.10097269827483703
+        },
+        {
+          "name": "preserveSharedAxisBends @ kirchhoffSharedAxisRemesh.js:4",
+          "ms": 6.167,
+          "percent": 0.09963178084174719
+        },
+        {
+          "name": "sharedAxisConstraintEdgeGeometry @ kirchhoffSharedAxisConstraintRows.js:15",
+          "ms": 6.167,
+          "percent": 0.09963178084174719
+        },
+        {
+          "name": "hessianBuffer @ kirchhoffSharedAxisConstraintRows.js:50",
+          "ms": 6.126,
+          "percent": 0.09896939994106425
+        },
+        {
+          "name": "extendSharedAxisNativeRows @ kirchhoffSharedAxisNative.js:241",
+          "ms": 6.125,
+          "percent": 0.09895324430934029
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:46",
+          "ms": 5.084,
+          "percent": 0.08213523168468342
+        },
+        {
+          "name": "captureKirchhoffRestConfiguration @ endovascularPhysicsWorld.js:846",
+          "ms": 5.042,
+          "percent": 0.08145669515227652
+        },
+        {
+          "name": "captureRestConfiguration @ endovascularPhysicsWorld.js:891",
+          "ms": 5.042,
+          "percent": 0.08145669515227652
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:426",
+          "ms": 5,
+          "percent": 0.08077815861986962
+        },
+        {
+          "name": "tangent @ kirchhoffSharedAxisNative.js:26",
+          "ms": 5,
+          "percent": 0.08077815861986962
+        },
+        {
+          "name": "finish @ kirchhoffSharedAxisLinear.js:282",
+          "ms": 4.957,
+          "percent": 0.08008346645573874
+        },
+        {
+          "name": "createKirchhoffWallWitnessGeometryWorkspace @ kirchhoffWallWitnessGeometry.js:3",
+          "ms": 4.5,
+          "percent": 0.07270034275788266
+        },
+        {
+          "name": "createSharedAxisVesselWitness @ kirchhoffSharedAxisVesselWitnesses.js:37",
+          "ms": 4.5,
+          "percent": 0.07270034275788266
+        },
+        {
+          "name": "prepareDiscretizationArray @ kirchhoffMaterialProfile.js:349",
+          "ms": 4.125,
+          "percent": 0.06664198086139243
+        },
+        {
+          "name": "getSharedAxisLinearScratchStats @ kirchhoffSharedAxisLinear.js:11",
+          "ms": 4,
+          "percent": 0.06462252689589569
+        },
+        {
+          "name": "syncNativePositions @ kirchhoffSharedAxisNative.js:178",
+          "ms": 3.875,
+          "percent": 0.06260307293039895
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:143",
+          "ms": 3.792,
+          "percent": 0.061262155497309116
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:105",
+          "ms": 3.791,
+          "percent": 0.06124599986558514
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:234",
+          "ms": 3.791,
+          "percent": 0.06124599986558514
+        },
+        {
+          "name": "createSharedAxisLayout @ kirchhoffSharedAxisLinear.js:64",
+          "ms": 3.791,
+          "percent": 0.06124599986558514
+        },
+        {
+          "name": "consoleCall @ :0",
+          "ms": 3.75,
+          "percent": 0.06058361896490221
+        },
+        {
+          "name": "coefficient @ kirchhoffSharedAxisMaterialTangent.js:14",
+          "ms": 3.75,
+          "percent": 0.06058361896490221
+        },
+        {
+          "name": "adaptiveMeshOptions @ kirchhoffSharedAxisAdaptiveMesh.js:12",
+          "ms": 3.709,
+          "percent": 0.059921238064219284
+        },
+        {
+          "name": "matches @ kirchhoffSharedAxisCycleGuard.js:13",
+          "ms": 3.709,
+          "percent": 0.059921238064219284
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:71",
+          "ms": 3.708,
+          "percent": 0.05990508243249531
+        },
+        {
+          "name": "setContact @ vesselContactField.js:81",
+          "ms": 3.708,
+          "percent": 0.05990508243249531
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:93",
+          "ms": 3.583,
+          "percent": 0.057885628466998566
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:11",
+          "ms": 2.667,
+          "percent": 0.043087069807838455
+        },
+        {
+          "name": "now @ :0",
+          "ms": 2.584,
+          "percent": 0.041746152374748616
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:98",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:507",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "point @ kirchhoffSharedAxisWallFriction.js:11",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "applyQuaternion @ three.module.js:4145",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:74",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:12",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "positiveRigidity @ kirchhoffMaterialProfile.js:50",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "toArray @ three.module.js:3846",
+          "ms": 2.542,
+          "percent": 0.04106761584234171
+        },
+        {
+          "name": "shortestArcQuaternion @ discreteKirchhoffRod.js:367",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:49",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "rotate3 @ kirchhoffSharedAxisDynamics.js:8",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "value @ constructor:333",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "log @ constructor:380",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:208",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:94",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:92",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "workspaceFor @ kirchhoffSharedAxisActiveBasis.js:25",
+          "ms": 2.5,
+          "percent": 0.04038907930993481
+        },
+        {
+          "name": "violation @ kirchhoffSharedAxisRemesh.js:7",
+          "ms": 2.458,
+          "percent": 0.039710542777527905
+        },
+        {
+          "name": "multiplyQuaternions @ three.module.js:3711",
+          "ms": 2.458,
+          "percent": 0.039710542777527905
+        },
+        {
+          "name": "assertBodyContract @ applyKirchhoffMaterialProfile.js:103",
+          "ms": 2.417,
+          "percent": 0.039048161876844976
+        },
+        {
+          "name": "validateExtraForce @ kirchhoffSharedAxisLinear.js:34",
+          "ms": 2.417,
+          "percent": 0.039048161876844976
+        },
+        {
+          "name": "sharedAxisFrictionNormalDerivative @ kirchhoffSharedAxisWallFriction.js:39",
+          "ms": 2.125,
+          "percent": 0.03433071741344459
+        },
+        {
+          "name": "get allocations @ kirchhoffCoulombBandLU.js:13",
+          "ms": 1.542,
+          "percent": 0.02491198411836779
+        },
+        {
+          "name": "q @ kirchhoffSharedAxisDynamics.js:5",
+          "ms": 1.292,
+          "percent": 0.020873076187374308
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:167",
+          "ms": 1.292,
+          "percent": 0.020873076187374308
+        },
+        {
+          "name": "sharedAxisOuterMaterialAt @ kirchhoffSharedAxisNative.js:161",
+          "ms": 1.292,
+          "percent": 0.020873076187374308
+        },
+        {
+          "name": "getViews @ kirchhoffCoulombBandLU.js:17",
+          "ms": 1.292,
+          "percent": 0.020873076187374308
+        },
+        {
+          "name": "incrementalStats @ kirchhoffSharedAxisLinear.js:366",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "interpolate @ kirchhoffSharedAxisNative.js:39",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:236",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "sampleTip @ profile-shared-axis-dynamic.mjs:169",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "(anonymous) @ profile-shared-axis-dynamic.mjs:130",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "slerp @ three.module.js:3729",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "GJ @ kirchhoffMaterialProfile.js:222",
+          "ms": 1.291,
+          "percent": 0.020856920555650336
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisProjection.js:41",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:437",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:7",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "createBishopFrame @ discreteKirchhoffRod.js:337",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "quat @ kirchhoffSharedAxisWallFriction.js:9",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:449",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "normalizeVector @ discreteKirchhoffRod.js:32",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "tipLength @ kirchhoffSharedAxisAdaptiveMesh.js:20",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:179",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "inactive @ kirchhoffSharedAxisContacts.js:4",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "get buffer @ :0",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "quaternionExp @ discreteKirchhoffRod.js:110",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:111",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisMatrixAssembly.js:39",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisMaterialKernel.js:20",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:90",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "transportBishopFrame @ discreteKirchhoffRod.js:392",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "length @ three.module.js:4324",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ profile-shared-axis-dynamic.mjs:89",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "evaluate.retarget @ kirchhoffSharedAxisVesselWitnesses.js:46",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "integrateBerensteinSmoothInterval @ catheterMaterialProfile.js:227",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "integrateBerensteinIntrinsicTurn @ catheterMaterialProfile.js:240",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffMaterialProfile.js:192",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "Quaternion @ three.module.js:3217",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "formatWithOptionsInternal @ inspect:2283",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "copy @ three.module.js:3989",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:235",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:96",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:344",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:75",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "distance @ kirchhoffSharedAxisAdaptiveMesh.js:77",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "sharedAxisPositionDofMask @ kirchhoffSharedAxisConstraintRows.js:5",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "now @ performance:137",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "shouldColorize @ colors:18",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "value @ constructor:313",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:314",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "add @ kirchhoffSharedAxisDynamics.js:66",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "get x @ three.module.js:3329",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "activeMaterialCoordinates @ applyKirchhoffMaterialProfile.js:74",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "constitutiveValueChanged @ applyKirchhoffMaterialProfile.js:13",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:209",
+          "ms": 1.25,
+          "percent": 0.020194539654967404
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisConstraintRows.js:20",
+          "ms": 1.209,
+          "percent": 0.019532158754284473
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:120",
+          "ms": 1.209,
+          "percent": 0.019532158754284473
+        },
+        {
+          "name": "#sdfInsideValue @ vesselContactField.js:2830",
+          "ms": 1.209,
+          "percent": 0.019532158754284473
+        },
+        {
+          "name": "multiply @ three.module.js:3699",
+          "ms": 1.208,
+          "percent": 0.0195160031225605
+        },
+        {
+          "name": "rotateSharedAxisNative @ kirchhoffSharedAxisNative.js:251",
+          "ms": 1.208,
+          "percent": 0.0195160031225605
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:84",
+          "ms": 1.208,
+          "percent": 0.0195160031225605
+        },
+        {
+          "name": "result @ kirchhoffSharedAxisAppSystem.js:158",
+          "ms": 1.208,
+          "percent": 0.0195160031225605
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:84",
+          "ms": 1.167,
+          "percent": 0.01885362222187757
+        },
+        {
+          "name": "setFromUnitVectors @ three.module.js:3564",
+          "ms": 1.125,
+          "percent": 0.018175085689470665
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:135",
+          "ms": 1.083,
+          "percent": 0.017496549157063758
+        },
+        {
+          "name": "discover @ kirchhoffSharedAxisNative.js:372",
+          "ms": 1,
+          "percent": 0.016155631723973923
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:193",
+          "ms": 0.375,
+          "percent": 0.006058361896490221
+        },
+        {
+          "name": "sharedAxisOuterIntervals @ kirchhoffSharedAxisNative.js:169",
+          "ms": 0.042,
+          "percent": 0.0006785365324069048
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDiagnostics.js:14",
+          "ms": 0.041,
+          "percent": 0.0006623809006829309
+        }
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "reportVersion": 2,
+      "createdAt": "2026-09-16T23:14:14.227Z",
+      "gitHead": "b9c0ca0f5b281537a5d8ed46e8dcf9269010f910",
+      "sourceHashes": {
+        "scripts/physics/profile-shared-axis-dynamic.mjs": "dc07a4b1508283d4d5c07addff831bd640a011a9cfff276f6a6e6154f930779a",
+        "src/physics/applyKirchhoffMaterialProfile.js": "8ee844e33bacd45fd41fa704fd7e59fdbba0cdb8e8b9f3200793ffc2a29341e4",
+        "src/physics/catheterDiscretization.js": "6310ef50e5241a5e569ba9c2f43e0777b68f637df2164edf52483903add9087d",
+        "src/physics/discreteKirchhoffRod.js": "f4877eef38e9608c77e56a587c597cbc67c2c3a07eda2de35fa7b660cce63f98",
+        "src/physics/endovascularPhysicsWorld.js": "b5c2d35bf2b6b6192ad5cee3545327426652935129dfec0253a290749bcc35a5",
+        "src/physics/kirchhoffCoulombBandLU.js": "c0284a6e4d1d7a3459674ee7b054bd5a0daa141fdcfdd8c0f8776a00bc84ff02",
+        "src/physics/kirchhoffLinearKernel.js": "12a6ab0f398490a8b1e68bea6eb74d4ca2d4ff5e607f7aeee258a89aebf0c637",
+        "src/physics/kirchhoffLinearKernelBytes.js": "6d6a7c48c7ecfc83024472233e17121407e2adb6fc220b854a5da32de01a9dac",
+        "src/physics/kirchhoffMaterialProfile.js": "5235fe8c4c8fc84e6bc5c7625b1bc62d851cdea965e7ada825543697ebdfefd4",
+        "src/physics/kirchhoffSharedAxisActiveBasis.js": "38da5f147b7ccd8e319a7c752bcb185bf3f8635be348c43479ec68f1e4d0b638",
+        "src/physics/kirchhoffSharedAxisAdaptiveMesh.js": "476109134d52a361d2b4f5447f7a42f4e66d0c91f461d1d62b64ebd91dbf2b7a",
+        "src/physics/kirchhoffSharedAxisAppSystem.js": "da5ce9d1d49042d8b4b17cd56c5553909c9237a24668fa2cda13a5f645eca7e3",
+        "src/physics/kirchhoffSharedAxisBendLimit.js": "fba562014984311b73a842da7545947c015104de5fea342aca80f3b5f94c967b",
+        "src/physics/kirchhoffSharedAxisConstraintRows.js": "2204dcabb4093f9e212e94643ff22b7cef400189a9b239def1b5a2d7f53c324f",
+        "src/physics/kirchhoffSharedAxisContacts.js": "2d331b68260a7e0cab58677caec9cc2140e55529c1557032d0f384be954b8dfa",
+        "src/physics/kirchhoffSharedAxisCycleGuard.js": "c24a046ab29f5b92c029946c030a747830e059b10641b57d16f71d3c519922de",
+        "src/physics/kirchhoffSharedAxisDiagnostics.js": "f64b6235bd67bd2027548815f2d3a6948977f40d4af5d01282e0cdba25c8fdd4",
+        "src/physics/kirchhoffSharedAxisDiscoveryCache.js": "70536e3a6738c29e6a18dd46219a4c754cf418e2851ee73c93d1e7d83c3ee8d1",
+        "src/physics/kirchhoffSharedAxisDynamics.js": "6e2cd0246c00fafb816112a83c85682f3fc3eaeeeee6f875d51f6f2881eb3dae",
+        "src/physics/kirchhoffSharedAxisGaussNewton.js": "62e54a93d92fcdd8e056062796bacc653b4c3feac9687ff7fc6eb74a6a21eee5",
+        "src/physics/kirchhoffSharedAxisLinear.js": "12b673a2b40e9c652b9f2d4da7ce82dad3f33cac889298fe32609c2030c3a079",
+        "src/physics/kirchhoffSharedAxisMaterialKernel.js": "f1e12f42e4bff5466b7e4324a847784a3f7b84a156f51104e02cd3037f92b117",
+        "src/physics/kirchhoffSharedAxisMaterialKernelBytes.js": "d29abaf2030c6b9aec32c0aa0aa93026f06b25f1ecd4eac7e2e081cdb54242f4",
+        "src/physics/kirchhoffSharedAxisMaterialTangent.js": "f40ee3d20c4b7cbec7bfed19eaa5ef18d3562209b548e712556f44bc304ddb71",
+        "src/physics/kirchhoffSharedAxisMatrixAssembly.js": "f00d6904b62ac7a5d047846d4777b60d43f6a34cb934a171f61748e222e46165",
+        "src/physics/kirchhoffSharedAxisModifiedNewton.js": "7a421e0254fc77be7b161f4bdfb8fcf2ab2349411c9d5ee2a8c77eec0e5c43d6",
+        "src/physics/kirchhoffSharedAxisNative.js": "98bd6cf2c32400e7597ae4ac43b8fc1261e828cf62d351b455506e430bdf1bde",
+        "src/physics/kirchhoffSharedAxisProjection.js": "dce44275dc6ca6ad7d04d1fe07ad61e1a777cb4bb72e759938182d913d09356a",
+        "src/physics/kirchhoffSharedAxisProjective.js": "e551ccf8e81a7118dcf67a82048cd76294b87d006cf11c91db9ac9fbe96d0fa0",
+        "src/physics/kirchhoffSharedAxisRemesh.js": "4a016b020f323886758afd03bcdede8f9ac0500f6037aa55470a0c0ecdfc6201",
+        "src/physics/kirchhoffSharedAxisReplay.js": "12fdead970d3c1b60c79fddae8fa366263bc75135e98d54542cb6d527eaee7b1",
+        "src/physics/kirchhoffSharedAxisStagnationGuard.js": "060fd1ec10a008f55f3b590d2a0c86ffb4ddf66f30116d09469007f5e334654d",
+        "src/physics/kirchhoffSharedAxisTimeStep.js": "6f2b30584a44b3aef0ab0527298c7d6752402eeb1e19342ce396254649e5c53f",
+        "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "ea496d35aed503528e5a2a6ece63a6973f110800c8c6612bc8541fa3cadfa9f5",
+        "src/physics/kirchhoffSharedAxisWallFriction.js": "668d476112f4bedaeebbdc4b89073af86d18e3d6673a45f68970c9d3a1a6a635",
+        "src/physics/kirchhoffWallWitnessGeometry.js": "1dd896024b2a33d187fe869c697aa6f73494746f3b6b768e33cd81c54aa5778d",
+        "src/physics/projectiveRodMath.js": "971460f0f8a6068d00e5cd0ff9ce7e59a349a22d672b65c51c2b4a847f94d60a",
+        "src/toolDimensions.js": "af1239d738cb6c549c26f19f504f8131e98924fff3661453432dcc162df54b58",
+        "tests/helpers/coupledRuntimeFixture.js": "69732e6a397b2c41e9c5a605e23865fac107d8dbb9d9cadc514c125dfd380edd"
+      },
+      "sourceTreeHash": "ca12e23e16da3519344d9ad18a855c87a79eacd9ea38ab6b00622f7f234404a8",
+      "nodeVersion": "v24.6.0",
+      "timingScope": "Synchronous complete prepared physical step, including failed feed subdivisions; rendering excluded",
+      "historicalComparisonNote": "Reports without reportVersion:2 used implicit catheter mass 1.4; this report uses the UI grid-scaled mass (1.75 at 5 mm). Compare only matching modelParameters and source hashes.",
+      "modelParameters": {
+        "dt": 0.016666666666666666,
+        "wireTarget": 600,
+        "catheterTarget": 600,
+        "adaptiveMesh": true,
+        "spacing": 5,
+        "maxBendAngle": 0.7853981633974483,
+        "options": {
+          "forceTolerance": 0.0001,
+          "lengthTolerance": 0.001,
+          "liveWallNormalLoad": true,
+          "projectiveDynamics": false,
+          "modifiedNewton": false,
+          "stagnationFallback": true,
+          "reuseRowBuffers": true,
+          "reuseMatrixAssembly": true,
+          "reuseConstraintWork": true,
+          "wasmMaterial": true,
+          "projectionMode": "reduced",
+          "promoteTrialAssembly": true,
+          "lazyTrialTangent": false,
+          "reuseStructure": true,
+          "earlyLiveFallback": true
+        },
+        "tools": [
+          {
+            "id": "wire",
+            "type": "glidewire",
+            "mass": 1,
+            "radius": 0.4445,
+            "wallStaticFriction": 0.006,
+            "wallKineticFriction": 0.002,
+            "shaftStiffness": 9.6,
+            "tipStiffness": 6.8
+          },
+          {
+            "id": "catheter",
+            "type": "berenstein",
+            "mass": 1.75,
+            "radius": 0.8333333333333333,
+            "wallStaticFriction": 0.002,
+            "wallKineticFriction": 0.002,
+            "shaftStiffness": 40.65,
+            "tipStiffness": 66.8
+          }
+        ],
+        "sheath": {
+          "innerRadius": 0.9,
+          "proximalExtension": 40
+        }
+      },
+      "indexedContacts": true,
+      "reuseContactBuffers": true,
+      "feedOnly": false,
+      "pairedProjection": false,
+      "pairedStagnation": false,
+      "pairedMaterial": false,
+      "pairedConstraintWork": false,
+      "pairedMatrixAssembly": false,
+      "pairedRowBuffers": false,
+      "reversePairOrder": false,
+      "dt": 0.016666666666666666,
+      "failed": false
+    },
+    "phases": {
+      "initial": {
+        "steps": 1,
+        "failures": 0,
+        "meanMs": 21.952832999999828,
+        "p95Ms": 21.952832999999828,
+        "maxMs": 21.952832999999828,
+        "timings": {
+          "assemblyMs": 7.323791999999912,
+          "linearMs": 9.86699700000031,
+          "frictionMs": 0.05224999999995816,
+          "tangentAssemblyMs": 5.7987499999997,
+          "residualAssemblyMs": 1.5250420000002123,
+          "projectionMs": 1.0700009999998201
+        },
+        "averages": {
+          "iterations": 5,
+          "factorizations": 15,
+          "geometryRestarts": 0,
+          "backtracks": 0,
+          "fullAssemblies": 5,
+          "residualAssemblies": 6,
+          "frictionIterations": 1,
+          "substepAttempts": 1,
+          "mechanicalNodes": 9,
+          "mechanicalDofs": 43
+        },
+        "maxNodes": 9
+      },
+      "wire": {
+        "steps": 819,
+        "failures": 0,
+        "meanMs": 22.81208095848597,
+        "p95Ms": 50.38183299999946,
+        "maxMs": 485.2575419999994,
+        "timings": {
+          "assemblyMs": 9.297996732600762,
+          "linearMs": 9.902202623931627,
+          "frictionMs": 0.4942780329670066,
+          "tangentAssemblyMs": 3.78013678388281,
+          "residualAssemblyMs": 5.517859948717951,
+          "projectionMs": 0.15699547741147005
+        },
+        "averages": {
+          "iterations": 6.107448107448107,
+          "factorizations": 20.073260073260073,
+          "geometryRestarts": 2.166056166056166,
+          "backtracks": 1.7301587301587302,
+          "fullAssemblies": 7.264957264957265,
+          "residualAssemblies": 7.914529914529915,
+          "frictionIterations": 1.9023199023199022,
+          "substepAttempts": 1.0488400488400489,
+          "mechanicalNodes": 55.05982905982906,
+          "mechanicalDofs": 227.23931623931625
+        },
+        "maxNodes": 101
+      },
+      "catheter": {
+        "steps": 693,
+        "failures": 0,
+        "meanMs": 48.38543471428567,
+        "p95Ms": 81.93704199999775,
+        "maxMs": 481.98933399999805,
+        "timings": {
+          "assemblyMs": 24.783031877344946,
+          "linearMs": 16.051081493506466,
+          "frictionMs": 1.359313695526998,
+          "tangentAssemblyMs": 9.125498435786772,
+          "residualAssemblyMs": 15.657533441558176,
+          "projectionMs": 0.359747300144273
+        },
+        "averages": {
+          "iterations": 7.825396825396825,
+          "factorizations": 14.61038961038961,
+          "geometryRestarts": 1.567099567099567,
+          "backtracks": 0.22366522366522368,
+          "fullAssemblies": 8.2987012987013,
+          "residualAssemblies": 8.307359307359308,
+          "frictionIterations": 2.7316017316017316,
+          "substepAttempts": 1,
+          "mechanicalNodes": 103.73448773448773,
+          "mechanicalDofs": 469.31601731601734
+        },
+        "maxNodes": 114
+      },
+      "simultaneous": {
+        "steps": 60,
+        "failures": 0,
+        "meanMs": 45.25269021666597,
+        "p95Ms": 61.95933399999922,
+        "maxMs": 78.45279099999607,
+        "timings": {
+          "assemblyMs": 22.64641969999878,
+          "linearMs": 15.014406383336487,
+          "frictionMs": 0.9931639000000966,
+          "tangentAssemblyMs": 8.84777749999921,
+          "residualAssemblyMs": 13.79864219999957,
+          "projectionMs": 0
+        },
+        "averages": {
+          "iterations": 6.066666666666666,
+          "factorizations": 12.783333333333333,
+          "geometryRestarts": 1.35,
+          "backtracks": 0,
+          "fullAssemblies": 6.316666666666666,
+          "residualAssemblies": 6.066666666666666,
+          "frictionIterations": 2.1,
+          "substepAttempts": 1,
+          "mechanicalNodes": 113.75,
+          "mechanicalDofs": 565.1166666666667
+        },
+        "maxNodes": 121
+      },
+      "rotation": {
+        "steps": 30,
+        "failures": 0,
+        "meanMs": 60.83538616666604,
+        "p95Ms": 76.52312499999971,
+        "maxMs": 245.7335000000021,
+        "timings": {
+          "assemblyMs": 34.1795274333325,
+          "linearMs": 17.26040810000122,
+          "frictionMs": 1.8141137333332154,
+          "tangentAssemblyMs": 12.060185999998794,
+          "residualAssemblyMs": 22.11934143333371,
+          "projectionMs": 0.5877223000000716
+        },
+        "averages": {
+          "iterations": 8.266666666666667,
+          "factorizations": 12.133333333333333,
+          "geometryRestarts": 1.3,
+          "backtracks": 0.16666666666666666,
+          "fullAssemblies": 8.3,
+          "residualAssemblies": 8.766666666666667,
+          "frictionIterations": 2.8333333333333335,
+          "substepAttempts": 1,
+          "mechanicalNodes": 122.1,
+          "mechanicalDofs": 605.5
+        },
+        "maxNodes": 123
+      },
+      "withdrawal": {
+        "steps": 60,
+        "failures": 0,
+        "meanMs": 109.21034996666712,
+        "p95Ms": 326.8657080000048,
+        "maxMs": 586.7074169999978,
+        "timings": {
+          "assemblyMs": 54.06485180000042,
+          "linearMs": 34.65309536666707,
+          "frictionMs": 4.395447883333448,
+          "tangentAssemblyMs": 21.443897866667125,
+          "residualAssemblyMs": 32.6209539333333,
+          "projectionMs": 0
+        },
+        "averages": {
+          "iterations": 5.966666666666667,
+          "factorizations": 9.633333333333333,
+          "geometryRestarts": 1.8166666666666667,
+          "backtracks": 0,
+          "fullAssemblies": 6.683333333333334,
+          "residualAssemblies": 5.966666666666667,
+          "frictionIterations": 2.183333333333333,
+          "substepAttempts": 1,
+          "mechanicalNodes": 120.11666666666666,
+          "mechanicalDofs": 596.1666666666666
+        },
+        "maxNodes": 123
+      }
+    },
+    "terminal": {
+      "nodes": 118,
+      "definitions": 1265,
+      "rowKinds": {
+        "length": 117,
+        "wall": 234,
+        "bend-limit": 116,
+        "vessel-witness": 798
+      },
+      "vesselWitnessesWithPositiveReaction": 16,
+      "vesselWitnessesWithZeroReaction": 782
+    },
+    "cpu": {
+      "phase": "catheter",
+      "sampledMs": 33616.334,
+      "selfByFile": [
+        {
+          "name": "kirchhoffSharedAxisLinear.js",
+          "ms": 3964.591,
+          "percent": 11.79364472045048
+        },
+        {
+          "name": "kirchhoffSharedAxisNative.js",
+          "ms": 3747.598,
+          "percent": 11.14814601734978
+        },
+        {
+          "name": "kirchhoffSharedAxisActiveBasis.js",
+          "ms": 3487.068,
+          "percent": 10.373135869009392
+        },
+        {
+          "name": "kirchhoffSharedAxisConstraintRows.js",
+          "ms": 2896.17,
+          "percent": 8.615365375653395
+        },
+        {
+          "name": "scalarMeshBvhClosestPoint.js",
+          "ms": 2463.906,
+          "percent": 7.32949047924143
+        },
+        {
+          "name": "kirchhoffSharedAxisWallFriction.js",
+          "ms": 2184.276,
+          "percent": 6.497662713608212
+        },
+        {
+          "name": "kirchhoffWallWitnessGeometry.js",
+          "ms": 1995.348,
+          "percent": 5.935650210995643
+        },
+        {
+          "name": "kirchhoffSharedAxisVesselWitnesses.js",
+          "ms": 1771.096,
+          "percent": 5.268557838579305
+        },
+        {
+          "name": "vesselContactField.js",
+          "ms": 1380.716,
+          "percent": 4.10727713497849
+        },
+        {
+          "name": "kirchhoffSharedAxisMaterialTangent.js",
+          "ms": 1286.512,
+          "percent": 3.827044317206034
+        },
+        {
+          "name": "kirchhoffSharedAxisMatrixAssembly.js",
+          "ms": 1148.914,
+          "percent": 3.417725442637499
+        },
+        {
+          "name": "(garbage collector)",
+          "ms": 1076.131,
+          "percent": 3.2012146238194803
+        },
+        {
+          "name": "df5b3faa",
+          "ms": 1028.075,
+          "percent": 3.058260308812972
+        },
+        {
+          "name": "kirchhoffCoulombBandLU.js",
+          "ms": 1008.909,
+          "percent": 3.001246358392322
+        },
+        {
+          "name": "discreteKirchhoffRod.js",
+          "ms": 621.12,
+          "percent": 1.8476732174305504
+        },
+        {
+          "name": "kirchhoffSharedAxisDynamics.js",
+          "ms": 608.581,
+          "percent": 1.8103728978894604
+        },
+        {
+          "name": "kirchhoffSharedAxisDiscoveryCache.js",
+          "ms": 469.197,
+          "percent": 1.395741129892391
+        },
+        {
+          "name": "three.module.js",
+          "ms": 454.076,
+          "percent": 1.350760020411506
+        },
+        {
+          "name": "kirchhoffSharedAxisBendLimit.js",
+          "ms": 337.619,
+          "percent": 1.0043302163763603
+        },
+        {
+          "name": "cea25de6",
+          "ms": 329.511,
+          "percent": 0.9802109890983354
+        },
+        {
+          "name": "kirchhoffMaterialProfile.js",
+          "ms": 276.79,
+          "percent": 0.8233794916483159
+        },
+        {
+          "name": "kirchhoffSharedAxisAdaptiveMesh.js",
+          "ms": 217.794,
+          "percent": 0.6478814733337669
+        },
+        {
+          "name": "(program)",
+          "ms": 203.669,
+          "percent": 0.6058632092363194
+        },
+        {
+          "name": "kirchhoffSharedAxisDiagnostics.js",
+          "ms": 174.044,
+          "percent": 0.517736407545213
+        },
+        {
+          "name": "kirchhoffSharedAxisTimeStep.js",
+          "ms": 75.96,
+          "percent": 0.22596158165253832
+        },
+        {
+          "name": "kirchhoffSharedAxisContacts.js",
+          "ms": 75.499,
+          "percent": 0.22459022450217206
+        },
+        {
+          "name": "node:inspector",
+          "ms": 72.167,
+          "percent": 0.2146783762917158
+        },
+        {
+          "name": "endovascularPhysicsWorld.js",
+          "ms": 56.418,
+          "percent": 0.1678291273521973
+        },
+        {
+          "name": "Memory",
+          "ms": 29.207,
+          "percent": 0.08688335854825811
+        },
+        {
+          "name": "applyKirchhoffMaterialProfile.js",
+          "ms": 24.415,
+          "percent": 0.07262838357091526
+        },
+        {
+          "name": "kirchhoffSharedAxisMaterialKernel.js",
+          "ms": 20.29,
+          "percent": 0.06035756308228018
+        },
+        {
+          "name": "profile-shared-axis-dynamic.mjs",
+          "ms": 17.71,
+          "percent": 0.0526827226312066
+        },
+        {
+          "name": "kirchhoffSharedAxisAppSystem.js",
+          "ms": 17.25,
+          "percent": 0.05131434022520124
+        },
+        {
+          "name": "Instance",
+          "ms": 16.126,
+          "percent": 0.047970727563570736
+        },
+        {
+          "name": "kirchhoffSharedAxisRemesh.js",
+          "ms": 15.413,
+          "percent": 0.04584973483426241
+        },
+        {
+          "name": "kirchhoffSharedAxisCycleGuard.js",
+          "ms": 15.167,
+          "percent": 0.045117947721485634
+        },
+        {
+          "name": "kirchhoffSharedAxisProjection.js",
+          "ms": 12.751,
+          "percent": 0.037930965345596576
+        },
+        {
+          "name": "kirchhoffSharedAxisGaussNewton.js",
+          "ms": 9.5,
+          "percent": 0.028260071428371697
+        },
+        {
+          "name": "validators",
+          "ms": 5.501,
+          "percent": 0.01636406872920765
+        },
+        {
+          "name": "now",
+          "ms": 5.125,
+          "percent": 0.01524556484951631
+        },
+        {
+          "name": "performance",
+          "ms": 5.124,
+          "percent": 0.015242590105155428
+        },
+        {
+          "name": "catheterMaterialProfile.js",
+          "ms": 3.541,
+          "percent": 0.01053356978188044
+        },
+        {
+          "name": "util",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "dispatch",
+          "ms": 2.417,
+          "percent": 0.007189957120249935
+        },
+        {
+          "name": "consoleCall",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "guidewireMaterialProfile.js",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        }
+      ],
+      "inclusiveByFunction": [
+        {
+          "name": "(root) @ :0",
+          "ms": 33616.334,
+          "percent": 100
+        },
+        {
+          "name": "(anonymous) @ profile-shared-axis-dynamic.mjs:0",
+          "ms": 32198.575,
+          "percent": 95.7825294096614
+        },
+        {
+          "name": "step @ profile-shared-axis-dynamic.mjs:87",
+          "ms": 32112.532,
+          "percent": 95.52657348061808
+        },
+        {
+          "name": "advanceSharedAxis @ kirchhoffSharedAxisAppSystem.js:155",
+          "ms": 32101.156,
+          "percent": 95.49273278876869
+        },
+        {
+          "name": "iterateSharedAxisTimeStep @ kirchhoffSharedAxisTimeStep.js:53",
+          "ms": 30498.702,
+          "percent": 90.72584178869712
+        },
+        {
+          "name": "iterateTimeStepAttempt @ kirchhoffSharedAxisTimeStep.js:9",
+          "ms": 30477.242,
+          "percent": 90.66200377471262
+        },
+        {
+          "name": "iterateSharedAxisWithContacts @ kirchhoffSharedAxisVesselWitnesses.js:125",
+          "ms": 29112.678,
+          "percent": 86.60277471065108
+        },
+        {
+          "name": "iterateSharedAxisNative @ kirchhoffSharedAxisNative.js:347",
+          "ms": 28976.507,
+          "percent": 86.19770079628552
+        },
+        {
+          "name": "assemble @ kirchhoffSharedAxisNative.js:364",
+          "ms": 16667.066,
+          "percent": 49.5802605959353
+        },
+        {
+          "name": "assembleSharedAxisNative @ kirchhoffSharedAxisNative.js:262",
+          "ms": 16533.316,
+          "percent": 49.182388537667435
+        },
+        {
+          "name": "assembleSharedAxisConstraintRows @ kirchhoffSharedAxisConstraintRows.js:62",
+          "ms": 11468.622,
+          "percent": 34.116218621578426
+        },
+        {
+          "name": "iterateSharedAxisLinear @ kirchhoffSharedAxisLinear.js:383",
+          "ms": 10587.89,
+          "percent": 31.49626607113078
+        },
+        {
+          "name": "iterateWithFallback @ kirchhoffSharedAxisLinear.js:355",
+          "ms": 10495.598,
+          "percent": 31.221720964576328
+        },
+        {
+          "name": "iterateActiveSet @ kirchhoffSharedAxisLinear.js:278",
+          "ms": 10107.973,
+          "percent": 30.06863568168974
+        },
+        {
+          "name": "solveCompactWorkingSet @ kirchhoffSharedAxisLinear.js:214",
+          "ms": 5138.073,
+          "percent": 15.28445368254611
+        },
+        {
+          "name": "sample @ kirchhoffSharedAxisVesselWitnesses.js:59",
+          "ms": 4969.15,
+          "percent": 14.781950940872969
+        },
+        {
+          "name": "queryCapsuleSoA @ vesselContactField.js:1014",
+          "ms": 4307.577,
+          "percent": 12.813940389811691
+        },
+        {
+          "name": "#queryCapsuleStored @ vesselContactField.js:1072",
+          "ms": 4291.867,
+          "percent": 12.767207155902247
+        },
+        {
+          "name": "#queryCapsuleStoredImpl @ vesselContactField.js:1087",
+          "ms": 4279.576,
+          "percent": 12.730644572962655
+        },
+        {
+          "name": "assembleDiscovered @ kirchhoffSharedAxisNative.js:376",
+          "ms": 4199.27,
+          "percent": 12.491754752317727
+        },
+        {
+          "name": "solveSharedAxisLinearOnce @ kirchhoffSharedAxisLinear.js:107",
+          "ms": 3749.394,
+          "percent": 11.153488658221923
+        },
+        {
+          "name": "prepareSharedAxisActiveBasis @ kirchhoffSharedAxisActiveBasis.js:77",
+          "ms": 3312.613,
+          "percent": 9.854176841531858
+        },
+        {
+          "name": "evaluate @ kirchhoffSharedAxisVesselWitnesses.js:41",
+          "ms": 3238.393,
+          "percent": 9.633391315067252
+        },
+        {
+          "name": "gapForWitness @ kirchhoffSharedAxisVesselWitnesses.js:8",
+          "ms": 3035.225,
+          "percent": 9.029018452755734
+        },
+        {
+          "name": "#refineContactWithBvh @ vesselContactField.js:1395",
+          "ms": 2507.866,
+          "percent": 7.46026024134577
+        },
+        {
+          "name": "#refineWithBvh @ vesselContactField.js:2713",
+          "ms": 2476.865,
+          "percent": 7.3680401914140905
+        },
+        {
+          "name": "closestPointToPointScalarBvh @ scalarMeshBvhClosestPoint.js:221",
+          "ms": 2433.616,
+          "percent": 7.239385472550338
+        },
+        {
+          "name": "assembleSharedAxisMaterialTangent @ kirchhoffSharedAxisMaterialTangent.js:73",
+          "ms": 2275.35,
+          "percent": 6.768584581531109
+        },
+        {
+          "name": "evaluateKirchhoffWallWitnessGeometry @ kirchhoffWallWitnessGeometry.js:18",
+          "ms": 2265.342,
+          "percent": 6.73881333996741
+        },
+        {
+          "name": "solve @ kirchhoffCoulombBandLU.js:105",
+          "ms": 2036.984,
+          "percent": 6.0595066672052935
+        },
+        {
+          "name": "feedSharedAxisNative @ kirchhoffSharedAxisNative.js:188",
+          "ms": 1579.038,
+          "percent": 4.697234386117177
+        },
+        {
+          "name": "evaluate @ kirchhoffSharedAxisWallFriction.js:101",
+          "ms": 1372.708,
+          "percent": 4.083455382136553
+        },
+        {
+          "name": "nativeHingeTorqueTangent @ kirchhoffSharedAxisMaterialTangent.js:25",
+          "ms": 1333.344,
+          "percent": 3.9663575451148243
+        },
+        {
+          "name": "considerTriangle @ scalarMeshBvhClosestPoint.js:57",
+          "ms": 1225.957,
+          "percent": 3.6469086724328714
+        },
+        {
+          "name": "#querySphereCoordinates @ vesselContactField.js:926",
+          "ms": 1159.047,
+          "percent": 3.447868527246308
+        },
+        {
+          "name": "kinematics @ kirchhoffSharedAxisWallFriction.js:88",
+          "ms": 1135.293,
+          "percent": 3.3772064496979355
+        },
+        {
+          "name": "#queryDistance @ vesselContactField.js:1564",
+          "ms": 1116.545,
+          "percent": 3.321435942420134
+        },
+        {
+          "name": "refreshSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:153",
+          "ms": 1101.36,
+          "percent": 3.276264449300153
+        },
+        {
+          "name": "(garbage collector) @ :0",
+          "ms": 1076.131,
+          "percent": 3.2012146238194803
+        },
+        {
+          "name": "assembleSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:168",
+          "ms": 1052.995,
+          "percent": 3.132390938286132
+        },
+        {
+          "name": "assemblePreparedSharedAxisMatrix @ kirchhoffSharedAxisMatrixAssembly.js:63",
+          "ms": 1040.541,
+          "percent": 3.095343472015717
+        },
+        {
+          "name": "js-to-wasm:iiiiii:i @ df5b3faa:1",
+          "ms": 1028.075,
+          "percent": 3.058260308812972
+        },
+        {
+          "name": "wasm-function[4] @ df5b3faa:1",
+          "ms": 1024.241,
+          "percent": 3.046855138933353
+        },
+        {
+          "name": "#queryCenterline @ vesselContactField.js:2052",
+          "ms": 900.213,
+          "percent": 2.6779035453419757
+        },
+        {
+          "name": "createSharedAxisNative @ kirchhoffSharedAxisNative.js:54",
+          "ms": 814.364,
+          "percent": 2.422524716704683
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:159",
+          "ms": 619.068,
+          "percent": 1.841569042002022
+        },
+        {
+          "name": "evaluateBendTwistLocalConstraintNormalized @ discreteKirchhoffRod.js:691",
+          "ms": 579.62,
+          "percent": 1.7242213264539792
+        },
+        {
+          "name": "nextRow @ kirchhoffSharedAxisActiveBasis.js:49",
+          "ms": 569.413,
+          "percent": 1.6938581107624644
+        },
+        {
+          "name": "assembleSharedAxisInertia @ kirchhoffSharedAxisDynamics.js:62",
+          "ms": 528.628,
+          "percent": 1.5725331620039233
+        },
+        {
+          "name": "visit @ kirchhoffSharedAxisVesselWitnesses.js:92",
+          "ms": 490.498,
+          "percent": 1.4591061595235222
+        },
+        {
+          "name": "createSharedAxisLinear @ kirchhoffSharedAxisLinear.js:77",
+          "ms": 481.215,
+          "percent": 1.4314916076214617
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:100",
+          "ms": 472.285,
+          "percent": 1.4049271404787922
+        },
+        {
+          "name": "supportedNorm @ kirchhoffSharedAxisActiveBasis.js:63",
+          "ms": 470.539,
+          "percent": 1.3997332368246935
+        },
+        {
+          "name": "applySharedAxisNativeIncrement @ kirchhoffSharedAxisNative.js:317",
+          "ms": 416.379,
+          "percent": 1.2386210822393662
+        },
+        {
+          "name": "matrix @ kirchhoffSharedAxisMaterialTangent.js:6",
+          "ms": 413.381,
+          "percent": 1.2297027986454443
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:24",
+          "ms": 374.115,
+          "percent": 1.1128964865710818
+        },
+        {
+          "name": "makeRecord @ kirchhoffSharedAxisWallFriction.js:53",
+          "ms": 345.031,
+          "percent": 1.0263790215792121
+        },
+        {
+          "name": "evaluateSharedAxisBendLimit @ kirchhoffSharedAxisBendLimit.js:2",
+          "ms": 336.327,
+          "percent": 1.0004868466621017
+        },
+        {
+          "name": "assemble @ kirchhoffSharedAxisMaterialKernel.js:23",
+          "ms": 330.677,
+          "percent": 0.9836795410231228
+        },
+        {
+          "name": "js-to-wasm:iiiiiii: @ cea25de6:1",
+          "ms": 329.511,
+          "percent": 0.9802109890983354
+        },
+        {
+          "name": "wasm-function[0] @ cea25de6:1",
+          "ms": 324.511,
+          "percent": 0.9653372672939292
+        },
+        {
+          "name": "(anonymous) @ kirchhoffWallWitnessGeometry.js:35",
+          "ms": 308.541,
+          "percent": 0.917830599850656
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:95",
+          "ms": 302.335,
+          "percent": 0.899369336347027
+        },
+        {
+          "name": "applyKirchhoffMaterialProfile @ applyKirchhoffMaterialProfile.js:137",
+          "ms": 295.828,
+          "percent": 0.8800126747907728
+        },
+        {
+          "name": "discretizeKirchhoffProfile @ kirchhoffMaterialProfile.js:374",
+          "ms": 283.455,
+          "percent": 0.8432061628135894
+        },
+        {
+          "name": "add @ kirchhoffSharedAxisWallFriction.js:6",
+          "ms": 275.214,
+          "percent": 0.8186912945355671
+        },
+        {
+          "name": "prepareSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:45",
+          "ms": 266.332,
+          "percent": 0.79226961512222
+        },
+        {
+          "name": "correctTrialConstraints @ kirchhoffSharedAxisNative.js:327",
+          "ms": 260.045,
+          "percent": 0.7735673973253597
+        },
+        {
+          "name": "iterateSharedAxisProjection @ kirchhoffSharedAxisProjection.js:8",
+          "ms": 251.295,
+          "percent": 0.747538384167649
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:94",
+          "ms": 243.045,
+          "percent": 0.7229967431903788
+        },
+        {
+          "name": "frame @ kirchhoffSharedAxisNative.js:25",
+          "ms": 232.797,
+          "percent": 0.692511562980068
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:206",
+          "ms": 224.296,
+          "percent": 0.6672232611682166
+        },
+        {
+          "name": "commit @ kirchhoffSharedAxisDiscoveryCache.js:74",
+          "ms": 223.949,
+          "percent": 0.6661910248749908
+        },
+        {
+          "name": "commonPrimal @ kirchhoffSharedAxisMatrixAssembly.js:4",
+          "ms": 217.37,
+          "percent": 0.6466201817247532
+        },
+        {
+          "name": "lookup @ kirchhoffSharedAxisDiscoveryCache.js:27",
+          "ms": 204.791,
+          "percent": 0.6092008724092282
+        },
+        {
+          "name": "coarsenSharedAxisMesh @ kirchhoffSharedAxisAdaptiveMesh.js:68",
+          "ms": 203.752,
+          "percent": 0.6061101130182726
+        },
+        {
+          "name": "(program) @ :0",
+          "ms": 203.669,
+          "percent": 0.6058632092363194
+        },
+        {
+          "name": "scale @ kirchhoffSharedAxisWallFriction.js:7",
+          "ms": 203.581,
+          "percent": 0.6056014317325619
+        },
+        {
+          "name": "project @ kirchhoffSharedAxisWallFriction.js:8",
+          "ms": 201.289,
+          "percent": 0.5987833176574221
+        },
+        {
+          "name": "closestPointToPoint @ three.module.js:8405",
+          "ms": 200.453,
+          "percent": 0.5962964313717254
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:25",
+          "ms": 187.38,
+          "percent": 0.5574075983419251
+        },
+        {
+          "name": "rowSupportKey @ kirchhoffSharedAxisLinear.js:13",
+          "ms": 179.122,
+          "percent": 0.5328421594097679
+        },
+        {
+          "name": "sharedAxisBasisLinearization @ kirchhoffSharedAxisActiveBasis.js:11",
+          "ms": 174.455,
+          "percent": 0.5189590274775352
+        },
+        {
+          "name": "measureSharedAxisQuality @ kirchhoffSharedAxisDiagnostics.js:5",
+          "ms": 174.044,
+          "percent": 0.517736407545213
+        },
+        {
+          "name": "integrateScaledRigidity @ kirchhoffMaterialProfile.js:84",
+          "ms": 160.622,
+          "percent": 0.4778093887334651
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:15",
+          "ms": 152.996,
+          "percent": 0.4551239882373848
+        },
+        {
+          "name": "rotationalInertiaInto @ kirchhoffSharedAxisDynamics.js:13",
+          "ms": 150.71,
+          "percent": 0.44832372262841036
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:231",
+          "ms": 145.709,
+          "percent": 0.4334470260796433
+        },
+        {
+          "name": "#querySdf @ vesselContactField.js:2478",
+          "ms": 143.335,
+          "percent": 0.42638498296691124
+        },
+        {
+          "name": "#considerCenterlineSegment @ vesselContactField.js:2315",
+          "ms": 140.877,
+          "percent": 0.4190730613278652
+        },
+        {
+          "name": "dot @ kirchhoffSharedAxisWallFriction.js:4",
+          "ms": 134.87,
+          "percent": 0.40120377195205165
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDiagnostics.js:6",
+          "ms": 123.46,
+          "percent": 0.3672619387943968
+        },
+        {
+          "name": "integrateScalar @ kirchhoffMaterialProfile.js:73",
+          "ms": 120.373,
+          "percent": 0.35807890295235645
+        },
+        {
+          "name": "mapsFor @ kirchhoffSharedAxisMatrixAssembly.js:32",
+          "ms": 111.002,
+          "percent": 0.3302025735465384
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:6",
+          "ms": 108.459,
+          "percent": 0.32263779863681746
+        },
+        {
+          "name": "commitSharedAxisWallFriction @ kirchhoffSharedAxisWallFriction.js:191",
+          "ms": 108.293,
+          "percent": 0.32214399107291114
+        },
+        {
+          "name": "applyPreparedSharedAxisFixedMask @ kirchhoffSharedAxisMatrixAssembly.js:108",
+          "ms": 107.123,
+          "percent": 0.3186635401706801
+        },
+        {
+          "name": "restoreSharedAxisNative @ kirchhoffSharedAxisNative.js:311",
+          "ms": 107.042,
+          "percent": 0.31842258587744876
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisActiveBasis.js:21",
+          "ms": 106.038,
+          "percent": 0.315435942539124
+        },
+        {
+          "name": "extendSharedAxisNativeRows @ kirchhoffSharedAxisNative.js:241",
+          "ms": 105.915,
+          "percent": 0.3150700489827356
+        },
+        {
+          "name": "prepareOrder @ kirchhoffSharedAxisActiveBasis.js:37",
+          "ms": 100.539,
+          "percent": 0.2990778232986381
+        },
+        {
+          "name": "sharedAxisFrictionPotential @ kirchhoffSharedAxisWallFriction.js:18",
+          "ms": 96.582,
+          "percent": 0.28730675986263104
+        },
+        {
+          "name": "getBarycoord @ three.module.js:8199",
+          "ms": 90.25,
+          "percent": 0.2684706785695311
+        },
+        {
+          "name": "captureSharedAxisNative @ kirchhoffSharedAxisNative.js:308",
+          "ms": 88.086,
+          "percent": 0.26203333177258414
+        },
+        {
+          "name": "getBarycoord @ three.module.js:8361",
+          "ms": 84,
+          "percent": 0.2498785263140234
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisContacts.js:17",
+          "ms": 75.499,
+          "percent": 0.22459022450217206
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "ms": 74.584,
+          "percent": 0.22186833341196574
+        },
+        {
+          "name": "(anonymous) @ util:481",
+          "ms": 74.584,
+          "percent": 0.22186833341196574
+        },
+        {
+          "name": "fn @ util:480",
+          "ms": 74.584,
+          "percent": 0.22186833341196574
+        },
+        {
+          "name": "EndovascularRodBody @ endovascularPhysicsWorld.js:231",
+          "ms": 73.793,
+          "percent": 0.2195153106225087
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:37",
+          "ms": 73.25,
+          "percent": 0.21790002443455017
+        },
+        {
+          "name": "hessianBuffer @ kirchhoffSharedAxisConstraintRows.js:50",
+          "ms": 72.582,
+          "percent": 0.21591289520148152
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:194",
+          "ms": 69.46,
+          "percent": 0.20662574330681033
+        },
+        {
+          "name": "orient @ kirchhoffSharedAxisNative.js:32",
+          "ms": 69.374,
+          "percent": 0.20636991529177454
+        },
+        {
+          "name": "#writeSdfValue @ vesselContactField.js:2800",
+          "ms": 68.958,
+          "percent": 0.20513242163764794
+        },
+        {
+          "name": "integrate @ kirchhoffMaterialProfile.js:149",
+          "ms": 68.373,
+          "percent": 0.20339219618653243
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:309",
+          "ms": 67.962,
+          "percent": 0.20216957625421023
+        },
+        {
+          "name": "sharedAxisMaterialKernelWorkspace @ kirchhoffSharedAxisMaterialKernel.js:8",
+          "ms": 64.457,
+          "percent": 0.1917430972693215
+        },
+        {
+          "name": "vec @ kirchhoffSharedAxisNative.js:20",
+          "ms": 60.165,
+          "percent": 0.17897549447241928
+        },
+        {
+          "name": "toArray @ three.module.js:4558",
+          "ms": 58.501,
+          "percent": 0.1740255198559129
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:280",
+          "ms": 56.623,
+          "percent": 0.16843894994617795
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:4",
+          "ms": 56.165,
+          "percent": 0.16707651702889434
+        },
+        {
+          "name": "rotate @ kirchhoffSharedAxisWallFriction.js:10",
+          "ms": 56.085,
+          "percent": 0.16683853748002384
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:209",
+          "ms": 54.375,
+          "percent": 0.16175172462291695
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:281",
+          "ms": 53.04,
+          "percent": 0.1577804409011405
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:230",
+          "ms": 52.751,
+          "percent": 0.15692073978084584
+        },
+        {
+          "name": "(anonymous) @ kirchhoffMaterialProfile.js:92",
+          "ms": 52.209,
+          "percent": 0.1553084283372482
+        },
+        {
+          "name": "certificate @ kirchhoffSharedAxisWallFriction.js:12",
+          "ms": 51.666,
+          "percent": 0.1536931421492897
+        },
+        {
+          "name": "cross @ kirchhoffSharedAxisWallFriction.js:5",
+          "ms": 50.792,
+          "percent": 0.1510932155778795
+        },
+        {
+          "name": "repeatedSharedAxisDual @ kirchhoffSharedAxisLinear.js:25",
+          "ms": 48.502,
+          "percent": 0.14428105099146146
+        },
+        {
+          "name": "prepareSharedAxisDynamicStep @ kirchhoffSharedAxisDynamics.js:42",
+          "ms": 48.499,
+          "percent": 0.14427212675837883
+        },
+        {
+          "name": "violation @ kirchhoffSharedAxisNative.js:380",
+          "ms": 48.083,
+          "percent": 0.14303463310425224
+        },
+        {
+          "name": "tangent @ kirchhoffSharedAxisNative.js:26",
+          "ms": 44.041,
+          "percent": 0.1310107163975703
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:105",
+          "ms": 43.835,
+          "percent": 0.13039791905922876
+        },
+        {
+          "name": "key @ kirchhoffSharedAxisNative.js:204",
+          "ms": 42.46,
+          "percent": 0.12630764556301707
+        },
+        {
+          "name": "sample @ kirchhoffMaterialProfile.js:138",
+          "ms": 40.209,
+          "percent": 0.11961149600667342
+        },
+        {
+          "name": "EI @ kirchhoffMaterialProfile.js:213",
+          "ms": 40.083,
+          "percent": 0.1192366782172024
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:428",
+          "ms": 39.248,
+          "percent": 0.11675276667586656
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:234",
+          "ms": 36.876,
+          "percent": 0.10969667305185628
+        },
+        {
+          "name": "begin @ kirchhoffSharedAxisDiscoveryCache.js:51",
+          "ms": 35.708,
+          "percent": 0.106222171638347
+        },
+        {
+          "name": "completeSharedAxisDynamicStep @ kirchhoffSharedAxisDynamics.js:118",
+          "ms": 35.496,
+          "percent": 0.10559152583384018
+        },
+        {
+          "name": "interpolate @ kirchhoffSharedAxisNative.js:39",
+          "ms": 34.417,
+          "percent": 0.10238177666844933
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:74",
+          "ms": 34.003,
+          "percent": 0.1011502325030445
+        },
+        {
+          "name": "canMerge @ kirchhoffSharedAxisAdaptiveMesh.js:78",
+          "ms": 32.708,
+          "percent": 0.0972979385557033
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:121",
+          "ms": 32.621,
+          "percent": 0.09703913579630664
+        },
+        {
+          "name": "Vector3 @ three.module.js:3899",
+          "ms": 31.54,
+          "percent": 0.09382343714219403
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:46",
+          "ms": 29.791,
+          "percent": 0.08862060925501275
+        },
+        {
+          "name": "Memory @ :0",
+          "ms": 29.207,
+          "percent": 0.08688335854825811
+        },
+        {
+          "name": "captureRestConfiguration @ endovascularPhysicsWorld.js:891",
+          "ms": 27.666,
+          "percent": 0.08229927748814014
+        },
+        {
+          "name": "rotate3 @ kirchhoffSharedAxisDynamics.js:8",
+          "ms": 27.125,
+          "percent": 0.08068994078890339
+        },
+        {
+          "name": "compactExactNonzeros @ kirchhoffSharedAxisActiveBasis.js:59",
+          "ms": 26.708,
+          "percent": 0.07944947239041592
+        },
+        {
+          "name": "captureKirchhoffRestConfiguration @ endovascularPhysicsWorld.js:846",
+          "ms": 26.457,
+          "percent": 0.07870281155583474
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:424",
+          "ms": 26.457,
+          "percent": 0.07870281155583474
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:323",
+          "ms": 25.125,
+          "percent": 0.07474045206714093
+        },
+        {
+          "name": "sharedAxisConstraintEdgeGeometry @ kirchhoffSharedAxisConstraintRows.js:15",
+          "ms": 24.957,
+          "percent": 0.07424069501451289
+        },
+        {
+          "name": "quaternionExp @ discreteKirchhoffRod.js:110",
+          "ms": 24.125,
+          "percent": 0.0717657077062597
+        },
+        {
+          "name": "point @ kirchhoffSharedAxisWallFriction.js:11",
+          "ms": 22.624,
+          "percent": 0.06730061642057697
+        },
+        {
+          "name": "discover @ kirchhoffSharedAxisNative.js:372",
+          "ms": 22.373,
+          "percent": 0.06655395558599578
+        },
+        {
+          "name": "coefficient @ kirchhoffSharedAxisMaterialTangent.js:14",
+          "ms": 21.336,
+          "percent": 0.06346914568376194
+        },
+        {
+          "name": "setContact @ vesselContactField.js:81",
+          "ms": 20.418,
+          "percent": 0.06073833036047298
+        },
+        {
+          "name": "setFromUnitVectors @ three.module.js:3564",
+          "ms": 19.791,
+          "percent": 0.058873165646200445
+        },
+        {
+          "name": "adaptiveContactKnots @ kirchhoffSharedAxisAdaptiveMesh.js:34",
+          "ms": 19.791,
+          "percent": 0.058873165646200445
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:236",
+          "ms": 19.084,
+          "percent": 0.056770021383057416
+        },
+        {
+          "name": "syncNativePositions @ kirchhoffSharedAxisNative.js:178",
+          "ms": 18.164,
+          "percent": 0.054033256571046684
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:314",
+          "ms": 17.501,
+          "percent": 0.052061001059782425
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:12",
+          "ms": 17.374,
+          "percent": 0.05168320852595051
+        },
+        {
+          "name": "workspaceFor @ kirchhoffSharedAxisActiveBasis.js:25",
+          "ms": 16.459,
+          "percent": 0.04896131743574418
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:143",
+          "ms": 16.291,
+          "percent": 0.04846156038311614
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:93",
+          "ms": 16.252,
+          "percent": 0.048345545353041766
+        },
+        {
+          "name": "validateExtraForce @ kirchhoffSharedAxisLinear.js:34",
+          "ms": 16.249,
+          "percent": 0.04833662111995912
+        },
+        {
+          "name": "Instance @ :0",
+          "ms": 16.126,
+          "percent": 0.047970727563570736
+        },
+        {
+          "name": "preserveSharedAxisBends @ kirchhoffSharedAxisRemesh.js:4",
+          "ms": 15.413,
+          "percent": 0.04584973483426241
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:208",
+          "ms": 14.875,
+          "percent": 0.044249322368108315
+        },
+        {
+          "name": "geometricTransition @ kirchhoffMaterialProfile.js:68",
+          "ms": 14.874,
+          "percent": 0.044246347623747434
+        },
+        {
+          "name": "addScaledVector @ three.module.js:4029",
+          "ms": 14.749,
+          "percent": 0.04387450457863728
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:284",
+          "ms": 14.292,
+          "percent": 0.04251504640571455
+        },
+        {
+          "name": "observe @ kirchhoffSharedAxisCycleGuard.js:10",
+          "ms": 13.917,
+          "percent": 0.041399517270384094
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:385",
+          "ms": 13.791,
+          "percent": 0.04102469948091306
+        },
+        {
+          "name": "Quaternion @ three.module.js:3217",
+          "ms": 13.75,
+          "percent": 0.04090273496211693
+        },
+        {
+          "name": "GJ @ kirchhoffMaterialProfile.js:222",
+          "ms": 13.624,
+          "percent": 0.040527917172645894
+        },
+        {
+          "name": "finish @ kirchhoffSharedAxisLinear.js:282",
+          "ms": 12.125,
+          "percent": 0.036068775375684925
+        },
+        {
+          "name": "(anonymous) @ applyKirchhoffMaterialProfile.js:63",
+          "ms": 12,
+          "percent": 0.03569693233057478
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:233",
+          "ms": 11.458,
+          "percent": 0.03408462088697715
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:97",
+          "ms": 11.375,
+          "percent": 0.03383771710502401
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:426",
+          "ms": 11.333,
+          "percent": 0.03371277784186699
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:507",
+          "ms": 11.126,
+          "percent": 0.03309700575916458
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:80",
+          "ms": 10,
+          "percent": 0.02974744360881231
+        },
+        {
+          "name": "assembleSharedAxisGaussNewton @ kirchhoffSharedAxisGaussNewton.js:25",
+          "ms": 9.5,
+          "percent": 0.028260071428371697
+        },
+        {
+          "name": "multiplyQuaternions @ three.module.js:3711",
+          "ms": 9.459,
+          "percent": 0.028138106909575564
+        },
+        {
+          "name": "now @ performance:137",
+          "ms": 8.999,
+          "percent": 0.026769724503570198
+        },
+        {
+          "name": "createSharedAxisVesselWitness @ kirchhoffSharedAxisVesselWitnesses.js:37",
+          "ms": 8.959,
+          "percent": 0.02665073472913495
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:75",
+          "ms": 8.958,
+          "percent": 0.026647759984774068
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:380",
+          "ms": 8.833,
+          "percent": 0.026275916939663916
+        },
+        {
+          "name": "transportBishopFrame @ discreteKirchhoffRod.js:392",
+          "ms": 8.75,
+          "percent": 0.02602901315771077
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:84",
+          "ms": 8.749,
+          "percent": 0.02602603841334989
+        },
+        {
+          "name": "bound @ kirchhoffSharedAxisActiveBasis.js:148",
+          "ms": 8.707,
+          "percent": 0.02590109915019288
+        },
+        {
+          "name": "positiveRigidity @ kirchhoffMaterialProfile.js:50",
+          "ms": 8.667,
+          "percent": 0.02578210937575763
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDiagnostics.js:14",
+          "ms": 8.584,
+          "percent": 0.025535205593804487
+        },
+        {
+          "name": "prepareDiscretizationArray @ kirchhoffMaterialProfile.js:349",
+          "ms": 8.293,
+          "percent": 0.02466955498478805
+        },
+        {
+          "name": "premultiply @ three.module.js:3705",
+          "ms": 8.167,
+          "percent": 0.024294737195317016
+        },
+        {
+          "name": "sharedAxisFrictionNormalDerivative @ kirchhoffSharedAxisWallFriction.js:39",
+          "ms": 7.916,
+          "percent": 0.023548076360735824
+        },
+        {
+          "name": "applyQuaternion @ three.module.js:4145",
+          "ms": 7.666,
+          "percent": 0.022804390270515517
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:301",
+          "ms": 7.625,
+          "percent": 0.022682425751719387
+        },
+        {
+          "name": "getSharedAxisLinearScratchStats @ kirchhoffSharedAxisLinear.js:11",
+          "ms": 7.542,
+          "percent": 0.022435521969766246
+        },
+        {
+          "name": "getViews @ kirchhoffCoulombBandLU.js:17",
+          "ms": 7.542,
+          "percent": 0.022435521969766246
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:38",
+          "ms": 7.5,
+          "percent": 0.022310582706609232
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:96",
+          "ms": 7.335,
+          "percent": 0.02181974988706383
+        },
+        {
+          "name": "createSharedAxisLayout @ kirchhoffSharedAxisLinear.js:64",
+          "ms": 7.333,
+          "percent": 0.02181380039834207
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:84",
+          "ms": 6.792,
+          "percent": 0.02020446369910532
+        },
+        {
+          "name": "retainAdaptiveShapeSamples @ kirchhoffSharedAxisAdaptiveMesh.js:47",
+          "ms": 6.667,
+          "percent": 0.01983262065399517
+        },
+        {
+          "name": "toArray @ three.module.js:3846",
+          "ms": 6.417,
+          "percent": 0.01908893456377486
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:44",
+          "ms": 6.376,
+          "percent": 0.01896697004497873
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:111",
+          "ms": 6.333,
+          "percent": 0.018839056037460836
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:193",
+          "ms": 6.292,
+          "percent": 0.018717091518664707
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:45",
+          "ms": 6.292,
+          "percent": 0.018717091518664707
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:137",
+          "ms": 6.291,
+          "percent": 0.018714116774303825
+        },
+        {
+          "name": "violation @ kirchhoffSharedAxisRemesh.js:7",
+          "ms": 6.29,
+          "percent": 0.018711142029942944
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:71",
+          "ms": 6.208,
+          "percent": 0.018467212992350684
+        },
+        {
+          "name": "adaptiveMeshOptions @ kirchhoffSharedAxisAdaptiveMesh.js:12",
+          "ms": 6.125,
+          "percent": 0.01822030921039754
+        },
+        {
+          "name": "createKirchhoffWallWitnessGeometryWorkspace @ kirchhoffWallWitnessGeometry.js:3",
+          "ms": 6.001,
+          "percent": 0.01785144090964827
+        },
+        {
+          "name": "copy @ three.module.js:3989",
+          "ms": 5.875,
+          "percent": 0.017476623120177233
+        },
+        {
+          "name": "(anonymous) @ validators:536",
+          "ms": 5.501,
+          "percent": 0.01636406872920765
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:226",
+          "ms": 5.374,
+          "percent": 0.015986276195375737
+        },
+        {
+          "name": "now @ :0",
+          "ms": 5.125,
+          "percent": 0.01524556484951631
+        },
+        {
+          "name": "matches @ kirchhoffSharedAxisCycleGuard.js:13",
+          "ms": 5.042,
+          "percent": 0.014998661067563167
+        },
+        {
+          "name": "materialFrameDirectors @ discreteKirchhoffRod.js:317",
+          "ms": 5.042,
+          "percent": 0.014998661067563167
+        },
+        {
+          "name": "EI @ kirchhoffMaterialProfile.js:200",
+          "ms": 5.041,
+          "percent": 0.014995686323202286
+        },
+        {
+          "name": "quat @ kirchhoffSharedAxisWallFriction.js:9",
+          "ms": 5,
+          "percent": 0.014873721804406156
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDiagnostics.js:12",
+          "ms": 5,
+          "percent": 0.014873721804406156
+        },
+        {
+          "name": "sharedAxisOuterMaterialAt @ kirchhoffSharedAxisNative.js:161",
+          "ms": 4.917,
+          "percent": 0.014626818022453013
+        },
+        {
+          "name": "rotateSharedAxisNative @ kirchhoffSharedAxisNative.js:251",
+          "ms": 4.916,
+          "percent": 0.014623843278092132
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:449",
+          "ms": 4.834,
+          "percent": 0.01437991424049987
+        },
+        {
+          "name": "visit @ kirchhoffSharedAxisDiscoveryCache.js:61",
+          "ms": 4.749,
+          "percent": 0.014127060969824967
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:99",
+          "ms": 3.834,
+          "percent": 0.01140516987961864
+        },
+        {
+          "name": "sampleKappa01 @ kirchhoffMaterialProfile.js:120",
+          "ms": 3.834,
+          "percent": 0.01140516987961864
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisMaterialKernel.js:20",
+          "ms": 3.834,
+          "percent": 0.01140516987961864
+        },
+        {
+          "name": "acquire @ kirchhoffSharedAxisConstraintRows.js:39",
+          "ms": 3.833,
+          "percent": 0.011402195135257759
+        },
+        {
+          "name": "quaternionLog @ discreteKirchhoffRod.js:149",
+          "ms": 3.792,
+          "percent": 0.011280230616461629
+        },
+        {
+          "name": "GJ @ kirchhoffMaterialProfile.js:201",
+          "ms": 3.792,
+          "percent": 0.011280230616461629
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:92",
+          "ms": 3.751,
+          "percent": 0.011158266097665497
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:94",
+          "ms": 3.75,
+          "percent": 0.011155291353304616
+        },
+        {
+          "name": "setFromAxisAngle @ three.module.js:3487",
+          "ms": 3.75,
+          "percent": 0.011155291353304616
+        },
+        {
+          "name": "shortestArcQuaternion @ discreteKirchhoffRod.js:367",
+          "ms": 3.708,
+          "percent": 0.011030352090147605
+        },
+        {
+          "name": "distance @ kirchhoffSharedAxisAdaptiveMesh.js:77",
+          "ms": 3.666,
+          "percent": 0.010905412826990594
+        },
+        {
+          "name": "createBishopFrame @ discreteKirchhoffRod.js:337",
+          "ms": 3.542,
+          "percent": 0.010536544526241321
+        },
+        {
+          "name": "(anonymous) @ kirchhoffMaterialProfile.js:192",
+          "ms": 3.208,
+          "percent": 0.009542979909706989
+        },
+        {
+          "name": "sharedAxisOuterIntervals @ kirchhoffSharedAxisNative.js:169",
+          "ms": 2.583,
+          "percent": 0.0076837646841562204
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:113",
+          "ms": 2.583,
+          "percent": 0.0076837646841562204
+        },
+        {
+          "name": "addHessian @ kirchhoffSharedAxisMatrixAssembly.js:44",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisMatrixAssembly.js:39",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisMatrixAssembly.js:40",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "createSharedAxisConstraintRowPool @ kirchhoffSharedAxisConstraintRows.js:37",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:7",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "get @ util:651",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:112",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "result @ kirchhoffSharedAxisAppSystem.js:158",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "activeMaterialCoordinates @ applyKirchhoffMaterialProfile.js:74",
+          "ms": 2.5,
+          "percent": 0.007436860902203078
+        },
+        {
+          "name": "get signedGap @ vesselContactField.js:211",
+          "ms": 2.459,
+          "percent": 0.007314896383406947
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:68",
+          "ms": 2.459,
+          "percent": 0.007314896383406947
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:139",
+          "ms": 2.458,
+          "percent": 0.007311921639046066
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:98",
+          "ms": 2.458,
+          "percent": 0.007311921639046066
+        },
+        {
+          "name": "dispatch @ :0",
+          "ms": 2.417,
+          "percent": 0.007189957120249935
+        },
+        {
+          "name": "sharedAxisPositionDofMask @ kirchhoffSharedAxisConstraintRows.js:5",
+          "ms": 2.416,
+          "percent": 0.007186982375889054
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:146",
+          "ms": 2.375,
+          "percent": 0.007065017857092924
+        },
+        {
+          "name": "subVectors @ three.module.js:4059",
+          "ms": 2.375,
+          "percent": 0.007065017857092924
+        },
+        {
+          "name": "integrateBerensteinSmoothInterval @ catheterMaterialProfile.js:227",
+          "ms": 2.291,
+          "percent": 0.0068151393307789
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:107",
+          "ms": 1.875,
+          "percent": 0.005577645676652308
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:235",
+          "ms": 1.875,
+          "percent": 0.005577645676652308
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:69",
+          "ms": 1.375,
+          "percent": 0.004090273496211693
+        },
+        {
+          "name": "incrementalStats @ kirchhoffSharedAxisLinear.js:366",
+          "ms": 1.375,
+          "percent": 0.004090273496211693
+        },
+        {
+          "name": "(anonymous) @ profile-shared-axis-dynamic.mjs:130",
+          "ms": 1.333,
+          "percent": 0.0039653342330546815
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:44",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisBendLimit.js:11",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "add @ kirchhoffSharedAxisDynamics.js:66",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:71",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:98",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "consoleCall @ :0",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "#sdfInsideValue @ vesselContactField.js:2830",
+          "ms": 1.292,
+          "percent": 0.0038433697142585504
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:11",
+          "ms": 1.291,
+          "percent": 0.0038403949698976696
+        },
+        {
+          "name": "quaternionFromBasis @ discreteKirchhoffRod.js:272",
+          "ms": 1.291,
+          "percent": 0.0038403949698976696
+        },
+        {
+          "name": "slerp @ three.module.js:3729",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisProjection.js:31",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:437",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "berensteinIntrinsicCurvature @ catheterMaterialProfile.js:207",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "close @ kirchhoffSharedAxisCycleGuard.js:7",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "get z @ three.module.js:3355",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "guidewireMaterialProfile @ guidewireMaterialProfile.js:138",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisTimeStep.js:34",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisNative.js:135",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisDynamics.js:120",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "invert @ three.module.js:3633",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "crossVectors @ discreteKirchhoffRod.js:44",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "tipLength @ kirchhoffSharedAxisAdaptiveMesh.js:20",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:73",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "get y @ three.module.js:3342",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "createSharedAxisCycleGuard @ kirchhoffSharedAxisCycleGuard.js:4",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "get x @ three.module.js:3329",
+          "ms": 1.25,
+          "percent": 0.003718430451101539
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisLinear.js:209",
+          "ms": 1.208,
+          "percent": 0.003593491187944527
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisAdaptiveMesh.js:77",
+          "ms": 1.125,
+          "percent": 0.003346587405991385
+        },
+        {
+          "name": "integrateBerensteinIntrinsicTurn @ catheterMaterialProfile.js:240",
+          "ms": 1.041,
+          "percent": 0.0030967088796773614
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisWallFriction.js:91",
+          "ms": 0.125,
+          "percent": 0.0003718430451101539
+        },
+        {
+          "name": "sampleTip @ profile-shared-axis-dynamic.mjs:169",
+          "ms": 0.083,
+          "percent": 0.0002469037819531422
+        },
+        {
+          "name": "(anonymous) @ kirchhoffSharedAxisBendLimit.js:3",
+          "ms": 0.041,
+          "percent": 0.00012196451879613047
+        }
+      ]
+    }
+  }
+]

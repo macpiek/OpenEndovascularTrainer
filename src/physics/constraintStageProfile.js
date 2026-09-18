@@ -33,8 +33,8 @@ export class ConstraintStageProfile {
         field.maximum = Math.max(field.maximum, value);
     }
     record(world,{fullStepCpuMs}={}) {
-        if(world.wholeStepSystem?.id==='shared-axis') {
-            this.mode='shared-axis';
+        if(['shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(world.wholeStepSystem?.id)) {
+            this.mode=world.wholeStepSystem.id;
             const result=world.lastStepResult;
             if(!result||result===this.lastResult)return false;
             this.lastResult=result;
@@ -74,7 +74,7 @@ export class ConstraintStageProfile {
     }
     report() {
         const count = Math.min(this.steps, this.capacity);
-        return {mode:this.mode,timingSource:this.timingSource,lineSearch:this.mode==='shared-axis'?null:structuredClone(this.lineSearch), steps: this.steps, failedSteps: this.failedSteps, percentileSteps: count,
+        return {mode:this.mode,timingSource:this.timingSource,lineSearch:['shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(this.mode)?null:structuredClone(this.lineSearch), steps: this.steps, failedSteps: this.failedSteps, percentileSteps: count,
             pendingSlices:this.pendingSlices,sleepingSteps:this.sleepingSteps,solverSteps:this.solverSteps,firstFailure:this.firstFailure?{...this.firstFailure}:null,
             fields: Object.fromEntries(KEYS.map(key => {
                 const field = this.fields[key];
@@ -103,6 +103,7 @@ export function recordSharedAxisQuality(envelope,result) {
     if(result.status==='sleeping'){envelope.sleepingSteps++;return true;}
     envelope.solverSteps++;
     const last=result.diagnostics?.last,q=last?.quality;
+    if(last?.pd)envelope.maxCertifiedResidual=null;
     if(!q||!q.bodies?.length||!Number.isFinite(q.maxPenetration)) {
         envelope.missingQualitySteps++;envelope.finite=false;return false;
     }

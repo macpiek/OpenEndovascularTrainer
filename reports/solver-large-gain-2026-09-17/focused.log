@@ -1,0 +1,16 @@
+✔ pruning keeps nearest/tied faces, loaded rows, friction memory and missing measurements (5.942917ms)
+✔ a different physical site or owner cannot dominate a witness; incomplete discovery disables pruning (0.690667ms)
+✔ pruning is confined to the private feed candidate; reactions and friction history survive (2.897542ms)
+✔ pruned witness solve retains certificates, local shape and cancellation: anatomy-berenstein-feed-138.67-live-cycle (774.613208ms)
+✔ pruned witness solve retains certificates, local shape and cancellation: anatomy-pigtail-wire-withdraw-200.27-incoming (353.136833ms)
+✔ solver navigation preserves unrelated URL parameters and selects a clean restart (0.755542ms)
+✔ node overlay uses accepted mechanical positions, supports legacy bodies and clears reset views (0.86625ms)
+✔ contact pruning URL is explicit, reversible and independent of Newton mode (0.152791ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2880.2905

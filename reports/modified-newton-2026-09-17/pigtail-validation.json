@@ -1,0 +1,59 @@
+{
+  "steps": 1096,
+  "failed": false,
+  "allFinite": true,
+  "maxPenetrationMm": 9.014337196550093e-7,
+  "maxCertifiedResidual": 0.000099279439723432,
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 300,
+    "catheterTarget": 200,
+    "adaptiveMesh": true,
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "modifiedNewton": true,
+      "stagnationFallback": true,
+      "reuseRowBuffers": true,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 9.6,
+        "tipStiffness": 6.8
+      },
+      {
+        "id": "catheter",
+        "type": "pigtail",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 66.8
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "sourceTreeHash": "7cf8019d95c31d28c0bf4f772400b82faa5fe95d40a0faf5a5ce101b81fc08ea",
+  "note": "Pigtail functional validation only; no reference timing comparison."
+}

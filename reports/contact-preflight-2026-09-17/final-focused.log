@@ -1,0 +1,17 @@
+✔ discovery preflight skips material only on a complete restart and never duplicates geometry queries (8.520167ms)
+✔ geometry failure before discovery preserves query order, partial pending rows and error priority (0.937833ms)
+✔ geometry failure after discovery preserves query order, partial pending rows and error priority (0.929708ms)
+✔ unmarked custom samplers retain the original assembly order (0.451625ms)
+✔ prepared geometry preserves defensive copies for a marked sampler with reused output (2.131584ms)
+✔ early contact preflight preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (908.471666ms)
+✔ early contact preflight preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (263.305541ms)
+✔ one discovery sweep retains every already sampled near-wall site instead of only the capsule winner (5.371834ms)
+✔ indexed discovery matches the scan through duplicate samples, rollback, withdrawal and reinsertion (7.49ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3281.546208

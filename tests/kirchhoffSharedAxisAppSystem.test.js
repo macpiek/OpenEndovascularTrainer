@@ -10,7 +10,7 @@ import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js
 import {createPreparedInputCheckpoint} from '../src/physics/preparedInputCheckpoint.js';
 
 const dt=1/120;
-function fixture({workSliceMs=0,origin=[127,-83,29]}={}) {
+function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false}={}) {
     const controls={reads:0,queries:0,throwQuery:false};
     const world=new EndovascularPhysicsWorld({fixedDt:dt});
     const tools=['wire','catheter'].map(id=>{
@@ -23,7 +23,7 @@ function fixture({workSliceMs=0,origin=[127,-83,29]}={}) {
         if(controls.throwQuery)throw new Error('synthetic contact query failed');
         Object.assign(out,{signedDistance:100,signedGap:100-r[edge],segmentT:.5,faceIndex:0});return out;
     }};
-    const system=createSharedAxisAppSystem({workSliceMs,
+    const system=createSharedAxisAppSystem({workSliceMs,adaptiveMesh,projectiveDynamics,
         readTools(){controls.reads++;return tools.map(t=>({...t,nodeCoordinates:t.nodeCoordinates.slice()}));},
         readSheath:()=>({start:origin,end:[origin[0]+10,origin[1],origin[2]],innerRadius:2,proximalExtension:40})});
     world.wholeStepSystem=system;
@@ -40,6 +40,95 @@ function finish(f,{maxSlices=1000,onPending=()=>{}}={}) {
 const positions=body=>Array.from({length:body.count},(_,i)=>[body.x[i],body.y[i],body.z[i]]);
 const frame=body=>new Quaternion(body.orientationX[0],body.orientationY[0],body.orientationZ[0],body.orientationW[0]);
 const close=(a,b,tol=1e-6)=>assert.ok(Math.abs(a-b)<tol,`${a} vs ${b}`);
+
+test('adaptive provider publishes actual mechanical nodes atomically and clears mesh diagnostics on reset',()=>{
+    const f=fixture({adaptiveMesh:true});finish(f);
+    assert.equal(f.system.diagnostics.solver,'shared-axis-adaptive');
+    assert.equal(f.system.diagnostics.mesh.adaptive,true);
+    assert.equal(f.system.diagnostics.mesh.nodes,f.tools[0].body.jointStateView.coordinates.length);
+    const views=f.tools.map(t=>t.body.jointStateView);
+    f.tools[0].insertion=3;f.tools[1].insertion=1;
+    finish(f,{onPending:()=>f.tools.forEach((t,i)=>assert.equal(t.body.jointStateView,views[i]))});
+    assert.deepEqual(f.tools.map(t=>t.body.jointStateView.coordinates.at(-1)),[3,1]);
+    f.system.reset();assert.equal(f.system.diagnostics.mesh,null);
+    assert.ok(f.tools.every(t=>t.body.jointStateView===null));
+});
+
+test('adaptive tolerance changes preserve a pending step and wake an unchanged sleeping state',()=>{
+    const f=fixture({adaptiveMesh:true});finish(f);
+    const initializations=f.system.diagnostics.initializations;
+    f.tools[0].insertion=3;f.tools[1].insertion=1;
+    assert.equal(f.system.step(f.world,dt).pending,true);
+    f.system.setAdaptiveShapeTolerance(.45);
+    finish(f);
+    assert.equal(f.system.diagnostics.mesh.shapeTolerance,.15,'pending step retains its original budget');
+    finish(f);
+    assert.equal(f.system.diagnostics.mesh.shapeTolerance,.45);
+    assert.deepEqual(f.tools.map(t=>t.body.jointStateView.coordinates.at(-1)),[3,1]);
+    let result;
+    for(let i=0;i<100;i++){result=finish(f);if(result.status==='sleeping')break;}
+    assert.equal(result.status,'sleeping');
+    f.system.setAdaptiveShapeTolerance(.01);
+    assert.equal(finish(f).status,'converged','a new budget invalidates sleep');
+    assert.equal(f.system.diagnostics.mesh.shapeTolerance,.01);
+    assert.equal(f.system.diagnostics.initializations,initializations,'changing the budget does not reset tools');
+    assert.throws(()=>f.system.setAdaptiveShapeTolerance(NaN),/Invalid/);
+    assert.throws(()=>f.system.setAdaptiveShapeTolerance(0),/Invalid/);
+    assert.equal(fixture().system.setAdaptiveShapeTolerance(.5),false,'reference mesh is unchanged');
+});
+
+test('contact margin applies after a pending solve and wakes a sleeping adaptive provider',()=>{
+    const f=fixture({adaptiveMesh:true});finish(f);
+    f.tools[0].insertion=3;
+    assert.equal(f.system.step(f.world,dt).pending,true);
+    f.system.setAdaptiveContactMargin(0);
+    finish(f);
+    assert.equal(f.system.diagnostics.mesh.contactMargin,1);
+    finish(f);
+    assert.equal(f.system.diagnostics.mesh.contactMargin,0);
+    assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),3);
+    let result;
+    for(let i=0;i<100;i++){result=finish(f);if(result.status==='sleeping')break;}
+    assert.equal(result.status,'sleeping');
+    f.system.setAdaptiveContactMargin(.25);
+    assert.equal(finish(f).status,'converged');
+    assert.equal(f.system.diagnostics.mesh.contactMargin,.25);
+    assert.equal(f.system.diagnostics.initializations,1);
+    assert.throws(()=>f.system.setAdaptiveContactMargin(-1),/Invalid/);
+    assert.throws(()=>f.system.setAdaptiveContactMargin(Infinity),/Invalid/);
+    assert.equal(fixture().system.setAdaptiveContactMargin(0),false);
+});
+
+test('arc-loss and spacing controls are frozen during a pending step and wake sleeping physics',()=>{
+    const f=fixture({adaptiveMesh:true});finish(f);
+    f.tools[0].insertion=3;
+    assert.equal(f.system.step(f.world,dt).pending,true);
+    f.system.setAdaptiveMaxArcLoss(.05);
+    f.system.setAdaptiveMaxSpacing(50);
+    finish(f);
+    assert.equal(f.system.diagnostics.mesh.maxArcLoss,.002);
+    assert.equal(f.system.diagnostics.mesh.maxAllowedSpacing,20);
+    finish(f);
+    assert.equal(f.system.diagnostics.mesh.maxArcLoss,.05);
+    assert.equal(f.system.diagnostics.mesh.maxAllowedSpacing,50);
+    assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),3);
+    for(const [setter,value,field] of [
+        ['setAdaptiveMaxArcLoss',0,'maxArcLoss'],['setAdaptiveMaxSpacing',5,'maxAllowedSpacing']
+    ]) {
+        let result;
+        for(let i=0;i<100;i++){result=finish(f);if(result.status==='sleeping')break;}
+        assert.equal(result.status,'sleeping');
+        f.system[setter](value);
+        assert.equal(finish(f).status,'converged');
+        assert.equal(f.system.diagnostics.mesh[field],value);
+    }
+    assert.equal(f.system.diagnostics.initializations,1);
+    assert.throws(()=>f.system.setAdaptiveMaxSpacing(4),/spacing/);
+    assert.throws(()=>f.system.setAdaptiveMaxSpacing(NaN),/Invalid/);
+    assert.throws(()=>f.system.setAdaptiveMaxArcLoss(1),/Invalid/);
+    assert.equal(fixture().system.setAdaptiveMaxArcLoss(.1),false);
+    assert.equal(fixture().system.setAdaptiveMaxSpacing(50),false);
+});
 
 test('shared-axis selection installs its whole-step provider without the split coupled kernel',()=>{
     const f=fixture(),selection=createCoupledSolverSelection('shared-axis',{wholeStepSystem:f.system});
@@ -270,4 +359,16 @@ test('rejection records the accepted state and frozen command; replay survives J
     f.system.getLastFailure().positions[0][0]=999;
     f.controls.throwQuery=false;f.tools[0].insertion=10;finish(f);f.system.reset();
     assert.deepEqual(JSON.parse(JSON.stringify(f.system.getLastFailure())),report);
+});
+
+
+test('PD provider publishes only complete steps and keeps its solver identity and actual DOF count',()=>{
+    const f=fixture({adaptiveMesh:true,projectiveDynamics:true});finish(f);
+    assert.equal(f.system.id,'shared-axis-projective');assert.equal(f.system.diagnostics.modifiedNewton,false);
+    assert.ok(f.system.diagnostics.last.pd);assert.equal(f.system.diagnostics.mesh.dofs,f.system.diagnostics.last.pd.dofs);
+    const views=f.tools.map(t=>t.body.jointStateView);
+    f.tools[0].insertion=3;f.tools[1].insertion=1;
+    finish(f,{onPending:()=>f.tools.forEach((t,i)=>assert.equal(t.body.jointStateView,views[i]))});
+    assert.deepEqual(f.tools.map(t=>t.body.jointStateView.coordinates.at(-1)),[3,1]);
+    f.system.reset();assert.equal(f.system.diagnostics.last,null);assert.ok(f.tools.every(t=>!t.body.jointStateView));
 });

@@ -2382,6 +2382,17 @@ canvas {
     margin: 8px 0;
 }
 
+#debugSolverHelp, .debug-solver-note {
+    margin: 2px 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #b8c7d6;
+}
+
+#debugSolverSelect, #applyDebugSolver {
+    min-height: 32px;
+}
+
 .browser-benchmark-actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

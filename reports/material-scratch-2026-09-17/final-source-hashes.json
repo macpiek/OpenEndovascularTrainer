@@ -1,0 +1,9 @@
+{
+  "src/physics/kirchhoffSharedAxisMaterialTangent.js": "4b8bb9ffa3fde78f6e1ed70d38f36a1fb43f0bfd68de30b49dd9433a427b9f50",
+  "src/physics/kirchhoffSharedAxisNative.js": "5212b7c9ff0b59fbe560efeaf94a9090cec2dd8f04f09013380717dcb195c694",
+  "src/physics/kirchhoffSharedAxisAppSystem.js": "4eee7ee94d9a8a0eb513963bb546530c2b8501fa0494b753631a32b2eeb0a809",
+  "scripts/physics/profile-shared-axis-dynamic.mjs": "b449dcb26b55713d20ec6862d11dee8374108d883c7281813fa1447af2c5d825",
+  "tests/kirchhoffSharedAxisMaterialScratch.test.js": "038e60859e0c2b4b8c3302eac6183038a4ddc03571088e93f75c186ce006ba37",
+  "tests/kirchhoffSharedAxisMaterialScratchReplay.test.js": "bdff2b6a03d77c3ca5e5d55f18894c52a8076bb0fd42e27765103d81d5f61908",
+  "tests/helpers/sharedAxisMemoryProbe.mjs": "53c16876a61a4a4db0ba166e76bdae90f20c0006046629d66bffdc5e62637266"
+}

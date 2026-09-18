@@ -1,0 +1,116 @@
+{
+  "scope": "Retained finite triangle geometry on saved anatomical contacts, alternating nearby points; excludes discovery, global assembly, solving and rendering",
+  "queries": 798,
+  "uniqueFaces": 601,
+  "repetitions": 30,
+  "node": "v24.6.0",
+  "sourceHashes": {
+    "kirchhoffWallWitnessGeometry.js": "7ec912436bc2a8714da445f5500b35ca778d389bb169a27448c034dca6625b48",
+    "kirchhoffWallTriangleKernel.js": "0236aacd74eecd08acd3cc1b43c43e298ac8d7bc6796caaf28ba350f3dc3b9a7"
+  },
+  "referenceMs": 6.703987500000016,
+  "optimizedMs": 3.9680832999999667,
+  "reductionPercent": 40.81010294246585,
+  "pairs": [
+    {
+      "reference": {
+        "ms": 6.961999999999989,
+        "checksum": 26271.660608206297
+      },
+      "optimized": {
+        "ms": 4.428957999999966,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "optimized": {
+        "ms": 3.4909999999999854,
+        "checksum": 26271.660608206297
+      },
+      "reference": {
+        "ms": 5.946583000000146,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "reference": {
+        "ms": 7.609000000000151,
+        "checksum": 26271.660608206297
+      },
+      "optimized": {
+        "ms": 3.396874999999909,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "optimized": {
+        "ms": 3.242582999999968,
+        "checksum": 26271.660608206297
+      },
+      "reference": {
+        "ms": 7.808459000000084,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "reference": {
+        "ms": 6.268666999999823,
+        "checksum": 26271.660608206297
+      },
+      "optimized": {
+        "ms": 3.4871669999999995,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "optimized": {
+        "ms": 3.4174169999998867,
+        "checksum": 26271.660608206297
+      },
+      "reference": {
+        "ms": 6.5682919999999285,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "reference": {
+        "ms": 8.360915999999861,
+        "checksum": 26271.660608206297
+      },
+      "optimized": {
+        "ms": 7.65300000000002,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "optimized": {
+        "ms": 3.805082999999968,
+        "checksum": 26271.660608206297
+      },
+      "reference": {
+        "ms": 5.886457999999948,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "reference": {
+        "ms": 6.082458000000088,
+        "checksum": 26271.660608206297
+      },
+      "optimized": {
+        "ms": 3.523832999999968,
+        "checksum": 26271.660608206297
+      }
+    },
+    {
+      "optimized": {
+        "ms": 3.234916999999996,
+        "checksum": 26271.660608206297
+      },
+      "reference": {
+        "ms": 5.547042000000147,
+        "checksum": 26271.660608206297
+      }
+    }
+  ]
+}

@@ -116,6 +116,9 @@ export function initUI(options) {
   const debugSectionsToggle = document.getElementById('showDebugSections');
   const debugCenterlineToggle = document.getElementById('showDebugCenterline');
   const debugCapsulesToggle = document.getElementById('showDebugCapsules');
+  const debugVesselLabelsToggle = document.getElementById('showDebugVesselLabels');
+  const debugWallContactsToggle = document.getElementById('showDebugWallContacts');
+  const debugRodNodesToggle = document.getElementById('showDebugRodNodes');
   const cardiacOutputSlider = document.getElementById('cardiacOutput');
   const contrastHeartRateSlider = document.getElementById('contrastHeartRate');
   const injectButton = document.getElementById('injectContrast');
@@ -266,8 +269,11 @@ export function initUI(options) {
     stlModel: debugStlModelToggle?.checked ?? true,
     lumenCast: debugLumenCastToggle?.checked ?? false,
     sections: debugSectionsToggle?.checked ?? false,
-    centerline: debugCenterlineToggle?.checked ?? true,
-    capsules: debugCapsulesToggle?.checked ?? false
+    centerline: debugCenterlineToggle?.checked ?? false,
+    capsules: debugCapsulesToggle?.checked ?? false,
+    vesselLabels: debugVesselLabelsToggle?.checked ?? false,
+    wallContacts: debugWallContactsToggle?.checked ?? false,
+    rodNodes: debugRodNodesToggle?.checked ?? true
   };
 
   function emitDebugLayerChange() {
@@ -297,6 +303,20 @@ export function initUI(options) {
     emitDebugLayerChange();
   });
   emitDebugLayerChange();
+
+  debugVesselLabelsToggle?.addEventListener('change', e => {
+    debugLayerState.vesselLabels = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugWallContactsToggle?.addEventListener('change', e => {
+    debugLayerState.wallContacts = e.target.checked;
+    emitDebugLayerChange();
+  });
+
+  debugRodNodesToggle?.addEventListener('change', e => {
+    debugLayerState.rodNodes = e.target.checked;
+    emitDebugLayerChange();
+  });
 
   let insertedLengthCm = 0;
   let catheterLengthCm = 0;
@@ -1400,7 +1420,7 @@ export function initUI(options) {
       ? ` | pen ${formatDebugDistance(perf.settledPenetration)}` +
         `/${formatDebugDistance(perf.maximumPenetration)} mm`
       : '';
-    return `\nXPBD: adv ${formatDebugMs(perf.advanceMs)} ` +
+    return `\nFizyka: adv ${formatDebugMs(perf.advanceMs)} ` +
       `/ solve ${formatDebugMs(perf.solveMs)} ` +
       `/ narrow ${formatDebugMs(perf.projectMs)} ` +
       `/ dbg ${formatDebugMs(perf.diagnosticMs)} ms | ` +

@@ -1,0 +1,35 @@
+{
+  "source": "/Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/reports/adaptive-optimization-audit-2026-09-17/full/catheter.cpuprofile.gz",
+  "scope": "Exclusive partition of samples with assembleSharedAxisNative in their stack; catheter phase of the earlier adaptive audit",
+  "sampledAssemblyMs": 16533.316,
+  "categories": {
+    "discovery": {
+      "ms": 4961.191,
+      "percent": 30.007235088230335
+    },
+    "retainedGeometry": {
+      "ms": 2975.686,
+      "percent": 17.99811967544805
+    },
+    "otherConstraints": {
+      "ms": 3529.412,
+      "percent": 21.347272380204913
+    },
+    "material": {
+      "ms": 2283.6,
+      "percent": 13.812111254632766
+    },
+    "friction": {
+      "ms": 1052.995,
+      "percent": 6.368928048069728
+    },
+    "inertia": {
+      "ms": 528.628,
+      "percent": 3.1973501262541646
+    },
+    "otherAssembly": {
+      "ms": 1201.804,
+      "percent": 7.268983427160045
+    }
+  }
+}

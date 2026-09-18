@@ -1,0 +1,451 @@
+{
+  "scope": "Repeated friction assembly on two saved anatomical poses with prepared slip; includes output zeroing, excludes remaining physics and rendering",
+  "node": "v24.6.0",
+  "sourceHash": "c06088632359bca5ac865d2f32b6ed3f547a0787c4c341a6e67f0035f1b62b3e",
+  "results": [
+    {
+      "name": "anatomy-berenstein-feed-138.67-live-cycle",
+      "full": false,
+      "contacts": 13,
+      "repetitions": 500,
+      "referenceMs": 35.21647509999998,
+      "optimizedMs": 5.938583499999936,
+      "reductionPercent": 83.13691678926737,
+      "pairs": [
+        {
+          "reference": {
+            "ms": 40.253208000000086,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 6.304292000000032,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 14.062791999999945,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 44.21966700000007,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 39.47354199999995,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 3.5,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 3.1254579999999805,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 38.17112499999985,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 30.34633299999996,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 8.2506249999999,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 4.535958999999821,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 31.925917000000027,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 31.28162499999985,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 4.472541999999976,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 6.090083999999933,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 29.295499999999947,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 37.579124999999976,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 4.6202079999998205,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 4.423874999999953,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 29.61870900000008,
+            "checksum": 2022.4263892863287
+          }
+        }
+      ]
+    },
+    {
+      "name": "anatomy-berenstein-feed-138.67-live-cycle",
+      "full": true,
+      "contacts": 13,
+      "repetitions": 500,
+      "referenceMs": 36.47798349999998,
+      "optimizedMs": 10.694599900000004,
+      "reductionPercent": 70.68204195004361,
+      "pairs": [
+        {
+          "reference": {
+            "ms": 37.86108399999989,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 15.823624999999993,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 14.437249999999949,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 37.95566699999995,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 43.11500000000001,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 10.664457999999968,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 8.779332999999951,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 38.11400000000003,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 36.67616700000008,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 8.752541999999949,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 10.3220409999999,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 35.79970900000012,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 34.35212499999989,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 9.800250000000233,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 9.028166000000056,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 33.73958300000004,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "reference": {
+            "ms": 33.848417000000154,
+            "checksum": 2022.4263892863287
+          },
+          "optimized": {
+            "ms": 10.629042000000027,
+            "checksum": 2022.4263892863287
+          }
+        },
+        {
+          "optimized": {
+            "ms": 8.709292000000005,
+            "checksum": 2022.4263892863287
+          },
+          "reference": {
+            "ms": 33.31808299999966,
+            "checksum": 2022.4263892863287
+          }
+        }
+      ]
+    },
+    {
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+      "full": false,
+      "contacts": 9,
+      "repetitions": 500,
+      "referenceMs": 18.940195899999935,
+      "optimizedMs": 2.8253295000001346,
+      "reductionPercent": 85.08289188286514,
+      "pairs": [
+        {
+          "reference": {
+            "ms": 19.365792000000056,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 3.677959000000101,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 3.3425000000002,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 19.76104099999975,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 19.855792000000292,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 3.092916999999943,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 4.40329200000042,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 19.990374999999858,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 18.466333999999733,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 2.365459000000101,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 2.366834000000381,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 18.5,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 19.053583999999773,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 2.3463339999998425,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 2.3053749999999127,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 17.80470800000012,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 17.565874999999778,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 2.1801250000003165,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 2.1725000000001273,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 19.03845799999999,
+            "checksum": 2244.9199206300564
+          }
+        }
+      ]
+    },
+    {
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+      "full": true,
+      "contacts": 9,
+      "repetitions": 500,
+      "referenceMs": 23.372254099999918,
+      "optimizedMs": 6.708499999999958,
+      "reductionPercent": 71.2971629895125,
+      "pairs": [
+        {
+          "reference": {
+            "ms": 22.74395800000002,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 8.160457999999835,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 6.5365829999996095,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 23.883374999999887,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 22.589500000000044,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 6.434083000000101,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 6.674916999999823,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 22.011332999999922,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 22.86345799999981,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 6.463375000000269,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 6.160792000000129,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 23.549957999999606,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 23.01279199999999,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 6.382959000000028,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 7.007707999999639,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 24.475916999999754,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "reference": {
+            "ms": 24.93724999999995,
+            "checksum": 2244.9199206300564
+          },
+          "optimized": {
+            "ms": 6.098750000000109,
+            "checksum": 2244.9199206300564
+          }
+        },
+        {
+          "optimized": {
+            "ms": 7.16537500000004,
+            "checksum": 2244.9199206300564
+          },
+          "reference": {
+            "ms": 23.6550000000002,
+            "checksum": 2244.9199206300564
+          }
+        }
+      ]
+    }
+  ]
+}

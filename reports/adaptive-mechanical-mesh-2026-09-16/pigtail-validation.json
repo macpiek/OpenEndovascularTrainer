@@ -1,0 +1,94 @@
+{
+  "steps": 1096,
+  "failed": false,
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 300,
+    "catheterTarget": 200,
+    "adaptiveMesh": true,
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "stagnationFallback": true,
+      "reuseRowBuffers": true,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 11.9,
+        "tipStiffness": 14.45
+      },
+      {
+        "id": "catheter",
+        "type": "pigtail",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 59.5
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "sourceTreeHash": "9dea705ec3fdfd18091d591d68bcbc3ee917e80f83090d28659cab7637a0515e",
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "meanMs": 21.092333000000053,
+      "maxNodes": 9
+    },
+    "wire": {
+      "steps": 410,
+      "meanMs": 11.509882609756104,
+      "maxNodes": 59
+    },
+    "catheter": {
+      "steps": 231,
+      "meanMs": 25.374756606060576,
+      "maxNodes": 66
+    },
+    "simultaneous": {
+      "steps": 60,
+      "meanMs": 31.7999396166669,
+      "maxNodes": 68
+    },
+    "rotation": {
+      "steps": 30,
+      "meanMs": 29.96928606666667,
+      "maxNodes": 66
+    },
+    "withdrawal": {
+      "steps": 60,
+      "meanMs": 14.26786038333336,
+      "maxNodes": 66
+    },
+    "wire-withdrawal": {
+      "steps": 304,
+      "meanMs": 23.094162118421075,
+      "maxNodes": 63
+    }
+  },
+  "maxPenetrationMm": 8.900051104987483e-7,
+  "maxCertifiedResidual": 0.00009973713297228848,
+  "allFinite": true
+}

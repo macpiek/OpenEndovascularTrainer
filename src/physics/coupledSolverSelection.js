@@ -4,6 +4,8 @@ const variants = Object.freeze({
     reference: null,
     'composite-joint': null,
     'shared-axis': null,
+    'shared-axis-adaptive': null,
+    'shared-axis-projective': null,
     joint: Object.freeze({ activeCondensation: false, simultaneousCoulomb: false }),
     'joint-active-coulomb': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
     'joint-wall-witnesses': Object.freeze({ activeCondensation: true, simultaneousCoulomb: true }),
@@ -29,7 +31,7 @@ export function createCoupledSolverSelection(id = 'reference', kernel = {}) {
     if (!Object.hasOwn(variants, id)) throw new RangeError(`Unknown coupled solver: ${id}`);
     const options = variants[id];
     const twoChannel = id === 'joint-two-channel';
-    const composite = id === 'composite-joint' || id === 'shared-axis';
+    const composite = id === 'composite-joint' || id === 'shared-axis' || id === 'shared-axis-adaptive' || id === 'shared-axis-projective';
     const solveKernel = id === 'joint-axial-sections' ? kernel.solveAxial : kernel.solve;
     if (composite && (typeof kernel.wholeStepSystem?.step !== 'function' || typeof kernel.wholeStepSystem?.reset !== 'function'))
         throw new TypeError(`${id} requires its whole-step system`);

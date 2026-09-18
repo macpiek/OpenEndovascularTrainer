@@ -1,0 +1,47 @@
+✔ 145.75 mm anatomy checkpoint restores positions, frames, reactions and witness topology exactly (22.456834ms)
+✖ frozen terminal contacts expose an inconsistent equality subset independently of new-face discovery (16.195834ms)
+✔ an interrupted anatomy solve still rolls back its pose, frames and reactions (12.325375ms)
+✔ wire feed from 145.50 to 145.75 mm must converge with unchanged physical tolerances (375.717375ms)
+✔ all-sample discovery supplements the historical checkpoint with previously unretained nearby sites (2.555584ms)
+✖ actual pigtail withdrawal recovers live-load cycling with a certified atomic frozen fallback (1420.168625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1552.642708
+
+✖ failing tests:
+
+test at ../../../../../../private/tmp/oet-adaptive-baseline/tests/kirchhoffSharedAxisAnatomyRegression.test.js:23:1
+✖ frozen terminal contacts expose an inconsistent equality subset independently of new-face discovery (16.195834ms)
+  Error: shared-axis-wall-discovery
+      at assembleSharedAxisNative (file:///private/tmp/oet-adaptive-baseline/src/physics/kirchhoffSharedAxisNative.js:270:40)
+      at auditSharedAxisDirection (file:///private/tmp/oet-adaptive-baseline/tests/helpers/sharedAxisContactAudit.js:50:16)
+      at file:///private/tmp/oet-adaptive-baseline/tests/kirchhoffSharedAxisAnatomyRegression.test.js:29:52
+      at Array.map (<anonymous>)
+      at TestContext.<anonymous> (file:///private/tmp/oet-adaptive-baseline/tests/kirchhoffSharedAxisAnatomyRegression.test.js:29:42)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:763:18)
+      at Test.postRun (node:internal/test_runner/test:1210:19)
+      at Test.run (node:internal/test_runner/test:1138:12)
+
+test at ../../../../../../private/tmp/oet-adaptive-baseline/tests/kirchhoffSharedAxisLiveWallAnatomy.test.js:8:1
+✖ actual pigtail withdrawal recovers live-load cycling with a certified atomic frozen fallback (1420.168625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///private/tmp/oet-adaptive-baseline/tests/kirchhoffSharedAxisLiveWallAnatomy.test.js:25:16)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

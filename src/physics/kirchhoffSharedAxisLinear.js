@@ -1,3 +1,4 @@
+import {materializeSharedAxisContacts,separatedSharedAxisContactDirection} from './kirchhoffSharedAxisInactiveContacts.js';
 import { assemblePreparedSharedAxisMatrix, applyPreparedSharedAxisFixedMask } from './kirchhoffSharedAxisMatrixAssembly.js';
 import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
 import { createIncrementalContactLU } from './kirchhoffIncrementalContactLU.js';
@@ -104,7 +105,7 @@ export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
         lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
 }
 
-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,supportKeyCache,matrixAssembly }) {
+function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly }) {
     // Optional force support can appear after an originally normal-only
     // workspace was created. Rebuild the reference band when it no longer
     // contains that support; compact workspaces are keyed by both supports.
@@ -112,7 +113,7 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
         const key=rowSupportKey(rows,supportKeyCache);
         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
-        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,supportKeyCache,matrixAssembly});
+        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly});
     }
     const { matrix: A, residual: F, band: { starts, ends, offsets }, primal, dual } = w;
     if(matrixAssembly)assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows},matrixAssembly);
@@ -173,14 +174,16 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         lu=incrementalContext.workspaces.get(w);
         if(!lu){lu=createIncrementalContactLU(w.band,w.count,{maxRank:incrementalContext.maxRank});incrementalContext.workspaces.set(w,lu);incrementalContext.allDiagnostics.push(lu.diagnostics);}
     }
-    const factorsBefore=incrementalContext?lu.diagnostics.factorizations:0;
+    if(modifiedNewtonContext)lu=modifiedNewtonContext.getLU(w);
+    const retained=!!(incrementalContext||modifiedNewtonContext);
+    const factorsBefore=retained?lu.diagnostics.factorizations:0;
     const solved = lu.solve(A, F, w.scales, 0, w.solution);
     // A rejected factorization does not write a valid solution. Do not report
     // a residual computed from the previous solve's scratch as this direction.
     if (!solved) {
         w.increment.fill(0); w.multiplierIncrement.fill(0);
         return {increment:w.increment,multiplierIncrement:w.multiplierIncrement,
-            factorizations:incrementalContext?lu.diagnostics.factorizations-factorsBefore:1,residual:Infinity,converged:false,failure:'band-lu-rejected'};
+            factorizations:retained?lu.diagnostics.factorizations-factorsBefore:1,residual:Infinity,converged:false,failure:'band-lu-rejected'};
     }
     for (let i = 0; i < w.count; i++) w.solution[i] *= w.scales[i];
     let residual = Infinity, factorizations = 1;
@@ -205,7 +208,7 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
     }
     primal.forEach((p, i) => { w.increment[i] = w.solution[p]; });
     dual.forEach((d, i) => { w.multiplierIncrement[i] = w.solution[d]; });
-    return { increment: w.increment, multiplierIncrement: w.multiplierIncrement, factorizations:incrementalContext?lu.diagnostics.factorizations-factorsBefore:factorizations, residual,
+    return { increment: w.increment, multiplierIncrement: w.multiplierIncrement, factorizations:retained?lu.diagnostics.factorizations-factorsBefore:factorizations, residual,
         converged: solved && residual <= tolerance };
 }
 
@@ -255,6 +258,7 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
     }
     const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
         rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
+    if(options.modifiedNewtonContext&&result.converged)options.modifiedNewtonContext.record(packed,indices);
     if(context&&result.converged) {
         const lu=context.workspaces.get(packed);
         context.bordered=createBorderedContactUpdates(packed,lu,indices,options.rows);
@@ -334,6 +338,7 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
             const violated=[];
             for(let i=0;i<rows.length;i++) {
                 const r=rows[i];if(r.kind!=='wall'||activeSet[i])continue;
+                if(separatedSharedAxisContactDirection(r,result.increment))continue;
                 const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0);
                 if(batchSize>1&&residual<-tolerance)violated.push({index:i,residual});
                 if(residual<worst){worst=residual;change=i;}
@@ -378,6 +383,7 @@ function* iterateWithFallback(w,chain,options,batchSize) {
 /** Yield between active-set/LU attempts while preserving the synchronous API.
  * CPU timing excludes consumer pauses, including pauses before a fallback. */
 export function* iterateSharedAxisLinear(w,chain,options) {
+    if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
     options.observeLinearSystem?.({chain,options});
     options.rows.forEach(r=>validateExtraForce(r,chain.layout.dofCount));
     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');

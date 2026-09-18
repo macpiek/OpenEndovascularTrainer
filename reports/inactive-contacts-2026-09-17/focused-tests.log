@@ -1,0 +1,16 @@
+✔ clearance bounds are conservative across face/edge/vertex changes, origin and radius changes (3.351875ms)
+✔ in-place triangle edits and failed evaluations invalidate certificates without relying on attribute versions (0.215666ms)
+✔ large directions materialize contacts before activation; small directions skip exact evaluation (5.428708ms)
+✔ deferred rows own their pose, and each changed direction rechecks separation (0.131ms)
+✔ row-bank reuse and restored poses never retain a deferred Jacobian for a loaded contact (4.915709ms)
+✔ protected deferred banks and exact cache entries survive later trials and restore independently (1.868292ms)
+✔ inactive-contact bounds preserve complete physical output and cancellation: anatomy-berenstein-feed-138.67-live-cycle (1451.145458ms)
+✔ inactive-contact bounds preserve complete physical output and cancellation: anatomy-pigtail-wire-withdraw-200.27-incoming (1190.783292ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3985.361125

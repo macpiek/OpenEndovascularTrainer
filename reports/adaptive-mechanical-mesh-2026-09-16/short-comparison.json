@@ -1,0 +1,193 @@
+{
+  "note": "One sequential Node comparison of independent trajectories, no rendering. Both grid and nonlinear tolerances differ. Not a browser FPS result or a global error guarantee.",
+  "steps": 838,
+  "allFinite": true,
+  "reference": {
+    "sourceTreeHash": "2d327a837092cc59f4528f023a2a87e6a9080dd58c163fa66382387234fb4f3c",
+    "parameters": {
+      "dt": 0.016666666666666666,
+      "wireTarget": 300,
+      "catheterTarget": 240,
+      "adaptiveMesh": false,
+      "spacing": 5,
+      "maxBendAngle": 0.7853981633974483,
+      "options": {
+        "forceTolerance": 0.000001,
+        "lengthTolerance": 0.00001,
+        "liveWallNormalLoad": true,
+        "stagnationFallback": true,
+        "reuseRowBuffers": true,
+        "reuseMatrixAssembly": true,
+        "reuseConstraintWork": true,
+        "wasmMaterial": true,
+        "projectionMode": "reduced",
+        "promoteTrialAssembly": true,
+        "lazyTrialTangent": false,
+        "reuseStructure": true,
+        "earlyLiveFallback": true
+      },
+      "tools": [
+        {
+          "id": "wire",
+          "type": "glidewire",
+          "mass": 1,
+          "radius": 0.4445,
+          "wallStaticFriction": 0.006,
+          "wallKineticFriction": 0.002,
+          "shaftStiffness": 11.9,
+          "tipStiffness": 14.45
+        },
+        {
+          "id": "catheter",
+          "type": "berenstein",
+          "mass": 1.75,
+          "radius": 0.8333333333333333,
+          "wallStaticFriction": 0.002,
+          "wallKineticFriction": 0.002,
+          "shaftStiffness": 40.65,
+          "tipStiffness": 59.5
+        }
+      ],
+      "sheath": {
+        "innerRadius": 0.9,
+        "proximalExtension": 40
+      }
+    }
+  },
+  "adaptive": {
+    "sourceTreeHash": "1ac55f00ab00a2bfeaaf08526edc41ef20d736c3fe556f8db32902c67014b68a",
+    "parameters": {
+      "dt": 0.016666666666666666,
+      "wireTarget": 300,
+      "catheterTarget": 240,
+      "adaptiveMesh": true,
+      "spacing": 5,
+      "maxBendAngle": 0.7853981633974483,
+      "options": {
+        "forceTolerance": 0.0001,
+        "lengthTolerance": 0.001,
+        "liveWallNormalLoad": true,
+        "stagnationFallback": true,
+        "reuseRowBuffers": true,
+        "reuseMatrixAssembly": true,
+        "reuseConstraintWork": true,
+        "wasmMaterial": true,
+        "projectionMode": "reduced",
+        "promoteTrialAssembly": true,
+        "lazyTrialTangent": false,
+        "reuseStructure": true,
+        "earlyLiveFallback": true
+      },
+      "tools": [
+        {
+          "id": "wire",
+          "type": "glidewire",
+          "mass": 1,
+          "radius": 0.4445,
+          "wallStaticFriction": 0.006,
+          "wallKineticFriction": 0.002,
+          "shaftStiffness": 11.9,
+          "tipStiffness": 14.45
+        },
+        {
+          "id": "catheter",
+          "type": "berenstein",
+          "mass": 1.75,
+          "radius": 0.8333333333333333,
+          "wallStaticFriction": 0.002,
+          "wallKineticFriction": 0.002,
+          "shaftStiffness": 40.65,
+          "tipStiffness": 59.5
+        }
+      ],
+      "sheath": {
+        "innerRadius": 0.9,
+        "proximalExtension": 40
+      }
+    }
+  },
+  "maxTipDeviationMm": 2.268423408837042,
+  "maxPenetrationMm": 8.995010931378555e-7,
+  "maxRelativeLengthError": 2.5947174106293146e-9,
+  "maxCertifiedResidual": 0.0000975422320617092,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "referenceMeanMs": 24.745000000000005,
+      "adaptiveMeanMs": 21.519457999999986,
+      "timeReductionPercent": 13.035126288139088,
+      "referenceP95Ms": 24.745000000000005,
+      "adaptiveP95Ms": 21.519457999999986,
+      "referenceMeanNodes": 9,
+      "adaptiveMeanNodes": 9,
+      "referenceMeanDofs": 43,
+      "adaptiveMeanDofs": 43,
+      "maxTipDeviationMm": 0
+    },
+    "wire": {
+      "steps": 410,
+      "referenceMeanMs": 11.316648963414632,
+      "adaptiveMeanMs": 10.690980524390255,
+      "timeReductionPercent": 5.528743014359527,
+      "referenceP95Ms": 32.17912499999966,
+      "adaptiveP95Ms": 29.72950000000037,
+      "referenceMeanNodes": 39.5390243902439,
+      "adaptiveMeanNodes": 34.604878048780485,
+      "referenceMeanDofs": 165.1560975609756,
+      "adaptiveMeanDofs": 145.41951219512194,
+      "maxTipDeviationMm": 2.1027281137535745
+    },
+    "catheter": {
+      "steps": 277,
+      "referenceMeanMs": 20.0564458592058,
+      "adaptiveMeanMs": 17.466902509025267,
+      "timeReductionPercent": 12.911277343747063,
+      "referenceP95Ms": 32.75087499999972,
+      "adaptiveP95Ms": 26.509874999999738,
+      "referenceMeanNodes": 69.8014440433213,
+      "adaptiveMeanNodes": 58.3898916967509,
+      "referenceMeanDofs": 310.7003610108303,
+      "adaptiveMeanDofs": 258.2202166064982,
+      "maxTipDeviationMm": 2.268423408837042
+    },
+    "simultaneous": {
+      "steps": 60,
+      "referenceMeanMs": 14.3611423,
+      "adaptiveMeanMs": 14.741871466666908,
+      "timeReductionPercent": -2.6511064281210306,
+      "referenceP95Ms": 21.24945899999875,
+      "adaptiveP95Ms": 25.346833999999944,
+      "referenceMeanNodes": 74.7,
+      "adaptiveMeanNodes": 63.38333333333333,
+      "referenceMeanDofs": 359.5,
+      "adaptiveMeanDofs": 303.2,
+      "maxTipDeviationMm": 0.46750527916085793
+    },
+    "rotation": {
+      "steps": 30,
+      "referenceMeanMs": 18.414184700000078,
+      "adaptiveMeanMs": 18.178445866666515,
+      "timeReductionPercent": 1.2802023938293772,
+      "referenceP95Ms": 24.92833299999984,
+      "adaptiveP95Ms": 23.864458000000013,
+      "referenceMeanNodes": 79,
+      "adaptiveMeanNodes": 66.56666666666666,
+      "referenceMeanDofs": 382,
+      "adaptiveMeanDofs": 319.8333333333333,
+      "maxTipDeviationMm": 0.36205000646503616
+    },
+    "withdrawal": {
+      "steps": 60,
+      "referenceMeanMs": 13.052997149999799,
+      "adaptiveMeanMs": 12.571788183333167,
+      "timeReductionPercent": 3.6865783477677327,
+      "referenceP95Ms": 18.84520799999882,
+      "adaptiveP95Ms": 17.247000000001208,
+      "referenceMeanNodes": 75.73333333333333,
+      "adaptiveMeanNodes": 64.53333333333333,
+      "referenceMeanDofs": 365.48333333333335,
+      "adaptiveMeanDofs": 309.48333333333335,
+      "maxTipDeviationMm": 0.37026729888911586
+    }
+  }
+}

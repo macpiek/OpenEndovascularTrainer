@@ -37,6 +37,13 @@ test('sleep steps neither replay old solver costs nor hide expensive active time
     assert.ok(r.fields.total.mean<1);assert.equal(assess(p).physicsBudgetPass,false);
 });
 
+test('adaptive provider reports its own whole-step costs instead of legacy projection costs',()=>{
+    const p=new ConstraintStageProfile(),w=world();w.wholeStepSystem.id='shared-axis-adaptive';
+    w.lastStepResult=accepted(12);p.record(w,{fullStepCpuMs:14});
+    const r=p.report();assert.equal(r.mode,'shared-axis-adaptive');assert.equal(r.lineSearch,null);
+    assert.equal(r.fields.activeStepCpuMs.mean,14);assert.equal(r.fields.factorizations.sum,5);
+});
+
 test('terminal failures are distinguished from pending slices and missing telemetry cannot pass',()=>{
     const p=new ConstraintStageProfile(),w=world();
     assert.equal(assess(p).physicsBudgetPass,false);
@@ -94,4 +101,14 @@ test('legacy profile retains actual synchronous costs and bounded percentile sam
     const r=p.report();assert.equal(r.steps,3);assert.equal(r.percentileSteps,2);assert.equal(r.fields.total.mean,4);
     assert.equal(r.fields.total.sampleCount,3);assert.equal(r.fields.total.percentileSamples,2);assert.equal(r.fields.assemblyMs.mean,2);
     assert.equal(r.fields.activeStepCpuMs.mean,null);
+});
+
+
+test('PD keeps its timing identity and does not invent a Newton residual certificate',()=>{
+    const w=world(),p=new ConstraintStageProfile();w.wholeStepSystem.id='shared-axis-projective';
+    const result=accepted();result.diagnostics.last.pd={localGlobalConverged:false};
+    result.diagnostics.last.quality={finite:true,maxPenetration:.02,bodies:[{id:'wire',finite:true,maxLengthError:.01,maxSpeed:2,maxBendAngleDegrees:10,maxBendLimitDegrees:45}]};
+    w.lastStepResult=result;p.record(w);assert.equal(p.report().mode,'shared-axis-projective');assert.equal(p.report().lineSearch,null);
+    const envelope={steps:0,maxSegmentErrorPercent:0,maxBendAngleDegrees:0,maxPostStepPenetrationMm:0,finite:true};
+    recordSharedAxisQuality(envelope,result);assert.equal(envelope.maxCertifiedResidual,null);assert.equal(envelope.maxSegmentErrorPercent,1);
 });

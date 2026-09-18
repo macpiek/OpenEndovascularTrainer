@@ -1,0 +1,20 @@
+✔ promoted trial assembly preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (1561.896459ms)
+✔ promoted trial assembly preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (739.441667ms)
+✔ promotion rebuilds exactly the full matrix and refreshes reaction forces at the same pose (38.556291ms)
+✔ material scratch preserves exact torques and derivatives across changing poses, rest frames and stiffness (8.442458ms)
+✔ a promoted material snapshot owns its gradient after scratch is overwritten by another trial (0.359541ms)
+✔ material assembly scratch stays exact across tools, restored poses and changed profiles (WASM=false) (14.04325ms)
+✔ material assembly scratch stays exact across tools, restored poses and changed profiles (WASM=true) (4.26525ms)
+✔ persistent material scratch preserve every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (2089.393625ms)
+✔ persistent material scratch preserve every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (579.108167ms)
+✔ shared-axis feed releases superseded states while the newest simulation remains alive (212.71375ms)
+✔ shared-axis dynamic releases superseded states while the newest simulation remains alive (261.056ms)
+✔ shared-axis wasm releases superseded states while the newest simulation remains alive (240.228875ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9907.838875

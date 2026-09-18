@@ -145,12 +145,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="59.5"
+                                    value="66.8"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="catheterTipStiffnessRange"
                                 >
-                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">59,50×</output>
+                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">66,80×</output>
                             </span>
                             <span id="catheterTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
@@ -200,12 +200,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="11.9"
+                                    value="9.6"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireStiffnessRange"
                                 >
-                                <output id="guidewireStiffnessValue" for="stiffness">11,90×</output>
+                                <output id="guidewireStiffnessValue" for="stiffness">9,60×</output>
                             </span>
                             <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
@@ -222,12 +222,12 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="14.45"
+                                    value="6.8"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
                                     aria-describedby="guidewireTipStiffnessRange"
                                 >
-                                <output id="guidewireTipStiffnessValue" for="tipStiffness">14,45×</output>
+                                <output id="guidewireTipStiffnessValue" for="tipStiffness">6,80×</output>
                             </span>
                             <span id="guidewireTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
@@ -501,6 +501,36 @@
         </div>
 
         <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
+            <div class="browser-benchmark" aria-label="Wybór solvera fizyki">
+                <label class="parameter-label" for="debugSolverSelect">Solver fizyki</label>
+                <select id="debugSolverSelect" aria-describedby="debugSolverHelp"></select>
+                <label class="debug-toggle"><input id="debugModifiedNewton" type="checkbox"> Newton: ponowne użycie macierzy i faktoryzacji (eksperymentalne)</label>
+                <label class="debug-toggle"><input id="debugPruneWitnesses" type="checkbox"> Przerzedzaj nieaktywne kontakty (eksperyment)</label>
+                <button id="applyDebugSolver" type="button" disabled>Zmień solver i zresetuj scenę</button>
+                <p id="debugSolverHelp">Adaptacyjny: siatka bazowa 5 mm, długość scalanych odcinków regulowana poniżej; krótsze odcinki możliwe przy granicach narzędzi. Zmiana tych opcji restartuje symulację. Przerzedzanie kontaktów może zmienić trajektorię ruchu.</p>
+                <label class="parameter-label" for="debugShapeTolerance">Próg uproszczenia siatki
+                    <input id="debugShapeTolerance" type="range" min="0.01" max="50" step="0.01" value="0.15" data-value-decimals="2" data-value-suffix=" mm" aria-describedby="debugShapeToleranceHelp" disabled>
+                    <output id="debugShapeToleranceValue" for="debugShapeTolerance">0,15 mm</output>
+                </label>
+                <p id="debugShapeToleranceHelp" class="debug-solver-note">Tylko siatka adaptacyjna. Większy próg pozwala usuwać więcej węzłów. Zmiana działa od kolejnego kroku, bez resetu. To lokalny próg zmiany kształtu, nie dokładność całej symulacji; ochrona końcówek i kontaktów pozostaje aktywna.</p>
+                <label class="parameter-label" for="debugContactMargin">Zasięg ochrony kontaktów
+                    <input id="debugContactMargin" type="range" min="0" max="2" step="0.05" value="1" data-value-decimals="2" data-value-suffix=" mm" aria-describedby="debugContactMarginHelp" disabled>
+                    <output id="debugContactMarginValue" for="debugContactMargin">1,00 mm</output>
+                </label>
+                <p id="debugContactMarginHelp" class="debug-solver-note">Odległość powierzchni pręta od ściany, przy której zachowujemy gęstą siatkę. Mniejszy zasięg pozwala mocniej upraszczać. Przy 0 mm nadal chronimy kontakt ze ścianą i kontakty przenoszące siłę. Tylko siatka adaptacyjna; zmiana od kolejnego kroku, bez resetu.</p>
+                <label class="parameter-label" for="debugMaxArcLoss">Dopuszczalne skrócenie łuku
+                    <input id="debugMaxArcLoss" type="range" min="0" max="10" step="0.01" value="0.2" data-value-decimals="2" data-value-suffix=" %" aria-describedby="debugMaxArcLossHelp" disabled>
+                    <output id="debugMaxArcLossValue" for="debugMaxArcLoss">0,20 %</output>
+                </label>
+                <p id="debugMaxArcLossHelp" class="debug-solver-note">O ile krótszy może być prosty odcinek zastępujący fragment łuku podczas uproszczenia. Większy procent pozwala mocniej upraszczać zakrzywienia.</p>
+                <label class="parameter-label" for="debugMaxSpacing">Maksymalna długość odcinka
+                    <input id="debugMaxSpacing" type="range" min="5" max="100" step="1" value="20" data-value-decimals="0" data-value-suffix=" mm" aria-describedby="debugMaxSpacingHelp" disabled>
+                    <output id="debugMaxSpacingValue" for="debugMaxSpacing">20 mm</output>
+                </label>
+                <p id="debugMaxSpacingHelp" class="debug-solver-note">Górny limit długości scalanych odcinków. Pozostałe kryteria mogą wymagać krótszych. Oba suwaki działają tylko dla siatki adaptacyjnej, od kolejnego kroku, bez resetu.</p>
+                <output id="debugNewtonStats" class="browser-benchmark-status">Newton: dotychczasowa metoda</output>
+                <output id="debugMechanicalMesh" class="browser-benchmark-status">Siatka: inicjalizacja</output>
+            </div>
             <div id="compositeSolverStatus" class="browser-benchmark-status" aria-label="Status wspólnego solvera" hidden>Nowy wspólny solver — inicjalizacja</div>
             <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
             <div id="contrastDiagnostics" class="contrast-diagnostics">Contrast: model loading</div>
@@ -573,8 +603,11 @@
                 <label class="debug-toggle"><input id="showDebugStlModel" type="checkbox" checked> Model STL</label>
                 <label class="debug-toggle"><input id="showDebugLumenCast" type="checkbox"> Odlew światła</label>
                 <label class="debug-toggle"><input id="showDebugSections" type="checkbox"> Przekroje</label>
-                <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox" checked> Centerline</label>
+                <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox"> Centerline</label>
                 <label class="debug-toggle"><input id="showDebugCapsules" type="checkbox"> Kapsuły</label>
+                <label class="debug-toggle"><input id="showDebugVesselLabels" type="checkbox"> Podpisy naczyń</label>
+                <label class="debug-toggle"><input id="showDebugWallContacts" type="checkbox"> Punkty kontaktu ze ścianą naczynia</label>
+                <label class="debug-toggle"><input id="showDebugRodNodes" type="checkbox" checked> Węzły pręta — prowadnik: turkus, cewnik: pomarańcz</label>
             </div>
             <div class="browser-benchmark" aria-label="Diagnostyka odrzuconego kroku">
                 <button id="downloadSolverFailure" type="button" disabled>Pobierz zapis odrzuconego kroku</button>

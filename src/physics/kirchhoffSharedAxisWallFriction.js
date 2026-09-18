@@ -14,21 +14,27 @@ const certificate=s=>[...s.positions.flat(),...s.multipliers,...s.materials.flat
 /** Elastic sticking followed by a bounded kinetic return. A branch and normal
  * load stay frozen throughout each global Newton solve and its line search.
  * This is a regularized Coulomb law: sticking admits traction / stiffness mm
- * of elastic motion. No additional contact unknowns or inter-tool rows exist. */
-export function sharedAxisFrictionPotential(slip,{stiffness,normalLoad,muStatic,muKinetic,mode='stick'}) {
+ * of elastic motion. No additional contact unknowns or inter-tool rows exist.
+ * A force-only evaluation returns hessian:null. Optional out is caller-owned
+ * scratch; consumers must finish using its arrays before the next evaluation. */
+export function sharedAxisFrictionPotential(slip,{stiffness,normalLoad,muStatic,muKinetic,mode='stick'},withTangent=true,out=null) {
     if(!(stiffness>0)||![stiffness,normalLoad,muStatic,muKinetic,...slip].every(Number.isFinite)||normalLoad<0||muKinetic<0||muStatic<muKinetic||!['stick','slide'].includes(mode))
         throw new RangeError('Invalid shared-axis wall friction law');
     const length=Math.hypot(...slip),limit=muKinetic*normalLoad;
-    let energy,traction,hessian=new Float64Array(9);
-    if(normalLoad===0||muStatic===0)return {energy:0,traction:[0,0,0],hessian,mode};
+    const result=out??{},traction=result.traction??=new Array(3);
+    const hessian=withTangent?(result.hessian??=new Float64Array(9)):null;
+    if(hessian)hessian.fill(0);
+    result.hessian=hessian;result.mode=mode;
+    let energy;
+    if(normalLoad===0||muStatic===0){traction.fill(0);result.energy=0;return result;}
     if(mode==='stick'||stiffness*length<=limit) {
-        energy=.5*stiffness*length**2;traction=scale(slip,stiffness);
-        for(let i=0;i<3;i++)hessian[i*3+i]=stiffness;
+        energy=.5*stiffness*length**2;for(let i=0;i<3;i++)traction[i]=slip[i]*stiffness;
+        if(hessian)for(let i=0;i<3;i++)hessian[i*3+i]=stiffness;
     } else {
-        energy=limit*(length-.5*limit/stiffness);traction=scale(slip,limit/length);
-        for(let i=0;i<3;i++)for(let j=0;j<3;j++)hessian[i*3+j]=limit/length*((i===j?1:0)-slip[i]*slip[j]/length**2);
+        energy=limit*(length-.5*limit/stiffness);for(let i=0;i<3;i++)traction[i]=slip[i]*(limit/length);
+        if(hessian)for(let i=0;i<3;i++)for(let j=0;j<3;j++)hessian[i*3+j]=limit/length*((i===j?1:0)-slip[i]*slip[j]/length**2);
     }
-    return {energy,traction,hessian,mode};
+    result.energy=energy;return result;
 }
 
 /** Derivative of the frozen branch's traction with respect to normal load.
@@ -42,10 +48,10 @@ export function sharedAxisFrictionNormalDerivative(slip,{stiffness,normalLoad,mu
     return scale(slip,muKinetic/length);
 }
 
-export function prepareSharedAxisWallFriction(s,{feedById={},stiffness=1e4,history=s.wallFrictionHistory??[],liveNormalLoad=false}={}) {
+export function prepareSharedAxisWallFriction(s,{feedById={},stiffness=1e4,history=s.wallFrictionHistory??[],liveNormalLoad=false,lightweightFriction=false}={}) {
     if(!s.dynamicStep)throw new Error('Wall friction requires the prepared dynamic step');
     if(!(stiffness>0&&Number.isFinite(stiffness))||Object.values(feedById).some(v=>!Number.isFinite(v)))throw new RangeError('Invalid wall friction step');
-    s.wallFrictionStep={dynamicStep:s.dynamicStep,feedById:{...feedById},stiffness,...(liveNormalLoad?{liveNormalLoad:true}:{}),
+    s.wallFrictionStep={lightweightFriction,dynamicStep:s.dynamicStep,feedById:{...feedById},stiffness,...(liveNormalLoad?{liveNormalLoad:true}:{}),
         history:new Map(history.map(r=>[r.id,{...r,elastic:r.elastic.slice()}])),records:[],certified:false};
     refreshSharedAxisWallFriction(s);
 }
@@ -85,7 +91,9 @@ function makeRecord(s,def,index,old) {
     return record;
 }
 
-function kinematics(s,r) {
+function kinematics(s,r,lightweight=s.wallFrictionStep?.lightweightFriction??false) {
+    if(lightweight)return bufferedKinematics(s,r);
+
     const {e,t,n,material}=r,p=point(s.positions,e,t),rho=rotate(r.localRho,quat(material.body,e));
     const slip=project(add(r.elastic,add(r.feed,add(p.map((v,k)=>v-r.origin[k]),rho.map((v,k)=>v-r.rho0[k])))),n);
     const edge=s.positions[e+1].map((v,k)=>v-s.positions[e][k]),length=Math.hypot(...edge),tangent=scale(edge,1/length);
@@ -98,15 +106,64 @@ function kinematics(s,r) {
 // Private per-state scratch, never included in replay/history. Each contact is
 // scattered before evaluating the next one, so a single 7 x 7 block suffices.
 const evaluationScratch=new WeakMap();
-function evaluate(s,r,full=false) {
-    const k=kinematics(s,r),live=s.wallFrictionStep?.liveNormalLoad,
+function workspace(s) {
+    let scratch=evaluationScratch.get(s);
+    if(!scratch) {
+        const vectors=()=>Array.from({length:7},()=>[0,0,0]);
+        scratch={HJ:new Float64Array(21),dRho:new Float64Array(21),dT:new Float64Array(21),tCrossDe:new Float64Array(21),lengthFactor:new Float64Array(7),H:new Float64Array(49),
+            q:new Quaternion(),v:new Vector3(),point:[0,0,0],edge:[0,0,0],law:{},residualLaw:{},gradient:new Array(7),
+            k:{slip:[0,0,0],rho:[0,0,0],dofs:new Array(7),tangent:[0,0,0],omega:vectors(),J:vectors(),
+                de:Array.from({length:7},(_,i)=>[0,1,2].map(k=>i<6&&i%3===k?(i<3?-1:1):0))}};
+        evaluationScratch.set(s,scratch);
+    }
+    return scratch;
+}
+function projectInPlace(a,n) {
+    const along=-dot(a,n);
+    for(let i=0;i<3;i++)a[i]=a[i]+n[i]*along;
+}
+// Preserve the reference expression order, including projection's initial
+// zero in dot(). Buffers contain only numbers, never references to a contact,
+// body or prior state, and every pose-dependent entry is overwritten.
+function bufferedKinematics(s,r) {
+    const scratch=workspace(s),k=scratch.k,{e,t,n,material}=r,{body}=material;
+    const {point:p,edge}=scratch,{rho,slip,tangent,de,omega,J,dofs}=k;
+    scratch.q.set(body.orientationX[e],body.orientationY[e],body.orientationZ[e],body.orientationW[e]);
+    scratch.v.set(...r.localRho).applyQuaternion(scratch.q).toArray(rho);
+    for(let a=0;a<3;a++) {
+        p[a]=(1-t)*s.positions[e][a]+t*s.positions[e+1][a];
+        slip[a]=r.elastic[a]+(r.feed[a]+((p[a]-r.origin[a])+(rho[a]-r.rho0[a])));
+        edge[a]=s.positions[e+1][a]-s.positions[e][a];
+        dofs[a]=s.layout.positions[e]+a;dofs[3+a]=s.layout.positions[e+1]+a;
+    }
+    projectInPlace(slip,n);
+    const length=k.length=Math.hypot(...edge),inverse=1/length;
+    for(let a=0;a<3;a++)tangent[a]=edge[a]*inverse;
+    dofs[6]=s.layout.spins.get(material.spec.id)[e];
+    for(let i=0;i<7;i++) {
+        const d=de[i],w=omega[i],j=J[i],spin=i===6?1:0;
+        for(let a=0;a<3;a++) {
+            const b=(a+1)%3,c=(a+2)%3;
+            w[a]=(tangent[b]*d[c]-tangent[c]*d[b])*inverse+tangent[a]*spin;
+        }
+        for(let a=0;a<3;a++) {
+            const b=(a+1)%3,c=(a+2)%3;
+            j[a]=(w[b]*rho[c]-w[c]*rho[b])+(i<6&&i%3===a?(i<3?1-t:t):0);
+        }
+        projectInPlace(j,n);
+    }
+    return k;
+}
+
+function evaluate(s,r,full=false,lightweight=s.wallFrictionStep?.lightweightFriction??false) {
+    const scratch=lightweight?workspace(s):null;
+    const k=kinematics(s,r,lightweight),live=s.wallFrictionStep?.liveNormalLoad,
         rawLoad=live?s.multipliers[r.rowIndex]:r.normalLoad,
         parameters=live?{stiffness:r.stiffness,normalLoad:Math.max(0,rawLoad),muStatic:r.muStatic,muKinetic:r.muKinetic,mode:r.mode}:r,
-        law=sharedAxisFrictionPotential(k.slip,parameters),gradient=k.J.map(j=>dot(j,law.traction));
+        law=sharedAxisFrictionPotential(k.slip,parameters,full||!lightweight,scratch?.[full?'law':'residualLaw']),gradient=scratch?.gradient??new Array(7);
+    for(let i=0;i<7;i++)gradient[i]=dot(k.J[i],law.traction);
     if(!full)return {...k,...law,gradient};
-    let scratch=evaluationScratch.get(s);
-    if(!scratch){scratch={HJ:new Float64Array(21),dRho:new Float64Array(21),dT:new Float64Array(21),tCrossDe:new Float64Array(21),lengthFactor:new Float64Array(7),H:new Float64Array(49)};evaluationScratch.set(s,scratch);}
-    const {HJ,dRho,dT,tCrossDe,lengthFactor,H}=scratch,{length,tangent,rho,de,omega,J}=k;
+    const {HJ,dRho,dT,tCrossDe,lengthFactor,H}=scratch??workspace(s),{length,tangent,rho,de,omega,J}=k;
     const [tx,ty,tz]=tangent,[rx,ry,rz]=rho,[nx,ny,nz]=r.n,[fx,fy,fz]=law.traction,L2=length**2;
     const geometric=!!s.chain.tangent;
     for(let col=0;col<7;col++) {
@@ -165,7 +222,7 @@ export function refreshSharedAxisWallFriction(s,{forceTolerance=1e-6}={}) {
     return {converged:step.certified,forceChange,contacts:records.length,sliding:records.filter(r=>r.mode==='slide').length};
 }
 
-export function assembleSharedAxisWallFriction(s,withTangent=true) {
+export function assembleSharedAxisWallFriction(s,withTangent=true,lightweight=s.wallFrictionStep?.lightweightFriction??false) {
     const step=s.wallFrictionStep;if(!step)return 0;
     if(step.dynamicStep!==s.dynamicStep)throw new Error('Stale wall friction step');
     step.certified=false;step.certificate=null;
@@ -175,7 +232,7 @@ export function assembleSharedAxisWallFriction(s,withTangent=true) {
     if(step.liveNormalLoad)step.normalForceColumns=[];
     const {layout,chain}=s,half=layout.band-1,width=2*half+1;let energy=0;
     for(const r of step.records) {
-        const v=evaluate(s,r,withTangent);energy+=v.energy;
+        const v=evaluate(s,r,withTangent,lightweight);energy+=v.energy;
         if(step.liveNormalLoad&&withTangent&&v.normalForceDerivative.some(v=>v!==0))
             step.normalForceColumns.push({rowIndex:r.rowIndex,dofs:v.dofs.slice(),values:v.normalForceDerivative});
         for(let i=0;i<7;i++) {
@@ -211,7 +268,7 @@ export function restoreSharedAxisWallFriction(s,saved) {
     const copy=JSON.parse(JSON.stringify(saved));s.wallFrictionHistory=copy.history??[];
     if(!copy.step){s.wallFrictionStep=null;return;}
     if(!s.dynamicStep)throw new Error('Restore the dynamic step before wall friction');
-    const step=copy.step;s.wallFrictionStep={...step,dynamicStep:s.dynamicStep,
+    const step=copy.step;s.wallFrictionStep={...step,lightweightFriction:s.wallFrictionStep?.lightweightFriction??false,dynamicStep:s.dynamicStep,
         history:new Map(step.history.map(r=>[r.id,r])),records:step.records.map(({materialId,...r})=>{
             const material=s.materials.find(m=>m.spec.id===materialId);
             if(!material)throw new Error('Friction replay material is absent');return {...r,material};
