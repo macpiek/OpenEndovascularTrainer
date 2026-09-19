@@ -25,7 +25,16 @@ const sourceFiles=[...readdirSync(physicsRoot).filter(name=>/^kirchhoffSharedAxi
 const sourceHashes=Object.fromEntries(sourceFiles.map(path=>[path,createHash('sha256').update(readFileSync(new URL(path,root))).digest('hex')]));
 let gitHead=null;try{gitHead=execFileSync('git',['rev-parse','HEAD'],{cwd:fileURLToPath(root),encoding:'utf8'}).trim();}catch{/* Hashes still identify an exported checkout. */}
 const dt=Number(process.env.SHARED_AXIS_DT??1/60),samples=[],options={forceTolerance:Number(process.env.SHARED_AXIS_FORCE_TOLERANCE??1e-6),lengthTolerance:1e-5,liveWallNormalLoad:process.env.SHARED_AXIS_LIVE_WALL_NORMAL==='1'};
-const adaptiveMesh=process.env.SHARED_AXIS_ADAPTIVE_MESH==='1'?(process.env.SHARED_AXIS_ADAPTIVE_CONTACT_MARGIN!==undefined?{contactMargin:Number(process.env.SHARED_AXIS_ADAPTIVE_CONTACT_MARGIN)}:true):false;
+const adaptiveOverrides={};
+for(const [key,suffix] of Object.entries({contactMargin:'CONTACT_MARGIN',shapeTolerance:'SHAPE_TOLERANCE',maxArcLoss:'MAX_ARC_LOSS',maxSpacing:'MAX_SPACING'})) {
+    const value=process.env['SHARED_AXIS_ADAPTIVE_'+suffix];
+    if(value!==undefined) {
+        const number=Number(value);
+        if(!Number.isFinite(number))throw new RangeError('Invalid adaptive '+key);
+        adaptiveOverrides[key]=number;
+    }
+}
+const adaptiveMesh=process.env.SHARED_AXIS_ADAPTIVE_MESH==='1'?(Object.keys(adaptiveOverrides).length?adaptiveOverrides:true):false;
 if(adaptiveMesh)Object.assign(options,ADAPTIVE_SOLVE_OPTIONS);
 // Explicit experiment budgets override the adaptive defaults too.
 if(process.env.SHARED_AXIS_FORCE_TOLERANCE!==undefined)options.forceTolerance=Number(process.env.SHARED_AXIS_FORCE_TOLERANCE);
@@ -34,6 +43,7 @@ options.projectiveDynamics=process.env.SHARED_AXIS_PROJECTIVE==='1';
 if(options.projectiveDynamics)options.projective={...PROJECTIVE_ROD_DEFAULTS,iterations:Number(process.env.SHARED_AXIS_PD_ITERATIONS??16)};
 options.pruneInactiveWitnesses=process.env.SHARED_AXIS_PRUNE_WITNESSES==='1';
 options.modifiedNewton=process.env.SHARED_AXIS_MODIFIED_NEWTON==='1';
+options.coupledFrictionNewton=process.env.SHARED_AXIS_FAST_NEWTON==='1';
 options.stagnationFallback=process.env.SHARED_AXIS_STAGNATION!=='0';
 options.earlyContactPreflight=process.env.SHARED_AXIS_CONTACT_PREFLIGHT!=='0';
 options.reuseTriangleKernel=process.env.SHARED_AXIS_TRIANGLE_KERNEL!=='0';
@@ -50,7 +60,7 @@ options.lazyTrialTangent=process.env.SHARED_AXIS_LAZY_TRIAL_TANGENT==='1';
 options.reuseStructure=process.env.SHARED_AXIS_REUSE_STRUCTURE!=='0';
 options.earlyLiveFallback=process.env.SHARED_AXIS_EARLY_FALLBACK!=='0';
 const wireTarget=Number(process.env.SHARED_AXIS_WIRE_MM??309),catheterTarget=Number(process.env.SHARED_AXIS_CATHETER_MM??100);
-if(![wireTarget,catheterTarget].every(v=>Number.isFinite(v)&&v>=0&&v<=900))throw new RangeError('Profile insertion targets must be between 0 and 900 mm');
+if(![wireTarget,catheterTarget].every(v=>Number.isFinite(v)&&v>=0&&v<=1000))throw new RangeError('Profile insertion targets must be between 0 and 1000 mm');
 // Match readTools in simulator.js: catheter body mass is rescaled for the
 // current 5 mm material grid. Earlier reports omitted this override and used
 // the solver fallback 1.4 instead of the actual UI mass 1.75.

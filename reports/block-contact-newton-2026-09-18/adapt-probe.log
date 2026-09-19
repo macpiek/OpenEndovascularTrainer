@@ -1,0 +1,12 @@
+{"name":"hot-828.json","variant":"base","ms":818.09725,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-828.json","variant":"adapt","ms":580.7068339999998,"iterations":28,"factors":708,"assemblies":174,"ok":true,"certificate":0.00007398848481088294,"shape":0.00009919768646319454}
+{"name":"hot-828.json","variant":"adaptIncremental","ms":573.5218329999998,"iterations":29,"factors":456,"assemblies":180,"ok":true,"certificate":0.00008862402717113582,"shape":0.0000011060745905051722}
+{"name":"hot-856.json","variant":"base","ms":125.97154200000023,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-856.json","variant":"adapt","ms":161.44670899999983,"iterations":18,"factors":100,"assemblies":50,"ok":true,"certificate":0.000009482928243542688,"shape":1.1049243453838608e-10}
+{"name":"hot-856.json","variant":"adaptIncremental","ms":135.91358300000002,"iterations":18,"factors":73,"assemblies":50,"ok":true,"certificate":4.815971834659649e-7,"shape":0.000013837696077591317}
+{"name":"hot-898.json","variant":"base","ms":105.74445800000012,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"adapt","ms":120.10579099999995,"iterations":15,"factors":110,"assemblies":41,"ok":true,"certificate":0.000050952149611482866,"shape":6.203950991901908e-10}
+{"name":"hot-898.json","variant":"adaptIncremental","ms":125.33550000000014,"iterations":15,"factors":68,"assemblies":41,"ok":true,"certificate":0.000015039074041212075,"shape":2.3342759644801172e-11}
+{"name":"hot-908.json","variant":"base","ms":158.09241699999984,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"adapt","ms":110.27416700000003,"iterations":17,"factors":58,"assemblies":49,"ok":true,"certificate":3.174573546260717e-7,"shape":4.925332384323189e-11}
+{"name":"hot-908.json","variant":"adaptIncremental","ms":113.19212499999958,"iterations":17,"factors":55,"assemblies":49,"ok":true,"certificate":3.17874447652855e-7,"shape":4.9211966743608256e-11}

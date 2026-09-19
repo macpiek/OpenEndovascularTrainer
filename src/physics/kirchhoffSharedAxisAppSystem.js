@@ -23,11 +23,13 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,modifiedNewton=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
     modifiedNewton=modifiedNewton&&!projectiveDynamics;
+    coupledFrictionNewton=coupledFrictionNewton&&!projectiveDynamics;
+    predictiveNewton=predictiveNewton&&coupledFrictionNewton;
     pruneInactiveWitnesses=pruneInactiveWitnesses&&!projectiveDynamics;
-    physicsOptions={...physicsOptions,modifiedNewton,projectiveDynamics,pruneInactiveWitnesses};
+    physicsOptions={velocityPredictor:predictiveNewton?1:0,zeroDualStart:predictiveNewton,...physicsOptions,modifiedNewton,coupledFrictionNewton,projectiveDynamics,pruneInactiveWitnesses};
     if(adaptiveMesh)physicsOptions={...ADAPTIVE_SOLVE_OPTIONS,...physicsOptions};
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
@@ -45,7 +47,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
                 captureError:error.message},stepRequest:{dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools}};
         }
     }
-    const diagnostics={modifiedNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
+    const diagnostics={modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
     function publish(tools,dt) {
         diagnostics.mesh={nodes:state.coordinates.length,dofs:diagnostics.last?.pd?.dofs??state.layout.dofCount,
             minSpacing:Math.min(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
@@ -154,7 +156,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
 
 /** Feed and rotation subdivision is identical in the UI and anatomy replay. */
 export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOptions={}) {
-    let last;const attempts=[];const totals={iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
+    let last;const attempts=[];const totals={predictorFallbacks:0,retainedDiscoveryTrials:0,coupledFrictionRefreshes:0,coupledFrictionFallbacks:0,iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     const result=()=>({...last,...totals,timings,attempts});
         for(const subdivisions of [1,2,4,8]) {

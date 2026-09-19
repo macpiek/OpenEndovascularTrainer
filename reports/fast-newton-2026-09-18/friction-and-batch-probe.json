@@ -1,0 +1,848 @@
+{
+  "variant": {
+    "coupledFrictionNewton": true,
+    "batchRelease": true
+  },
+  "samples": [
+    {
+      "name": "anatomy-berenstein-feed-138.67-live-cycle",
+      "repeat": 0,
+      "reference": {
+        "ms": 414.1397499999998,
+        "ok": true,
+        "status": "converged",
+        "iterations": 24,
+        "factors": 89,
+        "assemblies": 70,
+        "friction": 6,
+        "geometry": 2,
+        "residual": {
+          "force": 6.030677468515933e-8,
+          "torque": 3.735425302409112e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "optimized": {
+        "ms": 46.752958000000035,
+        "ok": true,
+        "status": "converged",
+        "iterations": 4,
+        "factors": 8,
+        "assemblies": 10,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 1.1560041457414627e-7,
+          "torque": 3.285792971041701e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "diff": 5.407599016518943e-13
+    },
+    {
+      "name": "anatomy-berenstein-feed-138.67-live-cycle",
+      "repeat": 1,
+      "reference": {
+        "ms": 217.38750000000005,
+        "ok": true,
+        "status": "converged",
+        "iterations": 24,
+        "factors": 89,
+        "assemblies": 70,
+        "friction": 6,
+        "geometry": 2,
+        "residual": {
+          "force": 6.030677468515933e-8,
+          "torque": 3.735425302409112e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "optimized": {
+        "ms": 43.69462499999986,
+        "ok": true,
+        "status": "converged",
+        "iterations": 4,
+        "factors": 8,
+        "assemblies": 10,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 1.1560041457414627e-7,
+          "torque": 3.285792971041701e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "diff": 5.407599016518943e-13
+    },
+    {
+      "name": "anatomy-berenstein-feed-138.67-live-cycle",
+      "repeat": 2,
+      "reference": {
+        "ms": 209.6489999999999,
+        "ok": true,
+        "status": "converged",
+        "iterations": 24,
+        "factors": 89,
+        "assemblies": 70,
+        "friction": 6,
+        "geometry": 2,
+        "residual": {
+          "force": 6.030677468515933e-8,
+          "torque": 3.735425302409112e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "optimized": {
+        "ms": 32.346000000000004,
+        "ok": true,
+        "status": "converged",
+        "iterations": 4,
+        "factors": 8,
+        "assemblies": 10,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 1.1560041457414627e-7,
+          "torque": 3.285792971041701e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "diff": 5.407599016518943e-13
+    },
+    {
+      "name": "anatomy-berenstein-feed-138.67-live-cycle",
+      "repeat": 3,
+      "reference": {
+        "ms": 251.22179200000028,
+        "ok": true,
+        "status": "converged",
+        "iterations": 24,
+        "factors": 89,
+        "assemblies": 70,
+        "friction": 6,
+        "geometry": 2,
+        "residual": {
+          "force": 6.030677468515933e-8,
+          "torque": 3.735425302409112e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "optimized": {
+        "ms": 32.05045800000016,
+        "ok": true,
+        "status": "converged",
+        "iterations": 4,
+        "factors": 8,
+        "assemblies": 10,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 1.1560041457414627e-7,
+          "torque": 3.285792971041701e-9,
+          "length": 5.684341886080802e-14
+        }
+      },
+      "diff": 5.407599016518943e-13
+    },
+    {
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+      "repeat": 0,
+      "reference": {
+        "ms": 167.79100000000017,
+        "ok": true,
+        "status": "converged",
+        "iterations": 14,
+        "factors": 144,
+        "assemblies": 33,
+        "friction": 2,
+        "geometry": 6,
+        "residual": {
+          "force": 1.9964318198617548e-8,
+          "torque": 2.3525581482886082e-9,
+          "length": 1.509903313490213e-14
+        }
+      },
+      "optimized": {
+        "ms": 96.1210000000001,
+        "ok": true,
+        "status": "converged",
+        "iterations": 12,
+        "factors": 113,
+        "assemblies": 30,
+        "friction": 1,
+        "geometry": 7,
+        "residual": {
+          "force": 1.723765308270231e-8,
+          "torque": 1.7548331676664475e-9,
+          "length": 2.042810365310288e-14
+        }
+      },
+      "diff": 0.00018348593932904212
+    },
+    {
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+      "repeat": 1,
+      "reference": {
+        "ms": 106.03133300000036,
+        "ok": true,
+        "status": "converged",
+        "iterations": 14,
+        "factors": 144,
+        "assemblies": 33,
+        "friction": 2,
+        "geometry": 6,
+        "residual": {
+          "force": 1.9964318198617548e-8,
+          "torque": 2.3525581482886082e-9,
+          "length": 1.509903313490213e-14
+        }
+      },
+      "optimized": {
+        "ms": 113.32549999999992,
+        "ok": true,
+        "status": "converged",
+        "iterations": 12,
+        "factors": 113,
+        "assemblies": 30,
+        "friction": 1,
+        "geometry": 7,
+        "residual": {
+          "force": 1.723765308270231e-8,
+          "torque": 1.7548331676664475e-9,
+          "length": 2.042810365310288e-14
+        }
+      },
+      "diff": 0.00018348593932904212
+    },
+    {
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+      "repeat": 2,
+      "reference": {
+        "ms": 104.39845800000012,
+        "ok": true,
+        "status": "converged",
+        "iterations": 14,
+        "factors": 144,
+        "assemblies": 33,
+        "friction": 2,
+        "geometry": 6,
+        "residual": {
+          "force": 1.9964318198617548e-8,
+          "torque": 2.3525581482886082e-9,
+          "length": 1.509903313490213e-14
+        }
+      },
+      "optimized": {
+        "ms": 86.49558400000024,
+        "ok": true,
+        "status": "converged",
+        "iterations": 12,
+        "factors": 113,
+        "assemblies": 30,
+        "friction": 1,
+        "geometry": 7,
+        "residual": {
+          "force": 1.723765308270231e-8,
+          "torque": 1.7548331676664475e-9,
+          "length": 2.042810365310288e-14
+        }
+      },
+      "diff": 0.00018348593932904212
+    },
+    {
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming",
+      "repeat": 3,
+      "reference": {
+        "ms": 91.59962500000029,
+        "ok": true,
+        "status": "converged",
+        "iterations": 14,
+        "factors": 144,
+        "assemblies": 33,
+        "friction": 2,
+        "geometry": 6,
+        "residual": {
+          "force": 1.9964318198617548e-8,
+          "torque": 2.3525581482886082e-9,
+          "length": 1.509903313490213e-14
+        }
+      },
+      "optimized": {
+        "ms": 85.39508300000034,
+        "ok": true,
+        "status": "converged",
+        "iterations": 12,
+        "factors": 113,
+        "assemblies": 30,
+        "friction": 1,
+        "geometry": 7,
+        "residual": {
+          "force": 1.723765308270231e-8,
+          "torque": 1.7548331676664475e-9,
+          "length": 2.042810365310288e-14
+        }
+      },
+      "diff": 0.00018348593932904212
+    },
+    {
+      "name": "current-hold",
+      "repeat": 0,
+      "reference": {
+        "ms": 48.71933399999989,
+        "ok": true,
+        "status": "converged",
+        "iterations": 9,
+        "factors": 18,
+        "assemblies": 18,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 1.7250840755878016e-8,
+          "torque": 6.428066967600898e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 38.00654200000008,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 15,
+        "friction": 1,
+        "geometry": 2,
+        "residual": {
+          "force": 0.0000032988714337989222,
+          "torque": 1.7624626202916716e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 1.2669230029713722e-11
+    },
+    {
+      "name": "current-hold",
+      "repeat": 1,
+      "reference": {
+        "ms": 39.12145799999962,
+        "ok": true,
+        "status": "converged",
+        "iterations": 9,
+        "factors": 18,
+        "assemblies": 18,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 1.7250840755878016e-8,
+          "torque": 6.428066967600898e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 35.217707999999675,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 15,
+        "friction": 1,
+        "geometry": 2,
+        "residual": {
+          "force": 0.0000032988714337989222,
+          "torque": 1.7624626202916716e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 1.2669230029713722e-11
+    },
+    {
+      "name": "current-hold",
+      "repeat": 2,
+      "reference": {
+        "ms": 40.68679199999997,
+        "ok": true,
+        "status": "converged",
+        "iterations": 9,
+        "factors": 18,
+        "assemblies": 18,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 1.7250840755878016e-8,
+          "torque": 6.428066967600898e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 31.213416999999936,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 15,
+        "friction": 1,
+        "geometry": 2,
+        "residual": {
+          "force": 0.0000032988714337989222,
+          "torque": 1.7624626202916716e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 1.2669230029713722e-11
+    },
+    {
+      "name": "current-hold",
+      "repeat": 3,
+      "reference": {
+        "ms": 35.67000000000007,
+        "ok": true,
+        "status": "converged",
+        "iterations": 9,
+        "factors": 18,
+        "assemblies": 18,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 1.7250840755878016e-8,
+          "torque": 6.428066967600898e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 32.801332999999886,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 15,
+        "friction": 1,
+        "geometry": 2,
+        "residual": {
+          "force": 0.0000032988714337989222,
+          "torque": 1.7624626202916716e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 1.2669230029713722e-11
+    },
+    {
+      "name": "current-feed",
+      "repeat": 0,
+      "reference": {
+        "ms": 60.34937499999978,
+        "ok": true,
+        "status": "converged",
+        "iterations": 13,
+        "factors": 39,
+        "assemblies": 26,
+        "friction": 3,
+        "geometry": 3,
+        "residual": {
+          "force": 1.769785740179941e-8,
+          "torque": 1.2164691476357348e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 61.915750000000116,
+        "ok": true,
+        "status": "converged",
+        "iterations": 10,
+        "factors": 36,
+        "assemblies": 21,
+        "friction": 1,
+        "geometry": 3,
+        "residual": {
+          "force": 1.0398298400104977e-7,
+          "torque": 1.199452803746226e-8,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 9.773256421811485e-11
+    },
+    {
+      "name": "current-feed",
+      "repeat": 1,
+      "reference": {
+        "ms": 59.348625000000084,
+        "ok": true,
+        "status": "converged",
+        "iterations": 13,
+        "factors": 39,
+        "assemblies": 26,
+        "friction": 3,
+        "geometry": 3,
+        "residual": {
+          "force": 1.769785740179941e-8,
+          "torque": 1.2164691476357348e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 50.89891699999998,
+        "ok": true,
+        "status": "converged",
+        "iterations": 10,
+        "factors": 36,
+        "assemblies": 21,
+        "friction": 1,
+        "geometry": 3,
+        "residual": {
+          "force": 1.0398298400104977e-7,
+          "torque": 1.199452803746226e-8,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 9.773256421811485e-11
+    },
+    {
+      "name": "current-feed",
+      "repeat": 2,
+      "reference": {
+        "ms": 55.16787499999964,
+        "ok": true,
+        "status": "converged",
+        "iterations": 13,
+        "factors": 39,
+        "assemblies": 26,
+        "friction": 3,
+        "geometry": 3,
+        "residual": {
+          "force": 1.769785740179941e-8,
+          "torque": 1.2164691476357348e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 52.537500000000364,
+        "ok": true,
+        "status": "converged",
+        "iterations": 10,
+        "factors": 36,
+        "assemblies": 21,
+        "friction": 1,
+        "geometry": 3,
+        "residual": {
+          "force": 1.0398298400104977e-7,
+          "torque": 1.199452803746226e-8,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 9.773256421811485e-11
+    },
+    {
+      "name": "current-feed",
+      "repeat": 3,
+      "reference": {
+        "ms": 85.49212499999976,
+        "ok": true,
+        "status": "converged",
+        "iterations": 13,
+        "factors": 39,
+        "assemblies": 26,
+        "friction": 3,
+        "geometry": 3,
+        "residual": {
+          "force": 1.769785740179941e-8,
+          "torque": 1.2164691476357348e-9,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 48.530917000000045,
+        "ok": true,
+        "status": "converged",
+        "iterations": 10,
+        "factors": 36,
+        "assemblies": 21,
+        "friction": 1,
+        "geometry": 3,
+        "residual": {
+          "force": 1.0398298400104977e-7,
+          "torque": 1.199452803746226e-8,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "diff": 9.773256421811485e-11
+    },
+    {
+      "name": "current-rotate",
+      "repeat": 0,
+      "reference": {
+        "ms": 34.056540999999925,
+        "ok": true,
+        "status": "converged",
+        "iterations": 8,
+        "factors": 17,
+        "assemblies": 16,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 2.0597781258402392e-8,
+          "torque": 5.223421695177421e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 25.29645900000014,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 14,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.672147042583674e-7,
+          "torque": 6.462103669946373e-7,
+          "length": 3.26316751397826e-12
+        }
+      },
+      "diff": 1.0346431850180623e-11
+    },
+    {
+      "name": "current-rotate",
+      "repeat": 1,
+      "reference": {
+        "ms": 34.43004199999996,
+        "ok": true,
+        "status": "converged",
+        "iterations": 8,
+        "factors": 17,
+        "assemblies": 16,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 2.0597781258402392e-8,
+          "torque": 5.223421695177421e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 28.40729199999987,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 14,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.672147042583674e-7,
+          "torque": 6.462103669946373e-7,
+          "length": 3.26316751397826e-12
+        }
+      },
+      "diff": 1.0346431850180623e-11
+    },
+    {
+      "name": "current-rotate",
+      "repeat": 2,
+      "reference": {
+        "ms": 33.818624999999884,
+        "ok": true,
+        "status": "converged",
+        "iterations": 8,
+        "factors": 17,
+        "assemblies": 16,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 2.0597781258402392e-8,
+          "torque": 5.223421695177421e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 29.15545899999961,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 14,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.672147042583674e-7,
+          "torque": 6.462103669946373e-7,
+          "length": 3.26316751397826e-12
+        }
+      },
+      "diff": 1.0346431850180623e-11
+    },
+    {
+      "name": "current-rotate",
+      "repeat": 3,
+      "reference": {
+        "ms": 32.62787500000013,
+        "ok": true,
+        "status": "converged",
+        "iterations": 8,
+        "factors": 17,
+        "assemblies": 16,
+        "friction": 3,
+        "geometry": 1,
+        "residual": {
+          "force": 2.0597781258402392e-8,
+          "torque": 5.223421695177421e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 26.553666000000703,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 14,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.672147042583674e-7,
+          "torque": 6.462103669946373e-7,
+          "length": 3.26316751397826e-12
+        }
+      },
+      "diff": 1.0346431850180623e-11
+    },
+    {
+      "name": "current-withdraw",
+      "repeat": 0,
+      "reference": {
+        "ms": 30.397165999999743,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 14,
+        "friction": 2,
+        "geometry": 1,
+        "residual": {
+          "force": 1.6059857443906367e-8,
+          "torque": 2.6872593039684034e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 23.10620800000015,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 15,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.6397508413065225e-7,
+          "torque": 5.991381044623267e-7,
+          "length": 3.558930927738402e-12
+        }
+      },
+      "diff": 9.042956554141395e-12
+    },
+    {
+      "name": "current-withdraw",
+      "repeat": 1,
+      "reference": {
+        "ms": 29.92266599999948,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 14,
+        "friction": 2,
+        "geometry": 1,
+        "residual": {
+          "force": 1.6059857443906367e-8,
+          "torque": 2.6872593039684034e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 26.40033399999993,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 15,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.6397508413065225e-7,
+          "torque": 5.991381044623267e-7,
+          "length": 3.558930927738402e-12
+        }
+      },
+      "diff": 9.042956554141395e-12
+    },
+    {
+      "name": "current-withdraw",
+      "repeat": 2,
+      "reference": {
+        "ms": 33.51591700000063,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 14,
+        "friction": 2,
+        "geometry": 1,
+        "residual": {
+          "force": 1.6059857443906367e-8,
+          "torque": 2.6872593039684034e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 25.739125000000058,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 15,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.6397508413065225e-7,
+          "torque": 5.991381044623267e-7,
+          "length": 3.558930927738402e-12
+        }
+      },
+      "diff": 9.042956554141395e-12
+    },
+    {
+      "name": "current-withdraw",
+      "repeat": 3,
+      "reference": {
+        "ms": 32.59391700000015,
+        "ok": true,
+        "status": "converged",
+        "iterations": 7,
+        "factors": 17,
+        "assemblies": 14,
+        "friction": 2,
+        "geometry": 1,
+        "residual": {
+          "force": 1.6059857443906367e-8,
+          "torque": 2.6872593039684034e-10,
+          "length": 6.039613253960852e-14
+        }
+      },
+      "optimized": {
+        "ms": 31.982750000000124,
+        "ok": true,
+        "status": "converged",
+        "iterations": 5,
+        "factors": 15,
+        "assemblies": 11,
+        "friction": 1,
+        "geometry": 1,
+        "residual": {
+          "force": 4.6397508413065225e-7,
+          "torque": 5.991381044623267e-7,
+          "length": 3.558930927738402e-12
+        }
+      },
+      "diff": 9.042956554141395e-12
+    }
+  ]
+}

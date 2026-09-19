@@ -1,0 +1,42 @@
+✔ adaptive provider publishes actual mechanical nodes atomically and clears mesh diagnostics on reset (18.606209ms)
+✔ adaptive tolerance changes preserve a pending step and wake an unchanged sleeping state (15.593834ms)
+✔ contact margin applies after a pending solve and wakes a sleeping adaptive provider (13.7475ms)
+✔ arc-loss and spacing controls are frozen during a pending step and wake sleeping physics (23.239458ms)
+✔ shared-axis selection installs its whole-step provider without the split coupled kernel (0.398167ms)
+✔ pending global solves publish both tools atomically and freeze prepared controls (1.337ms)
+✔ World consumes one prepared dt only after cooperative completion (1.461459ms)
+✔ independent feed and proximal spin share exactly one overlap curve in world coordinates (16.157875ms)
+✔ sampling translates local coordinates once and extrapolates the exposed proximal reservoir (0.116917ms)
+✔ reset abandons private work and clears both published curves and solver counters (4.208791ms)
+✔ missing anatomy rejects without preparing tools or publishing geometry (0.667166ms)
+✔ unchanged settled commands sleep with stable diagnostics and parameter changes wake the solver (21.735375ms)
+✔ a throwing geometry callback preserves both published bodies and reset permits recovery (30.538125ms)
+✔ terminal failure is latched, rolls back input, and a changed command resumes without resetting the accepted solver (7.110666ms)
+✔ catheter material stiffness changes the solved transient shape, not only the command key (77.984583ms)
+✔ whole-step diagnostics sum wall-load fallbacks and their cost across rejected and accepted subdivisions (2.214333ms)
+✔ rejection records the accepted state and frozen command; replay survives JSON and later recovery (10.088459ms)
+✔ PD provider publishes only complete steps and keeps its solver identity and actual DOF count (9.655959ms)
+✔ fast Newton provider is explicit, forwards its counters and is disabled for projective dynamics (1.139417ms)
+✔ predictive Newton can be disabled while keeping fast friction enabled (1.380541ms)
+✔ velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation (7.772833ms)
+✔ a failed predictor retries from the original pose and includes failed work (8.555292ms)
+✔ velocity prediction retains the same dynamic equilibrium and force certificate for a free rod (2.656458ms)
+✔ invalid prediction strengths are rejected before physical work (2.518584ms)
+✔ warm contact search reduces repeated factors on captured Pigtail steps with unchanged certification (2171.790917ms)
+✔ zero working dual releases unloaded walls together while retaining incoming physical forces (16.415458ms)
+✔ failed zero-dual trial falls back to the original physical dual and certifies its result (0.555209ms)
+✔ loaded feasible contact systems retain primal equilibrium and complementarity across starting duals (22.825208ms)
+✔ solver navigation preserves unrelated URL parameters and selects a clean restart (1.127084ms)
+✔ node overlay uses accepted mechanical positions, supports legacy bodies and clears reset views (1.242917ms)
+✔ contact pruning URL is explicit, reversible and independent of Newton mode (0.17525ms)
+✔ fast Newton URL override is reversible without dropping the other solver controls (0.170917ms)
+✔ fast Newton checkbox defaults on, enables restart and is cleared when switching to projective dynamics (0.3985ms)
+✔ predictive Newton defaults on and can restart independently of fast friction (0.192416ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2317.609667

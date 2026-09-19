@@ -1,0 +1,16 @@
+{"name":"hot-828.json","variant":"base","ms":967.2181670000002,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-828.json","variant":"residual","ms":516.9568329999997,"iterations":24,"factors":669,"assemblies":158,"ok":true,"certificate":0.000005507697153461777,"shape":0}
+{"name":"hot-828.json","variant":"chord","ms":658.5508749999999,"iterations":24,"factors":844,"assemblies":158,"ok":true,"certificate":0.000005507697153461777,"shape":0}
+{"name":"hot-828.json","variant":"chord10","ms":582.509208,"iterations":24,"factors":844,"assemblies":158,"ok":true,"certificate":0.000005507697153461777,"shape":0}
+{"name":"hot-856.json","variant":"base","ms":134.37783299999955,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-856.json","variant":"residual","ms":112.57850000000053,"iterations":12,"factors":94,"assemblies":37,"ok":true,"certificate":6.769360894054444e-8,"shape":0}
+{"name":"hot-856.json","variant":"chord","ms":113.36041599999953,"iterations":12,"factors":93,"assemblies":36,"ok":true,"certificate":0.000035731843688324716,"shape":4.3653663533594625e-10}
+{"name":"hot-856.json","variant":"chord10","ms":113.97120900000027,"iterations":12,"factors":93,"assemblies":36,"ok":true,"certificate":0.000035731843688324716,"shape":4.3653663533594625e-10}
+{"name":"hot-898.json","variant":"base","ms":105.63050000000021,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"residual","ms":102.73820800000067,"iterations":8,"factors":103,"assemblies":26,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"chord","ms":121.8574579999995,"iterations":8,"factors":114,"assemblies":26,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"chord10","ms":109.10683299999982,"iterations":8,"factors":114,"assemblies":26,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-908.json","variant":"base","ms":154.36762499999986,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"residual","ms":155.79424999999992,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"chord","ms":64.95729200000005,"iterations":10,"factors":43,"assemblies":26,"ok":true,"certificate":8.248315381820248e-7,"shape":2.6010416494122407e-11}
+{"name":"hot-908.json","variant":"chord10","ms":59.597083000000566,"iterations":10,"factors":43,"assemblies":26,"ok":true,"certificate":8.248315381820248e-7,"shape":2.6010416494122407e-11}

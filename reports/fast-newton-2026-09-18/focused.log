@@ -1,0 +1,40 @@
+✔ adaptive provider publishes actual mechanical nodes atomically and clears mesh diagnostics on reset (21.529666ms)
+✔ adaptive tolerance changes preserve a pending step and wake an unchanged sleeping state (14.940333ms)
+✔ contact margin applies after a pending solve and wakes a sleeping adaptive provider (10.884625ms)
+✔ arc-loss and spacing controls are frozen during a pending step and wake sleeping physics (19.425459ms)
+✔ shared-axis selection installs its whole-step provider without the split coupled kernel (0.465875ms)
+✔ pending global solves publish both tools atomically and freeze prepared controls (1.4865ms)
+✔ World consumes one prepared dt only after cooperative completion (1.657542ms)
+✔ independent feed and proximal spin share exactly one overlap curve in world coordinates (11.653709ms)
+✔ sampling translates local coordinates once and extrapolates the exposed proximal reservoir (0.109917ms)
+✔ reset abandons private work and clears both published curves and solver counters (3.562334ms)
+✔ missing anatomy rejects without preparing tools or publishing geometry (0.172333ms)
+✔ unchanged settled commands sleep with stable diagnostics and parameter changes wake the solver (16.200542ms)
+✔ a throwing geometry callback preserves both published bodies and reset permits recovery (24.17575ms)
+✔ terminal failure is latched, rolls back input, and a changed command resumes without resetting the accepted solver (5.760208ms)
+✔ catheter material stiffness changes the solved transient shape, not only the command key (83.874417ms)
+✔ whole-step diagnostics sum wall-load fallbacks and their cost across rejected and accepted subdivisions (2.740167ms)
+✔ rejection records the accepted state and frozen command; replay survives JSON and later recovery (11.40975ms)
+✔ PD provider publishes only complete steps and keeps its solver identity and actual DOF count (10.310084ms)
+✔ fast Newton provider is explicit, forwards its counters and is disabled for projective dynamics (1.253542ms)
+✔ coupled friction updates only between accepted Newton steps and retains the full final force certificate (35.331166ms)
+✔ cancelling after an early friction refresh restores pose, velocities and committed history (5.529958ms)
+✔ a failed early update retries the reference method from the original physical state and counts failed work (4.622541ms)
+✔ simultaneously release zero-reaction blocking contacts without changing the certified linear solution (0.614625ms)
+✔ a feasible newly discovered contact can keep an accepted trial without resolving its direction (3.36175ms)
+✔ a newly discovered violated contact always rebuilds the direction instead of retaining the trial (1.622667ms)
+✔ a non-geometric failure before the first factorization still retries the original method (3.331917ms)
+✔ early friction plus zero-reaction release reduces repeated solves on captured vessel cases (1787.955833ms)
+✔ solver navigation preserves unrelated URL parameters and selects a clean restart (0.709916ms)
+✔ node overlay uses accepted mechanical positions, supports legacy bodies and clears reset views (0.783584ms)
+✔ contact pruning URL is explicit, reversible and independent of Newton mode (0.142917ms)
+✔ fast Newton is opt-in and reversible without dropping the other solver controls (0.165541ms)
+✔ fast Newton checkbox enables restart and is cleared when switching to projective dynamics (0.334ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2638.284125

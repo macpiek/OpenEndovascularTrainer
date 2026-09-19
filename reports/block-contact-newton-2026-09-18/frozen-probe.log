@@ -1,0 +1,16 @@
+{"name":"hot-828.json","variant":"base","ms":805.8879999999999,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-828.json","variant":"frozen","ms":159.90612499999997,"iterations":21,"factors":154,"assemblies":49,"ok":true,"certificate":0.000026394714431887678,"shape":0.00009914962844522085}
+{"name":"hot-828.json","variant":"frozenIncremental","ms":154.68725000000018,"iterations":21,"factors":42,"assemblies":49,"ok":true,"certificate":0.00001817411341065167,"shape":0.00009914962146405784}
+{"name":"hot-828.json","variant":"reuse","ms":509.284083,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-856.json","variant":"base","ms":116.87066700000014,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-856.json","variant":"frozen","ms":124.6122919999998,"iterations":16,"factors":99,"assemblies":45,"ok":true,"certificate":3.6098866473821545e-7,"shape":0.000025463056755112562}
+{"name":"hot-856.json","variant":"frozenIncremental","ms":120.42149999999992,"iterations":16,"factors":54,"assemblies":45,"ok":true,"certificate":3.6106772149935296e-7,"shape":0.00002546305672139406}
+{"name":"hot-856.json","variant":"reuse","ms":111.09008400000039,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-898.json","variant":"base","ms":108.74154200000021,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"frozen","ms":125.25324999999975,"iterations":13,"factors":108,"assemblies":36,"ok":true,"certificate":0.000012842086706044142,"shape":0.0001474384745842822}
+{"name":"hot-898.json","variant":"frozenIncremental","ms":119.44891700000016,"iterations":13,"factors":53,"assemblies":36,"ok":true,"certificate":0.000011563735547781562,"shape":0.00014743846459764714}
+{"name":"hot-898.json","variant":"reuse","ms":97.26729100000011,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-908.json","variant":"base","ms":150.23291599999993,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"frozen","ms":45.059082999999646,"iterations":11,"factors":19,"assemblies":22,"ok":true,"certificate":7.330436524455308e-7,"shape":5.049479837982468e-13}
+{"name":"hot-908.json","variant":"frozenIncremental","ms":46.39016700000002,"iterations":11,"factors":11,"assemblies":22,"ok":true,"certificate":7.31332571390908e-7,"shape":1.2435766637386179e-12}
+{"name":"hot-908.json","variant":"reuse","ms":162.55000000000018,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}

@@ -1,0 +1,147 @@
+{
+  "scope": "Separate Node trajectory with matching controls, not a replay of the browser pose/history. Includes failed attempts; no rendering.",
+  "failed": true,
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 1000,
+    "catheterTarget": 1000,
+    "adaptiveMesh": {
+      "contactMargin": 0.3,
+      "shapeTolerance": 27.93,
+      "maxArcLoss": 0.0426,
+      "maxSpacing": 95
+    },
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "projectiveDynamics": false,
+      "pruneInactiveWitnesses": true,
+      "modifiedNewton": false,
+      "stagnationFallback": true,
+      "earlyContactPreflight": true,
+      "reuseTriangleKernel": true,
+      "lightweightFriction": true,
+      "reuseMaterialScratch": true,
+      "reuseRowBuffers": true,
+      "cullInactiveContacts": false,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 9.6,
+        "tipStiffness": 6.8
+      },
+      {
+        "id": "catheter",
+        "type": "pigtail",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 66.8
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "rejected": 0,
+      "meanMs": 39.535499999999956,
+      "p95Ms": 39.535499999999956,
+      "maxMs": 39.535499999999956,
+      "stages": {
+        "assembly": {
+          "ms": 15.93212500000027,
+          "percent": 40.298276232753565
+        },
+        "linear": {
+          "ms": 16.796622000001662,
+          "percent": 42.48491102933232
+        },
+        "friction": {
+          "ms": 0.08733400000005531,
+          "percent": 0.2209002036146132
+        },
+        "other": {
+          "ms": 6.71941899999797,
+          "percent": 16.995912534299496
+        }
+      },
+      "projectionIncludedInLinearMs": 1.9889990000003763,
+      "averages": {
+        "iterations": 5,
+        "factorizations": 27,
+        "fullAssemblies": 5,
+        "residualAssemblies": 9,
+        "backtracks": 0,
+        "geometryRestarts": 0,
+        "frictionIterations": 1,
+        "wallNormalFallbacks": 0,
+        "substepAttempts": 1,
+        "mechanicalNodes": 9,
+        "mechanicalDofs": 43
+      }
+    },
+    "wire": {
+      "steps": 798,
+      "rejected": 1,
+      "meanMs": 24.631434931077685,
+      "p95Ms": 58.64720900000066,
+      "maxMs": 372.13266699999986,
+      "stages": {
+        "assembly": {
+          "ms": 9.938308112781826,
+          "percent": 40.34806798950467
+        },
+        "linear": {
+          "ms": 11.249581174185252,
+          "percent": 45.6716435955242
+        },
+        "friction": {
+          "ms": 0.26570765037595273,
+          "percent": 1.078733947573258
+        },
+        "other": {
+          "ms": 3.1778379937346544,
+          "percent": 12.901554467397878
+        }
+      },
+      "projectionIncludedInLinearMs": 0.04775730451128458,
+      "averages": {
+        "iterations": 7.134085213032582,
+        "factorizations": 25.44360902255639,
+        "fullAssemblies": 8.395989974937343,
+        "residualAssemblies": 9.266917293233083,
+        "backtracks": 2.092731829573935,
+        "geometryRestarts": 2.6766917293233083,
+        "frictionIterations": 2.100250626566416,
+        "wallNormalFallbacks": 0.05764411027568922,
+        "substepAttempts": 1.1040100250626566,
+        "mechanicalNodes": 49.1203007518797,
+        "mechanicalDofs": 203.47243107769424
+      }
+    }
+  },
+  "cpu": null
+}

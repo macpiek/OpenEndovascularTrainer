@@ -1,5 +1,5 @@
 import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
-import {captureSharedAxisNative,restoreSharedAxisNative} from './kirchhoffSharedAxisNative.js';
+import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement} from './kirchhoffSharedAxisNative.js';
 import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
 import {prepareSharedAxisWallFriction,refreshSharedAxisWallFriction,commitSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
 import {iterateSharedAxisWithContacts} from './kirchhoffSharedAxisVesselWitnesses.js';
@@ -18,7 +18,24 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     if(!(Number.isFinite(tolerance)&&tolerance>0))throw new RangeError('Positive force tolerance required');
     s.cacheMechanicalAssembly=true;s.reuseTriangleKernel=options.reuseTriangleKernel===true;
     prepareSharedAxisDynamicStep(s,dt);prepareSharedAxisWallFriction(s,{feedById,liveNormalLoad:options.liveWallNormalLoad===true,lightweightFriction:options.lightweightFriction===true});
-    let result,friction,iterations=0,factorizations=0,workingSetReuses=0,backtracks=0,geometryRestarts=0,frictionIterations=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
+    let predictedInitialPose=false;
+    // Warm start only the private pose. Inertia targets and the friction
+    // reference were prepared from the incoming state and remain unchanged.
+    if(options.velocityPredictor) {
+        const increment=new Float64Array(s.layout.dofCount),decay=.98**(dt*120);
+        for(let n=0;n<s.positions.length;n++)for(let a=0;a<3;a++) {
+            const dof=s.layout.positions[n]+a;
+            if(!s.fixed[dof])increment[dof]=options.velocityPredictor*dt*decay*(s.velocities?.[n]?.[a]??0);
+        }
+        for(const {spec,last} of s.materials)for(let e=0;e<last;e++) {
+            const dof=s.layout.spins.get(spec.id)[e],p=s.positions[e],q=s.positions[e+1],v=q.map((x,a)=>x-p[a]),length=Math.hypot(...v);
+            if(!s.fixed[dof])increment[dof]=options.velocityPredictor*dt*decay*v.reduce((sum,x,a)=>sum+x*(s.angularVelocities?.[spec.id]?.[e]?.[a]??0),0)/length;
+        }
+        if(increment.some(v=>v!==0)) {
+            applySharedAxisNativeIncrement(s,increment,new Float64Array(s.multipliers.length));predictedInitialPose=true;
+        }
+    }
+    let result,friction,iterations=0,factorizations=0,workingSetReuses=0,backtracks=0,geometryRestarts=0,frictionIterations=0,coupledFrictionRefreshes=0,retainedDiscoveryTrials=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     // Intermediate friction equilibria are private. Only the final accepted
     // step publishes exact gaps for remeshing/replay. Loaded contacts still
@@ -28,6 +45,7 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     for(let outer=0;outer<maxFrictionIterations;outer++) {
         frictionIterations=outer+1;
         result=yield* iterateSharedAxisWithContacts(s,{...options,forceTolerance:tolerance,deferContactPublication});
+        retainedDiscoveryTrials+=result.retainedDiscoveryTrials??0;coupledFrictionRefreshes+=result.coupledFrictionRefreshes??0;timings.frictionMs+=result.frictionRefreshMs??0;
         iterations+=result.iterations;factorizations+=result.factorizations;workingSetReuses+=result.workingSetReuses??0;backtracks+=result.backtracks;geometryRestarts+=result.geometryRestarts;
         for(const key of ['assemblyMs','linearMs','tangentAssemblyMs','residualAssemblyMs','projectionMs'])timings[key]+=result.timings[key]??0;
         fullAssemblies+=result.fullAssemblies??0;residualAssemblies+=result.residualAssemblies??0;promotedAssemblies+=result.promotedAssemblies??0;
@@ -45,11 +63,11 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
                 b.maxSpeed=Math.max(...s.velocities.slice(0,last+1).map(v=>Math.hypot(...v)));
             }
             committed=true;
-            return {...result,certificateBound:Math.max(result.residual.force,result.residual.torque)+friction.forceChange,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,frictionIterations:outer+1,ms:performance.now()-started};
+            return {...result,predictedInitialPose,retainedDiscoveryTrials,coupledFrictionRefreshes,certificateBound:Math.max(result.residual.force,result.residual.torque)+friction.forceChange,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,frictionIterations:outer+1,ms:performance.now()-started};
         }
         result={...result,converged:false,status:'wall-friction-iteration-limit'};
     }
-    return {...result,converged:false,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,ms:performance.now()-started};
+    return {...result,predictedInitialPose,converged:false,retainedDiscoveryTrials,coupledFrictionRefreshes,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,ms:performance.now()-started};
     } finally {
         s.reuseTriangleKernel=previousTriangleKernel;
         s.cacheMechanicalAssembly=false;s.mechanicalAssemblyCache=null;s.wallGeometryCache=null;s.bufferedWallGeometryCache=null;
@@ -63,6 +81,38 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
  * outer corrections, retaining only discovered static geometry. Cancellation
  * cannot enter this fallback: generator.return unwinds the attempt's finally. */
 export function* iterateSharedAxisTimeStep(s,dt,options={}) {
+    const predictor=options.velocityPredictor??0;
+    if(!Number.isFinite(predictor)||predictor<0||predictor>1)throw new RangeError('Velocity predictor must be between zero and one');
+    if(options.velocityPredictor&&options.predictorFallback!==false) {
+        // A poor prediction is only a failed initial guess. The attempt's
+        // finally restores pose, rates and history before an ordinary retry.
+        const attempt=yield* iterateSharedAxisTimeStep(s,dt,{...options,predictorFallback:false});
+        if(attempt.converged||!attempt.predictedInitialPose)return attempt;
+        const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,velocityPredictor:0});
+        const out={...reference,predictorFallbacks:1,predictorRecovery:{attempted:true,predictorStatus:attempt.status,converged:reference.converged}};
+        for(const key of ['wallNormalFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
+            out[key]=(attempt[key]??0)+(reference[key]??0);
+        out.timings=Object.fromEntries(Object.keys(reference.timings).map(key=>[key,(attempt.timings[key]??0)+reference.timings[key]]));
+        return out;
+    }
+    if(options.coupledFrictionNewton&&options.coupledFrictionFallback!==false) {
+        // A private attempt. Any failure/cancellation restores the incoming
+        // pose and friction history before the original strategy is retried.
+        const experiment=yield* iterateSharedAxisTimeStep(s,dt,{...options,coupledFrictionFallback:false,wallNormalFallback:false});
+        // Repeating the identical initial outside-surface check cannot repair
+        // geometry. Other pre-factorization failures may recover and must retry.
+        const outsideAtEntry=experiment.error==='Shared axis crossed the vessel surface'&&experiment.iterations===0&&
+            !experiment.factorizations&&!experiment.coupledFrictionRefreshes&&!experiment.retainedDiscoveryTrials;
+        if(experiment.converged||outsideAtEntry)return experiment;
+        const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,coupledFrictionNewton:false,reuseDiscoveryTrial:false,batchRelease:false,zeroDualStart:false});
+        const result={...reference,coupledFrictionFallbacks:1+(reference.coupledFrictionFallbacks??0),
+            coupledFrictionRecovery:{attempted:true,experimentStatus:experiment.status,converged:reference.converged}};
+        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
+            result[key]=(experiment[key]??0)+(reference[key]??0);
+        result.timings=Object.fromEntries(Object.keys(reference.timings).map(key=>[key,(experiment.timings[key]??0)+reference.timings[key]]));
+        return result;
+    }
+
     if(options.modifiedNewton&&options.modifiedNewtonFallback!==false) {
         const experiment=yield* iterateSharedAxisTimeStep(s,dt,{...options,modifiedNewtonFallback:false});
         if(experiment.converged)return experiment;
@@ -70,18 +120,18 @@ export function* iterateSharedAxisTimeStep(s,dt,options={}) {
         // the original method before requesting smaller feed/time subdivisions.
         const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,modifiedNewton:false});
         const result={...reference,modifiedNewtonRecovery:{attempted:true,experimentStatus:experiment.status,converged:reference.converged}};
-        for(const key of ['iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
+        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
             result[key]=(experiment[key]??0)+(reference[key]??0);
         result.timings=Object.fromEntries(Object.keys(reference.timings).map(key=>[key,(experiment.timings[key]??0)+reference.timings[key]]));
         return result;
     }
     const first=yield* iterateTimeStepAttempt(s,dt,{...options,
-        earlyLiveFallback:options.earlyLiveFallback!==false&&options.liveWallNormalLoad===true&&options.wallNormalFallback!==false});
+        earlyLiveFallback:options.earlyLiveFallback!==false&&options.liveWallNormalLoad===true&&(options.wallNormalFallback!==false||options.coupledFrictionNewton===true)});
     if(first.converged||options.liveWallNormalLoad!==true||options.wallNormalFallback===false)return first;
     const fallback=yield* iterateTimeStepAttempt(s,dt,{...options,liveWallNormalLoad:false});
     const result={...fallback,wallNormalFallbacks:1,wallNormalFallback:{attempted:true,liveFailure:first.status,converged:fallback.converged,
         ...(first.detectedCycle?{detectedCycle:first.detectedCycle}:{}),...(first.detectedStagnation?{detectedStagnation:first.detectedStagnation}:{})}};
-    for(const key of ['iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])result[key]=(first[key]??0)+(fallback[key]??0);
+    for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])result[key]=(first[key]??0)+(fallback[key]??0);
     result.timings=Object.fromEntries(Object.keys(fallback.timings).map(key=>[key,(first.timings[key]??0)+fallback.timings[key]]));
     if(first.status==='live-contact-stagnation'&&!fallback.converged) {
         // A heuristic must not turn a solvable full step into a rejection or
@@ -90,7 +140,7 @@ export function* iterateSharedAxisTimeStep(s,dt,options={}) {
         const recovered=yield* iterateSharedAxisTimeStep(s,dt,{...options,stagnationFallback:false});
         const merged={...recovered,wallNormalFallbacks:1+(recovered.wallNormalFallbacks??0),
             stagnationRecovery:{attempted:true,detectedStagnation:first.detectedStagnation,earlyFallbackStatus:fallback.status,converged:recovered.converged}};
-        for(const key of ['iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])merged[key]=(result[key]??0)+(recovered[key]??0);
+        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])merged[key]=(result[key]??0)+(recovered[key]??0);
         merged.timings=Object.fromEntries(Object.keys(result.timings).map(key=>[key,result.timings[key]+(recovered.timings[key]??0)]));
         return merged;
     }

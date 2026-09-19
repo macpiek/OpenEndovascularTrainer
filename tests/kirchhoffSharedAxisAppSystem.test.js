@@ -10,7 +10,7 @@ import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js
 import {createPreparedInputCheckpoint} from '../src/physics/preparedInputCheckpoint.js';
 
 const dt=1/120;
-function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false}={}) {
+function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true}={}) {
     const controls={reads:0,queries:0,throwQuery:false};
     const world=new EndovascularPhysicsWorld({fixedDt:dt});
     const tools=['wire','catheter'].map(id=>{
@@ -23,7 +23,7 @@ function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projective
         if(controls.throwQuery)throw new Error('synthetic contact query failed');
         Object.assign(out,{signedDistance:100,signedGap:100-r[edge],segmentT:.5,faceIndex:0});return out;
     }};
-    const system=createSharedAxisAppSystem({workSliceMs,adaptiveMesh,projectiveDynamics,
+    const system=createSharedAxisAppSystem({workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,
         readTools(){controls.reads++;return tools.map(t=>({...t,nodeCoordinates:t.nodeCoordinates.slice()}));},
         readSheath:()=>({start:origin,end:[origin[0]+10,origin[1],origin[2]],innerRadius:2,proximalExtension:40})});
     world.wholeStepSystem=system;
@@ -371,4 +371,24 @@ test('PD provider publishes only complete steps and keeps its solver identity an
     finish(f,{onPending:()=>f.tools.forEach((t,i)=>assert.equal(t.body.jointStateView,views[i]))});
     assert.deepEqual(f.tools.map(t=>t.body.jointStateView.coordinates.at(-1)),[3,1]);
     f.system.reset();assert.equal(f.system.diagnostics.last,null);assert.ok(f.tools.every(t=>!t.body.jointStateView));
+});
+
+
+test('fast Newton provider is explicit, forwards its counters and is disabled for projective dynamics',()=>{
+    const ordinary=fixture({adaptiveMesh:true});assert.equal(ordinary.system.diagnostics.coupledFrictionNewton,false);
+    const fast=fixture({adaptiveMesh:true,coupledFrictionNewton:true});finish(fast);
+    assert.equal(fast.system.diagnostics.coupledFrictionNewton,true);
+    assert.ok(Number.isFinite(fast.system.diagnostics.last.coupledFrictionRefreshes));
+    assert.ok(Number.isFinite(fast.system.diagnostics.last.retainedDiscoveryTrials));
+    assert.equal(fixture({projectiveDynamics:true,coupledFrictionNewton:true}).system.diagnostics.coupledFrictionNewton,false);
+});
+
+test('predictive Newton can be disabled while keeping fast friction enabled',()=>{
+    const fast=fixture({adaptiveMesh:true,coupledFrictionNewton:true});finish(fast);
+    assert.equal(fast.system.diagnostics.predictiveNewton,true);
+    const previous=fixture({adaptiveMesh:true,coupledFrictionNewton:true,predictiveNewton:false});finish(previous);
+    assert.equal(previous.system.diagnostics.coupledFrictionNewton,true);
+    assert.equal(previous.system.diagnostics.predictiveNewton,false);
+    assert.equal(fixture().system.diagnostics.predictiveNewton,false);
+    assert.equal(fixture({projectiveDynamics:true,coupledFrictionNewton:true}).system.diagnostics.predictiveNewton,false);
 });

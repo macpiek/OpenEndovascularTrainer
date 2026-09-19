@@ -1,0 +1,12 @@
+{"name":"hot-828.json","variant":"base","ms":1133.6782079999998,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-828.json","variant":"predict","ms":307.96645899999976,"iterations":15,"factors":230,"assemblies":72,"ok":true,"certificate":0.0000026320983579353197,"shape":0.000642946084686679}
+{"name":"hot-828.json","variant":"predictHalf","ms":822.3874579999997,"iterations":22,"factors":596,"assemblies":163,"ok":true,"certificate":0.000011461060182682559,"shape":0.0006429460633480318}
+{"name":"hot-856.json","variant":"base","ms":132.85891600000014,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-856.json","variant":"predict","ms":49.40279200000032,"iterations":8,"factors":29,"assemblies":20,"ok":true,"certificate":0.00007217836127892951,"shape":8.818382689885754e-10}
+{"name":"hot-856.json","variant":"predictHalf","ms":57.42274999999972,"iterations":9,"factors":37,"assemblies":22,"ok":true,"certificate":3.064003522013081e-7,"shape":5.712803364555752e-13}
+{"name":"hot-898.json","variant":"base","ms":112.41016600000012,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"predict","ms":152.6748749999997,"iterations":10,"factors":146,"assemblies":40,"ok":true,"certificate":3.600507625378668e-8,"shape":0.0000025450990133301693}
+{"name":"hot-898.json","variant":"predictHalf","ms":73.3796669999997,"iterations":7,"factors":61,"assemblies":21,"ok":true,"certificate":0.000005229299176789937,"shape":1.3134649257682073e-11}
+{"name":"hot-908.json","variant":"base","ms":175.5911660000006,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"predict","ms":61.853000000000065,"iterations":5,"factors":14,"assemblies":13,"ok":true,"certificate":1.528769644210115e-8,"shape":5.015793040816632e-11}
+{"name":"hot-908.json","variant":"predictHalf","ms":93.67483300000004,"iterations":13,"factors":33,"assemblies":32,"ok":true,"certificate":9.032642189765738e-9,"shape":5.01316200131616e-11}

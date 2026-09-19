@@ -279,7 +279,11 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
 function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     const { rows, tolerance = 1e-8 } = options;
     const activeSet=Uint8Array.from(rows,r=>r.kind==='length'||r.multiplier>tolerance);
-    let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?Math.max(0,r.multiplier):r.multiplier);
+    // This dual is a private feasible pivot iterate, not the physical reaction
+    // used to assemble the equations. Starting it at zero lets the batch path
+    // release all initially negative target reactions at the same first blocker.
+    // The single-pivot fallback retains the original physical starting dual.
+    let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?(options.zeroDualStart&&batchSize>1?0:Math.max(0,r.multiplier)):r.multiplier);
     const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses});
     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
         yield {kind:'linear-active-set',attempt,batchSize};
@@ -325,6 +329,14 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
             }
         }
         if(change>=0) {
+            // At alpha=0 these contacts are tied first blockers. All have
+            // zero feasible reaction; releasing them together preserves the
+            // dual iterate. The single-pivot fallback keeps its original order.
+            if(options.batchRelease&&batchSize>1&&alpha===0) {
+                for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i]&&dual[i]===0&&rows[i].multiplier+result.multiplierIncrement[i]<-tolerance&&i!==change) {
+                    activeSet[i]=0;batchedRows++;
+                }
+            }
             for(let i=0;i<rows.length;i++) {
                 dual[i]+=alpha*(rows[i].multiplier+result.multiplierIncrement[i]-dual[i]);
                 if(rows[i].kind==='wall')dual[i]=Math.max(0,dual[i]);

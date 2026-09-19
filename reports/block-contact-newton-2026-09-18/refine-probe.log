@@ -1,0 +1,8 @@
+{"name":"hot-828.json","variant":"base","ms":1157.2366249999998,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-828.json","variant":"refine","ms":550.371083,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-856.json","variant":"base","ms":126.65558299999975,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-856.json","variant":"refine","ms":108.85016600000017,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-898.json","variant":"base","ms":107.97495800000024,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"refine","ms":164.7423749999998,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-908.json","variant":"base","ms":245.36433399999987,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"refine","ms":166.6886669999999,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}

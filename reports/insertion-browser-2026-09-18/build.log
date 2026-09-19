@@ -1,0 +1,31 @@
+
+> openendovasculartrainer@1.0.0 build
+> vite build --outDir /tmp/oet-insertion-benchmark-build
+
+vite v7.3.5 building client environment for production...
+transforming...
+✓ 311 modules transformed.
+
+(!) outDir /tmp/oet-insertion-benchmark-build is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../../../tmp/oet-insertion-benchmark-build/shared-axis-lab.html                                 3.79 kB │ gzip:   1.74 kB
+../../../../../../tmp/oet-insertion-benchmark-build/index.html                                          50.95 kB │ gzip:   9.06 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/skeleton.worker-DkRGimbZ.js                 125.31 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/skeleton-Dp2oxfet.obj                    19,214.17 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/Aorta_plain-CK0GjdR4.stl                 50,720.63 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/Aorta_plain.collision-C2iv_z0R.bin       63,885.02 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/index-DMIugAIR.css                           37.95 kB │ gzip:   8.19 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/modulepreload-polyfill-B5Qt9EMX.js            0.71 kB │ gzip:   0.40 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/index--PgpOfmd.js                             1.79 kB │ gzip:   1.01 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/shared-axis-lab-DyjTcY0F.js                   3.67 kB │ gzip:   1.72 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/kirchhoffSharedAxisContacts-BAidCs6G.js   1,175.10 kB │ gzip: 335.17 kB
+../../../../../../tmp/oet-insertion-benchmark-build/assets/simulator-DZ8K92s7.js                     3,446.56 kB │ gzip: 743.83 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.00s

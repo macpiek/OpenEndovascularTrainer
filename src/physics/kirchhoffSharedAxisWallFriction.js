@@ -11,8 +11,10 @@ const rotate=(a,q)=>new Vector3(...a).applyQuaternion(q).toArray();
 const point=(positions,e,t)=>positions[e].map((v,k)=>(1-t)*v+t*positions[e+1][k]);
 const certificate=s=>[...s.positions.flat(),...s.multipliers,...s.materials.flatMap(({body,last})=>Array.from({length:last},(_,e)=>quat(body,e).toArray()).flat())];
 
-/** Elastic sticking followed by a bounded kinetic return. A branch and normal
- * load stay frozen throughout each global Newton solve and its line search.
+/** Elastic sticking followed by a bounded kinetic return. By default a branch and normal
+ * chart stay frozen throughout a global Newton solve. The fast Newton option
+ * may refresh them between accepted iterations; each direction and its line
+ * search still use one frozen chart. Live normal loads remain explicit duals.
  * This is a regularized Coulomb law: sticking admits traction / stiffness mm
  * of elastic motion. No additional contact unknowns or inter-tool rows exist.
  * A force-only evaluation returns hessian:null. Optional out is caller-owned
@@ -200,7 +202,8 @@ function evaluate(s,r,full=false,lightweight=s.wallFrictionStep?.lightweightFric
     return {...k,...law,gradient,H,...(live?{normalForceDerivative:normalForceDerivative?k.J.map(j=>dot(j,normalForceDerivative)):new Array(7).fill(0)}:{})};
 }
 
-/** Refresh AFTER a converged global solve, never during line search. Re-solve
+/** Refresh after a converged global solve, or between accepted iterations
+ * in fast Newton. Never refresh during a direction or its line search. Re-solve
  * globally until the change of assembled friction force is below tolerance.
  * This certifies the lagged normal load and stick/slide decisions together.
  * With liveNormalLoad, both old and refreshed charts use the CURRENT lambda:

@@ -1,0 +1,443 @@
+{
+  "scope": "Separate Node trajectory with matching controls, not a replay of the browser pose/history. Includes failed attempts; no rendering.",
+  "failed": false,
+  "parameters": {
+    "dt": 0.016666666666666666,
+    "wireTarget": 600,
+    "catheterTarget": 600,
+    "adaptiveMesh": {
+      "contactMargin": 0.3,
+      "shapeTolerance": 27.93,
+      "maxArcLoss": 0.0087,
+      "maxSpacing": 15
+    },
+    "spacing": 5,
+    "maxBendAngle": 0.7853981633974483,
+    "options": {
+      "forceTolerance": 0.0001,
+      "lengthTolerance": 0.001,
+      "liveWallNormalLoad": true,
+      "projectiveDynamics": false,
+      "pruneInactiveWitnesses": true,
+      "modifiedNewton": false,
+      "stagnationFallback": true,
+      "earlyContactPreflight": true,
+      "reuseTriangleKernel": true,
+      "lightweightFriction": true,
+      "reuseMaterialScratch": true,
+      "reuseRowBuffers": true,
+      "cullInactiveContacts": false,
+      "reuseMatrixAssembly": true,
+      "reuseConstraintWork": true,
+      "wasmMaterial": true,
+      "projectionMode": "reduced",
+      "promoteTrialAssembly": true,
+      "lazyTrialTangent": false,
+      "reuseStructure": true,
+      "earlyLiveFallback": true
+    },
+    "tools": [
+      {
+        "id": "wire",
+        "type": "glidewire",
+        "mass": 1,
+        "radius": 0.4445,
+        "wallStaticFriction": 0.006,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 9.6,
+        "tipStiffness": 6.8
+      },
+      {
+        "id": "catheter",
+        "type": "pigtail",
+        "mass": 1.75,
+        "radius": 0.8333333333333333,
+        "wallStaticFriction": 0.002,
+        "wallKineticFriction": 0.002,
+        "shaftStiffness": 40.65,
+        "tipStiffness": 66.8
+      }
+    ],
+    "sheath": {
+      "innerRadius": 0.9,
+      "proximalExtension": 40
+    }
+  },
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "rejected": 0,
+      "meanMs": 27.992250000000013,
+      "p95Ms": 27.992250000000013,
+      "maxMs": 27.992250000000013,
+      "stages": {
+        "assembly": {
+          "ms": 8.932166999999936,
+          "percent": 31.909428502531707
+        },
+        "linear": {
+          "ms": 12.38324900000066,
+          "percent": 44.23813376917059
+        },
+        "friction": {
+          "ms": 0.09849999999983083,
+          "percent": 0.35188311050319565
+        },
+        "other": {
+          "ms": 6.578333999999586,
+          "percent": 23.500554617794506
+        }
+      },
+      "projectionIncludedInLinearMs": 1.7437890000003335,
+      "averages": {
+        "iterations": 5,
+        "factorizations": 27,
+        "fullAssemblies": 5,
+        "residualAssemblies": 9,
+        "backtracks": 0,
+        "geometryRestarts": 0,
+        "frictionIterations": 1,
+        "wallNormalFallbacks": 0,
+        "substepAttempts": 1,
+        "mechanicalNodes": 9,
+        "mechanicalDofs": 43
+      }
+    },
+    "wire": {
+      "steps": 819,
+      "rejected": 0,
+      "meanMs": 25.701301485958485,
+      "p95Ms": 57.84004199999981,
+      "maxMs": 495.166709000001,
+      "stages": {
+        "assembly": {
+          "ms": 10.932815534798706,
+          "percent": 42.53798408135745
+        },
+        "linear": {
+          "ms": 10.705627964590898,
+          "percent": 41.654030518414615
+        },
+        "friction": {
+          "ms": 0.3423610879120747,
+          "percent": 1.3320768526026532
+        },
+        "other": {
+          "ms": 3.720496898656806,
+          "percent": 14.475908547625274
+        }
+      },
+      "projectionIncludedInLinearMs": 0.19525665445666268,
+      "averages": {
+        "iterations": 6.26984126984127,
+        "factorizations": 17.923076923076923,
+        "fullAssemblies": 7.37973137973138,
+        "residualAssemblies": 7.433455433455434,
+        "backtracks": 1.0195360195360195,
+        "geometryRestarts": 2.275946275946276,
+        "frictionIterations": 1.9658119658119657,
+        "wallNormalFallbacks": 0.0463980463980464,
+        "substepAttempts": 1.0854700854700854,
+        "mechanicalNodes": 53.46031746031746,
+        "mechanicalDofs": 220.84126984126985
+      }
+    },
+    "catheter": {
+      "steps": 693,
+      "rejected": 0,
+      "meanMs": 79.95645168109678,
+      "p95Ms": 184.17825000000448,
+      "maxMs": 602.3190419999992,
+      "stages": {
+        "assembly": {
+          "ms": 34.28796438961052,
+          "percent": 42.88329918186808
+        },
+        "linear": {
+          "ms": 36.69265782251098,
+          "percent": 45.89080311975103
+        },
+        "friction": {
+          "ms": 0.8467576262627114,
+          "percent": 1.0590235165011719
+        },
+        "other": {
+          "ms": 8.129071842712566,
+          "percent": 10.166874181879725
+        }
+      },
+      "projectionIncludedInLinearMs": 1.1435376580085894,
+      "averages": {
+        "iterations": 9.855699855699855,
+        "factorizations": 32.089466089466086,
+        "fullAssemblies": 10.408369408369408,
+        "residualAssemblies": 11.252525252525253,
+        "backtracks": 0.7128427128427128,
+        "geometryRestarts": 2.7316017316017316,
+        "frictionIterations": 2.6147186147186146,
+        "wallNormalFallbacks": 0.047619047619047616,
+        "substepAttempts": 1,
+        "mechanicalNodes": 92.75468975468975,
+        "mechanicalDofs": 419.2409812409812
+      }
+    }
+  },
+  "cpu": {
+    "phase": "catheter",
+    "sampledMs": 55541.292,
+    "exclusiveCategories": [
+      {
+        "name": "linear",
+        "ms": 24225.476,
+        "percent": 43.61705521722469
+      },
+      {
+        "name": "assembly/discovery",
+        "ms": 10049.55,
+        "percent": 18.093835483697426
+      },
+      {
+        "name": "assembly/other",
+        "ms": 6366.576,
+        "percent": 11.462779799936955
+      },
+      {
+        "name": "other",
+        "ms": 4728.748,
+        "percent": 8.513932301034696
+      },
+      {
+        "name": "assembly/material",
+        "ms": 3187.533,
+        "percent": 5.739032862253186
+      },
+      {
+        "name": "garbage collector",
+        "ms": 2076.623,
+        "percent": 3.738881335349563
+      },
+      {
+        "name": "assembly/retainedGeometry",
+        "ms": 1948.132,
+        "percent": 3.507538139372055
+      },
+      {
+        "name": "feed/remesh",
+        "ms": 1695.248,
+        "percent": 3.052230041749839
+      },
+      {
+        "name": "assembly/inertia",
+        "ms": 696.49,
+        "percent": 1.2540039579921907
+      },
+      {
+        "name": "assembly/friction",
+        "ms": 566.916,
+        "percent": 1.0207108613893965
+      }
+    ],
+    "inclusiveFunctions": [
+      {
+        "name": "(root)@",
+        "ms": 55541.292,
+        "percent": 100
+      },
+      {
+        "name": "@profile-shared-axis-dynamic.mjs",
+        "ms": 53084.833,
+        "percent": 95.57723828246559
+      },
+      {
+        "name": "step@profile-shared-axis-dynamic.mjs",
+        "ms": 52966.289,
+        "percent": 95.36380428456724
+      },
+      {
+        "name": "advanceSharedAxis@kirchhoffSharedAxisAppSystem.js",
+        "ms": 52916.793,
+        "percent": 95.27468860465112
+      },
+      {
+        "name": "iterateSharedAxisTimeStep@kirchhoffSharedAxisTimeStep.js",
+        "ms": 51170.126,
+        "percent": 92.12988059406324
+      },
+      {
+        "name": "iterateTimeStepAttempt@kirchhoffSharedAxisTimeStep.js",
+        "ms": 51121.378,
+        "percent": 92.04211165991602
+      },
+      {
+        "name": "iterateSharedAxisWithContacts@kirchhoffSharedAxisVesselWitnesses.js",
+        "ms": 50127.212,
+        "percent": 90.25215329884657
+      },
+      {
+        "name": "iterateSharedAxisNative@kirchhoffSharedAxisNative.js",
+        "ms": 49929.675,
+        "percent": 89.89649538581133
+      },
+      {
+        "name": "iterateSharedAxisLinear@kirchhoffSharedAxisLinear.js",
+        "ms": 24190.473,
+        "percent": 43.55403363681205
+      },
+      {
+        "name": "iterateWithFallback@kirchhoffSharedAxisLinear.js",
+        "ms": 24063.429,
+        "percent": 43.32529570972169
+      },
+      {
+        "name": "iterateActiveSet@kirchhoffSharedAxisLinear.js",
+        "ms": 23552.222,
+        "percent": 42.40488680025665
+      },
+      {
+        "name": "assemble@kirchhoffSharedAxisNative.js",
+        "ms": 23082.076,
+        "percent": 41.55840667156249
+      },
+      {
+        "name": "assembleSharedAxisNative@kirchhoffSharedAxisNative.js",
+        "ms": 22815.197,
+        "percent": 41.07790110464121
+      },
+      {
+        "name": "assembleSharedAxisConstraintRows@kirchhoffSharedAxisConstraintRows.js",
+        "ms": 16760.459,
+        "percent": 30.176573854277642
+      },
+      {
+        "name": "solveCompactWorkingSet@kirchhoffSharedAxisLinear.js",
+        "ms": 13611.98,
+        "percent": 24.507856245043776
+      },
+      {
+        "name": "sample@kirchhoffSharedAxisVesselWitnesses.js",
+        "ms": 10052.05,
+        "percent": 18.098336639342133
+      },
+      {
+        "name": "solveSharedAxisLinearOnce@kirchhoffSharedAxisLinear.js",
+        "ms": 9843.836,
+        "percent": 17.7234551907795
+      },
+      {
+        "name": "queryCapsuleSoA@vesselContactField.js",
+        "ms": 8431.305,
+        "percent": 15.18024643719127
+      },
+      {
+        "name": "#queryCapsuleStored@vesselContactField.js",
+        "ms": 8402.637,
+        "percent": 15.128630785182311
+      },
+      {
+        "name": "#queryCapsuleStoredImpl@vesselContactField.js",
+        "ms": 8394.762,
+        "percent": 15.11445214490149
+      },
+      {
+        "name": "prepareSharedAxisActiveBasis@kirchhoffSharedAxisActiveBasis.js",
+        "ms": 7223.955,
+        "percent": 13.006458330137512
+      },
+      {
+        "name": "assembleDiscovered@kirchhoffSharedAxisNative.js",
+        "ms": 5668.998,
+        "percent": 10.206816939008188
+      },
+      {
+        "name": "solve@kirchhoffCoulombBandLU.js",
+        "ms": 5121.148,
+        "percent": 9.22043369102757
+      },
+      {
+        "name": "#refineContactWithBvh@vesselContactField.js",
+        "ms": 5065.656,
+        "percent": 9.120522439413184
+      },
+      {
+        "name": "#refineWithBvh@vesselContactField.js",
+        "ms": 4968.073,
+        "percent": 8.944827930902292
+      },
+      {
+        "name": "closestPointToPointScalarBvh@scalarMeshBvhClosestPoint.js",
+        "ms": 4911.489,
+        "percent": 8.8429505745023
+      },
+      {
+        "name": "assembleSharedAxisMaterialTangent@kirchhoffSharedAxisMaterialTangent.js",
+        "ms": 3179.035,
+        "percent": 5.7237325339857055
+      },
+      {
+        "name": "assemblePreparedSharedAxisMatrix@kirchhoffSharedAxisMatrixAssembly.js",
+        "ms": 2616.575,
+        "percent": 4.711044532417431
+      },
+      {
+        "name": "js-to-wasm:iiiiii:i@df5b3faa",
+        "ms": 2600.464,
+        "percent": 4.682037284980695
+      },
+      {
+        "name": "wasm-function[4]@df5b3faa",
+        "ms": 2586.173,
+        "percent": 4.656306878853305
+      },
+      {
+        "name": "considerTriangle@scalarMeshBvhClosestPoint.js",
+        "ms": 2529.46,
+        "percent": 4.554197262822046
+      },
+      {
+        "name": "evaluate@kirchhoffSharedAxisVesselWitnesses.js",
+        "ms": 2271.793,
+        "percent": 4.090277554220381
+      },
+      {
+        "name": "(garbage collector)@",
+        "ms": 2076.623,
+        "percent": 3.738881335349563
+      },
+      {
+        "name": "#querySphereCoordinates@vesselContactField.js",
+        "ms": 2068.746,
+        "percent": 3.724699094144227
+      },
+      {
+        "name": "gapForWitness@kirchhoffSharedAxisVesselWitnesses.js",
+        "ms": 2011.841,
+        "percent": 3.6222437893594552
+      },
+      {
+        "name": "#queryDistance@vesselContactField.js",
+        "ms": 1997.624,
+        "percent": 3.5966466174391476
+      },
+      {
+        "name": "createSharedAxisLinear@kirchhoffSharedAxisLinear.js",
+        "ms": 1934.833,
+        "percent": 3.4835937918044833
+      },
+      {
+        "name": "nativeHingeTorqueTangent@kirchhoffSharedAxisMaterialTangent.js",
+        "ms": 1842.485,
+        "percent": 3.3173247032136017
+      },
+      {
+        "name": "feedSharedAxisNative@kirchhoffSharedAxisNative.js",
+        "ms": 1695.248,
+        "percent": 3.052230041749839
+      },
+      {
+        "name": "@kirchhoffSharedAxisNative.js",
+        "ms": 1589.882,
+        "percent": 2.8625225354858506
+      }
+    ]
+  }
+}

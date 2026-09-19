@@ -505,9 +505,11 @@
                 <label class="parameter-label" for="debugSolverSelect">Solver fizyki</label>
                 <select id="debugSolverSelect" aria-describedby="debugSolverHelp"></select>
                 <label class="debug-toggle"><input id="debugModifiedNewton" type="checkbox"> Newton: ponowne użycie macierzy i faktoryzacji (eksperymentalne)</label>
+                <label class="debug-toggle"><input id="debugFastNewton" type="checkbox"> Newton: szybsze kontakty i tarcie (eksperyment)</label>
+                <label class="debug-toggle" title="Przewiduje ruch i grupowo zwalnia kontakty. Zachowuje progi błędu, ale może zmienić przebieg wyboczenia prowadnika."><input id="debugPredictiveNewton" type="checkbox"> Newton: przewidywanie ruchu i mniej powtórzeń (eksperyment)</label>
                 <label class="debug-toggle"><input id="debugPruneWitnesses" type="checkbox"> Przerzedzaj nieaktywne kontakty (eksperyment)</label>
                 <button id="applyDebugSolver" type="button" disabled>Zmień solver i zresetuj scenę</button>
-                <p id="debugSolverHelp">Adaptacyjny: siatka bazowa 5 mm, długość scalanych odcinków regulowana poniżej; krótsze odcinki możliwe przy granicach narzędzi. Zmiana tych opcji restartuje symulację. Przerzedzanie kontaktów może zmienić trajektorię ruchu.</p>
+                <p id="debugSolverHelp">Adaptacyjny: siatka bazowa 5 mm, długość scalanych odcinków regulowana poniżej; krótsze odcinki możliwe przy granicach narzędzi. Zmiana tych opcji restartuje symulację. Przerzedzanie kontaktów i szybszy Newton mogą zmienić trajektorię ruchu. Odznaczenie szybszego Newtona zachowuje dotychczasową metodę.</p>
                 <label class="parameter-label" for="debugShapeTolerance">Próg uproszczenia siatki
                     <input id="debugShapeTolerance" type="range" min="0.01" max="50" step="0.01" value="0.15" data-value-decimals="2" data-value-suffix=" mm" aria-describedby="debugShapeToleranceHelp" disabled>
                     <output id="debugShapeToleranceValue" for="debugShapeTolerance">0,15 mm</output>

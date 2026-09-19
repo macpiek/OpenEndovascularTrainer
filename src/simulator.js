@@ -144,6 +144,8 @@ initSolverDebugControls({select:document.getElementById('debugSolverSelect'),but
     current:selectedCoupledSolver,href:window.location.href,navigate:url=>window.location.assign(url),
     modifiedNewtonToggle:document.getElementById('debugModifiedNewton'),
     pruneWitnessesToggle:document.getElementById('debugPruneWitnesses'),
+    fastNewtonToggle:document.getElementById('debugFastNewton'),
+    predictiveNewtonToggle:document.getElementById('debugPredictiveNewton'),
     tolerance:document.getElementById('debugShapeTolerance'),toleranceOutput:document.getElementById('debugShapeToleranceValue'),
     onToleranceChange:value=>changePhysicsSetting('adaptive-shape-tolerance',()=>sharedAxisAppSystem?.setAdaptiveShapeTolerance(value)),
     contactMargin:document.getElementById('debugContactMargin'),contactMarginOutput:document.getElementById('debugContactMarginValue'),
@@ -169,6 +171,8 @@ const sharedAxisAppSystem = ['shared-axis','shared-axis-adaptive','shared-axis-p
     projectiveDynamics:selectedCoupledSolver==='shared-axis-projective',
     modifiedNewton:new URLSearchParams(window.location.search).get('modifiedNewton')==='1',
     pruneInactiveWitnesses:new URLSearchParams(window.location.search).get('pruneWitnesses')==='1',
+    coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+    predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
     readSheath: () => ({...vessel.sheath, innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
     readTools: () => [
         {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
@@ -1931,6 +1935,7 @@ const browserHeap = {
     maximumBytes: null,
     endBytes: null
 };
+let wire60Configuration=null;
 const wire60StepSamples=[];
 const wire60FrameSamples=[];
 const browserBenchmarkScenario = {
@@ -2618,7 +2623,7 @@ function getBrowserBenchmarkScenarioStatus() {
                 ? GUIDEWIRE_BROWSER_BENCHMARK_CYCLE_MS
                 : BROWSER_BENCHMARK_SCENARIO_CYCLE_MS
         )),
-        catheterType: browserBenchmarkScenario.mode === BROWSER_BENCHMARK_MODE_COUPLED
+        catheterType: browserBenchmarkScenario.mode === WIRE60_BENCHMARK_MODE ? wire60Configuration?.catheterType : browserBenchmarkScenario.mode === BROWSER_BENCHMARK_MODE_COUPLED
             ? browserBenchmarkCatheterType(browserBenchmarkScenario.simulationElapsedMs)
             : 'berenstein',
         stopReason: browserBenchmarkScenario.stopReason,
@@ -2767,7 +2772,7 @@ function getBrowserBenchmarkReport() {
         physics,
         physicsEnvelope: { ...browserBenchmarkPhysicsEnvelope },
         constraintStageProfile: stageProfile,
-        wire60Profile:browserBenchmarkScenario.mode===WIRE60_BENCHMARK_MODE?{steps:wire60StepSamples.slice(),frames:wire60FrameSamples.slice()}:null,
+        wire60Profile:browserBenchmarkScenario.mode===WIRE60_BENCHMARK_MODE?{configuration:wire60Configuration,steps:wire60StepSamples.slice(),frames:wire60FrameSamples.slice()}:null,
         adaptiveLineSearch: endovascularWorld.adaptiveLineSearch,
         contactField,
         cameraProjectionChanges,
@@ -2966,6 +2971,17 @@ function startBrowserBenchmarkScenario({
     }
     stopCatheterAortaSetup(catheterAortaSetup);
     ui.updateCatheterAortaSetupStatus?.(getCatheterAortaSetupStatus());
+    wire60Configuration=mode===WIRE60_BENCHMARK_MODE?{
+        catheterType:ui.getSelectedCatheterType(),guidewireType:activeGuidewireType,
+        solver:selectedCoupledSolver,fastNewton:sharedAxisAppSystem?.diagnostics.coupledFrictionNewton,predictiveNewton:sharedAxisAppSystem?.diagnostics.predictiveNewton,
+        pruneWitnesses:sharedAxisAppSystem?.diagnostics.pruneInactiveWitnesses,
+        shapeTolerance:Number(document.getElementById('debugShapeTolerance').value),
+        contactMargin:Number(document.getElementById('debugContactMargin').value),
+        maxArcLoss:Number(document.getElementById('debugMaxArcLoss').value)/100,
+        maxSpacing:Number(document.getElementById('debugMaxSpacing').value),
+        catheterShaftStiffnessScale,catheterTipStiffnessScale,guidewireShaftStiffnessScale,guidewireTipStiffnessScale,
+        fluoroscopy
+    }:null;
     resetBrowserBenchmarkSimulation();
     resetBrowserBenchmark();
     shortCatheterBenchmarkMetrics = mode === DEEP_CATHETER_BENCHMARK_MODE
@@ -3041,7 +3057,7 @@ function sampleBrowserBenchmarkScenario() {
 }
 
 function sampleActiveBrowserBenchmarkCommands(elapsedMs, out) {
-    if(browserBenchmarkScenario.mode===WIRE60_BENCHMARK_MODE)return sampleWire60Benchmark(elapsedMs,fixedDt,out);
+    if(browserBenchmarkScenario.mode===WIRE60_BENCHMARK_MODE)return sampleWire60Benchmark(elapsedMs,fixedDt,out,wire60Configuration?.catheterType);
     if (shortCatheterBenchmarkMetrics) {
         return sampleShortCatheterBenchmarkCommands(elapsedMs, out, shortCatheterBenchmarkMetrics.definitions);
     }
@@ -3954,6 +3970,9 @@ function executeAccumulatedPhysicsStep(idle = false) {
                     wallMs:performance.now()-browserBenchmarkScenario.startedAt,simulationMs:browserBenchmarkScenario.simulationElapsedMs,
                     cpuMs:simulationPendingStepCpuMs,providerMs:last?.cpuMs,timings:last?.timings,
                     iterations:last?.iterations,factorizations:last?.factorizations,substepAttempts:last?.substepAttempts,
+                    assemblies:(last?.fullAssemblies??0)+(last?.residualAssemblies??0),
+                    nodes:sharedAxisAppSystem.diagnostics.mesh?.nodes,
+                    frictionFallbacks:last?.coupledFrictionFallbacks,
                     geometryRestarts:last?.geometryRestarts,wallNormalFallbacks:last?.wallNormalFallbacks});
             }
             if(result.accepted)simulationPendingStepCpuMs=0;
@@ -4113,8 +4132,12 @@ function animate(time) {
 
     if(newtonDebugOutput) {
         const diag=sharedAxisAppSystem?.diagnostics;
-        const description=diag?.projectiveDynamics?`PD eksperymentalny · ${diag.last?.iterations??0} iteracji · ${diag.last?.factorizations??0} faktoryzacji · błąd długości ${((diag.last?.pd?.maxLengthError??0)*100).toFixed(2)}% · penetracja ${(diag.last?.quality?.maxPenetration??0).toFixed(3)} mm · ${diag.last?.pd?.localGlobalConverged?'zbieżny':'budżet iteracji'} · przybliżone tarcie` :diag?.modifiedNewton?`Newton eksperymentalny · ostatni krok: ${diag.last?.modifiedAccepted??0}/${diag.last?.modifiedAttempts??0} prób z zachowaną macierzą przyjętych · ${diag.last?.modifiedFallbacks??0} powrotów do pełnej macierzy`:'Newton: dotychczasowa metoda';
-        const text=description+(diag?.pruneInactiveWitnesses?' · przerzedzanie kontaktów':'');
+        const description=diag?.projectiveDynamics?`PD eksperymentalny · ${diag.last?.iterations??0} iteracji · ${diag.last?.factorizations??0} faktoryzacji · błąd długości ${((diag.last?.pd?.maxLengthError??0)*100).toFixed(2)}% · penetracja ${(diag.last?.quality?.maxPenetration??0).toFixed(3)} mm · ${diag.last?.pd?.localGlobalConverged?'zbieżny':'budżet iteracji'} · przybliżone tarcie` :diag?.coupledFrictionNewton?(diag.predictiveNewton?'Newton: predykcja ruchu, kontakty i tarcie (eksperyment)':'Newton: szybsze kontakty i tarcie (eksperyment)'):diag?.modifiedNewton?`Newton eksperymentalny · ostatni krok: ${diag.last?.modifiedAccepted??0}/${diag.last?.modifiedAttempts??0} prób z zachowaną macierzą przyjętych · ${diag.last?.modifiedFallbacks??0} powrotów do pełnej macierzy`:'Newton: dotychczasowa metoda';
+        const last=diag?.last;
+        const complete=Number.isFinite(last?.cpuMs)?`\nOstatni zakończony krok: ${last.iterations??0} iteracji · ${last.factorizations??0} faktoryzacji · ${(last.fullAssemblies??0)+(last.residualAssemblies??0)} złożeń · CPU solvera ${last.cpuMs.toFixed(1)} ms`+
+            `\nRównania ${(last.timings?.assemblyMs??0).toFixed(1)} / układ ${(last.timings?.linearMs??0).toFixed(1)} / tarcie ${(last.timings?.frictionMs??0).toFixed(1)} ms`+
+            (last.coupledFrictionFallbacks?` · powroty do metody referencyjnej: ${last.coupledFrictionFallbacks}`:''):'';
+        const text=description+(diag?.pruneInactiveWitnesses?' · przerzedzanie kontaktów':'')+complete;
         if(newtonDebugOutput.textContent!==text)newtonDebugOutput.textContent=text;
     }
 

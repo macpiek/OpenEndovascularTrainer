@@ -1,0 +1,90 @@
+[
+  {
+    "name": "hot-828.json",
+    "variant": "base",
+    "ms": 863.589833,
+    "iterations": 24,
+    "factors": 669,
+    "assemblies": 159,
+    "ok": true,
+    "certificate": 0.00000550769845020227,
+    "shape": 0
+  },
+  {
+    "name": "hot-828.json",
+    "variant": "zero",
+    "ms": 290.7414170000002,
+    "iterations": 18,
+    "factors": 325,
+    "assemblies": 108,
+    "ok": true,
+    "certificate": 0.000007078993519371579,
+    "shape": 5.602718378718152e-11
+  },
+  {
+    "name": "hot-856.json",
+    "variant": "base",
+    "ms": 102.931916,
+    "iterations": 12,
+    "factors": 94,
+    "assemblies": 38,
+    "ok": true,
+    "certificate": 6.76918716635555e-8,
+    "shape": 0
+  },
+  {
+    "name": "hot-856.json",
+    "variant": "zero",
+    "ms": 96.62312500000007,
+    "iterations": 12,
+    "factors": 80,
+    "assemblies": 38,
+    "ok": true,
+    "certificate": 6.76918716635555e-8,
+    "shape": 0
+  },
+  {
+    "name": "hot-898.json",
+    "variant": "base",
+    "ms": 99.22637499999973,
+    "iterations": 8,
+    "factors": 103,
+    "assemblies": 27,
+    "ok": true,
+    "certificate": 0.000012982205362277455,
+    "shape": 0
+  },
+  {
+    "name": "hot-898.json",
+    "variant": "zero",
+    "ms": 46.5056669999999,
+    "iterations": 7,
+    "factors": 36,
+    "assemblies": 16,
+    "ok": true,
+    "certificate": 0.00000740424820833141,
+    "shape": 5.651290202538641e-11
+  },
+  {
+    "name": "hot-908.json",
+    "variant": "base",
+    "ms": 151.50362500000028,
+    "iterations": 27,
+    "factors": 94,
+    "assemblies": 75,
+    "ok": true,
+    "certificate": 7.320772184016278e-7,
+    "shape": 0
+  },
+  {
+    "name": "hot-908.json",
+    "variant": "zero",
+    "ms": 148.03533400000015,
+    "iterations": 27,
+    "factors": 94,
+    "assemblies": 75,
+    "ok": true,
+    "certificate": 7.320772184016278e-7,
+    "shape": 0
+  }
+]

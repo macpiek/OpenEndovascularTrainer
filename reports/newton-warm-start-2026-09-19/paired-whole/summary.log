@@ -1,0 +1,447 @@
+{
+  "independent": false,
+  "failed": false,
+  "phases": {
+    "all": {
+      "steps": 1662,
+      "metrics": {
+        "wallMs": {
+          "reference": 22.214330021660647,
+          "optimized": 1219.910745447653,
+          "reductionPercent": -5391.548672672766
+        },
+        "ms": {
+          "reference": 20.523160452464637,
+          "optimized": 1218.6093699981948,
+          "reductionPercent": -5837.727636153872
+        },
+        "iterations": {
+          "reference": 4.9121540312876055,
+          "optimized": 3.7557160048134777,
+          "reductionPercent": 23.542381185693294
+        },
+        "factorizations": {
+          "reference": 15.570998796630565,
+          "optimized": 10.724428399518652,
+          "reductionPercent": 31.125623092082378
+        },
+        "assemblies": {
+          "reference": 13.697352587244284,
+          "optimized": 10.52346570397112,
+          "reductionPercent": 23.171535251482535
+        },
+        "frictionIterations": {
+          "reference": 1.0391095066185319,
+          "optimized": 1.0174488567990374,
+          "reductionPercent": 2.084539664157481
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 0.95367027677497,
+          "optimized": 0.6462093862815884,
+          "reductionPercent": 32.2397476340694
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 4.0830324909747295,
+          "optimized": 3.5409145607701564,
+          "reductionPercent": 13.2773356911288
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0.005415162454873646,
+          "optimized": 0.0036101083032490976,
+          "reductionPercent": 33.33333333333333
+        }
+      },
+      "p95": {
+        "reference": 55.04012499994133,
+        "optimized": 43.59170799993444
+      },
+      "p95Wall": {
+        "reference": 57.84275000006892,
+        "optimized": 45.06158300000243
+      },
+      "maxShapeDeviationMm": 0.18872631532224987,
+      "rejected": 0,
+      "maxCertificateBound": 0.00009906825315433854,
+      "maxLengthResidual": 9.983999438856195e-7,
+      "maxPenetration": 9.983999438856195e-7
+    },
+    "initial": {
+      "steps": 1,
+      "metrics": {
+        "wallMs": {
+          "reference": 27.06008399999996,
+          "optimized": 8.615999999999985,
+          "reductionPercent": 68.1597440717479
+        },
+        "ms": {
+          "reference": 25.17508399999997,
+          "optimized": 7.861041999999998,
+          "reductionPercent": 68.77451531045534
+        },
+        "iterations": {
+          "reference": 5,
+          "optimized": 5,
+          "reductionPercent": 0
+        },
+        "factorizations": {
+          "reference": 21,
+          "optimized": 21,
+          "reductionPercent": 0
+        },
+        "assemblies": {
+          "reference": 14,
+          "optimized": 14,
+          "reductionPercent": 0
+        },
+        "frictionIterations": {
+          "reference": 1,
+          "optimized": 1,
+          "reductionPercent": 0
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 0,
+          "optimized": 0,
+          "reductionPercent": null
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 5,
+          "optimized": 5,
+          "reductionPercent": 0
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0,
+          "optimized": 0,
+          "reductionPercent": null
+        }
+      },
+      "p95": {
+        "reference": 25.17508399999997,
+        "optimized": 7.861041999999998
+      },
+      "p95Wall": {
+        "reference": 27.06008399999996,
+        "optimized": 8.615999999999985
+      },
+      "maxShapeDeviationMm": 0,
+      "rejected": 0,
+      "maxCertificateBound": 1.1347498940494916e-8,
+      "maxLengthResidual": 9.769962616701378e-15,
+      "maxPenetration": 1.6653345369377348e-16
+    },
+    "wire": {
+      "steps": 819,
+      "metrics": {
+        "wallMs": {
+          "reference": 11.698023296701509,
+          "optimized": 1163.183692421246,
+          "reductionPercent": -9843.42089188033
+        },
+        "ms": {
+          "reference": 10.060042673991259,
+          "optimized": 1162.325558913308,
+          "reductionPercent": -11453.882986185808
+        },
+        "iterations": {
+          "reference": 4.388278388278389,
+          "optimized": 2.7594627594627594,
+          "reductionPercent": 37.11741791875348
+        },
+        "factorizations": {
+          "reference": 11.671550671550671,
+          "optimized": 5.727716727716728,
+          "reductionPercent": 50.92582906161732
+        },
+        "assemblies": {
+          "reference": 12.825396825396826,
+          "optimized": 7.551892551892552,
+          "reductionPercent": 41.11766945925363
+        },
+        "frictionIterations": {
+          "reference": 1.061050061050061,
+          "optimized": 1.006105006105006,
+          "reductionPercent": 5.178365937859608
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 0.57997557997558,
+          "optimized": 0.25274725274725274,
+          "reductionPercent": 56.42105263157895
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 3.6446886446886446,
+          "optimized": 2.6666666666666665,
+          "reductionPercent": 26.834170854271356
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0.006105006105006105,
+          "optimized": 0.001221001221001221,
+          "reductionPercent": 80
+        }
+      },
+      "p95": {
+        "reference": 21.69891700000062,
+        "optimized": 12.563374999910593
+      },
+      "p95Wall": {
+        "reference": 23.621708999969997,
+        "optimized": 13.548625000000357
+      },
+      "maxShapeDeviationMm": 0.18872631532224987,
+      "rejected": 0,
+      "maxCertificateBound": 0.00009906825315433854,
+      "maxLengthResidual": 4.2648216630469804e-7,
+      "maxPenetration": 4.2648216630469804e-7
+    },
+    "catheter": {
+      "steps": 693,
+      "metrics": {
+        "wallMs": {
+          "reference": 28.877464281384327,
+          "optimized": 25.14333898412913,
+          "reductionPercent": 12.930932095940218
+        },
+        "ms": {
+          "reference": 27.29331206926279,
+          "optimized": 23.54986876623556,
+          "reductionPercent": 13.715606568845217
+        },
+        "iterations": {
+          "reference": 5.294372294372295,
+          "optimized": 4.632034632034632,
+          "reductionPercent": 12.51022076860181
+        },
+        "factorizations": {
+          "reference": 18.761904761904763,
+          "optimized": 15.213564213564213,
+          "reductionPercent": 18.912475003845564
+        },
+        "assemblies": {
+          "reference": 14.253968253968255,
+          "optimized": 13.25108225108225,
+          "reductionPercent": 7.035837214010943
+        },
+        "frictionIterations": {
+          "reference": 1.0173160173160174,
+          "optimized": 1.0274170274170273,
+          "reductionPercent": -0.99290780141843
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 1.2813852813852813,
+          "optimized": 1.0274170274170273,
+          "reductionPercent": 19.819819819819816
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 4.421356421356421,
+          "optimized": 4.327561327561328,
+          "reductionPercent": 2.1214099216710136
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0.004329004329004329,
+          "optimized": 0.005772005772005772,
+          "reductionPercent": -33.33333333333333
+        }
+      },
+      "p95": {
+        "reference": 61.24600000004284,
+        "optimized": 51.064083000062965
+      },
+      "p95Wall": {
+        "reference": 63.04479099996388,
+        "optimized": 52.94129200000316
+      },
+      "maxShapeDeviationMm": 0.00104899595379177,
+      "rejected": 0,
+      "maxCertificateBound": 0.00009681510437076213,
+      "maxLengthResidual": 9.983999438856195e-7,
+      "maxPenetration": 9.983999438856195e-7
+    },
+    "simultaneous": {
+      "steps": 60,
+      "metrics": {
+        "wallMs": {
+          "reference": 71.71750906668603,
+          "optimized": 17580.816436849975,
+          "reductionPercent": -24413.980847414226
+        },
+        "ms": {
+          "reference": 68.72772073330901,
+          "optimized": 17578.075113249986,
+          "reductionPercent": -25476.39759575315
+        },
+        "iterations": {
+          "reference": 7.4,
+          "optimized": 6.35,
+          "reductionPercent": 14.1891891891892
+        },
+        "factorizations": {
+          "reference": 34.95,
+          "optimized": 26.5,
+          "reductionPercent": 24.177396280400576
+        },
+        "assemblies": {
+          "reference": 19.833333333333332,
+          "optimized": 17.316666666666666,
+          "reductionPercent": 12.6890756302521
+        },
+        "frictionIterations": {
+          "reference": 1,
+          "optimized": 1,
+          "reductionPercent": 0
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 1.8333333333333333,
+          "optimized": 1.1166666666666667,
+          "reductionPercent": 39.090909090909086
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 5.816666666666666,
+          "optimized": 5.683333333333334,
+          "reductionPercent": 2.2922636103151817
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0,
+          "optimized": 0,
+          "reductionPercent": null
+        }
+      },
+      "p95": {
+        "reference": 150.0818329998292,
+        "optimized": 134.08454199996777
+      },
+      "p95Wall": {
+        "reference": 154.7077500000596,
+        "optimized": 137.0087089999579
+      },
+      "maxShapeDeviationMm": 0.00016745556183726714,
+      "rejected": 0,
+      "maxCertificateBound": 0.00006358141467899259,
+      "maxLengthResidual": 2.4286765054615245e-7,
+      "maxPenetration": 2.4286765054615245e-7
+    },
+    "rotation": {
+      "steps": 30,
+      "metrics": {
+        "wallMs": {
+          "reference": 32.26313756666301,
+          "optimized": 28.11154586665798,
+          "reductionPercent": 12.86791060363207
+        },
+        "ms": {
+          "reference": 30.123441699993176,
+          "optimized": 26.179547333329296,
+          "reductionPercent": 13.092442775769452
+        },
+        "iterations": {
+          "reference": 5,
+          "optimized": 4.4,
+          "reductionPercent": 11.99999999999999
+        },
+        "factorizations": {
+          "reference": 13.266666666666667,
+          "optimized": 11.9,
+          "reductionPercent": 10.301507537688448
+        },
+        "assemblies": {
+          "reference": 13.3,
+          "optimized": 12.1,
+          "reductionPercent": 9.022556390977455
+        },
+        "frictionIterations": {
+          "reference": 1,
+          "optimized": 1.1666666666666667,
+          "reductionPercent": -16.666666666666675
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 1.3666666666666667,
+          "optimized": 0.8333333333333334,
+          "reductionPercent": 39.02439024390244
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 4.166666666666667,
+          "optimized": 3.7,
+          "reductionPercent": 11.2
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0,
+          "optimized": 0.03333333333333333,
+          "reductionPercent": null
+        }
+      },
+      "p95": {
+        "reference": 52.83145900000818,
+        "optimized": 37.700834000017494
+      },
+      "p95Wall": {
+        "reference": 55.246083999983966,
+        "optimized": 39.59833399998024
+      },
+      "maxShapeDeviationMm": 0.000015233403009979624,
+      "rejected": 0,
+      "maxCertificateBound": 0.00008640522673886153,
+      "maxLengthResidual": 8.346816571247473e-10,
+      "maxPenetration": 5.762404442499758e-12
+    },
+    "withdrawal": {
+      "steps": 60,
+      "metrics": {
+        "wallMs": {
+          "reference": 34.27513330001772,
+          "optimized": 28.79247229998776,
+          "reductionPercent": 15.996031151911305
+        },
+        "ms": {
+          "reference": 32.14476604999897,
+          "optimized": 26.56979861666914,
+          "reductionPercent": 17.34331313738091
+        },
+        "iterations": {
+          "reference": 5.116666666666666,
+          "optimized": 4.316666666666666,
+          "reductionPercent": 15.635179153094459
+        },
+        "factorizations": {
+          "reference": 13.716666666666667,
+          "optimized": 10.716666666666667,
+          "reductionPercent": 21.871202916160392
+        },
+        "assemblies": {
+          "reference": 13.233333333333333,
+          "optimized": 12,
+          "reductionPercent": 9.319899244332486
+        },
+        "frictionIterations": {
+          "reference": 1.05,
+          "optimized": 1,
+          "reductionPercent": 4.761904761904767
+        },
+        "retainedDiscoveryTrials": {
+          "reference": 1.1833333333333333,
+          "optimized": 1.05,
+          "reductionPercent": 11.267605633802813
+        },
+        "coupledFrictionRefreshes": {
+          "reference": 4.383333333333334,
+          "optimized": 4.166666666666667,
+          "reductionPercent": 4.942965779467679
+        },
+        "coupledFrictionFallbacks": {
+          "reference": 0.016666666666666666,
+          "optimized": 0,
+          "reductionPercent": 100
+        }
+      },
+      "p95": {
+        "reference": 61.14204200007953,
+        "optimized": 54.26058299979195
+      },
+      "p95Wall": {
+        "reference": 64.19695800007321,
+        "optimized": 56.54387499997392
+      },
+      "maxShapeDeviationMm": 0.00028664792283073713,
+      "rejected": 0,
+      "maxCertificateBound": 0.00007404477128147846,
+      "maxLengthResidual": 1.8216898978185014e-7,
+      "maxPenetration": 1.8216898978185014e-7
+    }
+  }
+}

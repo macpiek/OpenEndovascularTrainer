@@ -1,3 +1,4 @@
+import test from 'node:test';
 import {sampleWire60Benchmark,wire60BenchmarkSteps} from '../src/benchmark/wire60CatheterBenchmark.js';
 import assert from 'node:assert/strict';
 import {
@@ -209,3 +210,8 @@ for (const dt of [1/60,1/120]) {
     const end=sampleWire60Benchmark((counts.wire+counts.catheter)*dt*1000,dt,{});
     assert.equal(end.guidewireAdvance,0);assert.equal(end.catheterAdvance,0);
 }
+
+test('wire/catheter profile preserves the selected catheter throughout both phases',()=>{
+    for(const type of ['berenstein','pigtail','sim1'])for(const time of [0,14000,25000])
+        assert.equal(sampleWire60Benchmark(time,1/60,{},type).catheterType,type);
+});

@@ -157,10 +157,11 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
 }
 
 export function* iterateSharedAxisWithContacts(s,options={}) {
-    const started=performance.now();let totalIterations=0,factorizations=0,backtracks=0,localRestarts=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
+    const started=performance.now();let totalIterations=0,factorizations=0,backtracks=0,localRestarts=0,coupledFrictionRefreshes=0,frictionRefreshMs=0,retainedDiscoveryTrials=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
     const timings={assemblyMs:0,linearMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     for(let restarts=0;restarts<=64;restarts++) {
         const result=yield* iterateSharedAxisNative(s,options);
+        retainedDiscoveryTrials+=result.retainedDiscoveryTrials??0;coupledFrictionRefreshes+=result.coupledFrictionRefreshes??0;frictionRefreshMs+=result.frictionRefreshMs??0;
         localRestarts+=result.geometryRestarts??0;totalIterations+=result.iterations;factorizations+=result.factorizations;backtracks+=result.backtracks;
         for(const k of Object.keys(timings))timings[k]+=result.timings[k]??0;
         fullAssemblies+=result.fullAssemblies??0;residualAssemblies+=result.residualAssemblies??0;promotedAssemblies+=result.promotedAssemblies??0;
@@ -168,7 +169,7 @@ export function* iterateSharedAxisWithContacts(s,options={}) {
         if(result.error===NEED_ROWS&&s.pendingVesselRows?.size&&restarts<64) {
             extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();continue;
         }
-        return {...result,iterations:totalIterations,factorizations,backtracks,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,geometryRestarts:restarts+localRestarts,ms:performance.now()-started};
+        return {...result,retainedDiscoveryTrials,coupledFrictionRefreshes,frictionRefreshMs,iterations:totalIterations,factorizations,backtracks,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,geometryRestarts:restarts+localRestarts,ms:performance.now()-started};
     }
 }
 

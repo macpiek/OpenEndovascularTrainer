@@ -1,0 +1,37 @@
+✔ wire/catheter profile preserves the selected catheter throughout both phases (0.332625ms)
+✔ two rejections retry one prepared dt, defer mutable settings, and preserve the next command for a new dt (2.151125ms)
+✔ reset invalidates pending input without discarding the caller backlog; void World steps count as accepted (0.201458ms)
+✔ solver exceptions keep a prepared dt and expose their cost; mode/dt errors never re-prepare input (0.175667ms)
+✔ a partial preparation exception cannot apply input again before explicit reset (0.156541ms)
+✔ terminal recovery uses the prepared command key, deferred changes can unblock it, and rollback is never repeated (0.187542ms)
+✔ explicit cooperative yields may resume within one frame without preparing or consuming the same dt twice (0.115958ms)
+✔ pending status text alone or an error never relaxes the rejection gate (0.118875ms)
+✔ actual scheduler pauses terminal failures without accumulating catch-up debt and resumes on changed input (1.67375ms)
+✔ Composite physics starts after vessel loading without preparing an empty field or admitting loading time (0.556083ms)
+✔ Shared-axis physics starts after vessel loading without preparing an empty field or admitting loading time (0.493042ms)
+✔ actual rAF and already queued idle callback share one rejected-attempt limit and do not consume backlog (0.549333ms)
+✔ shared-axis 60 Hz retries retain one input and report complete CPU work without consuming wall-time backlog (0.574167ms)
+✔ actual scheduler gives rendering one pending slice then finishes the same timestep within bounded idle work (0.505375ms)
+✔ actual idle loop bounds pending slices by both its attempt cap and the remaining render deadline (0.877542ms)
+✔ an error after cooperative progress stops idle work even when the previous World report said pending (0.470167ms)
+✔ first failure in idle blocks another idle callback; reset/dispose invalidates stale callbacks (0.470458ms)
+✔ actual executor commits counters once even when presentation throws after World success (0.434583ms)
+✔ actual benchmark sampler advances no clock; lifecycle reset runs before World receives its next dt (0.393625ms)
+✔ actual post-commit credits only the originating benchmark epoch while always advancing committed contrast once (0.462417ms)
+✔ actual physics-setting UI callbacks leave pending material and friction untouched (0.407292ms)
+✔ real World.advance accepts void independent/legacy steps and prepares the first eligible split once (136.095125ms)
+✔ real two-channel World rolls back injected post-integration failures without repeating feed, rotation, sync or path history (134.3285ms)
+✔ diagnostic export failures cannot retain terminal timestep debt (0.654167ms)
+✔ solver navigation preserves unrelated URL parameters and selects a clean restart (0.790541ms)
+✔ node overlay uses accepted mechanical positions, supports legacy bodies and clears reset views (1.084334ms)
+✔ contact pruning URL is explicit, reversible and independent of Newton mode (0.144292ms)
+✔ fast Newton URL override is reversible without dropping the other solver controls (0.155666ms)
+✔ fast Newton checkbox defaults on, enables restart and is cleared when switching to projective dynamics (0.3405ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 393.91725

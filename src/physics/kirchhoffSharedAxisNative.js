@@ -6,7 +6,7 @@ import {preserveSharedAxisBends} from './kirchhoffSharedAxisRemesh.js';
 import {adaptiveMeshOptions,retainAdaptiveShapeSamples,coarsenSharedAxisMesh} from './kirchhoffSharedAxisAdaptiveMesh.js';
 import {createSharedAxisCycleGuard} from './kirchhoffSharedAxisCycleGuard.js';
 import * as THREE from 'three';
-import {assembleSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
+import {assembleSharedAxisWallFriction,refreshSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
 import {measureSharedAxisQuality} from './kirchhoffSharedAxisDiagnostics.js';
 import {evaluateSharedAxisBendLimit} from './kirchhoffSharedAxisBendLimit.js';
 import { assembleSharedAxisMaterialTangent } from './kirchhoffSharedAxisMaterialTangent.js';
@@ -386,12 +386,12 @@ function* correctTrialConstraints(s,base,reuseStructure,projectionMode,reuseCons
 
 // incrementalContacts is an opt-in research path. Full-step timing and strict
 // Pigtail parity gates have NOT passed; keep the application default false.
-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null } = {}) {
+export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
     const initial = captureSharedAxisNative(s), started = performance.now();
-    let candidate = null;
+    let candidate = null, coupledFrictionRefreshes=0, frictionRefreshMs=0, retainedDiscoveryTrials=0;
     const modified=modifiedNewton?createSharedAxisModifiedNewton():null;
     let cycleGuard=null,detectedCycle=null,stagnationGuard=null,detectedStagnation=null;
     const timings = { assemblyMs: 0, linearMs: 0, tangentAssemblyMs:0, residualAssemblyMs:0, projectionMs:0 };
@@ -451,7 +451,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                 if(!isModified)modified?.invalidate();
                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
                 const linearStart = performance.now();
-                const linearOptions = { rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                const linearOptions = { zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(forceTolerance, lengthTolerance) * .01, 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
                 const direction = isModified?modified.solve(base.rows,s.chain.gradient,linearOptions.tolerance):
                     yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
@@ -486,6 +486,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                 for (let trial = 0; trial < (isGaussNewton ? 14 : 5); trial++) {
                     attemptedTrial = true;
                     restoreSharedAxisNative(s, snapshot);
+                    let trialRowsAdded=false;
                     try {
                     applySharedAxisNativeIncrement(s, direction.increment, direction.multiplierIncrement, trustScale * 2 ** -trial);
                     s.definitions.forEach((d, i) => { if (d.kind === 'wall') s.multipliers[i] = Math.max(0, s.multipliers[i]); });
@@ -493,10 +494,22 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                     // material preparation and augments it when hessianValid requests
                     // the next full matrix. Plain lazyTrialTangent (without reuse)
                     // remains an opt-in experiment; the eager path is the reference.
-                    let candidate = assemble(undefined,!(lazyTrialTangent||promoteTrialAssembly));
+                    let candidate;
+                    const originalRowCount=s.definitions.length;
+                    try {candidate=assemble(undefined,!(lazyTrialTangent||promoteTrialAssembly));}
+                    catch(error) {
+                        if(!reuseDiscoveryTrial||!discover(error))throw error;
+                        // Adding unloaded rows does not change this pose's force.
+                        // Keep the trial only if every new gap is feasible and the
+                        // ordinary nonlinear acceptance also passes. Otherwise
+                        // rebuild the direction on the enlarged contact set.
+                        trialRowsAdded=true;candidate=assembleDiscovered();
+                        if(candidate.rows.slice(originalRowCount).some(r=>r.gap<0))throw new Error('shared-axis-retry-discovered-trial');
+                    }
                     let candidateViolation=violation(candidate),candidatePotential = candidate.energy - trustScale * 2 ** -trial * loadWork + penalty * candidateViolation;
                     let accept = candidatePotential < basePotential || merit(candidate) <= 1 ||
                         (merit(candidate) < merit(base) && candidate.constraint <= Math.max(lengthTolerance, base.constraint));
+                    if(!accept&&trialRowsAdded)throw new Error('shared-axis-retry-discovered-trial');
                     if(!accept&&trial<2&&candidateViolation>0) {
                         const uncorrected=captureSharedAxisNative(s),uncorrectedMeasure=candidate,uncorrectedPotential=candidatePotential;
                         protectedTrial=uncorrectedMeasure;
@@ -517,11 +530,23 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                     if (accept) {
                         if(isModified){modified.diagnostics.modifiedAccepted++;modified.diagnostics.modifiedFallbacks--;}
                         modified?.arm((isModified||method===0)&&trial===0&&trustScale===1&&relativeStep<.05&&merit(candidate)<.8*merit(base));
-                        accepted = true; base = candidate; break;
+                        accepted = true; base = candidate;if(trialRowsAdded)retainedDiscoveryTrials++;
+                        // Update the friction chart only after accepting the pose.
+                        // Every direction and its entire line search retain one law.
+                        // This avoids fully converging an obsolete stick/slide chart.
+                        if(coupledFrictionNewton&&s.wallFrictionStep?.liveNormalLoad) {
+                            const started=performance.now();
+                            const change=refreshSharedAxisWallFriction(s,{forceTolerance:0});
+                            frictionRefreshMs+=performance.now()-started;coupledFrictionRefreshes++;
+                            observeTrial?.({kind:'friction-refresh',state:s,iteration:iterations,change});
+                            if(change.forceChange>0){modified?.invalidate();base=assembleDiscovered();}
+                        }
+                        break;
                     }
                     backtracks++;
                     } catch(error) {
                         if(error.code!=='trial-outside-vessel')throw error;
+                        if(trialRowsAdded)throw new Error('shared-axis-retry-discovered-trial');
                         backtracks++;
                     }
                 }
@@ -531,7 +556,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
                 break;
             }
             } catch(error) {
-                if(!discover(error))throw error;
+                if(error.message!=='shared-axis-retry-discovered-trial'&&!discover(error))throw error;
                 // New geometry invalidates this trial direction, not earlier
                 // private progress. Restore the current iteration and recompute
                 // its merit/direction using every discovered contact. The full
@@ -552,7 +577,7 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
             s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.gap]));
         }
     }
-    return { converged, status, error, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
+    return { converged, status, error, coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
         ...modified?.diagnostics,timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
         ...(detectedCycle?{detectedCycle}:{}),...(detectedStagnation?{detectedStagnation}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
 }

@@ -1,0 +1,12 @@
+{"name":"hot-828.json","variant":"base","ms":918.1609999999998,"iterations":24,"factors":669,"assemblies":159,"ok":true,"certificate":0.00000550769845020227,"shape":0}
+{"name":"hot-828.json","variant":"lag","ms":665.4405000000002,"iterations":23,"factors":650,"assemblies":153,"ok":true,"certificate":0.00007212766762165757,"shape":0.0000991553963125516}
+{"name":"hot-828.json","variant":"lagIncremental","ms":568.4832919999999,"iterations":23,"factors":272,"assemblies":153,"ok":true,"certificate":0.0000025861431822704617,"shape":0.00009918959208097549}
+{"name":"hot-856.json","variant":"base","ms":171.69341699999995,"iterations":12,"factors":94,"assemblies":38,"ok":true,"certificate":6.76918716635555e-8,"shape":0}
+{"name":"hot-856.json","variant":"lag","ms":150.7108330000001,"iterations":11,"factors":93,"assemblies":36,"ok":true,"certificate":0.00004053026259498438,"shape":4.3685758911057135e-10}
+{"name":"hot-856.json","variant":"lagIncremental","ms":143.63237500000014,"iterations":11,"factors":45,"assemblies":36,"ok":true,"certificate":0.00004052797078202275,"shape":4.3731548560212673e-10}
+{"name":"hot-898.json","variant":"base","ms":168.47800000000007,"iterations":8,"factors":103,"assemblies":27,"ok":true,"certificate":0.000012982205362277455,"shape":0}
+{"name":"hot-898.json","variant":"lag","ms":125.52287500000011,"iterations":10,"factors":112,"assemblies":32,"ok":true,"certificate":0.00001596423817318282,"shape":2.180256299787042e-10}
+{"name":"hot-898.json","variant":"lagIncremental","ms":125.45329199999969,"iterations":10,"factors":50,"assemblies":32,"ok":true,"certificate":0.0000031863692129263654,"shape":1.5769855334214437e-11}
+{"name":"hot-908.json","variant":"base","ms":161.42412499999955,"iterations":27,"factors":94,"assemblies":75,"ok":true,"certificate":7.320772184016278e-7,"shape":0}
+{"name":"hot-908.json","variant":"lag","ms":33.4618330000003,"iterations":6,"factors":14,"assemblies":16,"ok":true,"certificate":0.000006543717063323129,"shape":3.027574387841126e-10}
+{"name":"hot-908.json","variant":"lagIncremental","ms":33.66100000000006,"iterations":6,"factors":6,"assemblies":16,"ok":true,"certificate":0.000045620650780620053,"shape":7.889036745631021e-10}
