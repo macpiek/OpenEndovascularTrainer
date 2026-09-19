@@ -23,7 +23,7 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
     modifiedNewton=modifiedNewton&&!projectiveDynamics;
     coupledFrictionNewton=coupledFrictionNewton&&!projectiveDynamics;
@@ -34,18 +34,21 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     let lastFailure=null;
-    function recordFailure(entry,result) {
+    function recordFailure(entry,result,recovered=false) {
+        const failure={id:(globalThis.crypto?.randomUUID?.()??`${Date.now()}-${Math.random().toString(36).slice(2)}`),capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,recovered,result};
         // The accepted state is never solved in-place: feed creates private candidates.
         // Serialize once at rejection, not on every successful frame or cooperative yield.
         try {
             lastFailure={...captureSharedAxisReplay({...state,adaptiveMesh:entry.adaptiveMesh},entry.sheath),
                 stepRequest:structuredClone({dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools,
                     options:Object.fromEntries(Object.entries(physicsOptions).filter(([,v])=>typeof v!=='function'))}),
-                failure:structuredClone({capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,result})};
+                failure:structuredClone(failure)};
         } catch(error) {
-            lastFailure={version:1,failure:{capturedAt:new Date().toISOString(),result,
+            lastFailure={version:1,failure:{...failure,
                 captureError:error.message},stepRequest:{dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools}};
         }
+        // Archive observers cannot reject an otherwise valid physical step.
+        try{onRejectedStep?.(structuredClone(lastFailure));}catch{/* The panel reports storage errors separately. */}
     }
     const diagnostics={modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
     function publish(tools,dt) {
@@ -132,6 +135,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
                 if(next.done) {
                     const entry=pending,{tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,cpuMs,wallMs:performance.now()-started};
                     if(!next.value.state){failedKey=key;diagnostics.failedSteps++;recordFailure(entry,diagnostics.last);return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
+                    if(diagnostics.last.attempts?.some(attempt=>attempt.converged===false))recordFailure(entry,diagnostics.last,true);
                     failedKey=null;failedResult=null;
                     state=next.value.state;rotations=next.value.rotations;
                     const speed=Math.max(0,...state.velocities.flat().map(Math.abs),...Object.values(state.angularVelocities).flat(2).map(v=>Math.abs(v)*60));

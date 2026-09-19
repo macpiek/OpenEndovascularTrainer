@@ -241,8 +241,10 @@ export function initUI(options) {
   const browserBenchmarkReportEl = document.getElementById('browserBenchmarkReport');
   const solverFailurePanel = createSolverFailurePanel({
     button: document.getElementById('downloadSolverFailure'),
+    allButton: document.getElementById('downloadAllSolverFailures'),
+    clearButton: document.getElementById('clearSolverFailures'),
     output: document.getElementById('solverFailureDetails'),
-    storage: {getItem:key=>sessionStorage.getItem(key),setItem:(key,value)=>sessionStorage.setItem(key,value)},
+    storage: {getItem:key=>sessionStorage.getItem(key),setItem:(key,value)=>sessionStorage.setItem(key,value),removeItem:key=>sessionStorage.removeItem(key)},
     download: (json,filename) => {
       const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
       const link=document.createElement('a');link.href=url;link.download=filename;

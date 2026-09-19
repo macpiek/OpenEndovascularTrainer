@@ -611,8 +611,11 @@
                 <label class="debug-toggle"><input id="showDebugWallContacts" type="checkbox"> Punkty kontaktu ze ścianą naczynia</label>
                 <label class="debug-toggle"><input id="showDebugRodNodes" type="checkbox" checked> Węzły pręta — prowadnik: turkus, cewnik: pomarańcz</label>
             </div>
-            <div class="browser-benchmark" aria-label="Diagnostyka odrzuconego kroku">
-                <button id="downloadSolverFailure" type="button" disabled>Pobierz zapis odrzuconego kroku</button>
+            <div class="browser-benchmark" aria-label="Historia odrzuconych kroków">
+                <button id="downloadSolverFailure" type="button" disabled>Pobierz ostatni krok</button>
+                <button id="downloadAllSolverFailures" type="button" disabled>Pobierz wszystkie (0)</button>
+                <button id="clearSolverFailures" type="button" disabled>Wyczyść historię</button>
+                <p>Zapis lokalny, zachowywany po odświeżeniu. Historia obejmuje również kroki odzyskane przez podział na mniejsze podkroki. Eksport JSON zawiera pełne stany do odtworzenia.</p>
                 <textarea id="solverFailureDetails" class="browser-benchmark-report" rows="6"
                     aria-label="Szczegóły odrzuconego kroku" readonly>Brak zapisanego odrzucenia.</textarea>
             </div>

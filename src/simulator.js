@@ -173,6 +173,7 @@ const sharedAxisAppSystem = ['shared-axis','shared-axis-adaptive','shared-axis-p
     pruneInactiveWitnesses:new URLSearchParams(window.location.search).get('pruneWitnesses')==='1',
     coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
     predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+    onRejectedStep:report=>ui.updateSolverFailure(report),
     readSheath: () => ({...vessel.sheath, innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
     readTools: () => [
         {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
@@ -3989,9 +3990,8 @@ function executeAccumulatedPhysicsStep(idle = false) {
             try {
                 const failure=sharedAxisAppSystem?.getLastFailure();
                 if(failure) {
-                    ui.updateSolverFailure(failure);
                     console.warn('Shared-axis step rejected', failure.failure.result.status, failure.failure.result.error ?? '',
-                        'Zapis do odtworzenia: Debug → Pobierz zapis odrzuconego kroku');
+                        'Zapis do odtworzenia: Debug → Pobierz wszystkie');
                 }
             } catch(error) { console.error('Could not present rejected-step capture', error); }
         }

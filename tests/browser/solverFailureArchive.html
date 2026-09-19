@@ -1,0 +1,34 @@
+<!doctype html><meta charset="utf-8"><title>Solver archive browser test</title>
+<pre id="result">Testing native IndexedDB…</pre>
+<script type="module">
+import {createSolverFailureArchive} from '../../src/ui/solverFailureArchive.js';
+const output=document.getElementById('result');
+const databaseName='oet-solver-failures-browser-test';
+const archive=createSolverFailureArchive({databaseName});
+const assert=(condition,message)=>{if(!condition)throw new Error(message);};
+try {
+    const before=await archive.load();
+    if(before.count===1&&before.last.failure.id==='reload-marker'){
+        assert((await archive.readAll())[0].positions[0][0]===123,'Replay changed across reload');
+        await archive.clear();
+        assert((await archive.load()).count===0,'Clear did not update summary');
+        assert((await archive.readAll()).length===0,'Clear did not remove replays');
+        output.textContent='PASS: native IndexedDB concurrent append, deduplication, full replay, persistence across reload, atomic clear.';
+    }else{
+        await archive.clear();
+        const second=createSolverFailureArchive({databaseName});
+        const report=id=>({version:1,failure:{id,capturedAt:new Date().toISOString()},positions:[[123,4,5]]});
+        await Promise.all([archive.append(report('a')),second.append(report('b')),archive.append(report('a'))]);
+        assert((await archive.load()).count===2,'Concurrent writes lost count or duplicate was inserted');
+        assert((await archive.readAll()).length===2,'Replay count differs from summary');
+        await archive.clear();
+        // A value that IndexedDB cannot clone must abort the whole transaction.
+        let aborted=false;
+        try{await archive.append({...report('bad'),uncloneable:()=>{}});}catch{aborted=true;}
+        assert(aborted,'Invalid replay should fail');
+        assert((await archive.load()).count===0,'Aborted transaction changed summary');
+        await archive.append(report('reload-marker'));
+        location.reload();
+    }
+}catch(error){output.textContent='FAIL: '+error.stack;}
+</script>

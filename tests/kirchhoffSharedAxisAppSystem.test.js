@@ -10,8 +10,8 @@ import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js
 import {createPreparedInputCheckpoint} from '../src/physics/preparedInputCheckpoint.js';
 
 const dt=1/120;
-function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true}={}) {
-    const controls={reads:0,queries:0,throwQuery:false};
+function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,physicsOptions}={}) {
+    const controls={reads:0,queries:0,throwQuery:false,failQueries:0};
     const world=new EndovascularPhysicsWorld({fixedDt:dt});
     const tools=['wire','catheter'].map(id=>{
         const body=world.createRod(id,13,5,DEFAULT_TOOL_PROFILES[id==='wire'?'guidewire':id]);
@@ -20,10 +20,11 @@ function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projective
     });
     world.contactField={voxelSize:1,queryCapsuleSoA(x,y,z,r,edge,out){
         controls.queries++;
+        if(controls.failQueries>0){controls.failQueries--;throw new Error('synthetic one-off contact query failure');}
         if(controls.throwQuery)throw new Error('synthetic contact query failed');
         Object.assign(out,{signedDistance:100,signedGap:100-r[edge],segmentT:.5,faceIndex:0});return out;
     }};
-    const system=createSharedAxisAppSystem({workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,
+    const system=createSharedAxisAppSystem({workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,onRejectedStep,physicsOptions,
         readTools(){controls.reads++;return tools.map(t=>({...t,nodeCoordinates:t.nodeCoordinates.slice()}));},
         readSheath:()=>({start:origin,end:[origin[0]+10,origin[1],origin[2]],innerRadius:2,proximalExtension:40})});
     world.wholeStepSystem=system;
@@ -334,12 +335,16 @@ test('whole-step diagnostics sum wall-load fallbacks and their cost across rejec
 
 
 test('rejection records the accepted state and frozen command; replay survives JSON and later recovery',()=>{
-    const f=fixture();f.tools[0].insertion=11;finish(f);
+    const events=[];const f=fixture({onRejectedStep:r=>events.push(r)});f.tools[0].insertion=11;finish(f);
     assert.equal(f.system.getLastFailure(),null,'No snapshot on successful steps');
     f.tools[0].insertion=12;f.controls.throwQuery=true;
     let failed;
     for(let i=0;i<1000;i++) {failed=f.system.step(f.world,dt);if(failed.terminal)break;}
     assert.equal(failed.terminal,true);
+    assert.equal(events.length,1);
+    for(let i=0;i<10;i++)assert.equal(f.system.step(f.world,dt).terminal,true);
+    assert.equal(events.length,1,'Cached rejection does not produce a record per frame');
+    assert.equal(events[0].failure.recovered,false);
     const report=JSON.parse(JSON.stringify(f.system.getLastFailure()));
     assert.equal(report.failure.captureError,undefined);
     assert.equal(report.tools[0].insertion,11);
@@ -391,4 +396,29 @@ test('predictive Newton can be disabled while keeping fast friction enabled',()=
     assert.equal(previous.system.diagnostics.predictiveNewton,false);
     assert.equal(fixture().system.diagnostics.predictiveNewton,false);
     assert.equal(fixture({projectiveDynamics:true,coupledFrictionNewton:true}).system.diagnostics.predictiveNewton,false);
+});
+
+
+test('recovered substep rejections emit the original replay once, before publishing the accepted state',()=>{
+    const events=[];const f=fixture({onRejectedStep:r=>events.push(r),physicsOptions:{liveWallNormalLoad:false}});
+    f.tools[0].insertion=11;finish(f);
+    f.tools[0].insertion=12;f.controls.failQueries=1;finish(f);
+    assert.equal(events.length,1);
+    assert.equal(events[0].failure.recovered,true);
+    assert.ok(events[0].failure.result.attempts.some(a=>a.converged===false));
+    assert.equal(events[0].tools[0].insertion,11);
+    assert.equal(events[0].stepRequest.tools[0].insertion,12);
+    assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),12);
+    f.tools[0].insertion=13;f.controls.failQueries=1;finish(f);
+    assert.equal(events.length,2);
+    assert.notEqual(events[0].failure.id,events[1].failure.id);
+});
+
+test('a failed archive observer cannot prevent recovery or physical publication',()=>{
+    let called=0;const f=fixture({onRejectedStep:()=>{called++;throw new Error('archive offline');},physicsOptions:{liveWallNormalLoad:false}});
+    f.tools[0].insertion=11;finish(f);
+    f.tools[0].insertion=12;f.controls.failQueries=1;
+    assert.equal(finish(f).accepted,true);
+    assert.equal(called,1);
+    assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),12);
 });
