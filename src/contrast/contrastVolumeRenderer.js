@@ -2254,6 +2254,37 @@ export class ContrastVolumeRenderer {
     }
 
     update() {
+        const remodeling=this.system.flowNetwork.stentGraftRemodeling;
+        if(remodeling&&this._graftRevision!==remodeling.surface.revision) {
+            this._graftRevision=remodeling.surface.revision;
+            if(remodeling.trappedIodineMassMg>0) {
+                const geometry=this.flowMesh.geometry.clone(),attribute=geometry.attributes.flowConcentration;
+                let visible=false;
+                for(let i=0;i<attribute.count;i++) {
+                    const edgeIndex=this._flowVertexConcentrationEdgeIndex[i],entry=remodeling.trapped.get(edgeIndex);
+                    const cell=entry?Math.min(entry.mass.length-1,Math.floor(this._flowVertexConcentrationEdgeT[i]*entry.mass.length)):0;
+                    const concentration=entry?entry.mass[cell]/entry.volumes[cell]/(this.system.medium.iodineMgPerMl/1000):0;
+                    attribute.setX(i,concentration);visible||=concentration>FLOW_DETECTION_FLOOR;
+                }
+                this._trappedMesh=new THREE.Mesh(geometry,this.flowMesh.material.map(m=>m.clone()));
+                this._trappedMesh.name='trapped-contrast-outside-graft';this._trappedMesh.visible=visible;
+                this._trappedMesh.frustumCulled=false;this._trappedMesh.renderOrder=6;
+                this.group.add(this._trappedMesh);
+            }
+            // Keep the full-tree topology buffers. Only deployed sections move;
+            // rebuilding every remote branch at deployment would stall a frame.
+            const geometry=this.flowMesh.geometry,positions=geometry.attributes.position;
+            const point=new THREE.Vector3(),contact=createContactResult();
+            for(let i=0;i<positions.count;i++) {
+                const edge=this.system.flowNetwork.edges[this._flowVertexConcentrationEdgeIndex[i]];
+                if(!edge?.graftCovered)continue;
+                point.fromBufferAttribute(positions,i);
+                const result=this.system.contactField.querySphere(point,0,contact);
+                if(result.source==='stent-graft'&&result.violation)positions.setXYZ(i,result.target.x,result.target.y,result.target.z);
+                geometry.attributes.flowRadius.setX(i,THREE.MathUtils.lerp(edge.radiusStart,edge.radiusEnd,this._flowVertexConcentrationEdgeT[i]));
+            }
+            positions.needsUpdate=true;geometry.attributes.flowRadius.needsUpdate=true;geometry.computeVertexNormals();
+        }
         const mediumConcentrationMgPerMm3 =
             this.system.medium.iodineMgPerMl / 1000;
         const edges = this.system.flowNetwork.edges;
@@ -2444,6 +2475,8 @@ export class ContrastVolumeRenderer {
         }
         this._updateTrueJunctionConnectorConcentrations();
         this._updateJunctionOpticalWeights();
+        if(remodeling)for(let i=0;i<this._flowVertexConcentration.length;i++)
+            if(this.system.flowNetwork.edges[this._flowVertexConcentrationEdgeIndex[i]]?.transportExcluded)this._flowVertexConcentration[i]=0;
         this.flowMesh.geometry.attributes.flowConcentration.needsUpdate = true;
         this.flowMesh.geometry.attributes.flowOpticalWeight.needsUpdate =
             this._flowDynamicOpticalVertexIndices.length > 0;
@@ -2462,7 +2495,7 @@ export class ContrastVolumeRenderer {
                 solver.count > 0;
         }
         this.plumeMesh.visible = solver.count > 0 && this._debugMode;
-        this.group.visible = activeFlowEdges > 0 || solver.count > 0;
+        this.group.visible = activeFlowEdges > 0 || solver.count > 0 || !!this._trappedMesh?.visible;
         return {
             activeFlowEdges,
             flowChainCount: this.flowChainCount,
@@ -2894,6 +2927,7 @@ export class ContrastVolumeRenderer {
 
     setDebugMode(enabled) {
         this._debugMode = !!enabled;
+        for(const material of this._trappedMesh?.material??[])material.uniforms.debugMode.value=this._debugMode;
         this.flowTubeMaterial.uniforms.debugMode.value = this._debugMode;
         this.flowJunctionMaterial.uniforms.debugMode.value = this._debugMode;
         this.flowJunctionConnectorMaterial.uniforms.debugMode.value =
@@ -2908,6 +2942,7 @@ export class ContrastVolumeRenderer {
     }
 
     dispose() {
+        if(this._trappedMesh){this._trappedMesh.geometry.dispose();for(const material of this._trappedMesh.material)material.dispose();}
         this.flowMesh.geometry.dispose();
         this.flowTubeMaterial.dispose();
         this.flowJunctionMaterial.dispose();

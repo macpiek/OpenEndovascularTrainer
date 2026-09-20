@@ -1,0 +1,52 @@
+{
+  "kind": "surface-repair",
+  "sourcePath": "res/Aorta_plain.stl",
+  "outputPath": "res/Aorta_infrarenal_aneurysm.stl",
+  "sourceSha256": "e25d2e602235d788c2f3bfba002bee1a350cf4fdd58b18c766264157fc8660d6",
+  "outputSha256": "a9de4570065b7529010ac58e72e42ae794a500a8c8b5a4fd9c64f8748a86f504",
+  "toleranceSourceUnits": 0.0001,
+  "before": {
+    "triangles": 1266871,
+    "vertices": 643907,
+    "zeroArea": 506,
+    "duplicates": 6,
+    "boundaryEdges": 51088,
+    "nonManifoldEdges": 558,
+    "inconsistentWinding": 84
+  },
+  "after": {
+    "triangles": 1309328,
+    "vertices": 655226,
+    "zeroArea": 0,
+    "duplicates": 0,
+    "boundaryEdges": 3786,
+    "nonManifoldEdges": 119,
+    "inconsistentWinding": 25
+  },
+  "iterations": [
+    {
+      "welded": 1849,
+      "splitEdges": 14176,
+      "insertedEdgePoints": 17937
+    },
+    {
+      "welded": 53,
+      "splitEdges": 465,
+      "insertedEdgePoints": 655
+    },
+    {
+      "welded": 0,
+      "splitEdges": 86,
+      "insertedEdgePoints": 173
+    }
+  ],
+  "flippedTriangles": 2,
+  "manifoldPatches": 156,
+  "nonOrientablePatches": 1,
+  "method": "Remove zero-area/duplicate faces; weld compatible boundary vertices; conform T-junctions; orient manifold patches. No anatomical hole capping or Boolean union.",
+  "deformation": {
+    "sourceSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
+    "outputSha256": "a9de4570065b7529010ac58e72e42ae794a500a8c8b5a4fd9c64f8748a86f504",
+    "report": "res/Aorta_infrarenal_aneurysm.json"
+  }
+}

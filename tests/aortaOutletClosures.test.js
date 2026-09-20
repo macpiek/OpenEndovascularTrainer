@@ -24,8 +24,12 @@ test('closure manifest matches the shipped model and records the wall provenance
  if(report.deformation) {
   assert.equal(report.deformation.inputSha256,'5efc1bcb3b6f18f68567ad5edda8cf3f01e6c27a948e80f2b5eefa48468812e3');
   assert.equal(report.deformation.inputTriangles,report.originalTriangles+report.addedTriangles);
-  assert.equal(report.deformation.outputSha256,report.outputSha256);
-  assert.equal(report.deformation.outputTriangles,report.triangles);
+  assert.equal(report.deformation.outputSha256,report.surfaceRepair?.inputSha256??report.outputSha256);
+  assert.equal(report.deformation.outputTriangles,report.surfaceRepair?.inputTriangles??report.triangles);
+  if(report.surfaceRepair) {
+   assert.equal(report.surfaceRepair.outputSha256,report.outputSha256);
+   assert.equal(report.surfaceRepair.outputTriangles,report.triangles);
+  }
  } else {
   const original=Buffer.from(bytes.subarray(0,84+50*report.originalTriangles));original.writeUInt32LE(report.originalTriangles,80);
   assert.equal(crypto.createHash('sha256').update(original).digest('hex'),report.sourceSha256);

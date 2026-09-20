@@ -2,11 +2,11 @@
   "source": "res/Aorta_plain.stl",
   "sourceSha256": "f7a0baf87cd490daa4223c106726f2d84574b1d0a19370bc0780407282d41fc2",
   "output": "res/Aorta_plain.stl",
-  "outputSha256": "e25d2e602235d788c2f3bfba002bee1a350cf4fdd58b18c766264157fc8660d6",
+  "outputSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
   "method": "Finite-thickness closed plugs overlapping original wall; shared rendered/collision triangle mesh, not a Boolean solid union. Subclavian alignment subsequently deforms the shared wall and cap mesh; original/added triangle counts describe the pre-deformation model.",
   "originalTriangles": 1014411,
   "addedTriangles": 31324,
-  "triangles": 1266871,
+  "triangles": 1309328,
   "terminals": [
     {
       "id": 0,
@@ -53984,5 +53984,12 @@
       "distalInnerRadius": 2.15,
       "distalOuterRadius": 3.05
     }
+  },
+  "surfaceRepair": {
+    "inputSha256": "e25d2e602235d788c2f3bfba002bee1a350cf4fdd58b18c766264157fc8660d6",
+    "inputTriangles": 1266871,
+    "outputSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
+    "outputTriangles": 1309328,
+    "report": "res/Aorta_plain.mesh-repair.json"
   }
 }

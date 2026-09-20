@@ -13,6 +13,7 @@ import { applyKirchhoffMaterialProfile } from './physics/applyKirchhoffMaterialP
 import { applyProximalTwistBoundary } from './physics/kirchhoffOrientationBoundary.js';
 import { updateSmoothTubeGeometry } from './smoothTubeGeometry.js';
 import { getCompositeJointRenderPath } from './compositeJointRenderPath.js';
+import { CatheterGraduationMarkers } from './catheterGraduationMarkers.js';
 
 const CATHETER_RADIUS = PIGTAIL_CATHETER_RADIUS_MM;
 const PIGTAIL_RADIUS = PIGTAIL_NATURAL_RADIUS_MM;
@@ -225,6 +226,7 @@ export class PigtailCatheter {
         this.rotation = 0;
         this._pendingXpbdRotation = 0;
         this.type = CATHETER_TYPE_PIGTAIL;
+        this.calibrated = false;
         this.pathSpacing = Math.max(1, physicsSpacing);
         this.freeNodeSpacing = this.pathSpacing *
             (DEFAULT_FREE_NODE_SPACING / DEFAULT_PATH_SPACING);
@@ -277,7 +279,9 @@ export class PigtailCatheter {
         this.tipMarker.userData.radiopaque = true;
         this.tipMarker.userData.outerRadiusMm = TIP_MARKER_RADIUS;
         this.mesh = new THREE.Group();
-        this.mesh.add(this.shaftMesh, this.tipMarker);
+        this.graduationMarkers = new CatheterGraduationMarkers(
+            TIP_MARKER_RADIUS, maxLength, this.tipMarkerMaterial);
+        this.mesh.add(this.shaftMesh, this.tipMarker, this.graduationMarkers);
         this.mesh.frustumCulled = false;
         this.mesh.renderOrder = 7;
         this.mesh.visible = false;
@@ -386,7 +390,13 @@ export class PigtailCatheter {
 
     setType(type) {
         const nextType = this.#normalizeType(type);
-        if (this.type === nextType) return;
+        const calibrated = type === 'pigtail-calibrated';
+        const markingsChanged = this.calibrated !== calibrated;
+        this.calibrated = calibrated;
+        if (this.type === nextType) {
+            if (markingsChanged) this.updateMesh();
+            return;
+        }
         this.#releaseXpbdProximalFeed();
         this.type = nextType;
         this.#clearFreeNodes();
@@ -406,6 +416,7 @@ export class PigtailCatheter {
         this.#releaseXpbdProximalFeed();
         this.shaftMesh.geometry?.dispose?.();
         this.tipMarker.geometry?.dispose?.();
+        this.graduationMarkers.dispose();
         this.material.dispose();
         this.tipMarkerMaterial.dispose();
     }
@@ -1400,7 +1411,17 @@ export class PigtailCatheter {
             this.shaftMesh.geometry = nextGeometry;
             previousGeometry.dispose();
         }
-        this.#updateTipMarker(renderPointCount);
+        const coordinates = body?.jointStateView?.continuousCurve?.coordinates
+            ?? body?.jointStateView?.coordinates;
+        const spanMm = coordinates ? coordinates.at(-1) - coordinates[0] : undefined;
+        this.#updateTipMarker(renderPointCount, this.calibrated ? physicalPath : null, spanMm);
+        this.graduationMarkers.update({
+            enabled: this.calibrated,
+            points: this._renderPoints,
+            path: physicalPath,
+            spanMm,
+            loopLengthMm: PIGTAIL_ARC_LENGTH
+        });
         this.mesh.visible = true;
     }
 
@@ -1493,9 +1514,19 @@ export class PigtailCatheter {
         return false;
     }
 
-    #updateTipMarker(pointCount) {
+    #updateTipMarker(pointCount, path = null, spanMm = 0) {
         const markerDistance =
             catheterMaterialProfile(this.type).naturalArcLength;
+        if (path && spanMm >= markerDistance) {
+            const u = 1 - markerDistance / spanMm;
+            path.getPointAt(u, this.tipMarker.position);
+            path.getTangentAt(u, this._tipMarkerTangent);
+            this.tipMarker.quaternion.setFromUnitVectors(this._tipMarkerUp, this._tipMarkerTangent);
+            this.tipMarker.userData.tipLengthMm = markerDistance;
+            this.tipMarker.userData.catheterType = this.type;
+            this.tipMarker.visible = true;
+            return;
+        }
         let traversed = 0;
         for (let index = pointCount - 1; index > 0; index--) {
             const distal = this._renderPoints[index];

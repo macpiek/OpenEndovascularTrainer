@@ -633,7 +633,7 @@ export class LocalContrastInjectionSolver {
                     outsideApproximateLumen ||
                     (nearWall && ((index + this._updateCounter) & 3) === 0)
                 );
-            if (validateExactWall && this.contactField?.querySphere) {
+            if ((validateExactWall || this.graftSurface?.bounds.containsPoint({x:nextX,y:nextY,z:nextZ})) && this.contactField?.querySphere) {
                 this._pointScratch.set(nextX, nextY, nextZ);
                 const contact = this.contactField.querySphere(
                     this._pointScratch,

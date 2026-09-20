@@ -41,6 +41,9 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let carmYaw = 0;
     let carmPitch = 0;
     let carmRoll = 0;
+    const maxYaw = THREE.MathUtils.degToRad(90);
+    const maxPitch = THREE.MathUtils.degToRad(45);
+    const maxRoll = THREE.MathUtils.degToRad(90);
     let carmX = parseFloat(carmXSlider.value);
     let carmY = parseFloat(carmYSlider.value);
     let carmZ = parseFloat(carmZSlider.value);
@@ -128,6 +131,13 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     function updateCamera() {
+        // Every control path, including reset, must stay in the mechanical
+        // envelope. Never let an invalid angle reach the spherical camera pose.
+        const boundedAngle = (angle, limit) => Number.isFinite(angle)
+            ? THREE.MathUtils.clamp(angle, -limit, limit) : 0;
+        carmYaw = boundedAngle(carmYaw, maxYaw);
+        carmPitch = boundedAngle(carmPitch, maxPitch);
+        carmRoll = boundedAngle(carmRoll, maxRoll);
         const pivot = getPivotPoint();
         // Direction from isocentre toward the source/detector axis.
         const dir = new THREE.Vector3().setFromSpherical(
@@ -227,9 +237,6 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let angleResetActive = false;
     let angleTargetYaw = null;
     let activeAngleTargetButton = null;
-    const maxYaw = THREE.MathUtils.degToRad(90);
-    const maxPitch = THREE.MathUtils.degToRad(45);
-    const maxRoll = THREE.MathUtils.degToRad(90);
     const yawRate = THREE.MathUtils.degToRad(22);
     const pitchRate = THREE.MathUtils.degToRad(18);
     const rollRate = THREE.MathUtils.degToRad(18);
@@ -249,6 +256,17 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         const maxDistance = joystick.offsetWidth / 2 - handleRadius;
         let dragging = false;
         const handleTransition = 'transform 0.2s ease-out';
+        function cancelDrag() {
+            dragging = false;
+            joystickHandle.style.transition = handleTransition;
+            if (resetOnRelease) joystickHandle.style.transform = 'translate(-50%, -50%)';
+            onRelease();
+        }
+        joystick.addEventListener('lostpointercapture', cancelDrag);
+        window.addEventListener('blur', cancelDrag);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') cancelDrag();
+        });
         function updateFromJoystick(clientX, clientY) {
             if (locked) return;
             const rect = joystick.getBoundingClientRect();
@@ -327,6 +345,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             if (resetOnRelease) joystickHandle.style.transform = 'translate(-50%, -50%)';
             onRelease();
         });
+        return cancelDrag;
     }
 
     let speedX = 0;
@@ -341,16 +360,20 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const maxSpeedX = (maxX - minX) * 0.18;
     const maxSpeedY = (maxY - minY) * 0.18;
     const maxSpeedZ = (maxZ - minZ) * 0.18;
-    let lastTime = performance.now();
+    // Use one clock domain from the first RAF onward. UI movement must never
+    // catch up through a long stall, or run backwards on an older timestamp.
+    let lastTime = null;
 
     function moveTowardZero(value, amount) {
+        amount = Number.isFinite(amount) ? Math.max(0, amount) : 0;
         if (Math.abs(value) <= amount) return 0;
         return value - Math.sign(value) * amount;
     }
 
     function step(now) {
-        const dt = (now - lastTime) / 1000;
-        lastTime = now;
+        const dt = lastTime !== null && Number.isFinite(now)
+            ? THREE.MathUtils.clamp((now - lastTime) / 1000, 0, 0.1) : 0;
+        lastTime = Number.isFinite(now) ? now : null;
         if (locked) {
             requestAnimationFrame(step);
             return;
@@ -369,12 +392,12 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             carmZ = nextZ;
             carmZSlider.value = Math.round(carmZ);
         }
-        if (angleSpeedYaw !== 0 || angleSpeedPitch !== 0) {
+        if (!angleResetActive && (angleSpeedYaw !== 0 || angleSpeedPitch !== 0)) {
             carmYaw = Math.min(Math.max(carmYaw + angleSpeedYaw * yawRate * dt, -maxYaw), maxYaw);
             carmPitch = Math.min(Math.max(carmPitch + angleSpeedPitch * pitchRate * dt, -maxPitch), maxPitch);
             updated = true;
         }
-        if (rollSpeed !== 0) {
+        if (!angleResetActive && rollSpeed !== 0) {
             carmRoll = Math.min(Math.max(carmRoll + rollSpeed * rollRate * dt, -maxRoll), maxRoll);
             updated = true;
         }
@@ -448,6 +471,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     function startAngleReset(e) {
         e?.preventDefault?.();
         if (locked) return;
+        stopAngleTarget();
+        cancelAngleJoystick?.();
         angleResetActive = true;
         angleSpeedYaw = 0;
         angleSpeedPitch = 0;
@@ -472,6 +497,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             stopAngleReset();
         });
         carmAngleResetButton.addEventListener('pointercancel', stopAngleReset);
+        carmAngleResetButton.addEventListener('lostpointercapture', stopAngleReset);
         carmAngleResetButton.addEventListener('pointerleave', stopAngleReset);
         carmAngleResetButton.addEventListener('click', e => e.preventDefault());
         window.addEventListener('blur', stopAngleReset);
@@ -511,6 +537,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             stopAngleTarget();
         });
         button.addEventListener('pointercancel', stopAngleTarget);
+        button.addEventListener('lostpointercapture', stopAngleTarget);
         button.addEventListener('pointerleave', stopAngleTarget);
         button.addEventListener('click', e => e.preventDefault());
     }
@@ -526,7 +553,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         speedY = 0;
     });
 
-    wireJoystick(angleJoystick, angleJoystickHandle, (normX, normY) => {
+    const cancelAngleJoystick = wireJoystick(angleJoystick, angleJoystickHandle, (normX, normY) => {
+        if (angleResetActive) return;
         stopAngleTarget();
         angleSpeedYaw = applyAxisDeadzone(-normY, angleAxisDeadzone);
         angleSpeedPitch = applyAxisDeadzone(-normX, angleAxisDeadzone);
@@ -574,6 +602,12 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         updateDetectorZoomUi();
         updateCamera();
     }
+
+    window.addEventListener('blur', stopMotion);
+    document.addEventListener('visibilitychange', () => {
+        lastTime = null;
+        if (document.visibilityState === 'hidden') stopMotion();
+    });
 
     return {
         reset,

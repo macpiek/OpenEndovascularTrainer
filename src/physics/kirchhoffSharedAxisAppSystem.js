@@ -4,6 +4,7 @@ import {createSharedAxisNative,feedSharedAxisNative,rotateSharedAxisNative} from
 import {iterateSharedAxisProjective} from './kirchhoffSharedAxisProjective.js';
 import {iterateSharedAxisTimeStep} from './kirchhoffSharedAxisTimeStep.js';
 import {adaptiveMeshOptions,ADAPTIVE_SOLVE_OPTIONS} from './kirchhoffSharedAxisAdaptiveMesh.js';
+import {createStentGraftContacts} from '../devices/stentGraftContacts.js';
 
 const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 const profile=t=>({id:t.id,type:t.type,shaftStiffness:t.shaftStiffness,tipStiffness:t.tipStiffness,length:t.length??1000,mass:t.mass??t.body?.mass,radius:t.radius??t.body?.radius,
@@ -40,7 +41,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
         // The accepted state is never solved in-place: feed creates private candidates.
         // Serialize once at rejection, not on every successful frame or cooperative yield.
         try {
-            lastFailure={...captureSharedAxisReplay({...state,adaptiveMesh:entry.adaptiveMesh},entry.sheath),
+            lastFailure={...captureSharedAxisReplay({...state,adaptiveMesh:entry.adaptiveMesh},entry.sheath,entry.graftSurface),
                 stepRequest:structuredClone({dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools,
                     options:Object.fromEntries(Object.entries(physicsOptions).filter(([,v])=>typeof v!=='function'))}),
                 failure:structuredClone(failure)};
@@ -86,7 +87,11 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
         }
         // Snapshot the budget for this entire cooperative step. A UI change
         // may arrive between yields and must only affect the following step.
-        const source = {...state,adaptiveMesh:pending.adaptiveMesh};
+        const surface=pending.graftSurface;
+        const wallSamples=state.wallSamples.filter(sample=>!sample.graftSurface);
+        const graft=surface?createStentGraftContacts(surface,state):null;
+        if(graft)wallSamples.push(graft);
+        const source = {...state,wallSamples,graftRevision:surface?.revision??0,graftRecovery:graft?.recovery,adaptiveMesh:pending.adaptiveMesh};
         return yield* advanceSharedAxis(source,{...rotations},dt,tools,physicsOptions);
     }
     const system={id:diagnostics.solver,diagnostics,
@@ -124,10 +129,10 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             if(pending&&pending.dt!==dt)throw new RangeError('Pending shared-axis timestep cannot change');
             if(!world.contactField)return {accepted:false,dt,status:'geometry-not-ready'};
             if(!pending) {
-                const tools=readTools(),key=JSON.stringify({tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                const tools=readTools(),graftSurface=world.readStentGraftSurface?.(),key=JSON.stringify({graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
                 if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
-                pending={iterator:solve(world,dt,tools),tools,dt,key,adaptiveMesh,started:performance.now(),cpuMs:0,
+                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,adaptiveMesh,started:performance.now(),cpuMs:0,
                     sheath:structuredClone(readSheath()),rotations:{...rotations},
                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
             }

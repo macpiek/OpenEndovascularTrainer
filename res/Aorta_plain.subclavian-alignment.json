@@ -1,8 +1,8 @@
 {
   "version": 1,
   "sourceSha256": "5efc1bcb3b6f18f68567ad5edda8cf3f01e6c27a948e80f2b5eefa48468812e3",
-  "outputSha256": "e25d2e602235d788c2f3bfba002bee1a350cf4fdd58b18c766264157fc8660d6",
-  "triangles": 1266871,
+  "outputSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
+  "triangles": 1309328,
   "sourceRevision": "e1fc5c46d303ed223efe8dc50bdc7861b6e4c283",
   "landmarks": [
     {
@@ -1654,5 +1654,12 @@
     "sampledAxisToWallMinimumMm": 1.5271379777264478,
     "sampleCount": 616,
     "continuousCatheterDiameterMm": 1.667
+  },
+  "surfaceRepair": {
+    "inputSha256": "e25d2e602235d788c2f3bfba002bee1a350cf4fdd58b18c766264157fc8660d6",
+    "inputTriangles": 1266871,
+    "outputSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
+    "outputTriangles": 1309328,
+    "report": "res/Aorta_plain.mesh-repair.json"
   }
 }

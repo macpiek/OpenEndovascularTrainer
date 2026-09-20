@@ -14,9 +14,9 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-n-Z4AAa-.js"></script>
+  <script type="module" crossorigin src="/assets/index-BA2hXW6E.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-CAWlw2bJ.css">
+  <link rel="stylesheet" crossorigin href="/assets/index-BA_T7b3D.css">
 </head>
 <body class="system-initializing">
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -84,6 +84,7 @@
         <button class="control-tab" type="button" data-control-tab="injection" role="tab" aria-selected="false">Injection</button>
         <button class="control-tab" type="button" data-control-tab="imaging" role="tab" aria-selected="false">Imaging</button>
         <button class="control-tab" type="button" data-control-tab="dsaRoadmap" role="tab" aria-selected="false">DSA / Roadmap</button>
+        <button class="control-tab" type="button" data-control-tab="anatomy" role="tab" aria-selected="false">Anatomy</button>
         <button class="control-tab" type="button" data-control-tab="debug" role="tab" aria-selected="false">Debug</button>
     </div>
 
@@ -120,8 +121,10 @@
                                 </span>
                                 <select id="catheterType">
                                     <option value="pigtail">Pigtail</option>
+                                    <option value="pigtail-calibrated">Pigtail skalowany · 1 cm</option>
                                     <option value="berenstein" selected>Berenstein</option>
                                     <option value="sim1">SIM 1</option>
+                                    <option value="stentgraft">Stentgraft…</option>
                                 </select>
                             </div>
                             <button
@@ -134,6 +137,19 @@
                             >Wysuń</button>
                         </div>
                         <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                        <div id="stentGraftToolControls" class="stent-graft-tool-controls" hidden>
+                            <strong id="stentGraftSelection"></strong>
+                            <div class="stent-graft-actions">
+                                <button id="stentGraftConfigure" type="button">Wybierz stentgraft</button>
+                                <button id="stentGraftDeploy" type="button" disabled>Rozłóż stentgraft</button>
+                                <button id="stentGraftRemove" type="button" disabled>Usuń system</button>
+                            </div>
+                            <progress id="stentGraftDeployment" value="0" max="1" aria-label="Rozłożenie implantu"></progress>
+                            <output id="stentGraftStatus" role="status"></output>
+                            <output id="stentGraftPlacement"></output>
+                            <output id="stentGraftImplants"></output>
+                            <small>Wsuwaj i wycofuj przyciskami cewnika lub klawiszami D / A. Po rozłożeniu korpusu wybierz nóżkę w przeciwnej koszulce.</small>
+                        </div>
                         <label class="guidewire-stiffness-control" for="catheterShaftStiffness">
                             <span class="guidewire-stiffness-heading">Sztywność shaftu cewnika</span>
                             <span class="guidewire-stiffness-input-row">
@@ -444,7 +460,7 @@
                         </div>
                         <div class="dsa-gallery-heading">
                             <span>Recorded DSA gallery</span>
-                            <small>Select a study for cine or roadmap</small>
+                            <small>Nagrywanie i cine: czas symulacji · limit 120 klatek</small>
                         </div>
                         <div id="dsaSequenceGallery" class="dsa-sequence-gallery" aria-live="polite">
                             <div class="dsa-gallery-empty">Recorded angiography will appear here</div>
@@ -517,6 +533,20 @@
                         <button id="stopInjection" disabled>Stop</button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="control-tab-panel" data-control-panel="anatomy" role="tabpanel">
+            <div class="anatomy-controls">
+                <label for="anatomyVariant">Wariant anatomii</label>
+                <select id="anatomyVariant">
+                    <option value="baseline">Model bazowy</option>
+                    <option value="infrarenal-aneurysm">Tętniak aorty podnerkowej · około 50 mm</option>
+                </select>
+                <p id="anatomyDescription"></p>
+                <button id="applyAnatomy" type="button" disabled>Zastosuj anatomię</button>
+                <p class="anatomy-reset-note">Zmiana anatomii resetuje prowadniki i cewniki w obu koszulkach.</p>
+                <p id="anatomyStatus" role="status"></p>
             </div>
         </div>
 
@@ -793,5 +823,17 @@
 </div>
 
 
+<dialog id="stentGraftDialog" class="stent-graft-dialog" aria-labelledby="stentGraftDialogTitle">
+    <h2 id="stentGraftDialogTitle">Wybierz stentgraft</h2>
+    <p id="stentGraftAccess"></p>
+    <div class="stent-graft-controls">
+        <label for="stentGraftType">Implant</label>
+        <select id="stentGraftType"><option value="body">Korpus rozwidlony + nóżka ipsilateralna</option><option value="limb">Nóżka kontralateralna</option></select>
+        <label for="stentGraftDiameter">Średnica nominalna</label>
+        <div><input id="stentGraftDiameter" type="range" min="20" max="36" step="2" value="28"><output id="stentGraftDiameterValue">28 mm</output></div>
+        <output id="stentGraftDialogStatus" role="alert"></output>
+        <div class="stent-graft-actions"><button id="stentGraftLoad" type="button">Wybierz stentgraft</button><button id="stentGraftCancel" type="button">Anuluj</button></div>
+    </div>
+</dialog>
 </body>
 </html>

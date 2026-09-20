@@ -739,6 +739,8 @@ canvas {
     [data-catheter-tip="berenstein"],
 .catheter-type-picker:has(#catheterType option[value="pigtail"]:checked)
     [data-catheter-tip="pigtail"],
+.catheter-type-picker:has(#catheterType option[value="pigtail-calibrated"]:checked)
+    [data-catheter-tip="pigtail"],
 .catheter-type-picker:has(#catheterType option[value="sim1"]:checked)
     [data-catheter-tip="sim1"] {
     display: block;
@@ -2546,3 +2548,46 @@ canvas {
     color: #fff;
     box-shadow: inset 0 0 0 1px #8dc9ff;
 }
+
+.anatomy-controls {
+    display: grid;
+    grid-template-columns: auto minmax(180px, 1fr);
+    gap: 8px 14px;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(20, 36, 49, .92);
+    border: 1px solid #34536c;
+    border-radius: 6px;
+}
+.anatomy-controls p { grid-column: 1 / -1; margin: 0; line-height: 1.4; }
+.anatomy-controls button { grid-column: 1 / -1; justify-self: start; padding: 8px 14px;
+    background: #1766aa; color: #fff; border: 1px solid #8dc9ff; border-radius: 5px; cursor: pointer; }
+.anatomy-controls button:disabled { opacity: .5; cursor: default; }
+.anatomy-reset-note { color: #b5c4d1; font-size: 12px; }
+#anatomyStatus { color: #94caff; font-size: 13px; }
+
+.stent-graft-controls { display:grid; grid-template-columns:1fr auto; gap:10px 14px; padding:12px; background:rgba(23,35,48,.8); border:1px solid #344e67; border-radius:6px; }
+.stent-graft-controls label { display:flex; align-items:center; gap:10px; }
+.stent-graft-controls label:nth-of-type(n+2), .stent-graft-actions, .stent-graft-controls output[id^="stentGraftS"], #stentGraftPlacement, #stentGraftImplants, .stent-graft-controls small, .stent-graft-controls progress { grid-column:1/-1; }
+.stent-graft-controls input[type=range] { flex:1; min-width:70px; }
+.stent-graft-controls button { background:#294c6c; color:#e6f0fb; border:1px solid #527392; border-radius:4px; padding:7px 10px; }
+.stent-graft-controls button:disabled { opacity:.4; }
+.stent-graft-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.stent-graft-controls small { color:#b7c9d9; line-height:1.4; }
+.stent-graft-controls progress { width:100%; height:8px; accent-color:#64dac9; }
+#stentGraftPlacement { color:#ffc978; }
+
+.stent-graft-dialog { font-family:Arial,sans-serif; color:#e6f0fb; background:#172330; border:1px solid #527392; border-radius:12px; width:min(520px,90vw); padding:24px; box-shadow:0 20px 70px #000a; }
+.stent-graft-dialog::backdrop { background:#000a; }
+.stent-graft-dialog h2 { margin:0 0 12px; }
+.stent-graft-dialog select { max-width:100%; }
+.stent-graft-dialog .stent-graft-controls { grid-template-columns:1fr; }
+#stentGraftDialogStatus { color:#ffce8a; }
+.stent-graft-tool-controls { display:grid; gap:8px; margin:10px 0; padding:12px; border:1px solid #527392; border-radius:6px; }
+.stent-graft-tool-controls[hidden] { display:none; }
+.stent-graft-tool-controls progress { width:100%; accent-color:#64dac9; }
+.stent-graft-tool-controls small, #stentGraftPlacement { color:#b7c9d9; }
+.tool-select-label:has(#catheterType option[value="stentgraft"]:checked) .guidewire-stiffness-control,
+.tool-select-label:has(#catheterType option[value="stentgraft"]:checked) .catheter-tip-preview,
+.tool-select-label:has(#catheterType option[value="stentgraft"]:checked) > .tool-hint { display:none; }
+.catheter-type-picker:has(#catheterType option[value="stentgraft"]:checked) { grid-template-columns:minmax(0,1fr); }

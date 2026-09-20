@@ -44,6 +44,13 @@ Node.js 20 or newer is recommended for the Vite 7 toolchain used by this project
 
 The simulator starts in fluoroscopy mode.
 
+DSA preparation, frame acquisition and cine playback use completed contrast
+simulation time. Slower or paused physics therefore slows or pauses acquisition
+and cine as well. Live fluoroscopy may continue refreshing, but it cannot fill
+the DSA archive with repeated simulation instants. The 120-frame memory limit
+remains (about 8 simulated seconds at 15 pulses/s); gallery times are simulation
+seconds. Cine speed multiplies this simulation clock.
+
 | Action | Control |
 | --- | --- |
 | Advance guidewire | `W` or `ArrowUp` |
@@ -64,7 +71,119 @@ Use `npm run test:contrast` for the quantitative hybrid-model checks. The
 clinician review scenarios and acceptance scorecard are in
 [`reports/contrast-clinical-validation.md`](reports/contrast-clinical-validation.md).
 
+### Calibrated pigtail
+
+In **Tool selection → Catheter**, choose **Pigtail skalowany · 1 cm**.
+The existing loop-base band is the zero reference; additional 1 mm-wide
+radiopaque bands mark the shaft every 10 mm proximally. They appear dark in
+fluoroscopy and gold in debug view. Spacing follows the catheter's material
+coordinates through bending and adaptive remeshing, rather than screen distance.
+Each femoral access keeps its own selection. Mechanics and contrast side ports
+are identical to the ordinary pigtail; withdraw to 0 cm before changing devices.
+
+Run `node --test tests/catheterGraduationMarkers.test.js` for spacing, remeshing,
+selection, and injection-port regression checks.
+
 ## Vessel Geometry
+
+### Mesh repair and validation
+
+Both shipped arterial meshes have a conservative seam repair recorded in
+`res/Aorta_plain.mesh-repair.json` and
+`res/Aorta_infrarenal_aneurysm.mesh-repair.json`. It removes zero-area and duplicate
+triangles, welds compatible boundary vertices within 0.0001 source units,
+subdivides unmatched T-junctions, and corrects orientable patches. It does not
+cap anatomical branches or Boolean-union the overlapping outlet plugs.
+Residual ambiguous junctions are reported; the mesh is not claimed to be a
+watertight manifold. The existing outlet and lumen-clearance checks remain in use.
+
+Run `npm run test:anatomy:mesh` to check the shipped STL/collision hashes, triangle
+validity, closed outlets, subclavian clearance, and aneurysm geometry.
+`scripts/anatomy/repair-vessel-mesh.py INPUT.stl OUTPUT.stl REPORT.json` requires
+Python with NumPy and refuses to overwrite its input. Its regression checks are
+in `tests/vesselMeshRepair.test.py`. `compareVesselSurfaces.mjs` independently
+samples surface deviation. Collision builds accept the repair report as the
+fourth positional argument (after the output report path), preserving branch identities while
+recomputing the lumen and distance fields. Keep the original collision asset
+beside the source STL until that build finishes.
+
+### Stentgraft interaction
+
+In **Tool selection → Catheter → Stentgraft…**, a modal selects a generic
+bifurcated body or a contralateral limb and its nominal diameter. Withdraw the
+catheter before selecting it. The device can be selected before advancing the
+guidewire, but insertion requires guidewire support. Use the existing catheter
+buttons, **D / A**, or automatic withdrawal to move the delivery system along
+the active sheath's guidewire. Release the control to stop. The cyan distal
+marker identifies the delivery nose. Selections are independent per sheath.
+
+After positioning, the separate **Rozłóż stentgraft** button expands it over three seconds of completed
+physics steps. Release uses the current delivery position and is not restricted
+to the renal landing zone. A limb can also be released away from the body, in
+which case it remains unconnected and does not seal the aneurysm flow model.
+Nominal body diameter is adjustable from 20–36 mm. Withdraw and
+remove the delivery system; the implant retains its deployed pose. Switch to the
+opposite sheath, place its wire through the open cyan gate, load the separate
+limb (10–20 mm nominal diameter, 80 mm long), position its nose with 10 mm overlap,
+and deploy. The free gate becomes connected and cannot accept another limb.
+The same workflow works with either side as the main access, in baseline anatomy
+and in the aneurysm preset. Implant struts and delivery markers appear in
+fluoroscopy/DSA; debug additionally shows the fabric.
+
+Delivery and deployment remain kinematic, but a fully released component now
+publishes an immutable union of its fabric for the shared-axis Kirchhoff solver.
+Both guidewires (and exposed catheters) have elastic, frictionless contact with
+either side of this surface. Open ends stay open; overlapping components have no internal membrane.
+Contact energy, forces and tangents participate in Newton equilibrium, with
+sweep checks to reject new crossings. Existing overlaps at kinematic release
+relax elastically, allowing already present tools to be withdrawn. A surface revision wakes sleeping solvers; an in-flight
+cooperative step finishes against its original surface snapshot.
+
+After the body and contralateral limb are fully released and connected, the
+contrast model assumes ideal proximal/distal sealing. Its finite-volume network
+uses graft calibre, excludes covered side branches, and keeps both distal iliac
+outlets connected. Local jets and the rendered lumen are confined by the same
+fabric surface. Iodine already excluded at sealing is retained in a trapped
+compartment and the pre-existing vascular signal remains visible; newly injected
+iodine cannot refill it. An open contralateral gate keeps the unsealed model.
+This is not an endoleak, collateral-flow or elastic fabric model; sheath diameter
+is unchanged. The component workflow follows the generic trunk/contralateral-leg
+layout in the [FDA device labeling](https://www.accessdata.fda.gov/cdrh_docs/pdf2/P020004C.pdf).
+
+Run `npm run test:stentgraft` for both-access deployment, docking, wall containment,
+simulation-clock and implant-persistence checks against both anatomy assets.
+
+### Anatomy variants
+
+The **Anatomy** tab offers the baseline model and a generated **infrarenal
+aortic aneurysm** preset. Choose the variant, then apply it. Applying anatomy
+reloads the scene and resets the guidewire and catheter in **both** femoral
+sheaths; solver settings in the URL are retained. The baseline remains available.
+
+The aneurysm preset is a lumen enlargement without mural thrombus,
+measuring approximately 50 mm at the reference transverse section (Y = -230 mm).
+It begins below the renal origins and remains enlarged down to the iliac
+bifurcation, without a distal aortic neck. A smooth 20 mm transition below the
+bifurcation blends the enlargement into the two iliac limbs.
+The sac preferentially expands anteriorly. Deformation is restricted to the
+connected infrarenal surface and iliac transition inside the longitudinal slab;
+neighboring mesenteric branches retain their original vertices and centerlines.
+Renal origins, the iliac bifurcation center, access sites and skeleton
+retain their baseline coordinates. The classification follows the
+[University of Michigan AAA diagram](https://www.med.umich.edu/1libr/Surgery/VascularSurgery/Illustrations/TypesofAAA.pdf).
+
+Each variant has its own matching STL and precompiled collision/centerline
+asset. Both tool solvers and contrast use the selected anatomy. The preset
+loads with `?anatomy=infrarenal-aneurysm&panel=anatomy`; the expensive geometry
+and collision preparation runs offline, not during a physics step.
+
+Rebuild the preset with `npm run anatomy:aneurysm`; generation and collision
+validation run in a temporary directory before publishing the matching assets,
+so a failed or unfinished build keeps the previous model available. Verify it with
+`npm run test:anatomy:aneurysm`. The generator pins baseline landmarks to a
+source SHA and rejects a different baseline until those landmarks are updated.
+Dimensions, source identity and deformation parameters are recorded in
+`res/Aorta_infrarenal_aneurysm.json`.
 
 The vessel centerline metadata is generated deterministically. Branch length and angle offset use fixed defaults (140 units and 0 radians) and only change when explicitly provided to `generateVessel`. A short introducer sheath extends from the distal left branch with a 30 degree tilt against the vessel wall toward +Z.
 

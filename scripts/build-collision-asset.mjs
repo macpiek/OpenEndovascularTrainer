@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { preprocessAortaGeometry } from '../src/aortaPreprocess.js';
@@ -11,10 +12,11 @@ import {
 import { PackedLumenField } from '../src/physics/collision/packedLumenField.js';
 import { buildStlLumenCast, buildStlSliceCenterline } from '../src/stlCenterline.js';
 import { generateVessel } from '../src/vesselGeometry.js';
+import {deformCenterline} from './anatomy/deformCenterline.mjs';
 
-const SOURCE_PATH = 'res/Aorta_plain.stl';
-const OUTPUT_PATH = 'res/Aorta_plain.collision.bin';
-const REPORT_PATH = 'out/collision-asset-report.json';
+const [SOURCE_PATH = 'res/Aorta_plain.stl', OUTPUT_PATH = 'res/Aorta_plain.collision.bin',
+    REPORT_PATH = 'out/collision-asset-report.json', DEFORMATION_PATH] = process.argv.slice(2);
+if (path.resolve(SOURCE_PATH) === path.resolve(OUTPUT_PATH)) throw Error('Source and collision output must be different files');
 const VOXEL_SIZE = 0.5;
 const BRICK_SIZE = 8;
 const BRICK_WORLD_SIZE = VOXEL_SIZE * BRICK_SIZE;
@@ -619,13 +621,34 @@ const { vessel } = generateVessel(140, 0);
 const transform = transformAortaGeometry(geometry, vessel);
 
 const preprocessStarted = nowMs();
+console.log('Collision build: Preprocessing mesh');
 const preprocessing = preprocessAortaGeometry(geometry, {
     transform: transformMetadataForPreprocess(transform)
 });
 const preprocessMs = nowMs() - preprocessStarted;
 
 const centerlineStarted = nowMs();
-const centerline = buildStlSliceCenterline(geometry, {
+console.log('Collision build: Extracting centerline');
+const deformationReport=DEFORMATION_PATH?JSON.parse(fs.readFileSync(DEFORMATION_PATH,'utf8')):null;
+let transportedCenterline=null;
+if(deformationReport) {
+    if(deformationReport.outputSha256!==stlSha256)throw Error('Deformation manifest does not match the selected STL');
+    const baselinePath=deformationReport.sourcePath.replace(/\.stl$/i,'.collision.bin');
+    const baselineAsset=decodeCollisionAsset(arrayBufferFromBuffer(fs.readFileSync(baselinePath)));
+    if(baselineAsset.metadata.source.stlSha256!==deformationReport.sourceSha256)throw Error('Deformation baseline is stale');
+    if (deformationReport.kind === 'surface-repair') {
+        // Retriangulation repairs seams without changing the anatomical graph.
+        // Keep branch identities stable; validate all segments against the new
+        // wall below and rebuild the lumen and distance field from the STL.
+        const data=baselineAsset.arrays.centerlineSegments, edges=baselineAsset.arrays.centerlineEdges;
+        transportedCenterline={segments:Array.from({length:edges.length/2},(_,i)=>({
+            start:new THREE.Vector3().fromArray(data,i*9),end:new THREE.Vector3().fromArray(data,i*9+3),
+            radiusStart:data[i*9+6],radiusEnd:data[i*9+7],nodeStartId:edges[i*2],nodeEndId:edges[i*2+1]
+        })),diagnostics:{...baselineAsset.metadata.centerline.diagnostics,
+            source:'surface-repair-preserved-centerline',baselineSha256:deformationReport.sourceSha256}};
+    } else transportedCenterline=deformCenterline(baselineAsset,deformationReport,geometry);
+}
+const centerline = transportedCenterline || buildStlSliceCenterline(geometry, {
     lumenField: preprocessing.lumenField,
     sliceSpacing: ANATOMY_SLICE_SPACING
 });
@@ -635,6 +658,7 @@ const broadPhase = buildCenterlineBroadPhase(centerlineArrays.data, geometry.bou
 
 const lumenStarted = nowMs();
 const reusablePackedLumen = loadReusablePackedLumen(stlSha256, transform);
+console.log('Collision build: Packing lumen');
 const collisionLumen = reusablePackedLumen ? null : buildStlLumenCast(geometry, {
     lumenField: preprocessing.lumenField,
     sliceSpacing: ANATOMY_SLICE_SPACING,
@@ -661,10 +685,14 @@ const centerlineDiagnostics = {
         packedCenterlineValidation.invalidSegments,
     wallValidation: 'stl-bvh-with-packed-lumen-seam-check'
 };
+if(deformationReport && packedCenterlineValidation.invalidSegmentCount)
+    throw Error(`Deformed centerline crosses a wall: ${JSON.stringify(packedCenterlineValidation.invalidSegments)}`);
 
 const sdfStarted = nowMs();
+console.log('Collision build: Building distance field');
 const sdf = loadReusableSdf(stlSha256, transform, lumenSignature) || buildSparseSdf(geometry);
 const sdfMs = nowMs() - sdfStarted;
+console.log('Collision build: Classifying distance field');
 const sdfSignStarted = nowMs();
 if (!sdf.insideBits) sdf.insideBits = buildSdfInsideBits(sdf, packedLumen);
 const sdfSignMs = nowMs() - sdfSignStarted;
@@ -761,7 +789,7 @@ const encoded = encodeCollisionAsset(metadata, {
     sdfInsideBits: sdf.insideBits
 });
 fs.writeFileSync(OUTPUT_PATH, Buffer.from(encoded));
-fs.mkdirSync('out', { recursive: true });
+fs.mkdirSync(path.dirname(REPORT_PATH), { recursive: true });
 fs.writeFileSync(REPORT_PATH, JSON.stringify({
     ...metadata,
     encodedBytes: encoded.byteLength

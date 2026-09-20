@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Metal projection regression</title>
+<body><pre id="result">Running GPU checks…</pre><script type="module">
+import * as THREE from 'three';
+import {renderMetalProjection} from '../src/imaging/renderMetalProjection.js';
+const renderer=new THREE.WebGLRenderer();renderer.setSize(128,128);document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('black');
+const camera=new THREE.OrthographicCamera(-1,1,1,-1,.1,10);camera.position.z=3;
+const wireMaterial=new THREE.MeshBasicMaterial({color:0xff0000,toneMapped:false});
+const graftMaterial=new THREE.MeshBasicMaterial({color:0x00ff00,toneMapped:false});
+const normalMaterial=new THREE.MeshBasicMaterial({color:0xffffff});
+const wireGroups=[new THREE.Group(),new THREE.Group()],graftGroup=new THREE.Group();scene.add(...wireGroups,graftGroup);
+wireGroups.forEach((g,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(.027,1.6),normalMaterial);m.position.x=i?.35:-.35;g.add(m);});
+const implant=new THREE.Mesh(new THREE.PlaneGeometry(.1,.7),normalMaterial);implant.position.x=.7;graftGroup.add(implant);
+const read=target=>{const pixels=new Uint8Array(128*128*4);renderer.readRenderTargetPixels(target,0,0,128,128,pixels);return pixels;};
+const count=(pixels,channel)=>{let n=0;for(let i=channel;i<pixels.length;i+=4)if(pixels[i])n++;return n;};
+try {
+ const checks=[];
+ for(const samples of [0,...(renderer.capabilities.isWebGL2?[4]:[])]) {
+  const target=new THREE.WebGLRenderTarget(128,128,{samples});renderer.setRenderTarget(target);
+  graftGroup.visible=false;scene.overrideMaterial=wireMaterial;renderer.render(scene,camera);scene.overrideMaterial=null;
+  const baseline=read(target),expected=count(baseline,0);if(!expected)throw Error('Empty baseline');
+  for(const withGraft of [false,true]) {
+   renderer.setRenderTarget(null);renderer.setRenderTarget(target);
+   graftGroup.visible=withGraft;
+   renderMetalProjection(renderer,scene,camera,{wireGroups,graftGroup,wireMaterial,graftMaterial});
+   const pixels=read(target);let differences=0;
+   for(let i=0;i<pixels.length;i+=4)if(pixels[i]!==baseline[i])differences++;
+   if(differences)throw Error(`Wire changed: MSAA ${samples}, graft ${withGraft}, ${differences} pixels`);
+   if(withGraft&&!count(pixels,1))throw Error(`Missing graft: samples=${samples}, red=${count(pixels,0)}, blue=${count(pixels,2)}, visible=${graftGroup.visible}, child=${implant.visible}`);
+   checks.push({samples,withGraft,wirePixels:expected,changedWirePixels:differences});
+  }
+  // Negative control reproduces the former two-pass implementation, even
+  // with an empty graft: a Color background forces the second clear.
+  renderer.setRenderTarget(null);renderer.setRenderTarget(target);
+  graftGroup.visible=false;scene.overrideMaterial=wireMaterial;renderer.render(scene,camera);
+  for(const g of wireGroups)g.visible=false;
+  renderer.autoClear=false;scene.overrideMaterial=graftMaterial;renderer.render(scene,camera);
+  if(count(read(target),0)!==0)throw Error('Old-pass regression did not reproduce');
+  renderer.autoClear=true;scene.overrideMaterial=null;for(const g of wireGroups)g.visible=true;
+  target.dispose();
+ }
+ document.getElementById('result').textContent='PASS: identical wire coverage with empty and loaded graft; old two-pass clearing reproduced.\n'+JSON.stringify(checks,null,2);
+} catch(error){document.getElementById('result').textContent='FAIL: '+error.stack;throw error;}
+finally {renderer.setRenderTarget(null);renderer.dispose();}
+</script></body></html>

@@ -231,6 +231,8 @@ export function feedSharedAxisNative(s, insertionById, {pruneInactiveWitnesses=f
         return [{...r,edge,dofs:[candidate.layout.positions[edge],candidate.layout.positions[edge+1]].flatMap(i=>[i,i+1,i+2])}];
     });
     extendSharedAxisNativeRows(candidate,retained);
+    candidate.graftRevision=s.graftRevision;
+    candidate.graftRecovery=s.graftRecovery;
     candidate.mixed.activeWorkspaces=s.mixed.activeWorkspaces;
     const oldRows = new Map(s.definitions.map((row, i) => [key(s, row), s.multipliers[i]]));
     candidate.definitions.forEach((row, i) => { candidate.multipliers[i] = remappedReactions.get(row.id) ?? oldRows.get(key(candidate,row)) ?? 0; });
@@ -329,6 +331,7 @@ export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ??
     if (tangentMode !== 'gauss-newton') energy = assembleSharedAxisMaterialTangent(s,withTangent,promote?{reuse:promotion.hinges}:capture?{capture:promotion.hinges}:null,wasmMaterial,reuseMaterialScratch);
     else energy = assembleSharedAxisGaussNewton(s,withTangent);
     energy+=assembleSharedAxisInertia(s,withTangent);
+    for(const sample of s.wallSamples)if(sample.addPotential)energy+=sample.addPotential(s,withTangent);
     if(s.cacheMechanicalAssembly&&withTangent) {
         s.mechanicalAssemblyCache={key:s.geometryKey,dynamicStep:s.dynamicStep,tangentMode,energy,
             gradient:Float64Array.from(g,(v,i)=>v+s.loads[i]),hessian:H.slice(),tangent:chain.tangent?.slice()??null};

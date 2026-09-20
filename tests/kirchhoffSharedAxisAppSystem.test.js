@@ -477,3 +477,21 @@ test('60 Hz experiment has its own selection, report identity and replay policy 
         f.system.reset();assert.equal(f.system.diagnostics.solver,id);
     }
 });
+
+test('graft surface revisions wake sleeping physics and remain frozen through a cooperative step',()=>{
+    const f=fixture({workSliceMs:0});finish(f);
+    openSpaceGeometry.computeBoundingBox();
+    const seen=[];
+    const make=revision=>({revision,geometry:openSpaceGeometry,get bounds(){seen.push(revision);return openSpaceGeometry.boundingBox;}});
+    let surface=make(1);f.world.readStentGraftSurface=()=>surface;
+    f.tools[0].insertion=3;
+    assert.equal(f.system.step(f.world,dt).pending,true);
+    surface=make(2);finish(f);
+    assert.deepEqual(seen,[1],'pending geometry is immutable');
+    finish(f);assert.equal(seen.at(-1),2);
+    for(let i=0;i<20;i++)finish(f);
+    const before=f.system.diagnostics.acceptedSteps;
+    surface=make(3);finish(f);
+    assert.equal(seen.at(-1),3);
+    assert.ok(f.system.diagnostics.acceptedSteps>before,'new fabric wakes an unchanged tool');
+});

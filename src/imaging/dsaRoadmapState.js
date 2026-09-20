@@ -137,13 +137,17 @@ function cloneSequence(sequence) {
  * Owns the acquisition state for DSA and fluoroscopic roadmapping. GPU frame
  * textures remain in the simulator; this class stores stable sequence/frame
  * identifiers and keeps the workflow deterministic and independently testable.
+ * The simulator injects completed contrast time through nowMs. Every timestamp,
+ * including implicit recording finalization, must remain in that clock domain.
  */
 export class DsaRoadmapState {
     constructor({
         maxSequences = 4,
         maxFramesPerSequence = 120,
-        preparationDelayMs = DEFAULT_DSA_PREPARATION_DELAY_MS
+        preparationDelayMs = DEFAULT_DSA_PREPARATION_DELAY_MS,
+        nowMs = () => Date.now()
     } = {}) {
+        this.nowMs = nowMs;
         this.maxSequences = Math.max(2, Math.round(maxSequences));
         this.maxFramesPerSequence = Math.max(
             1,
@@ -197,7 +201,7 @@ export class DsaRoadmapState {
         return captureResult(true);
     }
 
-    isMaskCaptureReady({ nowMs = Date.now() } = {}) {
+    isMaskCaptureReady({ nowMs = this.nowMs() } = {}) {
         return this.maskCapturePending && (
             this.maskCaptureNotBeforeMs === null ||
             nowMs >= this.maskCaptureNotBeforeMs
@@ -210,7 +214,7 @@ export class DsaRoadmapState {
         this.status = reason || 'Mask acquisition failed';
     }
 
-    markMaskCaptured(revision = 0, { nowMs = Date.now() } = {}) {
+    markMaskCaptured(revision = 0, { nowMs = this.nowMs() } = {}) {
         if (!this.isMaskCaptureReady({ nowMs })) return false;
         this.maskCapturePending = false;
         this.maskCaptureNotBeforeMs = null;
@@ -286,7 +290,7 @@ export class DsaRoadmapState {
     startSequenceRecording({
         revision = 0,
         contrastVisible = false,
-        startedAtMs = Date.now()
+        startedAtMs = this.nowMs()
     } = {}) {
         if (this.recording) {
             return captureResult(
@@ -334,14 +338,26 @@ export class DsaRoadmapState {
         });
     }
 
+    isRecordingFrameDue({ nowMs = this.nowMs(), frameIntervalMs = 0 } = {}) {
+        const sequence = this._recordingSequence();
+        if (!this.recording || !sequence || !this.maskValid ||
+            sequence.frames.length >= this.maxFramesPerSequence) return false;
+        const previousTime = sequence.frames.at(-1)?.capturedAtMs ?? sequence.maskCapturedAtMs;
+        const elapsed = nowMs - previousTime;
+        return elapsed > 1e-6 && elapsed + 1e-6 >= Math.max(0, frameIntervalMs);
+    }
+
     appendRecordingFrame({
         contrastScore = 0,
-        capturedAtMs = Date.now()
+        capturedAtMs = this.nowMs(),
+        frameIntervalMs = 0
     } = {}) {
         const sequence = this._recordingSequence();
         if (!this.recording || !sequence || !this.maskValid) {
             return captureResult(false, 'DSA recording is not ready');
         }
+        if (!this.isRecordingFrameDue({ nowMs: capturedAtMs, frameIntervalMs }))
+            return captureResult(false, 'Waiting for the next simulation-time DSA frame');
         const frameIndex = sequence.frames.length;
         const score = Number.isFinite(contrastScore)
             ? Math.max(0, contrastScore)
@@ -373,7 +389,7 @@ export class DsaRoadmapState {
         });
     }
 
-    finishSequenceRecording({ endedAtMs = Date.now() } = {}) {
+    finishSequenceRecording({ endedAtMs = this.nowMs() } = {}) {
         const sequence = this._recordingSequence();
         if (!this.recording || !sequence) {
             return captureResult(false, 'No DSA sequence is being recorded');
@@ -516,7 +532,7 @@ export class DsaRoadmapState {
 
     playCine(
         sequenceId = this.cineSequenceId ?? this.selectedSequenceId,
-        { nowMs = Date.now(), restart = false } = {}
+        { nowMs = this.nowMs(), restart = false } = {}
     ) {
         const sequence = this._sequence(sequenceId) ||
             [...this.sequences].reverse().find(candidate => candidate.complete);
@@ -539,7 +555,7 @@ export class DsaRoadmapState {
         });
     }
 
-    pauseCine({ nowMs = Date.now() } = {}) {
+    pauseCine({ nowMs = this.nowMs() } = {}) {
         if (this.cineSequenceId === null) {
             return captureResult(false, 'No DSA cine is open');
         }
@@ -553,7 +569,7 @@ export class DsaRoadmapState {
         });
     }
 
-    seekCineFrame(frameIndex, { nowMs = Date.now() } = {}) {
+    seekCineFrame(frameIndex, { nowMs = this.nowMs() } = {}) {
         const sequence = this._sequence(this.cineSequenceId);
         const index = Math.round(Number(frameIndex));
         const frame = sequence?.frames[index];
@@ -573,7 +589,7 @@ export class DsaRoadmapState {
         });
     }
 
-    setCinePlaybackRate(playbackRate, { nowMs = Date.now() } = {}) {
+    setCinePlaybackRate(playbackRate, { nowMs = this.nowMs() } = {}) {
         const rate = Number(playbackRate);
         if (!Number.isFinite(rate) || rate < 0.1 || rate > 4) {
             return captureResult(false, 'Cine playback speed must be between 0.1× and 4×');
@@ -587,7 +603,7 @@ export class DsaRoadmapState {
         return captureResult(true, '', { playbackRate: rate });
     }
 
-    toggleCine(sequenceId = this.cineSequenceId, { nowMs = Date.now() } = {}) {
+    toggleCine(sequenceId = this.cineSequenceId, { nowMs = this.nowMs() } = {}) {
         const numericSequenceId = sequenceId === null || sequenceId === undefined
             ? null
             : Number(sequenceId);
@@ -620,7 +636,7 @@ export class DsaRoadmapState {
         return captureResult(true, '', { sequenceId });
     }
 
-    advanceCine({ nowMs = Date.now() } = {}) {
+    advanceCine({ nowMs = this.nowMs() } = {}) {
         const sequence = this._sequence(this.cineSequenceId);
         if (!this.cinePlaying || !sequence?.complete || !sequence.frames.length) {
             return captureResult(false, '', { changed: false });

@@ -1,9 +1,8 @@
+import {resolveAnatomyVariant} from './anatomyVariant.js';
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { MeshBVH } from 'three-mesh-bvh';
 import {
-    AORTA_COLLISION_URL,
-    AORTA_MODEL_URL,
     transformAortaGeometry
 } from './aortaTransform.js';
 import { decodeCollisionAsset } from './physics/collision/collisionAssetFormat.js';
@@ -27,7 +26,7 @@ async function fetchArrayBuffer(url, signal) {
 
 function validateCollisionAsset(asset, sourceHash, transform) {
     if (asset.metadata.source?.stlSha256 !== sourceHash) {
-        throw new Error('Aorta collision asset does not match Aorta_plain.stl; run npm run collision:build');
+        throw new Error('Aorta collision asset does not match the selected anatomy STL; rebuild its collision asset');
     }
     const expected = asset.metadata.transform;
     if (
@@ -35,7 +34,7 @@ function validateCollisionAsset(asset, sourceHash, transform) {
         Math.abs((expected?.scale ?? Infinity) - transform.scale) > 1e-7 ||
         Math.abs((expected?.targetLength ?? Infinity) - transform.targetLength) > 1e-6
     ) {
-        throw new Error('Aorta collision asset transform is stale; run npm run collision:build');
+        throw new Error('Aorta collision asset transform is stale; rebuild the selected collision asset');
     }
 }
 
@@ -163,7 +162,7 @@ function createAssetPreprocessing(contactField, geometry, transform) {
     };
 }
 
-export function createAortaModel(vessel, { onLoaded, onError, signal } = {}) {
+export function createAortaModel(vessel, { onLoaded, onError, signal, anatomy = resolveAnatomyVariant() } = {}) {
     const group = new THREE.Group();
     group.visible = false;
 
@@ -176,8 +175,8 @@ export function createAortaModel(vessel, { onLoaded, onError, signal } = {}) {
     });
 
     const ready = Promise.all([
-        fetchArrayBuffer(AORTA_MODEL_URL, signal),
-        fetchArrayBuffer(AORTA_COLLISION_URL, signal)
+        fetchArrayBuffer(anatomy.modelUrl, signal),
+        fetchArrayBuffer(anatomy.collisionUrl, signal)
     ]).then(async ([sourceBuffer, collisionBuffer]) => {
             const [sourceHash] = await Promise.all([bufferHash(sourceBuffer)]);
             if (signal?.aborted) return;

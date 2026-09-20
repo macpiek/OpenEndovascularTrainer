@@ -35,6 +35,8 @@ export function initUI(options) {
     blendMaterial,
     wireMaterial,
     onAccessChange,
+    onCatheterToolChange,
+    readCatheterDeliveryState,
     onStartInjection,
     onStopInjection,
     onModeChange,
@@ -344,6 +346,7 @@ export function initUI(options) {
   let resistancePercent = -1;
   let resistanceReason = '';
   let selectedCatheterType = catheterTypeSelect?.value || 'pigtail';
+  let selectedCatheterTool = selectedCatheterType;
   let selectedGuidewireType = guidewireTypeSelect?.value || 'glidewire';
   const TOOL_SELECTION_UNLOCK_EPSILON_CM = 0.05;
   const guidewireAutoWithdraw = new AutomaticWithdrawalController({
@@ -396,7 +399,7 @@ export function initUI(options) {
     updateSelectLock(
       catheterTypeSelect,
       catheterTypeStatusEl,
-      catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM,
+      catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM || readCatheterDeliveryState?.()?.phase === 'deploying',
       catheterLengthCm
     );
     updateAutoWithdrawButton(
@@ -410,8 +413,17 @@ export function initUI(options) {
   }
 
   catheterTypeSelect?.addEventListener('change', e => {
-    selectedCatheterType = e.target.value;
+    const next=e.target.value;
+    releaseToolInputs();
+    if(onCatheterToolChange?.(next)===false){catheterTypeSelect.value=selectedCatheterTool;return;}
+    setSelectedCatheterTool(next);
   });
+  function setSelectedCatheterTool(value) {
+    selectedCatheterTool=value;
+    if(value!=='stentgraft')selectedCatheterType=value;
+    catheterTypeSelect.value=value;
+    catheterLengthTenths=-1;
+  }
   guidewireTypeSelect?.addEventListener('change', e => {
     selectedGuidewireType = e.target.value;
   });
@@ -494,6 +506,7 @@ export function initUI(options) {
     controlTabs.forEach(tab => {
       tab.addEventListener('click', () => activateControlTab(tab.dataset.controlTab));
     });
+    if (new URLSearchParams(window.location.search).get('panel') === 'anatomy') activateControlTab('anatomy');
   }
 
   // Avoid sticky focus on sliders
@@ -1179,14 +1192,16 @@ export function initUI(options) {
   const accessOutputs = [guidewireStiffnessValue, guidewireTipStiffnessValue,
     catheterShaftStiffnessValue, catheterTipStiffnessValue];
   function captureAccessControls() {
-    return {selectedCatheterType, selectedGuidewireType,
+    return {selectedCatheterType, selectedCatheterTool, selectedGuidewireType,
       sliders:accessSliders.map(slider => slider?.value),
       outputs:accessOutputs.map(output => output?.textContent)};
   }
   function restoreAccessControls(state) {
     selectedCatheterType = state.selectedCatheterType;
+    selectedCatheterTool = state.selectedCatheterTool ?? selectedCatheterType;
     selectedGuidewireType = state.selectedGuidewireType;
-    catheterTypeSelect.value = selectedCatheterType;
+    catheterTypeSelect.value = selectedCatheterTool;
+    catheterLengthTenths=-1;
     guidewireTypeSelect.value = selectedGuidewireType;
     accessSliders.forEach((slider, i) => { if (slider) slider.value = state.sliders[i]; });
     accessOutputs.forEach((output, i) => { if (output) output.textContent = state.outputs[i]; });
@@ -1264,7 +1279,7 @@ export function initUI(options) {
   wireHoldButton(guidewireRotateRightButton, () => setGuidewireRotation(1), stopGuidewireRotation);
 
   document.addEventListener('keydown', e => {
-    if (e.repeat || accessSwitchPending || e.target?.matches?.('input, select, textarea, [contenteditable=true]')) return;
+    if (e.repeat || accessSwitchPending || document.querySelector('dialog[open]') || e.target?.matches?.('input, select, textarea, [contenteditable=true]')) return;
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
       stopGuidewireAutoWithdraw();
       advance = 1; e.preventDefault();
@@ -1375,12 +1390,14 @@ export function initUI(options) {
     updateToolSelectionLocks();
   }
   function updateCatheterLength(cm, rotationRadians = 0) {
+    const stentMode=selectedCatheterTool==='stentgraft';
+    if(stentMode){cm=(readCatheterDeliveryState?.()?.position??0)/10;rotationRadians=0;}
     const wasInserted = catheterLengthCm > 0;
     catheterLengthCm = Math.max(0, cm);
     const isInserted = catheterLengthCm > 0;
     // Follow accepted insertion/removal, before rounding the displayed length.
     // A manual source choice persists until the next insertion/removal boundary.
-    if (isInserted !== wasInserted && injSourceSelect) {
+    if (!stentMode && isInserted !== wasInserted && injSourceSelect) {
       injSourceSelect.value = isInserted ? 'catheter' : 'sheath';
       updateInjectionDuration();
     }
@@ -1400,7 +1417,7 @@ export function initUI(options) {
     if (catheterLengthEl) {
       const sign = nextRotationDegrees > 0 ? '+' : '';
       catheterLengthEl.textContent =
-        `Catheter ${display} cm · ${sign}${nextRotationDegrees}°`;
+        stentMode ? `Stentgraft ${display} cm` : `Catheter ${display} cm · ${sign}${nextRotationDegrees}°`;
     }
     updateToolSelectionLocks();
   }
@@ -2006,7 +2023,7 @@ export function initUI(options) {
           const name = document.createElement('strong');
           name.textContent = `DSA ${sequence.id}`;
           const details = document.createElement('span');
-          details.textContent = `${sequence.frames.length} fr · ${durationSeconds.toFixed(1)} s`;
+          details.textContent = `${sequence.frames.length} fr · ${durationSeconds.toFixed(1)} s symulacji`;
           meta.append(name, details);
 
           const actions = document.createElement('div');
@@ -2102,6 +2119,8 @@ export function initUI(options) {
     getCatheterAdvance: () => catheterAutoWithdraw.active ? catheterAutoWithdraw.command : catheterAdvance,
     getCatheterRotation: () => catheterRotation,
     getSelectedCatheterType: () => selectedCatheterType,
+    getSelectedCatheterTool: () => selectedCatheterTool,
+    setSelectedCatheterTool,
     getSelectedGuidewireType: () => selectedGuidewireType,
     getInjectionSource: () => injSourceSelect?.value || 'sheath',
     getInjectionRequest,

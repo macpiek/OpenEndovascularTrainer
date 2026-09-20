@@ -1,3 +1,8 @@
+import {resolveAnatomyVariant} from './anatomyVariant.js';
+import {StentGraftSystem} from './devices/stentGraftSystem.js';
+import {renderMetalProjection} from './imaging/renderMetalProjection.js';
+import {initStentGraftControls} from './ui/stentGraftControls.js';
+import {initAnatomyControls} from './ui/anatomyControls.js';
 import {createFemoralAccessController} from './femoralAccessController.js';
 import {runPhysicsFrameBudget} from './physics/physicsFrameBudget.js';
 import {createSharedAxisRealtimeSystem} from './physics/kirchhoffSharedAxisRealtime.js';
@@ -141,6 +146,10 @@ const GUIDEWIRE_TUBE_RADIAL_SEGMENTS = 12;
 const GUIDEWIRE_TUBE_SAMPLES_PER_SEGMENT = 3;
 const GUIDEWIRE_MESH_UPDATE_INTERVAL = 1 / 30;
 const PIGTAIL_MESH_UPDATE_INTERVAL = 1 / 30;
+const selectedAnatomy = resolveAnatomyVariant(window.location.search);
+initAnatomyControls({select:document.getElementById('anatomyVariant'),button:document.getElementById('applyAnatomy'),
+    description:document.getElementById('anatomyDescription'),status:document.getElementById('anatomyStatus'),
+    href:window.location.href,navigate:url=>window.location.assign(url)});
 const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const axialBandSolve = new URLSearchParams(window.location.search).get('coupledLinearSolver') === 'axial-band';
 const PHYSICS_MODE = ['composite-joint','shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(selectedCoupledSolver) ? selectedCoupledSolver : 'kirchhoff-direct';
@@ -182,7 +191,7 @@ function initializeAccessSolver() {
         pruneInactiveWitnesses:new URLSearchParams(window.location.search).get('pruneWitnesses')==='1',
         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
-        onRejectedStep:report=>ui.updateSolverFailure({...report, accessId:activeAccessId}),
+        onRejectedStep:report=>ui.updateSolverFailure({...report, accessId:activeAccessId,anatomy:selectedAnatomy.id}),
         readSheath: () => ({...activeSheath, innerRadius: INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
         readTools: () => [
             {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
@@ -381,7 +390,10 @@ let dsaCompositeRoadmapTexture = null;
 let dsaCompositeRoadmapKey = '';
 let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
-const dsaRoadmapState = new DsaRoadmapState();
+let contrastSystem = null;
+const dsaRoadmapState = new DsaRoadmapState({
+    nowMs: () => (contrastSystem?.simulationTimeSeconds ?? 0) * 1000
+});
 const anatomyCameraWorld = new Float64Array(16);
 const anatomyProjectionMatrix = new Float64Array(16);
 let anatomyProjectionValid = false;
@@ -612,6 +624,7 @@ const { vessel } = generateVessel(140, 0);
 let activeSheath = vessel.sheaths.right;
 let activeAccessId = 'right';
 let accessController = null;
+let stentGraftSystem = null, stentGraftControls = null;
 vesselGroup = alignVascularRenderObject(new THREE.Group());
 let vesselCollisionTarget = vessel;
 let pigtailCatheter = null;
@@ -799,6 +812,7 @@ function applyDebugLayerVisibility() {
 }
 setLoadingMessage('Loading anatomy models');
 const aortaModel = createAortaModel(vessel, {
+    anatomy: selectedAnatomy,
     signal: runtime.signal,
     onLoaded: ({ collision }) => {
         vesselCollisionTarget = {
@@ -869,7 +883,6 @@ scene.add(skeletonModel);
 
 const voxelGroup = alignVascularRenderObject(new THREE.Group());
 scene.add(voxelGroup);
-let contrastSystem = null;
 let contrastVolumeRenderer = null;
 let contrastRenderAccumulator = 0;
 const contrastHemodynamics = {
@@ -1057,12 +1070,17 @@ const wireProjectionMaterial = new THREE.ShaderMaterial({
     depthWrite: false,
     toneMapped: false
 });
+const stentGraftProjectionMaterial = new THREE.MeshBasicMaterial({color:0xffffff,depthTest:false,depthWrite:false,toneMapped:false});
 // Initialize UI after wireMaterial is created so mode toggle can affect it
 let fluoroscopy = true;
 let wallContactMarkers = null;
 let wallBreachMarkers = null;
 let wallWorstPointMarker = null;
+if (Number.isFinite(selectedAnatomy.focusY))
+    document.getElementById('carmY').value = String(selectedAnatomy.focusY - vessel.branchPoint.y);
 const ui = initUI({
+    onCatheterToolChange: value=>stentGraftControls?.selectTool(value),
+    readCatheterDeliveryState: ()=>stentGraftSystem?.accesses[accessController?.activeId]?.device,
     onAccessChange: requestAccessSwitch,
     camera,
     cameraRadius,
@@ -1268,7 +1286,7 @@ const ui = initUI({
         if (snapshot.cineSequenceId !== Number(sequenceId)) {
             return { ok: false, reason: '' };
         }
-        const nowMs = performance.now();
+        const nowMs = dsaRoadmapState.nowMs();
         if (snapshot.cinePlaying) dsaRoadmapState.pauseCine({ nowMs });
         const result = dsaRoadmapState.seekCineFrame(frameIndex, { nowMs });
         syncDsaRoadmapState();
@@ -1276,21 +1294,21 @@ const ui = initUI({
     },
     onToggleDsaCine: sequenceId => {
         const result = dsaRoadmapState.toggleCine(sequenceId, {
-            nowMs: performance.now()
+            nowMs: dsaRoadmapState.nowMs()
         });
         syncDsaRoadmapState();
         return result;
     },
     onSeekDsaCineFrame: frameIndex => {
         const result = dsaRoadmapState.seekCineFrame(frameIndex, {
-            nowMs: performance.now()
+            nowMs: dsaRoadmapState.nowMs()
         });
         syncDsaRoadmapState();
         return result;
     },
     onSetDsaCineSpeed: playbackRate => {
         const result = dsaRoadmapState.setCinePlaybackRate(playbackRate, {
-            nowMs: performance.now()
+            nowMs: dsaRoadmapState.nowMs()
         });
         syncDsaRoadmapState();
         return result;
@@ -1566,7 +1584,7 @@ function startDsaSequenceRecording() {
     const result = dsaRoadmapState.startSequenceRecording({
         revision: ui.getCArmRevision(),
         contrastVisible: contrastSystem?.hasVisibleContrast?.() === true,
-        startedAtMs: performance.now()
+        startedAtMs: dsaRoadmapState.nowMs()
     });
     syncDsaRoadmapState();
     return result;
@@ -1574,7 +1592,7 @@ function startDsaSequenceRecording() {
 
 function finishDsaSequenceRecording() {
     const result = dsaRoadmapState.finishSequenceRecording({
-        endedAtMs: performance.now()
+        endedAtMs: dsaRoadmapState.nowMs()
     });
     if (result.ok) clearCompositeRoadmapTexture();
     syncDsaRoadmapState();
@@ -1688,7 +1706,8 @@ scene.add(xpbdContactDebugGroup);
 const mechanicalMeshOutput = document.getElementById('debugMechanicalMesh');
 const newtonDebugOutput = document.getElementById('debugNewtonStats');
 if(new URLSearchParams(window.location.search).get('solverDebug')==='1')runtime.timeout(()=>{
-    document.querySelector('[data-control-tab="debug"]')?.click();
+    document.querySelector(new URLSearchParams(window.location.search).get('panel') === 'anatomy'
+        ? '[data-control-tab="anatomy"]' : '[data-control-tab="debug"]')?.click();
     if(ui.getFluoroscopy())document.getElementById('modeToggle')?.click();
 },0);
 
@@ -1808,6 +1827,7 @@ function initializeAccessWorld() {
 initializeAccessWorld();
 globalThis.__OET_PHYSICS__ = {
     mode: PHYSICS_MODE,
+    anatomy: selectedAnatomy.id,
     getCoupledSolver: () => coupledSolverSelection.getReport(endovascularWorld),
     get world() { return endovascularWorld; },
     getAccesses: () => accessController?.getReport() ?? [],
@@ -2759,6 +2779,7 @@ function getBrowserBenchmarkReport() {
         guidewireTransportSeparationPass&&guidewireReleaseContinuityPass&&guidewireImpulsePass;
     return {
         mode: PHYSICS_MODE,
+        anatomy: selectedAnatomy.id,
         coupledSolver: coupledSolverSelection.getReport(endovascularWorld),
         durationMs: performance.now() - browserBenchmarkStartedAt,
         shortCatheterPhases: browserBenchmarkScenario.mode === SHORT_CATHETER_BENCHMARK_MODE
@@ -3525,6 +3546,17 @@ function updateAccessAppearance() {
     ui.setActiveAccess(activeAccessId);
 }
 updateAccessAppearance();
+stentGraftSystem = new StentGraftSystem({
+    readAccess:side=>accessController.run(side,()=>{
+        const transport=guidewireTransport;
+        return {nodes:wire.nodes,coordinate:i=>transport.insertedCoordinate(i),catheterMm:pigtailCatheter.progress};
+    }),
+    readAnatomy:()=>vesselCollisionTarget,
+    sheaths:vessel.sheaths
+});
+alignVascularRenderObject(stentGraftSystem.group);scene.add(stentGraftSystem.group);
+for(const access of accessController.values())access.endovascularWorld.readStentGraftSurface=()=>stentGraftSystem.surface;
+stentGraftControls=initStentGraftControls({system:stentGraftSystem,activeSide:()=>accessController.activeId,ui});
 function requestAccessSwitch(id) {
     if (!accessController || id === activeAccessId) return;
     if (browserBenchmarkScenario.running) stopBrowserBenchmarkScenario('access-changed');
@@ -3689,8 +3721,13 @@ function prepareSimulationStep(dt) {
             Math.cos(guidewireRotation)
         );
     }
-    const catheterAdvance = controlled ? automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance() : 0;
-    const catheterRotation = controlled ? automatedCommands?.catheterRotation ?? ui.getCatheterRotation() : 0;
+    const deliveryDevice=stentGraftSystem?.accesses[activeAccessId].device;
+    const stentMode=!!deliveryDevice || (controlled && ui.getSelectedCatheterTool()==='stentgraft');
+    const stentGraftCommand=deliveryDevice ? {deviceId:deliveryDevice.id,
+        advance:controlled ? ui.getCatheterAdvance() : 0} : null;
+    const catheterAdvance = stentMode ? 0 :
+        controlled ? automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance() : 0;
+    const catheterRotation = !stentMode && controlled ? automatedCommands?.catheterRotation ?? ui.getCatheterRotation() : 0;
     const guidewireProgressDelta = advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
     if(controlled&&!sharedInputCheckpoint)pigtailCatheter.setType(automatedCommands?.catheterType ?? ui.getSelectedCatheterType());
@@ -3823,7 +3860,7 @@ function prepareSimulationStep(dt) {
         // and withdrawal. Only their material/geometric profiles differ.
         configureKirchhoffToolRuntime(xpbdWireBody);
         configureKirchhoffToolRuntime(xpbdCatheterBody);
-        return { dt, automatedCommands, inserted, firstContainedNode, materialEndNode,
+        return { dt, automatedCommands, inserted, firstContainedNode, materialEndNode, stentGraftCommand,
             benchmarkEpoch: browserBenchmarkEpoch,
             benchmarkRunning: controlled && browserBenchmarkScenario.running,
             benchmarkClockAdvances: controlled && browserBenchmarkScenario.running && !browserBenchmarkScenario.memorySettling };
@@ -3854,6 +3891,8 @@ function commitSimulationStep(context) {
         )
     );
     xpbdWireBody.syncToRodState(wire);
+    stentGraftSystem?.updateAccess(activeAccessId,dt,{nodes:wire.nodes,
+        coordinate:i=>guidewireTransport.insertedCoordinate(i),catheterMm:pigtailCatheter.progress},context.stentGraftCommand);
     if (!isControlledAccess()) return;
     const sameBenchmark = context.benchmarkEpoch === browserBenchmarkEpoch &&
         context.benchmarkRunning && browserBenchmarkScenario.running;
@@ -3864,6 +3903,7 @@ function commitSimulationStep(context) {
         recordBrowserPhysicsEnvelope();
     }
     // Physical/contrast time is committed before fallible UI presentation.
+    contrastSystem?.setStentGraftSurface(stentGraftSystem?.surface);
     contrastSystem?.update(dt);
     updateGuidewireResistance();
     ui.updateInsertedLength(inserted / 10, guidewireRotation);
@@ -4047,6 +4087,12 @@ function projectedContrastScore() {
     );
 }
 
+function dsaRecordingFrameDue() {
+    return dsaRoadmapState.isRecordingFrameDue({
+        frameIntervalMs: 1000 / Math.max(1, displayMaterial.uniforms.pulseRate.value || 15)
+    });
+}
+
 function captureDsaSequenceFrame() {
     const contrastScore = projectedContrastScore();
     renderDisplayCapture(dsaFrameCaptureTarget, {
@@ -4056,7 +4102,8 @@ function captureDsaSequenceFrame() {
     const archivedTexture = createArchivedDsaFrame();
     const appended = dsaRoadmapState.appendRecordingFrame({
         contrastScore,
-        capturedAtMs: performance.now()
+        frameIntervalMs: 1000 / Math.max(1, displayMaterial.uniforms.pulseRate.value || 15),
+        capturedAtMs: dsaRoadmapState.nowMs()
     });
     if (!appended.ok) {
         archivedTexture.dispose();
@@ -4072,7 +4119,7 @@ function captureDsaSequenceFrame() {
     }
     if (appended.shouldStop) {
         const finished = dsaRoadmapState.finishSequenceRecording({
-            endedAtMs: performance.now()
+            endedAtMs: dsaRoadmapState.nowMs()
         });
         if (finished.ok) clearCompositeRoadmapTexture();
     }
@@ -4081,7 +4128,7 @@ function captureDsaSequenceFrame() {
 
 function processDsaRoadmapCapture() {
     const revision = ui.getCArmRevision();
-    const nowMs = performance.now();
+    const nowMs = dsaRoadmapState.nowMs();
     let snapshot = dsaRoadmapState.getSnapshot();
     const contrastVisible = contrastSystem?.hasVisibleContrast?.() === true;
     let maskCapturedThisPulse = false;
@@ -4119,7 +4166,8 @@ function processDsaRoadmapCapture() {
     if (
         snapshot.recording &&
         snapshot.maskValid &&
-        !maskCapturedThisPulse
+        !maskCapturedThisPulse &&
+        dsaRecordingFrameDue()
     ) {
         captureDsaSequenceFrame();
         syncDsaRoadmapState();
@@ -4371,6 +4419,8 @@ function animate(time) {
         guidewireMeshAccumulator = 0;
         const started=performance.now();
         for (const access of accessController.values()) accessController.run(access.activeAccessId, updateWireMesh);
+        for(const side of ['right','left'])stentGraftSystem.refreshDelivery(side);
+        stentGraftControls.refresh();
         framePresentationMs.wireMesh+=performance.now()-started;
     }
     contactMarkerAccumulator += dt;
@@ -4391,7 +4441,7 @@ function animate(time) {
     if (contrastShouldRender) {
         contrastRenderAccumulator += dt;
         const contrastRenderInterval = contrastSystem.isInjecting ? 1 / 30 : 1 / 24;
-        if (contrastRenderAccumulator >= contrastRenderInterval) {
+        if (contrastRenderAccumulator >= contrastRenderInterval || (fluoroscopy && dsaRecordingFrameDue())) {
             contrastRenderAccumulator = 0;
             contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
             contrastVolumeRenderer?.update();
@@ -4409,6 +4459,10 @@ function animate(time) {
     }
     vesselGroup.visible = !fluoroscopy;
     sheathFluoroMesh.visible = fluoroscopy;
+    stentGraftSystem.setFluoroscopy(fluoroscopy);
+    for (const access of accessController.values()) {
+        access.pigtailCatheter.tipMarkerMaterial.color.setHex(fluoroscopy ? 0xffffff : 0xffc34d);
+    }
     if (wallContactMarkers) wallContactMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
     if (wallBreachMarkers) wallBreachMarkers.visible = !fluoroscopy && debugLayerVisibility.wallContacts;
     if (wallWorstPointMarker) wallWorstPointMarker.visible = !fluoroscopy && debugLayerVisibility.wallContacts && !!wallWorstPointMarker.userData.hasPoint;
@@ -4458,7 +4512,7 @@ function animate(time) {
         syncDsaRoadmapState();
     }
     if (dsaRoadmapState.cinePlaying) {
-        const cineAdvance = dsaRoadmapState.advanceCine({ nowMs: time });
+        const cineAdvance = dsaRoadmapState.advanceCine();
         if (cineAdvance.changed) syncDsaRoadmapState();
     }
     browserBenchmarkUiAccumulator += dt;
@@ -4509,9 +4563,11 @@ function animate(time) {
         renderer.setRenderTarget(metalTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
-        scene.overrideMaterial = wireProjectionMaterial;
-        renderOnlySceneObject(scene, camera, accessController.values().map(access => access.wireGroup));
-        scene.overrideMaterial = null;
+        renderMetalProjection(renderer,scene,camera,{
+            wireGroups:accessController.values().map(access=>access.wireGroup),
+            graftGroup:stentGraftSystem.group,
+            wireMaterial:wireProjectionMaterial,graftMaterial:stentGraftProjectionMaterial
+        });
         renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(catheterTarget);
@@ -4653,6 +4709,7 @@ runtime.listen(window, 'resize', () => {
 });
 
 runtime.onDispose(() => {
+    stentGraftSystem?.dispose();
     for (const access of accessController?.values() ?? []) {
         access.simulationStepTransaction.dispose();
         access.wholeAxisAppSystem?.reset(access.endovascularWorld);
@@ -4662,7 +4719,7 @@ runtime.onDispose(() => {
     disposeThreeResources({
         roots: [scene, contrastScene, blendScene, thicknessScene, displayScene, aortaModel.group],
         materials: [boneMaterial, aortaModel.material, depthMaterialFront, depthMaterialBack,
-            boneProjectionMaterial, wireProjectionMaterial],
+            boneProjectionMaterial, wireProjectionMaterial, stentGraftProjectionMaterial],
         textures: [...dsaSequenceFrameTextures.values(), dsaCompositeRoadmapTexture].filter(Boolean),
         buffers: [dsaFrameReadback, dsaContrastScoreReadback,
             ...Object.values(vesselCollisionTarget.contactField?.arrays ?? {})],

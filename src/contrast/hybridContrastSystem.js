@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {applyStentGraftFlow,graftFluidContactField} from './stentGraftFlow.js';
 import {
     INTRODUCER_SHEATH_INNER_RADIUS_MM,
     PIGTAIL_CATHETER_INNER_RADIUS_MM
@@ -105,6 +106,9 @@ export class HybridContrastSystem {
         this.lastInjectionHydraulics = null;
         this._sourcePorts = [];
         this._solverAccumulator = 0;
+        // Acquisition clocks follow completed contrast substeps, not render
+        // frames, admitted physics backlog, or time spent in a stalled solver.
+        this.simulationTimeSeconds = 0;
         this._contactScratch = createContactResult();
         this._sheathStart = sheath?.start ? cloneVector(sheath.start) : null;
         this._sheathEnd = sheath?.end ? cloneVector(sheath.end) : null;
@@ -154,6 +158,25 @@ export class HybridContrastSystem {
 
     setCatheter(catheter) {
         this.catheter = catheter;
+    }
+
+    setStentGraftSurface(surface) {
+        if(!applyStentGraftFlow(this.flowNetwork,surface))return false;
+        this.contactField=graftFluidContactField(this.contactField,surface);
+        this.localSolver.contactField=this.contactField;
+        this.localSolver.graftSurface=surface;
+        // Pre-existing iodine trapped outside the graft does not teleport into
+        // its lumen and does not disappear from the mass balance.
+        const local=this.localSolver;
+        for(let i=local.count-1;i>=0;i--) {
+            const point=new THREE.Vector3(local.positionX[i],local.positionY[i],local.positionZ[i]);
+            if(surface.bounds.containsPoint(point)&&!surface.contains(point)) {
+                this.flowNetwork.stentGraftRemodeling.trappedIodineMassMg+=local.iodineMassMg[i];
+                local._removeParticle(i);
+            }
+        }
+        this._hydraulicRevision++;
+        return true;
     }
 
     setHemodynamics(parameters) {
@@ -433,6 +456,7 @@ export class HybridContrastSystem {
                 this.medium.iodineMgPerMl
             );
             this._solverAccumulator -= CONTRAST_SOLVER_STEP_SECONDS;
+            this.simulationTimeSeconds += CONTRAST_SOLVER_STEP_SECONDS;
             substeps++;
         }
         if (this._solverAccumulator >= CONTRAST_SOLVER_STEP_SECONDS) {
@@ -545,7 +569,7 @@ export class HybridContrastSystem {
     hasVisibleContrast(thresholdMg = 0.02) {
         const flowMass = this.flowNetwork.getIodineMassMg();
         const localMass = this.localSolver.getIodineMassMg();
-        return flowMass + localMass > thresholdMg;
+        return flowMass + localMass + (this.flowNetwork.stentGraftRemodeling?.trappedIodineMassMg??0) > thresholdMg;
     }
 
     get isInjecting() {
@@ -562,10 +586,16 @@ export class HybridContrastSystem {
         const accountedMass =
             flow.intravascularIodineMassMg +
             flow.outletIodineMassMg +
-            local.localIodineMassMg;
+            local.localIodineMassMg + (this.flowNetwork.stentGraftRemodeling?.trappedIodineMassMg??0);
         const balanceErrorMg = this.totalInjectedIodineMassMg - accountedMass;
         return {
+            stentGraft: this.flowNetwork.stentGraftRemodeling ? {
+                sealed:true, coveredEdges:this.flowNetwork.stentGraftRemodeling.coveredEdges,
+                excludedEdges:this.flowNetwork.stentGraftRemodeling.excludedEdges,
+                trappedIodineMassMg:this.flowNetwork.stentGraftRemodeling.trappedIodineMassMg
+            } : {sealed:false},
             totalDeliveredVolumeMl: this.totalDeliveredVolumeMl,
+            simulationTimeSeconds: this.simulationTimeSeconds,
             totalInjectedIodineMassMg: this.totalInjectedIodineMassMg,
             intravascularIodineMassMg: flow.intravascularIodineMassMg,
             localIodineMassMg: local.localIodineMassMg,
