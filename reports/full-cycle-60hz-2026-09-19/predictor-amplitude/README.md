@@ -1,0 +1,7 @@
+# Predictor amplitude experiment
+
+Initial-pose velocity extrapolation only: inertia targets, dt, physical forces, friction law and final certification are unchanged. Five recorded incoming states, predictor amplitude 1/.75/.5/.25/0. Two warmups per variant and four recorded repeats, alternating order. Medians average middle two samples. These are Node replay costs, not browser Hz or proof of full-cycle quality.
+
+At amplitude .5, step 777 fell from 279 LU / 16 Newton to 15 / 4 with final position difference 0.00004094 mm. Step 842 fell from 178 / 16 to 28 / 6 with difference 1.33e-11 mm. Step 1300 remained 3 / 3, step 4245 fell from 8 / 4 to 6 / 3. Step 4895 fell from 114 to 100 LU but did not improve wall timing.
+
+The full-cycle amplitude .5 run failed at wire insertion 714.27 mm (step 974), linear-solve, after 60 Newton iterations and 4441 factorizations in the rejected transaction. Full predictor amplitude 1 from that same incoming state also fails: 58 Newton iterations / 5349 factorizations. Its observer records 36 active-set-cycle directions, 30 incompatible-active-constraints, and 8 active-set-limit results. The final trial has wall gaps down to about -.093 mm near the tip (material coordinate 710–714 mm); these trial states are not accepted physical output. Fixed half-amplitude is therefore rejected despite its strong isolated replay gains. No application default has changed. Replay script uses local fixture paths under /tmp/oet-full-cycle-certified-samples.

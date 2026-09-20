@@ -1,0 +1,15 @@
+{
+  "stepsIncludingInitial": 5758,
+  "identicalStepDiagnostics": 5758,
+  "comparedKeys": [
+    "iterations",
+    "factorizations",
+    "backtracks",
+    "geometryRestarts",
+    "fullAssemblies",
+    "residualAssemblies",
+    "residual",
+    "quality"
+  ],
+  "identicalShapeSnapshots": 96
+}

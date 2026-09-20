@@ -1,0 +1,21 @@
+✔ promoted trial assembly preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (645.239542ms)
+✔ promoted trial assembly preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (331.909875ms)
+✔ promotion rebuilds exactly the full matrix and refreshes reaction forces at the same pose (16.728334ms)
+✔ coupled friction updates only between accepted Newton steps and retains the full final force certificate (22.26375ms)
+✔ cancelling after an early friction refresh restores pose, velocities and committed history (3.314417ms)
+✔ a failed early update retries the reference method from the original physical state and counts failed work (3.871542ms)
+✔ simultaneously release zero-reaction blocking contacts without changing the certified linear solution (0.536375ms)
+✔ a feasible newly discovered contact can keep an accepted trial without resolving its direction (3.21425ms)
+✔ a newly discovered violated contact always rebuilds the direction instead of retaining the trial (1.648375ms)
+✔ a non-geometric failure before the first factorization still retries the original method (1.7275ms)
+✔ friction-only refresh preserves full force assembly exactly after a stick/slide change (7.059042ms)
+✔ changed pose, reactions, load, topology or an undeclared evaluator reject reuse before mutation (4.013708ms)
+✔ cancellation after a friction refresh restores all committed state (5.203042ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2152.520083

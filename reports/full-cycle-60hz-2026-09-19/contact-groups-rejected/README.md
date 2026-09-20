@@ -1,0 +1,5 @@
+# Coalescing nearly parallel contact directions — rejected
+
+A private Newton direction grouped finite-face contacts at the same material coordinate with gaps within 0.0001 mm and normals within 0.001/0.01/0.05 radians. Reaction weights preserved incoming force; nonlinear acceptance still checked original contacts. The second version also required matching friction force columns and expanded singleton dual increments exactly.
+
+All five replay fixtures completed, but grouping increased factorizations: 777 279→384, 842 178→229 at 0.001/0.01 rad but 178→111 at 0.05 rad, 4895 114→122; 1300 and 4245 counts unchanged. Final positions were identical except step 842 at 0.05 rad (maximum difference 1.33e-11 mm). Thus one fixture benefited from grouping, but the other hard cases regressed across all tested angles. Timing was noisy, but the algorithmic regression was deterministic. No full cycle warranted. Prototype reverted; no app default changed. Two warmups plus four measured alternating runs per variant. Sources and raw warm replay evidence retained here.

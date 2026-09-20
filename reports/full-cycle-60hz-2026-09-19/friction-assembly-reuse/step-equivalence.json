@@ -1,0 +1,17 @@
+{
+  "reference": "/tmp/oet-full-cycle-wasm-lu-final",
+  "candidate": "/tmp/oet-full-cycle-reuse-friction-assembly",
+  "rowsIncludingInitialization": 5758,
+  "exactlyEqualFields": [
+    "converged",
+    "status",
+    "quality",
+    "residual",
+    "iterations",
+    "factorizations",
+    "backtracks",
+    "geometryRestarts",
+    "substepAttempts"
+  ],
+  "snapshots": "96 exactly equal; see node-comparison.json"
+}

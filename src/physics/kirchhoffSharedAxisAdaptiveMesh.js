@@ -12,7 +12,7 @@ export const ADAPTIVE_SOLVE_OPTIONS = Object.freeze({forceTolerance: 1e-4, lengt
 export function adaptiveMeshOptions(value) {
     if (!value) return null;
     const options = {...DEFAULT_ADAPTIVE_MESH, ...(value === true ? {} : value)};
-    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
+    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
         throw new RangeError('Invalid adaptive mesh budget');
     return options;
 }
@@ -70,13 +70,19 @@ export function coarsenSharedAxisMesh(coordinates, positions, {tools, boundaries
     const contacts = adaptiveContactKnots(previous, options);
     const contactSpans = previous ? previous.coordinates.slice(0,-1).flatMap((x,i) =>
         contacts.has(x)&&contacts.has(previous.coordinates[i+1]) ? [[x,previous.coordinates[i+1]]] : []) : [];
-    const tips = tools.map(tool => ({end: tool.insertion, start: tool.insertion - tipLength(tool, options)}));
+    // Research-only override: remapped wall equations and material histories
+    // remain active. The full-cycle robustness gate has not passed, so no
+    // application factory enables this coarser contact neighbourhood yet.
+    const relaxContactMesh=(options.contactMaxSpacing??spacing)>spacing;
+    const tips = tools.map(tool => ({end: tool.insertion+(options.tipRefinementAhead??0), start: tool.insertion - tipLength(tool, options)}));
     const protectedNode = coordinates.map((x, i) => i < 2 || i === coordinates.length - 1 ||
-        boundaries.includes(x) || contacts.has(x) || contactSpans.some(([a,b])=>x>=a&&x<=b) || tips.some(t => x >= t.start && x <= t.end) ||
+        boundaries.includes(x) || (!relaxContactMesh&&(contacts.has(x) || contactSpans.some(([a,b])=>x>=a&&x<=b))) || tips.some(t => x >= t.start && x <= t.end) ||
         boundaries.some(b => Math.abs(b - x) <= spacing));
     const distance = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
     const canMerge = (first, last) => {
         if (coordinates[last] - coordinates[first] > options.maxSpacing + 1e-9) return false;
+        if(relaxContactMesh&&coordinates[last]-coordinates[first]>options.contactMaxSpacing+1e-9&&
+            contactSpans.some(([a,b])=>coordinates[first]<b&&coordinates[last]>a))return false;
         for (let i = first + 1; i < last; i++) if (protectedNode[i]) return false;
         const a = positions[first], b = positions[last], chord = distance(a, b);
         if (chord < 1e-9) return false;

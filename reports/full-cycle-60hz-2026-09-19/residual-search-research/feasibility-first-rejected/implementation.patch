@@ -1,0 +1,60 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -420,7 +420,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, residualLineSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -503,6 +503,9 @@
+                 solvedDirection = true;
+                 const penalty = Math.max(1, ...s.multipliers.map((v, i) => 2 * Math.abs(v + direction.multiplierIncrement[i])));
+                 const baseViolation=violation(base),basePotential = base.energy + penalty * baseViolation;
++                // First restore newly violated geometric constraints. Once
++                // feasible, prevent force-residual cycles inside line search.
++                const rootSearch=residualLineSearch&&base.constraint<=lengthTolerance;
+                 let predictedSlope = s.chain.gradient.reduce((sum, v, i) => sum + v * direction.increment[i], 0);
+                 for (const r of base.rows) predictedSlope -= (r.kind === 'wall' ? -1 : 1) * r.multiplier *
+                     r.dofs.reduce((sum, dof, i) => sum + r.jacobian[i] * direction.increment[dof], 0);
+@@ -510,10 +513,17 @@
+                     const r=base.rows[i];if(r.compliance)predictedSlope+=r.compliance*r.multiplier*direction.multiplierIncrement[i];
+                 }
+                 predictedSlope -= penalty * baseViolation;
+-                if (!isGaussNewton && predictedSlope >= 0) {
++                if (!rootSearch && !isGaussNewton && predictedSlope >= 0) {
+                     observeTrial?.({kind:'non-descent',state:s,iteration:iterations,method,predictedSlope});
+                     continue;
+                 }
++                // Friction is a nonsymmetric force law. This optional root
++                // globalization requires actual residual decrease instead of
++                // accepting an energy decrease with growing force imbalance.
++                const acceptTrial=(candidate,potential,scale)=>merit(candidate)<=1||
++                    (rootSearch?
++                        merit(candidate)<=(1-1e-4*scale)*merit(base)&&candidate.constraint<=Math.max(lengthTolerance,base.constraint):
++                        potential<basePotential||merit(candidate)<merit(base)&&candidate.constraint<=Math.max(lengthTolerance,base.constraint));
+                 let relativeStep = 0;
+                 for (let e = 0; e + 1 < s.positions.length; e++) {
+                     const p = s.layout.positions[e], q = s.layout.positions[e+1];
+@@ -548,8 +558,7 @@
+                         if(candidate.rows.slice(originalRowCount).some(r=>r.gap<0))throw new Error('shared-axis-retry-discovered-trial');
+                     }
+                     let candidateViolation=violation(candidate),candidatePotential = candidate.energy - trustScale * 2 ** -trial * loadWork + penalty * candidateViolation;
+-                    let accept = candidatePotential < basePotential || merit(candidate) <= 1 ||
+-                        (merit(candidate) < merit(base) && candidate.constraint <= Math.max(lengthTolerance, base.constraint));
++                    let accept = acceptTrial(candidate,candidatePotential,trustScale*2**-trial);
+                     if(!accept&&trialRowsAdded)throw new Error('shared-axis-retry-discovered-trial');
+                     if(!accept&&trial<2&&candidateViolation>0) {
+                         const uncorrected=captureSharedAxisNative(s),uncorrectedMeasure=candidate,uncorrectedPotential=candidatePotential;
+@@ -560,8 +569,7 @@
+                             const correctionMs=projected.cpuMs??performance.now()-start;timings.linearMs+=correctionMs;timings.projectionMs+=correctionMs;factorizations+=projected.factorizations;workingSetReuses+=projected.workingSetReuses??0;
+                             if(!projected.converged)break;
+                             candidate=assemble(undefined,!(lazyTrialTangent||promoteTrialAssembly));candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
+-                            accept=candidatePotential<basePotential||merit(candidate)<=1||
+-                                (merit(candidate)<merit(base)&&candidate.constraint<=Math.max(lengthTolerance,base.constraint));
++                            accept=acceptTrial(candidate,candidatePotential,trustScale*2**-trial);
+                         }
+                         if(!accept){restoreSharedAxisNative(s,uncorrected);candidate=uncorrectedMeasure;candidatePotential=uncorrectedPotential;}
+                         } finally {protectedTrial=null;}

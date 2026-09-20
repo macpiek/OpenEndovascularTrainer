@@ -1,0 +1,77 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSharedAxisNative,extendSharedAxisNativeRows,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
+import {stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
+import {measureSharedAxisCorrection} from '../src/physics/kirchhoffSharedAxisMotionTolerance.js';
+
+const motionTolerance={position:.005,angle:.001,reaction:.01};
+test('small free translation can stop at motion resolution without claiming force convergence',()=>{
+    const make=()=>{
+        const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});
+        s.fixed.fill(0);s.velocities=s.positions.map(()=>[0,.06,0]);return s;
+    };
+    const exact=make(),approx=make(),before=approx.positions.map(p=>p.slice());
+    const ref=stepSharedAxis(exact,1/60),result=stepSharedAxis(approx,1/60,{motionTolerance});
+    assert.ok(ref.converged&&result.converged,JSON.stringify(result));
+    assert.equal(result.status,'converged-motion');assert.equal(result.forceConverged,false);
+    assert.equal(result.convergenceMode,'motion-resolution');
+    assert.ok(result.certificateBound>1e-6,'Actual unbalanced force must remain visible');
+    assert.deepEqual(approx.positions,before);
+    for(let i=0;i<exact.positions.length;i++)assert.ok(Math.hypot(...exact.positions[i].map((v,k)=>v-before[i][k]))<motionTolerance.position);
+});
+
+test('zero positional correction does not excuse a missing normal reaction',()=>{
+    const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});s.fixed.fill(1);
+    const edge=s.positions.length-2,last=s.layout.positions.at(-1);s.fixed[last+1]=0;s.loads[last+1]=-10;
+    const dofs=[s.layout.positions[edge],last].flatMap(p=>[p,p+1,p+2]);
+    extendSharedAxisNativeRows(s,[{kind:'wall',id:'test-plane',edge,dofs,witness:{face:0,t:1},
+        evaluate:({b})=>({gap:b[1],jacobian:[0,0,0,0,1,0]})}]);
+    const result=stepSharedAxis(s,1/60,{motionTolerance});
+    assert.ok(result.converged,JSON.stringify(result));assert.equal(result.forceConverged,true);
+    assert.ok(Math.abs(s.multipliers.at(-1)-10)<1e-7);
+    assert.ok(result.certificateBound<=1e-6);
+});
+
+test('loaded frozen friction retains force convergence even with a generous motion budget',()=>{
+    const make=()=>{
+        const s=createSharedAxisNative({tools:[{id:'wire',insertion:20,wallStaticFriction:.5,wallKineticFriction:.3}]});
+        s.fixed.fill(1);
+        const edge=s.positions.length-2,last=s.layout.positions.at(-1);
+        s.fixed[last+1]=0;s.fixed[last+2]=0;s.loads[last+1]=-10;
+        extendSharedAxisNativeRows(s,[{kind:'wall',id:'loaded-plane',edge,
+            dofs:[s.layout.positions[edge],last].flatMap(p=>[p,p+1,p+2]),witness:{face:0,t:1},
+            evaluate:({b})=>({gap:b[1],jacobian:[0,0,0,0,1,0]})}]);
+        s.multipliers[s.multipliers.length-1]=10;
+        s.velocities=s.positions.map(()=>[0,0,0]);s.velocities.at(-1)[2]=.06;
+        return s;
+    };
+    const exact=make(),approx=make(),reference=stepSharedAxis(exact,1/60);
+    const result=stepSharedAxis(approx,1/60,{motionTolerance:{position:1,angle:1,reaction:1}});
+    assert.ok(reference.converged&&result.converged,JSON.stringify(result));
+    assert.equal(result.forceConverged,true);
+    assert.ok(result.certificateBound<=1e-6);
+    assert.deepEqual(approx.positions,exact.positions);
+    assert.deepEqual(approx.multipliers,exact.multipliers);
+});
+
+test('correction estimate includes bending, independent spins and reaction changes',()=>{
+    const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});
+    const increment=new Float64Array(s.layout.dofCount),multiplierIncrement=new Float64Array(s.multipliers.length);
+    increment[s.layout.positions[2]+1]=.002;
+    increment[s.layout.spins.get('wire')[0]]=.003;
+    multiplierIncrement[0]=100;
+    const c=measureSharedAxisCorrection(s,{increment,multiplierIncrement});
+    assert.ok(Math.abs(c.position-.002)<1e-12);
+    assert.ok(Math.abs(c.angle-.0034)<1e-12);
+    assert.equal(c.reaction,1);
+    increment[0]=NaN;assert.equal(measureSharedAxisCorrection(s,{increment,multiplierIncrement}).position,Infinity);
+});
+
+test('invalid motion budgets fail without changing the physical state',()=>{
+    for(const motionTolerance of [{},{position:-1,angle:1,reaction:1},{position:1,angle:NaN,reaction:1},true]) {
+        const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]}),before=captureSharedAxisNative(s);
+        assert.throws(()=>stepSharedAxis(s,1/60,{motionTolerance}),RangeError);
+        assert.deepEqual(captureSharedAxisNative(s),before);
+        assert.equal(s.dynamicStep,null);assert.equal(s.wallFrictionStep,null);
+    }
+});

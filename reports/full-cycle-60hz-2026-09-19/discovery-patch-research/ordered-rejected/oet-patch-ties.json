@@ -1,0 +1,33 @@
+{
+  "queries": 2500,
+  "changedFaces": 0,
+  "maxDistanceDifference": 0,
+  "stats": {
+    "pointQueries": 0,
+    "capsuleQueries": 5000,
+    "capsuleSamples": 20000,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 0,
+    "bvhRefinements": 20000,
+    "signRefinements": 0,
+    "signCacheHits": 0,
+    "signCacheMisses": 0,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 0,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 20000,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 5000,
+    "certifiedCapsuleSamples": 20000,
+    "certifiedPatchHits": 8000,
+    "certifiedPatchBuilds": 2000,
+    "certifiedPatchMisses": 2000,
+    "certifiedPatchBytes": 758528,
+    "runtimeBytes": 81456374
+  },
+  "differences": []
+}

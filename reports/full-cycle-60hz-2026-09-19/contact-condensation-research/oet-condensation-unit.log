@@ -1,0 +1,13 @@
+✔ parallel compliant contacts condense to one primal equation and preserve load sharing (6.857417ms)
+✔ condensation preserves hard constraints, fixed supports, geometric tangents and nonsymmetric friction (9.935125ms)
+✔ fixed compliant indentation recovers its support reaction without a dual unknown (0.241459ms)
+✔ cancellation from near-rigid compliance fails the original-equation check and retries full LU (0.198792ms)
+✔ rigid rows and nonlocal force columns remain in the full block system (0.076542ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63.69875

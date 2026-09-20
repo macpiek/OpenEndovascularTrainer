@@ -1,0 +1,133 @@
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -3,6 +3,7 @@
+ import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
+ import {prepareSharedAxisWallFriction,refreshSharedAxisWallFriction,commitSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
+ import {iterateSharedAxisWithContacts} from './kirchhoffSharedAxisVesselWitnesses.js';
++import {projectSharedAxisPredictor} from './kirchhoffSharedAxisPredictorProjection.js';
+ 
+ /** A full atomic dynamic step, including the external wall friction law.
+  * Inter-tool constraints remain absent. Frozen friction modes are certified
+@@ -33,6 +34,11 @@
+         }
+         if(increment.some(v=>v!==0)) {
+             applySharedAxisNativeIncrement(s,increment,new Float64Array(s.multipliers.length));predictedInitialPose=true;
++            if(options.predictorProjection&&(!options.predictorProjectionAdvancingOnly||
++                Object.values(feedById).some(v=>v>0)&&Object.values(feedById).every(v=>v>=0))){
++                const projected=projectSharedAxisPredictor(s,{sweeps:options.predictorProjection});
++                if(projected.increment?.some(v=>v!==0))applySharedAxisNativeIncrement(s,projected.increment,new Float64Array(s.multipliers.length));
++            }
+         }
+     }
+     let result,friction,iterations=0,factorizations=0,workingSetReuses=0,backtracks=0,geometryRestarts=0,frictionIterations=0,coupledFrictionRefreshes=0,retainedDiscoveryTrials=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
+--- /dev/null
++++ b/src/physics/kirchhoffSharedAxisPredictorProjection.js
+@@ -0,0 +1,48 @@
++import {sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
++
++/** Bounded, private feasibility guess. No reactions, velocities, inertia
++ * targets or friction history are changed. Newton still owns all physical
++ * equations and certification; this is not an accepted PBD physics step. */
++export function projectSharedAxisPredictor(s,{sweeps=4,maxDisplacement=.5,tolerance=1e-5}={}){
++    if(!Number.isInteger(sweeps)||sweeps<1||sweeps>16||!(maxDisplacement>0)||!Number.isFinite(maxDisplacement))throw new RangeError('Invalid predictor projection options');
++    const positions=s.positions.map(p=>p.slice()),local={...s,positions,geometryKey:Symbol('predictor-projection')};
++    const index=new Int32Array(s.layout.dofCount).fill(-1);
++    for(let n=0;n<positions.length;n++)for(let a=0;a<3;a++)index[s.layout.positions[n]+a]=n*3+a;
++    const rows=s.definitions.filter(r=>r.kind==='length'||r.witness&&r.evaluate?.sharedAxisGeometryOnly);
++    let corrections=0;
++    for(let sweep=0;sweep<sweeps;sweep++){
++        let maximum=0;
++        for(let at=0;at<rows.length;at++){
++            const r=rows[sweep%2?rows.length-1-at:at],e=r.edge,a=positions[e],b=positions[e+1];
++            let gap,J;
++            if(r.kind==='length'){
++                const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],length=Math.sqrt(dx*dx+dy*dy+dz*dz);
++                if(!(length>0))return {increment:null,corrections,reason:'degenerate-edge'};
++                gap=length-(s.coordinates[e+1]-s.coordinates[e]);J=[-dx/length,-dy/length,-dz/length,dx/length,dy/length,dz/length];
++            }else{
++                const owner=sharedAxisOuterMaterialAt(s,e,r.witness.t,r.witness.owner);
++                let c;
++                try{c=r.evaluate({state:local,a,b,edge:e,radius:owner.body.radius,needHessian:false,reuseGeometry:true});}
++                catch(error){if(error.code==='trial-outside-vessel')return {increment:null,corrections,reason:'undefined-wall-normal'};throw error;}
++                gap=c.gap;J=c.jacobian;
++            }
++            if(!Number.isFinite(gap)||!J.every(Number.isFinite))return {increment:null,corrections,reason:'nonfinite-geometry'};
++            if(r.kind==='wall'&&gap>=0)continue;
++            maximum=Math.max(maximum,Math.abs(gap));if(Math.abs(gap)<=tolerance)continue;
++            let norm=0;for(let k=0;k<r.dofs.length;k++)if(!s.fixed[r.dofs[k]])norm+=J[k]*J[k];
++            if(!(norm>1e-20))continue;
++            const scale=-gap/norm;
++            for(let k=0;k<r.dofs.length;k++){
++                const dof=r.dofs[k],p=index[dof];if(s.fixed[dof])continue;
++                if(p<0)return {increment:null,corrections,reason:'non-position-constraint'};
++                positions[Math.floor(p/3)][p%3]+=scale*J[k];
++            }
++            corrections++;
++        }
++        for(let n=0;n<positions.length;n++)if(Math.hypot(...positions[n].map((v,k)=>v-s.positions[n][k]))>maxDisplacement)return {increment:null,corrections,reason:'displacement-limit'};
++        if(maximum<=tolerance)break;
++    }
++    const increment=new Float64Array(s.layout.dofCount);
++    for(let n=0;n<positions.length;n++)for(let a=0;a<3;a++)increment[s.layout.positions[n]+a]=positions[n][a]-s.positions[n][a];
++    return {increment,corrections};
++}
+--- /dev/null
++++ b/tests/kirchhoffSharedAxisPredictorProjection.test.js
+@@ -0,0 +1,57 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createSharedAxisNative,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {projectSharedAxisPredictor} from '../src/physics/kirchhoffSharedAxisPredictorProjection.js';
++import {iterateSharedAxisTimeStep,stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++
++function rod(){return createSharedAxisNative({tools:[{id:'wire',insertion:20}]});}
++test('private projection reduces a retained wall violation and leaves physical state and fixed DOFs untouched',()=>{
++    const s=rod(),edge=s.positions.length-2,p=s.layout.positions;
++    const evaluate=({b})=>({gap:b[1]-.25,jacobian:[0,0,0,0,1,0]});evaluate.sharedAxisGeometryOnly=true;
++    s.definitions.push({kind:'wall',edge,witness:{t:1},dofs:[p[edge],p[edge]+1,p[edge]+2,p[edge+1],p[edge+1]+1,p[edge+1]+2],evaluate});
++    const before=captureSharedAxisNative(s),result=projectSharedAxisPredictor(s);
++    assert.ok(result.increment);assert.ok(result.increment[p[edge+1]+1]>.2);
++    for(let d=0;d<s.fixed.length;d++)if(s.fixed[d])assert.equal(result.increment[d],0);
++    assert.deepEqual(captureSharedAxisNative(s),before);
++    assert.equal(projectSharedAxisPredictor(s,{maxDisplacement:.001}).increment,null);
++    assert.deepEqual(captureSharedAxisNative(s),before);
++});
++test('projected predictor cancellation restores pose, reactions and rates while inertia keeps the incoming reference',()=>{
++    const s=rod();s.velocities=s.positions.map(()=>[0,2,0]);
++    const before=captureSharedAxisNative(s),velocities=s.velocities;let observed=false;
++    const it=iterateSharedAxisTimeStep(s,1/120,{velocityPredictor:1,predictorProjection:4,observeIteration:()=>{
++        observed=true;assert.deepEqual(s.dynamicStep.positions,before.positions);
++    }});
++    for(let n=0;n<100&&!observed;n++)assert.equal(it.next().done,false);
++    assert.ok(observed);it.return();assert.deepEqual(captureSharedAxisNative(s),before);
++    assert.equal(s.velocities,velocities);assert.equal(s.dynamicStep,null);assert.equal(s.wallFrictionStep,null);
++});
++test('the corrected guess still converges under the original physical certificates',()=>{
++    const a=rod(),b=rod();for(const s of [a,b]){s.fixed.fill(0);s.velocities=s.positions.map(()=>[0,2,0]);}
++    const ref=stepSharedAxis(a,1/120,{velocityPredictor:1}),out=stepSharedAxis(b,1/120,{velocityPredictor:1,predictorProjection:4});
++    assert.ok(ref.converged&&out.converged);assert.ok(out.certificateBound<=1e-6);
++    assert.ok(out.residual.length<=1e-5);
++    for(let n=0;n<a.positions.length;n++)for(let k=0;k<3;k++)assert.ok(Math.abs(a.positions[n][k]-b.positions[n][k])<1e-7);
++});
++
++test('undefined wall direction abandons only the private correction',()=>{
++    const s=rod(),edge=s.positions.length-2,p=s.layout.positions;
++    const evaluate=()=>{throw Object.assign(new Error('surface'),{code:'trial-outside-vessel'});};evaluate.sharedAxisGeometryOnly=true;
++    s.definitions.push({kind:'wall',edge,witness:{t:1},dofs:[p[edge],p[edge]+1,p[edge]+2,p[edge+1],p[edge+1]+1,p[edge+1]+2],evaluate});
++    const before=captureSharedAxisNative(s),result=projectSharedAxisPredictor(s);
++    assert.equal(result.increment,null);assert.equal(result.reason,'undefined-wall-normal');
++    assert.deepEqual(captureSharedAxisNative(s),before);
++});
++
++test('advancing-only correction leaves withdrawing and stationary guesses identical to the reference predictor',()=>{
++    function guess(feed,project){
++        const s=rod();s.velocities=s.positions.map(()=>[0,20,0]);let initial;
++        const iterator=iterateSharedAxisTimeStep(s,1/120,{velocityPredictor:1,feedById:feed,
++            predictorProjection:project?4:0,predictorProjectionAdvancingOnly:true,
++            observeIteration:()=>{initial??=s.positions.map(p=>p.slice());}});
++        for(let n=0;n<100&&!initial;n++)assert.equal(iterator.next().done,false);
++        assert.ok(initial);iterator.return();return initial;
++    }
++    for(const feed of [{wire:-1},{wire:0},{wire:1,catheter:-1}])assert.deepEqual(guess(feed,true),guess(feed,false));
++    assert.notDeepEqual(guess({wire:1},true),guess({wire:1},false));
++});

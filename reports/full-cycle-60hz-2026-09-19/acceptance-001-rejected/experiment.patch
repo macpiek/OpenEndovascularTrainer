@@ -1,0 +1,131 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -386,10 +386,11 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, forceAcceptanceTolerance=forceTolerance, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
++        !(Number.isFinite(forceAcceptanceTolerance)&&forceAcceptanceTolerance>=forceTolerance) ||
+         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
+     const initial = captureSharedAxisNative(s), started = performance.now();
+     let lastOutsideContact=null;
+@@ -421,13 +422,17 @@
+         while(true) {try{return assemble();}catch(error){if(!discover(error))throw error;}}
+     };
+     const merit = m => Math.max(m.force / forceTolerance, m.torque / forceTolerance, m.constraint / lengthTolerance);
++    // Keep search directions, active-set precision and line-search merit at
++    // their original accuracy. Only the final equilibrium budget may relax.
++    const equilibrium = m => forceAcceptanceTolerance===forceTolerance?merit(m)<=1:
++        m.constraint<=lengthTolerance&&Math.max(m.force,m.torque)<=forceAcceptanceTolerance;
+     const violation = m => m.rows.reduce((v, r) => v + (r.kind === 'length' ? Math.abs(r.gap) : Math.max(0, -r.gap)), 0);
+     try {
+         base = assembleDiscovered();
+         for (; iterations < maxIterations; iterations++) {
+             yield {kind:'iteration',iteration:iterations};
+             observeIteration?.({state:s,iteration:iterations,base:observed(base)});
+-            if (merit(base) <= 1) { status = 'converged'; break; }
++            if (equilibrium(base)) { status = 'converged'; break; }
+             if(earlyLiveFallback&&iterations>=8&&s.wallFrictionStep?.liveNormalLoad===true) {
+                 detectedCycle=(cycleGuard??=createSharedAxisCycleGuard()).observe(s,base);
+                 if(detectedCycle){status='live-contact-cycle';break;}
+@@ -574,7 +579,7 @@
+         candidate = base;
+     } catch (e) { error = e.message; lastOutsideContact=e.contact??lastOutsideContact; status = 'unsupported-direction'; }
+     finally {modified?.dispose();}
+-    const converged = candidate !== null && merit(candidate) <= 1;
++    const converged = candidate !== null && equilibrium(candidate);
+     if (!converged) restoreSharedAxisNative(s, initial); else {
+         status = 'converged'; s.acceptedSolves++;
+         if(deferContactPublication)deferContactPublication(candidate.rows);
+@@ -583,7 +588,7 @@
+             s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.gap]));
+         }
+     }
+-    return { converged, status, error, ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
++    return { converged, status, error, forceAcceptanceTolerance, ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
+         ...modified?.diagnostics,timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
+         ...(detectedCycle?{detectedCycle}:{}),...(detectedStagnation?{detectedStagnation}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
+ }
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -16,6 +16,8 @@
+     try {
+     const tolerance=options.forceTolerance??1e-6;
+     if(!(Number.isFinite(tolerance)&&tolerance>0))throw new RangeError('Positive force tolerance required');
++    const acceptanceTolerance=options.forceAcceptanceTolerance??tolerance;
++    if(!(Number.isFinite(acceptanceTolerance)&&acceptanceTolerance>=tolerance))throw new RangeError('Invalid force acceptance tolerance');
+     s.cacheMechanicalAssembly=true;s.reuseTriangleKernel=options.reuseTriangleKernel===true;
+     prepareSharedAxisDynamicStep(s,dt);prepareSharedAxisWallFriction(s,{feedById,liveNormalLoad:options.liveWallNormalLoad===true,lightweightFriction:options.lightweightFriction===true});
+     let predictedInitialPose=false;
+@@ -51,7 +53,7 @@
+         fullAssemblies+=result.fullAssemblies??0;residualAssemblies+=result.residualAssemblies??0;promotedAssemblies+=result.promotedAssemblies??0;
+         modifiedAttempts+=result.modifiedAttempts??0;modifiedAccepted+=result.modifiedAccepted??0;modifiedFallbacks+=result.modifiedFallbacks??0;
+         if(!result.converged)break;
+-        const start=performance.now();friction=refreshSharedAxisWallFriction(s,{forceTolerance:Math.max(0,tolerance-Math.max(result.residual.force,result.residual.torque))});timings.frictionMs+=performance.now()-start;
++        const start=performance.now();friction=refreshSharedAxisWallFriction(s,{forceTolerance:Math.max(0,acceptanceTolerance-Math.max(result.residual.force,result.residual.torque))});timings.frictionMs+=performance.now()-start;
+         if(friction.converged) {
+             if(acceptedContactRows) {
+                 materializeSharedAxisContacts(acceptedContactRows);
+--- /dev/null
++++ b/tests/kirchhoffSharedAxisAcceptanceTolerance.test.js
+@@ -0,0 +1,56 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {defineKirchhoffMaterialProfile} from '../src/physics/kirchhoffMaterialProfile.js';
++import {createSharedAxisNative,relaxSharedAxisNative,applySharedAxisNativeIncrement,extendSharedAxisNativeRows} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++
++const beam=defineKirchhoffMaterialProfile({id:'acceptance-test-beam',sampleEI1:()=>1e6,sampleGJ:()=>1e6/1.3});
++const rod=()=>createSharedAxisNative({tools:[{id:'wire',insertion:100,type:beam,wallStaticFriction:.2,wallKineticFriction:.1}]});
++
++test('a relaxed stopping budget preserves the original Newton path and skips its last small correction',()=>{
++    const outputs=[];
++    for(const forceAcceptanceTolerance of [1e-6,.01]) {
++        const s=rod(),trace=[];s.loads[s.layout.positions.at(-1)+1]=10;
++        const result=relaxSharedAxisNative(s,{forceAcceptanceTolerance,observeIteration:e=>trace.push({
++            force:e.base.force,torque:e.base.torque,constraint:e.base.constraint,positions:s.positions.map(p=>p.slice())})});
++        assert.ok(result.converged);assert.ok(result.residual.length<=1e-5);
++        assert.ok(Math.max(result.residual.force,result.residual.torque)<=forceAcceptanceTolerance);
++        outputs.push({s,result,trace});
++    }
++    const [reference,actual]=outputs;
++    assert.ok(actual.result.factorizations<reference.result.factorizations);
++    assert.ok(actual.result.residual.force>1e-6,'the test must exercise the explicit relaxed budget');
++    assert.deepEqual(actual.trace,reference.trace.slice(0,actual.trace.length),'same directions and line search until early acceptance');
++    const maxDifference=Math.max(...actual.s.positions.map((p,i)=>Math.hypot(...p.map((v,k)=>v-reference.s.positions[i][k]))));
++    assert.ok(maxDifference<1e-4,`${maxDifference} mm`);
++});
++
++test('relaxing force equilibrium does not accept stretched segments',()=>{
++    const s=rod(),dx=new Float64Array(s.layout.dofCount);dx[s.layout.positions.at(-1)]=.1;
++    applySharedAxisNativeIncrement(s,dx,new Float64Array(s.multipliers.length));
++    const result=relaxSharedAxisNative(s,{forceAcceptanceTolerance:1000});
++    assert.ok(result.converged);assert.ok(result.iterations>0);
++    assert.ok(result.residual.length<=1e-5);
++});
++
++test('the final dynamic certificate includes both equilibrium residual and the friction update',()=>{
++    const s=rod();
++    for(let e=1;e+1<s.positions.length;e++) {
++        extendSharedAxisNativeRows(s,[{kind:'wall',edge:e,id:`floor/${e}`,witness:{face:0,t:1},
++            dofs:[s.layout.positions[e],s.layout.positions[e+1]].flatMap(p=>[p,p+1,p+2]),
++            evaluate:({b})=>({gap:b[1],jacobian:[0,0,0,0,1,0]})}]);
++        s.multipliers[s.multipliers.length-1]=100;s.loads[s.layout.positions[e+1]+1]=-20;
++    }
++    const result=stepSharedAxis(s,1/60,{forceAcceptanceTolerance:.01,coupledFrictionNewton:true,liveWallNormalLoad:true,feedById:{wire:.1}});
++    assert.ok(result.converged,JSON.stringify(result));assert.ok(result.friction.converged);
++    assert.equal(result.certificateBound,Math.max(result.residual.force,result.residual.torque)+result.friction.forceChange);
++    assert.ok(result.certificateBound<=.01);assert.ok(result.residual.length<=1e-5);
++    assert.ok(result.quality.maxPenetration<=1e-5);
++});
++
++test('invalid stopping budgets cannot start a timestep',()=>{
++    for(const forceAcceptanceTolerance of [0,-1,NaN,Infinity,1e-8]) {
++        assert.throws(()=>stepSharedAxis(rod(),1/60,{forceAcceptanceTolerance}),/acceptance tolerance/);
++        assert.throws(()=>relaxSharedAxisNative(rod(),{forceAcceptanceTolerance}),/Invalid shared axis/);
++    }
++});

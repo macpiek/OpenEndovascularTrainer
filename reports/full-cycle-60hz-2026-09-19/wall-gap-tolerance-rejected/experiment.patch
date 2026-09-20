@@ -1,0 +1,95 @@
+--- /tmp/oet-before-wall-gap-kirchhoffSharedAxisNative.js	2026-09-20 09:19:09
++++ src/physics/kirchhoffSharedAxisNative.js	2026-09-20 09:19:09
+@@ -414,8 +414,9 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,wallGapTolerance=0 } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
++        !Number.isFinite(wallGapTolerance)||wallGapTolerance<0||wallGapTolerance>lengthTolerance||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
+@@ -483,7 +484,7 @@
+                 if(!isModified)modified?.invalidate();
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+-                const linearOptions = { wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
++                const linearOptions = { wallGapTolerance, wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 const direction = isModified?modified.solve(base.rows,s.chain.gradient,linearOptions.tolerance):
+                     yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
+@@ -536,7 +537,7 @@
+                         // ordinary nonlinear acceptance also passes. Otherwise
+                         // rebuild the direction on the enlarged contact set.
+                         trialRowsAdded=true;candidate=assembleDiscovered();
+-                        if(candidate.rows.slice(originalRowCount).some(r=>r.gap<0))throw new Error('shared-axis-retry-discovered-trial');
++                        if(candidate.rows.slice(originalRowCount).some(r=>r.gap < -wallGapTolerance))throw new Error('shared-axis-retry-discovered-trial');
+                     }
+                     let candidateViolation=violation(candidate),candidatePotential = candidate.energy - trustScale * 2 ** -trial * loadWork + penalty * candidateViolation;
+                     let accept = candidatePotential < basePotential || merit(candidate) <= 1 ||
+--- /tmp/oet-before-wall-gap-kirchhoffSharedAxisLinear.js	2026-09-20 09:19:09
++++ src/physics/kirchhoffSharedAxisLinear.js	2026-09-20 09:19:09
+@@ -284,6 +284,7 @@
+  */
+ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
+     const { rows, tolerance = 1e-8 } = options;
++    const wallGapTolerance=Math.max(tolerance,options.wallGapTolerance??0);
+     const activeSet=Uint8Array.from(rows,r=>r.kind==='length'||r.multiplier>tolerance);
+     // This dual is a private feasible pivot iterate, not the physical reaction
+     // used to assemble the equations. Starting it at zero lets the batch path
+@@ -357,12 +358,12 @@
+                 dual[i]=rows[i].multiplier+result.multiplierIncrement[i];
+                 if(rows[i].kind==='wall')dual[i]=Math.max(0,dual[i]);
+             }
+-            const violated=[];
++            const violated=[];worst=-wallGapTolerance;
+             for(let i=0;i<rows.length;i++) {
+                 const r=rows[i];if(r.kind!=='wall'||activeSet[i])continue;
+                 if(separatedSharedAxisContactDirection(r,result.increment))continue;
+                 const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0);
+-                if(batchSize>1&&residual<-tolerance)violated.push({index:i,residual});
++                if(batchSize>1&&residual<-wallGapTolerance)violated.push({index:i,residual});
+                 if(residual<worst){worst=residual;change=i;}
+             }
+             if(violated.length)activate=violated.sort((a,b)=>a.residual-b.residual||a.index-b.index).slice(0,batchSize).map(v=>v.index);
+@@ -409,6 +410,7 @@
+     options.observeLinearSystem?.({chain,options});
+     options.rows.forEach(r=>validateExtraForce(r,chain.layout.dofCount));
+     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');
++    if(options.wallGapTolerance!==undefined&&(!Number.isFinite(options.wallGapTolerance)||options.wallGapTolerance<0))throw new RangeError('Finite nonnegative wall gap tolerance required');
+     const batchSize=options.batchActivation===false?1:(options.batchActivationSize??8);
+     if(!Number.isInteger(batchSize)||batchSize<1||batchSize>16)throw new RangeError('Batch activation size must be between 1 and 16');
+     const iterator=iterateWithFallback(w,chain,options,batchSize);let cpuMs=0,done=false;
+--- /dev/null	2026-09-20 09:22:05
++++ tests/kirchhoffSharedAxisWallGapTolerance.test.js	2026-09-20 09:19:50
+@@ -0,0 +1,28 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createSharedAxisLinear,solveSharedAxisLinear} from '../src/physics/kirchhoffSharedAxisLinear.js';
++
++test('contact activation can use a positional budget without relaxing force equations',()=>{
++    const layout={dofCount:2,band:1},chain={layout,hessian:Float64Array.from([1,1])};
++    const rows=[{id:'wall',kind:'wall',dofs:[1],jacobian:[1],gap:1e-5,multiplier:0}];
++    const options={rows,gradient:Float64Array.from([1,5e-5]),fixed:new Uint8Array(2),tolerance:1e-10};
++    const exact=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,options);
++    const loose=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,{...options,wallGapTolerance:1e-4});
++    assert.ok(exact.converged&&loose.converged);
++    assert.equal(loose.increment[0],exact.increment[0]);
++    assert.ok(loose.residual<=options.tolerance);
++    assert.ok(loose.factorizations<exact.factorizations);
++    assert.ok(rows[0].gap+loose.increment[1]>=-1e-4);
++    assert.equal(loose.multiplierIncrement[0],0);
++    assert.ok(Math.abs(rows[0].gap+exact.increment[1])<1e-10);
++});
++
++test('a violation beyond the positional budget still activates the wall',()=>{
++    const layout={dofCount:1,band:1},chain={layout,hessian:Float64Array.of(1)};
++    const rows=[{kind:'wall',dofs:[0],jacobian:[1],gap:1e-5,multiplier:0}];
++    const r=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,
++        {rows,gradient:Float64Array.of(1),fixed:new Uint8Array(1),tolerance:1e-10,wallGapTolerance:1e-4});
++    assert.ok(r.converged);assert.ok(r.multiplierIncrement[0]>0);
++    assert.ok(Math.abs(rows[0].gap+r.increment[0])<1e-10);
++    assert.ok(r.residual<=1e-10);
++});

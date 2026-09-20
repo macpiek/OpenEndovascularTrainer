@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-certified-samples",
+  "candidateDirectory": "/tmp/oet-full-cycle-certified-endpoints",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1936,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "catheter-in": {
+      "samples": 2838,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "catheter-out": {
+      "samples": 4951,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-out": {
+      "samples": 2048,
+      "rmsMm": 0.000012772222681779451,
+      "maxMm": 0.0002335562748677778
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.735213057360248e-7,
+    "maxRelativeLengthError": 3.473163484522273e-8,
+    "maxCertifiedResidual": 0.00009995973583443174,
+    "totalFactorizations": 28830,
+    "totalIterations": 16466
+  }
+}

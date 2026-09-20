@@ -1,0 +1,28 @@
+✔ batch activation reduces independent wall LU solves with identical unique primal solution (11.8965ms)
+✔ seeded feasible QPs agree with single activation and satisfy global stationarity and complementarity (43.56425ms)
+✔ failed batched factorization retries original rows and counts both searches without stale result views (1.495542ms)
+✔ infeasible active basis remains explicitly rejected after reference fallback (0.161667ms)
+✔ cooperative linear solve yields between attempts, excludes pauses from CPU time, and matches synchronous output (26.224875ms)
+✔ interrupting a private linear iterator leaves physical inputs available for a fresh reference solve (3.280542ms)
+✔ cancellation in the unscaled residual is certified accurately without loosening the threshold (0.57525ms)
+✔ bounded trial direction stops early without mutating state and unrestricted search remains available (1.108ms)
+✔ coupled friction updates only between accepted Newton steps and retains the full final force certificate (35.652583ms)
+✔ cancelling after an early friction refresh restores pose, velocities and committed history (6.08475ms)
+✔ a failed early update retries the reference method from the original physical state and counts failed work (5.674709ms)
+✔ simultaneously release zero-reaction blocking contacts without changing the certified linear solution (0.616417ms)
+✔ a feasible newly discovered contact can keep an accepted trial without resolving its direction (3.39125ms)
+✔ a newly discovered violated contact always rebuilds the direction instead of retaining the trial (1.621083ms)
+✔ a non-geometric failure before the first factorization still retries the original method (2.109333ms)
+✔ friction-only refresh preserves full force assembly exactly after a stick/slide change (8.597875ms)
+✔ changed pose, reactions, load, topology or an undeclared evaluator reject reuse before mutation (6.586959ms)
+✔ cancellation after a friction refresh restores all committed state (7.167292ms)
+✔ Reusing assembly after friction refresh preserve every direction and complete physical output: anatomy-wire-569.80-poor-prediction (3716.390083ms)
+✔ Reusing assembly after friction refresh preserve every direction and complete physical output: anatomy-catheter-withdraw-180.80-sign-proof (2313.073041ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7637.275959

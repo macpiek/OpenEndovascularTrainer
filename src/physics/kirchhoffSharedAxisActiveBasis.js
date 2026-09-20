@@ -13,12 +13,12 @@ export function sharedAxisBasisLinearization(rows,fixed) {
     if(same)for(let i=0;i<fixed.length;i++)if(saved.fixed[i]!==fixed[i]){same=false;break;}
     if(same)for(let i=0;i<rows.length;i++) {
         const a=rows[i],b=saved.rows[i];
-        if(a.kind!==b.kind||a.dofs.length!==b.dofs.length||a.jacobian.length!==b.jacobian.length){same=false;break;}
+        if(a.kind!==b.kind||a.compliance!==b.compliance||a.dofs.length!==b.dofs.length||a.jacobian.length!==b.jacobian.length){same=false;break;}
         for(let j=0;j<a.dofs.length;j++)if(a.dofs[j]!==b.dofs[j]||!Object.is(a.jacobian[j],b.jacobian[j])){same=false;break;}
         if(!same)break;
     }
     if(same)return saved.token;
-    saved={token:Symbol('basis-jacobians'),fixed:fixed.slice(),rows:rows.map(r=>({kind:r.kind,dofs:r.dofs.slice(),jacobian:r.jacobian.slice()}))};
+    saved={token:Symbol('basis-jacobians'),fixed:fixed.slice(),rows:rows.map(r=>({kind:r.kind,compliance:r.compliance,dofs:r.dofs.slice(),jacobian:r.jacobian.slice()}))};
     linearizations.set(fixed,saved);return saved.token;
 }
 
@@ -37,7 +37,7 @@ function workspaceFor(fixed,rowCount,key=fixed) {
 function prepareOrder(w,rows,activeSet) {
     let changed=false;
     for(let i=0;i<rows.length;i++) {
-        const kind=rows[i].kind==='length'?1:rows[i].kind==='wall'?2:0,active=activeSet[i]?1:0;
+        const kind=rows[i].kind==='length'?1:rows[i].kind==='wall'&&!rows[i].compliance?2:0,active=activeSet[i]?1:0;
         if(w.orderKinds[i]!==kind||w.orderActive[i]!==active)changed=true;
         w.orderKinds[i]=kind;w.orderActive[i]=active;
     }
@@ -68,19 +68,43 @@ function supportedNorm(w,support,values) {
     return Math.hypot(...scratch);
 }
 
+// Record elementary eliminations cheaply. The reaction-space coefficients
+// are needed only for a dependent row. Reconstruct them in the original order
+// on that uncommon path, preserving the same floating-point operations.
+function materializeDependentCoefficients(w,basis,dependent) {
+    for(const r of [...basis,dependent]) {
+        for(const j of r.coefficients)r.c[j]=0;
+        r.coefficients.length=0;r.coefficients.push(r.source);r.c[r.source]=1;
+        if(++w.stamp>=0xffffffff){w.spatialMarks.fill(0);w.reactionMarks.fill(0);w.stamp=1;}
+        const stamp=w.stamp;w.reactionMarks[r.source]=stamp;
+        for(let k=0;k<r.eliminations.length;k+=2) {
+            const q=basis[r.eliminations[k]],projection=r.eliminations[k+1];
+            for(const j of q.coefficients) {
+                r.c[j]-=projection*q.c[j];
+                if(r.c[j]!==0&&w.reactionMarks[j]!==stamp){w.reactionMarks[j]=stamp;r.coefficients.push(j);}
+            }
+        }
+        if(r!==dependent) {
+            for(const j of r.coefficients)r.c[j]/=r.factor;
+            compactExactNonzeros(r.coefficients,r.c);
+        }
+    }
+    return dependent.c;
+}
+
 /** Repair only the linear solver's working dual representation. The physical
  * incoming multipliers and Hessian are untouched. A null-space pivot preserves
  * generalized force while replacing dependent active equalities; released rows
  * remain inequalities in the active-set search. Length reactions are signed,
  * wall reactions nonnegative. Fixed degrees of freedom cannot restrict motion.
  */
-export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null,basisWorkspaceKey=fixed}) {
+export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null,basisWorkspaceKey=fixed,lazyBasisCoefficients=false}) {
     let pivots=0;
     // A reduced identity projection can borrow the owning state's larger
     // basis buffers. Only storage is shared: each linearization token resets
     // cached coefficients before a different indexing/fixed mask is used.
     const w=workspaceFor(fixed,rows.length,basisWorkspaceKey),{spatialMarks,reactionMarks,order,basis}=w;
-    if(!reuseStructure||!basisCache||w.basisCache!==basisCache){w.cachedCount=0;w.basisCache=basisCache;}
+    if(!reuseStructure||!basisCache||w.basisCache!==basisCache||w.lazyBasisCoefficients!==lazyBasisCoefficients){w.cachedCount=0;w.basisCache=basisCache;w.lazyBasisCoefficients=lazyBasisCoefficients;}
     for(let pass=0;pass<=rows.length;pass++) {
         // Sparse row echelon elimination: a Kirchhoff length/contact row
         // has local support. Orthogonalizing every row against the entire
@@ -90,7 +114,7 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,re
         else {
             order.length=0;
             for(let i=0;i<rows.length;i++)if(rows[i].kind==='length'&&activeSet[i])order.push(i);
-            for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i])order.push(i);
+            for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&!rows[i].compliance&&activeSet[i])order.push(i);
             w.orderKinds.fill(0);w.orderActive.fill(0);
         }
         // This token is scoped to one immutable linearization. Reuse only
@@ -107,7 +131,8 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,re
         for(let position=prefix;position<order.length;position++) {
             const index=order[position];
             const row=rows[index],working=nextRow(w,basis.length),{v,c,support,coefficients}=working;
-            coefficients.push(index);
+            if(lazyBasisCoefficients){working.source=index;(working.eliminations??=[]).length=0;}
+            else coefficients.push(index);
             if(++w.stamp>=0xffffffff){spatialMarks.fill(0);reactionMarks.fill(0);w.stamp=1;}
             const stamp=w.stamp,rowSign=sign(row);
             for(let k=0;k<row.dofs.length;k++){const p=row.dofs[k];if(!fixed[p]) {
@@ -115,25 +140,28 @@ export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,re
                 if(v[p]!==0&&spatialMarks[p]!==stamp){spatialMarks[p]=stamp;support.push(p);}
             }}
             const originalNorm=supportedNorm(w,support,v);if(originalNorm===0){remember(position,index);continue;}
-            c[index]=1;reactionMarks[index]=stamp;
-            for(const q of basis) {
+            if(!lazyBasisCoefficients){c[index]=1;reactionMarks[index]=stamp;}
+            for(let qi=0;qi<basis.length;qi++) {
+                const q=basis[qi];
                 const projection=v[q.pivot];if(projection===0)continue;
                 for(const j of q.support) {
                     v[j]-=projection*q.v[j];
                     if(v[j]!==0&&spatialMarks[j]!==stamp){spatialMarks[j]=stamp;support.push(j);}
                 }
                 v[q.pivot]=0;
-                for(const j of q.coefficients) {
+                if(lazyBasisCoefficients)working.eliminations.push(qi,projection);
+                else for(const j of q.coefficients) {
                     c[j]-=projection*q.c[j];
                     if(c[j]!==0&&reactionMarks[j]!==stamp){reactionMarks[j]=stamp;coefficients.push(j);}
                 }
             }
             let pivot=0;
             for(const j of support)if(Math.abs(v[j])>Math.abs(v[pivot])||Math.abs(v[j])===Math.abs(v[pivot])&&j<pivot)pivot=j;
-            if(supportedNorm(w,support,v)<=1e-11*originalNorm){dependent=c;break;}
+            if(supportedNorm(w,support,v)<=1e-11*originalNorm){dependent=lazyBasisCoefficients?materializeDependentCoefficients(w,basis,working):c;break;}
             const factor=v[pivot];
             for(const j of support)v[j]/=factor;
-            for(const j of coefficients)c[j]/=factor;
+            if(lazyBasisCoefficients)working.factor=factor;
+            else for(const j of coefficients)c[j]/=factor;
             // Only exact zeros disappear. Small terms remain available for
             // rank detection and the unchanged generalized-force certificate.
             working.pivot=pivot;compactExactNonzeros(support,v);compactExactNonzeros(coefficients,c);

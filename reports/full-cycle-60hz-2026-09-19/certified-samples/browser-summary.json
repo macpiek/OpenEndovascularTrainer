@@ -1,0 +1,83 @@
+{
+  "source": "Summary read from visible Browser benchmark report textarea; raw per-step report not exported",
+  "solver": "shared-axis-realtime",
+  "configuration": {
+    "earlyPredictorFallback": true,
+    "predictorRecoveryFactorizations": 64,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true,
+    "fastNewton": true,
+    "predictiveNewton": true,
+    "pruneWitnesses": true,
+    "wallContactDebug": false,
+    "fluoroscopy": false,
+    "catheterType": "berenstein",
+    "guidewireType": "glidewire",
+    "catheterShaftStiffnessScale": 40.65,
+    "catheterTipStiffnessScale": 66.8,
+    "guidewireShaftStiffnessScale": 9.6,
+    "guidewireTipStiffnessScale": 6.8,
+    "shapeTolerance": 0.15,
+    "contactMargin": 1,
+    "maxArcLoss": 0.002,
+    "maxSpacing": 20,
+    "certifiedDiscoverySamples": true
+  },
+  "durationMs": 140622.89999997616,
+  "physicsHz": 40.9392780265588,
+  "averageFps": 59.54019016168223,
+  "onePercentLowFps": 42.14892768859863,
+  "summary": {
+    "acceptedSteps": 5757,
+    "completedCycle": true,
+    "rejectedSteps": 0,
+    "targetMm": 1000,
+    "minimumOneSecondPhysicsHz": 15.421389467474496,
+    "p50StepMs": 17.300000071525574,
+    "p95StepMs": 27.700000166893005,
+    "p99StepMs": 41.39999985694885,
+    "maxStepMs": 256.09999990463257,
+    "stepsOverBudget": 3361,
+    "maxAcceptedIntervalMs": 365.2999999523163
+  },
+  "aggregate": {
+    "totalFactorizations": 28626,
+    "totalIterations": 16430,
+    "meanCpuMs": 16.624214001966678,
+    "meanAssemblyMs": 7.7330033006986145,
+    "meanLinearMs": 4.257912107426734
+  },
+  "quality": {
+    "finite": true,
+    "missingQualitySteps": 0,
+    "nonlinearFailedSteps": 0,
+    "solverSteps": 5757,
+    "maxPostStepPenetrationMm": 9.4250857562983e-07,
+    "maxSegmentErrorPercent": 3.473178045644534e-06,
+    "maxCertifiedResidual": 9.99390163866031e-05,
+    "maxBendAngleDegrees": 45.00000035017485,
+    "maxBendLimitDegrees": 45
+  },
+  "worstStep": {
+    "index": 882,
+    "wireMm": 647.5333333333392,
+    "catheterMm": 0,
+    "cpuMs": 256.09999990463257,
+    "factorizations": 281,
+    "iterations": 8,
+    "assemblies": 31,
+    "linearMs": 213.70000004768372,
+    "assemblyMs": 33.799999952316284
+  },
+  "contactQueries": {
+    "capsuleQueries": 1130206,
+    "capsuleSamples": 4515217,
+    "certifiedCapsuleQueries": 1118526,
+    "certifiedCapsuleSamples": 4473382,
+    "bvhRefinements": 4515224,
+    "sdfHits": 30270,
+    "signRefinements": 964,
+    "resultAllocations": 0
+  },
+  "nodeTimingCaveat": "Node reference and candidate contain external wall-clock pauses. Reference also used CPU profiling. Use browser timings for performance evidence; Node cycles prove completion and trajectory comparison."
+}

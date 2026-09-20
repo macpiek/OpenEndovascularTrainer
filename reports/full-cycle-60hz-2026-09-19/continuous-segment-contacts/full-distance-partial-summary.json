@@ -1,0 +1,16 @@
+{
+  "completed": false,
+  "stopReason": "manual-interrupt-after-clear-regression",
+  "completedSteps": 999,
+  "lastWireMm": 732.6000000000076,
+  "worstStep": {
+    "index": 995,
+    "wire": 729.6666666666742,
+    "elapsedMs": 11474.533832999994,
+    "iterations": 121,
+    "factorizations": 9000,
+    "geometryRestarts": 132,
+    "definitions": 3000,
+    "nodes": 149
+  }
+}

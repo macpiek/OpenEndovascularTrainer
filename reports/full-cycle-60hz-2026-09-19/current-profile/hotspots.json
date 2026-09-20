@@ -1,0 +1,5576 @@
+[
+  {
+    "name": "assembleSharedAxisConstraintRows",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 67,
+    "selfMs": 3384.616999999998
+  },
+  {
+    "name": "solve",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 105,
+    "selfMs": 2980.5219999999986
+  },
+  {
+    "name": "wasm-function[4]",
+    "file": "df5b3faa",
+    "line": 1,
+    "selfMs": 2778.6579999999944
+  },
+  {
+    "name": "assembleSharedAxisConstraintRows",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 67,
+    "selfMs": 2139.8109999999965
+  },
+  {
+    "name": "assemblePreparedSharedAxisMatrix",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 63,
+    "selfMs": 2031.8739999999939
+  },
+  {
+    "name": "assembleSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 266,
+    "selfMs": 2018.9389999999953
+  },
+  {
+    "name": "iterateActiveSet",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 279,
+    "selfMs": 1922.9169999999963
+  },
+  {
+    "name": "solveSharedAxisLinearOnce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 108,
+    "selfMs": 1885.2999999999981
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 1830.7249999999976
+  },
+  {
+    "name": "(garbage collector)",
+    "file": "",
+    "line": 0,
+    "selfMs": 1796.6729999999893
+  },
+  {
+    "name": "closestPointToPointScalarBvh",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 221,
+    "selfMs": 1775.7549999999994
+  },
+  {
+    "name": "iterateSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 389,
+    "selfMs": 1609.964999999998
+  },
+  {
+    "name": "wasm-function[0]",
+    "file": "cea25de6",
+    "line": 1,
+    "selfMs": 1547.9549999999963
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 1347.9490000000003
+  },
+  {
+    "name": "sharedAxisGeometryIdentity",
+    "file": "kirchhoffSharedAxisGeometryIdentity.js",
+    "line": 4,
+    "selfMs": 1302.996999999999
+  },
+  {
+    "name": "#considerCenterlineSegment",
+    "file": "vesselContactField.js",
+    "line": 2315,
+    "selfMs": 1270.1309999999992
+  },
+  {
+    "name": "feedSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 190,
+    "selfMs": 1260.0000000000002
+  },
+  {
+    "name": "assembleSharedAxisInertia",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 62,
+    "selfMs": 1259.8419999999992
+  },
+  {
+    "name": "guardFor",
+    "file": "kirchhoffSharedAxisInsideContinuation.js",
+    "line": 23,
+    "selfMs": 1239.0409999999995
+  },
+  {
+    "name": "assembleSharedAxisMaterialTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 84,
+    "selfMs": 1110.128000000001
+  },
+  {
+    "name": "#queryCenterline",
+    "file": "vesselContactField.js",
+    "line": 2052,
+    "selfMs": 1057.6639999999998
+  },
+  {
+    "name": "solveCompactWorkingSet",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 215,
+    "selfMs": 1037.6600000000008
+  },
+  {
+    "name": "matrix",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 15,
+    "selfMs": 988.3040000000009
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 219,
+    "selfMs": 895.7880000000004
+  },
+  {
+    "name": "visit",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 127,
+    "selfMs": 853.5440000000004
+  },
+  {
+    "name": "assembleSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 266,
+    "selfMs": 832.7370000000005
+  },
+  {
+    "name": "closestPointToPointScalarBvh",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 221,
+    "selfMs": 830.4190000000009
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 812.2450000000005
+  },
+  {
+    "name": "evaluateSharedAxisBendLimit",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 2,
+    "selfMs": 784.3180000000006
+  },
+  {
+    "name": "nativeHingeTorqueTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 34,
+    "selfMs": 765.3790000000004
+  },
+  {
+    "name": "nativeHingeTorqueTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 34,
+    "selfMs": 765.3379999999996
+  },
+  {
+    "name": "(program)",
+    "file": "",
+    "line": 0,
+    "selfMs": 761.341
+  },
+  {
+    "name": "prepareSharedAxisActiveBasis",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 101,
+    "selfMs": 711.2089999999998
+  },
+  {
+    "name": "contains",
+    "file": "kirchhoffSharedAxisInsideContinuation.js",
+    "line": 20,
+    "selfMs": 649.8679999999999
+  },
+  {
+    "name": "assembleSharedAxisMaterialTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 84,
+    "selfMs": 632.8389999999991
+  },
+  {
+    "name": "#queryCenterline",
+    "file": "vesselContactField.js",
+    "line": 2052,
+    "selfMs": 622.6750000000003
+  },
+  {
+    "name": "matrix",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 15,
+    "selfMs": 617.9149999999996
+  },
+  {
+    "name": "createSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 56,
+    "selfMs": 588.1640000000001
+  },
+  {
+    "name": "integrateScaledRigidity",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 84,
+    "selfMs": 516.5049999999999
+  },
+  {
+    "name": "commonPrimal",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 4,
+    "selfMs": 497.1679999999995
+  },
+  {
+    "name": "visit",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 127,
+    "selfMs": 492.3749999999995
+  },
+  {
+    "name": "writeFileUtf8",
+    "file": "",
+    "line": 0,
+    "selfMs": 487.02299999999906
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 235,
+    "selfMs": 447.5449999999997
+  },
+  {
+    "name": "mapsFor",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 32,
+    "selfMs": 442.2459999999996
+  },
+  {
+    "name": "evaluateBendTwistLocalConstraintNormalized",
+    "file": "discreteKirchhoffRod.js",
+    "line": 691,
+    "selfMs": 436.118
+  },
+  {
+    "name": "canMerge",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 82,
+    "selfMs": 427.3789999999998
+  },
+  {
+    "name": "rotationalInertiaInto",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 13,
+    "selfMs": 409.0369999999998
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 16,
+    "selfMs": 394.7169999999999
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 387.91599999999966
+  },
+  {
+    "name": "applyPreparedSharedAxisFixedMask",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 108,
+    "selfMs": 371.7509999999999
+  },
+  {
+    "name": "iterateTimeStepAttempt",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 10,
+    "selfMs": 364.99300000000017
+  },
+  {
+    "name": "lookup",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 43,
+    "selfMs": 363.12899999999996
+  },
+  {
+    "name": "refreshSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 213,
+    "selfMs": 327.9589999999997
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWitnessPruning.js",
+    "line": 19,
+    "selfMs": 321.205
+  },
+  {
+    "name": "nextRow",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 49,
+    "selfMs": 314.0770000000001
+  },
+  {
+    "name": "discretizeKirchhoffProfile",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 374,
+    "selfMs": 309.57800000000003
+  },
+  {
+    "name": "iterateWithFallback",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 373,
+    "selfMs": 304.8709999999999
+  },
+  {
+    "name": "makeRecord",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 61,
+    "selfMs": 304.794
+  },
+  {
+    "name": "EndovascularRodBody",
+    "file": "endovascularPhysicsWorld.js",
+    "line": 231,
+    "selfMs": 303.16999999999996
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 219,
+    "selfMs": 300.79399999999987
+  },
+  {
+    "name": "closest",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 33,
+    "selfMs": 298.8359999999998
+  },
+  {
+    "name": "coarsenSharedAxisMesh",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 68,
+    "selfMs": 289.45699999999994
+  },
+  {
+    "name": "assemble",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 408,
+    "selfMs": 286.6669999999999
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 160,
+    "selfMs": 282.534
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 209,
+    "selfMs": 280.9589999999999
+  },
+  {
+    "name": "iterateSharedAxisWithContacts",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 192,
+    "selfMs": 274.9559999999999
+  },
+  {
+    "name": "sample",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 94,
+    "selfMs": 273.876
+  },
+  {
+    "name": "applySharedAxisNativeIncrement",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 358,
+    "selfMs": 271.877
+  },
+  {
+    "name": "integrateScalar",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 73,
+    "selfMs": 261.96000000000004
+  },
+  {
+    "name": "evaluateSharedAxisBendLimit",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 2,
+    "selfMs": 257.66499999999996
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 254.24699999999999
+  },
+  {
+    "name": "assembleSharedAxisInertia",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 62,
+    "selfMs": 240.124
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 102,
+    "selfMs": 235.34000000000003
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 6,
+    "selfMs": 231.286
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 227.624
+  },
+  {
+    "name": "materializeDependentCoefficients",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 74,
+    "selfMs": 226.20700000000002
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 219,
+    "selfMs": 221.62800000000001
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 221.13000000000002
+  },
+  {
+    "name": "writeFileUtf8",
+    "file": "",
+    "line": 0,
+    "selfMs": 220.74499999999998
+  },
+  {
+    "name": "#queryCapsuleStoredImpl",
+    "file": "vesselContactField.js",
+    "line": 1087,
+    "selfMs": 213.17100000000002
+  },
+  {
+    "name": "prunableSharedAxisWitnesses",
+    "file": "kirchhoffSharedAxisWitnessPruning.js",
+    "line": 10,
+    "selfMs": 212.41099999999997
+  },
+  {
+    "name": "integrateScalar",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 73,
+    "selfMs": 212.28299999999996
+  },
+  {
+    "name": "#considerCenterlineSegment",
+    "file": "vesselContactField.js",
+    "line": 2315,
+    "selfMs": 210.17000000000004
+  },
+  {
+    "name": "hessianBuffer",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 52,
+    "selfMs": 185.96300000000002
+  },
+  {
+    "name": "supportedNorm",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 63,
+    "selfMs": 183.168
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 78,
+    "selfMs": 179.25
+  },
+  {
+    "name": "refreshSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 213,
+    "selfMs": 172.86999999999998
+  },
+  {
+    "name": "evaluateBendTwistLocalConstraintNormalized",
+    "file": "discreteKirchhoffRod.js",
+    "line": 691,
+    "selfMs": 166.914
+  },
+  {
+    "name": "assemble",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 408,
+    "selfMs": 156.874
+  },
+  {
+    "name": "lookup",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 43,
+    "selfMs": 155.166
+  },
+  {
+    "name": "Memory",
+    "file": "",
+    "line": 0,
+    "selfMs": 152.04900000000004
+  },
+  {
+    "name": "#querySdf",
+    "file": "vesselContactField.js",
+    "line": 2478,
+    "selfMs": 148.92000000000002
+  },
+  {
+    "name": "restoreSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 352,
+    "selfMs": 142.415
+  },
+  {
+    "name": "remember",
+    "file": "kirchhoffSharedAxisInsideContinuation.js",
+    "line": 15,
+    "selfMs": 135.96200000000002
+  },
+  {
+    "name": "refreshSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 213,
+    "selfMs": 133.582
+  },
+  {
+    "name": "commit",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 95,
+    "selfMs": 132.034
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 17,
+    "selfMs": 129.209
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 123.377
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 21,
+    "selfMs": 122.166
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 234,
+    "selfMs": 121.248
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 79,
+    "selfMs": 120.95700000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 119.792
+  },
+  {
+    "name": "",
+    "file": "applyKirchhoffMaterialProfile.js",
+    "line": 63,
+    "selfMs": 117.79400000000001
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 116.16499999999999
+  },
+  {
+    "name": "measureSharedAxisQuality",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 5,
+    "selfMs": 116.001
+  },
+  {
+    "name": "sharedAxisBasisLinearization",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 11,
+    "selfMs": 112.24799999999999
+  },
+  {
+    "name": "iterateSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 401,
+    "selfMs": 110.83099999999999
+  },
+  {
+    "name": "certificate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 110.375
+  },
+  {
+    "name": "step",
+    "file": "profile-shared-axis-full-cycle.mjs",
+    "line": 36,
+    "selfMs": 105.12199999999999
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 103.417
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 121,
+    "selfMs": 101.38100000000001
+  },
+  {
+    "name": "closest",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 33,
+    "selfMs": 99.33600000000001
+  },
+  {
+    "name": "makeRecord",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 61,
+    "selfMs": 99.126
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 37,
+    "selfMs": 98.201
+  },
+  {
+    "name": "coefficient",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 23,
+    "selfMs": 97.82999999999998
+  },
+  {
+    "name": "#queryCapsuleStoredImpl",
+    "file": "vesselContactField.js",
+    "line": 1087,
+    "selfMs": 97.41900000000001
+  },
+  {
+    "name": "makeRecord",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 61,
+    "selfMs": 97.03799999999998
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 97.00600000000001
+  },
+  {
+    "name": "orient",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 34,
+    "selfMs": 95.74799999999999
+  },
+  {
+    "name": "certificate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 93.457
+  },
+  {
+    "name": "sample",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 94,
+    "selfMs": 92.917
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 281,
+    "selfMs": 92.5
+  },
+  {
+    "name": "EI",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 213,
+    "selfMs": 92.499
+  },
+  {
+    "name": "applySharedAxisNativeIncrement",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 358,
+    "selfMs": 91.917
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 238,
+    "selfMs": 89.41900000000001
+  },
+  {
+    "name": "integrate",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 149,
+    "selfMs": 88.375
+  },
+  {
+    "name": "positiveRigidity",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 50,
+    "selfMs": 88.333
+  },
+  {
+    "name": "#queryDistance",
+    "file": "vesselContactField.js",
+    "line": 1564,
+    "selfMs": 87.21000000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 213,
+    "selfMs": 86.87299999999999
+  },
+  {
+    "name": "distance",
+    "file": "kirchhoffSharedAxisInsideContinuation.js",
+    "line": 13,
+    "selfMs": 85.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 474,
+    "selfMs": 84.999
+  },
+  {
+    "name": "triangle",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 6,
+    "selfMs": 83.583
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 83.583
+  },
+  {
+    "name": "post",
+    "file": "node:inspector",
+    "line": 115,
+    "selfMs": 83.083
+  },
+  {
+    "name": "geometricTransition",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 68,
+    "selfMs": 82.667
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 286,
+    "selfMs": 81.99799999999999
+  },
+  {
+    "name": "Instance",
+    "file": "",
+    "line": 0,
+    "selfMs": 80.042
+  },
+  {
+    "name": "rotationalInertiaInto",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 13,
+    "selfMs": 79.583
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 79.251
+  },
+  {
+    "name": "frame",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 77.87199999999999
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 76.21000000000001
+  },
+  {
+    "name": "violation",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 424,
+    "selfMs": 75.667
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 160,
+    "selfMs": 74.581
+  },
+  {
+    "name": "commit",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 95,
+    "selfMs": 73.833
+  },
+  {
+    "name": "Object.assign.sharedAxisGeometryOnly",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 26,
+    "selfMs": 72.666
+  },
+  {
+    "name": "#writeSdfValue",
+    "file": "vesselContactField.js",
+    "line": 2800,
+    "selfMs": 71.04500000000002
+  },
+  {
+    "name": "#querySdf",
+    "file": "vesselContactField.js",
+    "line": 2478,
+    "selfMs": 70.70599999999999
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 70.50200000000001
+  },
+  {
+    "name": "assembleSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 228,
+    "selfMs": 69.294
+  },
+  {
+    "name": "sharedAxisMaterialKernelWorkspace",
+    "file": "kirchhoffSharedAxisMaterialKernel.js",
+    "line": 8,
+    "selfMs": 69.16599999999998
+  },
+  {
+    "name": "triangle",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 6,
+    "selfMs": 68.78899999999999
+  },
+  {
+    "name": "advanceSharedAxis",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 162,
+    "selfMs": 67.958
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 67.584
+  },
+  {
+    "name": "repeatedSharedAxisDual",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 26,
+    "selfMs": 67.21200000000002
+  },
+  {
+    "name": "interpolate",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 41,
+    "selfMs": 66.333
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 65.459
+  },
+  {
+    "name": "#refineWithBvh",
+    "file": "vesselContactField.js",
+    "line": 2713,
+    "selfMs": 64.33399999999999
+  },
+  {
+    "name": "interpolate",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 41,
+    "selfMs": 64.29400000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 64.207
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 64.126
+  },
+  {
+    "name": "begin",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 67,
+    "selfMs": 61.791000000000004
+  },
+  {
+    "name": "commitSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 251,
+    "selfMs": 61.248999999999995
+  },
+  {
+    "name": "geometricTransition",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 68,
+    "selfMs": 61.164999999999985
+  },
+  {
+    "name": "interpolate",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 41,
+    "selfMs": 60.414999999999985
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 424,
+    "selfMs": 58.584
+  },
+  {
+    "name": "applyKirchhoffMaterialProfile",
+    "file": "applyKirchhoffMaterialProfile.js",
+    "line": 137,
+    "selfMs": 58.542
+  },
+  {
+    "name": "wasm-function[4]",
+    "file": "df5b3faa",
+    "line": 1,
+    "selfMs": 57.793
+  },
+  {
+    "name": "rowSupportKey",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 14,
+    "selfMs": 56.833
+  },
+  {
+    "name": "rotate3",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 8,
+    "selfMs": 56.79400000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 17,
+    "selfMs": 56.374
+  },
+  {
+    "name": "geometricTransition",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 68,
+    "selfMs": 55.415
+  },
+  {
+    "name": "extendSharedAxisNativeRows",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 245,
+    "selfMs": 54.96400000000002
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 121,
+    "selfMs": 53.124
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 46,
+    "selfMs": 52.456999999999994
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 51.91800000000001
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 51.20499999999999
+  },
+  {
+    "name": "frame",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 50.99700000000001
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 222,
+    "selfMs": 50.79200000000001
+  },
+  {
+    "name": "#querySphereCoordinates",
+    "file": "vesselContactField.js",
+    "line": 926,
+    "selfMs": 50.67100000000001
+  },
+  {
+    "name": "prepareDiscretizationArray",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 349,
+    "selfMs": 48.83
+  },
+  {
+    "name": "site",
+    "file": "kirchhoffSharedAxisWitnessPruning.js",
+    "line": 14,
+    "selfMs": 47.836000000000006
+  },
+  {
+    "name": "prepareSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 53,
+    "selfMs": 47.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisMaterialKernel.js",
+    "line": 20,
+    "selfMs": 46.294
+  },
+  {
+    "name": "remember",
+    "file": "kirchhoffSharedAxisInsideContinuation.js",
+    "line": 15,
+    "selfMs": 46.208000000000006
+  },
+  {
+    "name": "#refineContactWithBvh",
+    "file": "vesselContactField.js",
+    "line": 1395,
+    "selfMs": 46.208000000000006
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 85,
+    "selfMs": 46.167
+  },
+  {
+    "name": "rotate3",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 8,
+    "selfMs": 44.25
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 46,
+    "selfMs": 43.622
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 350,
+    "selfMs": 42.08500000000001
+  },
+  {
+    "name": "orient",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 34,
+    "selfMs": 42.080999999999996
+  },
+  {
+    "name": "prepareOrder",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 37,
+    "selfMs": 41.832
+  },
+  {
+    "name": "orient",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 34,
+    "selfMs": 41.748999999999995
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 41.62500000000001
+  },
+  {
+    "name": "iterateSharedAxisTimeStep",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 83,
+    "selfMs": 40.79299999999999
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 71,
+    "selfMs": 38.669
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 86,
+    "selfMs": 37.711000000000006
+  },
+  {
+    "name": "syncNativePositions",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 180,
+    "selfMs": 37.498000000000005
+  },
+  {
+    "name": "getSharedAxisLinearScratchStats",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 12,
+    "selfMs": 37.458
+  },
+  {
+    "name": "captureKirchhoffRestConfiguration",
+    "file": "endovascularPhysicsWorld.js",
+    "line": 846,
+    "selfMs": 37.25
+  },
+  {
+    "name": "prepareSharedAxisDynamicStep",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 42,
+    "selfMs": 37.206
+  },
+  {
+    "name": "#writeSdfValue",
+    "file": "vesselContactField.js",
+    "line": 2800,
+    "selfMs": 37
+  },
+  {
+    "name": "#queryDistance",
+    "file": "vesselContactField.js",
+    "line": 1564,
+    "selfMs": 36.124
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 36.001
+  },
+  {
+    "name": "frame",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 35.834
+  },
+  {
+    "name": "geometricTransition",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 68,
+    "selfMs": 35.127
+  },
+  {
+    "name": "materialFrameDirectors",
+    "file": "discreteKirchhoffRod.js",
+    "line": 317,
+    "selfMs": 34.706
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 34.583000000000006
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 34.543
+  },
+  {
+    "name": "quaternionExp",
+    "file": "discreteKirchhoffRod.js",
+    "line": 110,
+    "selfMs": 34.457
+  },
+  {
+    "name": "retainAdaptiveShapeSamples",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 47,
+    "selfMs": 33.96
+  },
+  {
+    "name": "sharedAxisConstraintEdgeGeometry",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 16,
+    "selfMs": 33.92000000000001
+  },
+  {
+    "name": "key",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 206,
+    "selfMs": 33.168000000000006
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 33.122
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 472,
+    "selfMs": 33.085
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 33.08
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 209,
+    "selfMs": 32.458
+  },
+  {
+    "name": "clearDeferredSharedAxisContact",
+    "file": "kirchhoffSharedAxisInactiveContacts.js",
+    "line": 7,
+    "selfMs": 32.37700000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 32.376000000000005
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 320,
+    "selfMs": 31.834999999999997
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 364,
+    "selfMs": 31.585
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 470,
+    "selfMs": 31.291
+  },
+  {
+    "name": "EI",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 213,
+    "selfMs": 30.834000000000003
+  },
+  {
+    "name": "prepareSharedAxisActiveBasis",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 101,
+    "selfMs": 30.168000000000003
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 30.042
+  },
+  {
+    "name": "quaternionExp",
+    "file": "discreteKirchhoffRod.js",
+    "line": 110,
+    "selfMs": 29.998
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 29.582999999999995
+  },
+  {
+    "name": "assembleSharedAxisGaussNewton",
+    "file": "kirchhoffSharedAxisGaussNewton.js",
+    "line": 25,
+    "selfMs": 29.288999999999998
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 120,
+    "selfMs": 28.916999999999998
+  },
+  {
+    "name": "",
+    "file": "profile-shared-axis-full-cycle.mjs",
+    "line": 0,
+    "selfMs": 28.749
+  },
+  {
+    "name": "separatedSharedAxisContactDirection",
+    "file": "kirchhoffSharedAxisInactiveContacts.js",
+    "line": 52,
+    "selfMs": 28.375
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 28.332
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 28.250999999999994
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 253,
+    "selfMs": 28.249000000000002
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 350,
+    "selfMs": 28.207
+  },
+  {
+    "name": "#considerCenterlineSegment",
+    "file": "vesselContactField.js",
+    "line": 2315,
+    "selfMs": 28.167999999999996
+  },
+  {
+    "name": "key",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 206,
+    "selfMs": 28.041
+  },
+  {
+    "name": "structuredClone",
+    "file": "js_transferable",
+    "line": 112,
+    "selfMs": 27.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 17,
+    "selfMs": 26.96
+  },
+  {
+    "name": "multiplyQuaternions",
+    "file": "three.module.js",
+    "line": 3711,
+    "selfMs": 26.835
+  },
+  {
+    "name": "setContact",
+    "file": "vesselContactField.js",
+    "line": 81,
+    "selfMs": 26.834
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 45,
+    "selfMs": 26.790999999999997
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 160,
+    "selfMs": 25.626
+  },
+  {
+    "name": "setFromUnitVectors",
+    "file": "three.module.js",
+    "line": 3564,
+    "selfMs": 25.624000000000002
+  },
+  {
+    "name": "key",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 206,
+    "selfMs": 25.501000000000005
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 37,
+    "selfMs": 25.501
+  },
+  {
+    "name": "vec",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 22,
+    "selfMs": 25.415999999999997
+  },
+  {
+    "name": "distance",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 81,
+    "selfMs": 24.79
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 24.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 100,
+    "selfMs": 23.999000000000002
+  },
+  {
+    "name": "positiveRigidity",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 50,
+    "selfMs": 23.958999999999996
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 404,
+    "selfMs": 23.875999999999998
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 23.792
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 23.751
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 23.584
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 98,
+    "selfMs": 23.543000000000003
+  },
+  {
+    "name": "preserveSharedAxisBends",
+    "file": "kirchhoffSharedAxisRemesh.js",
+    "line": 4,
+    "selfMs": 23.04
+  },
+  {
+    "name": "site",
+    "file": "kirchhoffSharedAxisWitnessPruning.js",
+    "line": 14,
+    "selfMs": 22.792
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 22.458
+  },
+  {
+    "name": "#querySphereCoordinates",
+    "file": "vesselContactField.js",
+    "line": 926,
+    "selfMs": 22.291
+  },
+  {
+    "name": "sharedAxisConstraintEdgeGeometry",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 16,
+    "selfMs": 21.958
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 21.788999999999998
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 21.167
+  },
+  {
+    "name": "createKirchhoffWallWitnessGeometryWorkspace",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 4,
+    "selfMs": 21.127000000000002
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 21.085000000000004
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 160,
+    "selfMs": 20.917
+  },
+  {
+    "name": "clearDeferredSharedAxisContact",
+    "file": "kirchhoffSharedAxisInactiveContacts.js",
+    "line": 7,
+    "selfMs": 20.833999999999996
+  },
+  {
+    "name": "vec",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 22,
+    "selfMs": 20.791999999999998
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 20.624000000000002
+  },
+  {
+    "name": "syncNativePositions",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 180,
+    "selfMs": 20.501
+  },
+  {
+    "name": "createSharedAxisLayout",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 65,
+    "selfMs": 20.458
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 19.666999999999998
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 46,
+    "selfMs": 19.626
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 46,
+    "selfMs": 19.626
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 19.584
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 19.538999999999998
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 19.5
+  },
+  {
+    "name": "cpuUsage",
+    "file": "",
+    "line": 0,
+    "selfMs": 19.417
+  },
+  {
+    "name": "get buffer",
+    "file": "",
+    "line": 0,
+    "selfMs": 19.333000000000002
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 3846,
+    "selfMs": 19.332
+  },
+  {
+    "name": "Object.assign.sharedAxisGeometryOnly",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 26,
+    "selfMs": 19.250999999999998
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 19.25
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 19.125
+  },
+  {
+    "name": "visit",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 82,
+    "selfMs": 19.085
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 18.083
+  },
+  {
+    "name": "shortestArcQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 367,
+    "selfMs": 17.958
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 17.918
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 17.875
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 17.791999999999998
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 17.707
+  },
+  {
+    "name": "#refineWithBvh",
+    "file": "vesselContactField.js",
+    "line": 2713,
+    "selfMs": 17.584
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 39,
+    "selfMs": 16.834
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 16.789
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 16.583
+  },
+  {
+    "name": "#considerCenterlineSegment",
+    "file": "vesselContactField.js",
+    "line": 2315,
+    "selfMs": 16.583
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 350,
+    "selfMs": 16.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 16.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 16.457
+  },
+  {
+    "name": "captureSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 349,
+    "selfMs": 16.418
+  },
+  {
+    "name": "positiveRigidity",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 50,
+    "selfMs": 16.374
+  },
+  {
+    "name": "#refineContactWithBvh",
+    "file": "vesselContactField.js",
+    "line": 1395,
+    "selfMs": 16.334
+  },
+  {
+    "name": "begin",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 67,
+    "selfMs": 15.917
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 222,
+    "selfMs": 15.25
+  },
+  {
+    "name": "compactExactNonzeros",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 59,
+    "selfMs": 15.083
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 15.083
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 15.043
+  },
+  {
+    "name": "multiplyQuaternions",
+    "file": "three.module.js",
+    "line": 3711,
+    "selfMs": 15.040000000000001
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 201,
+    "selfMs": 15
+  },
+  {
+    "name": "captureSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 349,
+    "selfMs": 14.959
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 14.959
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 14.957
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 112,
+    "selfMs": 14.918999999999999
+  },
+  {
+    "name": "sample",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 94,
+    "selfMs": 14.875
+  },
+  {
+    "name": "makeRecord",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 61,
+    "selfMs": 14.832
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 12,
+    "selfMs": 14.791
+  },
+  {
+    "name": "solve",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 105,
+    "selfMs": 14.709999999999999
+  },
+  {
+    "name": "iterateActiveSet",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 279,
+    "selfMs": 14.543
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 14.459
+  },
+  {
+    "name": "solveCompactWorkingSet",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 215,
+    "selfMs": 14.415000000000001
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 4558,
+    "selfMs": 13.958
+  },
+  {
+    "name": "queryCapsuleSoA",
+    "file": "vesselContactField.js",
+    "line": 1014,
+    "selfMs": 13.667
+  },
+  {
+    "name": "materializeSharedAxisContacts",
+    "file": "kirchhoffSharedAxisInactiveContacts.js",
+    "line": 42,
+    "selfMs": 13.625
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 583,
+    "selfMs": 13.624
+  },
+  {
+    "name": "rotateVectorByQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 184,
+    "selfMs": 13.624
+  },
+  {
+    "name": "visit",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 82,
+    "selfMs": 13.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 13.418
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 81,
+    "selfMs": 13.334
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 13.166
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 120,
+    "selfMs": 13.083
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 240,
+    "selfMs": 13.042
+  },
+  {
+    "name": "iterateSharedAxisTimeStep",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 83,
+    "selfMs": 12.415999999999999
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 12.373000000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 97,
+    "selfMs": 12.332
+  },
+  {
+    "name": "EI",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 200,
+    "selfMs": 12
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 12
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 11.999
+  },
+  {
+    "name": "setContact",
+    "file": "vesselContactField.js",
+    "line": 81,
+    "selfMs": 11.958
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 222,
+    "selfMs": 11.917000000000002
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 79,
+    "selfMs": 11.917
+  },
+  {
+    "name": "extendSharedAxisNativeRows",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 245,
+    "selfMs": 11.916
+  },
+  {
+    "name": "quaternionExp",
+    "file": "discreteKirchhoffRod.js",
+    "line": 110,
+    "selfMs": 11.875
+  },
+  {
+    "name": "slerp",
+    "file": "three.module.js",
+    "line": 3729,
+    "selfMs": 11.875
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 11.875
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 496,
+    "selfMs": 11.832
+  },
+  {
+    "name": "solveSharedAxisLinearOnce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 108,
+    "selfMs": 10.999
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 10.959
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 10.666
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 10.584999999999999
+  },
+  {
+    "name": "completeSharedAxisDynamicStep",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 118,
+    "selfMs": 10.583
+  },
+  {
+    "name": "finish",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 287,
+    "selfMs": 10.542
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 222,
+    "selfMs": 10.542
+  },
+  {
+    "name": "structuredClone",
+    "file": "js_transferable",
+    "line": 112,
+    "selfMs": 10.541
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 10.541
+  },
+  {
+    "name": "materializeSharedAxisContact",
+    "file": "kirchhoffSharedAxisInactiveContacts.js",
+    "line": 29,
+    "selfMs": 10.501
+  },
+  {
+    "name": "add",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 6,
+    "selfMs": 10.501
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 10.5
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 10.499
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 108,
+    "selfMs": 10.458
+  },
+  {
+    "name": "multiplyQuaternions",
+    "file": "three.module.js",
+    "line": 3711,
+    "selfMs": 10.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 10.458
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 10.458
+  },
+  {
+    "name": "setFromUnitVectors",
+    "file": "three.module.js",
+    "line": 3564,
+    "selfMs": 10.416
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 14,
+    "selfMs": 10.376
+  },
+  {
+    "name": "rotate3",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 8,
+    "selfMs": 10.376
+  },
+  {
+    "name": "createSharedAxisVesselWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 39,
+    "selfMs": 10.334000000000001
+  },
+  {
+    "name": "vec",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 22,
+    "selfMs": 10.331000000000001
+  },
+  {
+    "name": "violation",
+    "file": "kirchhoffSharedAxisRemesh.js",
+    "line": 7,
+    "selfMs": 10.041
+  },
+  {
+    "name": "assembleSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 228,
+    "selfMs": 10
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 350,
+    "selfMs": 9.917
+  },
+  {
+    "name": "adaptiveMeshOptions",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 12,
+    "selfMs": 9.627
+  },
+  {
+    "name": "iterateSharedAxisTimeStep",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 83,
+    "selfMs": 9.207
+  },
+  {
+    "name": "bound",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 176,
+    "selfMs": 9.125
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 9.083
+  },
+  {
+    "name": "#querySliceSignedDistance",
+    "file": "packedLumenField.js",
+    "line": 452,
+    "selfMs": 9.043
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 364,
+    "selfMs": 9.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 170,
+    "selfMs": 9.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 46,
+    "selfMs": 9.040000000000001
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 4558,
+    "selfMs": 9.001
+  },
+  {
+    "name": "quaternionLog",
+    "file": "discreteKirchhoffRod.js",
+    "line": 149,
+    "selfMs": 9
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 9
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 9
+  },
+  {
+    "name": "createKirchhoffWallWitnessGeometryWorkspace",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 4,
+    "selfMs": 8.999
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 474,
+    "selfMs": 8.998999999999999
+  },
+  {
+    "name": "applyQuaternion",
+    "file": "three.module.js",
+    "line": 4145,
+    "selfMs": 8.959
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 39,
+    "selfMs": 8.959
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 8.959
+  },
+  {
+    "name": "EI",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 213,
+    "selfMs": 8.958
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 63,
+    "selfMs": 8.958
+  },
+  {
+    "name": "assemble",
+    "file": "kirchhoffSharedAxisMaterialKernel.js",
+    "line": 23,
+    "selfMs": 8.917
+  },
+  {
+    "name": "quaternionLog",
+    "file": "discreteKirchhoffRod.js",
+    "line": 149,
+    "selfMs": 8.917
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 8.875
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 8.875
+  },
+  {
+    "name": "get signedDistance",
+    "file": "vesselContactField.js",
+    "line": 209,
+    "selfMs": 8.875
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 355,
+    "selfMs": 8.875
+  },
+  {
+    "name": "",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 92,
+    "selfMs": 8.667
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 239,
+    "selfMs": 8.499
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 358,
+    "selfMs": 8.125
+  },
+  {
+    "name": "queryCapsuleSoA",
+    "file": "vesselContactField.js",
+    "line": 1014,
+    "selfMs": 7.667
+  },
+  {
+    "name": "closest",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 33,
+    "selfMs": 7.584
+  },
+  {
+    "name": "appendFileSync",
+    "file": "node:fs",
+    "line": 2487,
+    "selfMs": 7.542999999999999
+  },
+  {
+    "name": "structuredClone",
+    "file": "js_transferable",
+    "line": 112,
+    "selfMs": 7.542
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 7.542
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 160,
+    "selfMs": 7.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 213,
+    "selfMs": 7.542
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 3846,
+    "selfMs": 7.541
+  },
+  {
+    "name": "rotate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 10,
+    "selfMs": 7.5
+  },
+  {
+    "name": "supportedNorm",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 63,
+    "selfMs": 7.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 210,
+    "selfMs": 7.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 79,
+    "selfMs": 7.5
+  },
+  {
+    "name": "js-to-wasm",
+    "file": "",
+    "line": 0,
+    "selfMs": 7.459
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 7.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 209,
+    "selfMs": 7.459
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 7.458
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 4558,
+    "selfMs": 7.417999999999999
+  },
+  {
+    "name": "extendSharedAxisNativeRows",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 245,
+    "selfMs": 7.334
+  },
+  {
+    "name": "tangent",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 28,
+    "selfMs": 7.291
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 7.167
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 14,
+    "selfMs": 7.084
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 32,
+    "selfMs": 6.542
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 6.417999999999999
+  },
+  {
+    "name": "wasm-function[4]",
+    "file": "df5b3faa",
+    "line": 1,
+    "selfMs": 6.25
+  },
+  {
+    "name": "guardFor",
+    "file": "kirchhoffSharedAxisInsideContinuation.js",
+    "line": 23,
+    "selfMs": 6.209
+  },
+  {
+    "name": "integrateScalar",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 73,
+    "selfMs": 6.1259999999999994
+  },
+  {
+    "name": "project",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 8,
+    "selfMs": 6.1259999999999994
+  },
+  {
+    "name": "syncNativePositions",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 180,
+    "selfMs": 6.124
+  },
+  {
+    "name": "now",
+    "file": "",
+    "line": 0,
+    "selfMs": 6.124
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 103,
+    "selfMs": 6.084
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 583,
+    "selfMs": 6.083
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 6.083
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 39,
+    "selfMs": 6.042
+  },
+  {
+    "name": "bendLimitEvaluator",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 26,
+    "selfMs": 6.042
+  },
+  {
+    "name": "rotate3",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 8,
+    "selfMs": 6.042
+  },
+  {
+    "name": "vectors",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 114,
+    "selfMs": 6.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 95,
+    "selfMs": 6.041
+  },
+  {
+    "name": "sample",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 94,
+    "selfMs": 6.041
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 222,
+    "selfMs": 6.041
+  },
+  {
+    "name": "EI",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 213,
+    "selfMs": 6.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 6.041
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 160,
+    "selfMs": 6.041
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 6.041
+  },
+  {
+    "name": "add",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 6,
+    "selfMs": 6.001
+  },
+  {
+    "name": "rotateSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 255,
+    "selfMs": 6.0009999999999994
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 137,
+    "selfMs": 6.0009999999999994
+  },
+  {
+    "name": "",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 192,
+    "selfMs": 6
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 6
+  },
+  {
+    "name": "integrateBerensteinIntrinsicTurn",
+    "file": "catheterMaterialProfile.js",
+    "line": 240,
+    "selfMs": 6
+  },
+  {
+    "name": "sampleKappa01",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 120,
+    "selfMs": 6
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 320,
+    "selfMs": 6
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 6
+  },
+  {
+    "name": "point",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 11,
+    "selfMs": 6
+  },
+  {
+    "name": "multiply",
+    "file": "three.module.js",
+    "line": 3699,
+    "selfMs": 5.959
+  },
+  {
+    "name": "hingeScratch",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 7,
+    "selfMs": 5.958
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 5.958
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 5.958
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 5.958
+  },
+  {
+    "name": "now",
+    "file": "",
+    "line": 0,
+    "selfMs": 5.957
+  },
+  {
+    "name": "coefficient",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 23,
+    "selfMs": 5.916
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 5.916
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 80,
+    "selfMs": 5.916
+  },
+  {
+    "name": "setFromAxisAngle",
+    "file": "three.module.js",
+    "line": 3487,
+    "selfMs": 5.916
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 17,
+    "selfMs": 5.875
+  },
+  {
+    "name": "getViews",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 17,
+    "selfMs": 5.833
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 100,
+    "selfMs": 5.3759999999999994
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 237,
+    "selfMs": 5.3740000000000006
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 5.208
+  },
+  {
+    "name": "assembleDiscovered",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 420,
+    "selfMs": 5.083
+  },
+  {
+    "name": "iterateSharedAxisProjection",
+    "file": "kirchhoffSharedAxisProjection.js",
+    "line": 8,
+    "selfMs": 4.958
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 4.751
+  },
+  {
+    "name": "activeMaterialCoordinates",
+    "file": "applyKirchhoffMaterialProfile.js",
+    "line": 74,
+    "selfMs": 4.7490000000000006
+  },
+  {
+    "name": "createBishopFrame",
+    "file": "discreteKirchhoffRod.js",
+    "line": 337,
+    "selfMs": 4.667
+  },
+  {
+    "name": "iterateSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 389,
+    "selfMs": 4.625
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 483,
+    "selfMs": 4.584
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 4.584
+  },
+  {
+    "name": "#sdfInsideValue",
+    "file": "vesselContactField.js",
+    "line": 2830,
+    "selfMs": 4.582
+  },
+  {
+    "name": "vec",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 22,
+    "selfMs": 4.582
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 118,
+    "selfMs": 4.542
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 4.542
+  },
+  {
+    "name": "berensteinIntrinsicCurvature",
+    "file": "catheterMaterialProfile.js",
+    "line": 207,
+    "selfMs": 4.542
+  },
+  {
+    "name": "get y",
+    "file": "three.module.js",
+    "line": 3342,
+    "selfMs": 4.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 148,
+    "selfMs": 4.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 46,
+    "selfMs": 4.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 115,
+    "selfMs": 4.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 44,
+    "selfMs": 4.501
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 230,
+    "selfMs": 4.5009999999999994
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 40,
+    "selfMs": 4.5
+  },
+  {
+    "name": "lookup",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 43,
+    "selfMs": 4.5
+  },
+  {
+    "name": "#considerCenterlineSegment",
+    "file": "vesselContactField.js",
+    "line": 2315,
+    "selfMs": 4.5
+  },
+  {
+    "name": "rotateVectorByQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 184,
+    "selfMs": 4.5
+  },
+  {
+    "name": "workspaceFor",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 25,
+    "selfMs": 4.5
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 4.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 4.5
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 4.5
+  },
+  {
+    "name": "triangle",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 6,
+    "selfMs": 4.5
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 4.5
+  },
+  {
+    "name": "setFromUnitVectors",
+    "file": "three.module.js",
+    "line": 3564,
+    "selfMs": 4.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 109,
+    "selfMs": 4.5
+  },
+  {
+    "name": "applyQuaternion",
+    "file": "three.module.js",
+    "line": 4145,
+    "selfMs": 4.499
+  },
+  {
+    "name": "get w",
+    "file": "three.module.js",
+    "line": 3368,
+    "selfMs": 4.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 169,
+    "selfMs": 4.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 342,
+    "selfMs": 4.458
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 4.458
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 4.458
+  },
+  {
+    "name": "site",
+    "file": "kirchhoffSharedAxisWitnessPruning.js",
+    "line": 14,
+    "selfMs": 4.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 281,
+    "selfMs": 4.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 472,
+    "selfMs": 4.458
+  },
+  {
+    "name": "writeFrame",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 33,
+    "selfMs": 4.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 4.458
+  },
+  {
+    "name": "result",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 165,
+    "selfMs": 4.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 424,
+    "selfMs": 4.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 40,
+    "selfMs": 4.457
+  },
+  {
+    "name": "setFromUnitVectors",
+    "file": "three.module.js",
+    "line": 3564,
+    "selfMs": 4.417
+  },
+  {
+    "name": "createKirchhoffWallWitnessGeometryWorkspace",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 4,
+    "selfMs": 4.417
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 4.416
+  },
+  {
+    "name": "setFromAxisAngle",
+    "file": "three.module.js",
+    "line": 3487,
+    "selfMs": 4.416
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 4.25
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 45,
+    "selfMs": 4.167
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 4.125
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 350,
+    "selfMs": 4.084
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 404,
+    "selfMs": 4.084
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 288,
+    "selfMs": 3.875
+  },
+  {
+    "name": "isInsideCoordinates",
+    "file": "packedLumenField.js",
+    "line": 76,
+    "selfMs": 3.8329999999999997
+  },
+  {
+    "name": "integrateBerensteinSmoothInterval",
+    "file": "catheterMaterialProfile.js",
+    "line": 227,
+    "selfMs": 3.75
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 342,
+    "selfMs": 3.75
+  },
+  {
+    "name": "pointBoxDistanceSquared",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 38,
+    "selfMs": 3.25
+  },
+  {
+    "name": "#sdfInsideValue",
+    "file": "vesselContactField.js",
+    "line": 2830,
+    "selfMs": 3.25
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 3.1260000000000003
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 3.125
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 3.084
+  },
+  {
+    "name": "adaptiveContactKnots",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 34,
+    "selfMs": 3.084
+  },
+  {
+    "name": "triangle",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 6,
+    "selfMs": 3.084
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 76,
+    "selfMs": 3.083
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 496,
+    "selfMs": 3.082
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 16,
+    "selfMs": 3.042
+  },
+  {
+    "name": "sharedAxisFrictionNormalDerivative",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 47,
+    "selfMs": 3.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 254,
+    "selfMs": 3.042
+  },
+  {
+    "name": "integrateBerensteinIntrinsicTurn",
+    "file": "catheterMaterialProfile.js",
+    "line": 240,
+    "selfMs": 3.042
+  },
+  {
+    "name": "point",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 11,
+    "selfMs": 3.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 98,
+    "selfMs": 3.042
+  },
+  {
+    "name": "assemblePreparedSharedAxisMatrix",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 63,
+    "selfMs": 3.042
+  },
+  {
+    "name": "length",
+    "file": "three.module.js",
+    "line": 4324,
+    "selfMs": 3.042
+  },
+  {
+    "name": "sharedAxisPositionDofMask",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 6,
+    "selfMs": 3.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 31,
+    "selfMs": 3.042
+  },
+  {
+    "name": "project",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 8,
+    "selfMs": 3.042
+  },
+  {
+    "name": "interpolate",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 41,
+    "selfMs": 3.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 79,
+    "selfMs": 3.042
+  },
+  {
+    "name": "acquire",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 40,
+    "selfMs": 3.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 76,
+    "selfMs": 3.042
+  },
+  {
+    "name": "frame",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 3.042
+  },
+  {
+    "name": "discover",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 416,
+    "selfMs": 3.042
+  },
+  {
+    "name": "dispatch",
+    "file": "",
+    "line": 0,
+    "selfMs": 3.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 118,
+    "selfMs": 3.041
+  },
+  {
+    "name": "compactExactNonzeros",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 59,
+    "selfMs": 3.041
+  },
+  {
+    "name": "consoleCall",
+    "file": "",
+    "line": 0,
+    "selfMs": 3.041
+  },
+  {
+    "name": "cpuUsage",
+    "file": "per_thread",
+    "line": 127,
+    "selfMs": 3.041
+  },
+  {
+    "name": "commitSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 251,
+    "selfMs": 3.041
+  },
+  {
+    "name": "makeRecord",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 61,
+    "selfMs": 3.041
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 3.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 6,
+    "selfMs": 3.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 3,
+    "selfMs": 3.041
+  },
+  {
+    "name": "smootherstep01",
+    "file": "catheterMaterialProfile.js",
+    "line": 48,
+    "selfMs": 3.0010000000000003
+  },
+  {
+    "name": "captureRestConfiguration",
+    "file": "endovascularPhysicsWorld.js",
+    "line": 891,
+    "selfMs": 3
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 3
+  },
+  {
+    "name": "copyCurrentToPrevious",
+    "file": "endovascularPhysicsWorld.js",
+    "line": 906,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "applyKirchhoffMaterialProfile.js",
+    "line": 63,
+    "selfMs": 3
+  },
+  {
+    "name": "closest",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 33,
+    "selfMs": 3
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 3
+  },
+  {
+    "name": "closestPointToPointScalarBvh",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 221,
+    "selfMs": 3
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 3
+  },
+  {
+    "name": "q",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 5,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 169,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 209,
+    "selfMs": 3
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 3
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 41,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 29,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "utils",
+    "line": 700,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 39,
+    "selfMs": 3
+  },
+  {
+    "name": "get buffer",
+    "file": "",
+    "line": 0,
+    "selfMs": 3
+  },
+  {
+    "name": "nativeHingeTorqueTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 34,
+    "selfMs": 3
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 3
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 3
+  },
+  {
+    "name": "angleDifference",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 8,
+    "selfMs": 3
+  },
+  {
+    "name": "rotate3",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 8,
+    "selfMs": 3
+  },
+  {
+    "name": "setContact",
+    "file": "vesselContactField.js",
+    "line": 81,
+    "selfMs": 3
+  },
+  {
+    "name": "now",
+    "file": "performance",
+    "line": 137,
+    "selfMs": 3
+  },
+  {
+    "name": "integrateScaledRigidity",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 84,
+    "selfMs": 3
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "utils",
+    "line": 722,
+    "selfMs": 3
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 3846,
+    "selfMs": 3
+  },
+  {
+    "name": "applyQuaternion",
+    "file": "three.module.js",
+    "line": 4145,
+    "selfMs": 3
+  },
+  {
+    "name": "tangent",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 28,
+    "selfMs": 3
+  },
+  {
+    "name": "triangle",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 6,
+    "selfMs": 3
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 3
+  },
+  {
+    "name": "applyQuaternion",
+    "file": "three.module.js",
+    "line": 4145,
+    "selfMs": 3
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 3
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 3
+  },
+  {
+    "name": "get signedGap",
+    "file": "vesselContactField.js",
+    "line": 211,
+    "selfMs": 3
+  },
+  {
+    "name": "rotate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 10,
+    "selfMs": 3
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 97,
+    "selfMs": 3
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 2.9989999999999997
+  },
+  {
+    "name": "",
+    "file": "utils",
+    "line": 722,
+    "selfMs": 2.959
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 2.959
+  },
+  {
+    "name": "#querySphereCoordinates",
+    "file": "vesselContactField.js",
+    "line": 926,
+    "selfMs": 2.959
+  },
+  {
+    "name": "wasm-function[4]",
+    "file": "df5b3faa",
+    "line": 1,
+    "selfMs": 2.958
+  },
+  {
+    "name": "mapsFor",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 32,
+    "selfMs": 2.958
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 95,
+    "selfMs": 2.958
+  },
+  {
+    "name": "multiplyQuaternions",
+    "file": "three.module.js",
+    "line": 3711,
+    "selfMs": 2.958
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 2.958
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 239,
+    "selfMs": 2.958
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 364,
+    "selfMs": 2.958
+  },
+  {
+    "name": "setFromUnitVectors",
+    "file": "three.module.js",
+    "line": 3564,
+    "selfMs": 2.958
+  },
+  {
+    "name": "evaluateBendTwistLocalConstraintNormalized",
+    "file": "discreteKirchhoffRod.js",
+    "line": 691,
+    "selfMs": 2.917
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 2.917
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 81,
+    "selfMs": 2.875
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 100,
+    "selfMs": 2.875
+  },
+  {
+    "name": "evaluateBendTwistLocalConstraintNormalized",
+    "file": "discreteKirchhoffRod.js",
+    "line": 691,
+    "selfMs": 2.875
+  },
+  {
+    "name": "acquire",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 40,
+    "selfMs": 2.8739999999999997
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 2.75
+  },
+  {
+    "name": "sharedAxisOuterIntervals",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 171,
+    "selfMs": 2.749
+  },
+  {
+    "name": "wasm-function[4]",
+    "file": "df5b3faa",
+    "line": 1,
+    "selfMs": 2.709
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 57,
+    "selfMs": 2.666
+  },
+  {
+    "name": "certificate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 2.625
+  },
+  {
+    "name": "now",
+    "file": "performance",
+    "line": 137,
+    "selfMs": 2.541
+  },
+  {
+    "name": "angleDifference",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 8,
+    "selfMs": 2.5
+  },
+  {
+    "name": "compileForInternalLoader",
+    "file": "realm",
+    "line": 383,
+    "selfMs": 2.084
+  },
+  {
+    "name": "#writeSdfValue",
+    "file": "vesselContactField.js",
+    "line": 2800,
+    "selfMs": 2.084
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 6,
+    "selfMs": 2.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 56,
+    "selfMs": 1.9989999999999999
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 1.875
+  },
+  {
+    "name": "#queryCapsuleStored",
+    "file": "vesselContactField.js",
+    "line": 1072,
+    "selfMs": 1.875
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 1.875
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisTimeStep.js",
+    "line": 31,
+    "selfMs": 1.833
+  },
+  {
+    "name": "assemblePreparedSharedAxisMatrix",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 63,
+    "selfMs": 1.75
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 3,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 1.542
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 1.542
+  },
+  {
+    "name": "guidewireMaterialProfile",
+    "file": "guidewireMaterialProfile.js",
+    "line": 138,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 38,
+    "selfMs": 1.542
+  },
+  {
+    "name": "get",
+    "file": "util",
+    "line": 651,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 24,
+    "selfMs": 1.542
+  },
+  {
+    "name": "prepareSharedAxisActiveBasis",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 101,
+    "selfMs": 1.542
+  },
+  {
+    "name": "prepareOrder",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 37,
+    "selfMs": 1.542
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 3846,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 41,
+    "selfMs": 1.542
+  },
+  {
+    "name": "triangle",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 6,
+    "selfMs": 1.542
+  },
+  {
+    "name": "get x",
+    "file": "three.module.js",
+    "line": 3329,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 496,
+    "selfMs": 1.542
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 169,
+    "selfMs": 1.542
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 1.542
+  },
+  {
+    "name": "add",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 66,
+    "selfMs": 1.542
+  },
+  {
+    "name": "vec",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 22,
+    "selfMs": 1.542
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 4558,
+    "selfMs": 1.542
+  },
+  {
+    "name": "rotationalInertiaInto",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 13,
+    "selfMs": 1.542
+  },
+  {
+    "name": "guidewireMaterialProfile",
+    "file": "guidewireMaterialProfile.js",
+    "line": 138,
+    "selfMs": 1.542
+  },
+  {
+    "name": "syncNativePositions",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 180,
+    "selfMs": 1.542
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 201,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 86,
+    "selfMs": 1.542
+  },
+  {
+    "name": "get signedDistance",
+    "file": "vesselContactField.js",
+    "line": 209,
+    "selfMs": 1.542
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 1.542
+  },
+  {
+    "name": "syncNativePositions",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 180,
+    "selfMs": 1.542
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.542
+  },
+  {
+    "name": "orient",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 34,
+    "selfMs": 1.542
+  },
+  {
+    "name": "get",
+    "file": "util",
+    "line": 651,
+    "selfMs": 1.542
+  },
+  {
+    "name": "#querySphereCoordinates",
+    "file": "vesselContactField.js",
+    "line": 926,
+    "selfMs": 1.542
+  },
+  {
+    "name": "integrate",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 149,
+    "selfMs": 1.542
+  },
+  {
+    "name": "retainAdaptiveShapeSamples",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 47,
+    "selfMs": 1.542
+  },
+  {
+    "name": "workspaceFor",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 25,
+    "selfMs": 1.542
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 1.542
+  },
+  {
+    "name": "capture",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 28,
+    "selfMs": 1.542
+  },
+  {
+    "name": "dot",
+    "file": "three.module.js",
+    "line": 4310,
+    "selfMs": 1.542
+  },
+  {
+    "name": "commonPrimal",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 4,
+    "selfMs": 1.542
+  },
+  {
+    "name": "sample.captureDiscoveryState",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 179,
+    "selfMs": 1.542
+  },
+  {
+    "name": "set",
+    "file": "three.module.js",
+    "line": 3909,
+    "selfMs": 1.542
+  },
+  {
+    "name": "now",
+    "file": "",
+    "line": 0,
+    "selfMs": 1.542
+  },
+  {
+    "name": "invert",
+    "file": "three.module.js",
+    "line": 3633,
+    "selfMs": 1.542
+  },
+  {
+    "name": "get w",
+    "file": "three.module.js",
+    "line": 3368,
+    "selfMs": 1.541
+  },
+  {
+    "name": "sampleTau0",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 122,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 268,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 99,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 100,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 77,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 17,
+    "selfMs": 1.541
+  },
+  {
+    "name": "createSharedAxisLinear",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 78,
+    "selfMs": 1.541
+  },
+  {
+    "name": "commonPrimal",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 4,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 139,
+    "selfMs": 1.541
+  },
+  {
+    "name": "get w",
+    "file": "three.module.js",
+    "line": 3368,
+    "selfMs": 1.541
+  },
+  {
+    "name": "bufferedKinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 130,
+    "selfMs": 1.541
+  },
+  {
+    "name": "getOptions",
+    "file": "utils",
+    "line": 318,
+    "selfMs": 1.541
+  },
+  {
+    "name": "multiplyQuaternions",
+    "file": "three.module.js",
+    "line": 3711,
+    "selfMs": 1.541
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 1.541
+  },
+  {
+    "name": "quat",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 9,
+    "selfMs": 1.541
+  },
+  {
+    "name": "project",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 8,
+    "selfMs": 1.541
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 3,
+    "selfMs": 1.5010000000000001
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 16,
+    "selfMs": 1.5010000000000001
+  },
+  {
+    "name": "applySharedAxisNativeIncrement",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 358,
+    "selfMs": 1.5
+  },
+  {
+    "name": "geometricTransition",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 68,
+    "selfMs": 1.5
+  },
+  {
+    "name": "validGrid",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 3,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get x",
+    "file": "three.module.js",
+    "line": 3329,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 355,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 93,
+    "selfMs": 1.5
+  },
+  {
+    "name": "stringToFlags",
+    "file": "utils",
+    "line": 593,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 11,
+    "selfMs": 1.5
+  },
+  {
+    "name": "inactive",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 4,
+    "selfMs": 1.5
+  },
+  {
+    "name": "wasm-function[0]",
+    "file": "cea25de6",
+    "line": 1,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 3,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 76,
+    "selfMs": 1.5
+  },
+  {
+    "name": "js-to-wasm",
+    "file": "",
+    "line": 0,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 3,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 112,
+    "selfMs": 1.5
+  },
+  {
+    "name": "assertBodyContract",
+    "file": "applyKirchhoffMaterialProfile.js",
+    "line": 103,
+    "selfMs": 1.5
+  },
+  {
+    "name": "validateExtraForce",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 35,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 288,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 358,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 6,
+    "selfMs": 1.5
+  },
+  {
+    "name": "constitutiveValueChanged",
+    "file": "applyKirchhoffMaterialProfile.js",
+    "line": 13,
+    "selfMs": 1.5
+  },
+  {
+    "name": "clone",
+    "file": "three.module.js",
+    "line": 3394,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 1.5
+  },
+  {
+    "name": "set",
+    "file": "three.module.js",
+    "line": 3909,
+    "selfMs": 1.5
+  },
+  {
+    "name": "closestPointToPointScalarBvh",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 221,
+    "selfMs": 1.5
+  },
+  {
+    "name": "workspaceFor",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 25,
+    "selfMs": 1.5
+  },
+  {
+    "name": "makeRecord",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 61,
+    "selfMs": 1.5
+  },
+  {
+    "name": "iterateActiveSet",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 279,
+    "selfMs": 1.5
+  },
+  {
+    "name": "assembleSharedAxisConstraintRows",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 67,
+    "selfMs": 1.5
+  },
+  {
+    "name": "assembleSharedAxisMaterialTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 84,
+    "selfMs": 1.5
+  },
+  {
+    "name": "solve",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 105,
+    "selfMs": 1.5
+  },
+  {
+    "name": "prepareSharedAxisActiveBasis",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 101,
+    "selfMs": 1.5
+  },
+  {
+    "name": "considerTriangle",
+    "file": "scalarMeshBvhClosestPoint.js",
+    "line": 57,
+    "selfMs": 1.5
+  },
+  {
+    "name": "assembleSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 266,
+    "selfMs": 1.5
+  },
+  {
+    "name": "assembleSharedAxisInertia",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 62,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 68,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get y",
+    "file": "three.module.js",
+    "line": 3342,
+    "selfMs": 1.5
+  },
+  {
+    "name": "captureKirchhoffRestConfiguration",
+    "file": "endovascularPhysicsWorld.js",
+    "line": 846,
+    "selfMs": 1.5
+  },
+  {
+    "name": "prepareOrder",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 37,
+    "selfMs": 1.5
+  },
+  {
+    "name": "violation",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 424,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 364,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 210,
+    "selfMs": 1.5
+  },
+  {
+    "name": "#writeSdfValue",
+    "file": "vesselContactField.js",
+    "line": 2800,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sample",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 94,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 169,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 84,
+    "selfMs": 1.5
+  },
+  {
+    "name": "workspaceFor",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 25,
+    "selfMs": 1.5
+  },
+  {
+    "name": "_write",
+    "file": "writable",
+    "line": 451,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 97,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 11,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 169,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 15,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 120,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "profile-shared-axis-full-cycle.mjs",
+    "line": 37,
+    "selfMs": 1.5
+  },
+  {
+    "name": "orient",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 34,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 21,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 1.5
+  },
+  {
+    "name": "quaternionFromBasis",
+    "file": "discreteKirchhoffRod.js",
+    "line": 272,
+    "selfMs": 1.5
+  },
+  {
+    "name": "vectors",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 114,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get signedDistance",
+    "file": "vesselContactField.js",
+    "line": 209,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 1.5
+  },
+  {
+    "name": "lookup",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 43,
+    "selfMs": 1.5
+  },
+  {
+    "name": "nativeHingeTorqueTangent",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 34,
+    "selfMs": 1.5
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.5
+  },
+  {
+    "name": "solve",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 105,
+    "selfMs": 1.5
+  },
+  {
+    "name": "kirchhoffMaterialProfile",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 306,
+    "selfMs": 1.5
+  },
+  {
+    "name": "isInsideCoordinates",
+    "file": "packedLumenField.js",
+    "line": 76,
+    "selfMs": 1.5
+  },
+  {
+    "name": "rotateSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 255,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.5
+  },
+  {
+    "name": "set",
+    "file": "three.module.js",
+    "line": 3909,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Object.assign.sharedAxisGeometryOnly",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 26,
+    "selfMs": 1.5
+  },
+  {
+    "name": "rotationalInertiaInto",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 13,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 121,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get viewBuilds",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 14,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 27,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAdaptiveMesh.js",
+    "line": 80,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 404,
+    "selfMs": 1.5
+  },
+  {
+    "name": "captureSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 349,
+    "selfMs": 1.5
+  },
+  {
+    "name": "getOptions",
+    "file": "utils",
+    "line": 318,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 1.5
+  },
+  {
+    "name": "#queryDistance",
+    "file": "vesselContactField.js",
+    "line": 1564,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.5
+  },
+  {
+    "name": "createSharedAxisConstraintRowPool",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 38,
+    "selfMs": 1.5
+  },
+  {
+    "name": "completeSharedAxisDynamicStep",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 118,
+    "selfMs": 1.5
+  },
+  {
+    "name": "materializeSharedAxisContacts",
+    "file": "kirchhoffSharedAxisInactiveContacts.js",
+    "line": 42,
+    "selfMs": 1.5
+  },
+  {
+    "name": "setFromAxisAngle",
+    "file": "three.module.js",
+    "line": 3487,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get z",
+    "file": "three.module.js",
+    "line": 3355,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get allocations",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 13,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 114,
+    "selfMs": 1.5
+  },
+  {
+    "name": "quaternionExp",
+    "file": "discreteKirchhoffRod.js",
+    "line": 110,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 46,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get",
+    "file": "util",
+    "line": 651,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 1.5
+  },
+  {
+    "name": "shortestArcQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 367,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 583,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 6,
+    "selfMs": 1.5
+  },
+  {
+    "name": "closest",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 33,
+    "selfMs": 1.5
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sharedAxisFrictionPotential",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 22,
+    "selfMs": 1.5
+  },
+  {
+    "name": "extendSharedAxisNativeRows",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 245,
+    "selfMs": 1.5
+  },
+  {
+    "name": "setFromUnitVectors",
+    "file": "three.module.js",
+    "line": 3564,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sharedAxisMaterialKernelWorkspace",
+    "file": "kirchhoffSharedAxisMaterialKernel.js",
+    "line": 8,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 1.5
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 4558,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluateKirchhoffWallWitnessGeometry",
+    "file": "kirchhoffWallWitnessGeometry.js",
+    "line": 19,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 21,
+    "selfMs": 1.5
+  },
+  {
+    "name": "key",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 206,
+    "selfMs": 1.5
+  },
+  {
+    "name": "kirchhoffMaterialProfile",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 306,
+    "selfMs": 1.5
+  },
+  {
+    "name": "normalizeVector",
+    "file": "discreteKirchhoffRod.js",
+    "line": 32,
+    "selfMs": 1.5
+  },
+  {
+    "name": "GJ",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 201,
+    "selfMs": 1.5
+  },
+  {
+    "name": "setQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 16,
+    "selfMs": 1.5
+  },
+  {
+    "name": "gapForWitness",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 10,
+    "selfMs": 1.5
+  },
+  {
+    "name": "commit",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 95,
+    "selfMs": 1.5
+  },
+  {
+    "name": "toArray",
+    "file": "three.module.js",
+    "line": 4558,
+    "selfMs": 1.5
+  },
+  {
+    "name": "restoreSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 352,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sampleKappa01",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 120,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 81,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluateKirchhoffWallTriangleKernel",
+    "file": "kirchhoffWallTriangleKernel.js",
+    "line": 62,
+    "selfMs": 1.5
+  },
+  {
+    "name": "#queryCenterline",
+    "file": "vesselContactField.js",
+    "line": 2052,
+    "selfMs": 1.5
+  },
+  {
+    "name": "get y",
+    "file": "three.module.js",
+    "line": 3342,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 172,
+    "selfMs": 1.5
+  },
+  {
+    "name": "now",
+    "file": "performance",
+    "line": 137,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 102,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 17,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 6,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 1.5
+  },
+  {
+    "name": "integrateScaledRigidity",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 84,
+    "selfMs": 1.5
+  },
+  {
+    "name": "integrateScalar",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 73,
+    "selfMs": 1.5
+  },
+  {
+    "name": "sharedAxisConstraintEdgeGeometry",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 16,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 39,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 178,
+    "selfMs": 1.5
+  },
+  {
+    "name": "step",
+    "file": "profile-shared-axis-full-cycle.mjs",
+    "line": 36,
+    "selfMs": 1.5
+  },
+  {
+    "name": "applyPreparedSharedAxisFixedMask",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 108,
+    "selfMs": 1.5
+  },
+  {
+    "name": "applySharedAxisNativeIncrement",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 358,
+    "selfMs": 1.5
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.5
+  },
+  {
+    "name": "merit",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 423,
+    "selfMs": 1.5
+  },
+  {
+    "name": "writeFileSync",
+    "file": "node:fs",
+    "line": 2395,
+    "selfMs": 1.5
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 12,
+    "selfMs": 1.5
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisContacts.js",
+    "line": 24,
+    "selfMs": 1.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 220,
+    "selfMs": 1.459
+  },
+  {
+    "name": "solve",
+    "file": "kirchhoffCoulombBandLU.js",
+    "line": 105,
+    "selfMs": 1.459
+  },
+  {
+    "name": "assemblePreparedSharedAxisMatrix",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 63,
+    "selfMs": 1.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 11,
+    "selfMs": 1.459
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 1.459
+  },
+  {
+    "name": "EI",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 200,
+    "selfMs": 1.459
+  },
+  {
+    "name": "matrix",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 15,
+    "selfMs": 1.459
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 1.459
+  },
+  {
+    "name": "",
+    "file": "validators",
+    "line": 139,
+    "selfMs": 1.459
+  },
+  {
+    "name": "commit",
+    "file": "kirchhoffSharedAxisDiscoveryCache.js",
+    "line": 95,
+    "selfMs": 1.459
+  },
+  {
+    "name": "cpuUsage",
+    "file": "per_thread",
+    "line": 127,
+    "selfMs": 1.459
+  },
+  {
+    "name": "rotate",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 10,
+    "selfMs": 1.459
+  },
+  {
+    "name": "zeroIntegral",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 104,
+    "selfMs": 1.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 171,
+    "selfMs": 1.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 1.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 1.458
+  },
+  {
+    "name": "geometricTransition",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 68,
+    "selfMs": 1.458
+  },
+  {
+    "name": "syncNativePositions",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 180,
+    "selfMs": 1.458
+  },
+  {
+    "name": "assembleSharedAxisGaussNewton",
+    "file": "kirchhoffSharedAxisGaussNewton.js",
+    "line": 25,
+    "selfMs": 1.458
+  },
+  {
+    "name": "inspect",
+    "file": "inspect",
+    "line": 349,
+    "selfMs": 1.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 286,
+    "selfMs": 1.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 511,
+    "selfMs": 1.458
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 1.458
+  },
+  {
+    "name": "evaluateBendTwistLocalConstraintNormalized",
+    "file": "discreteKirchhoffRod.js",
+    "line": 691,
+    "selfMs": 1.458
+  },
+  {
+    "name": "point",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 11,
+    "selfMs": 1.458
+  },
+  {
+    "name": "#queryDistance",
+    "file": "vesselContactField.js",
+    "line": 1564,
+    "selfMs": 1.458
+  },
+  {
+    "name": "rotationalInertiaInto",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 13,
+    "selfMs": 1.458
+  },
+  {
+    "name": "dot",
+    "file": "three.module.js",
+    "line": 4310,
+    "selfMs": 1.458
+  },
+  {
+    "name": "js-to-wasm:iiiiii:i",
+    "file": "",
+    "line": 0,
+    "selfMs": 1.458
+  },
+  {
+    "name": "Object.assign.sharedAxisGeometryOnly",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 26,
+    "selfMs": 1.458
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 112,
+    "selfMs": 1.458
+  },
+  {
+    "name": "assembleSharedAxisConstraintRows",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 67,
+    "selfMs": 1.417
+  },
+  {
+    "name": "isEncoding",
+    "file": "node:buffer",
+    "line": 582,
+    "selfMs": 1.417
+  },
+  {
+    "name": "refreshSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 213,
+    "selfMs": 1.417
+  },
+  {
+    "name": "restoreSharedAxisNative",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 352,
+    "selfMs": 1.417
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 1.417
+  },
+  {
+    "name": "applySharedAxisNativeIncrement",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 358,
+    "selfMs": 1.417
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 1.417
+  },
+  {
+    "name": "integrateBerensteinSmoothInterval",
+    "file": "catheterMaterialProfile.js",
+    "line": 227,
+    "selfMs": 1.416
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisDiagnostics.js",
+    "line": 14,
+    "selfMs": 1.416
+  },
+  {
+    "name": "visit",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 127,
+    "selfMs": 1.416
+  },
+  {
+    "name": "normalize",
+    "file": "three.module.js",
+    "line": 3671,
+    "selfMs": 1.416
+  },
+  {
+    "name": "visit",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 127,
+    "selfMs": 1.416
+  },
+  {
+    "name": "evaluate",
+    "file": "kirchhoffSharedAxisVesselWitnesses.js",
+    "line": 43,
+    "selfMs": 1.334
+  },
+  {
+    "name": "correctTrialConstraints",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 368,
+    "selfMs": 1.333
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 4,
+    "selfMs": 1.333
+  },
+  {
+    "name": "",
+    "file": "validators",
+    "line": 242,
+    "selfMs": 1.333
+  },
+  {
+    "name": "addHessian",
+    "file": "kirchhoffSharedAxisMatrixAssembly.js",
+    "line": 44,
+    "selfMs": 1.25
+  },
+  {
+    "name": "coefficient",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 23,
+    "selfMs": 1.25
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 286,
+    "selfMs": 1.25
+  },
+  {
+    "name": "Vector3",
+    "file": "three.module.js",
+    "line": 3899,
+    "selfMs": 1.209
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 1.167
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 1.166
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 354,
+    "selfMs": 1.083
+  },
+  {
+    "name": "assembleSharedAxisConstraintRows",
+    "file": "kirchhoffSharedAxisConstraintRows.js",
+    "line": 67,
+    "selfMs": 1.083
+  },
+  {
+    "name": "kinematics",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 96,
+    "selfMs": 1.083
+  },
+  {
+    "name": "set",
+    "file": "three.module.js",
+    "line": 3909,
+    "selfMs": 1.042
+  },
+  {
+    "name": "distanceToSquared",
+    "file": "three.module.js",
+    "line": 4436,
+    "selfMs": 0.958
+  },
+  {
+    "name": "sampleTau0",
+    "file": "kirchhoffMaterialProfile.js",
+    "line": 122,
+    "selfMs": 0.917
+  },
+  {
+    "name": "Quaternion",
+    "file": "three.module.js",
+    "line": 3217,
+    "selfMs": 0.875
+  },
+  {
+    "name": "now",
+    "file": "performance",
+    "line": 137,
+    "selfMs": 0.708
+  },
+  {
+    "name": "scale",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 7,
+    "selfMs": 0.625
+  },
+  {
+    "name": "sharedAxisOuterMaterialAt",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 163,
+    "selfMs": 0.542
+  },
+  {
+    "name": "nextRow",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 49,
+    "selfMs": 0.542
+  },
+  {
+    "name": "captureSharedAxisReplay",
+    "file": "kirchhoffSharedAxisReplay.js",
+    "line": 6,
+    "selfMs": 0.5
+  },
+  {
+    "name": "projectInPlace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 123,
+    "selfMs": 0.459
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 257,
+    "selfMs": 0.45899999999999996
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 202,
+    "selfMs": 0.458
+  },
+  {
+    "name": "distanceTo",
+    "file": "three.module.js",
+    "line": 4430,
+    "selfMs": 0.458
+  },
+  {
+    "name": "sharedAxisBasisLinearization",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 11,
+    "selfMs": 0.333
+  },
+  {
+    "name": "normalizeQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 63,
+    "selfMs": 0.25
+  },
+  {
+    "name": "bound",
+    "file": "kirchhoffSharedAxisActiveBasis.js",
+    "line": 176,
+    "selfMs": 0.208
+  },
+  {
+    "name": "result",
+    "file": "kirchhoffSharedAxisAppSystem.js",
+    "line": 165,
+    "selfMs": 0.125
+  },
+  {
+    "name": "sharedAxisOuterIntervals",
+    "file": "kirchhoffSharedAxisNative.js",
+    "line": 171,
+    "selfMs": 0.125
+  },
+  {
+    "name": "prepareSharedAxisDynamicStep",
+    "file": "kirchhoffSharedAxisDynamics.js",
+    "line": 42,
+    "selfMs": 0.083
+  },
+  {
+    "name": "refreshSharedAxisWallFriction",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 213,
+    "selfMs": 0.083
+  },
+  {
+    "name": "createKirchhoffLinearKernel",
+    "file": "kirchhoffLinearKernel.js",
+    "line": 7,
+    "selfMs": 0.042
+  },
+  {
+    "name": "setQuaternion",
+    "file": "discreteKirchhoffRod.js",
+    "line": 16,
+    "selfMs": 0.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 93,
+    "selfMs": 0.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 79,
+    "selfMs": 0.042
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisBendLimit.js",
+    "line": 6,
+    "selfMs": 0.041
+  },
+  {
+    "name": "workspace",
+    "file": "kirchhoffSharedAxisWallFriction.js",
+    "line": 111,
+    "selfMs": 0.041
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 256,
+    "selfMs": 0
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 269,
+    "selfMs": 0
+  },
+  {
+    "name": "evaluateBendTwistLocalConstraintNormalized",
+    "file": "discreteKirchhoffRod.js",
+    "line": 691,
+    "selfMs": 0
+  },
+  {
+    "name": "dot",
+    "file": "kirchhoffSharedAxisMaterialTangent.js",
+    "line": 13,
+    "selfMs": 0
+  },
+  {
+    "name": "",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 85,
+    "selfMs": 0
+  },
+  {
+    "name": "iterateWithFallback",
+    "file": "kirchhoffSharedAxisLinear.js",
+    "line": 373,
+    "selfMs": 0
+  }
+]

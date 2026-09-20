@@ -1,0 +1,57 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSharedAxisLayout} from '../src/physics/kirchhoffSharedAxisLinear.js';
+import {iterateSharedAxisProjection} from '../src/physics/kirchhoffSharedAxisProjection.js';
+import {iterateSharedAxisIterativeProjection} from '../src/physics/kirchhoffSharedAxisIterativeProjection.js';
+
+function drain(iterator) {let next;do{next=iterator.next();}while(!next.done);return next.value;}
+function state(edges=2) {
+    const layout=createSharedAxisLayout(Array.from({length:edges},()=>['wire','catheter']));
+    return {layout,fixed:new Uint8Array(layout.dofCount),definitions:[],multipliers:new Float64Array(0)};
+}
+test('bounded projection matches the identity QP for coupled equalities and unilateral walls',()=>{
+    const s=state(),p=Array.from(s.layout.positions);s.fixed[p[0]]=1;
+    const rows=s.definitions=[
+        {kind:'length',dofs:[p[0],p[1]],jacobian:[-1,1],gap:-.03,multiplier:7},
+        {kind:'length',dofs:[p[1],p[2]],jacobian:[-1,1],gap:.01,multiplier:-2},
+        {kind:'wall',dofs:[p[2]+1],jacobian:[1],gap:-.02,multiplier:3},
+        {kind:'wall',dofs:[p[2]+1],jacobian:[1],gap:-.01,multiplier:999}
+    ];
+    const exact=drain(iterateSharedAxisProjection(s,{rows},{mode:'reduced'}));
+    const iterative=drain(iterateSharedAxisIterativeProjection(s,{rows},{sweeps:128}));
+    assert.ok(exact.converged&&iterative.converged,JSON.stringify(iterative));
+    assert.equal(iterative.factorizations,0);
+    for(let i=0;i<exact.increment.length;i++)assert.ok(Math.abs(iterative.increment[i]-exact.increment[i])<1e-9);
+    for(const spins of s.layout.spins.values())for(const p of spins)assert.equal(iterative.increment[p],0);
+    assert.ok(iterative.zeroReactions.every(v=>v===0),'Projection reactions cannot change physical wall/friction loads');
+});
+
+test('a short sweep budget is explicitly a partial private proposal and cancellation leaves the rod unchanged',()=>{
+    const s=state(32),p=Array.from(s.layout.positions);s.fixed[p[0]]=1;
+    const rows=s.definitions=p.slice(0,-1).map((a,i)=>({kind:'length',dofs:[a,p[i+1]],jacobian:[-1,1],gap:i===p.length-2?-.1:0,multiplier:i+1}));
+    s.multipliers=Float64Array.from(rows,r=>r.multiplier);
+    const before=structuredClone(s),it=iterateSharedAxisIterativeProjection(s,{rows},{sweeps:1});
+    assert.equal(it.next().done,false);it.return();assert.deepEqual(s,before);
+    const result=drain(iterateSharedAxisProjection(s,{rows},{mode:'iterative'}));
+    assert.equal(result.converged,false);assert.equal(result.applicable,true);assert.equal(result.approximate,true);
+    assert.equal(result.sweeps,8);assert.ok(result.residual>1e-10&&result.residual<.1);
+    assert.equal(result.factorizations,0);assert.equal(result.increment[p[0]],0);
+    assert.deepEqual(s,before);
+});
+
+test('duplicate DOFs are combined before diagonal scaling',()=>{
+    const s=state(),p=s.layout.positions[2];
+    const rows=s.definitions=[{kind:'wall',dofs:[p,p],jacobian:[1,1],gap:-.2,multiplier:123}];
+    const result=drain(iterateSharedAxisIterativeProjection(s,{rows}));
+    assert.ok(result.converged);assert.equal(result.increment[p],.1);
+});
+
+test('incompatible fixed contact and nonfinite input cannot produce an applicable correction',()=>{
+    for(const gap of [-.1,Infinity]) {
+        const s=state(),p=s.layout.positions[2];s.fixed[p]=1;
+        const rows=s.definitions=[{kind:'wall',dofs:[p],jacobian:[1],gap,multiplier:0}];
+        const result=drain(iterateSharedAxisIterativeProjection(s,{rows}));
+        assert.equal(result.converged,false);assert.equal(result.applicable,false);assert.equal(result.sweeps,0);
+    }
+    const s=state();assert.throws(()=>drain(iterateSharedAxisIterativeProjection(s,{rows:[]},{sweeps:0})),RangeError);
+});

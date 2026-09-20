@@ -1,3 +1,4 @@
+import {runPhysicsFrameBudget} from '../src/physics/physicsFrameBudget.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -118,12 +119,13 @@ test('pending status text alone or an error never relaxes the rejection gate',()
 });
 
 const simulatorSource=fs.readFileSync(new URL('../src/simulator.js',import.meta.url),'utf8');
-function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1}={}) {
+function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=false}={}) {
     const world=stubWorld(outcomes,fixedDt),queue=[],errors=[];let clock=0;
     const originalAdvance=world.advance.bind(world);world.advance=(...args)=>{clock+=sliceMs;return originalAdvance(...args);};
-    const state={world,queue,errors,performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
-        fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
+    const state={world,queue,errors,runPhysicsFrameBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
+        fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',FULL_CYCLE_BENCHMARK_MODE:'full-cycle-60hz',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
         TARGET_RENDER_FRAME_MS:1000/60,PHYSICS_IDLE_GUARD_MS:.75,PHYSICS_RENDER_RESERVE_MS:3.5,
+        PHYSICS_MIN_SLICE_MS:.5,PHYSICS_MAX_SLICE_MS:4,simulationRenderReserveMs:3.5,sliceBudgets:[],
         lastRenderTime:null,simulationAccumulator:0,simulationPeakBacklog:0,simulationPeakBacklogScenarioMs:0,
         simulationPeakBacklogElapsedMs:0,simulationPeakBacklogGuidewireMm:0,
         simulationExecutedSteps:0,simulationIdleExecutedSteps:0,simulationAcceptedTime:0,
@@ -136,6 +138,7 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1}={}) {
         recordBrowserFrame:()=>{},document:{visibilityState:'visible'},runtime:{timeout:cb=>queue.push(cb)},
         prepares:0,commits:0,contrastTime:0,benchmarkTime:0,throwPresentation:false};
     state.wholeAxisAppSystem=state.sharedAxisAppSystem;
+    if(shared)state.sharedAxisAppSystem.setWorkSliceBudget=budget=>state.sliceBudgets.push(budget);
     state.simulationStepTransaction=createFixedStepTransaction({world,prepare:()=>({preparation:++state.prepares,
         benchmarkEpoch:state.browserBenchmarkEpoch,benchmarkRunning:state.browserBenchmarkScenario.running}),now:()=>clock});
     state.stepSimulation=stepDt=>state.simulationStepTransaction.attempt(stepDt);
@@ -432,4 +435,34 @@ test('diagnostic export failures cannot retain terminal timestep debt',()=>{
     s.frame(0);s.frame(20);
     assert.equal(s.simulationAccumulator,0);assert.equal(s.simulationStepTransaction.blocked,true);
     assert.ok(s.errors.some(args=>args[0]==='Could not present rejected-step capture'));
+});
+
+
+test('realtime scheduler continues pending work before render within the same deadline and commits once',()=>{
+    const fixedDt=1/60,s=schedulerHarness([cooperative(),cooperative(),true],{shared:true,realtime:true,fixedDt,sliceMs:4});
+    s.world.contactField={};s.frame(0);s.frame(20);
+    assert.equal(s.world.attempts,3);assert.equal(s.world.stepCount,1);assert.equal(s.prepares,1);assert.equal(s.commits,1);
+    assert.deepEqual(s.world.admitted,[fixedDt,0,0]);assert.equal(s.simulationIdleExecutedSteps,0);
+    assert.ok(Math.abs(s.simulationAccumulator-(.02-fixedDt))<1e-12);
+});
+
+test('realtime scheduler uses a short remaining frame slice instead of waiting for a full previous slice',()=>{
+    const s=schedulerHarness([cooperative(),cooperative(),cooperative(),true],{shared:true,realtime:true,fixedDt:1/60,sliceMs:3});
+    s.world.contactField={};s.frame(0);s.frame(20);
+    assert.equal(s.world.stepCount,1);assert.equal(s.prepares,1);assert.equal(s.commits,1);
+    assert.equal(s.sliceBudgets.length,4);
+    assert.ok(s.sliceBudgets.at(-1)<4&&s.sliceBudgets.at(-1)>.5);
+    assert.deepEqual(s.world.admitted,[1/60,0,0,0]);
+    assert.equal(s.simulationPendingStepCpuMs,0);
+});
+
+test('realtime idle work can use a partial slice but stops before the deadline guard',()=>{
+    const s=schedulerHarness(Array.from({length:30},cooperative),{shared:true,realtime:true,fixedDt:1/60,sliceMs:1});
+    s.world.contactField={};s.frame(0);s.frame(20);s.elapse(8);
+    const before=s.world.attempts;s.queue.shift()();
+    assert.equal(s.world.attempts,before+2);
+    assert.ok(s.sliceBudgets.at(-2)<2);
+    assert.ok(s.sliceBudgets.at(-1)<1);
+    assert.equal(s.prepares,1);assert.equal(s.commits,0);
+    assert.equal(s.simulationAccumulator,.02);
 });

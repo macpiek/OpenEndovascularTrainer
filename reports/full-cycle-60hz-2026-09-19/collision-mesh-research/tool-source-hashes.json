@@ -1,0 +1,6 @@
+{
+  "scripts/physics/simplify-collision-experiment.mjs": "6a4bcb50d572451a4f1e3c853f122b84de58ce422915e57fe3b902f4a18da300",
+  "scripts/physics/experimental-collision-geometry.mjs": "8ac67524384b7ec30aabfd6386e0cf36737c8b8ac6003fee5bb0c2ffe8c5258d",
+  "scripts/physics/profile-shared-axis-full-cycle.mjs": "462c1ef00a5220db9a36a584233d2f70324fbc5dbb3a769542ff5b786e0d33c2",
+  "scripts/physics/replay-shared-axis-cycle-step.mjs": "4d86de12911941095169a104feea96e7857eda9af4f8619b8ca1ed56b986bfd0"
+}

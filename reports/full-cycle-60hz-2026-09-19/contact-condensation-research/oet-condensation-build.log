@@ -1,0 +1,31 @@
+
+> openendovasculartrainer@1.0.0 build
+> vite build --outDir /tmp/oet-condensation-build
+
+vite v7.3.5 building client environment for production...
+transforming...
+✓ 320 modules transformed.
+
+(!) outDir /tmp/oet-condensation-build is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../../../tmp/oet-condensation-build/shared-axis-lab.html                                 3.79 kB │ gzip:   1.74 kB
+../../../../../../tmp/oet-condensation-build/index.html                                          51.77 kB │ gzip:   9.35 kB
+../../../../../../tmp/oet-condensation-build/assets/skeleton.worker-DkRGimbZ.js                 125.31 kB
+../../../../../../tmp/oet-condensation-build/assets/skeleton-Dp2oxfet.obj                    19,214.17 kB
+../../../../../../tmp/oet-condensation-build/assets/Aorta_plain-BdOgA_m6.stl                 52,286.83 kB
+../../../../../../tmp/oet-condensation-build/assets/Aorta_plain.collision-CwTvq9Lp.bin       63,921.56 kB
+../../../../../../tmp/oet-condensation-build/assets/index-DMIugAIR.css                           37.95 kB │ gzip:   8.19 kB
+../../../../../../tmp/oet-condensation-build/assets/modulepreload-polyfill-B5Qt9EMX.js            0.71 kB │ gzip:   0.40 kB
+../../../../../../tmp/oet-condensation-build/assets/index-U_F_Nf17.js                             1.79 kB │ gzip:   1.00 kB
+../../../../../../tmp/oet-condensation-build/assets/shared-axis-lab-Dw88zJab.js                   3.67 kB │ gzip:   1.72 kB
+../../../../../../tmp/oet-condensation-build/assets/kirchhoffSharedAxisContacts-CY7tG9mt.js   1,194.82 kB │ gzip: 340.99 kB
+../../../../../../tmp/oet-condensation-build/assets/simulator-D3V--EFt.js                     3,461.27 kB │ gzip: 748.40 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.20s

@@ -1,0 +1,28 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import {loadCoupledRuntimeAnatomy} from '/Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/tests/helpers/coupledRuntimeFixture.js';
+const root='/Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer';
+const fixture=JSON.parse(gunzipSync(readFileSync(root+'/tests/fixtures/shared-axis/closed-root-wire-745.80-stagnation-residual.json.gz')));
+const anatomy=await loadCoupledRuntimeAnatomy();
+try {
+ const field=anatomy.field,points=fixture.insideContinuation.filter(p=>p.clearance>.1&&p.clearance<1.5).slice(0,500),differences=[];
+ let queries=0,changedFaces=0,maxDistanceDifference=0;
+ for(let repeat=0;repeat<5;repeat++)for(let i=0;i<points.length;i++) {
+  const entry=points[i],a=entry.point.map((x,k)=>x+(k===0?repeat*.001:0)),b=a.map((x,k)=>x+(k===1?.01:0));
+  const descriptor={a,b,radius:.4445,sampleCount:3,gridToken:`probe/${i}`,geometryToken:field.fallbackGeometry.boundsTree};
+  const proof={knownInside:true,lowerBound:entry.clearance-.05},expected=[],actual=[],hint=field._bvhClosest.faceIndex;
+  field.visitCertifiedInsideCapsule(descriptor,proof,(c,t)=>expected.push({t,face:c.faceIndex,distance:c.signedDistance}));
+  field._bvhClosest.faceIndex=hint;
+  field.visitCertifiedInsideCapsule({...descriptor,cachedDiscoveryPatches:true},proof,(c,t)=>actual.push({t,face:c.faceIndex,distance:c.signedDistance}));
+  queries++;
+  for(let j=0;j<expected.length;j++) {
+   maxDistanceDifference=Math.max(maxDistanceDifference,Math.abs(expected[j].distance-actual[j].distance));
+   if(expected[j].face!==actual[j].face) {
+    changedFaces++;
+    if(differences.length<20)differences.push({repeat,i,hint,point:a.map((x,k)=>x+(b[k]-x)*expected[j].t),expected:expected[j],actual:actual[j]});
+   }
+  }
+ }
+ const result={queries,changedFaces,maxDistanceDifference,stats:field.getStats(),differences};
+ writeFileSync('/tmp/oet-patch-ties.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+}finally{anatomy.dispose();}

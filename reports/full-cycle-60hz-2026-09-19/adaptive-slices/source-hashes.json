@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-09-20T04:25:06.552Z",
+  "files": {
+    "src/simulator.js": "813d29f4dfd9252b827f2c7249f9825892e7668c7387e5acd330f6e8f60698e3",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "bc040ec205a75eec262e6ce4be83e6e8e6c8b377b81d86cc3f4d208bd8b10e1d",
+    "src/physics/kirchhoffSharedAxisRealtime.js": "1ad8fed04b03b9febdcc6d662a5e34e94b11b4a579c52904344d441ddefd467e",
+    "src/physics/collision/vesselContactField.js": "b24232f8d6576ec4a48e23e046af543e8f87fca058fca07890694b34d300a710"
+  }
+}

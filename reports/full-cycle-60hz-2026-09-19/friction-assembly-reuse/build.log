@@ -1,0 +1,22 @@
+
+> openendovasculartrainer@1.0.0 build
+> vite build
+
+vite v7.3.5 building client environment for production...
+transforming...
+✓ 317 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/shared-axis-lab.html                                 3.79 kB │ gzip:   1.74 kB
+dist/index.html                                          51.77 kB │ gzip:   9.35 kB
+dist/assets/skeleton.worker-DkRGimbZ.js                 125.31 kB
+dist/assets/skeleton-Dp2oxfet.obj                    19,214.17 kB
+dist/assets/Aorta_plain-CK0GjdR4.stl                 50,720.63 kB
+dist/assets/Aorta_plain.collision-C2iv_z0R.bin       63,885.02 kB
+dist/assets/index-DMIugAIR.css                           37.95 kB │ gzip:   8.19 kB
+dist/assets/modulepreload-polyfill-B5Qt9EMX.js            0.71 kB │ gzip:   0.40 kB
+dist/assets/index-CBG7eDNh.js                             1.79 kB │ gzip:   1.01 kB
+dist/assets/shared-axis-lab-DcenDm54.js                   3.67 kB │ gzip:   1.72 kB
+dist/assets/kirchhoffSharedAxisContacts-ClR0ZL9A.js   1,188.35 kB │ gzip: 338.98 kB
+dist/assets/simulator-D2Gc0aaB.js                     3,460.48 kB │ gzip: 748.22 kB
+✓ built in 3.22s

@@ -1,0 +1,246 @@
+{
+  "scope": "Diagnostic 600 mm cycle, sampled CPU profile; not full-cycle performance proof",
+  "sampledMs": 44732.291,
+  "functions": [
+    {
+      "name": "assembleSharedAxisConstraintRows",
+      "file": "kirchhoffSharedAxisConstraintRows.js",
+      "line": 67,
+      "selfMs": 2704.845
+    },
+    {
+      "name": "prepareSharedAxisActiveBasis",
+      "file": "kirchhoffSharedAxisActiveBasis.js",
+      "line": 77,
+      "selfMs": 2660.388
+    },
+    {
+      "name": "(garbage collector)",
+      "file": "",
+      "line": 0,
+      "selfMs": 1559.535
+    },
+    {
+      "name": "assembleSharedAxisNative",
+      "file": "kirchhoffSharedAxisNative.js",
+      "line": 266,
+      "selfMs": 1547.621
+    },
+    {
+      "name": "closestPointToPointScalarBvh",
+      "file": "scalarMeshBvhClosestPoint.js",
+      "line": 221,
+      "selfMs": 1512.931
+    },
+    {
+      "name": "considerTriangle",
+      "file": "scalarMeshBvhClosestPoint.js",
+      "line": 57,
+      "selfMs": 1504.159
+    },
+    {
+      "name": "solve",
+      "file": "kirchhoffCoulombBandLU.js",
+      "line": 105,
+      "selfMs": 1472.18
+    },
+    {
+      "name": "wasm-function[4]",
+      "file": "df5b3faa",
+      "line": 1,
+      "selfMs": 1440.867
+    },
+    {
+      "name": "iterateActiveSet",
+      "file": "kirchhoffSharedAxisLinear.js",
+      "line": 279,
+      "selfMs": 1377.868
+    },
+    {
+      "name": "sharedAxisGeometryIdentity",
+      "file": "kirchhoffSharedAxisGeometryIdentity.js",
+      "line": 4,
+      "selfMs": 1140.919
+    },
+    {
+      "name": "assemblePreparedSharedAxisMatrix",
+      "file": "kirchhoffSharedAxisMatrixAssembly.js",
+      "line": 63,
+      "selfMs": 1034.084
+    },
+    {
+      "name": "#queryCenterline",
+      "file": "vesselContactField.js",
+      "line": 2052,
+      "selfMs": 1017.871
+    },
+    {
+      "name": "solveSharedAxisLinearOnce",
+      "file": "kirchhoffSharedAxisLinear.js",
+      "line": 108,
+      "selfMs": 928.16
+    },
+    {
+      "name": "createSharedAxisLinear",
+      "file": "kirchhoffSharedAxisLinear.js",
+      "line": 78,
+      "selfMs": 849.874
+    },
+    {
+      "name": "iterateSharedAxisNative",
+      "file": "kirchhoffSharedAxisNative.js",
+      "line": 389,
+      "selfMs": 842.079
+    },
+    {
+      "name": "assembleSharedAxisMaterialTangent",
+      "file": "kirchhoffSharedAxisMaterialTangent.js",
+      "line": 84,
+      "selfMs": 831.059
+    },
+    {
+      "name": "nativeHingeTorqueTangent",
+      "file": "kirchhoffSharedAxisMaterialTangent.js",
+      "line": 34,
+      "selfMs": 766.558
+    },
+    {
+      "name": "matrix",
+      "file": "kirchhoffSharedAxisMaterialTangent.js",
+      "line": 15,
+      "selfMs": 740.707
+    },
+    {
+      "name": "nextRow",
+      "file": "kirchhoffSharedAxisActiveBasis.js",
+      "line": 49,
+      "selfMs": 690.128
+    },
+    {
+      "name": "",
+      "file": "kirchhoffSharedAxisWallFriction.js",
+      "line": 219,
+      "selfMs": 665.99
+    },
+    {
+      "name": "wasm-function[0]",
+      "file": "cea25de6",
+      "line": 1,
+      "selfMs": 651.494
+    },
+    {
+      "name": "supportedNorm",
+      "file": "kirchhoffSharedAxisActiveBasis.js",
+      "line": 63,
+      "selfMs": 648.796
+    },
+    {
+      "name": "assembleSharedAxisInertia",
+      "file": "kirchhoffSharedAxisDynamics.js",
+      "line": 62,
+      "selfMs": 603.662
+    },
+    {
+      "name": "visit",
+      "file": "kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 127,
+      "selfMs": 599.416
+    },
+    {
+      "name": "solveCompactWorkingSet",
+      "file": "kirchhoffSharedAxisLinear.js",
+      "line": 215,
+      "selfMs": 534.834
+    },
+    {
+      "name": "feedSharedAxisNative",
+      "file": "kirchhoffSharedAxisNative.js",
+      "line": 190,
+      "selfMs": 498.882
+    },
+    {
+      "name": "evaluateSharedAxisBendLimit",
+      "file": "kirchhoffSharedAxisBendLimit.js",
+      "line": 2,
+      "selfMs": 483.885
+    },
+    {
+      "name": "(program)",
+      "file": "",
+      "line": 0,
+      "selfMs": 458.537
+    },
+    {
+      "name": "writeFileUtf8",
+      "file": "",
+      "line": 0,
+      "selfMs": 419.839
+    },
+    {
+      "name": "",
+      "file": "kirchhoffSharedAxisNative.js",
+      "line": 27,
+      "selfMs": 374.034
+    },
+    {
+      "name": "makeRecord",
+      "file": "kirchhoffSharedAxisWallFriction.js",
+      "line": 61,
+      "selfMs": 344.951
+    },
+    {
+      "name": "refreshSharedAxisWallFriction",
+      "file": "kirchhoffSharedAxisWallFriction.js",
+      "line": 213,
+      "selfMs": 331.963
+    },
+    {
+      "name": "lookup",
+      "file": "kirchhoffSharedAxisDiscoveryCache.js",
+      "line": 43,
+      "selfMs": 291.997
+    },
+    {
+      "name": "evaluate",
+      "file": "kirchhoffSharedAxisWallFriction.js",
+      "line": 160,
+      "selfMs": 290.369
+    },
+    {
+      "name": "gapForWitness",
+      "file": "kirchhoffSharedAxisVesselWitnesses.js",
+      "line": 10,
+      "selfMs": 281.456
+    },
+    {
+      "name": "createSharedAxisNative",
+      "file": "kirchhoffSharedAxisNative.js",
+      "line": 56,
+      "selfMs": 276.757
+    },
+    {
+      "name": "dot",
+      "file": "kirchhoffSharedAxisWallFriction.js",
+      "line": 4,
+      "selfMs": 262.997
+    },
+    {
+      "name": "evaluateBendTwistLocalConstraintNormalized",
+      "file": "discreteKirchhoffRod.js",
+      "line": 691,
+      "selfMs": 248.827
+    },
+    {
+      "name": "applyPreparedSharedAxisFixedMask",
+      "file": "kirchhoffSharedAxisMatrixAssembly.js",
+      "line": 108,
+      "selfMs": 240.739
+    },
+    {
+      "name": "assemble",
+      "file": "kirchhoffSharedAxisNative.js",
+      "line": 408,
+      "selfMs": 235.786
+    }
+  ]
+}

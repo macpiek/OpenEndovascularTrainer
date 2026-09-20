@@ -1,0 +1,33 @@
+✔ specialized projection preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (647.512417ms)
+✔ specialized projection preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (383.554959ms)
+✖ specialized projection preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-312.87-projection (300.91025ms)
+✔ projection refreshes gaps and fixed masks, keeps coupled global reactions, and removes only uncoupled spins (1.627083ms)
+✔ borrowed basis storage survives smaller projection indexing and return to large physical indexing (0.2085ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2331.130791
+
+✖ failing tests:
+
+test at tests/kirchhoffSharedAxisProjection.test.js:11:1
+✖ specialized projection preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-312.87-projection (300.91025ms)
+  AssertionError [ERR_ASSERTION]: This fixture must exercise nonlinear trial corrections
+      at TestContext.<anonymous> (file:///Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/tests/kirchhoffSharedAxisProjection.test.js:38:43)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:763:18)
+      at Test.postRun (node:internal/test_runner/test:1210:19)
+      at Test.run (node:internal/test_runner/test:1138:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

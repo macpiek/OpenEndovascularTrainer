@@ -1,0 +1,160 @@
+slow-777 0 {
+  medianAssemblyMs: 38.12100150000424,
+  medianMs: 193.05460399999993,
+  medianCpuMs: 232.64100000000002,
+  medianLinearMs: 144.139858500012,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+slow-777 0.00001 {
+  medianAssemblyMs: 35.38202350000756,
+  medianMs: 186.91885449999972,
+  medianCpuMs: 205.4765,
+  medianLinearMs: 141.11872000000722,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+slow-777 0.0001 {
+  medianAssemblyMs: 35.80547750000369,
+  medianMs: 187.55343749999975,
+  medianCpuMs: 223.7505,
+  medianLinearMs: 140.79229100000794,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0.00013062123237324424
+}
+slow-777 0.0005 {
+  medianAssemblyMs: 36.72589850000122,
+  medianMs: 188.41364599999997,
+  medianCpuMs: 216.4065,
+  medianLinearMs: 140.50118999998722,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0.00013062123237324424
+}
+slow-842 0 {
+  medianAssemblyMs: 40.4774540000235,
+  medianMs: 120.4640834999991,
+  medianCpuMs: 129.4245,
+  medianLinearMs: 69.62202000000616,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-842 0.00001 {
+  medianAssemblyMs: 41.247123499992085,
+  medianMs: 122.45506249999744,
+  medianCpuMs: 140.59300000000002,
+  medianLinearMs: 69.67866950001735,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-842 0.0001 {
+  medianAssemblyMs: 41.02649650001331,
+  medianMs: 123.56212550000055,
+  medianCpuMs: 147.26,
+  medianLinearMs: 71.23494000000755,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-842 0.0005 {
+  medianAssemblyMs: 43.45812300000762,
+  medianMs: 125.48881250000159,
+  medianCpuMs: 137.793,
+  medianLinearMs: 69.97221299999728,
+  factorizations: 183,
+  maxPositionDifferenceMm: 1.327191447306224e-11
+}
+slow-1300 0 {
+  medianAssemblyMs: 6.168689500000255,
+  medianMs: 13.335479499999565,
+  medianCpuMs: 16.145,
+  medianLinearMs: 1.998125500000242,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 0.00001 {
+  medianAssemblyMs: 6.9334374999962165,
+  medianMs: 13.981603999998697,
+  medianCpuMs: 15.190000000000001,
+  medianLinearMs: 2.2163129999971716,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 0.0001 {
+  medianAssemblyMs: 7.48906249999709,
+  medianMs: 13.72674999999981,
+  medianCpuMs: 16.003999999999998,
+  medianLinearMs: 2.005104499996378,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 0.0005 {
+  medianAssemblyMs: 6.703168500003812,
+  medianMs: 13.21502099999816,
+  medianCpuMs: 15.0135,
+  medianLinearMs: 2.039978999999221,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 0 {
+  medianAssemblyMs: 9.595581499983382,
+  medianMs: 20.8972915000013,
+  medianCpuMs: 27.186999999999998,
+  medianLinearMs: 5.304188999991311,
+  factorizations: 8,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 0.00001 {
+  medianAssemblyMs: 9.051666999996087,
+  medianMs: 19.79627099999925,
+  medianCpuMs: 21.1155,
+  medianLinearMs: 5.277353999998013,
+  factorizations: 8,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 0.0001 {
+  medianAssemblyMs: 9.640626500000508,
+  medianMs: 22.753187499994965,
+  medianCpuMs: 24.8455,
+  medianLinearMs: 6.439771000001201,
+  factorizations: 9,
+  maxPositionDifferenceMm: 5.008192313967497e-13
+}
+slow-4245 0.0005 {
+  medianAssemblyMs: 9.37077100001261,
+  medianMs: 22.29368699999759,
+  medianCpuMs: 29.429,
+  medianLinearMs: 6.794352500000969,
+  factorizations: 9,
+  maxPositionDifferenceMm: 5.008192313967497e-13
+}
+slow-4895 0 {
+  medianAssemblyMs: 66.15352349996101,
+  medianMs: 146.6845835000022,
+  medianCpuMs: 163.67950000000002,
+  medianLinearMs: 64.2948805000342,
+  factorizations: 114,
+  maxPositionDifferenceMm: 0
+}
+slow-4895 0.00001 {
+  medianAssemblyMs: 65.52853949998826,
+  medianMs: 147.53131249999933,
+  medianCpuMs: 203.49349999999998,
+  medianLinearMs: 65.15991649998614,
+  factorizations: 114,
+  maxPositionDifferenceMm: 0
+}
+slow-4895 0.0001 {
+  medianAssemblyMs: 120.92708749997473,
+  medianMs: 285.54466700000194,
+  medianCpuMs: 313.2175,
+  medianLinearMs: 136.97069100006047,
+  factorizations: 234,
+  maxPositionDifferenceMm: 7.480783732041356e-10
+}
+slow-4895 0.0005 {
+  medianAssemblyMs: 318.1429995000217,
+  medianMs: 760.6619165000011,
+  medianCpuMs: 851.135,
+  medianLinearMs: 379.2039634999783,
+  factorizations: 651,
+  maxPositionDifferenceMm: 0.0000074976982054152126
+}

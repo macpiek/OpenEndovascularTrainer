@@ -1,0 +1,38 @@
+--- /tmp/oet-before-friction-column-native.js	2026-09-20 08:51:07
++++ src/physics/kirchhoffSharedAxisNative.js	2026-09-20 08:51:07
+@@ -263,7 +263,7 @@
+ /** Pull back the EXISTING native material rows, including each material's
+  * intrinsic curvature. All world position variables belong to the chain;
+  * only the spin about each material director remains independent. */
+-export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false } = {}) {
++export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false,normalForceColumnScale=1 } = {}) {
+     const { layout, chain } = s, { hessian: H, gradient: g } = chain;
+     H.fill(0); g.set(s.loads, 0); for (let i = 0; i < g.length; i++) g[i] = -g[i];
+     let energy = 0;
+@@ -331,7 +331,7 @@
+     const rows=assembleSharedAxisConstraintRows(s,{...rowOptions,prepared});
+     if(withTangent)for(const column of s.wallFrictionStep?.normalForceColumns??[]) {
+         rows[column.rowIndex].extraForceDofs=column.dofs;
+-        rows[column.rowIndex].extraForceJacobian=column.values;
++        rows[column.rowIndex].extraForceJacobian=normalForceColumnScale===1?column.values:Float64Array.from(column.values,v=>v*normalForceColumnScale);
+     }
+     if(s.pendingVesselRows?.size)throw new Error('shared-axis-wall-discovery');
+     let force = 0, torque = 0, constraint = 0;
+@@ -386,7 +386,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,normalForceColumnScale=1 } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -407,7 +407,7 @@
+     const observed=m=>rowPool?snapshotSharedAxisConstraintMeasure(m):m;
+     const assemble = (tangentMode,withTangent=true) => {
+         const start = performance.now();
+-        try{return assembleSharedAxisNative(s,{tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
++        try{return assembleSharedAxisNative(s,{normalForceColumnScale,tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
+         finally{const elapsed=performance.now()-start;timings.assemblyMs+=elapsed;
+             timings[withTangent?'tangentAssemblyMs':'residualAssemblyMs']+=elapsed;
+             if(withTangent)fullAssemblies++;else residualAssemblies++;}

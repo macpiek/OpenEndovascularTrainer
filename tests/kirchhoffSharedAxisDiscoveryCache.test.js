@@ -18,7 +18,7 @@ function certify(cache, d, distance = () => 10, key = 'edge', options = { inside
 }
 
 test('clearance proof retains the certified pose across repeated skips and distinguishes inside from clear', () => {
-    const cache = createSharedAxisDiscoveryCache(), d = descriptor();
+    const cache = createSharedAxisDiscoveryCache({retainOnAbort:true}), d = descriptor();
     assert.equal(certify(cache, d), true);
     for (const x of [1, 2, 4, 6, 8]) {
         const proof = cache.lookup('edge', descriptor({ a: [x, 0, 0], b: [x, 0, 5] }));
@@ -32,7 +32,7 @@ test('clearance proof retains the certified pose across repeated skips and disti
 });
 
 test('sample grid, spatial interval and surface identity must match; changed radius uses the new clearance threshold', () => {
-    const cache = createSharedAxisDiscoveryCache(), d = descriptor(); certify(cache, d);
+    const cache = createSharedAxisDiscoveryCache({retainOnAbort:true}), d = descriptor(); certify(cache, d);
     for (const extra of [{ sampleCount: 6 }, { gridToken: 'material/71/76/0/1' }, { geometryToken: {} },
         { radius: NaN }, { margin: -1 }, { a: [Infinity, 0, 0] }]) {
         assert.equal(cache.lookup('edge', descriptor(extra)).knownInside, false);
@@ -55,13 +55,15 @@ test('winner-only, duplicate, shifted grid, outside, non-BVH and failed queries 
         capture => { for (let i = 0; i <= 5; i++) capture.visit(contact(NaN), i / 5); }
     ];
     for (const fill of badCases) {
-        const cache = createSharedAxisDiscoveryCache(); certify(cache, d);
+        const cache = createSharedAxisDiscoveryCache({retainOnAbort:true}); certify(cache, d);
         const capture = cache.begin('edge', d, { insideCertified: true }); fill(capture);
-        assert.equal(capture.commit(), false); assert.equal(cache.size, 0);
+        assert.equal(capture.commit(), false); assert.equal(cache.size, 1);
+        assert.equal(cache.lookup('edge',d).skip,true,'Incomplete query preserves the earlier immutable proof');
     }
-    const cache = createSharedAxisDiscoveryCache(); certify(cache, d);
+    const cache = createSharedAxisDiscoveryCache({retainOnAbort:true}); certify(cache, d);
     const capture = cache.begin('edge', d, { insideCertified: true }); capture.visit(contact(10), 0); capture.abort();
-    assert.equal(capture.commit(), false); assert.equal(cache.lookup('edge', d).skip, false);
+    assert.equal(capture.commit(), false); assert.equal(cache.lookup('edge', d).skip, true);
+    assert.equal(cache.lookup('edge',descriptor({a:[11,0,0],b:[11,0,5]})).knownInside,false,'Retained proof never certifies the failed distant trial');
     assert.equal(certify(cache, d, () => 10, 'edge', {}), false, 'positive BVH sign alone does not assert physical inside');
 });
 
@@ -73,7 +75,7 @@ test('seeded independent endpoint motions preserve all affine-grid wall distance
     const distance = p => Math.min(...p.map(v => 20 - Math.abs(v)));
     let skips = 0, inside = 0;
     for (let trial = 0; trial < 1000; trial++) {
-        const cache = createSharedAxisDiscoveryCache();
+        const cache = createSharedAxisDiscoveryCache({retainOnAbort:true});
         const d = descriptor({ a: Array.from({ length: 3 }, () => 24 * (random() - .5)),
             b: Array.from({ length: 3 }, () => 24 * (random() - .5)), sampleCount: 1 + Math.floor(random() * 16), radius: .3 + random() * 2 });
         assert.equal(certify(cache, d, distance), true);
@@ -91,7 +93,7 @@ test('seeded independent endpoint motions preserve all affine-grid wall distance
 });
 
 test('distance error allowance and large-coordinate guard reduce skips; storage is bounded and resettable', () => {
-    const cache = createSharedAxisDiscoveryCache({ capacity: 2 }), d = descriptor();
+    const cache = createSharedAxisDiscoveryCache({ capacity: 2,retainOnAbort:true }), d = descriptor();
     certify(cache, d, () => 2, 'first', { insideCertified: true, distanceError: .6 });
     assert.equal(cache.lookup('first', d).skip, false);
     certify(cache, d, () => 10, 'second'); certify(cache, d, () => 10, 'third');
@@ -103,7 +105,7 @@ test('distance error allowance and large-coordinate guard reduce skips; storage 
     cache.clear(); assert.equal(cache.size, 0);
 });
 
-function discoveryFixture({ queryReuse = true, source = 'sparse-sdf-bvh', winnerOnly = false } = {}) {
+function discoveryFixture({ queryReuse = true, retainDiscoveryCertificates=true, source = 'sparse-sdf-bvh', winnerOnly = false } = {}) {
     const field = { voxelSize: .25, fallbackGeometry: { boundsTree: {} }, calls: [], fail: false,
         queryCapsuleSoA(...args) {
             const [x, , , r] = args, knownInside = args[7], count = args[12], visitor = args[15];
@@ -118,7 +120,7 @@ function discoveryFixture({ queryReuse = true, source = 'sparse-sdf-bvh', winner
             return result;
         }
     };
-    const discover = createSharedAxisVesselDiscovery(field, 0, { queryReuse });
+    const discover = createSharedAxisVesselDiscovery(field, 0, { queryReuse,retainDiscoveryCertificates });
     const state = { origin: [0, 0, 0], definitions: [], layout: { positions: [0, 3] } };
     const sample = x => discover({ state, edge: 0, a: [x, 0, 0], b: [x, 0, 5],
         coordinateA: 0, coordinateB: 5, radius: 1 });
@@ -137,12 +139,15 @@ test('discovery integration skips clear segments, queries again near the wall an
     assert.equal(fast.state.pendingVesselRows.size, 6);
     assert.deepEqual([...fast.state.pendingVesselRows.keys()], [...reference.state.pendingVesselRows.keys()]);
     // A large motion invalidates the inside proof and uses an ordinary exact
-    // classification; an outside query must not leave a reusable certificate.
+    // classification; a rejected query cannot certify its own pose, but the
+    // previous pose remains certified and can be reused after rollback.
     assert.throws(() => fast.sample(10.1), /crossed the vessel surface/);
     assert.equal(fast.field.calls.at(-1).knownInside, false);
-    assert.equal(fast.discover.discoveryCache.size, 0);
-    fast.sample(0); assert.equal(fast.field.calls.length, 4);
-    assert.equal(fast.field.calls.at(-1).knownInside, false);
+    assert.equal(fast.discover.discoveryCache.size, 1);
+    fast.sample(8.6); assert.equal(fast.field.calls.length, 4);
+    assert.equal(fast.field.calls.at(-1).knownInside, true, 'Rollback to the last certified pose retains its proof');
+    fast.sample(0); assert.equal(fast.field.calls.length, 5);
+    assert.equal(fast.field.calls.at(-1).knownInside, false, 'Large motion still needs fresh classification');
 });
 
 test('discovery integration keeps cold, winner-only, non-mesh and interrupted queries uncached', () => {
@@ -161,4 +166,45 @@ test('discovery integration keeps cold, winner-only, non-mesh and interrupted qu
     assert.equal(f.field.calls.length, 3); assert.equal(f.state.pendingVesselRows.size, 6);
     f.field.fallbackGeometry.boundsTree = {}; f.sample(0);
     assert.equal(f.field.calls.length, 4); assert.equal(f.field.calls.at(-1).knownInside, false);
+});
+
+
+test('reference solver retains its original cache invalidation policy',()=>{
+    const cache=createSharedAxisDiscoveryCache(),d=descriptor();certify(cache,d);
+    const capture=cache.begin('edge',d,{insideCertified:true});capture.visit(contact(10),0);capture.abort();
+    assert.equal(cache.size,0);
+    const f=discoveryFixture({retainDiscoveryCertificates:false});f.sample(8.6);
+    assert.throws(()=>f.sample(10.1),/crossed the vessel surface/);
+    assert.equal(f.discover.discoveryCache.size,0);
+});
+
+test('debug replay retains immutable clearance evidence, binds a new BVH and rejects different anatomy',()=>{
+    const mesh=vertices=>({boundsTree:{},getAttribute:()=>({itemSize:3,array:Float32Array.from(vertices)})});
+    const vertices=[0,0,0,1,0,0,0,1,0];
+    const original=discoveryFixture();original.field.fallbackGeometry=mesh(vertices);original.sample(0);
+    const saved=JSON.parse(JSON.stringify(original.discover.captureDiscoveryState()));
+    assert.equal(saved.certificates.length,1);
+    assert.equal('geometryToken' in saved.certificates[0][1],false);
+    const replay=discoveryFixture();replay.field.fallbackGeometry=mesh(vertices);
+    replay.discover.restoreDiscoveryState(saved);saved.certificates[0][1].a[0]=100;
+    replay.sample(0);assert.equal(replay.field.calls.length,0,'Replay uses the live certificate instead of cold sign classification');
+    replay.sample(8.6);assert.equal(replay.field.calls.at(-1).knownInside,true);
+    const wrong=discoveryFixture();wrong.field.fallbackGeometry=mesh([0,0,0,2,0,0,0,1,0]);
+    assert.throws(()=>wrong.discover.restoreDiscoveryState(original.discover.captureDiscoveryState()),/same vessel mesh/);
+    assert.equal(wrong.discover.discoveryCache.size,0);
+    replay.field.fallbackGeometry.boundsTree={};replay.sample(8.6);
+    assert.equal(replay.field.calls.at(-1).knownInside,false,'A later BVH replacement still invalidates restored evidence');
+});
+
+test('restoring numeric certificates validates inputs before replacing the current cache and obeys capacity',()=>{
+    const cache=createSharedAxisDiscoveryCache({capacity:2}),d=descriptor();certify(cache,d);
+    const saved=cache.capture(geometryToken);assert.equal(saved.length,1);
+    const invalid=structuredClone(saved);invalid[0][1].minimumDistance=Infinity;
+    assert.throws(()=>cache.restore(invalid,geometryToken),/Invalid discovery/);
+    assert.equal(cache.lookup('edge',d).skip,true);
+    const restored=createSharedAxisDiscoveryCache({capacity:1}),nextToken={};
+    restored.restore([...saved,['new',saved[0][1]]],nextToken);
+    assert.equal(restored.size,1);assert.equal(restored.lookup('edge',{...d,geometryToken:nextToken}).skip,false);
+    assert.equal(restored.lookup('new',{...d,geometryToken:nextToken}).skip,true);
+    assert.equal(restored.lookup('new',d).skip,false);
 });

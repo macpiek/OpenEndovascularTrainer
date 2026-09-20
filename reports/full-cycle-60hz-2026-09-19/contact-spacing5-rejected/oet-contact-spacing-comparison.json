@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-axis-contact-spacing5",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 2126,
+      "rmsMm": 11.595268322280154,
+      "maxMm": 81.79805298442392
+    },
+    "catheter-in": {
+      "samples": 3699,
+      "rmsMm": 4.3858335942748505,
+      "maxMm": 18.1888333464164
+    },
+    "catheter-out": {
+      "samples": 6263,
+      "rmsMm": 2.5537519433018487,
+      "maxMm": 11.346818816283951
+    },
+    "wire-out": {
+      "samples": 2144,
+      "rmsMm": 3.7010798091836907,
+      "maxMm": 18.01526653714945
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.97730998264501e-7,
+    "maxRelativeLengthError": 3.576111838589456e-8,
+    "maxCertifiedResidual": 0.00009996068092732457,
+    "totalFactorizations": 107057,
+    "totalIterations": 22006
+  }
+}

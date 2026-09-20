@@ -23,19 +23,20 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,reuseFrictionAssembly=false,wasmLinearAssembly=false,lazyBasisCoefficients=false,deferActiveBasis=false,earlyPredictorFallback=false,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
     modifiedNewton=modifiedNewton&&!projectiveDynamics;
     coupledFrictionNewton=coupledFrictionNewton&&!projectiveDynamics;
     predictiveNewton=predictiveNewton&&coupledFrictionNewton;
     pruneInactiveWitnesses=pruneInactiveWitnesses&&!projectiveDynamics;
-    physicsOptions={velocityPredictor:predictiveNewton?1:0,zeroDualStart:predictiveNewton,...physicsOptions,modifiedNewton,coupledFrictionNewton,projectiveDynamics,pruneInactiveWitnesses};
+    physicsOptions={velocityPredictor:predictiveNewton?1:0,zeroDualStart:predictiveNewton,...physicsOptions,reuseFrictionAssembly,wasmLinearAssembly,lazyBasisCoefficients,deferActiveBasis,earlyPredictorFallback,modifiedNewton,coupledFrictionNewton,projectiveDynamics,pruneInactiveWitnesses};
     if(adaptiveMesh)physicsOptions={...ADAPTIVE_SOLVE_OPTIONS,...physicsOptions};
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     let lastFailure=null;
+    let nextWorkSliceMs=null;
     function recordFailure(entry,result,recovered=false) {
-        const failure={id:(globalThis.crypto?.randomUUID?.()??`${Date.now()}-${Math.random().toString(36).slice(2)}`),capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,recovered,result};
+        const failure={id:(globalThis.crypto?.randomUUID?.()??`${Date.now()}-${Math.random().toString(36).slice(2)}`),capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,recovered,solver:diagnostics.solver,result};
         // The accepted state is never solved in-place: feed creates private candidates.
         // Serialize once at rejection, not on every successful frame or cooperative yield.
         try {
@@ -50,7 +51,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
         // Archive observers cannot reject an otherwise valid physical step.
         try{onRejectedStep?.(structuredClone(lastFailure));}catch{/* The panel reports storage errors separately. */}
     }
-    const diagnostics={modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
+    const diagnostics={continuousSegmentContacts,reuseFrictionAssembly,wasmLinearAssembly,certifiedDiscoverySamples,lazyBasisCoefficients,deferActiveBasis,earlyPredictorFallback,modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
     function publish(tools,dt) {
         diagnostics.mesh={nodes:state.coordinates.length,dofs:diagnostics.last?.pd?.dofs??state.layout.dofCount,
             minSpacing:Math.min(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
@@ -79,7 +80,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
     }
     function* solve(world,dt,tools) {
         if(!state) {
-            state=createSharedAxisNative({...createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true}),
+            state=createSharedAxisNative({...createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true,retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts}),
                 maxBendAngle:Math.PI/4,adaptiveMesh:pending.adaptiveMesh, tools:tools.map(t=>({...profile(t),insertion:0}))});
             rotations=Object.fromEntries(tools.map(t=>[t.id,0]));pending.rotations={...rotations};diagnostics.initializations++;
         }
@@ -111,7 +112,14 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             adaptiveMesh=adaptiveMeshOptions({...adaptiveMesh,maxSpacing});
             return true;
         },
+        // A scheduling hint for one invocation, never a change to physical dt
+        // or solver tolerances. An indivisible generator operation may overrun it.
+        setWorkSliceBudget(milliseconds) {
+            if(!Number.isFinite(milliseconds)||milliseconds<0)throw new RangeError('Invalid work slice budget');
+            nextWorkSliceMs=milliseconds;
+        },
         step(world,dt) {
+            const sliceMs=nextWorkSliceMs??workSliceMs;nextWorkSliceMs=null;
             if(!Number.isFinite(dt)||dt<=0)throw new RangeError('Positive shared-axis timestep required');
             if(pending&&pending.dt!==dt)throw new RangeError('Pending shared-axis timestep cannot change');
             if(!world.contactField)return {accepted:false,dt,status:'geometry-not-ready'};
@@ -146,10 +154,11 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
                         for(const t of tools)t.body.sharedAxisDiagnostics=quality.bodies.find(b=>b.id===t.id);}
                     return {accepted:true,dt,status:'converged',diagnostics:{...diagnostics}};
                 }
-            }while(performance.now()-start<workSliceMs);
+            }while(performance.now()-start<sliceMs);
             pending.cpuMs+=performance.now()-start;diagnostics.pendingSlices++;return {accepted:false,pending:true,dt,status:'shared-axis-pending',diagnostics:{...diagnostics}};
         },
         reset() {
+            nextWorkSliceMs=null;
             pending?.iterator.return();pending=null;state=null;rotations={};sleepFrames=0;lastKey=null;failedKey=null;failedResult=null;
             for(const body of publication.keys()){body.jointStateView=null;body.sharedAxisDiagnostics=null;}publication.clear();
             diagnostics.initializations=diagnostics.acceptedSteps=diagnostics.pendingSlices=diagnostics.failedSteps=0;diagnostics.last=null;diagnostics.mesh=null;

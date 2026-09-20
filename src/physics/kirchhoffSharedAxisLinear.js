@@ -1,3 +1,5 @@
+import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
+import {canCondenseSharedAxisContact,assembleCondensedSharedAxisContacts,recoverCondensedSharedAxisReaction,measureUncondensedSharedAxisResidual} from './kirchhoffSharedAxisCondensation.js';
 import {materializeSharedAxisContacts,separatedSharedAxisContactDirection} from './kirchhoffSharedAxisInactiveContacts.js';
 import { assemblePreparedSharedAxisMatrix, applyPreparedSharedAxisFixedMask } from './kirchhoffSharedAxisMatrixAssembly.js';
 import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
@@ -9,6 +11,7 @@ import { createCoulombBandLU, createCoulombBandLUArena } from './kirchhoffCoulom
 // shared-axis workspaces can use one arena; retaining a different WASM memory
 // for every active-set layout causes unnecessary browser allocation/GC work.
 const sharedLinearScratchArena=createCoulombBandLUArena();
+const noCondensedRows=Object.freeze([]);
 export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics});
 
 const rowSupportKey = (rows,cache) => {
@@ -105,7 +108,7 @@ export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
         lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
 }
 
-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly }) {
+function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], condensedRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false }) {
     // Optional force support can appear after an originally normal-only
     // workspace was created. Rebuild the reference band when it no longer
     // contains that support; compact workspaces are keyed by both supports.
@@ -113,7 +116,7 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
         const key=rowSupportKey(rows,supportKeyCache);
         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
-        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly});
+        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,condensedRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly});
     }
     const { matrix: A, residual: F, band: { starts, ends, offsets }, primal, dual } = w;
     if(matrixAssembly)assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows},matrixAssembly);
@@ -144,11 +147,12 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
         // reaction (including its own sign). It is NOT a constraint Jacobian:
         // there is deliberately no transpose in the dual equation below.
         r.extraForceDofs?.forEach((p,k)=>add(primal[p],d,r.extraForceJacobian[k]));
-        if (!active || !movable) {
+        if (!active || (!movable&&!r.compliance)) {
             if (active && (r.kind === 'length' ? Math.abs(r.gap) > tolerance : r.gap < -tolerance)) throw new RangeError('Incompatible fixed shared axis constraint');
             add(d, d, 1); F[d] = r.multiplier;
         } else {
-            F[d] = r.gap;
+            F[d] = sharedAxisEffectiveGap(r);
+            if(r.compliance)add(d,d,r.compliance);
             r.dofs.forEach((p, k) => add(d, primal[p], r.jacobian[k]));
         }
         if (r.geometricHessian) r.dofs.forEach((p, i) => r.dofs.forEach((q, j) => add(primal[p], primal[q], r.geometricHessian[i * r.dofs.length + j])));
@@ -156,20 +160,24 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
     for(const r of inactiveRows)if(r.geometricHessian)
         r.dofs.forEach((p,i)=>r.dofs.forEach((q,j)=>add(primal[p],primal[q],r.geometricHessian[i*r.dofs.length+j])));
     }
+    if(condensedRows.length)assembleCondensedSharedAxisContacts(w,condensedRows);
+    const wasmLinear=wasmLinearAssembly&&!incrementalContext&&!modifiedNewtonContext;
     if(matrixAssembly)applyPreparedSharedAxisFixedMask(w);
     for (let i = 0; i < w.count; i++) {
         if(!matrixAssembly) {
             for(let j=starts[i];j<=ends[i];j++)if(w.fixed[i]||w.fixed[j])A[offsets[i]+j]=i===j?1:0;
             if(w.fixed[i])F[i]=0;
         }
-        let maximum = 0;
-        for (let j = starts[i]; j <= ends[i]; j++) maximum = Math.max(maximum, Math.abs(A[offsets[i] + j]));
-        w.scales[i] = 1 / Math.sqrt(Math.max(maximum, 1e-30));
+        if(!wasmLinear) {
+            let maximum = 0;
+            for (let j = starts[i]; j <= ends[i]; j++) maximum = Math.max(maximum, Math.abs(A[offsets[i] + j]));
+            w.scales[i] = 1 / Math.sqrt(Math.max(maximum, 1e-30));
+        }
     }
     // Experimental factors belong to one immutable linearization. Their
     // memory stays exclusive while yielded; the ordinary arena is overwritten
     // by other solvers. Compact mode uses this LU as its border-update base.
-    let lu=w.lu;
+    let lu=wasmLinear?(w.wasmLU??=createCoulombBandLU(w.band,w.count,{arena:sharedLinearScratchArena,wasmAssembly:true})):w.lu;
     if(incrementalContext) {
         lu=incrementalContext.workspaces.get(w);
         if(!lu){lu=createIncrementalContactLU(w.band,w.count,{maxRank:incrementalContext.maxRank});incrementalContext.workspaces.set(w,lu);incrementalContext.allDiagnostics.push(lu.diagnostics);}
@@ -177,7 +185,7 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
     if(modifiedNewtonContext)lu=modifiedNewtonContext.getLU(w);
     const retained=!!(incrementalContext||modifiedNewtonContext);
     const factorsBefore=retained?lu.diagnostics.factorizations:0;
-    const solved = lu.solve(A, F, w.scales, 0, w.solution);
+    const solved = lu.solve(A, F, w.scales, 0, w.solution,wasmLinear);
     // A rejected factorization does not write a valid solution. Do not report
     // a residual computed from the previous solve's scratch as this direction.
     if (!solved) {
@@ -190,10 +198,13 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
     // Certify the original unscaled equations, refining the solution when
     // material stiffness / a short edge makes forward error significant.
     for (let attempt = 0; attempt < 3; attempt++) {
+        residual = wasmLinear?lu.measureOriginalResidual(w.solution,w.error,F):null;
+        if(residual===null) {
         residual = 0;
         for (let i = 0; i < w.count; i++) {
             let v = F[i]; for (let j = starts[i]; j <= ends[i]; j++) v += A[offsets[i] + j] * w.solution[j];
             w.error[i] = v; residual = Math.max(residual, Math.abs(v));
+        }
         }
         if(residual>tolerance) {
             residual=0;
@@ -238,9 +249,14 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
         for(let i=0;i<scratch.inactiveIndices.length;i++)scratch.inactiveRows[i]=options.rows[scratch.inactiveIndices[i]];
         scratch.gradient.set(options.gradient);
     }
-    const indices=scratch?.indices??[],inactiveRows=scratch?.inactiveRows??[];
-    if(!scratch)options.rows.forEach((r,i)=>{if(activeSet[i])indices.push(i);else inactiveRows.push(r);});
-    const activeRows=scratch?.rows??indices.map(i=>options.rows[i]);
+    const allIndices=scratch?.indices??[],inactiveRows=scratch?.inactiveRows??[];
+    if(!scratch)options.rows.forEach((r,i)=>{if(activeSet[i])allIndices.push(i);else inactiveRows.push(r);});
+    const condensedIndices=options.condenseCompliantContacts&&!context&&!options.modifiedNewtonContext?
+        allIndices.filter(i=>canCondenseSharedAxisContact(options.rows[i],chain.layout)):noCondensedRows;
+    const condensedRows=condensedIndices.length?condensedIndices.map(i=>options.rows[i]):noCondensedRows;
+    const condensed=condensedIndices.length?new Set(condensedIndices):null;
+    const indices=condensedIndices.length?allIndices.filter(i=>!condensed.has(i)):allIndices;
+    const activeRows=condensedIndices.length?indices.map(i=>options.rows[i]):scratch?.rows??indices.map(i=>options.rows[i]);
     // Recheck actual supports even with a reused index map: contact/friction
     // derivatives can change their sparsity without changing the active mask.
     const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows,options.supportKeyCache),cache=w.activeWorkspaces??=new Map();
@@ -256,7 +272,8 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
         r.dofs.forEach((p,k)=>{gradient[p]-=(r.kind==='wall'?-1:1)*r.multiplier*r.jacobian[k];});
         r.extraForceDofs?.forEach((p,k)=>{gradient[p]-=r.multiplier*r.extraForceJacobian[k];});
     }
-    const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
+    const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,condensedRows,
+        inactiveRows:condensedRows.length?[...inactiveRows,...condensedRows]:inactiveRows,
         rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
     if(options.modifiedNewtonContext&&result.converged)options.modifiedNewtonContext.record(packed,indices);
     if(context&&result.converged) {
@@ -267,6 +284,25 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
     w.increment.set(result.increment);
     options.rows.forEach((r,i)=>{w.multiplierIncrement[i]=-r.multiplier;});
     indices.forEach((index,i)=>{w.multiplierIncrement[index]=result.multiplierIncrement[i];});
+    for(const i of condensedIndices)w.multiplierIncrement[i]=recoverCondensedSharedAxisReaction(options.rows[i],w.increment);
+    if(condensedIndices.length) {
+        if(options.condensationStats) {
+            options.condensationStats.attempts++;
+            options.condensationStats.eliminatedRows+=condensedIndices.length;
+        }
+        const originalResidual=result.converged?measureUncondensedSharedAxisResidual(chain,options,activeSet,w.increment,w.multiplierIncrement):Infinity;
+        if(originalResidual>(options.tolerance??1e-8)) {
+            // Never accept merely because the reduced equations passed. Keep
+            // the uncondensed numerical fallback and count its full cost.
+            const failedFactorizations=result.factorizations;
+            if(options.condensationStats)options.condensationStats.fallbacks++;
+            const reference=solveCompactWorkingSet(w,chain,{...options,condenseCompliantContacts:false},activeSet);
+            return {...reference,factorizations:failedFactorizations+reference.factorizations,
+                condensationFallback:true,condensationResidual:originalResidual};
+        }
+        result.residual=Math.max(result.residual,originalResidual);
+        result.condensedContacts=condensedIndices.length;
+    }
     w.peakActiveEntries=Math.max(w.peakActiveEntries??0,packed.matrix.length);
     return {...result,increment:w.increment,multiplierIncrement:w.multiplierIncrement};
 }
@@ -278,17 +314,19 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
  */
 function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     const { rows, tolerance = 1e-8 } = options;
-    const activeSet=Uint8Array.from(rows,r=>r.kind==='length'||r.multiplier>tolerance);
+    const primalContact=r=>options.primalCompliantContacts&&r.kind==='wall'&&r.compliance>0;
+    const activeSet=Uint8Array.from(rows,r=>r.kind==='length'||(primalContact(r)?r.gap<0:r.multiplier>tolerance));
     // This dual is a private feasible pivot iterate, not the physical reaction
     // used to assemble the equations. Starting it at zero lets the batch path
     // release all initially negative target reactions at the same first blocker.
     // The single-pivot fallback retains the original physical starting dual.
     let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?(options.zeroDualStart&&batchSize>1?0:Math.max(0,r.multiplier)):r.multiplier);
     const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses});
+    let basisRequired=!options.deferActiveBasis;
     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
         yield {kind:'linear-active-set',attempt,batchSize};
         activeSetAttempts++;
-        const prepared=prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey});
+        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients}):{converged:true};
         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
         const setKey=activeSet.join('');
         if(options.reuseConstraintWork) {
@@ -315,25 +353,41 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
             }
             factorizations+=result.factorizations;
         }
-        if(!result.converged)return finish();
+        if(!result.converged){
+            if(!basisRequired){basisRequired=true;visited.clear();attempt--;continue;}
+            return finish();
+        }
         let worst=-tolerance,change=-1,alpha=1,activate=null;
         // Move the feasible dual iterate toward the active-set solution only
         // as far as the FIRST multiplier reaching zero. Removing the most
         // negative target instead can cycle at nearly coplanar mesh features.
         for(let i=0;i<rows.length;i++) {
-            if(rows[i].kind!=='wall'||!activeSet[i])continue;
+            if(rows[i].kind!=='wall'||!activeSet[i]||primalContact(rows[i]))continue;
             const target=rows[i].multiplier+result.multiplierIncrement[i];
             if(target < -tolerance) {
                 const fraction=dual[i]/(dual[i]-target);
                 if(fraction<alpha){alpha=fraction;change=i;worst=target;}
             }
         }
+        if(change>=0&&options.simultaneousContactRelease&&batchSize>1) {
+            // Semismooth working-set update. This changes only the private
+            // search path; the final original LCP certificate is unchanged.
+            // Cycling/failed directions still retry the single-pivot solver.
+            for(let i=0;i<rows.length;i++) {
+                const target=rows[i].multiplier+result.multiplierIncrement[i];
+                dual[i]=rows[i].kind==='wall'?Math.max(0,target):target;
+                if(rows[i].kind==='wall'&&activeSet[i]&&!primalContact(rows[i])&&target < -tolerance) {
+                    activeSet[i]=0;batchedRows++;
+                }
+            }
+            continue;
+        }
         if(change>=0) {
             // At alpha=0 these contacts are tied first blockers. All have
             // zero feasible reaction; releasing them together preserves the
             // dual iterate. The single-pivot fallback keeps its original order.
             if(options.batchRelease&&batchSize>1&&alpha===0) {
-                for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i]&&dual[i]===0&&rows[i].multiplier+result.multiplierIncrement[i]<-tolerance&&i!==change) {
+                for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i]&&!primalContact(rows[i])&&dual[i]===0&&rows[i].multiplier+result.multiplierIncrement[i]<-tolerance&&i!==change) {
                     activeSet[i]=0;batchedRows++;
                 }
             }
@@ -349,9 +403,9 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
             }
             const violated=[];
             for(let i=0;i<rows.length;i++) {
-                const r=rows[i];if(r.kind!=='wall'||activeSet[i])continue;
+                const r=rows[i];if(r.kind!=='wall'||activeSet[i]||primalContact(r))continue;
                 if(separatedSharedAxisContactDirection(r,result.increment))continue;
-                const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0);
+                const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0)+(r.compliance??0)*(r.multiplier+result.multiplierIncrement[i]);
                 if(batchSize>1&&residual<-tolerance)violated.push({index:i,residual});
                 if(residual<worst){worst=residual;change=i;}
             }
@@ -378,13 +432,13 @@ function* iterateWithFallback(w,chain,options,batchSize) {
     try {
         const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
         const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};
-        if(first.converged||batchSize===1)return {...first,...incrementalStats(),batchActivation:batchSize>1,batchFallback:false};
+        if(first.converged||batchSize===1&&!options.deferActiveBasis)return {...first,...incrementalStats(),batchActivation:batchSize>1,batchFallback:false};
         // Restart from the original physical rows, reactions, gradient and Hessian.
         // Only scratch buffers have changed. The reference result may alias them,
         // so save scalar accounting before the second solve overwrites those views.
         const failedFactorizations=first.factorizations,failedAttempts=first.activeSetAttempts;
         options.trace?.push({kind:'batch-fallback',failure:first.failure});
-        const reference=yield* iterateActiveSet(w,chain,options,1,solutionCache);
+        const reference=yield* iterateActiveSet(w,chain,{...options,deferActiveBasis:false},1,solutionCache);
         return {...reference,...incrementalStats(),factorizations:failedFactorizations+reference.factorizations,
             activeSetAttempts:failedAttempts+reference.activeSetAttempts,workingSetReuses:first.workingSetReuses+reference.workingSetReuses,batchActivation:true,batchFallback:true,
             batchFailure:first.failure,batchFactorizations:failedFactorizations,referenceFactorizations:reference.factorizations,
@@ -395,18 +449,24 @@ function* iterateWithFallback(w,chain,options,batchSize) {
 /** Yield between active-set/LU attempts while preserving the synchronous API.
  * CPU timing excludes consumer pauses, including pauses before a fallback. */
 export function* iterateSharedAxisLinear(w,chain,options) {
+    const condensationStats=options.condenseCompliantContacts?{attempts:0,eliminatedRows:0,fallbacks:0}:null;
+    if(condensationStats)options={...options,condensationStats};
     if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
     options.observeLinearSystem?.({chain,options});
-    options.rows.forEach(r=>validateExtraForce(r,chain.layout.dofCount));
+    options.rows.forEach(r=>{
+        validateExtraForce(r,chain.layout.dofCount);
+        if(r.compliance!==undefined&&(!(r.compliance>=0)||!Number.isFinite(r.compliance)||r.kind!=='wall'&&r.compliance!==0))
+            throw new RangeError('Only walls may have nonnegative finite compliance');
+    });
     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');
     const batchSize=options.batchActivation===false?1:(options.batchActivationSize??8);
-    if(!Number.isInteger(batchSize)||batchSize<1||batchSize>16)throw new RangeError('Batch activation size must be between 1 and 16');
+    if(!Number.isInteger(batchSize)||batchSize<1||batchSize>256)throw new RangeError('Batch activation size must be between 1 and 256');
     const iterator=iterateWithFallback(w,chain,options,batchSize);let cpuMs=0,done=false;
     try {
         while(true) {
             const start=performance.now();let next;
             try{next=iterator.next();}finally{cpuMs+=performance.now()-start;}
-            if(next.done){done=true;return {...next.value,cpuMs};}
+            if(next.done){done=true;return {...next.value,cpuMs,...(condensationStats?{condensationStats}:{})};}
             yield next.value;
         }
     }finally{if(!done)iterator.return();}

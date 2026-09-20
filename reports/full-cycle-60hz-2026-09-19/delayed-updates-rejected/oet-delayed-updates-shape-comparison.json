@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-certified-samples",
+  "candidateDirectory": "/tmp/oet-full-cycle-delayed-updates",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1952,
+      "rmsMm": 15.958488687015818,
+      "maxMm": 141.9292606486214
+    },
+    "catheter-in": {
+      "samples": 2858,
+      "rmsMm": 34.227576607189604,
+      "maxMm": 138.52436022571527
+    },
+    "catheter-out": {
+      "samples": 4928,
+      "rmsMm": 23.56598440086686,
+      "maxMm": 105.03352984038125
+    },
+    "wire-out": {
+      "samples": 2037,
+      "rmsMm": 5.819706292251714,
+      "maxMm": 56.527297851504194
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.806217401431283e-7,
+    "maxRelativeLengthError": 3.473158474445413e-8,
+    "maxCertifiedResidual": 0.00009993683033844706,
+    "totalFactorizations": 26130,
+    "totalIterations": 16409
+  }
+}

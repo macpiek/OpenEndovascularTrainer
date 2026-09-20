@@ -3343,7 +3343,7 @@ export class EndovascularPhysicsWorld {
     getStats() {
         const bodies = this.bodies.map(body => {
             const native=this.#bodyStats(body);
-            return ['shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(this.wholeStepSystem?.id) && body.sharedAxisDiagnostics
+            return ['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(this.wholeStepSystem?.id) && body.sharedAxisDiagnostics
                 ? {...native,...body.sharedAxisDiagnostics,id:body.id,constitutiveSolver:this.wholeStepSystem.id} : native;
         });
         return {

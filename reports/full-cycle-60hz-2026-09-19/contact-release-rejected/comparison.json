@@ -1,0 +1,518 @@
+{
+  "scope": "Repeated immutable linearizations from one accepted prepared step; not a browser or full-trajectory benchmark. Repeat 0 is warmup. Includes workspace assembly and solve, excludes material/contact geometry assembly.",
+  "sourceFixture": "/tmp/oet-full-cycle-certified-samples/slow-777.json",
+  "stepResult": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 9,
+    "frictionRefreshMs": 1.6713349999997718,
+    "retainedDiscoveryTrials": 3,
+    "iterations": 16,
+    "factorizations": 279,
+    "workingSetReuses": 18,
+    "backtracks": 3,
+    "geometryRestarts": 12,
+    "ms": 466.8853749999996,
+    "timings": {
+      "assemblyMs": 111.90987399999904,
+      "linearMs": 280.3411200000021,
+      "frictionMs": 4.092668000000003,
+      "tangentAssemblyMs": 73.63729099999932,
+      "residualAssemblyMs": 38.27258299999971,
+      "projectionMs": 51.01008500000057
+    },
+    "fullAssemblies": 35,
+    "residualAssemblies": 25,
+    "promotedAssemblies": 7,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 2.2537527399890678e-14,
+      "contacts": 23,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.2880363442491217e-12,
+          "maxBendAngleDegrees": 30.887938139882912,
+          "maxBendNode": 82,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 41.66164599074761,
+          "activeWallContacts": 17,
+          "currentNormalLoad": 54370.453282293936
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.552713678800501e-16,
+          "maxBendAngleDegrees": 1.529370711952564,
+          "maxBendNode": 7,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.0006243320590587874,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 95854.72633714894
+        }
+      ]
+    },
+    "residual": {
+      "force": 4.534877007245086e-8,
+      "torque": 3.3730085391425746e-9,
+      "length": 6.440181721245608e-12
+    },
+    "dofs": 363,
+    "matrixEntries": 22008,
+    "linearScratch": {
+      "allocations": 2,
+      "capacityBytes": 1048576,
+      "grows": 1,
+      "viewBuilds": 87,
+      "requests": 491
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": false,
+    "certificateBound": 4.534877007245086e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 13,
+      "sliding": 13
+    },
+    "frictionIterations": 2,
+    "predictorFallbacks": 1,
+    "predictorRecovery": {
+      "attempted": true,
+      "early": true,
+      "predictorStatus": "linear-solve",
+      "converged": true
+    },
+    "wallNormalFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.534877007245086e-8,
+          "torque": 3.3730085391425746e-9,
+          "length": 6.440181721245608e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 13,
+          "sliding": 13
+        },
+        "iterations": 16,
+        "factorizations": 279
+      }
+    ],
+    "subdivisions": 1
+  },
+  "systems": 23,
+  "sizes": [
+    {
+      "primal": 363,
+      "rows": 488
+    },
+    {
+      "primal": 363,
+      "rows": 492
+    },
+    {
+      "primal": 363,
+      "rows": 501
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 517
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 523
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 531
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    }
+  ],
+  "samples": [
+    {
+      "repeat": 0,
+      "name": "compact",
+      "totalMs": 160.29545799999937,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "gap0001",
+      "totalMs": 155.23266300000023,
+      "factorizations": 252,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "gap001",
+      "totalMs": 147.65962700000046,
+      "factorizations": 266,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "gap01",
+      "totalMs": 150.11008000000083,
+      "factorizations": 273,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "gap01",
+      "totalMs": 148.27816499999835,
+      "factorizations": 273,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "gap001",
+      "totalMs": 142.24200199999996,
+      "factorizations": 266,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "gap0001",
+      "totalMs": 134.46345900000006,
+      "factorizations": 252,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "compact",
+      "totalMs": 127.60675099999844,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "compact",
+      "totalMs": 128.34566900000027,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "gap0001",
+      "totalMs": 133.9822509999999,
+      "factorizations": 252,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "gap001",
+      "totalMs": 158.45096100000092,
+      "factorizations": 266,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "gap01",
+      "totalMs": 222.86029300000064,
+      "factorizations": 273,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "gap01",
+      "totalMs": 174.19991700000082,
+      "factorizations": 273,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "gap001",
+      "totalMs": 144.35529099999894,
+      "factorizations": 266,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "gap0001",
+      "totalMs": 134.0525830000015,
+      "factorizations": 252,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "compact",
+      "totalMs": 128.888414,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "compact",
+      "totalMs": 130.79154100000233,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "gap0001",
+      "totalMs": 136.42624800000158,
+      "factorizations": 252,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "gap001",
+      "totalMs": 146.09412099999736,
+      "factorizations": 266,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "gap01",
+      "totalMs": 148.38529300000027,
+      "factorizations": 273,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 2340.450567362771,
+      "statusDifferences": 1,
+      "borderedStats": []
+    }
+  ]
+}

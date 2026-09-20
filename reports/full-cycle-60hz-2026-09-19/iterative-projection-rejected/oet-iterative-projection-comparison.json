@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-closed-iterative-projection",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 1.383481831994519e-13,
+      "maxMm": 1.7866300027947316e-13
+    },
+    "wire-in": {
+      "samples": 2131,
+      "rmsMm": 23.67382731634813,
+      "maxMm": 135.4815095072149
+    },
+    "catheter-in": {
+      "samples": 3546,
+      "rmsMm": 11.869369277133275,
+      "maxMm": 35.723757143013316
+    },
+    "catheter-out": {
+      "samples": 6028,
+      "rmsMm": 11.177838787080596,
+      "maxMm": 32.174544676159535
+    },
+    "wire-out": {
+      "samples": 2156,
+      "rmsMm": 8.47893670218345,
+      "maxMm": 45.72139893411799
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 0.06752011568089666,
+    "maxRelativeLengthError": 3.480491632000801e-8,
+    "maxCertifiedResidual": 0.00009964672244677786,
+    "totalFactorizations": 157404,
+    "totalIterations": 27384
+  }
+}

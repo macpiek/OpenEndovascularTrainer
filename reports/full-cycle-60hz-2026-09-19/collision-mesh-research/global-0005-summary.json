@@ -1,0 +1,78 @@
+{
+  "contactQueries": {
+    "pointQueries": 9235,
+    "capsuleQueries": 105373,
+    "capsuleSamples": 418569,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 9104,
+    "bvhRefinements": 418569,
+    "signRefinements": 903,
+    "signCacheHits": 0,
+    "signCacheMisses": 903,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 131,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 418569,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 102615,
+    "certifiedCapsuleSamples": 409334,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 866,
+  "processCpu": {
+    "meanMs": 27.39038914549655,
+    "p50Ms": 7.62,
+    "p95Ms": 44.06,
+    "maxMs": 4705.674
+  },
+  "meanMs": 21.30733651616627,
+  "p50Ms": 5.927167000000736,
+  "p95Ms": 19.920708999999988,
+  "p99Ms": 165.5666659999988,
+  "maxMs": 4103.546416999998,
+  "overBudget": 50,
+  "meanIterations": 3.1501154734411085,
+  "meanFactorizations": 25.132794457274827,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 27.791,
+        "p50Ms": 27.791,
+        "p95Ms": 27.791,
+        "maxMs": 27.791
+      },
+      "meanMs": 16.426500000000033,
+      "p50Ms": 16.426500000000033,
+      "p95Ms": 16.426500000000033,
+      "p99Ms": 16.426500000000033,
+      "maxMs": 16.426500000000033,
+      "overBudget": 0,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 866,
+      "processCpu": {
+        "meanMs": 27.39038914549655,
+        "p50Ms": 7.62,
+        "p95Ms": 44.06,
+        "maxMs": 4705.674
+      },
+      "meanMs": 21.30733651616627,
+      "p50Ms": 5.927167000000736,
+      "p95Ms": 19.920708999999988,
+      "p99Ms": 165.5666659999988,
+      "maxMs": 4103.546416999998,
+      "overBudget": 50,
+      "meanIterations": 3.1501154734411085,
+      "meanFactorizations": 25.132794457274827
+    }
+  }
+}

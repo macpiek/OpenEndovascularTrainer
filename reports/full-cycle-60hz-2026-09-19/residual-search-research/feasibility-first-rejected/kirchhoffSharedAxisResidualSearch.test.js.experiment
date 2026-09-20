@@ -1,0 +1,74 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import {Ray,Vector3,DoubleSide} from 'three';
+import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
+import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+import {captureSharedAxisNative,createSharedAxisNative,relaxSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
+import {defineKirchhoffMaterialProfile} from '../src/physics/kirchhoffMaterialProfile.js';
+import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+
+test('residual globalization retains cantilever response and elastic unloading',()=>{
+    const beam=defineKirchhoffMaterialProfile({id:'residual-search-beam',sampleEI1:()=>1e6,sampleGJ:()=>1e6/1.3,sampleKappa01:()=>0});
+    for(const ids of [['wire'],['wire','catheter']]) {
+        const s=createSharedAxisNative({tools:ids.map(id=>({id,insertion:100,type:beam}))});
+        s.loads[s.layout.positions.at(-1)+1]=1;
+        let result=relaxSharedAxisNative(s,{residualLineSearch:true});
+        assert.ok(result.converged,JSON.stringify(result));
+        assert.ok(Math.abs(s.positions.at(-1)[1]/(100**3/(3*ids.length*1e6))-1)<.01);
+        s.loads.fill(0);result=relaxSharedAxisNative(s,{residualLineSearch:true});
+        assert.ok(result.converged,JSON.stringify(result));assert.ok(Math.abs(s.positions.at(-1)[1])<1e-5);
+    }
+});
+
+test('closed-root residual cycles stop without accepting a looser equilibrium or crossing the wall',async()=>{
+    const anatomy=await loadCoupledRuntimeAnatomy();
+    try {
+        const fixture=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/shared-axis/closed-root-wire-745.80-residual-search.json.gz',import.meta.url))));
+        const input=restoreSharedAxisReplay(fixture,anatomy.field),before=captureSharedAxisNative(input),q=fixture.stepRequest;
+        let acceptedTrials=0;
+        const iterator=advanceSharedAxis(input,q.rotations,q.dt,q.tools,{...q.options,residualLineSearch:true,
+            observeTrial:e=>{
+                if(e.kind!=='trial'||!e.accept||e.base.constraint>q.options.lengthTolerance)return;
+                acceptedTrials++;
+                const merit=m=>Math.max(m.force/q.options.forceTolerance,m.torque/q.options.forceTolerance,m.constraint/q.options.lengthTolerance);
+                assert.ok(merit(e.candidate)<=1||merit(e.candidate)<merit(e.base),'Each accepted line-search proposal must reduce imbalance in its current friction chart');
+            }});
+        let next;do{next=iterator.next();}while(!next.done);
+        const {state,result}=next.value;assert.ok(state,JSON.stringify(result));
+        assert.deepEqual(captureSharedAxisNative(input),before);
+        assert.equal(result.subdivisions,1);assert.ok(acceptedTrials>0);
+        assert.ok(result.iterations<100,`Observed ${result.iterations}; reference needed 586`);
+        assert.ok(result.factorizations<1000,`Observed ${result.factorizations}; reference needed 5576`);
+        assert.ok(result.certificateBound<=q.options.forceTolerance);
+        assert.ok(result.residual.length<=q.options.lengthTolerance);
+        assert.ok(result.quality.finite&&result.quality.maxPenetration<.02);
+        const ray=new Ray(),origin=new Vector3(...state.origin);
+        for(let i=0;i+1<state.positions.length;i++) {
+            if(state.coordinates[i]<fixture.sheath.length)continue;
+            const a=new Vector3(...state.positions[i]).add(origin),b=new Vector3(...state.positions[i+1]).add(origin);
+            ray.origin.copy(a);ray.direction.subVectors(b,a).normalize();
+            assert.equal(anatomy.geometry.boundsTree.raycastFirst(ray,DoubleSide,0,a.distanceTo(b)),null,`Segment ${i} crosses the wall`);
+        }
+    }finally{anatomy.dispose();}
+});
+
+test('first contact repairs geometric infeasibility before enforcing monotone force residual',async()=>{
+    const anatomy=await loadCoupledRuntimeAnatomy();
+    try {
+        const fixture=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/shared-axis/closed-entry-wire-104.87-feasibility.json.gz',import.meta.url))));
+        const input=restoreSharedAxisReplay(fixture,anatomy.field),before=captureSharedAxisNative(input),q=fixture.stepRequest;
+        let restoration=false;
+        const iterator=advanceSharedAxis(input,q.rotations,q.dt,q.tools,{...q.options,residualLineSearch:true,observeTrial:e=>{
+            if(e.kind==='trial'&&e.accept&&e.base.constraint>q.options.lengthTolerance&&e.candidate.constraint<e.base.constraint)restoration=true;
+        }});
+        let next;do{next=iterator.next();}while(!next.done);
+        const {state,result}=next.value;assert.ok(state,JSON.stringify(result));
+        assert.ok(restoration);assert.equal(result.subdivisions,1);
+        assert.ok(result.iterations<10&&result.factorizations<20);
+        assert.ok(result.certificateBound<=q.options.forceTolerance);
+        assert.ok(result.residual.length<=q.options.lengthTolerance);
+        assert.deepEqual(captureSharedAxisNative(input),before);
+    }finally{anatomy.dispose();}
+});

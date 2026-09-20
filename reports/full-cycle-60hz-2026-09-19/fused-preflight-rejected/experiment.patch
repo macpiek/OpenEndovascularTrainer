@@ -1,0 +1,221 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -263,7 +263,7 @@
+ /** Pull back the EXISTING native material rows, including each material's
+  * intrinsic curvature. All world position variables belong to the chain;
+  * only the spin about each material director remains independent. */
+-export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false } = {}) {
++export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false,fusedContactPreflight=false } = {}) {
+     const { layout, chain } = s, { hessian: H, gradient: g } = chain;
+     H.fill(0); g.set(s.loads, 0); for (let i = 0; i < g.length; i++) g[i] = -g[i];
+     let energy = 0;
+@@ -286,7 +286,7 @@
+         (s.cacheMechanicalAssembly||rowOptions.retainWallHessians)&&
+         s.wallSamples.some(sample=>sample.sharedAxisDiscovery)&&
+         s.definitions.every(d=>d.kind==='length'||(d.evaluate??s.wallSamples[d.sample])?.sharedAxisGeometryOnly)) {
+-        prepared={contacts:rowStorage.preparedContacts??=[]};
++        prepared={contacts:rowStorage.preparedContacts??=[],buildRows:fusedContactPreflight};
+         prepared.contacts.length=s.definitions.length;
+         try{assembleSharedAxisConstraintRows(s,{...rowOptions,prepareOnly:prepared});}
+         catch(error){prepared.error=error;}
+@@ -386,7 +386,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,fusedContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -407,7 +407,7 @@
+     const observed=m=>rowPool?snapshotSharedAxisConstraintMeasure(m):m;
+     const assemble = (tangentMode,withTangent=true) => {
+         const start = performance.now();
+-        try{return assembleSharedAxisNative(s,{tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
++        try{return assembleSharedAxisNative(s,{tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,fusedContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
+         finally{const elapsed=performance.now()-start;timings.assemblyMs+=elapsed;
+             timings[withTangent?'tangentAssemblyMs':'residualAssemblyMs']+=elapsed;
+             if(withTangent)fullAssemblies++;else residualAssemblies++;}
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -66,14 +66,25 @@
+  */
+ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
+     if(prepared?.error&&prepared.index===undefined)throw prepared.error;
+-    const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly?null:(storage?.rows??new Array(s.definitions.length));
++    const g=s.chain.gradient;
++    if(prepared?.rows&&!prepared.error) {
++        // Row buffers were built during geometry preflight. Scatter forces only
++        // now, after material and friction, retaining the original addition order.
++        for(const row of prepared.rows) {
++            const sign=row.kind==='wall'?-1:1;
++            for(let i=0;i<row.dofs.length;i++)g[row.dofs[i]]+=sign*row.jacobian[i]*row.multiplier;
++        }
++        return prepared.rows;
++    }
++    const buildPreparedRows=prepareOnly?.buildRows===true;
++    const geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly&&!buildPreparedRows?null:(storage?.rows??new Array(s.definitions.length));
+     if(rows)rows.length=s.definitions.length;
+     for(let index=0;index<s.definitions.length;index++) {
+         if(prepareOnly)prepareOnly.index=index;
+         if(prepared?.error&&prepared.index===index)throw prepared.error;
+         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
+         let gap,J,gapHessian=null,row;
+-        if(storage&&!prepareOnly) {
++        if(storage&&(!prepareOnly||buildPreparedRows)) {
+             row=rows[index];
+             if(storage.definitions[index]!==def) {
+                 storage.definitions[index]=def;storage.hessians[index]=null;
+@@ -134,9 +145,9 @@
+             if(prepareOnly)prepareOnly.contacts[index]=contact;
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
+         }
+-        if(prepareOnly)continue;
++        if(prepareOnly&&!buildPreparedRows)continue;
+         const multiplier=s.multipliers[index],sign=def.kind==='wall'?-1:1;
+-        for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
++        if(!prepareOnly)for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
+         let geometricHessian;
+         if(gapHessian&&multiplier!==0&&withTangent) {
+             geometricHessian=hessianBuffer(storage,index,gapHessian.length);
+@@ -154,5 +165,6 @@
+             for(let i=0;i<J.length;i++)row.jacobian[i]=J[i];
+         } else rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
+     }
++    if(buildPreparedRows)prepareOnly.rows=rows;
+     return rows;
+ }
+--- a/tests/kirchhoffSharedAxisContactPreflight.test.js
++++ b/tests/kirchhoffSharedAxisContactPreflight.test.js
+@@ -20,7 +20,7 @@
+     let materialReads=0;
+     const body=s.materials[0].body,rest=body.restRotation1;
+     Object.defineProperty(body,'restRotation1',{get(){materialReads++;return rest;}});
+-    const pool=createSharedAxisConstraintRowPool(),run=earlyContactPreflight=>assembleSharedAxisNative(s,{earlyContactPreflight,rowStorage:pool.acquire(),reuseConstraintWork:true});
++    const pool=createSharedAxisConstraintRowPool(),run=(earlyContactPreflight,fusedContactPreflight=false)=>assembleSharedAxisNative(s,{earlyContactPreflight,fusedContactPreflight,rowStorage:pool.acquire(),reuseConstraintWork:true});
+     return {s,run,calls,geometry,get materialReads(){return materialReads;}};
+ }
+ const measure=(s,r)=>({energy:r.energy,force:r.force,torque:r.torque,constraint:r.constraint,
+@@ -28,37 +28,37 @@
+ 
+ test('discovery preflight skips material only on a complete restart and never duplicates geometry queries',()=>{
+     const outputs=[];
+-    for(const early of [false,true]) {
++    for(const [early,fused] of [[false,false],[true,false],[true,true]]) {
+         const f=fixture(),{s,run,calls}=f,before=captureSharedAxisNative(s);
+         try {
+-            assert.throws(()=>run(early),/shared-axis-wall-discovery/);
++            assert.throws(()=>run(early,fused),/shared-axis-wall-discovery/);
+             assert.deepEqual(calls,[0,5,10]);assert.equal(s.pendingVesselRows.size,3);
+             assert.deepEqual(captureSharedAxisNative(s),before);
+             assert.equal(f.materialReads===0,early,'Rejected topology must avoid material assembly only in the preflight path');
+             const ids=[...s.pendingVesselRows.keys()];
+             extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();
+-            const first=measure(s,run(early));assert.equal(calls.length,3,'Prepared discovery output survives the row-only restart');
++            const first=measure(s,run(early,fused));assert.equal(calls.length,3,'Prepared discovery output survives the row-only restart');
+             s.positions[2][1]+=.01;s.geometryKey=Symbol('trial');
+-            const second=measure(s,run(early));assert.equal(calls.length,6,'One query per edge, including the successful preflight');
++            const second=measure(s,run(early,fused));assert.equal(calls.length,6,'One query per edge, including the successful preflight');
+             outputs.push({ids,first,second});
+         }finally{f.geometry.dispose();}
+     }
+-    assert.deepEqual(outputs[1],outputs[0]);
++    assert.deepEqual(outputs[1],outputs[0]);assert.deepEqual(outputs[2],outputs[0]);
+ });
+ 
+ for(const placement of ['before','after'])test(`geometry failure ${placement} discovery preserves query order, partial pending rows and error priority`,()=>{
+     const outputs=[];
+-    for(const early of [false,true]) {
++    for(const [early,fused] of [[false,false],[true,false],[true,true]]) {
+         const bad=()=>{throw Object.assign(new Error('surface boundary'),{code:'trial-outside-vessel'});};
+         bad.sharedAxisGeometryOnly=true;
+         const f=fixture({before:placement==='before'?[bad]:[],after:placement==='after'?[bad]:[]});
+         try {
+-            let failure;try{f.run(early);}catch(error){failure={message:error.message,code:error.code};}
++            let failure;try{f.run(early,fused);}catch(error){failure={message:error.message,code:error.code};}
+             assert.ok(f.materialReads>0,'Geometry errors must retain the original material-before-error behavior');
+             outputs.push({failure,calls:f.calls,pending:[...(f.s.pendingVesselRows?.keys()??[])]});
+         }finally{f.geometry.dispose();}
+     }
+-    assert.deepEqual(outputs[1],outputs[0]);
++    assert.deepEqual(outputs[1],outputs[0]);assert.deepEqual(outputs[2],outputs[0]);
+     assert.equal(outputs[0].calls.length,placement==='before'?0:1);
+ });
+ 
+@@ -70,17 +70,36 @@
+ 
+ test('prepared geometry preserves defensive copies for a marked sampler with reused output',()=>{
+     const outputs=[];
+-    for(const early of [false,true]) {
++    for(const [early,fused] of [[false,false],[true,false],[true,true]]) {
+         const contact={gap:0,jacobian:new Array(6)},sample=({edge})=>{contact.gap=1+edge;contact.jacobian.fill(edge*.1);return contact;};
+         sample.sharedAxisGeometryOnly=true;
+         const f=fixture({before:[sample],after:[]});
+         try {
+-            assert.throws(()=>f.run(early),/shared-axis-wall-discovery/);
++            assert.throws(()=>f.run(early,fused),/shared-axis-wall-discovery/);
+             extendSharedAxisNativeRows(f.s,[...f.s.pendingVesselRows.values()]);f.s.pendingVesselRows.clear();
+-            f.s.geometryKey=Symbol('new');outputs.push(measure(f.s,f.run(early)));
++            f.s.geometryKey=Symbol('new');outputs.push(measure(f.s,f.run(early,fused)));
+         }finally{f.geometry.dispose();}
+     }
+-    assert.deepEqual(outputs[1],outputs[0]);
++    assert.deepEqual(outputs[1],outputs[0]);assert.deepEqual(outputs[2],outputs[0]);
++});
++
++test('fused preflight retains loaded contact Hessians and the material/friction/constraint force order',()=>{
++    const outputs=[];
++    for(const [early,fused] of [[false,false],[true,false],[true,true]]) {
++        const f=fixture(),{s}=f;
++        try {
++            assert.throws(()=>f.run(early,fused),/shared-axis-wall-discovery/);
++            extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();
++            prepareSharedAxisDynamicStep(s,1/60);
++            s.multipliers.fill(.07);
++            prepareSharedAxisWallFriction(s,{liveNormalLoad:true});
++            s.positions[2][1]=.013;s.geometryKey=Symbol('loaded-trial');
++            const result=measure(s,f.run(early,fused));
++            assert.ok(result.rows.some(row=>row.H?.some(value=>value!==0)));
++            outputs.push(result);
++        }finally{f.geometry.dispose();}
++    }
++    assert.deepEqual(outputs[1],outputs[0]);assert.deepEqual(outputs[2],outputs[0]);
+ });
+ 
+ test('an early discovery restart invalidates the previous friction certificate before publication',()=>{
+--- a/tests/kirchhoffSharedAxisContactPreflightReplay.test.js
++++ b/tests/kirchhoffSharedAxisContactPreflightReplay.test.js
+@@ -10,7 +10,7 @@
+ for(const name of ['anatomy-berenstein-feed-138.67-live-cycle','anatomy-pigtail-wire-withdraw-200.27-incoming'])
+ test(`early contact preflight preserves every direction/acceptance decision and complete physical output: ${name}`,()=>{
+     const fixture=load(name),req=fixture.stepRequest,outputs=[];
+-    for(const earlyContactPreflight of [false,true]) {
++    for(const [earlyContactPreflight,fusedContactPreflight] of [[false,false],[true,false],[true,true]]) {
+         const input=restoreSharedAxisReplay(fixture,anatomy.field),before=captureSharedAxisReplay(input,fixture.sheath),trace=[];
+         if(earlyContactPreflight) {
+             const cancelled=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,earlyContactPreflight:true,promoteTrialAssembly:true,wasmMaterial:true,reuseRowBuffers:true,reuseConstraintWork:true});
+@@ -18,7 +18,7 @@
+             cancelled.return();
+             assert.deepEqual(captureSharedAxisReplay(input,fixture.sheath),before,'Cancelling a private solve must leave the accepted state untouched');
+         }
+-        const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight,
++        const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight,fusedContactPreflight,
+             observeTrial:e=>{
+                 if(e.kind==='direction') {
+                     assert.equal(e.state.chain.hessianValid,true,'Each Newton/GN solve needs a valid full matrix');
+@@ -35,7 +35,8 @@
+             'Assembly timing categories must survive discovery and friction/substep wrappers');
+         outputs.push({trace,state:captureSharedAxisReplay(state,fixture.sheath),result});
+     }
+-    const [reference,lazy]=outputs;
++    const [reference,...candidates]=outputs;
++    for(const lazy of candidates) {
+     assert.deepEqual(lazy.trace,reference.trace);
+     assert.deepEqual(lazy.state,reference.state,'Pose, reactions, frames, velocities and friction history must match exactly');
+     for(const key of ['quality','residual','iterations','factorizations','backtracks','geometryRestarts','substepAttempts'])
+@@ -43,4 +44,5 @@
+     assert.equal(lazy.result.fullAssemblies,reference.result.fullAssemblies);
+     assert.equal(lazy.result.promotedAssemblies,reference.result.promotedAssemblies);
+     assert.equal(lazy.result.residualAssemblies,reference.result.residualAssemblies);
++    }
+ });

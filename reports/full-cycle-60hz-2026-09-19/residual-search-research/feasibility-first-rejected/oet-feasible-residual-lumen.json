@@ -1,0 +1,3826 @@
+{
+  "source": "/tmp/oet-closed-feasible-residual/shapes.json",
+  "scope": "Saved trajectory samples at <=2 mm spacing; sheath interval excluded. Packed lumen disagreement is approximate, not an independently validated anatomical containment certificate.",
+  "bounds": {
+    "min": [
+      -230.46322631835938,
+      -1393.25,
+      -118.03494262695312
+    ],
+    "max": [
+      230.46322631835938,
+      373.01934814453125,
+      126.85468292236328
+    ]
+  },
+  "frames": 96,
+  "samples": 51650,
+  "framesWithFarOutside": 55,
+  "firstFarOutside": {
+    "index": 1259,
+    "phase": "wire-in",
+    "wire": 923.2666666666782,
+    "catheter": 0,
+    "samples": 663,
+    "outside": 4,
+    "farOutside": 1,
+    "beyondBounds": 0,
+    "worst": {
+      "site": 920,
+      "point": [
+        137.7829975835176,
+        124.78937345661745,
+        16.850678109839272
+      ],
+      "packedSignedDistance": -25.975160093576577,
+      "exactSurfaceDistance": 0.44445214554535756,
+      "face": 1010431,
+      "outsideBounds": false
+    },
+    "examples": [
+      {
+        "site": 923.2666666666782,
+        "point": [
+          140.1130494070003,
+          126.61360155919533,
+          18.23421034323214
+        ],
+        "packedSignedDistance": -8.704545063174542,
+        "exactSurfaceDistance": 2.2328606281176238,
+        "face": 1010591,
+        "outsideBounds": false
+      }
+    ]
+  },
+  "framesWithBeyondBounds": 0,
+  "details": [
+    {
+      "index": 0,
+      "phase": "initial",
+      "wire": 0,
+      "catheter": 0,
+      "samples": 0,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 59,
+      "phase": "wire-in",
+      "wire": 43.266666666666694,
+      "catheter": 0,
+      "samples": 0,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 119,
+      "phase": "wire-in",
+      "wire": 87.26666666666675,
+      "catheter": 0,
+      "samples": 16,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 179,
+      "phase": "wire-in",
+      "wire": 131.26666666666674,
+      "catheter": 0,
+      "samples": 50,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 239,
+      "phase": "wire-in",
+      "wire": 175.26666666666594,
+      "catheter": 0,
+      "samples": 85,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 299,
+      "phase": "wire-in",
+      "wire": 219.26666666666515,
+      "catheter": 0,
+      "samples": 119,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 359,
+      "phase": "wire-in",
+      "wire": 263.2666666666646,
+      "catheter": 0,
+      "samples": 154,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 419,
+      "phase": "wire-in",
+      "wire": 307.2666666666655,
+      "catheter": 0,
+      "samples": 186,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 479,
+      "phase": "wire-in",
+      "wire": 351.2666666666664,
+      "catheter": 0,
+      "samples": 214,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 539,
+      "phase": "wire-in",
+      "wire": 395.26666666666733,
+      "catheter": 0,
+      "samples": 242,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 599,
+      "phase": "wire-in",
+      "wire": 439.26666666666824,
+      "catheter": 0,
+      "samples": 266,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 659,
+      "phase": "wire-in",
+      "wire": 483.26666666666915,
+      "catheter": 0,
+      "samples": 302,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 719,
+      "phase": "wire-in",
+      "wire": 527.2666666666701,
+      "catheter": 0,
+      "samples": 323,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 779,
+      "phase": "wire-in",
+      "wire": 571.266666666671,
+      "catheter": 0,
+      "samples": 359,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 839,
+      "phase": "wire-in",
+      "wire": 615.2666666666719,
+      "catheter": 0,
+      "samples": 381,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 899,
+      "phase": "wire-in",
+      "wire": 659.2666666666728,
+      "catheter": 0,
+      "samples": 432,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 959,
+      "phase": "wire-in",
+      "wire": 703.2666666666737,
+      "catheter": 0,
+      "samples": 495,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 1019,
+      "phase": "wire-in",
+      "wire": 747.2666666666746,
+      "catheter": 0,
+      "samples": 538,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 1079,
+      "phase": "wire-in",
+      "wire": 791.2666666666755,
+      "catheter": 0,
+      "samples": 574,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 1139,
+      "phase": "wire-in",
+      "wire": 835.2666666666764,
+      "catheter": 0,
+      "samples": 607,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 1199,
+      "phase": "wire-in",
+      "wire": 879.2666666666773,
+      "catheter": 0,
+      "samples": 606,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 1259,
+      "phase": "wire-in",
+      "wire": 923.2666666666782,
+      "catheter": 0,
+      "samples": 663,
+      "outside": 4,
+      "farOutside": 1,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 920,
+        "point": [
+          137.7829975835176,
+          124.78937345661745,
+          16.850678109839272
+        ],
+        "packedSignedDistance": -25.975160093576577,
+        "exactSurfaceDistance": 0.44445214554535756,
+        "face": 1010431,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 923.2666666666782,
+          "point": [
+            140.1130494070003,
+            126.61360155919533,
+            18.23421034323214
+          ],
+          "packedSignedDistance": -8.704545063174542,
+          "exactSurfaceDistance": 2.2328606281176238,
+          "face": 1010591,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1319,
+      "phase": "wire-in",
+      "wire": 967.2666666666792,
+      "catheter": 0,
+      "samples": 709,
+      "outside": 40,
+      "farOutside": 37,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 943.3333333333334,
+        "point": [
+          152.32921062686228,
+          138.97012957144864,
+          14.076352549212684
+        ],
+        "packedSignedDistance": -41.19907213987792,
+        "exactSurfaceDistance": 17.904145147336656,
+        "face": 1010308,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 923.3333333333334,
+          "point": [
+            139.72013792926845,
+            127.65401271007306,
+            17.559391734408706
+          ],
+          "packedSignedDistance": -37.18571327642668,
+          "exactSurfaceDistance": 3.140268280410197,
+          "face": 1010494,
+          "outsideBounds": false
+        },
+        {
+          "site": 925,
+          "point": [
+            140.8367596949842,
+            128.81342300052552,
+            17.991481295148752
+          ],
+          "packedSignedDistance": -38.09961972516551,
+          "exactSurfaceDistance": 4.3838995107292815,
+          "face": 1010670,
+          "outsideBounds": false
+        },
+        {
+          "site": 925,
+          "point": [
+            140.8367596949842,
+            128.81342300052552,
+            17.991481295148752
+          ],
+          "packedSignedDistance": -38.09961972516551,
+          "exactSurfaceDistance": 4.3838995107292815,
+          "face": 1010670,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1379,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 13.000000000000005,
+      "samples": 727,
+      "outside": 61,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 991.6666666666666,
+        "point": [
+          180.83359962829644,
+          179.80717993573194,
+          29.07794966751061
+        ],
+        "packedSignedDistance": -94.47672468570104,
+        "exactSurfaceDistance": 69.1082807103586,
+        "face": 1010571,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            135.39942711300472,
+            124.55791578068488,
+            13.965563114822423
+          ],
+          "packedSignedDistance": -12.665552471491754,
+          "exactSurfaceDistance": 2.687657330223776,
+          "face": 1009078,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            136.4509983447806,
+            125.82209229241164,
+            14.237286263408132
+          ],
+          "packedSignedDistance": -33.299554424497884,
+          "exactSurfaceDistance": 3.09180278847325,
+          "face": 1009083,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            137.50256957655648,
+            127.08626880413851,
+            14.50900941199384
+          ],
+          "packedSignedDistance": -35.58400110854186,
+          "exactSurfaceDistance": 3.5917852499603082,
+          "face": 1009390,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1439,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 65.00000000000001,
+      "samples": 727,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          190.2336262907284,
+          183.8593960524414,
+          48.08553253340142
+        ],
+        "packedSignedDistance": -108.66072478356799,
+        "exactSurfaceDistance": 83.22443031770742,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            138.28717547738933,
+            126.54332258756426,
+            17.986807156269116
+          ],
+          "packedSignedDistance": -34.870465796090585,
+          "exactSurfaceDistance": 2.048445314685886,
+          "face": 1010443,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.34191035548452,
+            127.68150641007321,
+            18.594959851639295
+          ],
+          "packedSignedDistance": -36.96386593556698,
+          "exactSurfaceDistance": 3.287721341146541,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.3966452335797,
+            128.81969023258227,
+            19.20311254700947
+          ],
+          "packedSignedDistance": -28.66051934844193,
+          "exactSurfaceDistance": 4.649038927629113,
+          "face": 1010505,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1499,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 116.99999999999962,
+      "samples": 730,
+      "outside": 64,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          190.68551966392306,
+          183.3674110263663,
+          48.66742848443031
+        ],
+        "packedSignedDistance": -108.74353992714234,
+        "exactSurfaceDistance": 83.36619312403565,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.33294419115072,
+            127.62742793201699,
+            18.421620196644184
+          ],
+          "packedSignedDistance": -36.89593676583432,
+          "exactSurfaceDistance": 3.2002551793247327,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.3977430467731,
+            128.78085034412095,
+            18.98161833422965
+          ],
+          "packedSignedDistance": -31.85000914033637,
+          "exactSurfaceDistance": 4.542085194596672,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.3977430467731,
+            128.78085034412095,
+            18.98161833422965
+          ],
+          "packedSignedDistance": -31.85000914033637,
+          "exactSurfaceDistance": 4.542085194596672,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1559,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 168.9999999999999,
+      "samples": 731,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.42829527867912,
+          184.13841812176508,
+          46.021013438428525
+        ],
+        "packedSignedDistance": -108.48639765437234,
+        "exactSurfaceDistance": 83.37930727580812,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.3301233876761,
+            127.64188910903476,
+            18.407669193721084
+          ],
+          "packedSignedDistance": -36.91630841016266,
+          "exactSurfaceDistance": 3.2119537272022822,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.39401965955966,
+            128.7992609003885,
+            18.96119700424987
+          ],
+          "packedSignedDistance": -32.637552088236724,
+          "exactSurfaceDistance": 4.552863565315983,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.39401965955966,
+            128.7992609003885,
+            18.96119700424987
+          ],
+          "packedSignedDistance": -32.637552088236724,
+          "exactSurfaceDistance": 4.552863565315983,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1619,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 221.00000000000034,
+      "samples": 716,
+      "outside": 64,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.51747723378145,
+          184.3621024317731,
+          45.39615128033396
+        ],
+        "packedSignedDistance": -108.4456826632323,
+        "exactSurfaceDistance": 83.37434983818972,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.3362510202216,
+            127.6345954783684,
+            18.404642895703315
+          ],
+          "packedSignedDistance": -36.90904627954927,
+          "exactSurfaceDistance": 3.204535631994039,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40115320681542,
+            128.79104429254437,
+            18.958165479665844
+          ],
+          "packedSignedDistance": -32.40293524479704,
+          "exactSurfaceDistance": 4.545098245246469,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40115320681542,
+            128.79104429254437,
+            18.958165479665844
+          ],
+          "packedSignedDistance": -32.40293524479704,
+          "exactSurfaceDistance": 4.545098245246469,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1679,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 273.0000000000008,
+      "samples": 709,
+      "outside": 64,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.52583611062857,
+          184.3140193570955,
+          45.479826554868836
+        ],
+        "packedSignedDistance": -108.44434065677305,
+        "exactSurfaceDistance": 83.37398454923353,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.33583461341362,
+            127.63385939597981,
+            18.405896994407726
+          ],
+          "packedSignedDistance": -36.90769145838745,
+          "exactSurfaceDistance": 3.2040055585585177,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.4007812042899,
+            128.79003663572712,
+            18.959901260320024
+          ],
+          "packedSignedDistance": -32.35932652844667,
+          "exactSurfaceDistance": 4.544617123316106,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.4007812042899,
+            128.79003663572712,
+            18.959901260320024
+          ],
+          "packedSignedDistance": -32.35932652844667,
+          "exactSurfaceDistance": 4.544617123316106,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1739,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 325.00000000000125,
+      "samples": 705,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.5214299535313,
+          184.286117754398,
+          45.55354031248796
+        ],
+        "packedSignedDistance": -108.44887422055757,
+        "exactSurfaceDistance": 83.37699057577214,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.3371782993056,
+            127.63543892100745,
+            18.406740357235737
+          ],
+          "packedSignedDistance": -36.91060593422792,
+          "exactSurfaceDistance": 3.205764847248441,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.4020860037498,
+            128.7916011099171,
+            18.960850771980596
+          ],
+          "packedSignedDistance": -32.34859314643562,
+          "exactSurfaceDistance": 4.5465477428173315,
+          "face": 1010591,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.4020860037498,
+            128.7916011099171,
+            18.960850771980596
+          ],
+          "packedSignedDistance": -32.34859314643562,
+          "exactSurfaceDistance": 4.5465477428173315,
+          "face": 1010591,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1799,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 377.0000000000017,
+      "samples": 714,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.51790419760545,
+          184.28489097869533,
+          45.56300764610103
+        ],
+        "packedSignedDistance": -108.44987502149331,
+        "exactSurfaceDistance": 83.37728008036223,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.33683153167004,
+            127.63577353048663,
+            18.406839293429318
+          ],
+          "packedSignedDistance": -36.91090829305491,
+          "exactSurfaceDistance": 3.206095373107783,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40168914749609,
+            128.79198785286894,
+            18.96093718777025
+          ],
+          "packedSignedDistance": -32.36176012776212,
+          "exactSurfaceDistance": 4.546888424720077,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40168914749609,
+            128.79198785286894,
+            18.96093718777025
+          ],
+          "packedSignedDistance": -32.36176012776212,
+          "exactSurfaceDistance": 4.546888424720077,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1859,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 429.00000000000216,
+      "samples": 705,
+      "outside": 64,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.51451564185453,
+          184.28842941169194,
+          45.55832909805622
+        ],
+        "packedSignedDistance": -108.44919430295676,
+        "exactSurfaceDistance": 83.37613447874251,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.3353445091597,
+            127.63535091509675,
+            18.40676892404037
+          ],
+          "packedSignedDistance": -36.90954733368572,
+          "exactSurfaceDistance": 3.2056000817437784,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40015116269245,
+            128.79161359322723,
+            18.96086385050387
+          ],
+          "packedSignedDistance": -32.38402072177104,
+          "exactSurfaceDistance": 4.546315613665149,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40015116269245,
+            128.79161359322723,
+            18.96086385050387
+          ],
+          "packedSignedDistance": -32.38402072177104,
+          "exactSurfaceDistance": 4.546315613665149,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1919,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 481.0000000000026,
+      "samples": 711,
+      "outside": 64,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.51515159979266,
+          184.29487967700618,
+          45.55944327979577
+        ],
+        "packedSignedDistance": -108.45500707354662,
+        "exactSurfaceDistance": 83.38152712458542,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.33865796146648,
+            127.63923890527872,
+            18.408086551962633
+          ],
+          "packedSignedDistance": -36.91677170707956,
+          "exactSurfaceDistance": 3.2098019833969555,
+          "face": 1010516,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40341920827456,
+            128.79554420147463,
+            18.962179799586995
+          ],
+          "packedSignedDistance": -32.37635393977823,
+          "exactSurfaceDistance": 4.550844646737729,
+          "face": 1010591,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40341920827456,
+            128.79554420147463,
+            18.962179799586995
+          ],
+          "packedSignedDistance": -32.37635393977823,
+          "exactSurfaceDistance": 4.550844646737729,
+          "face": 1010591,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 1979,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 533.0000000000031,
+      "samples": 716,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.51541778715955,
+          184.30023575131952,
+          45.56094218701395
+        ],
+        "packedSignedDistance": -108.45992950811204,
+        "exactSurfaceDistance": 83.38604676847393,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.34210395506142,
+            127.64202891389937,
+            18.408827780869302
+          ],
+          "packedSignedDistance": -36.9225101508255,
+          "exactSurfaceDistance": 3.212831426775128,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40693089767467,
+            128.79829897331786,
+            18.962868311656635
+          ],
+          "packedSignedDistance": -32.35280134645916,
+          "exactSurfaceDistance": 4.554105647051828,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.40693089767467,
+            128.79829897331786,
+            18.962868311656635
+          ],
+          "packedSignedDistance": -32.35280134645916,
+          "exactSurfaceDistance": 4.554105647051828,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2039,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 585.0000000000035,
+      "samples": 728,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.50301239372055,
+          184.2856978258685,
+          45.54676572424397
+        ],
+        "packedSignedDistance": -108.43697077708988,
+        "exactSurfaceDistance": 83.36319310597936,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.32881200359043,
+            127.62415239980612,
+            18.403375685284953
+          ],
+          "packedSignedDistance": -36.89024016453622,
+          "exactSurfaceDistance": 3.1937050326855894,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.39384761206827,
+            128.7801038369878,
+            18.957679938677835
+          ],
+          "packedSignedDistance": -32.334718080261425,
+          "exactSurfaceDistance": 4.533673037308195,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.39384761206827,
+            128.7801038369878,
+            18.957679938677835
+          ],
+          "packedSignedDistance": -32.334718080261425,
+          "exactSurfaceDistance": 4.533673037308195,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2099,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 637.000000000004,
+      "samples": 731,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.60298994540346,
+          184.340888734979,
+          45.60610342118018
+        ],
+        "packedSignedDistance": -108.55195782684268,
+        "exactSurfaceDistance": 83.48385874762046,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            138.34272233327317,
+            126.55714067040196,
+            17.87883688684998
+          ],
+          "packedSignedDistance": -34.884452426351835,
+          "exactSurfaceDistance": 2.052915258060506,
+          "face": 1010429,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.4072313028563,
+            127.71384485896078,
+            18.43258218175125
+          ],
+          "packedSignedDistance": -37.057986999174986,
+          "exactSurfaceDistance": 3.2906885143117353,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.47174027243943,
+            128.8705490475196,
+            18.98632747665252
+          ],
+          "packedSignedDistance": -32.1383529790766,
+          "exactSurfaceDistance": 4.637823612847273,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2159,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 689.0000000000044,
+      "samples": 731,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          191.25091826604842,
+          184.00317875456915,
+          45.411097859359366
+        ],
+        "packedSignedDistance": -108.03975963210888,
+        "exactSurfaceDistance": 82.96114512793076,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            139.05841271712256,
+            127.33727983720348,
+            18.31238767734373
+          ],
+          "packedSignedDistance": -36.34378650752809,
+          "exactSurfaceDistance": 2.8866015754870937,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.12378139077248,
+            128.49312066307562,
+            18.866282389568415
+          ],
+          "packedSignedDistance": -33.389561620522926,
+          "exactSurfaceDistance": 4.203465857819764,
+          "face": 1010511,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            140.12378139077248,
+            128.49312066307562,
+            18.866282389568415
+          ],
+          "packedSignedDistance": -33.389561620522926,
+          "exactSurfaceDistance": 4.203465857819764,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2219,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 741.0000000000049,
+      "samples": 733,
+      "outside": 62,
+      "farOutside": 60,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          190.26979990254836,
+          183.18772518241406,
+          44.857192366403865
+        ],
+        "packedSignedDistance": -106.72396702416101,
+        "exactSurfaceDistance": 81.59124364830257,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 920,
+          "point": [
+            139.20025544007302,
+            127.58499078329578,
+            18.416636117514834
+          ],
+          "packedSignedDistance": -36.767610184895375,
+          "exactSurfaceDistance": 3.151910834627129,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.20025544007302,
+            127.58499078329578,
+            18.416636117514834
+          ],
+          "packedSignedDistance": -36.767610184895375,
+          "exactSurfaceDistance": 3.151910834627129,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 921.6666666666666,
+          "point": [
+            140.25691304038264,
+            128.74487822590243,
+            18.97869804823901
+          ],
+          "packedSignedDistance": -33.78864509134643,
+          "exactSurfaceDistance": 4.4897091341737525,
+          "face": 1010505,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2279,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 793.0000000000053,
+      "samples": 729,
+      "outside": 62,
+      "farOutside": 60,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          190.12332481698184,
+          183.36623420760486,
+          45.21309936051623
+        ],
+        "packedSignedDistance": -106.95343749086977,
+        "exactSurfaceDistance": 81.75586775727407,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 920,
+          "point": [
+            139.35749694130658,
+            127.65225383040445,
+            18.411832718786357
+          ],
+          "packedSignedDistance": -36.9449243455106,
+          "exactSurfaceDistance": 3.224115778497268,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.35749694130658,
+            127.65225383040445,
+            18.411832718786357
+          ],
+          "packedSignedDistance": -36.9449243455106,
+          "exactSurfaceDistance": 3.224115778497268,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 921.6666666666666,
+          "point": [
+            140.42270207813777,
+            128.808102110552,
+            18.966026319909925
+          ],
+          "packedSignedDistance": -32.19640355049086,
+          "exactSurfaceDistance": 4.566347934196858,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2339,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 845.0000000000058,
+      "samples": 731,
+      "outside": 63,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          190.02223659501414,
+          182.8092713862178,
+          44.95706471196758
+        ],
+        "packedSignedDistance": -106.35998478992926,
+        "exactSurfaceDistance": 81.20531078350352,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 920,
+          "point": [
+            138.90972991948604,
+            127.3187573941193,
+            18.346504176317673
+          ],
+          "packedSignedDistance": -36.239513664901885,
+          "exactSurfaceDistance": 2.868284904322141,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            138.90972991948604,
+            127.3187573941193,
+            18.346504176317673
+          ],
+          "packedSignedDistance": -36.239513664901885,
+          "exactSurfaceDistance": 2.868284904322141,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 921.6666666666666,
+          "point": [
+            139.97018446403115,
+            128.47726671808027,
+            18.904240747672876
+          ],
+          "packedSignedDistance": -35.22211868417731,
+          "exactSurfaceDistance": 4.183703065188341,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2399,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 897.0000000000063,
+      "samples": 733,
+      "outside": 62,
+      "farOutside": 60,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          189.38172500988065,
+          182.80554390179748,
+          45.07925837065029
+        ],
+        "packedSignedDistance": -106.1274858365326,
+        "exactSurfaceDistance": 80.8615114616503,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 920,
+          "point": [
+            138.4418153161414,
+            127.28540192104595,
+            18.21623603843479
+          ],
+          "packedSignedDistance": -35.96437778583636,
+          "exactSurfaceDistance": 2.8118811060218736,
+          "face": 1010509,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            138.4418153161414,
+            127.28540192104595,
+            18.21623603843479
+          ],
+          "packedSignedDistance": -35.96437778583636,
+          "exactSurfaceDistance": 2.8118811060218736,
+          "face": 1010509,
+          "outsideBounds": false
+        },
+        {
+          "site": 921.6666666666666,
+          "point": [
+            139.49449129390047,
+            128.45048214801443,
+            18.775019653400502
+          ],
+          "packedSignedDistance": -38.14687674594374,
+          "exactSurfaceDistance": 4.085612522680349,
+          "face": 1010500,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2459,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 949.0000000000067,
+      "samples": 736,
+      "outside": 71,
+      "farOutside": 69,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          183.38860727615446,
+          184.21805305938142,
+          44.84034958292264
+        ],
+        "packedSignedDistance": -103.06267331641453,
+        "exactSurfaceDistance": 78.4138710515961,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            137.34083898290737,
+            126.64298805714702,
+            17.424331503413157
+          ],
+          "packedSignedDistance": -34.662991816862004,
+          "exactSurfaceDistance": 2.0776996924769007,
+          "face": 1010009,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            138.37606772651122,
+            127.8469017650308,
+            17.930958595231097
+          ],
+          "packedSignedDistance": -36.77138005712815,
+          "exactSurfaceDistance": 3.3422001140139113,
+          "face": 1010429,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.41129647011508,
+            129.05081547291468,
+            18.437585687049033
+          ],
+          "packedSignedDistance": -38.99754257223224,
+          "exactSurfaceDistance": 4.611715012146817,
+          "face": 1010500,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2519,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 999.4666666666667,
+      "samples": 733,
+      "outside": 67,
+      "farOutside": 65,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          199.8497728390163,
+          166.45438659699258,
+          46.154289293245476
+        ],
+        "packedSignedDistance": -95.87071122497096,
+        "exactSurfaceDistance": 78.00120165660626,
+        "face": 1010572,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            137.722416203887,
+            126.70452552607597,
+            17.603985046839938
+          ],
+          "packedSignedDistance": -34.86056864390513,
+          "exactSurfaceDistance": 2.161790926000592,
+          "face": 1010429,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            138.7892261540468,
+            127.8602546563753,
+            18.15533292739756
+          ],
+          "packedSignedDistance": -36.97827196469131,
+          "exactSurfaceDistance": 3.384755790157694,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.8560361042066,
+            129.01598378667464,
+            18.70668080795518
+          ],
+          "packedSignedDistance": -39.15192675994512,
+          "exactSurfaceDistance": 4.645604725031699,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2579,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 967.4666666666685,
+      "samples": 733,
+      "outside": 69,
+      "farOutside": 66,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          194.09833648609674,
+          165.34677001207896,
+          55.14427838462595
+        ],
+        "packedSignedDistance": -92.52225701510926,
+        "exactSurfaceDistance": 77.22985268449142,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            137.80661802278405,
+            127.02583040482328,
+            17.305355353940897
+          ],
+          "packedSignedDistance": -35.346435429114905,
+          "exactSurfaceDistance": 2.4606042667808956,
+          "face": 1010011,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            138.8557571427569,
+            128.2236816648865,
+            17.797531382903493
+          ],
+          "packedSignedDistance": -37.56787911057409,
+          "exactSurfaceDistance": 3.7136205266040943,
+          "face": 1010429,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.9048962627297,
+            129.42153292494973,
+            18.28970741186609
+          ],
+          "packedSignedDistance": -39.78761076238036,
+          "exactSurfaceDistance": 4.976287731553297,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2639,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 935.4666666666703,
+      "samples": 733,
+      "outside": 69,
+      "farOutside": 66,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          193.71838134582822,
+          177.59326139986558,
+          52.67859477840324
+        ],
+        "packedSignedDistance": -89.03864547880586,
+        "exactSurfaceDistance": 82.9965528739922,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            137.81773561158724,
+            126.87441938885364,
+            17.619345349401527
+          ],
+          "packedSignedDistance": -35.10337763222969,
+          "exactSurfaceDistance": 2.3341479482300076,
+          "face": 1010429,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            138.87022133984365,
+            128.0519553499472,
+            18.151755557724385
+          ],
+          "packedSignedDistance": -37.29763069667287,
+          "exactSurfaceDistance": 3.576730775272751,
+          "face": 1010514,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.9227070681001,
+            129.2294913110408,
+            18.684165766047236
+          ],
+          "packedSignedDistance": -39.49475107468267,
+          "exactSurfaceDistance": 4.853799118763748,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2699,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 903.4666666666722,
+      "samples": 728,
+      "outside": 65,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 985,
+        "point": [
+          183.08206987016214,
+          168.76337912289716,
+          46.57230410023076
+        ],
+        "packedSignedDistance": -88.7793614182656,
+        "exactSurfaceDistance": 67.96608199270686,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 916.6666666666666,
+          "point": [
+            137.29714897532682,
+            126.96296026948953,
+            18.283947136887594
+          ],
+          "packedSignedDistance": -35.17067976170718,
+          "exactSurfaceDistance": 2.47576131677788,
+          "face": 1010072,
+          "outsideBounds": false
+        },
+        {
+          "site": 918.3333333333334,
+          "point": [
+            138.34542025751924,
+            128.10016364270592,
+            18.904973371964424
+          ],
+          "packedSignedDistance": -37.05082324451442,
+          "exactSurfaceDistance": 3.71058307401708,
+          "face": 1010483,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.39369153971165,
+            129.23736701592233,
+            19.52599960704125
+          ],
+          "packedSignedDistance": -39.18810349678131,
+          "exactSurfaceDistance": 5.0381373190172365,
+          "face": 1010498,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2759,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 871.466666666674,
+      "samples": 727,
+      "outside": 64,
+      "farOutside": 61,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          188.7890664739423,
+          182.34012509914447,
+          50.251117894030166
+        ],
+        "packedSignedDistance": -106.36567806767988,
+        "exactSurfaceDistance": 82.15917340651889,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 918.3333333333334,
+          "point": [
+            138.57150601349502,
+            126.99353066245615,
+            18.051472393861665
+          ],
+          "packedSignedDistance": -35.61701910419384,
+          "exactSurfaceDistance": 2.50814625526928,
+          "face": 1010512,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.62363721272214,
+            128.16069986220364,
+            18.60691255855221
+          ],
+          "packedSignedDistance": -37.8035639087975,
+          "exactSurfaceDistance": 3.774642291013102,
+          "face": 1010511,
+          "outsideBounds": false
+        },
+        {
+          "site": 920,
+          "point": [
+            139.62363721272214,
+            128.16069986220364,
+            18.60691255855221
+          ],
+          "packedSignedDistance": -37.8035639087975,
+          "exactSurfaceDistance": 3.774642291013102,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2819,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 839.4666666666758,
+      "samples": 730,
+      "outside": 65,
+      "farOutside": 64,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 995,
+        "point": [
+          188.9866530638371,
+          184.3234543540645,
+          45.64124895934203
+        ],
+        "packedSignedDistance": -107.39341025200861,
+        "exactSurfaceDistance": 81.92753058065176,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 913.3333333333334,
+          "point": [
+            138.3212270648309,
+            126.6238062208334,
+            17.905183216327508
+          ],
+          "packedSignedDistance": -34.964501284091185,
+          "exactSurfaceDistance": 2.1213629933816054,
+          "face": 1010510,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.37884470497502,
+            127.78701537344209,
+            18.4585069663339
+          ],
+          "packedSignedDistance": -37.1478684833052,
+          "exactSurfaceDistance": 3.365861242637698,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.37884470497502,
+            127.78701537344209,
+            18.4585069663339
+          ],
+          "packedSignedDistance": -37.1478684833052,
+          "exactSurfaceDistance": 3.365861242637698,
+          "face": 1010500,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2879,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 807.4666666666776,
+      "samples": 728,
+      "outside": 65,
+      "farOutside": 64,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          193.0352619743389,
+          187.58435363952523,
+          46.59730302751638
+        ],
+        "packedSignedDistance": -112.18449196710584,
+        "exactSurfaceDistance": 87.02398157751827,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 913.3333333333334,
+          "point": [
+            138.42212055465103,
+            126.71182825849999,
+            17.925640271984587
+          ],
+          "packedSignedDistance": -35.141604609763135,
+          "exactSurfaceDistance": 2.212824694794205,
+          "face": 1010519,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.48342459704764,
+            127.87387568671159,
+            18.474327142574037
+          ],
+          "packedSignedDistance": -37.32560350550425,
+          "exactSurfaceDistance": 3.4592970120330264,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.48342459704764,
+            127.87387568671159,
+            18.474327142574037
+          ],
+          "packedSignedDistance": -37.32560350550425,
+          "exactSurfaceDistance": 3.4592970120330264,
+          "face": 1010500,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2939,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 775.4666666666794,
+      "samples": 730,
+      "outside": 66,
+      "farOutside": 64,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          193.40539777376978,
+          186.94621253566487,
+          46.36526592573443
+        ],
+        "packedSignedDistance": -111.77058608368226,
+        "exactSurfaceDistance": 86.70540203842954,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.31738644372493,
+            127.63714928866557,
+            18.412238648350392
+          ],
+          "packedSignedDistance": -36.902707482629566,
+          "exactSurfaceDistance": 3.2074900303340836,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.31738644372493,
+            127.63714928866557,
+            18.412238648350392
+          ],
+          "packedSignedDistance": -36.902707482629566,
+          "exactSurfaceDistance": 3.2074900303340836,
+          "face": 1010500,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.37976882714275,
+            128.79478127477987,
+            18.96812499816147
+          ],
+          "packedSignedDistance": -32.688410240963236,
+          "exactSurfaceDistance": 4.548876032257922,
+          "face": 1010514,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 2999,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 743.4666666666812,
+      "samples": 733,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          193.43949904979752,
+          186.58149298341056,
+          46.65016253002896
+        ],
+        "packedSignedDistance": -111.61071687846892,
+        "exactSurfaceDistance": 86.5628791776669,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.2150252692952,
+            127.5395100093316,
+            18.389599919233998
+          ],
+          "packedSignedDistance": -36.71094398747782,
+          "exactSurfaceDistance": 3.1032612505847723,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.2150252692952,
+            127.5395100093316,
+            18.389599919233998
+          ],
+          "packedSignedDistance": -36.71094398747782,
+          "exactSurfaceDistance": 3.1032612505847723,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.27925007245904,
+            128.69491461009613,
+            18.946595031098376
+          ],
+          "packedSignedDistance": -32.991173803901255,
+          "exactSurfaceDistance": 4.4353750803465335,
+          "face": 1010505,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3059,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 711.4666666666831,
+      "samples": 729,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          193.4334460191199,
+          186.3810278954547,
+          46.75249197487854
+        ],
+        "packedSignedDistance": -111.49032284066418,
+        "exactSurfaceDistance": 86.45148919119694,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.09527501642384,
+            127.50115747913928,
+            18.38835125837985
+          ],
+          "packedSignedDistance": -36.594929218030636,
+          "exactSurfaceDistance": 3.0607376406534965,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.09527501642384,
+            127.50115747913928,
+            18.38835125837985
+          ],
+          "packedSignedDistance": -36.594929218030636,
+          "exactSurfaceDistance": 3.0607376406534965,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.15183413048902,
+            128.66186107952666,
+            18.94891148557344
+          ],
+          "packedSignedDistance": -34.64772546752013,
+          "exactSurfaceDistance": 4.390885126764055,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3119,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 679.4666666666849,
+      "samples": 726,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.80841691205654,
+          186.78990534958555,
+          46.92924995050848
+        ],
+        "packedSignedDistance": -111.5765767967799,
+        "exactSurfaceDistance": 86.43074326857267,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.02336643732468,
+            127.48231525055425,
+            18.38525159200089
+          ],
+          "packedSignedDistance": -36.53149141160495,
+          "exactSurfaceDistance": 3.039140762122513,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.02336643732468,
+            127.48231525055425,
+            18.38525159200089
+          ],
+          "packedSignedDistance": -36.53149141160495,
+          "exactSurfaceDistance": 3.039140762122513,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.0776379524795,
+            128.64497559365026,
+            18.94606375012764
+          ],
+          "packedSignedDistance": -35.73321801933165,
+          "exactSurfaceDistance": 4.366331409817084,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3179,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 647.4666666666867,
+      "samples": 728,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.78463247223556,
+          186.80601652829677,
+          47.00008967673679
+        ],
+        "packedSignedDistance": -111.60519578844786,
+        "exactSurfaceDistance": 86.45308680769203,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0603061119873,
+            127.48038198252893,
+            18.381295260620103
+          ],
+          "packedSignedDistance": -36.5476157570762,
+          "exactSurfaceDistance": 3.037920360363923,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0603061119873,
+            127.48038198252893,
+            18.381295260620103
+          ],
+          "packedSignedDistance": -36.5476157570762,
+          "exactSurfaceDistance": 3.037920360363923,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.11785565171192,
+            128.6404733531242,
+            18.941254866909986
+          ],
+          "packedSignedDistance": -34.995420008801624,
+          "exactSurfaceDistance": 4.364785979667331,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3239,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 615.4666666666885,
+      "samples": 727,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.98813535757014,
+          186.71129265650092,
+          46.99055235732549
+        ],
+        "packedSignedDistance": -111.62588668761761,
+        "exactSurfaceDistance": 86.5034647274951,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.10764587734687,
+            127.51571866445298,
+            18.393862832077165
+          ],
+          "packedSignedDistance": -36.62191874667198,
+          "exactSurfaceDistance": 3.0764070223929227,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.10764587734687,
+            127.51571866445298,
+            18.393862832077165
+          ],
+          "packedSignedDistance": -36.62191874667198,
+          "exactSurfaceDistance": 3.0764070223929227,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1643022507001,
+            128.67620212304888,
+            18.954695453056946
+          ],
+          "packedSignedDistance": -34.59201457202796,
+          "exactSurfaceDistance": 4.407515127095118,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3299,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 583.4666666666903,
+      "samples": 728,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.95985049782968,
+          186.69164057192316,
+          46.97767253466551
+        ],
+        "packedSignedDistance": -111.59169240029397,
+        "exactSurfaceDistance": 86.46784337085109,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0762260086306,
+            127.49582639104642,
+            18.38741710451712
+          ],
+          "packedSignedDistance": -36.577640663249014,
+          "exactSurfaceDistance": 3.054650170812806,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0762260086306,
+            127.49582639104642,
+            18.38741710451712
+          ],
+          "packedSignedDistance": -36.577640663249014,
+          "exactSurfaceDistance": 3.054650170812806,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.133135695322,
+            128.65625745218102,
+            18.94788070218396
+          ],
+          "packedSignedDistance": -34.900898477193614,
+          "exactSurfaceDistance": 4.3833102196306895,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3359,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 551.4666666666922,
+      "samples": 719,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.96919742377727,
+          186.67679549870812,
+          46.96887791625448
+        ],
+        "packedSignedDistance": -111.58114979174168,
+        "exactSurfaceDistance": 86.45968588320996,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.06478912753056,
+            127.4953944962453,
+            18.3879654525182
+          ],
+          "packedSignedDistance": -36.571200149675064,
+          "exactSurfaceDistance": 3.0539013357430664,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.06478912753056,
+            127.4953944962453,
+            18.3879654525182
+          ],
+          "packedSignedDistance": -36.571200149675064,
+          "exactSurfaceDistance": 3.0539013357430664,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.12083564409124,
+            128.6565667281978,
+            18.948521052240707
+          ],
+          "packedSignedDistance": -35.12080513786524,
+          "exactSurfaceDistance": 4.382515947941372,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3419,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 519.466666666694,
+      "samples": 719,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.93099010900883,
+          186.7043673583411,
+          46.97262656536458
+        ],
+        "packedSignedDistance": -111.58570668202482,
+        "exactSurfaceDistance": 86.45790477945587,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.06160099415314,
+            127.49322558931274,
+            18.38718448504771
+          ],
+          "packedSignedDistance": -36.56649724091475,
+          "exactSurfaceDistance": 3.0515299228156967,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.06160099415314,
+            127.49322558931274,
+            18.38718448504771
+          ],
+          "packedSignedDistance": -36.56649724091475,
+          "exactSurfaceDistance": 3.0515299228156967,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1176274894072,
+            128.65443847341965,
+            18.947693590132815
+          ],
+          "packedSignedDistance": -35.15340733161592,
+          "exactSurfaceDistance": 4.379919001497785,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3479,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 487.4666666666932,
+      "samples": 720,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.911426986156,
+          186.72806571537825,
+          46.9785848379146
+        ],
+        "packedSignedDistance": -111.59714214883209,
+        "exactSurfaceDistance": 86.46531342793952,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0669442495256,
+            127.49665629886013,
+            18.38824919030536
+          ],
+          "packedSignedDistance": -36.574098981460786,
+          "exactSurfaceDistance": 3.055266400797254,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0669442495256,
+            127.49665629886013,
+            18.38824919030536
+          ],
+          "packedSignedDistance": -36.574098981460786,
+          "exactSurfaceDistance": 3.055266400797254,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.12300912832677,
+            128.65782540783528,
+            18.948776665013177
+          ],
+          "packedSignedDistance": -35.10063835015529,
+          "exactSurfaceDistance": 4.384012408390331,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3539,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 455.4666666666916,
+      "samples": 713,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.91635781247643,
+          186.71808582965357,
+          46.97081209666406
+        ],
+        "packedSignedDistance": -111.58867266785313,
+        "exactSurfaceDistance": 86.4583545689365,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.06010221321796,
+            127.49390479929625,
+            18.38762505069455
+          ],
+          "packedSignedDistance": -36.56669539437339,
+          "exactSurfaceDistance": 3.052213986526268,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.06010221321796,
+            127.49390479929625,
+            18.38762505069455
+          ],
+          "packedSignedDistance": -36.56669539437339,
+          "exactSurfaceDistance": 3.052213986526268,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.11594432184512,
+            128.65525716167278,
+            18.948192539789236
+          ],
+          "packedSignedDistance": -35.191098188833145,
+          "exactSurfaceDistance": 4.380668936220384,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3599,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 423.46666666669,
+      "samples": 712,
+      "outside": 66,
+      "farOutside": 64,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.91278223411658,
+          186.72294256607762,
+          46.97497438282256
+        ],
+        "packedSignedDistance": -111.59237071470773,
+        "exactSurfaceDistance": 86.46117008887097,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.06327843165639,
+            127.49462003504225,
+            18.387624993039722
+          ],
+          "packedSignedDistance": -36.569336732986955,
+          "exactSurfaceDistance": 3.0530322751577628,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.06327843165639,
+            127.49462003504225,
+            18.387624993039722
+          ],
+          "packedSignedDistance": -36.569336732986955,
+          "exactSurfaceDistance": 3.0530322751577628,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1192780440001,
+            128.6558497372933,
+            18.94814990338504
+          ],
+          "packedSignedDistance": -35.142175382506714,
+          "exactSurfaceDistance": 4.381564768097093,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3659,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 391.4666666666884,
+      "samples": 710,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.91656181501554,
+          186.7159187852819,
+          46.97407666727497
+        ],
+        "packedSignedDistance": -111.58833818239508,
+        "exactSurfaceDistance": 86.45806999996364,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.060848821786,
+            127.49298477796877,
+            18.38725739595104
+          ],
+          "packedSignedDistance": -36.56576350220712,
+          "exactSurfaceDistance": 3.0512763679579216,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.060848821786,
+            127.49298477796877,
+            18.38725739595104
+          ],
+          "packedSignedDistance": -36.56576350220712,
+          "exactSurfaceDistance": 3.0512763679579216,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1168126651258,
+            128.65423228152181,
+            18.947812812327143
+          ],
+          "packedSignedDistance": -35.16224121861782,
+          "exactSurfaceDistance": 4.3796733902984,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3719,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 359.4666666666868,
+      "samples": 721,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.9145264586768,
+          186.71229301891447,
+          46.97359392919592
+        ],
+        "packedSignedDistance": -111.584312524527,
+        "exactSurfaceDistance": 86.45407408285041,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05647026969044,
+            127.49145283796054,
+            18.386860328387986
+          ],
+          "packedSignedDistance": -36.5613569807705,
+          "exactSurfaceDistance": 3.0495503379110134,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05647026969044,
+            127.49145283796054,
+            18.386860328387986
+          ],
+          "packedSignedDistance": -36.5613569807705,
+          "exactSurfaceDistance": 3.0495503379110134,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.11225955154708,
+            128.65286556580378,
+            18.947402249833782
+          ],
+          "packedSignedDistance": -35.22670292777405,
+          "exactSurfaceDistance": 4.377783625197632,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3779,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 327.4666666666852,
+      "samples": 726,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.90349370808232,
+          186.7246018220309,
+          46.974639692810086
+        ],
+        "packedSignedDistance": -111.5890324975867,
+        "exactSurfaceDistance": 86.45667939121398,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05836538487088,
+            127.49241231393157,
+            18.38705788745148
+          ],
+          "packedSignedDistance": -36.563692037132334,
+          "exactSurfaceDistance": 3.050594096699278,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05836538487088,
+            127.49241231393157,
+            18.38705788745148
+          ],
+          "packedSignedDistance": -36.563692037132334,
+          "exactSurfaceDistance": 3.050594096699278,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1142116073208,
+            128.65378171830912,
+            18.94758231947177
+          ],
+          "packedSignedDistance": -35.205349129609644,
+          "exactSurfaceDistance": 4.378908984064439,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3839,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 295.46666666668364,
+      "samples": 720,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.9049809245021,
+          186.723762964528,
+          46.97364690866974
+        ],
+        "packedSignedDistance": -111.58870972347127,
+        "exactSurfaceDistance": 86.45661744927206,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05821029147074,
+            127.49256575384919,
+            18.387101659778377
+          ],
+          "packedSignedDistance": -36.56383314502783,
+          "exactSurfaceDistance": 3.0507468068679793,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05821029147074,
+            127.49256575384919,
+            18.387101659778377
+          ],
+          "packedSignedDistance": -36.56383314502783,
+          "exactSurfaceDistance": 3.0507468068679793,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1140311595703,
+            128.65396010078652,
+            18.947622170701305
+          ],
+          "packedSignedDistance": -35.21137746539392,
+          "exactSurfaceDistance": 4.379071607960945,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3899,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 263.46666666668204,
+      "samples": 726,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.89954550628624,
+          186.71740969350742,
+          46.97064844828694
+        ],
+        "packedSignedDistance": -111.57991083633794,
+        "exactSurfaceDistance": 86.44773673619027,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0493175577404,
+            127.48853281129058,
+            18.385809171997924
+          ],
+          "packedSignedDistance": -36.553579680337165,
+          "exactSurfaceDistance": 3.046260256408251,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0493175577404,
+            127.48853281129058,
+            18.385809171997924
+          ],
+          "packedSignedDistance": -36.553579680337165,
+          "exactSurfaceDistance": 3.046260256408251,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10504584516892,
+            128.65006059321684,
+            18.94622756276908
+          ],
+          "packedSignedDistance": -35.325884996050526,
+          "exactSurfaceDistance": 4.374030144090605,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 3959,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 231.46666666668176,
+      "samples": 727,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.8971224191692,
+          186.72496343699999,
+          46.9697062092099
+        ],
+        "packedSignedDistance": -111.58430397581157,
+        "exactSurfaceDistance": 86.4513830859134,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05245893415423,
+            127.49022556337641,
+            18.386532083594798
+          ],
+          "packedSignedDistance": -36.55757294879593,
+          "exactSurfaceDistance": 3.048149023219503,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05245893415423,
+            127.49022556337641,
+            18.386532083594798
+          ],
+          "packedSignedDistance": -36.55757294879593,
+          "exactSurfaceDistance": 3.048149023219503,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10809391824756,
+            128.65178574159006,
+            18.94705907716807
+          ],
+          "packedSignedDistance": -35.28838337246681,
+          "exactSurfaceDistance": 4.376226931916125,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4019,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 199.46666666668187,
+      "samples": 718,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.88871396805544,
+          186.72737635270983,
+          46.97041629762393
+        ],
+        "packedSignedDistance": -111.58239212655408,
+        "exactSurfaceDistance": 86.44833095720249,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.04885429257868,
+            127.48885784384306,
+            18.386026178819556
+          ],
+          "packedSignedDistance": -36.55380243417308,
+          "exactSurfaceDistance": 3.046597398204143,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.04885429257868,
+            127.48885784384306,
+            18.386026178819556
+          ],
+          "packedSignedDistance": -36.55380243417308,
+          "exactSurfaceDistance": 3.046597398204143,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10440054847098,
+            128.65052509421827,
+            18.946498371577796
+          ],
+          "packedSignedDistance": -35.34181450893748,
+          "exactSurfaceDistance": 4.374484227832288,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4079,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 167.466666666682,
+      "samples": 723,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.8827961836657,
+          186.7319739380404,
+          46.97231704656898
+        ],
+        "packedSignedDistance": -111.58386999488948,
+        "exactSurfaceDistance": 86.44876194839388,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0489064846734,
+            127.48892005825878,
+            18.386081758677964
+          ],
+          "packedSignedDistance": -36.553915346454346,
+          "exactSurfaceDistance": 3.0466688779377447,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0489064846734,
+            127.48892005825878,
+            18.386081758677964
+          ],
+          "packedSignedDistance": -36.553915346454346,
+          "exactSurfaceDistance": 3.0466688779377447,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10442825861028,
+            128.65060601688702,
+            18.946561281987204
+          ],
+          "packedSignedDistance": -35.341740814926005,
+          "exactSurfaceDistance": 4.374582333112222,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4139,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 135.4666666666821,
+      "samples": 729,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.87963613402536,
+          186.7371568008204,
+          46.969654785288526
+        ],
+        "packedSignedDistance": -111.58537405949109,
+        "exactSurfaceDistance": 86.44965747284206,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.04991273856962,
+            127.48895385592947,
+            18.386246214279215
+          ],
+          "packedSignedDistance": -36.55446215263954,
+          "exactSurfaceDistance": 3.046761380439609,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.04991273856962,
+            127.48895385592947,
+            18.386246214279215
+          ],
+          "packedSignedDistance": -36.55446215263954,
+          "exactSurfaceDistance": 3.046761380439609,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10545254380222,
+            128.65059115329046,
+            18.94679263227435
+          ],
+          "packedSignedDistance": -35.318553237332125,
+          "exactSurfaceDistance": 4.374740876943798,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4199,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 103.46666666668222,
+      "samples": 731,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.8811237824078,
+          186.734095110007,
+          46.971866209435035
+        ],
+        "packedSignedDistance": -111.58454963286813,
+        "exactSurfaceDistance": 86.44912651378507,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0490914821536,
+            127.48909936316733,
+            18.38615696979616
+          ],
+          "packedSignedDistance": -36.55426375662486,
+          "exactSurfaceDistance": 3.046863597174786,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0490914821536,
+            127.48909936316733,
+            18.38615696979616
+          ],
+          "packedSignedDistance": -36.55426375662486,
+          "exactSurfaceDistance": 3.046863597174786,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.1046100181004,
+            128.6507860298655,
+            18.946641123422502
+          ],
+          "packedSignedDistance": -35.34044893103058,
+          "exactSurfaceDistance": 4.374795490033114,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4259,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 71.46666666668233,
+      "samples": 730,
+      "outside": 65,
+      "farOutside": 63,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.88083172418882,
+          186.73666107612598,
+          46.9716114426693
+        ],
+        "packedSignedDistance": -111.58632554682168,
+        "exactSurfaceDistance": 86.45070681523771,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05087516210872,
+            127.4895441911255,
+            18.38639127571225
+          ],
+          "packedSignedDistance": -36.55579446269385,
+          "exactSurfaceDistance": 3.0473996987301626,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05087516210872,
+            127.4895441911255,
+            18.38639127571225
+          ],
+          "packedSignedDistance": -36.55579446269385,
+          "exactSurfaceDistance": 3.0473996987301626,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10645165723588,
+            128.65115289751128,
+            18.94692785253985
+          ],
+          "packedSignedDistance": -35.30864127484204,
+          "exactSurfaceDistance": 4.375417503208755,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4319,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 39.46666666668244,
+      "samples": 727,
+      "outside": 64,
+      "farOutside": 62,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.88490085910564,
+          186.73254565226256,
+          46.97284533750831
+        ],
+        "packedSignedDistance": -111.58554693756808,
+        "exactSurfaceDistance": 86.450619864515,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05086788496752,
+            127.48974248646891,
+            18.38635973879765
+          ],
+          "packedSignedDistance": -36.55608015271969,
+          "exactSurfaceDistance": 3.047590816436875,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05086788496752,
+            127.48974248646891,
+            18.38635973879765
+          ],
+          "packedSignedDistance": -36.55608015271969,
+          "exactSurfaceDistance": 3.047590816436875,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10643512342327,
+            128.65137607012855,
+            18.94686219212928
+          ],
+          "packedSignedDistance": -35.314412060929826,
+          "exactSurfaceDistance": 4.3756090320343075,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4379,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 7.466666666682421,
+      "samples": 730,
+      "outside": 66,
+      "farOutside": 64,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 1000,
+        "point": [
+          192.88528835223036,
+          186.73263506118911,
+          46.97202948683641
+        ],
+        "packedSignedDistance": -111.58548831847726,
+        "exactSurfaceDistance": 86.45062863206542,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.05096390271277,
+            127.4897098283586,
+            18.386345653228364
+          ],
+          "packedSignedDistance": -36.55608226980006,
+          "exactSurfaceDistance": 3.047559795810036,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.05096390271277,
+            127.4897098283586,
+            18.386345653228364
+          ],
+          "packedSignedDistance": -36.55608226980006,
+          "exactSurfaceDistance": 3.047559795810036,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.10654401740007,
+            128.65133168498733,
+            18.946848161212873
+          ],
+          "packedSignedDistance": -35.31181284114741,
+          "exactSurfaceDistance": 4.375573953142028,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4439,
+      "phase": "wire-out",
+      "wire": 966.266666666666,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 708,
+      "outside": 45,
+      "farOutside": 43,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 966.266666666666,
+        "point": [
+          171.5325009093259,
+          163.21757529412088,
+          35.62868583567929
+        ],
+        "packedSignedDistance": -74.7250841765655,
+        "exactSurfaceDistance": 52.77531253320241,
+        "face": 1010615,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            139.0568113835949,
+            127.49191445494472,
+            18.386938331099977
+          ],
+          "packedSignedDistance": -36.56219314527854,
+          "exactSurfaceDistance": 3.0500300389480346,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            139.0568113835949,
+            127.49191445494472,
+            18.386938331099977
+          ],
+          "packedSignedDistance": -36.56219314527854,
+          "exactSurfaceDistance": 3.0500300389480346,
+          "face": 1010498,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            140.11259568617527,
+            128.65334157669392,
+            18.94745980710953
+          ],
+          "packedSignedDistance": -35.22867712929837,
+          "exactSurfaceDistance": 4.378287833799238,
+          "face": 1010511,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4499,
+      "phase": "wire-out",
+      "wire": 922.2666666666651,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 675,
+      "outside": 10,
+      "farOutside": 8,
+      "beyondBounds": 0,
+      "worst": {
+        "site": 918.3333333333334,
+        "point": [
+          140.4149890942419,
+          129.90561017643648,
+          19.468060254059345
+        ],
+        "packedSignedDistance": -40.67267498068887,
+        "exactSurfaceDistance": 5.754980653672102,
+        "face": 1010511,
+        "outsideBounds": false
+      },
+      "examples": [
+        {
+          "site": 915,
+          "point": [
+            138.21017728966382,
+            127.62541588097443,
+            18.443057818722384
+          ],
+          "packedSignedDistance": -36.32646235137201,
+          "exactSurfaceDistance": 3.167591209891337,
+          "face": 1010484,
+          "outsideBounds": false
+        },
+        {
+          "site": 915,
+          "point": [
+            138.21017728966382,
+            127.62541588097443,
+            18.443057818722384
+          ],
+          "packedSignedDistance": -36.32646235137201,
+          "exactSurfaceDistance": 3.167591209891337,
+          "face": 1010484,
+          "outsideBounds": false
+        },
+        {
+          "site": 916.6666666666666,
+          "point": [
+            139.31258319195285,
+            128.76551302870547,
+            18.955559036390866
+          ],
+          "packedSignedDistance": -38.499494336328986,
+          "exactSurfaceDistance": 4.421665249846876,
+          "face": 1010498,
+          "outsideBounds": false
+        }
+      ]
+    },
+    {
+      "index": 4559,
+      "phase": "wire-out",
+      "wire": 878.2666666666642,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 638,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4619,
+      "phase": "wire-out",
+      "wire": 834.2666666666632,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 595,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4679,
+      "phase": "wire-out",
+      "wire": 790.2666666666623,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 566,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4739,
+      "phase": "wire-out",
+      "wire": 746.2666666666614,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 527,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4799,
+      "phase": "wire-out",
+      "wire": 702.2666666666605,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 469,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4859,
+      "phase": "wire-out",
+      "wire": 658.2666666666596,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 451,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4919,
+      "phase": "wire-out",
+      "wire": 614.2666666666587,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 424,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 4979,
+      "phase": "wire-out",
+      "wire": 570.2666666666578,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 370,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5039,
+      "phase": "wire-out",
+      "wire": 526.2666666666569,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 327,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5099,
+      "phase": "wire-out",
+      "wire": 482.26666666665596,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 302,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5159,
+      "phase": "wire-out",
+      "wire": 438.26666666665506,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 270,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5219,
+      "phase": "wire-out",
+      "wire": 394.26666666665415,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 248,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5279,
+      "phase": "wire-out",
+      "wire": 350.26666666665324,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 206,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5339,
+      "phase": "wire-out",
+      "wire": 306.2666666666523,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 180,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5399,
+      "phase": "wire-out",
+      "wire": 262.2666666666514,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 151,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5459,
+      "phase": "wire-out",
+      "wire": 218.266666666652,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 118,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5519,
+      "phase": "wire-out",
+      "wire": 174.26666666665278,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 84,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5579,
+      "phase": "wire-out",
+      "wire": 130.26666666665358,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 48,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5639,
+      "phase": "wire-out",
+      "wire": 86.26666666665356,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 15,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    },
+    {
+      "index": 5699,
+      "phase": "wire-out",
+      "wire": 42.26666666665351,
+      "catheter": 1.5756063120875297e-11,
+      "samples": 0,
+      "outside": 0,
+      "farOutside": 0,
+      "beyondBounds": 0,
+      "worst": null,
+      "examples": []
+    }
+  ]
+}

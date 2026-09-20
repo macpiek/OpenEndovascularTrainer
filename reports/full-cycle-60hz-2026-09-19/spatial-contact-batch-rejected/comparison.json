@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-wasm-lu-final",
+  "candidateDirectory": "/tmp/oet-full-cycle-spatial-contact-batch",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1975,
+      "rmsMm": 8.453419054371105,
+      "maxMm": 72.19084947876891
+    },
+    "catheter-in": {
+      "samples": 2883,
+      "rmsMm": 14.134787523290072,
+      "maxMm": 53.926459393267784
+    },
+    "catheter-out": {
+      "samples": 4952,
+      "rmsMm": 10.055625772249554,
+      "maxMm": 42.54240745724884
+    },
+    "wire-out": {
+      "samples": 2040,
+      "rmsMm": 2.95122315019484,
+      "maxMm": 25.651846746587378
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.519511392497293e-7,
+    "maxRelativeLengthError": 3.4731751559372816e-8,
+    "maxCertifiedResidual": 0.00009993675494117301,
+    "totalFactorizations": 27311,
+    "totalIterations": 16496
+  }
+}

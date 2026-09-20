@@ -1,0 +1,14 @@
+false {
+  medianMs: 208.95795799999996,
+  medianCpuMs: 243.381,
+  medianLinearMs: 161.1319680000006,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+true {
+  medianMs: 202.99474999999984,
+  medianCpuMs: 254.065,
+  medianLinearMs: 151.6826699999965,
+  factorizations: 196,
+  maxPositionDifferenceMm: 0
+}

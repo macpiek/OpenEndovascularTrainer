@@ -1,0 +1,5 @@
+# Retained factor updates with WASM assembly — not enabled
+
+Two warmups/four alternating measured replays compare ordinary LU, compact bordered updates, and full-matrix row updates on five incoming states. In 777, compact updates reduce 279→121 factorizations but elapsed 221.77→217.73 ms and process CPU 254.62→315.48 ms. Other difficult fixtures regress. WASM packing and original-unit backward-error certificate preserve JS arithmetic and exact unit-test outputs.
+
+Immutable linearizations from accepted fixture 777 isolate the linear cost: ordinary 231 LU / 208.54 ms, compact 75 LU / 216.24 ms, full 69 LU / 310.24 ms. Compact performs 514 backsolves and 162 successful border updates, with 7 certificate rejections and 26 rank resets. Status matches baseline. Direction maximum absolute difference across primal and dual entries is 0.00018571 (not a position-only metric). Six tests passed; existing Pigtail rollout gate remained skipped. No full-cycle performance gate warranted. Prototype reverted and sources/tests archived here. Existing disabled incremental path remains unchanged.

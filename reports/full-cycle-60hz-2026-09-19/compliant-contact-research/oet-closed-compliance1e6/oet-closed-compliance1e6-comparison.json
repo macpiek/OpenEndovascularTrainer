@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-closed-compliance1e6",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 2113,
+      "rmsMm": 3.5025911323825354,
+      "maxMm": 53.06185735242092
+    },
+    "catheter-in": {
+      "samples": 3603,
+      "rmsMm": 8.350389104501325,
+      "maxMm": 40.637345153025116
+    },
+    "catheter-out": {
+      "samples": 6090,
+      "rmsMm": 6.395410561632263,
+      "maxMm": 46.38187169159131
+    },
+    "wire-out": {
+      "samples": 2092,
+      "rmsMm": 5.686326849928496,
+      "maxMm": 41.49218025577119
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 0.03992956514265378,
+    "maxRelativeLengthError": 3.4805270215324814e-8,
+    "maxCertifiedResidual": 0.000099988536391038,
+    "totalFactorizations": 97266,
+    "totalIterations": 23723
+  }
+}

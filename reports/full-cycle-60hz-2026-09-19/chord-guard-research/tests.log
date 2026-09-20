@@ -1,0 +1,22 @@
+✔ adaptive grid reduces straight shaft DOFs, preserves boundaries, tips and total mass (6.783708ms)
+✔ curvature refines the mesh and straightening permits coarsening again (0.298125ms)
+✔ zero contact margin frees near-wall nodes but preserves touching and loaded contacts (3.122875ms)
+✔ arc-loss and maximum-spacing budgets independently control coarsening (0.641417ms)
+✔ feed and withdrawal do not accumulate old moving-tip knots; histories and accepted state remain owned (38.765292ms)
+✔ refining a loaded coarse contact preserves its physical site, reaction and friction history (1.636ms)
+✔ adaptive replay restores the exact topology, pose and future adaptation policy (2.61725ms)
+✔ near-wall tip sites do not leave a permanent submillimetre mesh trail (27.523375ms)
+✔ adaptive dynamics conserves a free translation and accepts finite state within its residual budget (13.311916ms)
+✔ adaptive solver is opt-in; reference remains the default whole-step provider (0.345167ms)
+✔ optional coarsening near contacts keeps the loaded physical site and reaction on the coarser element (1.124ms)
+✔ ahead refinement retains fine mechanics before an approaching catheter without densifying the whole shaft (0.897083ms)
+✔ whole-chord clearance rejects interior triangle crossings and radius overlaps (1.7305ms)
+✔ coarsening keeps a bend whose replacement capsule would intersect a finite wall patch (1.222208ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.257709

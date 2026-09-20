@@ -1,0 +1,11 @@
+{
+  "scripts/physics/kirchhoffBandLUAssembly.wat": "d519c6bed901d38413c6c72ad7428fcd789d864a00193660110c79c6f0b8c3dd",
+  "scripts/physics/build-linear-kernel.mjs": "6afed348eb7bb1fbe84286dc5d5ac57ce5d408f0a940264d893c5cd187ac86a4",
+  "src/physics/kirchhoffLinearKernelBytes.js": "73177b963a7241d19953a312c91bbf0e027d935b33dcbbd745f3c9c635b29541",
+  "src/physics/kirchhoffCoulombBandLU.js": "098721b2aa6dc19d4599a3d8ba2464963177a56586db6d01204ee7c27fa920ea",
+  "src/physics/kirchhoffSharedAxisLinear.js": "a7f6538e6cca8a48101b2b6365925fdd4dea44b95f7e80509229fdf66f8250a1",
+  "src/physics/kirchhoffSharedAxisNative.js": "d1e23582bf5c85be23af4e0ea392314a322d40a659ae01d8c8126e15cf9eb48f",
+  "src/physics/kirchhoffSharedAxisAppSystem.js": "9801936459ff00a1607d62cda33b4f93ffc4e6f971a5b3e56356f7a867f9573f",
+  "src/physics/kirchhoffSharedAxisRealtime.js": "7af789d28c28662b994fae03100ccc0880f079d00b5f38938b78d85f9fe7be97",
+  "src/simulator.js": "f40551c9fcbd847e7d692373ececb446f7ed365a3da76facb924671566c248ae"
+}

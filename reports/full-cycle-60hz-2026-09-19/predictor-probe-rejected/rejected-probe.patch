@@ -1,0 +1,145 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -386,8 +386,9 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, factorizationLimit = Infinity, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
++        !(factorizationLimit===Infinity||Number.isInteger(factorizationLimit)&&factorizationLimit>0) ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
+@@ -424,10 +425,11 @@
+     const violation = m => m.rows.reduce((v, r) => v + (r.kind === 'length' ? Math.abs(r.gap) : Math.max(0, -r.gap)), 0);
+     try {
+         base = assembleDiscovered();
+-        for (; iterations < maxIterations; iterations++) {
++        nonlinear: for (; iterations < maxIterations; iterations++) {
+             yield {kind:'iteration',iteration:iterations};
+             observeIteration?.({state:s,iteration:iterations,base:observed(base)});
+             if (merit(base) <= 1) { status = 'converged'; break; }
++            if(factorizations>=factorizationLimit){status='factorization-limit';break;}
+             if(earlyLiveFallback&&iterations>=8&&s.wallFrictionStep?.liveNormalLoad===true) {
+                 detectedCycle=(cycleGuard??=createSharedAxisCycleGuard()).observe(s,base);
+                 if(detectedCycle){status='live-contact-cycle';break;}
+@@ -465,6 +467,10 @@
+                 factorizations += direction.factorizations;workingSetReuses += direction.workingSetReuses ?? 0;
+                 observeTrial?.({kind:'direction',state:s,iteration:iterations,method,base:observed(base),direction});
+                 yield {kind:'direction',iteration:iterations,method};
++                // A bounded speculative solve never publishes an incomplete
++                // equilibrium. Its owner may try another seed, then rerun the
++                // original unrestricted strategy if that seed also fails.
++                if(factorizations>=factorizationLimit){status='factorization-limit';break nonlinear;}
+                 if (!direction.converged) continue;
+                 solvedDirection = true;
+                 const penalty = Math.max(1, ...s.multipliers.map((v, i) => 2 * Math.abs(v + direction.multiplierIncrement[i])));
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -3,6 +3,14 @@
+ import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
+ import {prepareSharedAxisWallFriction,refreshSharedAxisWallFriction,commitSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
+ import {iterateSharedAxisWithContacts} from './kirchhoffSharedAxisVesselWitnesses.js';
++
++function includeSpeculativeWork(result,attempts) {
++    const merged={...result};
++    for(const key of ['wallNormalFallbacks','predictorFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
++        merged[key]=(result[key]??0)+attempts.reduce((sum,a)=>sum+(a[key]??0),0);
++    merged.timings=Object.fromEntries(Object.keys(result.timings).map(key=>[key,(result.timings[key]??0)+attempts.reduce((sum,a)=>sum+(a.timings[key]??0),0)]));
++    return merged;
++}
+ 
+ /** A full atomic dynamic step, including the external wall friction law.
+  * Inter-tool constraints remain absent. Frozen friction modes are certified
+@@ -44,7 +52,9 @@
+     const deferContactPublication=options.cullInactiveContacts?rows=>{acceptedContactRows=rows;}:null;
+     for(let outer=0;outer<maxFrictionIterations;outer++) {
+         frictionIterations=outer+1;
+-        result=yield* iterateSharedAxisWithContacts(s,{...options,forceTolerance:tolerance,deferContactPublication});
++        result=yield* iterateSharedAxisWithContacts(s,{...options,
++            ...(options.limitPredictedPoseOnly&&!predictedInitialPose?{factorizationLimit:Infinity}:{}),
++            forceTolerance:tolerance,deferContactPublication});
+         retainedDiscoveryTrials+=result.retainedDiscoveryTrials??0;coupledFrictionRefreshes+=result.coupledFrictionRefreshes??0;timings.frictionMs+=result.frictionRefreshMs??0;
+         iterations+=result.iterations;factorizations+=result.factorizations;workingSetReuses+=result.workingSetReuses??0;backtracks+=result.backtracks;geometryRestarts+=result.geometryRestarts;
+         for(const key of ['assemblyMs','linearMs','tangentAssemblyMs','residualAssemblyMs','projectionMs'])timings[key]+=result.timings[key]??0;
+@@ -82,6 +92,8 @@
+  * cannot enter this fallback: generator.return unwinds the attempt's finally. */
+ export function* iterateSharedAxisTimeStep(s,dt,options={}) {
+     const predictor=options.velocityPredictor??0;
++    const probeLimit=options.predictorProbeFactorizations??Infinity;
++    if(!(probeLimit===Infinity||Number.isInteger(probeLimit)&&probeLimit>0))throw new RangeError('Invalid predictor probe budget');
+     if(!Number.isFinite(predictor)||predictor<0||predictor>1)throw new RangeError('Velocity predictor must be between zero and one');
+     if(options.velocityPredictor&&options.predictorFallback!==false) {
+         // A poor prediction is only a failed initial guess. The attempt's
+@@ -98,7 +110,21 @@
+     if(options.coupledFrictionNewton&&options.coupledFrictionFallback!==false) {
+         // A private attempt. Any failure/cancellation restores the incoming
+         // pose and friction history before the original strategy is retried.
+-        let experiment=yield* iterateSharedAxisTimeStep(s,dt,{...options,coupledFrictionFallback:false,wallNormalFallback:false});
++        const probe=!!predictor&&Number.isFinite(probeLimit);
++        let experiment=yield* iterateSharedAxisTimeStep(s,dt,{...options,coupledFrictionFallback:false,wallNormalFallback:false,
++            ...(probe?{factorizationLimit:probeLimit,limitPredictedPoseOnly:true}:{})});
++        if(probe&&experiment.status==='factorization-limit') {
++            // The limited attempt has rolled back the physical state. If the
++            // incoming-pose seed fails too, restore the entire original route;
++            // a heuristic alone must never force a smaller feed or timestep.
++            const unrestricted={...options,predictorProbeFactorizations:Infinity};
++            const recovered=yield* iterateSharedAxisTimeStep(s,dt,{...unrestricted,velocityPredictor:0});
++            recovered.predictorFallbacks=(recovered.predictorFallbacks??0)+1;
++            const recovery={attempted:true,limit:probeLimit,converged:recovered.converged,retriedOriginal:!recovered.converged};
++            if(recovered.converged)return {...includeSpeculativeWork(recovered,[experiment]),predictorProbeRecovery:recovery};
++            const original=yield* iterateSharedAxisTimeStep(s,dt,unrestricted);
++            return {...includeSpeculativeWork(original,[experiment,recovered]),predictorProbeRecovery:recovery};
++        }
+         // Repeating the identical initial outside-surface check cannot repair
+         // geometry. Other pre-factorization failures may recover and must retry.
+         const outsideAtEntry=experiment.error==='Shared axis crossed the vessel surface'&&experiment.iterations===0&&
+--- a/tests/kirchhoffSharedAxisVelocityPredictor.test.js
++++ b/tests/kirchhoffSharedAxisVelocityPredictor.test.js
+@@ -109,3 +109,45 @@
+     assert.ok(result.factorizations>reference.factorizations);
+     assert.deepEqual(b.positions,a.positions);assert.deepEqual(b.velocities,a.velocities);
+ });
++
++test('a failed bounded predictor probe reruns the entire unrestricted predicted strategy',()=>{
++    const a=rod(),b=rod(),dt=1/120,options={velocityPredictor:1,coupledFrictionNewton:true,liveWallNormalLoad:true};
++    const reference=stepSharedAxis(a,dt,options);let directions=0,unpredictedFailures=0;
++    const result=stepSharedAxis(b,dt,{...options,predictorProbeFactorizations:1,
++        observeTrial:e=>{if(e.kind==='direction')directions+=e.direction.factorizations;},
++        observeIteration:({state,iteration})=>{
++            if(!directions||iteration!==0)return;
++            if(state.positions.every((p,n)=>p.every((v,k)=>Math.abs(v-state.dynamicStep.positions[n][k])<1e-12))) {
++                unpredictedFailures++;throw new Error('unpredicted seed cannot solve this synthetic case');
++            }
++        }});
++    assert.ok(unpredictedFailures>0);assert.ok(result.converged&&reference.converged);
++    assert.equal(result.predictorProbeRecovery.retriedOriginal,true);
++    assert.equal(result.predictorProbeRecovery.converged,false);
++    assert.equal(result.factorizations,directions,'include the interrupted probe and the eventual full solve');
++    assert.ok(result.factorizations>reference.factorizations);
++    assert.deepEqual(b.positions,a.positions);assert.deepEqual(b.velocities,a.velocities);
++});
++
++test('cancelling the alternate seed after a budget stop rolls back rates, pose and friction history',()=>{
++    const s=rod(),before=captureSharedAxisNative(s),velocities=s.velocities,history=s.wallFrictionHistory;
++    let directions=0,recovering=false;
++    const iterator=iterateSharedAxisTimeStep(s,1/120,{velocityPredictor:1,coupledFrictionNewton:true,predictorProbeFactorizations:1,
++        observeTrial:e=>{if(e.kind==='direction')directions++;},
++        observeIteration:({state})=>{if(directions&&state.positions.every((p,n)=>p.every((v,k)=>v===state.dynamicStep.positions[n][k])))recovering=true;}});
++    for(let i=0;i<100&&!recovering;i++)assert.equal(iterator.next().done,false);
++    assert.ok(recovering);iterator.return();
++    assert.deepEqual(captureSharedAxisNative(s),before);assert.equal(s.velocities,velocities);assert.equal(s.wallFrictionHistory,history);
++    assert.equal(s.dynamicStep,null);assert.equal(s.wallFrictionStep,null);
++});
++
++test('a probe limit applies only to an actually predicted pose and rejects invalid limits',()=>{
++    const a=rod(),b=rod();a.velocities.fill([0,0,0]);b.velocities.fill([0,0,0]);
++    a.loads[a.layout.positions.at(-1)+1]=.01;b.loads[b.layout.positions.at(-1)+1]=.01;
++    const options={velocityPredictor:1,coupledFrictionNewton:true};
++    const reference=stepSharedAxis(a,1/120,options),actual=stepSharedAxis(b,1/120,{...options,predictorProbeFactorizations:1});
++    assert.ok(actual.converged);assert.equal(actual.predictedInitialPose,false);
++    assert.equal(actual.predictorProbeRecovery,undefined);assert.equal(actual.factorizations,reference.factorizations);
++    assert.deepEqual(b.positions,a.positions);
++    for(const limit of [0,-1,1.5,NaN])assert.throws(()=>stepSharedAxis(rod(),1/120,{predictorProbeFactorizations:limit}),/Invalid predictor/);
++});

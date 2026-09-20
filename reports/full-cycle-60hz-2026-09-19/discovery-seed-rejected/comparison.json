@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-wasm-lu-final",
+  "candidateDirectory": "/tmp/oet-full-cycle-discovery-seed",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1942,
+      "rmsMm": 9.167260879136663,
+      "maxMm": 77.53012224226788
+    },
+    "catheter-in": {
+      "samples": 2842,
+      "rmsMm": 14.067200105765743,
+      "maxMm": 65.15817958099679
+    },
+    "catheter-out": {
+      "samples": 4894,
+      "rmsMm": 9.36580133555689,
+      "maxMm": 43.614685174418376
+    },
+    "wire-out": {
+      "samples": 2055,
+      "rmsMm": 3.7977869829744333,
+      "maxMm": 21.440651880923884
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.88300064674874e-7,
+    "maxRelativeLengthError": 3.473176094153922e-8,
+    "maxCertifiedResidual": 0.00009993307721880971,
+    "totalFactorizations": 27933,
+    "totalIterations": 16557
+  }
+}

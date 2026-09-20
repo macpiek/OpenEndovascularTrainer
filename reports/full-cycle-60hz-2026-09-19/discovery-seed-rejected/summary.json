@@ -1,0 +1,129 @@
+{
+  "contactQueries": {
+    "pointQueries": 40315,
+    "capsuleQueries": 1141081,
+    "capsuleSamples": 4559402,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 27501,
+    "bvhRefinements": 4559402,
+    "signRefinements": 767,
+    "signCacheHits": 0,
+    "signCacheMisses": 767,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 12814,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 4559402,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 1129902,
+    "certifiedCapsuleSamples": 4519087,
+    "runtimeBytes": 80668990
+  },
+  "failed": false,
+  "completed": true,
+  "steps": 5757,
+  "processCpu": {
+    "meanMs": 15.73826350529794,
+    "p50Ms": 14.676,
+    "p95Ms": 31.12,
+    "maxMs": 457.101
+  },
+  "meanMs": 12.721761132013194,
+  "p50Ms": 13.113166999999521,
+  "p95Ms": 21.43841699999757,
+  "p99Ms": 32.28545799999938,
+  "maxMs": 331.0303750000021,
+  "overBudget": 1133,
+  "meanIterations": 2.875108563487928,
+  "meanFactorizations": 4.849748132708008,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 25.982,
+        "p50Ms": 25.982,
+        "p95Ms": 25.982,
+        "maxMs": 25.982
+      },
+      "meanMs": 15.175082999999972,
+      "p50Ms": 15.175082999999972,
+      "p95Ms": 15.175082999999972,
+      "p99Ms": 15.175082999999972,
+      "maxMs": 15.175082999999972,
+      "overBudget": 0,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 1364,
+      "processCpu": {
+        "meanMs": 14.509475073313814,
+        "p50Ms": 11.942,
+        "p95Ms": 36.063,
+        "maxMs": 96.399
+      },
+      "meanMs": 10.695718162756622,
+      "p50Ms": 8.3002919999999,
+      "p95Ms": 21.597667,
+      "p99Ms": 44.44762499999979,
+      "maxMs": 91.15975000000071,
+      "overBudget": 206,
+      "meanIterations": 3.0388563049853374,
+      "meanFactorizations": 6.947947214076247
+    },
+    "catheter-in": {
+      "steps": 1154,
+      "processCpu": {
+        "meanMs": 20.914390814558036,
+        "p50Ms": 18.619,
+        "p95Ms": 35.982,
+        "maxMs": 114.672
+      },
+      "meanMs": 17.126674299826597,
+      "p50Ms": 16.16649999999936,
+      "p95Ms": 24.187792000000627,
+      "p99Ms": 36.409708999999566,
+      "maxMs": 89.39141599999857,
+      "overBudget": 507,
+      "meanIterations": 3.1767764298093586,
+      "meanFactorizations": 4.759098786828423
+    },
+    "catheter-out": {
+      "steps": 1875,
+      "processCpu": {
+        "meanMs": 18.037843199999976,
+        "p50Ms": 16.076,
+        "p95Ms": 29.415,
+        "maxMs": 144.941
+      },
+      "meanMs": 15.003994854400052,
+      "p50Ms": 14.100125000004482,
+      "p95Ms": 20.341083999999682,
+      "p99Ms": 27.649375000000873,
+      "maxMs": 107.63204199999745,
+      "overBudget": 361,
+      "meanIterations": 2.8282666666666665,
+      "meanFactorizations": 3.8682666666666665
+    },
+    "wire-out": {
+      "steps": 1364,
+      "processCpu": {
+        "meanMs": 9.426756598240459,
+        "p50Ms": 7.873,
+        "p95Ms": 21.642,
+        "maxMs": 457.101
+      },
+      "meanMs": 7.883831942082058,
+      "p50Ms": 6.369542000000365,
+      "p95Ms": 16.191500000000815,
+      "p99Ms": 24.018625000011525,
+      "maxMs": 331.0303750000021,
+      "overBudget": 59,
+      "meanIterations": 2.5205278592375366,
+      "meanFactorizations": 4.17741935483871
+    }
+  }
+}

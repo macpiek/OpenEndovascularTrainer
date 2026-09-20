@@ -33,7 +33,7 @@ export class ConstraintStageProfile {
         field.maximum = Math.max(field.maximum, value);
     }
     record(world,{fullStepCpuMs}={}) {
-        if(['shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(world.wholeStepSystem?.id)) {
+        if(['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(world.wholeStepSystem?.id)) {
             this.mode=world.wholeStepSystem.id;
             const result=world.lastStepResult;
             if(!result||result===this.lastResult)return false;
@@ -74,7 +74,7 @@ export class ConstraintStageProfile {
     }
     report() {
         const count = Math.min(this.steps, this.capacity);
-        return {mode:this.mode,timingSource:this.timingSource,lineSearch:['shared-axis','shared-axis-adaptive','shared-axis-projective'].includes(this.mode)?null:structuredClone(this.lineSearch), steps: this.steps, failedSteps: this.failedSteps, percentileSteps: count,
+        return {mode:this.mode,timingSource:this.timingSource,lineSearch:['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(this.mode)?null:structuredClone(this.lineSearch), steps: this.steps, failedSteps: this.failedSteps, percentileSteps: count,
             pendingSlices:this.pendingSlices,sleepingSteps:this.sleepingSteps,solverSteps:this.solverSteps,firstFailure:this.firstFailure?{...this.firstFailure}:null,
             fields: Object.fromEntries(KEYS.map(key => {
                 const field = this.fields[key];

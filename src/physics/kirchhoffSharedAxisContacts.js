@@ -9,7 +9,7 @@ const xyz=p=>Array.isArray(p)?p:[p.x,p.y,p.z];
  * already the preceding edge's last endpoint). Vessel queries are shielded by the
  * material sheath interval, as in the existing application's collision mask.
  */
-export function createSharedAxisContacts({sheath,contactField=null,localCoordinates=false}) {
+export function createSharedAxisContacts({sheath,contactField=null,localCoordinates=false,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false}) {
     const worldStart=xyz(sheath.start),end=xyz(sheath.end),delta=end.map((v,i)=>v-worldStart[i]);
     const origin=localCoordinates?worldStart:[0,0,0],start=worldStart.map((v,i)=>v-origin[i]);
     const length=Math.hypot(...delta),axis=delta.map(v=>v/length),extension=sheath.proximalExtension??40;
@@ -35,7 +35,7 @@ export function createSharedAxisContacts({sheath,contactField=null,localCoordina
     wallSamples[0].sharedAxisGeometryOnly=true;
     wallSamples[0].sharedAxisSheath=true;
     wallSamples[0].contactOutputOwned=true;
-    if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length));
+    if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length,{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts}));
     return {rebaseNearTips:localCoordinates,startCoordinate:-extension,boundaryCoordinates:[0,length],wallSamples,length,origin,
         samplePosition:coordinate=>start.map((v,i)=>v+coordinate*axis[i])};
 }

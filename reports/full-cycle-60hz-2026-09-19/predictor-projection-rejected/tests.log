@@ -1,0 +1,21 @@
+✔ private projection reduces a retained wall violation and leaves physical state and fixed DOFs untouched (3.404625ms)
+✔ projected predictor cancellation restores pose, reactions and rates while inertia keeps the incoming reference (4.108583ms)
+✔ the corrected guess still converges under the original physical certificates (2.403708ms)
+✔ undefined wall direction abandons only the private correction (0.4185ms)
+✔ advancing-only correction leaves withdrawing and stationary guesses identical to the reference predictor (4.556625ms)
+✔ velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation (6.60725ms)
+✔ a failed predictor retries from the original pose and includes failed work (7.129833ms)
+✔ velocity prediction retains the same dynamic equilibrium and force certificate for a free rod (1.755208ms)
+✔ invalid prediction strengths are rejected before physical work (1.047375ms)
+✔ early predictor recovery tries the incoming pose before friction fallbacks (3.719ms)
+✔ cancelling early predictor recovery restores the whole incoming state (0.864708ms)
+✔ zero motion does not lose the normal fallback when early prediction is enabled (0.523875ms)
+✔ failed early recovery still runs the original predicted friction fallback and counts the extra work (2.064708ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 128.344375

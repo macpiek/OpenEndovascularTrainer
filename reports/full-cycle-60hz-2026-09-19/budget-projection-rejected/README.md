@@ -1,0 +1,7 @@
+# Budget-triggered predictor projection — rejected
+
+Advancing feed only: a private coupled-Newton attempt receives a soft LU-work budget. If it fails, retry a four-sweep bounded length/wall projection of the velocity predictor, then the complete reference strategy if needed. All rejected work is counted; final physical certificates remain unchanged. The budget is checked between solves, not a strict wall-clock limit. Cancellation unwinds the original timestep transaction.
+
+Projection over the rows discovered by the failed probe did not help step 777 (279 -> 302 LU at budget16). Restricting only the initial projection to incoming definitions, while keeping all discovered rows in Newton, improved it to 30 LU /30.07 ms versus 279 /191.55 ms; endpoint difference 0.00004094 mm. Step842 improved 178 ->107 LU at budget16 or64 LU at budget32. Normal steps and withdrawing steps were unchanged. Two warmups and four alternating recorded samples per variant; timings are Node replays, not browser Hz.
+
+Full cycle at budget16 failed already at wire350.53 mm (478 movement attempts), linear-solve, 1997 LU /29 Newton including retries/substeps. The reference fallback cannot undo trajectory changes from earlier accepted steps. Seven focused tests passed (immutable correction, physical certificate, cancellation and rejected-work accounting), but the full-cycle gate failed. Prototype and tests reverted, no app defaults changed. The retained friction-assembly optimization is preserved.

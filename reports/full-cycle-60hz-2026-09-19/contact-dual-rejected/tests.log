@@ -1,0 +1,10 @@
+✔ dependent wall normals remain independent through the regularized dual equations (5.39225ms)
+✔ inactive gaps use the same proximal equation as active gaps, including old reactions (0.685ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62.307417

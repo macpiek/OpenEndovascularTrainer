@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-certified-samples",
+  "candidateDirectory": "/tmp/oet-full-cycle-newton4",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 4.446809345760174e-14,
+      "maxMm": 5.955433342649105e-14
+    },
+    "wire-in": {
+      "samples": 1949,
+      "rmsMm": 13.81533557477765,
+      "maxMm": 114.73982692931811
+    },
+    "catheter-in": {
+      "samples": 2845,
+      "rmsMm": 31.21951171639757,
+      "maxMm": 119.28410699858836
+    },
+    "catheter-out": {
+      "samples": 4939,
+      "rmsMm": 24.170739324943778,
+      "maxMm": 103.8961273934624
+    },
+    "wire-out": {
+      "samples": 2049,
+      "rmsMm": 6.051860332159584,
+      "maxMm": 59.36676736372278
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.5915108150324e-7,
+    "maxRelativeLengthError": 3.47317053991141e-8,
+    "maxCertifiedResidual": 0.00009993084895576521,
+    "totalFactorizations": 41877,
+    "totalIterations": 17338
+  }
+}

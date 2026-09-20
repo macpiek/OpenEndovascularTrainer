@@ -1,0 +1,58 @@
+✖ physical capsule removes the captured safe-core threshold jump without changing default queries (108.69375ms)
+✔ endpoint cache cannot cross physical/default modes, including coincident capsules (260.440083ms)
+✔ physical capsule evaluates every requested existing sample (56.401ms)
+✔ exception restores transient physical/refinement modes for subsequent ordinary query (116.230791ms)
+✖ mesh reference for step663 exposes SDF penetration artifact and has a consistent derivative (164.013333ms)
+✔ finite mesh capsule compares exact triangle distances at every sample, with separate endpoint cache (168.109458ms)
+✔ optional capsule visitor exposes every already evaluated finite sample without extra geometry queries (109.216417ms)
+✔ a capsule visitor exception restores query flags and invalidates its partial endpoint cache (97.312542ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 6
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1918.674667
+
+✖ failing tests:
+
+test at ../../../../../../private/tmp/oet-vessel-before-certified.test.mjs:26:1
+✖ physical capsule removes the captured safe-core threshold jump without changing default queries (108.69375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 0.5
+  
+      at TestContext.<anonymous> (file:///private/tmp/oet-vessel-before-certified.test.mjs:28:63)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.start (node:internal/test_runner/test:978:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:332:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0.5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../../../../private/tmp/oet-vessel-before-certified.test.mjs:74:1
+✖ mesh reference for step663 exposes SDF penetration artifact and has a consistent derivative (164.013333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  326674 !== 325170
+  
+      at TestContext.<anonymous> (file:///private/tmp/oet-vessel-before-certified.test.mjs:91:61)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:763:18)
+      at Test.postRun (node:internal/test_runner/test:1210:19)
+      at Test.run (node:internal/test_runner/test:1138:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 326674,
+    expected: 325170,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

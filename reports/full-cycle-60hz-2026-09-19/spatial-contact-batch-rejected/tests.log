@@ -1,0 +1,17 @@
+✔ batch activation reduces independent wall LU solves with identical unique primal solution (9.854541ms)
+✔ seeded feasible QPs agree with single activation and satisfy global stationarity and complementarity (55.512125ms)
+✔ spatial batches distribute activation without discarding parallel faces or corner constraints (2.1065ms)
+✔ failed batched factorization retries original rows and counts both searches without stale result views (2.066ms)
+✔ infeasible active basis remains explicitly rejected after reference fallback (0.22175ms)
+✔ cooperative linear solve yields between attempts, excludes pauses from CPU time, and matches synchronous output (26.941417ms)
+✔ interrupting a private linear iterator leaves physical inputs available for a fresh reference solve (3.475042ms)
+✔ cancellation in the unscaled residual is certified accurately without loosening the threshold (0.206917ms)
+✔ bounded trial direction stops early without mutating state and unrestricted search remains available (1.279125ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 155.79225

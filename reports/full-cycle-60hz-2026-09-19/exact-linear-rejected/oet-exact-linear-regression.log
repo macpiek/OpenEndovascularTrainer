@@ -1,0 +1,21 @@
+✔ exact equation reuse preserves the anatomical recovery path and accepted state bit for bit (1227.411916ms)
+✔ a poor anatomical prediction recovers with substantially fewer factorizations and unchanged acceptance criteria (1132.670875ms)
+✔ catheter withdrawal can rediscover a wire sample across a certified 20 mm wall-free path (297.220125ms)
+✔ exact cache owns snapshots, rejects one-bit changes and obeys its memory budget (1.151ms)
+✔ contact discovery reuses identical compact equations but still checks new blockers and changed loads (5.184792ms)
+✔ velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation (7.359791ms)
+✔ a failed predictor retries from the original pose and includes failed work (7.052083ms)
+✔ velocity prediction retains the same dynamic equilibrium and force certificate for a free rod (1.6585ms)
+✔ invalid prediction strengths are rejected before physical work (1.049041ms)
+✔ early predictor recovery tries the incoming pose before friction fallbacks (2.535208ms)
+✔ cancelling early predictor recovery restores the whole incoming state (0.869833ms)
+✔ zero motion does not lose the normal fallback when early prediction is enabled (0.478125ms)
+✔ failed early recovery still runs the original predicted friction fallback and counts the extra work (2.309083ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3582.282584

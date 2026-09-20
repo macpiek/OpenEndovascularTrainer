@@ -1,0 +1,16 @@
+{
+  "reference": "clearance-ball",
+  "steps": 5758,
+  "identicalSavedShapes": true,
+  "differingSteps": {
+    "iterations": 0,
+    "backtracks": 0,
+    "quality": 0,
+    "residual": 0,
+    "geometryRestarts": 0,
+    "fullAssemblies": 0,
+    "residualAssemblies": 0
+  },
+  "referenceFactorizations": 27382,
+  "factorizations": 28929
+}

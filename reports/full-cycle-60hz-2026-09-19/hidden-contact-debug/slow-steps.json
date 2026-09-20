@@ -1,0 +1,48 @@
+[
+  {
+    "index": 882,
+    "wire": 647.5333333333392,
+    "catheter": 0,
+    "cpuMs": 551.9,
+    "factorizations": 607,
+    "iterations": 9,
+    "assemblies": 40,
+    "linearMs": 485.6,
+    "assemblyMs": 48.3,
+    "frictionFallbacks": 1,
+    "wallNormalFallbacks": 1
+  },
+  {
+    "index": 950,
+    "wire": 697.4,
+    "catheter": 0,
+    "cpuMs": 337.1,
+    "providerMs": 45.4,
+    "substepAttempts": 3,
+    "note": "Full CPU includes rejected attempts; provider timings only describe the final returned attempt."
+  },
+  {
+    "index": 936,
+    "wire": 687.13333333334,
+    "catheter": 0,
+    "cpuMs": 235.1,
+    "factorizations": 232,
+    "iterations": 11
+  },
+  {
+    "index": 909,
+    "wire": 667.33333333334,
+    "catheter": 0,
+    "cpuMs": 174,
+    "factorizations": 159,
+    "iterations": 10
+  },
+  {
+    "index": 4944,
+    "wire": 595.1999999999916,
+    "catheter": 1.5786372209447563e-11,
+    "cpuMs": 151,
+    "factorizations": 179,
+    "iterations": 7
+  }
+]

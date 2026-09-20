@@ -1,0 +1,593 @@
+{
+  "scope": "Repeated immutable linearizations from one accepted prepared step; not a browser or full-trajectory benchmark. Repeat 0 is warmup. Includes workspace assembly and solve, excludes material/contact geometry assembly.",
+  "sourceFixture": "/tmp/oet-full-cycle-certified-samples/slow-777.json",
+  "stepResult": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 9,
+    "frictionRefreshMs": 1.581623999999465,
+    "retainedDiscoveryTrials": 3,
+    "iterations": 16,
+    "factorizations": 279,
+    "workingSetReuses": 18,
+    "backtracks": 3,
+    "geometryRestarts": 12,
+    "ms": 417.05283399999985,
+    "timings": {
+      "assemblyMs": 92.83546200000046,
+      "linearMs": 258.4328320000004,
+      "frictionMs": 3.250457999999526,
+      "tangentAssemblyMs": 56.98041599999988,
+      "residualAssemblyMs": 35.855046000000584,
+      "projectionMs": 53.0410389999995
+    },
+    "fullAssemblies": 35,
+    "residualAssemblies": 25,
+    "promotedAssemblies": 7,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 2.2537527399890678e-14,
+      "contacts": 23,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.2880363442491217e-12,
+          "maxBendAngleDegrees": 30.887938139882912,
+          "maxBendNode": 82,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 41.66164599074761,
+          "activeWallContacts": 17,
+          "currentNormalLoad": 54370.453282293936
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.552713678800501e-16,
+          "maxBendAngleDegrees": 1.529370711952564,
+          "maxBendNode": 7,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.0006243320590587874,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 95854.72633714894
+        }
+      ]
+    },
+    "residual": {
+      "force": 4.534877007245086e-8,
+      "torque": 3.3730085391425746e-9,
+      "length": 6.440181721245608e-12
+    },
+    "dofs": 363,
+    "matrixEntries": 22008,
+    "linearScratch": {
+      "allocations": 2,
+      "capacityBytes": 1048576,
+      "grows": 1,
+      "viewBuilds": 87,
+      "requests": 491
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": false,
+    "certificateBound": 4.534877007245086e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 13,
+      "sliding": 13
+    },
+    "frictionIterations": 2,
+    "predictorFallbacks": 1,
+    "predictorRecovery": {
+      "attempted": true,
+      "early": true,
+      "predictorStatus": "linear-solve",
+      "converged": true
+    },
+    "wallNormalFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.534877007245086e-8,
+          "torque": 3.3730085391425746e-9,
+          "length": 6.440181721245608e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 13,
+          "sliding": 13
+        },
+        "iterations": 16,
+        "factorizations": 279
+      }
+    ],
+    "subdivisions": 1
+  },
+  "systems": 23,
+  "sizes": [
+    {
+      "primal": 363,
+      "rows": 488
+    },
+    {
+      "primal": 363,
+      "rows": 492
+    },
+    {
+      "primal": 363,
+      "rows": 501
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 517
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 523
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 531
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    }
+  ],
+  "samples": [
+    {
+      "repeat": 0,
+      "name": "compact",
+      "totalMs": 164.73203999999964,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "scale075",
+      "totalMs": 143.15237800000114,
+      "factorizations": 233,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 16735.85029131826,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "scale05",
+      "totalMs": 135.49612800000068,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 33255.6031988333,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "scale025",
+      "totalMs": 135.51625100000092,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 49563.43383504357,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "scale0",
+      "totalMs": 132.72237499999983,
+      "factorizations": 238,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 65663.41042993218,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "scale0",
+      "totalMs": 132.93175099999826,
+      "factorizations": 238,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 65663.41042993218,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "scale025",
+      "totalMs": 133.47420999999986,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 49563.43383504357,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "scale05",
+      "totalMs": 136.12875200000053,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 33255.6031988333,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "scale075",
+      "totalMs": 129.92087699999956,
+      "factorizations": 233,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 16735.85029131826,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "compact",
+      "totalMs": 128.90404099999932,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "compact",
+      "totalMs": 129.65350199999966,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "scale075",
+      "totalMs": 130.83654599999772,
+      "factorizations": 233,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 16735.85029131826,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "scale05",
+      "totalMs": 135.91766899999993,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 33255.6031988333,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "scale025",
+      "totalMs": 136.7548320000019,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 49563.43383504357,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "scale0",
+      "totalMs": 132.53108500000144,
+      "factorizations": 238,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 65663.41042993218,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "scale0",
+      "totalMs": 132.21658400000115,
+      "factorizations": 238,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 65663.41042993218,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "scale025",
+      "totalMs": 134.00925400000096,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 49563.43383504357,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "scale05",
+      "totalMs": 133.6551659999982,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 33255.6031988333,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "scale075",
+      "totalMs": 133.31246099999862,
+      "factorizations": 233,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 16735.85029131826,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "compact",
+      "totalMs": 129.15950099999827,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "compact",
+      "totalMs": 129.17029400000047,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "scale075",
+      "totalMs": 129.81620700000076,
+      "factorizations": 233,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 16735.85029131826,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "scale05",
+      "totalMs": 133.42799999999806,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 33255.6031988333,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "scale025",
+      "totalMs": 133.07241899999826,
+      "factorizations": 240,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 49563.43383504357,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "scale0",
+      "totalMs": 132.45995700000003,
+      "factorizations": 238,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 65663.41042993218,
+      "statusDifferences": 0,
+      "borderedStats": []
+    }
+  ]
+}

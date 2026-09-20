@@ -1,0 +1,200 @@
+[
+  {
+    "variant": false,
+    "warmup": true,
+    "elapsedMs": 417.00974999999994,
+    "processCpuMs": 1124.42,
+    "linearMs": 278.857336999999,
+    "assemblyMs": 109.22470700000099,
+    "factorizations": 279,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "variant": true,
+    "warmup": true,
+    "elapsedMs": 231.50716599999987,
+    "processCpuMs": 539.984,
+    "linearMs": 172.14155199999664,
+    "assemblyMs": 45.90933300000074,
+    "factorizations": 121,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 1.6788216826612741e-13
+  },
+  {
+    "variant": "delayed",
+    "warmup": true,
+    "elapsedMs": 218.5507080000002,
+    "processCpuMs": 419.294,
+    "linearMs": 162.04262199999857,
+    "assemblyMs": 43.77366999999822,
+    "factorizations": 157,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 3.299245112840452e-13
+  },
+  {
+    "variant": false,
+    "warmup": true,
+    "elapsedMs": 204.41379200000029,
+    "processCpuMs": 329.526,
+    "linearMs": 156.15525999999818,
+    "assemblyMs": 36.644878999999946,
+    "factorizations": 279,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "variant": true,
+    "warmup": true,
+    "elapsedMs": 193.0262090000001,
+    "processCpuMs": 279.297,
+    "linearMs": 140.81954300000552,
+    "assemblyMs": 39.73917200000005,
+    "factorizations": 121,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 1.6788216826612741e-13
+  },
+  {
+    "variant": "delayed",
+    "warmup": true,
+    "elapsedMs": 186.99241600000005,
+    "processCpuMs": 247.62,
+    "linearMs": 138.64508499999965,
+    "assemblyMs": 38.16587499999696,
+    "factorizations": 157,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 3.299245112840452e-13
+  },
+  {
+    "variant": false,
+    "warmup": false,
+    "elapsedMs": 193.17791699999998,
+    "processCpuMs": 239.309,
+    "linearMs": 148.65242300000045,
+    "assemblyMs": 34.60129499999766,
+    "factorizations": 279,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "variant": true,
+    "warmup": false,
+    "elapsedMs": 184.17341600000054,
+    "processCpuMs": 219.652,
+    "linearMs": 138.83520100000442,
+    "assemblyMs": 35.76599499999884,
+    "factorizations": 121,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 1.6788216826612741e-13
+  },
+  {
+    "variant": "delayed",
+    "warmup": false,
+    "elapsedMs": 194.9409999999998,
+    "processCpuMs": 298.715,
+    "linearMs": 147.60212000000774,
+    "assemblyMs": 37.34433400000398,
+    "factorizations": 157,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 3.299245112840452e-13
+  },
+  {
+    "variant": "delayed",
+    "warmup": false,
+    "elapsedMs": 188.43783299999996,
+    "processCpuMs": 258.893,
+    "linearMs": 142.7013820000093,
+    "assemblyMs": 36.34237300000041,
+    "factorizations": 157,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 3.299245112840452e-13
+  },
+  {
+    "variant": true,
+    "warmup": false,
+    "elapsedMs": 183.54091699999935,
+    "processCpuMs": 263.89,
+    "linearMs": 140.27775500000735,
+    "assemblyMs": 33.65641599999435,
+    "factorizations": 121,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 1.6788216826612741e-13
+  },
+  {
+    "variant": false,
+    "warmup": false,
+    "elapsedMs": 190.250583,
+    "processCpuMs": 198.016,
+    "linearMs": 150.18124400000306,
+    "assemblyMs": 31.277333000005456,
+    "factorizations": 279,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "variant": false,
+    "warmup": false,
+    "elapsedMs": 192.6803749999999,
+    "processCpuMs": 232.059,
+    "linearMs": 150.43041700000322,
+    "assemblyMs": 32.69062500000109,
+    "factorizations": 279,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "variant": true,
+    "warmup": false,
+    "elapsedMs": 191.60775000000012,
+    "processCpuMs": 270.408,
+    "linearMs": 149.7942890000004,
+    "assemblyMs": 32.792920000004415,
+    "factorizations": 121,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 1.6788216826612741e-13
+  },
+  {
+    "variant": "delayed",
+    "warmup": false,
+    "elapsedMs": 197.17020800000046,
+    "processCpuMs": 287.932,
+    "linearMs": 152.30858400000488,
+    "assemblyMs": 34.67903900000147,
+    "factorizations": 157,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 3.299245112840452e-13
+  },
+  {
+    "variant": "delayed",
+    "warmup": false,
+    "elapsedMs": 179.20100000000093,
+    "processCpuMs": 191.921,
+    "linearMs": 136.93194899998343,
+    "assemblyMs": 33.06850299999678,
+    "factorizations": 157,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 3.299245112840452e-13
+  },
+  {
+    "variant": true,
+    "warmup": false,
+    "elapsedMs": 189.68841600000087,
+    "processCpuMs": 240.442,
+    "linearMs": 145.20143300000927,
+    "assemblyMs": 34.70962499999587,
+    "factorizations": 121,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 1.6788216826612741e-13
+  },
+  {
+    "variant": false,
+    "warmup": false,
+    "elapsedMs": 190.9932090000002,
+    "processCpuMs": 211.387,
+    "linearMs": 147.53212699998585,
+    "assemblyMs": 34.45866899999419,
+    "factorizations": 279,
+    "iterations": 16,
+    "maxPositionDifferenceMm": 0
+  }
+]

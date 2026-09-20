@@ -1,0 +1,78 @@
+{
+  "contactQueries": {
+    "pointQueries": 7106,
+    "capsuleQueries": 97194,
+    "capsuleSamples": 387003,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 7022,
+    "bvhRefinements": 387003,
+    "signRefinements": 933,
+    "signCacheHits": 0,
+    "signCacheMisses": 933,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 84,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 387003,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 95157,
+    "certifiedCapsuleSamples": 379897,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 869,
+  "processCpu": {
+    "meanMs": 29.347675489067875,
+    "p50Ms": 7.312,
+    "p95Ms": 51.12,
+    "maxMs": 5365.972
+  },
+  "meanMs": 30.996590157652484,
+  "p50Ms": 5.602665999999772,
+  "p95Ms": 38.19591700000092,
+  "p99Ms": 203.2977920000012,
+  "maxMs": 8174.503750000002,
+  "overBudget": 80,
+  "meanIterations": 2.8009205983889527,
+  "meanFactorizations": 28.903337169159954,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 42.883,
+        "p50Ms": 42.883,
+        "p95Ms": 42.883,
+        "maxMs": 42.883
+      },
+      "meanMs": 36.43962499999998,
+      "p50Ms": 36.43962499999998,
+      "p95Ms": 36.43962499999998,
+      "p99Ms": 36.43962499999998,
+      "maxMs": 36.43962499999998,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 869,
+      "processCpu": {
+        "meanMs": 29.347675489067875,
+        "p50Ms": 7.312,
+        "p95Ms": 51.12,
+        "maxMs": 5365.972
+      },
+      "meanMs": 30.996590157652484,
+      "p50Ms": 5.602665999999772,
+      "p95Ms": 38.19591700000092,
+      "p99Ms": 203.2977920000012,
+      "maxMs": 8174.503750000002,
+      "overBudget": 80,
+      "meanIterations": 2.8009205983889527,
+      "meanFactorizations": 28.903337169159954
+    }
+  }
+}

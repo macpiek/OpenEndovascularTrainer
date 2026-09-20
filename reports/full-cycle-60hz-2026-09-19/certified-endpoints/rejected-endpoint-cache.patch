@@ -1,0 +1,92 @@
+--- a/src/physics/collision/vesselContactField.js
++++ b/src/physics/collision/vesselContactField.js
+@@ -38,7 +38,8 @@
+ const STAT_KNOWN_INSIDE_NEAR_WALL_HITS = 17;
+ const STAT_CERTIFIED_CAPSULE_QUERIES = 18;
+ const STAT_CERTIFIED_CAPSULE_SAMPLES = 19;
+-const STAT_COUNT = 20;
++const STAT_CERTIFIED_ENDPOINT_REUSES = 20;
++const STAT_COUNT = 21;
+ const CONTACT_SIGNED_DISTANCE = 0;
+ const CONTACT_SIGNED_GAP = 1;
+ const CONTACT_DISTANCE = 2;
+@@ -901,6 +902,7 @@
+                 stats[STAT_KNOWN_INSIDE_NEAR_WALL_HITS],
+             certifiedCapsuleQueries: stats[STAT_CERTIFIED_CAPSULE_QUERIES],
+             certifiedCapsuleSamples: stats[STAT_CERTIFIED_CAPSULE_SAMPLES],
++            certifiedEndpointReuses: stats[STAT_CERTIFIED_ENDPOINT_REUSES],
+             runtimeBytes: this.runtimeBytes
+         };
+     }
+@@ -1028,16 +1030,33 @@
+             a?.length!==3||b?.length!==3||!a.every(Number.isFinite)||!b.every(Number.isFinite))
+             throw new RangeError('Invalid certified capsule grid');
+         const contact=this._certifiedMeshContact??={source:SOURCE_SDF_BVH,inside:true,signedDistance:0,signedGap:0,faceIndex:-1};
++        const endpoint=this._certifiedCapsuleEndpoint??={tree:null};
+         const send=(x,y,z,t)=>{
+-            const previousFace=this._bvhClosest.faceIndex;
+-            this._bvhClosest.distance=Infinity;
+-            let hit=closestPointToPointScalarBvh(tree,x,y,z,this._bvhClosest,this._scalarBvhScratch,Infinity,previousFace)?this._bvhClosest:null;
+-            if(!hit){this._bvhPoint.set(x,y,z);hit=tree.closestPointToPoint(this._bvhPoint,this._bvhClosest);}
+-            if(!hit||!(hit.distance>0)||!Number.isFinite(hit.distance))throw new RangeError('Invalid certified mesh distance');
++            let distance,faceIndex;
++            if(t===0&&endpoint.tree===tree&&endpoint.x===x&&endpoint.y===y&&endpoint.z===z) {
++                // Adjacent capsules share an exact point, including after
++                // a radius change. Recompute its gap, never reuse a sign proof.
++                distance=endpoint.distance;faceIndex=endpoint.faceIndex;
++                this._bvhClosest.faceIndex=faceIndex;
++                this.stats[STAT_CERTIFIED_ENDPOINT_REUSES]++;
++            } else {
++                const previousFace=this._bvhClosest.faceIndex;
++                this._bvhClosest.distance=Infinity;
++                let hit=closestPointToPointScalarBvh(tree,x,y,z,this._bvhClosest,this._scalarBvhScratch,Infinity,previousFace)?this._bvhClosest:null;
++                if(!hit){this._bvhPoint.set(x,y,z);hit=tree.closestPointToPoint(this._bvhPoint,this._bvhClosest);}
++                if(!hit||!(hit.distance>0)||!Number.isFinite(hit.distance))throw new RangeError('Invalid certified mesh distance');
++                distance=hit.distance;faceIndex=hit.faceIndex;
++                this.stats[STAT_BVH_REFINEMENTS]++;this.stats[STAT_BVH_CONTACT_REFINEMENTS]++;
++            }
++            // Store numeric values before visitor code can mutate its scratch
++            // result. Every endpoint still reaches the certificate collector.
++            if(t===1) {
++                endpoint.tree=tree;endpoint.x=x;endpoint.y=y;endpoint.z=z;
++                endpoint.distance=distance;endpoint.faceIndex=faceIndex;
++            }
+             this.stats[STAT_CAPSULE_SAMPLES]++;
+             this.stats[STAT_CERTIFIED_CAPSULE_SAMPLES]++;
+-            this.stats[STAT_BVH_REFINEMENTS]++;this.stats[STAT_BVH_CONTACT_REFINEMENTS]++;
+-            contact.signedDistance=hit.distance;contact.signedGap=hit.distance-radius;contact.faceIndex=hit.faceIndex;
++            contact.signedDistance=distance;contact.signedGap=distance-radius;contact.faceIndex=faceIndex;
+             // A visitor may reuse or mutate its scratch result. Reset the
+             // classification fields before publishing each exact sample.
+             contact.source=SOURCE_SDF_BVH;contact.inside=true;
+--- a/tests/kirchhoffSharedAxisCertifiedSamples.test.js
++++ b/tests/kirchhoffSharedAxisCertifiedSamples.test.js
+@@ -43,3 +43,28 @@
+     for(const key of ['iterations','factorizations','fullAssemblies','residualAssemblies','quality','residual','subdivisions'])
+         assert.deepEqual(actual.result[key],reference.result[key],key);
+ });
++
++test('adjacent certified capsules reuse only exact endpoint distances and still visit the complete grid',()=>{
++    const field=anatomy.field,entry=fixture.insideContinuation.find(e=>e.clearance>2),a=entry.point.slice();
++    const b=a.map((v,k)=>v+(k===0?.01:0)),c=a.map((v,k)=>v+(k===0?.02:0));
++    const proof={knownInside:true,lowerBound:1},geometryToken=field.fallbackGeometry.boundsTree;
++    const previous=[];
++    field.visitCertifiedInsideCapsule({a,b,radius:.4,sampleCount:3,geometryToken},proof,(contact,t)=>{
++        previous.push(snapshot(contact,t));contact.signedDistance=999;contact.faceIndex=-500;
++    });
++    const before=field.getStats(),actual=[];
++    field.visitCertifiedInsideCapsule({a:b,b:c,radius:.7,sampleCount:3,geometryToken},proof,(contact,t)=>actual.push(snapshot(contact,t)));
++    const stats=field.getStats();
++    assert.deepEqual(actual.map(x=>x.t),[0,1,1/3,2/3]);
++    assert.equal(actual[0].distance,previous[1].distance);
++    assert.equal(actual[0].face,previous[1].face);
++    assert.equal(actual[0].gap,previous[1].distance-.7);
++    assert.equal(stats.certifiedEndpointReuses-before.certifiedEndpointReuses,1);
++    assert.equal(stats.certifiedCapsuleSamples-before.certifiedCapsuleSamples,4);
++    assert.equal(stats.bvhContactRefinements-before.bvhContactRefinements,3);
++    const misses=field.getStats().certifiedEndpointReuses;
++    assert.equal(field.visitCertifiedInsideCapsule({a:c,b:a,radius:.4,sampleCount:3,geometryToken},null,()=>assert.fail()),false,'distance cache cannot supply the missing proof');
++    assert.equal(field.visitCertifiedInsideCapsule({a:c,b:a,radius:.4,sampleCount:3,geometryToken:{}},proof,()=>assert.fail()),false,'cache cannot validate a replaced geometry');
++    field.visitCertifiedInsideCapsule({a:c.map((v,k)=>v+(k===1?1e-9:0)),b:a,radius:.4,sampleCount:3,geometryToken},proof,()=>{});
++    assert.equal(field.getStats().certifiedEndpointReuses,misses,'nearby coordinates are not exact cache matches');
++});

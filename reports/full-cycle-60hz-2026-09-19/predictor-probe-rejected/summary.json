@@ -1,0 +1,78 @@
+{
+  "contactQueries": {
+    "pointQueries": 13792,
+    "capsuleQueries": 570316,
+    "capsuleSamples": 2271007,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 13715,
+    "bvhRefinements": 2271007,
+    "signRefinements": 1747,
+    "signCacheHits": 0,
+    "signCacheMisses": 1747,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 77,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 2271007,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 566246,
+    "certifiedCapsuleSamples": 2257215,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 1002,
+  "processCpu": {
+    "meanMs": 89.5023363273453,
+    "p50Ms": 8.939,
+    "p95Ms": 299.843,
+    "maxMs": 14073.098
+  },
+  "meanMs": 90.1933401257485,
+  "p50Ms": 6.998333000000002,
+  "p95Ms": 257.92912500000057,
+  "p99Ms": 1433.4835420000018,
+  "maxMs": 12736.164875000002,
+  "overBudget": 196,
+  "meanIterations": 4.68562874251497,
+  "meanFactorizations": 67.749500998004,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 31.919,
+        "p50Ms": 31.919,
+        "p95Ms": 31.919,
+        "maxMs": 31.919
+      },
+      "meanMs": 18.571666999999934,
+      "p50Ms": 18.571666999999934,
+      "p95Ms": 18.571666999999934,
+      "p99Ms": 18.571666999999934,
+      "maxMs": 18.571666999999934,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 1002,
+      "processCpu": {
+        "meanMs": 89.5023363273453,
+        "p50Ms": 8.939,
+        "p95Ms": 299.843,
+        "maxMs": 14073.098
+      },
+      "meanMs": 90.1933401257485,
+      "p50Ms": 6.998333000000002,
+      "p95Ms": 257.92912500000057,
+      "p99Ms": 1433.4835420000018,
+      "maxMs": 12736.164875000002,
+      "overBudget": 196,
+      "meanIterations": 4.68562874251497,
+      "meanFactorizations": 67.749500998004
+    }
+  }
+}

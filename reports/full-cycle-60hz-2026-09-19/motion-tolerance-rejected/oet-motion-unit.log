@@ -1,0 +1,25 @@
+✔ compliant parallel contacts share load and match the analytic spring equilibrium (26.224083ms)
+✔ a fixed penetrating point can carry a compliant wall reaction (0.233125ms)
+✔ simultaneous release solves all separating loaded contacts without changing equilibrium (4.599334ms)
+✔ compliance is scoped to the private timestep and cancellation restores its previous value (7.524875ms)
+✔ a complete timestep reports geometric penetration separately from compliant equilibrium (2.784958ms)
+✔ small free translation can stop at motion resolution without claiming force convergence (13.8335ms)
+✔ zero positional correction does not excuse a missing normal reaction (4.59425ms)
+✔ correction estimate includes bending, independent spins and reaction changes (2.762541ms)
+✔ invalid motion budgets fail without changing the physical state (2.10325ms)
+✔ velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation (9.377584ms)
+✔ a failed predictor retries from the original pose and includes failed work (11.805625ms)
+✔ velocity prediction retains the same dynamic equilibrium and force certificate for a free rod (4.236333ms)
+✔ invalid prediction strengths are rejected before physical work (1.792125ms)
+✔ early predictor recovery tries the incoming pose before friction fallbacks (6.60225ms)
+✔ cancelling early predictor recovery restores the whole incoming state (2.443041ms)
+✔ zero motion does not lose the normal fallback when early prediction is enabled (0.782333ms)
+✔ failed early recovery still runs the original predicted friction fallback and counts the extra work (2.961875ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 165.559375

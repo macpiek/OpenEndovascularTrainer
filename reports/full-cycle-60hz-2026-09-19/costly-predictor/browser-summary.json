@@ -1,0 +1,72 @@
+{
+  "source": "Summary read from visible Browser benchmark report textarea; raw per-step report not exported",
+  "solver": "shared-axis-realtime",
+  "configuration": {
+    "earlyPredictorFallback": true,
+    "predictorRecoveryFactorizations": 64,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true,
+    "fastNewton": true,
+    "predictiveNewton": true,
+    "pruneWitnesses": true,
+    "wallContactDebug": false,
+    "fluoroscopy": false,
+    "catheterType": "berenstein",
+    "guidewireType": "glidewire",
+    "catheterShaftStiffnessScale": 40.65,
+    "catheterTipStiffnessScale": 66.8,
+    "guidewireShaftStiffnessScale": 9.6,
+    "guidewireTipStiffnessScale": 6.8,
+    "shapeTolerance": 0.15,
+    "contactMargin": 1,
+    "maxArcLoss": 0.002,
+    "maxSpacing": 20
+  },
+  "durationMs": 154832.10000002384,
+  "physicsHz": 37.182212215678234,
+  "averageFps": 59.5883585041294,
+  "onePercentLowFps": 44.23039627075195,
+  "summary": {
+    "acceptedSteps": 5757,
+    "completedCycle": true,
+    "rejectedSteps": 0,
+    "targetMm": 1000,
+    "minimumOneSecondPhysicsHz": 15.23345266186143,
+    "p50StepMs": 18.899999976158146,
+    "p95StepMs": 30.200000166893005,
+    "p99StepMs": 43.10000002384186,
+    "maxStepMs": 254.5,
+    "stepsOverBudget": 3806,
+    "maxAcceptedIntervalMs": 368.2999999523163
+  },
+  "aggregate": {
+    "totalFactorizations": 28626,
+    "totalIterations": 16430,
+    "meanCpuMs": 18.03739794985751,
+    "meanAssemblyMs": 9.167535171132752,
+    "meanLinearMs": 4.2195761688098905
+  },
+  "quality": {
+    "finite": true,
+    "missingQualitySteps": 0,
+    "nonlinearFailedSteps": 0,
+    "solverSteps": 5757,
+    "maxPostStepPenetrationMm": 9.4250857562983e-07,
+    "maxSegmentErrorPercent": 3.473193995327423e-06,
+    "maxCertifiedResidual": 9.99341298652334e-05,
+    "maxBendAngleDegrees": 45.00000035017485,
+    "maxBendLimitDegrees": 45
+  },
+  "worstStep": {
+    "index": 882,
+    "wireMm": 647.5333333333392,
+    "catheterMm": 0,
+    "cpuMs": 254.5,
+    "factorizations": 281,
+    "iterations": 8,
+    "assemblies": 31,
+    "linearMs": 210.0000001192093,
+    "assemblyMs": 35.700000047683716
+  },
+  "nodeTimingCaveat": "Node wall time includes two long external pauses: step 2128 elapsed 996747.182 ms versus process CPU 36.006 ms; step 5391 elapsed 789252.590166 ms versus process CPU 7.526 ms. Node mean/max wall time cannot be used as performance evidence."
+}

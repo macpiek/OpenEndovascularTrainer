@@ -1,0 +1,3308 @@
+{
+  "scope": "Repeated immutable linearizations from one accepted prepared step; not a browser or full-trajectory benchmark. Repeat 0 is warmup. Includes workspace assembly and solve, excludes material/contact geometry assembly.",
+  "sourceFixture": "/tmp/oet-full-cycle-certified-samples/slow-777.json",
+  "stepResult": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 9,
+    "frictionRefreshMs": 2.462417000000187,
+    "retainedDiscoveryTrials": 3,
+    "iterations": 16,
+    "factorizations": 279,
+    "workingSetReuses": 18,
+    "backtracks": 3,
+    "geometryRestarts": 12,
+    "ms": 601.4069580000003,
+    "timings": {
+      "assemblyMs": 151.87216700000113,
+      "linearMs": 343.85029699999745,
+      "frictionMs": 6.55445800000075,
+      "tangentAssemblyMs": 91.46425099999988,
+      "residualAssemblyMs": 60.40791600000125,
+      "projectionMs": 66.73262399999976
+    },
+    "fullAssemblies": 35,
+    "residualAssemblies": 25,
+    "promotedAssemblies": 7,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 2.2537527399890678e-14,
+      "contacts": 23,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.2880363442491217e-12,
+          "maxBendAngleDegrees": 30.887938139882912,
+          "maxBendNode": 82,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 41.66164599074761,
+          "activeWallContacts": 17,
+          "currentNormalLoad": 54370.453282293936
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.552713678800501e-16,
+          "maxBendAngleDegrees": 1.529370711952564,
+          "maxBendNode": 7,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.0006243320590587874,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 95854.72633714894
+        }
+      ]
+    },
+    "residual": {
+      "force": 4.534877007245086e-8,
+      "torque": 3.3730085391425746e-9,
+      "length": 6.440181721245608e-12
+    },
+    "dofs": 363,
+    "matrixEntries": 22008,
+    "linearScratch": {
+      "allocations": 2,
+      "capacityBytes": 1048576,
+      "grows": 1,
+      "viewBuilds": 87,
+      "requests": 491
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": false,
+    "certificateBound": 4.534877007245086e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 13,
+      "sliding": 13
+    },
+    "frictionIterations": 2,
+    "predictorFallbacks": 1,
+    "predictorRecovery": {
+      "attempted": true,
+      "early": true,
+      "predictorStatus": "linear-solve",
+      "converged": true
+    },
+    "wallNormalFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.534877007245086e-8,
+          "torque": 3.3730085391425746e-9,
+          "length": 6.440181721245608e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 13,
+          "sliding": 13
+        },
+        "iterations": 16,
+        "factorizations": 279
+      }
+    ],
+    "subdivisions": 1
+  },
+  "systems": 23,
+  "sizes": [
+    {
+      "primal": 363,
+      "rows": 488
+    },
+    {
+      "primal": 363,
+      "rows": 492
+    },
+    {
+      "primal": 363,
+      "rows": 501
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 517
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 523
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 531
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    }
+  ],
+  "samples": [
+    {
+      "repeat": 0,
+      "name": "compact",
+      "totalMs": 238.2561679999999,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "retained",
+      "totalMs": 248.8436670000001,
+      "factorizations": 75,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 514,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 2,
+            "2": 2,
+            "3": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 2,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 2,
+            "3": 2
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "2": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "4": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "name": "full",
+      "totalMs": 403.80775200000016,
+      "factorizations": 69,
+      "updates": 207,
+      "reuses": 0,
+      "backsolves": 480,
+      "updateFailures": 5,
+      "rankResets": 24,
+      "changedRows": {
+        "1": 23,
+        "2": 26,
+        "3": 26,
+        "4": 22,
+        "5": 20,
+        "6": 36,
+        "7": 37,
+        "8": 22,
+        "9": 16,
+        "10": 5,
+        "11": 3
+      },
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "full",
+      "totalMs": 355.0303749999989,
+      "factorizations": 69,
+      "updates": 207,
+      "reuses": 0,
+      "backsolves": 480,
+      "updateFailures": 5,
+      "rankResets": 24,
+      "changedRows": {
+        "1": 23,
+        "2": 26,
+        "3": 26,
+        "4": 22,
+        "5": 20,
+        "6": 36,
+        "7": 37,
+        "8": 22,
+        "9": 16,
+        "10": 5,
+        "11": 3
+      },
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "retained",
+      "totalMs": 215.47829199999933,
+      "factorizations": 75,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 514,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 2,
+            "2": 2,
+            "3": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 2,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 2,
+            "3": 2
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "2": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "4": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "name": "compact",
+      "totalMs": 213.7817929999992,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "compact",
+      "totalMs": 275.8307850000019,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "retained",
+      "totalMs": 216.9940860000006,
+      "factorizations": 75,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 514,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 2,
+            "2": 2,
+            "3": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 2,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 2,
+            "3": 2
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "2": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "4": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 2,
+      "name": "full",
+      "totalMs": 322.7090389999976,
+      "factorizations": 69,
+      "updates": 207,
+      "reuses": 0,
+      "backsolves": 480,
+      "updateFailures": 5,
+      "rankResets": 24,
+      "changedRows": {
+        "1": 23,
+        "2": 26,
+        "3": 26,
+        "4": 22,
+        "5": 20,
+        "6": 36,
+        "7": 37,
+        "8": 22,
+        "9": 16,
+        "10": 5,
+        "11": 3
+      },
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "full",
+      "totalMs": 297.77945900000213,
+      "factorizations": 69,
+      "updates": 207,
+      "reuses": 0,
+      "backsolves": 480,
+      "updateFailures": 5,
+      "rankResets": 24,
+      "changedRows": {
+        "1": 23,
+        "2": 26,
+        "3": 26,
+        "4": 22,
+        "5": 20,
+        "6": 36,
+        "7": 37,
+        "8": 22,
+        "9": 16,
+        "10": 5,
+        "11": 3
+      },
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "retained",
+      "totalMs": 178.65716600000087,
+      "factorizations": 75,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 514,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 2,
+            "2": 2,
+            "3": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 2,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 2,
+            "3": 2
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "2": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "4": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 3,
+      "name": "compact",
+      "totalMs": 203.3052089999992,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "compact",
+      "totalMs": 191.24341699999786,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "retained",
+      "totalMs": 224.6500840000017,
+      "factorizations": 75,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 514,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": [
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "8": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 2,
+            "2": 2,
+            "3": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 2,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 15,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "3": 2,
+            "4": 1,
+            "5": 1,
+            "6": 3,
+            "7": 5,
+            "8": 2
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "7": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "7": 1,
+            "8": 2,
+            "9": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "6": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 4,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "11": 1
+          }
+        },
+        {
+          "updates": 5,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 2,
+            "3": 2
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 8,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1,
+            "8": 1,
+            "9": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 1,
+          "ranks": {
+            "2": 1,
+            "10": 1
+          }
+        },
+        {
+          "updates": 3,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "2": 1,
+            "4": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "5": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1,
+            "4": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "4": 1
+          }
+        },
+        {
+          "updates": 2,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1,
+            "2": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 1,
+          "rankResets": 0,
+          "ranks": {
+            "6": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "3": 1
+          }
+        },
+        {
+          "updates": 1,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {
+            "1": 1
+          }
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        },
+        {
+          "updates": 0,
+          "rejections": 0,
+          "rankResets": 0,
+          "ranks": {}
+        }
+      ]
+    },
+    {
+      "repeat": 4,
+      "name": "full",
+      "totalMs": 293.43091299999924,
+      "factorizations": 69,
+      "updates": 207,
+      "reuses": 0,
+      "backsolves": 480,
+      "updateFailures": 5,
+      "rankResets": 24,
+      "changedRows": {
+        "1": 23,
+        "2": 26,
+        "3": 26,
+        "4": 22,
+        "5": 20,
+        "6": 36,
+        "7": 37,
+        "8": 22,
+        "9": 16,
+        "10": 5,
+        "11": 3
+      },
+      "maxDifference": 0.00018570758402347565,
+      "statusDifferences": 0,
+      "borderedStats": []
+    }
+  ]
+}

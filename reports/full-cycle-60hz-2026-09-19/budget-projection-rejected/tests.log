@@ -1,0 +1,15 @@
+✔ an insufficient private work budget retries the complete reference and accounts for rejected work (20.723542ms)
+✔ cancelling during the corrected attempt restores the original pose, rates and history (2.79375ms)
+✔ private projection reduces a retained wall violation and leaves physical state and fixed DOFs untouched (3.261292ms)
+✔ projected predictor cancellation restores pose, reactions and rates while inertia keeps the incoming reference (4.186ms)
+✔ the corrected guess still converges under the original physical certificates (3.066541ms)
+✔ undefined wall direction abandons only the private correction (0.485625ms)
+✔ advancing-only correction leaves withdrawing and stationary guesses identical to the reference predictor (4.192917ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 250.898208

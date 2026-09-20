@@ -1,0 +1,57 @@
+/** Bounded dual coordinate descent for the PRIVATE identity-metric trial
+ * correction. The multiplier here belongs to this projection, not the rod.
+ * A finite partial correction is only a line-search proposal: no physical
+ * force, friction, length or vessel acceptance criterion is relaxed.
+ */
+export function* iterateSharedAxisIterativeProjection(s,base,{sweeps=8,tolerance=1e-10}={}) {
+    if(!Number.isInteger(sweeps)||sweeps<1||sweeps>128)throw new RangeError('Projection sweep count must be between 1 and 128');
+    let started=performance.now(),cpuMs=0;
+    const increment=new Float64Array(s.layout.dofCount),dual=new Float64Array(base.rows.length);
+    const zeroReactions=new Float64Array(s.definitions.length);
+    const rows=base.rows.map(r=>{
+        // Duplicate DOFs must be combined before computing the diagonal.
+        const support=new Map();
+        r.dofs.forEach((p,k)=>{if(!s.fixed[p])support.set(p,(support.get(p)??0)+r.jacobian[k]);});
+        const dofs=[],jacobian=[];
+        for(const [p,j]of support)if(j){dofs.push(p);jacobian.push(j);}
+        return {kind:r.kind,gap:r.gap,dofs,jacobian,diagonal:jacobian.reduce((sum,j)=>sum+j*j,0)};
+    });
+    const finish=(residual,converged,applicable,sweepsDone)=>({increment,zeroReactions,
+        projectionMultipliers:dual,approximate:true,residual,converged,applicable,sweeps:sweepsDone,
+        factorizations:0,workingSetReuses:0,cpuMs:cpuMs+performance.now()-started});
+    if(rows.some(r=>!Number.isFinite(r.diagonal)||!Number.isFinite(r.gap)||
+        r.diagonal===0&&(r.kind==='length'?Math.abs(r.gap)>tolerance:r.gap < -tolerance)))
+        return finish(Infinity,false,false,0);
+    const measure=()=>{
+        const stationarity=increment.slice();let residual=0;
+        for(let index=0;index<rows.length;index++) {
+            const r=rows[index];let gap=r.gap;
+            for(let k=0;k<r.dofs.length;k++) {
+                const p=r.dofs[k],j=r.jacobian[k];gap+=j*increment[p];stationarity[p]-=j*dual[index];
+            }
+            residual=Math.max(residual,Math.abs(r.kind==='length'?gap:Math.min(dual[index],gap)));
+        }
+        for(let p=0;p<stationarity.length;p++)if(!s.fixed[p])residual=Math.max(residual,Math.abs(stationarity[p]));
+        return Number.isFinite(residual)?residual:Infinity;
+    };
+    let residual=measure();
+    if(residual<=tolerance)return finish(residual,true,true,0);
+    for(let sweep=0;sweep<sweeps;sweep++) {
+        // Alternating order limits the directional bias of chain constraints.
+        for(let n=0;n<rows.length;n++) {
+            const index=sweep%2?rows.length-1-n:n,r=rows[index];if(!r.diagonal)continue;
+            let gap=r.gap;
+            for(let k=0;k<r.dofs.length;k++)gap+=r.jacobian[k]*increment[r.dofs[k]];
+            const old=dual[index],next=r.kind==='wall'?Math.max(0,old-gap/r.diagonal):old-gap/r.diagonal;
+            dual[index]=next;const change=next-old;
+            for(let k=0;k<r.dofs.length;k++)increment[r.dofs[k]]+=r.jacobian[k]*change;
+        }
+        residual=measure();
+        if(residual<=tolerance)return finish(residual,true,true,sweep+1);
+        if(!Number.isFinite(residual))return finish(residual,false,false,sweep+1);
+        cpuMs+=performance.now()-started;
+        yield {kind:'projection-sweep',sweep:sweep+1,residual};
+        started=performance.now();
+    }
+    return finish(residual,false,increment.some(v=>v!==0),sweeps);
+}

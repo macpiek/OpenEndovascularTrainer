@@ -1,0 +1,102 @@
+[
+  {
+    "fixture": "slow-777",
+    "fused": false,
+    "samples": 6,
+    "elapsedMs": 192.4000004999998,
+    "assemblyMs": 33.49425099999917,
+    "linearMs": 148.73991599999636,
+    "processCpuMs": 229.713,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-777",
+    "fused": true,
+    "samples": 6,
+    "elapsedMs": 194.06320800000003,
+    "assemblyMs": 34.25124550000055,
+    "linearMs": 150.1951740000004,
+    "processCpuMs": 247.393,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-842",
+    "fused": false,
+    "samples": 6,
+    "elapsedMs": 122.80012500000066,
+    "assemblyMs": 36.191476000000876,
+    "linearMs": 74.16158649999943,
+    "processCpuMs": 137.068,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-842",
+    "fused": true,
+    "samples": 6,
+    "elapsedMs": 120.94775050000044,
+    "assemblyMs": 36.97849999999198,
+    "linearMs": 74.1986624999945,
+    "processCpuMs": 141.493,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-1300",
+    "fused": false,
+    "samples": 6,
+    "elapsedMs": 13.19152049999866,
+    "assemblyMs": 6.283708000003571,
+    "linearMs": 2.2254784999995536,
+    "processCpuMs": 14.539,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-1300",
+    "fused": true,
+    "samples": 6,
+    "elapsedMs": 13.811020999999528,
+    "assemblyMs": 6.817020499995124,
+    "linearMs": 2.58068799999819,
+    "processCpuMs": 16.000500000000002,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-4245",
+    "fused": false,
+    "samples": 6,
+    "elapsedMs": 19.508396000001085,
+    "assemblyMs": 8.768019499999355,
+    "linearMs": 5.805937500010259,
+    "processCpuMs": 23.145,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-4245",
+    "fused": true,
+    "samples": 6,
+    "elapsedMs": 20.202229000000443,
+    "assemblyMs": 9.215124499998637,
+    "linearMs": 5.909334499994657,
+    "processCpuMs": 22.697000000000003,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-4895",
+    "fused": false,
+    "samples": 6,
+    "elapsedMs": 136.7156879999984,
+    "assemblyMs": 57.63960150001003,
+    "linearMs": 65.12216749999425,
+    "processCpuMs": 156.34550000000002,
+    "maxPositionDifferenceMm": 0
+  },
+  {
+    "fixture": "slow-4895",
+    "fused": true,
+    "samples": 6,
+    "elapsedMs": 144.68485399999918,
+    "assemblyMs": 60.906918500002575,
+    "linearMs": 65.45350349999171,
+    "processCpuMs": 183.2835,
+    "maxPositionDifferenceMm": 0
+  }
+]

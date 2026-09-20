@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-closed-feasible-residual",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0.0013764061833893338,
+      "maxMm": 0.004129218410596607
+    },
+    "wire-in": {
+      "samples": 2051,
+      "rmsMm": 35.555645842368264,
+      "maxMm": 289.94908243457445
+    },
+    "catheter-in": {
+      "samples": 3563,
+      "rmsMm": 127.98909474176037,
+      "maxMm": 443.81962273609014
+    },
+    "catheter-out": {
+      "samples": 6051,
+      "rmsMm": 127.59504089303618,
+      "maxMm": 442.11342288617266
+    },
+    "wire-out": {
+      "samples": 2081,
+      "rmsMm": 48.08662291114312,
+      "maxMm": 377.6052708820556
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 0.040195754877999534,
+    "maxRelativeLengthError": 3.480708716567087e-8,
+    "maxCertifiedResidual": 0.00009999365011026384,
+    "totalFactorizations": 84383,
+    "totalIterations": 24438
+  }
+}

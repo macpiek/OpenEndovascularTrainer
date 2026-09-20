@@ -1,0 +1,34 @@
+{
+  "result": {
+    "status": "converged",
+    "iterations": 586,
+    "factorizations": 5576,
+    "ms": 10440.225668000001,
+    "timings": {
+      "assemblyMs": 5386.277550999971,
+      "linearMs": 3995.908904000103,
+      "frictionMs": 35.39753800000108,
+      "tangentAssemblyMs": 684.3604209999805,
+      "residualAssemblyMs": 4701.917129999991,
+      "projectionMs": 2865.978193000098
+    }
+  },
+  "byMethod": {
+    "0": {
+      "calls": 586,
+      "LU": 898,
+      "failed": 8,
+      "condensedAttempts": 898,
+      "eliminatedRows": 52921,
+      "condensationFallbacks": 0
+    },
+    "1": {
+      "calls": 257,
+      "LU": 320,
+      "failed": 0,
+      "condensedAttempts": 320,
+      "eliminatedRows": 19110,
+      "condensationFallbacks": 0
+    }
+  }
+}

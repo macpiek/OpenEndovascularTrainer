@@ -1,0 +1,133 @@
+--- a/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
++++ b/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
+@@ -65,7 +65,7 @@
+  * shortening; the turn bound protects curvature even at inflection points.
+  * No accepted state is mutated. Fine knots can return on the following feed.
+  */
+-export function coarsenSharedAxisMesh(coordinates, positions, {tools, boundaries, previous, spacing, options}) {
++export function coarsenSharedAxisMesh(coordinates, positions, {tools, boundaries, previous, spacing, options,canMergeChord=null}) {
+     if (options.maxSpacing < spacing) throw new RangeError('Adaptive max spacing must cover the fine spacing');
+     const contacts = adaptiveContactKnots(previous, options);
+     const contactSpans = previous ? previous.coordinates.slice(0,-1).flatMap((x,i) =>
+@@ -104,7 +104,13 @@
+                 if (distance(positions[i], a.map((v, k) => v + t * (b[k] - v))) > options.shapeTolerance) return false;
+             }
+         }
+-        return turn <= options.maxTurn && arc - chord <= options.maxArcLoss * arc;
++        if(!(turn <= options.maxTurn && arc - chord <= options.maxArcLoss * arc))return false;
++        if(options.collisionAwareCoarsening){
++            if(!canMergeChord)return false;
++            const radius=Math.max(...tools.filter(t=>t.insertion>coordinates[first]+1e-12).map(t=>t.radius??(t.id==='catheter'?.8:.4445)));
++            if(!canMergeChord({a,b,coordinateA:coordinates[first],coordinateB:coordinates[last],radius}))return false;
++        }
++        return true;
+     };
+     const keep = [0];
+     while (keep.at(-1) < coordinates.length - 1) {
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -96,7 +96,8 @@
+     preserveSharedAxisBends(coordinates,positions,previous,maxBendAngle);
+     if(adaptiveMesh&&!spatialKnots.length)retainAdaptiveShapeSamples(coordinates,positions,previous,adaptiveMesh);
+     if(adaptiveMesh&&!spatialKnots.length)coarsenSharedAxisMesh(coordinates,positions,
+-        {tools,boundaries,previous,spacing,options:adaptiveMesh});
++        {tools,boundaries,previous,spacing,options:adaptiveMesh,
++            canMergeChord:wallSamples.some(sample=>sample.canCoarsenChord)?input=>wallSamples.every(sample=>!sample.canCoarsenChord||sample.canCoarsenChord({...input,origin})):null});
+     const edgeTools = coordinates.slice(0,-1).map(x => tools.filter(t => x < t.insertion-1e-12).map(t => t.id));
+     const layout = createSharedAxisLayout(edgeTools);
+     const materials = tools.map(input => {
+--- a/src/physics/kirchhoffSharedAxisVesselWitnesses.js
++++ b/src/physics/kirchhoffSharedAxisVesselWitnesses.js
+@@ -1,4 +1,5 @@
+ import {sharedAxisGeometryIdentity} from './kirchhoffSharedAxisGeometryIdentity.js';
++import {createSharedAxisChordGuard} from './kirchhoffSharedAxisChordGuard.js';
+ import {createSharedAxisInsideContinuation} from './kirchhoffSharedAxisInsideContinuation.js';
+ import {createSharedAxisDiscoveryCache} from './kirchhoffSharedAxisDiscoveryCache.js';
+ import { createContactResult } from './collision/vesselContactField.js';
+@@ -177,6 +178,7 @@
+     };
+     sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
+     sample.sharedAxisCompleteDiscovery=allSamples;
++    sample.canCoarsenChord=createSharedAxisChordGuard(field,sheathLength);
+     sample.discoveryCache=clearance;
+     sample.captureDiscoveryState=()=>({meshIdentity:sharedAxisGeometryIdentity(field.fallbackGeometry),
+         certificates:clearance.capture(field.fallbackGeometry?.boundsTree)});
+--- /dev/null
++++ b/src/physics/kirchhoffSharedAxisChordGuard.js
+@@ -0,0 +1,37 @@
++import {Box3,Line3,Ray,Vector3} from 'three';
++
++/** Clearance of the whole replacement capsule, used only to veto a merge.
++ * This is not an inside/outside classifier or a physical contact equation.
++ * Ordinary complete discovery and acceptance still validate the new state. */
++export function createSharedAxisChordGuard(field,sheathLength){
++    const segment=new Line3(),box=new Box3(),ray=new Ray(),hit=new Vector3();
++    const stats={queries:0,blocked:0,triangleTests:0};
++    const guard=({a,b,coordinateA,coordinateB,origin=[0,0,0],radius})=>{
++        if(coordinateB<=sheathLength)return true;
++        stats.queries++;
++        const tree=field.fallbackGeometry?.boundsTree;
++        if(!tree||!(radius>0)||!Number.isFinite(radius)){stats.blocked++;return false;}
++        const start=Math.max(0,(sheathLength-coordinateA)/(coordinateB-coordinateA));
++        for(let k=0;k<3;k++){
++            segment.start.setComponent(k,(1-start)*a[k]+start*b[k]+origin[k]);
++            segment.end.setComponent(k,b[k]+origin[k]);
++        }
++        const lengthSquared=segment.start.distanceToSquared(segment.end);
++        if(!(lengthSquared>0)){stats.blocked++;return false;}
++        box.makeEmpty().expandByPoint(segment.start).expandByPoint(segment.end).expandByScalar(radius);
++        ray.origin.copy(segment.start);ray.direction.subVectors(segment.end,segment.start).normalize();
++        const blocked=tree.shapecast({
++            intersectsBounds:bounds=>bounds.intersectsBox(box),
++            intersectsTriangle:triangle=>{
++                stats.triangleTests++;
++                // closestPointToSegment checks edges/endpoints; explicitly
++                // catch crossing the interior of a finite triangle as well.
++                if(ray.intersectTriangle(triangle.a,triangle.b,triangle.c,false,hit)&&hit.distanceToSquared(segment.start)<=lengthSquared)return true;
++                const distance=triangle.closestPointToSegment(segment);
++                return !Number.isFinite(distance)||distance<radius-1e-6;
++            }
++        });
++        if(blocked)stats.blocked++;return !blocked;
++    };
++    guard.stats=stats;return guard;
++}
+--- /dev/null
++++ b/tests/kirchhoffSharedAxisChordGuard.test.js
+@@ -0,0 +1,36 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {BufferGeometry,Float32BufferAttribute} from 'three';
++import {MeshBVH} from 'three-mesh-bvh';
++import {createSharedAxisChordGuard} from '../src/physics/kirchhoffSharedAxisChordGuard.js';
++import {coarsenSharedAxisMesh} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
++
++function plane(y=0,x=10){
++    const geometry=new BufferGeometry();geometry.setAttribute('position',new Float32BufferAttribute([
++        -x,y,-10,x,y,-10,x,y,10,-x,y,-10,x,y,10,-x,y,10],3));
++    geometry.boundsTree=new MeshBVH(geometry);return geometry;
++}
++test('whole-chord clearance rejects interior triangle crossings and radius overlaps',()=>{
++    const geometry=plane(),guard=createSharedAxisChordGuard({fallbackGeometry:geometry},0);
++    const check=(a,b,radius=.4,origin=[0,0,0])=>guard({a,b,radius,origin,coordinateA:1,coordinateB:3});
++    assert.equal(check([-1,1,0],[1,1,0]),true);
++    assert.equal(check([-1,.3,0],[1,.3,0]),false);
++    assert.equal(check([0,-1,0],[0,1,0],.01),false,'Endpoint/edge distances alone miss an interior crossing');
++    assert.equal(check([-1,0,0],[1,0,0],.4,[0,1,0]),true);
++    assert.equal(check([-1,0,0],[1,0,0],.4,[0,.3,0]),false);
++    assert.equal(guard({a:[0,-1,0],b:[0,1,0],radius:.4,coordinateA:-2,coordinateB:-1}),true,'Sheath interval is masked');
++    assert.ok(guard.stats.blocked>=3);geometry.dispose();
++});
++test('coarsening keeps a bend whose replacement capsule would intersect a finite wall patch',()=>{
++    const geometry=plane(1.25,.2),guard=createSharedAxisChordGuard({fallbackGeometry:geometry},0);
++    const initial=[[-3,1,0],[-2,1,0],[-1,1,0],[0,2,0],[1,1,0]];
++    const options={maxSpacing:20,maxTurn:3,maxArcLoss:.5,shapeTolerance:2,contactMargin:1,tipLength:30};
++    const run=collisionAwareCoarsening=>{
++        const coordinates=[0,1,2,3,4],positions=structuredClone(initial);
++        coarsenSharedAxisMesh(coordinates,positions,{tools:[{id:'wire',insertion:1000,radius:.3}],boundaries:[],previous:null,spacing:1,
++            options:{...options,collisionAwareCoarsening},canMergeChord:guard});return {coordinates,positions};
++    };
++    assert.deepEqual(run(0).coordinates,[0,1,4]);
++    assert.ok(run(1).coordinates.includes(3));assert.deepEqual(initial,[[-3,1,0],[-2,1,0],[-1,1,0],[0,2,0],[1,1,0]]);
++    geometry.dispose();
++});

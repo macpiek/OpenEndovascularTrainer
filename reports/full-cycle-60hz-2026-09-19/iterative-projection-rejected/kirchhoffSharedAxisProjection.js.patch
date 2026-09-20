@@ -1,0 +1,16 @@
+--- a/src/physics/kirchhoffSharedAxisProjection.js
++++ b/src/physics/kirchhoffSharedAxisProjection.js
+@@ -1,4 +1,5 @@
+ import {createSharedAxisLinear,iterateSharedAxisLinear} from './kirchhoffSharedAxisLinear.js';
++import {iterateSharedAxisIterativeProjection} from './kirchhoffSharedAxisIterativeProjection.js';
+ 
+ // The correction has an identity primal block, not a material tangent.
+ // Keep the same spatial/dual ordering and active-set algorithm, but allocate
+@@ -6,6 +7,7 @@
+ // mode eliminate uncoupled spin variables exactly (their correction is zero);
+ // retain all positional unknowns and solve their reactions globally.
+ export function* iterateSharedAxisProjection(s,base,{reuseStructure=true,mode='reduced',reuseConstraintWork=false,reuseMatrixAssembly=false}={}) {
++    if(mode==='iterative')return yield* iterateSharedAxisIterativeProjection(s,base);
+     let cache=s.projectionWorkspace;
+     if(!cache||cache.layout!==s.layout||cache.definitions!==s.definitions||cache.zeroReactions.length!==s.definitions.length||cache.mode!==mode) {
+         const positionOnly=mode==='reduced';

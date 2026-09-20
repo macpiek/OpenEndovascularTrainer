@@ -1,0 +1,31 @@
+
+> openendovasculartrainer@1.0.0 build
+> vite build --outDir /tmp/oet-no-early-build
+
+vite v7.3.5 building client environment for production...
+transforming...
+✓ 318 modules transformed.
+
+(!) outDir /tmp/oet-no-early-build is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../../../tmp/oet-no-early-build/shared-axis-lab.html                                 3.79 kB │ gzip:   1.74 kB
+../../../../../../tmp/oet-no-early-build/index.html                                          51.77 kB │ gzip:   9.35 kB
+../../../../../../tmp/oet-no-early-build/assets/skeleton.worker-DkRGimbZ.js                 125.31 kB
+../../../../../../tmp/oet-no-early-build/assets/skeleton-Dp2oxfet.obj                    19,214.17 kB
+../../../../../../tmp/oet-no-early-build/assets/Aorta_plain-BdOgA_m6.stl                 52,286.83 kB
+../../../../../../tmp/oet-no-early-build/assets/Aorta_plain.collision-CwTvq9Lp.bin       63,921.56 kB
+../../../../../../tmp/oet-no-early-build/assets/index-DMIugAIR.css                           37.95 kB │ gzip:   8.19 kB
+../../../../../../tmp/oet-no-early-build/assets/modulepreload-polyfill-B5Qt9EMX.js            0.71 kB │ gzip:   0.40 kB
+../../../../../../tmp/oet-no-early-build/assets/index-CYnbmJ9y.js                             1.79 kB │ gzip:   1.00 kB
+../../../../../../tmp/oet-no-early-build/assets/shared-axis-lab-DNkvtfjn.js                   3.67 kB │ gzip:   1.72 kB
+../../../../../../tmp/oet-no-early-build/assets/kirchhoffSharedAxisContacts-C-vKcQ9i.js   1,190.46 kB │ gzip: 339.58 kB
+../../../../../../tmp/oet-no-early-build/assets/simulator-D5MtcCAc.js                     3,460.97 kB │ gzip: 748.32 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.17s

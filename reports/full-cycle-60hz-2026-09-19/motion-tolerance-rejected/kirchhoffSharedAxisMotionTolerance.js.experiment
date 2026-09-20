@@ -1,0 +1,29 @@
+/** Inexact Newton stopping rule, not an absolute error bound. The estimate
+ * comes from a solved full tangent at the current pose. It must not be used
+ * to claim that the original force tolerance was met.
+ */
+export function validateSharedAxisMotionTolerance(tolerance) {
+    if(tolerance===null)return;
+    if(!tolerance||typeof tolerance!=='object'||!['position','angle','reaction'].every(k=>
+        Number.isFinite(tolerance[k])&&tolerance[k]>0))throw new RangeError('Positive position, angle and reaction tolerances required');
+}
+
+export function measureSharedAxisCorrection(s,direction) {
+    const dx=direction.increment;
+    let position=0,bend=0,spin=0,reaction=0;
+    for(const p of s.layout.positions)position=Math.max(position,Math.hypot(dx[p],dx[p+1],dx[p+2]));
+    for(let e=0;e+1<s.positions.length;e++) {
+        const a=s.positions[e],b=s.positions[e+1],p=s.layout.positions[e],q=s.layout.positions[e+1];
+        const x=b[0]-a[0],y=b[1]-a[1],z=b[2]-a[2],L2=x*x+y*y+z*z;
+        const u=dx[q]-dx[p],v=dx[q+1]-dx[p+1],w=dx[q+2]-dx[p+2];
+        bend=Math.max(bend,Math.hypot(y*w-z*v,z*u-x*w,x*v-y*u)/L2);
+    }
+    for(const indices of s.layout.spins.values())for(const p of indices)if(p>=0)spin=Math.max(spin,Math.abs(dx[p]));
+    for(let i=0;i<s.multipliers.length;i++) {
+        const old=s.multipliers[i],delta=direction.multiplierIncrement[i];
+        reaction=Math.max(reaction,Math.abs(delta)/Math.max(1,Math.abs(old),Math.abs(old+delta)));
+    }
+    // Sum bounds the rotation magnitude when bending and material spin coexist.
+    const result={position,angle:bend+spin,reaction};
+    return Object.values(result).every(Number.isFinite)?result:{position:Infinity,angle:Infinity,reaction:Infinity};
+}

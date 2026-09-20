@@ -1,0 +1,10 @@
+✔ stagnation-only globalization preserves ordinary bending and unloading exactly (25.163625ms)
+✔ stalled contact solve reduces repeated work while retaining equilibrium bounds and private input (3561.897541ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3710.698417

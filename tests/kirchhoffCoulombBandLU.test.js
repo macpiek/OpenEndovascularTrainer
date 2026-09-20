@@ -51,13 +51,20 @@ test('large partial-pivot growth rejects an inaccurate Newton solve through orig
     // doubles at each elimination. Partial pivoting alone is no certificate.
     const n = 60, A = Array.from({ length: n }, (_, i) => Float64Array.from({ length: n },
         (_, j) => j === n - 1 || i === j ? 1 : j < i ? -1 : 0));
-    const layout = generalLayout(A), lu = createCoulombBandLU(layout, n);
+    const layout = generalLayout(A);
     const expected = Float64Array.from({ length: n }, (_, i) => Math.sin(i + .7));
     const F = Float64Array.from(A, row => -row.reduce((sum, v, j) => sum + v * expected[j], 0));
-    assert.equal(lu.solve(layout.packed, F, new Float64Array(n).fill(1), 0, new Float64Array(n)), false);
-    assert.equal(lu.diagnostics.linearResidualFailures, 1);
-    assert.ok(lu.diagnostics.maximumPivotGrowth > 1e15);
-    assert.ok(lu.diagnostics.maximumLinearBackwardError > 1e-8);
+    const diagnostics=[];
+    for(const wasmAssembly of [false,true]) {
+        const lu=createCoulombBandLU(layout,n,{wasmAssembly}),output=new Float64Array(n).fill(123);
+        assert.equal(lu.solve(layout.packed, F, new Float64Array(n).fill(1), 0, output), false);
+        assert.ok(output.every(value=>value===123),'An uncertified solve must not publish a direction');
+        assert.equal(lu.diagnostics.linearResidualFailures, 1);
+        assert.ok(lu.diagnostics.maximumPivotGrowth > 1e15);
+        assert.ok(lu.diagnostics.maximumLinearBackwardError > 1e-8);
+        diagnostics.push(lu.diagnostics);
+    }
+    assert.deepEqual(diagnostics[1],diagnostics[0]);
 });
 
 test('exact envelopes retain tiny coefficients and distant non-associated normal and pair columns', () => {

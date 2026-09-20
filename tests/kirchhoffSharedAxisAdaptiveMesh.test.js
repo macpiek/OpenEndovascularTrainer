@@ -159,3 +159,33 @@ test('adaptive solver is opt-in; reference remains the default whole-step provid
     assert.equal(selected.wholeStepSystem,system);assert.equal(selected.coupledSystem,null);
     assert.throws(()=>adaptiveMeshOptions({shapeTolerance:-1}),/budget/);
 });
+
+test('optional coarsening near contacts keeps the loaded physical site and reaction on the coarser element',()=>{
+    const s=make(false),edge=s.coordinates.indexOf(100),site=102;
+    s.adaptiveMesh=adaptiveMeshOptions({contactMaxSpacing:10});
+    const geometry=new PlaneGeometry(2000,2000),field={fallbackGeometry:geometry};
+    const row=createSharedAxisVesselWitness(field,{id:'loaded-coarsening',kind:'wall',edge,witness:{face:0,t:.4},
+        dofs:[s.layout.positions[edge],s.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2])});
+    extendSharedAxisNativeRows(s,[row]);s.multipliers[s.multipliers.length-1]=2;
+    s.acceptedWallGaps=new Map([[row.id,0]]);
+    s.wallFrictionHistory=[{id:row.id,siteCoordinate:site,owner:'catheter',face:0,elastic:[.01,0,0]}];
+    const next=feedSharedAxisNative(s,{wire:300.7,catheter:240.4},{pruneInactiveWitnesses:true});
+    const i=next.definitions.findIndex(r=>r.witness?.face===0),mapped=next.definitions[i];assert.ok(mapped);
+    const a=next.coordinates[mapped.edge],b=next.coordinates[mapped.edge+1];
+    assert.ok(b-a>5&&b-a<=10);assert.ok(Math.abs(a+(b-a)*mapped.witness.t-site)<1e-12);
+    assert.equal(next.multipliers[i],2);assert.equal(next.wallFrictionHistory,s.wallFrictionHistory);
+    assert.ok(next.coordinates.length<s.coordinates.length*.8);
+    assert.throws(()=>adaptiveMeshOptions({contactMaxSpacing:0}),/Invalid/);
+    geometry.dispose();
+});
+
+test('ahead refinement retains fine mechanics before an approaching catheter without densifying the whole shaft',()=>{
+    const tools=[{id:'wire',insertion:500,type:'glidewire'},{id:'catheter',insertion:200,type:'straight'}];
+    const create=tipRefinementAhead=>createSharedAxisNative({tools,startCoordinate:-40,
+        adaptiveMesh:{contactMaxSpacing:10,tipRefinementAhead}});
+    const ordinary=create(0),ahead=create(40);
+    for(let x=200;x<=240;x+=5)assert.ok(ahead.coordinates.includes(x),`${x} mm ahead of catheter`);
+    assert.ok(ahead.coordinates.length>ordinary.coordinates.length);
+    assert.ok(ahead.coordinates.slice(1).some((x,i)=>x-ahead.coordinates[i]===20),'The distant shaft remains coarse');
+    assert.throws(()=>create(-1),/budget/);
+});

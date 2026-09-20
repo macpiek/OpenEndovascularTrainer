@@ -1,0 +1,375 @@
+{
+  "index": 896,
+  "phase": "wire-in",
+  "wire": 657.0666666666727,
+  "catheter": 0,
+  "elapsedMs": 1494.4412080000002,
+  "processCpuMs": 1907.566,
+  "converged": false,
+  "status": "linear-solve",
+  "error": null,
+  "coupledFrictionRefreshes": 36,
+  "frictionRefreshMs": 0,
+  "retainedDiscoveryTrials": 1,
+  "iterations": 51,
+  "factorizations": 1829,
+  "workingSetReuses": 71,
+  "backtracks": 19,
+  "geometryRestarts": 31,
+  "ms": 1046.2549990000007,
+  "timings": {
+    "assemblyMs": 274.0599169999987,
+    "linearMs": 1135.2550429999737,
+    "frictionMs": 8.236743999990722,
+    "tangentAssemblyMs": 151.50195900000108,
+    "residualAssemblyMs": 122.5579579999976,
+    "projectionMs": 422.1090910000057
+  },
+  "fullAssemblies": 171,
+  "residualAssemblies": 116,
+  "promotedAssemblies": 24,
+  "quality": null,
+  "residual": {
+    "force": 74672.91734016019,
+    "torque": 5527.264495534662,
+    "length": 0.3977508184469713
+  },
+  "dofs": 487,
+  "matrixEntries": 23116,
+  "linearScratch": {
+    "allocations": 5,
+    "capacityBytes": 1048576,
+    "grows": 4,
+    "viewBuilds": 2054,
+    "requests": 15454
+  },
+  "interToolRows": 0,
+  "modifiedAttempts": 0,
+  "modifiedAccepted": 0,
+  "modifiedFallbacks": 0,
+  "predictedInitialPose": false,
+  "frictionIterations": 30,
+  "wallNormalFallbacks": 4,
+  "wallNormalFallback": {
+    "attempted": true,
+    "liveFailure": "linear-solve",
+    "converged": false
+  },
+  "coupledFrictionFallbacks": 4,
+  "coupledFrictionRecovery": {
+    "attempted": true,
+    "experimentStatus": "linear-solve",
+    "converged": false
+  },
+  "predictorFallbacks": 5,
+  "predictorRecovery": {
+    "attempted": true,
+    "predictorStatus": "linear-solve",
+    "converged": false
+  },
+  "substepAttempts": 15,
+  "attempts": [
+    {
+      "subdivisions": 1,
+      "index": 1,
+      "dt": 0.016666666666666666,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "converged": false,
+      "residual": null,
+      "iterations": 0,
+      "factorizations": 0
+    },
+    {
+      "subdivisions": 2,
+      "index": 1,
+      "dt": 0.008333333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 6.224037133506499e-05,
+        "torque": 7.145891010029715e-07,
+        "length": 2.7149815728932936e-10
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 12,
+        "sliding": 12
+      },
+      "iterations": 3,
+      "factorizations": 6
+    },
+    {
+      "subdivisions": 2,
+      "index": 2,
+      "dt": 0.008333333333333333,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 19059.84893513833,
+        "torque": 1382.507779533942,
+        "length": 0.31199911983445705
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 3,
+      "factorizations": 133
+    },
+    {
+      "subdivisions": 4,
+      "index": 1,
+      "dt": 0.004166666666666667,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 4.871574105891341e-06,
+        "torque": 1.7077965708267584e-09,
+        "length": 1.0058842647708843e-11
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 12,
+        "sliding": 12
+      },
+      "iterations": 3,
+      "factorizations": 6
+    },
+    {
+      "subdivisions": 4,
+      "index": 2,
+      "dt": 0.004166666666666667,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.821855105139548e-08,
+        "torque": 5.065570185536217e-10,
+        "length": 5.3290705182007514e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 11,
+        "sliding": 11
+      },
+      "iterations": 3,
+      "factorizations": 7
+    },
+    {
+      "subdivisions": 4,
+      "index": 3,
+      "dt": 0.004166666666666667,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 7.185326467151754e-08,
+        "torque": 1.519543602057638e-09,
+        "length": 4.3520742565306136e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 10,
+        "sliding": 10
+      },
+      "iterations": 3,
+      "factorizations": 8
+    },
+    {
+      "subdivisions": 4,
+      "index": 4,
+      "dt": 0.004166666666666667,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 37561.81043735216,
+        "torque": 2762.947023262128,
+        "length": 0.3762604721199725
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 1,
+      "factorizations": 175
+    },
+    {
+      "subdivisions": 8,
+      "index": 1,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.2411356326301757e-08,
+        "torque": 4.333102765485819e-10,
+        "length": 4.618527782440651e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 12,
+        "sliding": 12
+      },
+      "iterations": 3,
+      "factorizations": 7
+    },
+    {
+      "subdivisions": 8,
+      "index": 2,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 1.6805302038847003e-08,
+        "torque": 6.899734672494162e-10,
+        "length": 4.707345624410664e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 10,
+        "sliding": 10
+      },
+      "iterations": 3,
+      "factorizations": 7
+    },
+    {
+      "subdivisions": 8,
+      "index": 3,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.3732809495413676e-08,
+        "torque": 9.019847091451538e-10,
+        "length": 5.062616992290714e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 9,
+        "sliding": 9
+      },
+      "iterations": 3,
+      "factorizations": 4
+    },
+    {
+      "subdivisions": 8,
+      "index": 4,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.6046677703561727e-08,
+        "torque": 7.871383544966193e-10,
+        "length": 5.240252676230739e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 9,
+        "sliding": 9
+      },
+      "iterations": 3,
+      "factorizations": 5
+    },
+    {
+      "subdivisions": 8,
+      "index": 5,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 1.8843593352357857e-08,
+        "torque": 1.0067333633401176e-09,
+        "length": 4.796163466380676e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 10,
+        "sliding": 10
+      },
+      "iterations": 3,
+      "factorizations": 6
+    },
+    {
+      "subdivisions": 8,
+      "index": 6,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 3.1798992949916283e-07,
+        "torque": 7.072116225970149e-10,
+        "length": 4.707345624410664e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 11,
+        "sliding": 11
+      },
+      "iterations": 3,
+      "factorizations": 6
+    },
+    {
+      "subdivisions": 8,
+      "index": 7,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.2984295355854556e-08,
+        "torque": 7.383818001471809e-10,
+        "length": 5.1514348342607263e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 11,
+        "sliding": 11
+      },
+      "iterations": 3,
+      "factorizations": 6
+    },
+    {
+      "subdivisions": 8,
+      "index": 8,
+      "dt": 0.0020833333333333333,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 74672.91734016019,
+        "torque": 5527.264495534662,
+        "length": 0.3977508184469713
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 14,
+      "factorizations": 1453
+    }
+  ]
+}

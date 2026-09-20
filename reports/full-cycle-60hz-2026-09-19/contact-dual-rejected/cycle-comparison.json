@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-reuse-friction-assembly",
+  "candidateDirectory": "/tmp/oet-full-cycle-contact-dual-small",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 3.016902686865563e-14,
+      "maxMm": 7.105427357601002e-14
+    },
+    "wire-in": {
+      "samples": 1951,
+      "rmsMm": 14.62772388238491,
+      "maxMm": 134.62689882173814
+    },
+    "catheter-in": {
+      "samples": 2854,
+      "rmsMm": 31.586310037512987,
+      "maxMm": 123.96887601345229
+    },
+    "catheter-out": {
+      "samples": 4953,
+      "rmsMm": 23.33742266627091,
+      "maxMm": 101.51060868387862
+    },
+    "wire-out": {
+      "samples": 2061,
+      "rmsMm": 5.854952561576021,
+      "maxMm": 57.39417672268549
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 7.763622363876621e-7,
+    "maxRelativeLengthError": 3.472966796785752e-8,
+    "maxCertifiedResidual": 0.00009995675547024623,
+    "totalFactorizations": 28701,
+    "totalIterations": 16611
+  }
+}

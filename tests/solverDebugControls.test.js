@@ -72,3 +72,16 @@ test('predictive Newton defaults on and can restart independently of fast fricti
     assert.equal(url.searchParams.get('predictiveNewton'),'0');assert.equal(url.searchParams.get('fastNewton'),'1');assert.equal(url.searchParams.get('pruneWitnesses'),'1');
     fastNewtonToggle.checked=false;fastNewtonToggle.listeners.change();assert.equal(predictiveNewtonToggle.disabled,true);
 });
+
+
+test('60 Hz experiment is independently selectable with adaptive controls and the old adaptive choice retained',async()=>{
+    const {initSolverDebugControls,DEBUG_SOLVERS}=await import('../src/ui/solverDebugControls.js');
+    assert.ok(DEBUG_SOLVERS.some(s=>s.id==='shared-axis-adaptive'));
+    const element=()=>({value:'0.15',checked:false,disabled:false,listeners:{},addEventListener(name,fn){this.listeners[name]=fn;}});
+    const select={...element(),append(){},ownerDocument:{createElement(){return {};}}},button=element(),fastNewtonToggle=element(),tolerance=element();let navigated;
+    initSolverDebugControls({select,button,fastNewtonToggle,tolerance,current:'shared-axis-realtime',href:'http://localhost:5178/?coupledSolver=shared-axis-realtime&pruneWitnesses=1',navigate:url=>navigated=url});
+    assert.equal(select.value,'shared-axis-realtime');assert.equal(tolerance.disabled,false);assert.equal(fastNewtonToggle.disabled,false);
+    select.value='shared-axis-adaptive';select.listeners.change();button.listeners.click();
+    assert.equal(new URL(navigated).searchParams.get('coupledSolver'),'shared-axis-adaptive');
+    assert.equal(new URL(solverDebugUrl(navigated,'shared-axis-realtime')).searchParams.get('coupledSolver'),'shared-axis-realtime');
+});

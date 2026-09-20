@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-deferred-basis",
+  "candidateDirectory": "/tmp/oet-full-cycle-costly-predictor",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1936,
+      "rmsMm": 0.0008804959070834291,
+      "maxMm": 0.016207169844323605
+    },
+    "catheter-in": {
+      "samples": 2838,
+      "rmsMm": 0.1741158394392087,
+      "maxMm": 1.1756780998137966
+    },
+    "catheter-out": {
+      "samples": 4951,
+      "rmsMm": 0.003722143803604539,
+      "maxMm": 0.027126909616842644
+    },
+    "wire-out": {
+      "samples": 2048,
+      "rmsMm": 0.009744744776426163,
+      "maxMm": 0.10182877649805437
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.735213057360248e-7,
+    "maxRelativeLengthError": 3.473163484522273e-8,
+    "maxCertifiedResidual": 0.00009995973583443174,
+    "totalFactorizations": 28830,
+    "totalIterations": 16466
+  }
+}

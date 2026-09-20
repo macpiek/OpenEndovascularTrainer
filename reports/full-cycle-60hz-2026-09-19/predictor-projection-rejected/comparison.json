@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-wasm-lu-final",
+  "candidateDirectory": "/tmp/oet-full-cycle-projected-advancing-predictor",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1994,
+      "rmsMm": 2.9413811161907084,
+      "maxMm": 36.218516730865545
+    },
+    "catheter-in": {
+      "samples": 2845,
+      "rmsMm": 2.19467615704758,
+      "maxMm": 15.953734088658345
+    },
+    "catheter-out": {
+      "samples": 4923,
+      "rmsMm": 2.4566782219475076,
+      "maxMm": 7.331485430004191
+    },
+    "wire-out": {
+      "samples": 2044,
+      "rmsMm": 1.601456556759805,
+      "maxMm": 6.905654312941425
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.908369494882052e-7,
+    "maxRelativeLengthError": 3.4731445700748e-8,
+    "maxCertifiedResidual": 0.00009993579162217016,
+    "totalFactorizations": 28739,
+    "totalIterations": 16554
+  }
+}

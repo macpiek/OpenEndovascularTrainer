@@ -1,0 +1,114 @@
+--- /tmp/oet-before-contact-dual-kirchhoffSharedAxisNative.js	2026-09-20 09:23:47
++++ src/physics/kirchhoffSharedAxisNative.js	2026-09-20 09:23:47
+@@ -414,7 +414,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,contactDualRegularization=0 } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -483,7 +483,7 @@
+                 if(!isModified)modified?.invalidate();
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+-                const linearOptions = { wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
++                const linearOptions = { contactDualRegularization, wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 const direction = isModified?modified.solve(base.rows,s.chain.gradient,linearOptions.tolerance):
+                     yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
+--- /tmp/oet-before-contact-dual-kirchhoffSharedAxisLinear.js	2026-09-20 09:23:47
++++ src/physics/kirchhoffSharedAxisLinear.js	2026-09-20 09:23:47
+@@ -105,7 +105,7 @@
+         lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
+ }
+ 
+-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false }) {
++function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false,contactDualRegularization=0 }) {
+     // Optional force support can appear after an originally normal-only
+     // workspace was created. Rebuild the reference band when it no longer
+     // contains that support; compact workspaces are keyed by both supports.
+@@ -113,7 +113,7 @@
+         w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
+         const key=rowSupportKey(rows,supportKeyCache);
+         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
+-        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly});
++        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly,contactDualRegularization});
+     }
+     const { matrix: A, residual: F, band: { starts, ends, offsets }, primal, dual } = w;
+     if(matrixAssembly)assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows},matrixAssembly);
+@@ -156,6 +156,11 @@
+     for(const r of inactiveRows)if(r.geometricHessian)
+         r.dofs.forEach((p,i)=>r.dofs.forEach((q,j)=>add(primal[p],primal[q],r.geometricHessian[i*r.dofs.length+j])));
+     }
++    if(contactDualRegularization>0)for(let i=0;i<rows.length;i++) {
++        const r=rows[i];
++        if(r.kind==='wall'&&activeSet[i]&&r.dofs.some((p,k)=>!fixed[p]&&r.jacobian[k]!==0))
++            A[offsets[dual[i]]+dual[i]]+=contactDualRegularization;
++    }
+     const wasmLinear=wasmLinearAssembly&&!incrementalContext&&!modifiedNewtonContext;
+     if(matrixAssembly)applyPreparedSharedAxisFixedMask(w);
+     for (let i = 0; i < w.count; i++) {
+@@ -292,10 +297,11 @@
+     let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?(options.zeroDualStart&&batchSize>1?0:Math.max(0,r.multiplier)):r.multiplier);
+     const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses});
+     let basisRequired=!options.deferActiveBasis;
++    const basisActiveSet=options.contactDualRegularization>0?Uint8Array.from(rows,r=>r.kind==='length'?1:0):activeSet;
+     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
+         yield {kind:'linear-active-set',attempt,batchSize};
+         activeSetAttempts++;
+-        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients}):{converged:true};
++        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet:basisActiveSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients}):{converged:true};
+         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
+         const setKey=activeSet.join('');
+         if(options.reuseConstraintWork) {
+@@ -361,7 +367,7 @@
+             for(let i=0;i<rows.length;i++) {
+                 const r=rows[i];if(r.kind!=='wall'||activeSet[i])continue;
+                 if(separatedSharedAxisContactDirection(r,result.increment))continue;
+-                const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0);
++                const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0)-(options.contactDualRegularization??0)*r.multiplier;
+                 if(batchSize>1&&residual<-tolerance)violated.push({index:i,residual});
+                 if(residual<worst){worst=residual;change=i;}
+             }
+@@ -409,6 +415,7 @@
+     options.observeLinearSystem?.({chain,options});
+     options.rows.forEach(r=>validateExtraForce(r,chain.layout.dofCount));
+     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');
++    if(options.contactDualRegularization!==undefined&&(!Number.isFinite(options.contactDualRegularization)||options.contactDualRegularization<0))throw new RangeError('Nonnegative contact regularization required');
+     const batchSize=options.batchActivation===false?1:(options.batchActivationSize??8);
+     if(!Number.isInteger(batchSize)||batchSize<1||batchSize>16)throw new RangeError('Batch activation size must be between 1 and 16');
+     const iterator=iterateWithFallback(w,chain,options,batchSize);let cpuMs=0,done=false;
+--- /dev/null	2026-09-20 09:28:48
++++ tests/kirchhoffSharedAxisContactDual.test.js	2026-09-20 09:25:08
+@@ -0,0 +1,29 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createSharedAxisLinear,solveSharedAxisLinear} from '../src/physics/kirchhoffSharedAxisLinear.js';
++
++test('dependent wall normals remain independent through the regularized dual equations',()=>{
++    for(const compactWorkingSet of [false,true])for(const reuseMatrixAssembly of [false,true]) {
++        const layout={dofCount:1,band:1},chain={layout,hessian:Float64Array.of(1)},c=1e-8;
++        const rows=[0,1].map(i=>({id:`wall-${i}`,kind:'wall',dofs:[0],jacobian:[1],gap:0,multiplier:0}));
++        const r=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,
++            {rows,gradient:Float64Array.of(1),fixed:new Uint8Array(1),contactDualRegularization:c,
++                compactWorkingSet,reuseMatrixAssembly,tolerance:1e-10});
++        assert.ok(r.converged,JSON.stringify(r));
++        const x=r.increment[0],lambda=Array.from(r.multiplierIncrement);
++        assert.ok(lambda.every(v=>v>0));
++        assert.ok(Math.abs(x-lambda[0]-lambda[1]+1)<1e-10);
++        for(const v of lambda)assert.ok(Math.abs(x+c*v)<1e-10);
++        assert.ok(Math.abs(x)<c);
++    }
++});
++
++test('inactive gaps use the same proximal equation as active gaps, including old reactions',()=>{
++    const layout={dofCount:1,band:1},chain={layout,hessian:Float64Array.of(1)},c=.1;
++    const rows=[{kind:'wall',dofs:[0],jacobian:[1],gap:10,multiplier:3}];
++    const r=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,
++        {rows,gradient:Float64Array.of(0),fixed:new Uint8Array(1),contactDualRegularization:c,tolerance:1e-10});
++    assert.ok(r.converged);assert.equal(r.multiplierIncrement[0],-3);
++    assert.ok(Math.abs(r.increment[0]-r.multiplierIncrement[0])<1e-10);
++    assert.ok(rows[0].gap+r.increment[0]+c*r.multiplierIncrement[0]>0);
++});

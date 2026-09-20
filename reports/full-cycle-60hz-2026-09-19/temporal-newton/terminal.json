@@ -1,0 +1,121 @@
+{
+  "index": 2047,
+  "phase": "catheter-in",
+  "wire": 1000,
+  "catheter": 591.9333333333369,
+  "elapsedMs": 504.57320900000195,
+  "processCpuMs": 731.466,
+  "converged": false,
+  "status": "unsupported-direction",
+  "error": "Shared axis crossed the vessel surface",
+  "lastOutsideContact": {
+    "edge": 106,
+    "coordinate": 595,
+    "point": [
+      21.709137547933096,
+      60.71852796100853,
+      2.481252691724599
+    ],
+    "signedDistance": -1.3220641062244163,
+    "radius": 0.4445,
+    "face": 910165,
+    "source": "sparse-sdf-bvh"
+  },
+  "coupledFrictionRefreshes": 2,
+  "frictionRefreshMs": 0,
+  "retainedDiscoveryTrials": 0,
+  "iterations": 9,
+  "factorizations": 394,
+  "workingSetReuses": 0,
+  "backtracks": 0,
+  "geometryRestarts": 6,
+  "ms": 6.012291999992158,
+  "modifiedAttempts": 0,
+  "modifiedAccepted": 0,
+  "modifiedFallbacks": 0,
+  "timings": {
+    "assemblyMs": 93.40774799999781,
+    "linearMs": 388.689333000053,
+    "frictionMs": 0.4635000000052969,
+    "tangentAssemblyMs": 55.28932999999233,
+    "residualAssemblyMs": 38.11841800000548,
+    "projectionMs": 0
+  },
+  "fullAssemblies": 39,
+  "residualAssemblies": 12,
+  "promotedAssemblies": 9,
+  "quality": null,
+  "residual": null,
+  "dofs": 653,
+  "matrixEntries": 0,
+  "linearScratch": {
+    "allocations": 4,
+    "capacityBytes": 524288,
+    "grows": 3,
+    "viewBuilds": 310,
+    "requests": 1121
+  },
+  "interToolRows": 0,
+  "predictedInitialPose": false,
+  "frictionIterations": 12,
+  "predictorFallbacks": 4,
+  "predictorRecovery": {
+    "attempted": true,
+    "predictorStatus": "unsupported-direction",
+    "converged": false
+  },
+  "wallNormalFallbacks": 2,
+  "coupledFrictionFallbacks": 2,
+  "substepAttempts": 4,
+  "attempts": [
+    {
+      "subdivisions": 1,
+      "index": 1,
+      "dt": 0.016666666666666666,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "converged": false,
+      "residual": null,
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "unsupported-direction",
+        "converged": false
+      },
+      "iterations": 9,
+      "factorizations": 394
+    },
+    {
+      "subdivisions": 2,
+      "index": 1,
+      "dt": 0.008333333333333333,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "converged": false,
+      "residual": null,
+      "iterations": 0,
+      "factorizations": 0
+    },
+    {
+      "subdivisions": 4,
+      "index": 1,
+      "dt": 0.004166666666666667,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "converged": false,
+      "residual": null,
+      "iterations": 0,
+      "factorizations": 0
+    },
+    {
+      "subdivisions": 8,
+      "index": 1,
+      "dt": 0.0020833333333333333,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "converged": false,
+      "residual": null,
+      "iterations": 0,
+      "factorizations": 0
+    }
+  ]
+}

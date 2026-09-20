@@ -1,0 +1,55 @@
+{
+  "failed": true,
+  "completed": false,
+  "steps": 842,
+  "processCpu": {
+    "meanMs": 88.49483016627077,
+    "p50Ms": 12.723,
+    "p95Ms": 229.409,
+    "maxMs": 11806.496
+  },
+  "meanMs": 95.25196489904987,
+  "p50Ms": 8.330875000000106,
+  "p95Ms": 199.88937500000065,
+  "p99Ms": 1204.471375000001,
+  "maxMs": 15569.577541000006,
+  "overBudget": 285,
+  "meanIterations": 5.69833729216152,
+  "meanFactorizations": 82.1627078384798,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 28.695,
+        "p50Ms": 28.695,
+        "p95Ms": 28.695,
+        "maxMs": 28.695
+      },
+      "meanMs": 17.475083999999924,
+      "p50Ms": 17.475083999999924,
+      "p95Ms": 17.475083999999924,
+      "p99Ms": 17.475083999999924,
+      "maxMs": 17.475083999999924,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 842,
+      "processCpu": {
+        "meanMs": 88.49483016627077,
+        "p50Ms": 12.723,
+        "p95Ms": 229.409,
+        "maxMs": 11806.496
+      },
+      "meanMs": 95.25196489904987,
+      "p50Ms": 8.330875000000106,
+      "p95Ms": 199.88937500000065,
+      "p99Ms": 1204.471375000001,
+      "maxMs": 15569.577541000006,
+      "overBudget": 285,
+      "meanIterations": 5.69833729216152,
+      "meanFactorizations": 82.1627078384798
+    }
+  }
+}

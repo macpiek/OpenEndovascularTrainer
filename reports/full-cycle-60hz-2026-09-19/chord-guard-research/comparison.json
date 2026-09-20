@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-wasm-lu-final",
+  "candidateDirectory": "/tmp/oet-full-cycle-chord-guard",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1588,
+      "rmsMm": 4.460849653168416,
+      "maxMm": 44.62279461981861
+    },
+    "catheter-in": {
+      "samples": 2269,
+      "rmsMm": 2.8613771938522037,
+      "maxMm": 25.37090544396668
+    },
+    "catheter-out": {
+      "samples": 4032,
+      "rmsMm": 2.1120950880647147,
+      "maxMm": 6.470729466952036
+    },
+    "wire-out": {
+      "samples": 1688,
+      "rmsMm": 1.055090891931807,
+      "maxMm": 5.265963911166305
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.673969741941235e-7,
+    "maxRelativeLengthError": 2.830854386592648e-8,
+    "maxCertifiedResidual": 0.00009975761054192844,
+    "totalFactorizations": 39660,
+    "totalIterations": 17815
+  }
+}

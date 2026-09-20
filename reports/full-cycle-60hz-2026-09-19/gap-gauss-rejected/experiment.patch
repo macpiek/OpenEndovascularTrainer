@@ -1,0 +1,21 @@
+--- /tmp/oet-before-gap-gauss-native.js	2026-09-20 09:28:48
++++ src/physics/kirchhoffSharedAxisNative.js	2026-09-20 09:28:48
+@@ -414,7 +414,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,preferGaussNewtonAboveGap=Infinity } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -476,7 +476,8 @@
+             // be indefinite after a large feed. Abandon an unproductive active
+             // set search early, then try the positive Gauss-Newton tangent. The
+             // original unrestricted Newton search remains the final fallback.
+-            const methods=[...(reuseTangent?[-1]:[]),0,1,...(newtonActiveSetLimit===Infinity?[]:[2])];
++            const preferGauss=Number.isFinite(preferGaussNewtonAboveGap)&&base.rows.some(r=>r.witness&&r.gap < -preferGaussNewtonAboveGap);
++            const methods=[...(reuseTangent?[-1]:[]),...(preferGauss?[1,0]:[0,1]),...(newtonActiveSetLimit===Infinity?[]:[2])];
+             for (const method of methods) {
+                 if(accepted)break;
+                 const isGaussNewton = method === 1, isModified=method === -1;

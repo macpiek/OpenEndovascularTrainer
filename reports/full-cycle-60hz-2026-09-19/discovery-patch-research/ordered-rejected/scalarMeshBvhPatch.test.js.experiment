@@ -1,0 +1,51 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {Vector3,TorusKnotGeometry} from 'three';
+import {MeshBVH} from 'three-mesh-bvh';
+import {createScalarMeshBvhScratch,closestPointToPointScalarBvh,createScalarMeshBvhPatch,buildScalarMeshBvhPatch,closestPointToPointScalarPatch} from '../src/physics/collision/scalarMeshBvhClosestPoint.js';
+
+const target=()=>({point:new Vector3(),distance:Infinity,faceIndex:-1});
+test('cached leaves preserve exact nearest distances over thousands of nearby surface queries',()=>{
+    const g=new TorusKnotGeometry(12,2.5,160,12),tree=new MeshBVH(g),scratch=createScalarMeshBvhScratch(),referenceScratch=createScalarMeshBvhScratch();
+    let seed=937,hits=0,builds=0;
+    const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
+    const out=target(),expected=target(),patch=createScalarMeshBvhPatch();
+    try {
+        for(let i=0;i<200;i++) {
+            const vertex=Math.floor(random()*g.attributes.position.count),p=new Vector3().fromBufferAttribute(g.attributes.position,vertex);
+            p.add(new Vector3(...Array.from({length:3},()=>.2*(random()-.5))));
+            assert.ok(closestPointToPointScalarBvh(tree,p.x,p.y,p.z,out,scratch));
+            if(!buildScalarMeshBvhPatch(tree,p.x,p.y,p.z,out.distance,scratch,patch))continue;
+            builds++;
+            for(let j=0;j<20;j++) {
+                const q=p.clone().add(new Vector3(...Array.from({length:3},()=>.1*(random()-.5)))),hint=out.faceIndex;
+                assert.ok(closestPointToPointScalarPatch(tree,q.x,q.y,q.z,out,scratch,patch,hint));hits++;
+                assert.ok(closestPointToPointScalarBvh(tree,q.x,q.y,q.z,expected,referenceScratch,Infinity,hint));
+                assert.equal(out.distance,expected.distance);
+                assert.equal(out.faceIndex,expected.faceIndex);
+                assert.ok(out.point.distanceTo(expected.point)<1e-10);
+            }
+        }
+        assert.ok(builds>100&&hits>2000,{builds,hits});
+    }finally{g.dispose();}
+});
+
+test('movement, replacement geometry and patch overflow cannot publish an uncertified result',()=>{
+    const g=new TorusKnotGeometry(12,2.5,160,12),tree=new MeshBVH(g),scratch=createScalarMeshBvhScratch(),out=target();
+    try {
+        const p=new Vector3().fromBufferAttribute(g.attributes.position,0).addScalar(.01),patch=createScalarMeshBvhPatch();
+        assert.ok(closestPointToPointScalarBvh(tree,p.x,p.y,p.z,out,scratch));
+        assert.ok(buildScalarMeshBvhPatch(tree,p.x,p.y,p.z,out.distance,scratch,patch));
+        const saved={distance:out.distance,faceIndex:out.faceIndex,point:out.point.clone()};
+        assert.equal(closestPointToPointScalarPatch(tree,p.x+100,p.y,p.z,out,scratch,patch),false);
+        assert.equal(closestPointToPointScalarPatch({},p.x,p.y,p.z,out,scratch,patch),false);
+        assert.deepEqual(out,saved);
+        const tiny=createScalarMeshBvhPatch(1);
+        assert.equal(buildScalarMeshBvhPatch(tree,p.x,p.y,p.z,out.distance,scratch,tiny),false);
+        assert.equal(tiny.tree,null);
+        assert.equal(closestPointToPointScalarPatch(tree,p.x,p.y,p.z,out,scratch,tiny),false);
+        // Failure to rebuild must invalidate an older certificate too.
+        assert.equal(buildScalarMeshBvhPatch(tree,p.x,p.y,p.z,10,scratch,patch),false);
+        assert.equal(closestPointToPointScalarPatch(tree,p.x,p.y,p.z,out,scratch,patch),false);
+    }finally{g.dispose();}
+});

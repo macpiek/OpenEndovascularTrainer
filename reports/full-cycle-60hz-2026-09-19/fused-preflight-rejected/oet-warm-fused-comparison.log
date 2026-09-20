@@ -1,0 +1,80 @@
+slow-777 false {
+  medianAssemblyMs: 32.49404200000208,
+  medianMs: 190.7373750000006,
+  medianCpuMs: 228.092,
+  medianLinearMs: 148.39611500000683,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+slow-777 true {
+  medianAssemblyMs: 33.03679099999954,
+  medianMs: 192.6890000000003,
+  medianCpuMs: 229.899,
+  medianLinearMs: 148.40937800000938,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+slow-842 false {
+  medianAssemblyMs: 34.67395700000088,
+  medianMs: 116.64245800000026,
+  medianCpuMs: 134.018,
+  medianLinearMs: 72.59538799999973,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-842 true {
+  medianAssemblyMs: 36.87243099999796,
+  medianMs: 119.14537500000006,
+  medianCpuMs: 130.117,
+  medianLinearMs: 71.37912900000265,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 false {
+  medianAssemblyMs: 5.983956000003673,
+  medianMs: 12.248083999998926,
+  medianCpuMs: 13.974,
+  medianLinearMs: 2.2044590000004973,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 true {
+  medianAssemblyMs: 6.7471239999977115,
+  medianMs: 13.371833000001061,
+  medianCpuMs: 14.663,
+  medianLinearMs: 2.259291000002122,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 false {
+  medianAssemblyMs: 8.330042000001413,
+  medianMs: 18.749041999999463,
+  medianCpuMs: 20.085,
+  medianLinearMs: 5.7757910000000265,
+  factorizations: 8,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 true {
+  medianAssemblyMs: 8.6173320000089,
+  medianMs: 19.564750000001368,
+  medianCpuMs: 21.353,
+  medianLinearMs: 5.834042000005866,
+  factorizations: 8,
+  maxPositionDifferenceMm: 0
+}
+slow-4895 false {
+  medianAssemblyMs: 55.684212000003754,
+  medianMs: 134.3834999999999,
+  medianCpuMs: 152.365,
+  medianLinearMs: 64.18545100000847,
+  factorizations: 114,
+  maxPositionDifferenceMm: 0
+}
+slow-4895 true {
+  medianAssemblyMs: 56.609332999978506,
+  medianMs: 136.6342079999995,
+  medianCpuMs: 151.666,
+  medianLinearMs: 64.54945500003669,
+  factorizations: 114,
+  maxPositionDifferenceMm: 0
+}

@@ -1,0 +1,3 @@
+# Fischer–Burmeister contact direction prototype
+
+Solves affine contact complementarity by damped semismooth Newton, with original active-set fallback and unchanged outer nonlinear physical acceptance. Twenty private iterations maximum, scale 0.0001/0.01/1, tested on five recorded states with two warmups/four alternating repetitions. Two targeted tests passed, covering actual original force balance and complementarity, including nonsymmetric force columns and 30 randomized problems. No full-cycle validation. Several fixtures regress; not enabled. Sources and tests archived while priority moved to the user-requested closure of anatomical outlets. Runtime restored to pre-prototype baseline.

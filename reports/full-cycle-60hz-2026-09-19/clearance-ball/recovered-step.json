@@ -1,0 +1,205 @@
+{
+  "inputPath": "/tmp/oet-full-cycle-replay-proof/failed-incoming.json",
+  "options": {
+    "forceTolerance": 0.0001,
+    "lengthTolerance": 0.001,
+    "liveWallNormalLoad": true,
+    "promoteTrialAssembly": true,
+    "projectionMode": "reduced",
+    "stagnationFallback": true,
+    "wasmMaterial": true,
+    "reuseMaterialScratch": true,
+    "lightweightFriction": true,
+    "reuseTriangleKernel": true,
+    "earlyContactPreflight": true,
+    "reuseConstraintWork": true,
+    "reuseMatrixAssembly": true,
+    "reuseRowBuffers": true,
+    "pruneInactiveWitnesses": true,
+    "coupledFrictionNewton": true,
+    "zeroDualStart": true,
+    "velocityPredictor": 1
+  },
+  "result": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 3,
+    "frictionRefreshMs": 1.631083000000217,
+    "retainedDiscoveryTrials": 1,
+    "iterations": 3,
+    "factorizations": 7,
+    "workingSetReuses": 0,
+    "backtracks": 0,
+    "geometryRestarts": 2,
+    "ms": 94.9832080000001,
+    "timings": {
+      "assemblyMs": 39.90549800000031,
+      "linearMs": 43.87875000000031,
+      "frictionMs": 2.3365410000001248,
+      "tangentAssemblyMs": 25.04241500000012,
+      "residualAssemblyMs": 14.863083000000188,
+      "projectionMs": 0
+    },
+    "fullAssemblies": 6,
+    "residualAssemblies": 3,
+    "promotedAssemblies": 2,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 4.463096558993129e-14,
+      "contacts": 25,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 3.5554892363560134e-13,
+          "maxBendAngleDegrees": 36.47152288261896,
+          "maxBendNode": 130,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 169.1980155649291,
+          "activeWallContacts": 19,
+          "currentNormalLoad": 55039.728577891874
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 5.329070518200751e-16,
+          "maxBendAngleDegrees": 1.5292654735121214,
+          "maxBendNode": 7,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.018351537849309853,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 96222.39013705272
+        }
+      ]
+    },
+    "residual": {
+      "force": 1.5680643628002144e-7,
+      "torque": 7.618706776568729e-10,
+      "length": 1.5170087408478139e-12
+    },
+    "dofs": 555,
+    "matrixEntries": 26150,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 524288,
+      "grows": 0,
+      "viewBuilds": 4,
+      "requests": 7
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": true,
+    "certificateBound": 1.5680643628002144e-7,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 16,
+      "sliding": 16
+    },
+    "frictionIterations": 1,
+    "predictorFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 0,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.5680643628002144e-7,
+          "torque": 7.618706776568729e-10,
+          "length": 1.5170087408478139e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 16,
+          "sliding": 16
+        },
+        "iterations": 3,
+        "factorizations": 7
+      }
+    ],
+    "subdivisions": 1
+  },
+  "events": [
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 0,
+      "force": 32123.2348982359,
+      "torque": 64.97115531945246,
+      "constraint": 0.06756752683438183,
+      "converged": true,
+      "factorizations": 5,
+      "maxPosition": 0.2594187107853245,
+      "maxIncrement": 0.19211607504387482
+    },
+    {
+      "kind": "trial",
+      "iteration": 0,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 216.71547826188453,
+      "torque": 1.6212235660905754,
+      "constraint": 0.0012053555200726151
+    },
+    {
+      "kind": "direction",
+      "iteration": 1,
+      "method": 0,
+      "force": 216.71547826188453,
+      "torque": 1.6212235660905754,
+      "constraint": 0.0012053555200726151,
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.005032270630819246,
+      "maxIncrement": 0.004841908786983096
+    },
+    {
+      "kind": "trial",
+      "iteration": 1,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 0.01333324653347745,
+      "torque": 0.000755422696826713,
+      "constraint": 0.000002659385189396346
+    },
+    {
+      "kind": "direction",
+      "iteration": 2,
+      "method": 0,
+      "force": 0.01333324653347745,
+      "torque": 0.000755422696826713,
+      "constraint": 0.000002659385189396346,
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.00000393039662287771,
+      "maxIncrement": 0.000003120450824342693
+    },
+    {
+      "kind": "trial",
+      "iteration": 2,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 2.549109012761619e-8,
+      "torque": 7.618706776568729e-10,
+      "constraint": 1.5170087408478139e-12
+    }
+  ]
+}

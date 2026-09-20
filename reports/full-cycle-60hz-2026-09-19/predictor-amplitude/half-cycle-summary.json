@@ -1,0 +1,78 @@
+{
+  "contactQueries": {
+    "pointQueries": 13829,
+    "capsuleQueries": 530816,
+    "capsuleSamples": 2115722,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 13693,
+    "bvhRefinements": 2115722,
+    "signRefinements": 1664,
+    "signCacheHits": 0,
+    "signCacheMisses": 1664,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 136,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 2115722,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 526875,
+    "certifiedCapsuleSamples": 2101893,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 974,
+  "processCpu": {
+    "meanMs": 78.80843942505133,
+    "p50Ms": 10.177,
+    "p95Ms": 298.101,
+    "maxMs": 12265.281
+  },
+  "meanMs": 66.07527446611907,
+  "p50Ms": 7.86645899999985,
+  "p95Ms": 231.57858399999895,
+  "p99Ms": 1225.7382079999988,
+  "maxMs": 10902.004708,
+  "overBudget": 174,
+  "meanIterations": 5.736139630390143,
+  "meanFactorizations": 68.47946611909651,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 28.082,
+        "p50Ms": 28.082,
+        "p95Ms": 28.082,
+        "maxMs": 28.082
+      },
+      "meanMs": 18.937666000000036,
+      "p50Ms": 18.937666000000036,
+      "p95Ms": 18.937666000000036,
+      "p99Ms": 18.937666000000036,
+      "maxMs": 18.937666000000036,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 974,
+      "processCpu": {
+        "meanMs": 78.80843942505133,
+        "p50Ms": 10.177,
+        "p95Ms": 298.101,
+        "maxMs": 12265.281
+      },
+      "meanMs": 66.07527446611907,
+      "p50Ms": 7.86645899999985,
+      "p95Ms": 231.57858399999895,
+      "p99Ms": 1225.7382079999988,
+      "maxMs": 10902.004708,
+      "overBudget": 174,
+      "meanIterations": 5.736139630390143,
+      "meanFactorizations": 68.47946611909651
+    }
+  }
+}

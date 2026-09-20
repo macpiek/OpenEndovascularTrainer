@@ -1,0 +1,36 @@
+{
+  "initial": {
+    "samples": 9,
+    "rmsMm": 0.0,
+    "maxMm": 0.0
+  },
+  "wire-in": {
+    "samples": 1944,
+    "rmsMm": 13.949022323366373,
+    "maxMm": 130.70793110207407
+  },
+  "catheter-in": {
+    "samples": 2866,
+    "rmsMm": 30.797256440979357,
+    "maxMm": 117.760117624481
+  },
+  "catheter-out": {
+    "samples": 4951,
+    "rmsMm": 23.59193138253287,
+    "maxMm": 101.85944877576728
+  },
+  "wire-out": {
+    "samples": 2052,
+    "rmsMm": 5.9483122840726095,
+    "maxMm": 58.16410729874461
+  },
+  "quality": {
+    "allFinite": true,
+    "maxPenetrationMm": 9.664197392900142e-07,
+    "maxRelativeLengthError": 3.473187183874613e-08,
+    "maxCertifiedResidual": 9.993007193591888e-05,
+    "totalFactorizations": 28389,
+    "totalIterations": 16435
+  },
+  "comparison": "Common arc coordinates, linear interpolation, world coordinates including each snapshot origin"
+}

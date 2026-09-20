@@ -1,0 +1,114 @@
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -1,4 +1,5 @@
+ import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
++import {canCondenseSharedAxisContact,assembleCondensedSharedAxisContacts,recoverCondensedSharedAxisReaction,measureUncondensedSharedAxisResidual} from './kirchhoffSharedAxisCondensation.js';
+ import {materializeSharedAxisContacts,separatedSharedAxisContactDirection} from './kirchhoffSharedAxisInactiveContacts.js';
+ import { assemblePreparedSharedAxisMatrix, applyPreparedSharedAxisFixedMask } from './kirchhoffSharedAxisMatrixAssembly.js';
+ import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
+@@ -10,6 +11,7 @@
+ // shared-axis workspaces can use one arena; retaining a different WASM memory
+ // for every active-set layout causes unnecessary browser allocation/GC work.
+ const sharedLinearScratchArena=createCoulombBandLUArena();
++const noCondensedRows=Object.freeze([]);
+ export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics});
+ 
+ const rowSupportKey = (rows,cache) => {
+@@ -106,7 +108,7 @@
+         lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
+ }
+ 
+-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false }) {
++function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], condensedRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false }) {
+     // Optional force support can appear after an originally normal-only
+     // workspace was created. Rebuild the reference band when it no longer
+     // contains that support; compact workspaces are keyed by both supports.
+@@ -114,7 +116,7 @@
+         w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
+         const key=rowSupportKey(rows,supportKeyCache);
+         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
+-        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly});
++        return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,condensedRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly});
+     }
+     const { matrix: A, residual: F, band: { starts, ends, offsets }, primal, dual } = w;
+     if(matrixAssembly)assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows},matrixAssembly);
+@@ -158,6 +160,7 @@
+     for(const r of inactiveRows)if(r.geometricHessian)
+         r.dofs.forEach((p,i)=>r.dofs.forEach((q,j)=>add(primal[p],primal[q],r.geometricHessian[i*r.dofs.length+j])));
+     }
++    if(condensedRows.length)assembleCondensedSharedAxisContacts(w,condensedRows);
+     const wasmLinear=wasmLinearAssembly&&!incrementalContext&&!modifiedNewtonContext;
+     if(matrixAssembly)applyPreparedSharedAxisFixedMask(w);
+     for (let i = 0; i < w.count; i++) {
+@@ -246,9 +249,14 @@
+         for(let i=0;i<scratch.inactiveIndices.length;i++)scratch.inactiveRows[i]=options.rows[scratch.inactiveIndices[i]];
+         scratch.gradient.set(options.gradient);
+     }
+-    const indices=scratch?.indices??[],inactiveRows=scratch?.inactiveRows??[];
+-    if(!scratch)options.rows.forEach((r,i)=>{if(activeSet[i])indices.push(i);else inactiveRows.push(r);});
+-    const activeRows=scratch?.rows??indices.map(i=>options.rows[i]);
++    const allIndices=scratch?.indices??[],inactiveRows=scratch?.inactiveRows??[];
++    if(!scratch)options.rows.forEach((r,i)=>{if(activeSet[i])allIndices.push(i);else inactiveRows.push(r);});
++    const condensedIndices=options.condenseCompliantContacts&&!context&&!options.modifiedNewtonContext?
++        allIndices.filter(i=>canCondenseSharedAxisContact(options.rows[i],chain.layout)):noCondensedRows;
++    const condensedRows=condensedIndices.length?condensedIndices.map(i=>options.rows[i]):noCondensedRows;
++    const condensed=condensedIndices.length?new Set(condensedIndices):null;
++    const indices=condensedIndices.length?allIndices.filter(i=>!condensed.has(i)):allIndices;
++    const activeRows=condensedIndices.length?indices.map(i=>options.rows[i]):scratch?.rows??indices.map(i=>options.rows[i]);
+     // Recheck actual supports even with a reused index map: contact/friction
+     // derivatives can change their sparsity without changing the active mask.
+     const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows,options.supportKeyCache),cache=w.activeWorkspaces??=new Map();
+@@ -264,7 +272,8 @@
+         r.dofs.forEach((p,k)=>{gradient[p]-=(r.kind==='wall'?-1:1)*r.multiplier*r.jacobian[k];});
+         r.extraForceDofs?.forEach((p,k)=>{gradient[p]-=r.multiplier*r.extraForceJacobian[k];});
+     }
+-    const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,inactiveRows,
++    const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,condensedRows,
++        inactiveRows:condensedRows.length?[...inactiveRows,...condensedRows]:inactiveRows,
+         rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
+     if(options.modifiedNewtonContext&&result.converged)options.modifiedNewtonContext.record(packed,indices);
+     if(context&&result.converged) {
+@@ -275,6 +284,25 @@
+     w.increment.set(result.increment);
+     options.rows.forEach((r,i)=>{w.multiplierIncrement[i]=-r.multiplier;});
+     indices.forEach((index,i)=>{w.multiplierIncrement[index]=result.multiplierIncrement[i];});
++    for(const i of condensedIndices)w.multiplierIncrement[i]=recoverCondensedSharedAxisReaction(options.rows[i],w.increment);
++    if(condensedIndices.length) {
++        if(options.condensationStats) {
++            options.condensationStats.attempts++;
++            options.condensationStats.eliminatedRows+=condensedIndices.length;
++        }
++        const originalResidual=result.converged?measureUncondensedSharedAxisResidual(chain,options,activeSet,w.increment,w.multiplierIncrement):Infinity;
++        if(originalResidual>(options.tolerance??1e-8)) {
++            // Never accept merely because the reduced equations passed. Keep
++            // the uncondensed numerical fallback and count its full cost.
++            const failedFactorizations=result.factorizations;
++            if(options.condensationStats)options.condensationStats.fallbacks++;
++            const reference=solveCompactWorkingSet(w,chain,{...options,condenseCompliantContacts:false},activeSet);
++            return {...reference,factorizations:failedFactorizations+reference.factorizations,
++                condensationFallback:true,condensationResidual:originalResidual};
++        }
++        result.residual=Math.max(result.residual,originalResidual);
++        result.condensedContacts=condensedIndices.length;
++    }
+     w.peakActiveEntries=Math.max(w.peakActiveEntries??0,packed.matrix.length);
+     return {...result,increment:w.increment,multiplierIncrement:w.multiplierIncrement};
+ }
+@@ -420,6 +448,8 @@
+ /** Yield between active-set/LU attempts while preserving the synchronous API.
+  * CPU timing excludes consumer pauses, including pauses before a fallback. */
+ export function* iterateSharedAxisLinear(w,chain,options) {
++    const condensationStats=options.condenseCompliantContacts?{attempts:0,eliminatedRows:0,fallbacks:0}:null;
++    if(condensationStats)options={...options,condensationStats};
+     if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
+     options.observeLinearSystem?.({chain,options});
+     options.rows.forEach(r=>{
+@@ -435,7 +465,7 @@
+         while(true) {
+             const start=performance.now();let next;
+             try{next=iterator.next();}finally{cpuMs+=performance.now()-start;}
+-            if(next.done){done=true;return {...next.value,cpuMs};}
++            if(next.done){done=true;return {...next.value,cpuMs,...(condensationStats?{condensationStats}:{})};}
+             yield next.value;
+         }
+     }finally{if(!done)iterator.return();}

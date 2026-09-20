@@ -1,0 +1,12 @@
+✔ a relaxed stopping budget preserves the original Newton path and skips its last small correction (25.2485ms)
+✔ relaxing force equilibrium does not accept stretched segments (1.390416ms)
+✔ the final dynamic certificate includes both equilibrium residual and the friction update (12.079292ms)
+✔ invalid stopping budgets cannot start a timestep (2.692542ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145.212041

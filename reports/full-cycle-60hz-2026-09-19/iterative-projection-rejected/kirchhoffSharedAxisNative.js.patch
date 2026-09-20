@@ -1,0 +1,41 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -406,7 +406,7 @@
+     // the caller still certifies energy and the full physical residual.
+     if(projectionMode) {
+         const direction=yield* iterateSharedAxisProjection(s,base,{reuseStructure,mode:projectionMode,reuseConstraintWork,reuseMatrixAssembly});
+-        if(direction.converged)applySharedAxisNativeIncrement(s,direction.increment,direction.zeroReactions);
++        if(direction.converged||direction.applicable)applySharedAxisNativeIncrement(s,direction.increment,direction.zeroReactions);
+         return direction;
+     }
+     const chain={layout:s.layout,hessian:new Float64Array(s.layout.dofCount*s.layout.band)};
+@@ -555,13 +555,27 @@
+                         const uncorrected=captureSharedAxisNative(s),uncorrectedMeasure=candidate,uncorrectedPotential=candidatePotential;
+                         protectedTrial=uncorrectedMeasure;
+                         try {
++                        const correctionModes=projectionMode==='iterative-first'?['iterative','reduced']:[projectionMode];
++                        for(let modeIndex=0;modeIndex<correctionModes.length&&!accept;modeIndex++) {
++                        if(modeIndex){restoreSharedAxisNative(s,uncorrected);candidate=uncorrectedMeasure;candidatePotential=uncorrectedPotential;}
++                        try {
+                         for(let correction=0;correction<2&&!accept;correction++) {
+-                            const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate,reuseStructure,projectionMode,reuseConstraintWork,reuseMatrixAssembly);
++                            const start=performance.now(),projected=yield* correctTrialConstraints(s,candidate,reuseStructure,correctionModes[modeIndex],reuseConstraintWork,reuseMatrixAssembly);
+                             const correctionMs=projected.cpuMs??performance.now()-start;timings.linearMs+=correctionMs;timings.projectionMs+=correctionMs;factorizations+=projected.factorizations;workingSetReuses+=projected.workingSetReuses??0;
+-                            if(!projected.converged)break;
++                            observeTrial?.({kind:'projection',iteration:iterations,method,trial,correction,mode:correctionModes[modeIndex],
++                                converged:projected.converged,applicable:projected.applicable??false,residual:projected.residual,
++                                sweeps:projected.sweeps,factorizations:projected.factorizations,cpuMs:correctionMs});
++                            if(!projected.converged&&!projected.applicable)break;
+                             candidate=assemble(undefined,!(lazyTrialTangent||promoteTrialAssembly));candidatePotential=candidate.energy-trustScale*2**-trial*loadWork+penalty*violation(candidate);
+                             accept=candidatePotential<basePotential||merit(candidate)<=1||
+                                 (merit(candidate)<merit(base)&&candidate.constraint<=Math.max(lengthTolerance,base.constraint));
++                        }
++                        } catch(error) {
++                            // An iterative proposal outside the vessel cannot
++                            // suppress the original exact correction attempt.
++                            if(correctionModes[modeIndex]!=='iterative'||modeIndex+1===correctionModes.length||error.code!=='trial-outside-vessel')throw error;
++                            lastOutsideContact=error.contact??lastOutsideContact;
++                        }
+                         }
+                         if(!accept){restoreSharedAxisNative(s,uncorrected);candidate=uncorrectedMeasure;candidatePotential=uncorrectedPotential;}
+                         } finally {protectedTrial=null;}

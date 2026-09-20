@@ -8,9 +8,11 @@ export {captureSharedAxisReplay} from '../../src/physics/kirchhoffSharedAxisRepl
 
 export function restoreSharedAxisReplay(fixture,field) {
     assert.equal(fixture.version,1);
-    const s=createSharedAxisNative({...createSharedAxisContacts({sheath:fixture.sheath,contactField:field,localCoordinates:!!fixture.origin}),
+    const s=createSharedAxisNative({...createSharedAxisContacts({sheath:fixture.sheath,contactField:field,localCoordinates:!!fixture.origin,retainDiscoveryCertificates:fixture.retainDiscoveryCertificates===true,continuousDiscoverySign:fixture.continuousDiscoverySign===true,continuousSegmentContacts:fixture.continuousSegmentContacts??false,certifiedDiscoverySamples:fixture.certifiedDiscoverySamples===true}),
         fractionalTipThreshold:fixture.fractionalTipThreshold??0,rebaseNearTips:fixture.rebaseNearTips??false,spacing:fixture.spacing,tools:fixture.tools,maxBendAngle:fixture.maxBendAngle??Infinity,minimumEdgeLength:fixture.minimumEdgeLength??0,
         spatialKnots:fixture.coordinates,adaptiveMesh:fixture.adaptiveMesh});
+    if(fixture.discoveryState)s.wallSamples.find(sample=>sample.restoreDiscoveryState)?.restoreDiscoveryState(fixture.discoveryState);
+    if(fixture.insideContinuation)s.wallSamples.find(sample=>sample.insideProofs)?.insideProofs.restore(fixture.insideContinuation);
     if(fixture.origin)s.origin=fixture.origin.slice();
     assert.deepEqual(s.coordinates,fixture.coordinates,'Replay topology changed');
     assert.deepEqual(s.definitions.map(({evaluate,...d})=>d),fixture.definitions.slice(0,s.definitions.length),'Replay base rows changed');

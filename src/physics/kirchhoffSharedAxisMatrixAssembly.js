@@ -1,3 +1,4 @@
+import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
 // Numeric data belongs to one immutable linear call. Address maps belong to
 // its bounded layout workspace; changing row supports are read on every assembly.
 // No matrix values survive a new pose, reaction update, or cancelled call.
@@ -88,11 +89,12 @@ export function assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,to
             const p=r.extraForceDofs[k],row=primal[p];
             add(A,d<starts[row]||d>ends[row]?-1:maps.primalOffsets[p]+d,r.extraForceJacobian[k]);
         }
-        if(!active||!movable) {
+        if(!active||(!movable&&!r.compliance)) {
             if(active&&(r.kind==='length'?Math.abs(r.gap)>tolerance:r.gap < -tolerance))throw new RangeError('Incompatible fixed shared axis constraint');
             add(A,dualOffset+d,1);F[d]=r.multiplier;
         } else {
-            F[d]=r.gap;
+            F[d]=sharedAxisEffectiveGap(r);
+            if(r.compliance)add(A,dualOffset+d,r.compliance);
             for(let k=0;k<r.dofs.length;k++) {
                 const column=primal[r.dofs[k]];
                 add(A,column<starts[d]||column>ends[d]?-1:dualOffset+column,r.jacobian[k]);

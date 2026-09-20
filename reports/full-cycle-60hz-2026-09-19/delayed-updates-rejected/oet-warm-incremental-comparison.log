@@ -1,0 +1,21 @@
+false {
+  medianMs: 190.9932090000002,
+  medianCpuMs: 211.387,
+  medianLinearMs: 148.65242300000045,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+true {
+  medianMs: 184.17341600000054,
+  medianCpuMs: 240.442,
+  medianLinearMs: 140.27775500000735,
+  factorizations: 121,
+  maxPositionDifferenceMm: 1.6788216826612741e-13
+}
+delayed {
+  medianMs: 188.43783299999996,
+  medianCpuMs: 258.893,
+  medianLinearMs: 142.7013820000093,
+  factorizations: 157,
+  maxPositionDifferenceMm: 3.299245112840452e-13
+}

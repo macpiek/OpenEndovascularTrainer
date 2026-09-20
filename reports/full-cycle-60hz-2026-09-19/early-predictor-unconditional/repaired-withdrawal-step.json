@@ -1,0 +1,296 @@
+{
+  "inputPath": "/tmp/oet-full-cycle-early-predictor-unlimited/failed-incoming.json",
+  "options": {
+    "forceTolerance": 0.0001,
+    "lengthTolerance": 0.001,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true,
+    "liveWallNormalLoad": true,
+    "promoteTrialAssembly": true,
+    "projectionMode": "reduced",
+    "stagnationFallback": true,
+    "wasmMaterial": true,
+    "reuseMaterialScratch": true,
+    "lightweightFriction": true,
+    "reuseTriangleKernel": true,
+    "earlyContactPreflight": true,
+    "reuseConstraintWork": true,
+    "reuseMatrixAssembly": true,
+    "reuseRowBuffers": true,
+    "pruneInactiveWitnesses": true,
+    "coupledFrictionNewton": true,
+    "zeroDualStart": true,
+    "velocityPredictor": 1,
+    "earlyPredictorFallback": true
+  },
+  "result": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 3,
+    "frictionRefreshMs": 1.3793339999999716,
+    "retainedDiscoveryTrials": 1,
+    "iterations": 3,
+    "factorizations": 5,
+    "workingSetReuses": 0,
+    "backtracks": 0,
+    "geometryRestarts": 2,
+    "ms": 81.87754100000006,
+    "timings": {
+      "assemblyMs": 47.49579299999982,
+      "linearMs": 22.211289999999508,
+      "frictionMs": 2.1348760000000766,
+      "tangentAssemblyMs": 34.91054200000008,
+      "residualAssemblyMs": 12.585250999999744,
+      "projectionMs": 0
+    },
+    "fullAssemblies": 6,
+    "residualAssemblies": 3,
+    "promotedAssemblies": 2,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 2.4424906541753444e-14,
+      "contacts": 20,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 8.348877145181177e-15,
+          "maxBendAngleDegrees": 7.924873948430933,
+          "maxBendNode": 33,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 7.130431677495706,
+          "activeWallContacts": 8,
+          "currentNormalLoad": 7724.70020141056
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.0531133176608896e-15,
+          "maxBendAngleDegrees": 7.924873948430933,
+          "maxBendNode": 33,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 3.9794090507085076,
+          "activeWallContacts": 12,
+          "currentNormalLoad": 68444.94295827256
+        }
+      ]
+    },
+    "residual": {
+      "force": 1.5803925634827465e-7,
+      "torque": 8.63078331025946e-10,
+      "length": 4.085620730620576e-14
+    },
+    "dofs": 604,
+    "matrixEntries": 27963,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 524288,
+      "grows": 0,
+      "viewBuilds": 3,
+      "requests": 5
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": true,
+    "certificateBound": 1.5803925634827465e-7,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 14,
+      "sliding": 13
+    },
+    "frictionIterations": 1,
+    "predictorFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 0,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.5803925634827465e-7,
+          "torque": 8.63078331025946e-10,
+          "length": 4.085620730620576e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 14,
+          "sliding": 13
+        },
+        "iterations": 3,
+        "factorizations": 5
+      }
+    ],
+    "subdivisions": 1
+  },
+  "events": [
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 0,
+      "force": 8764.460256346449,
+      "torque": 74.01377065654484,
+      "constraint": 0.02018106185158952,
+      "worstRows": [
+        {
+          "index": 769,
+          "id": "vessel/365/370/0.6666666666666666/671395",
+          "kind": "wall",
+          "edge": 57,
+          "gap": -0.02018106185158952,
+          "multiplier": 0,
+          "coordinate": 365,
+          "violation": 0.02018106185158952
+        },
+        {
+          "index": 117,
+          "kind": "length",
+          "edge": 39,
+          "gap": 0.0031608430751681738,
+          "multiplier": -1011.5115893511523,
+          "coordinate": 190,
+          "violation": 0.0031608430751681738
+        },
+        {
+          "index": 99,
+          "kind": "length",
+          "edge": 33,
+          "gap": 0.0005148686480875853,
+          "multiplier": -2360.3279190076037,
+          "coordinate": 165,
+          "violation": 0.0005148686480875853
+        }
+      ],
+      "converged": true,
+      "factorizations": 3,
+      "maxPosition": 0.022624089891716347,
+      "maxIncrement": 0.01656296344505902
+    },
+    {
+      "kind": "trial",
+      "iteration": 0,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 24.364453840988517,
+      "torque": 3.524773385421025,
+      "constraint": 0.000054550873865188976
+    },
+    {
+      "kind": "direction",
+      "iteration": 1,
+      "method": 0,
+      "force": 135.6493661187832,
+      "torque": 29.876066038738006,
+      "constraint": 0.000054550873865188976,
+      "worstRows": [
+        {
+          "index": 102,
+          "kind": "length",
+          "edge": 34,
+          "gap": 0.000054550873865188976,
+          "multiplier": -1158.0645400390695,
+          "coordinate": 170,
+          "violation": 0.000054550873865188976
+        },
+        {
+          "index": 117,
+          "kind": "length",
+          "edge": 39,
+          "gap": 0.000013477487350144202,
+          "multiplier": -949.5115228410626,
+          "coordinate": 190,
+          "violation": 0.000013477487350144202
+        },
+        {
+          "index": 114,
+          "kind": "length",
+          "edge": 38,
+          "gap": 0.00000992694888601875,
+          "multiplier": -1016.5248403115826,
+          "coordinate": 185,
+          "violation": 0.00000992694888601875
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.0031528444688286284,
+      "maxIncrement": 0.0028924584236563198
+    },
+    {
+      "kind": "trial",
+      "iteration": 1,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 0.019386071471785726,
+      "torque": 0.009172853271729092,
+      "constraint": 4.4412558075634934e-8
+    },
+    {
+      "kind": "direction",
+      "iteration": 2,
+      "method": 0,
+      "force": 0.019386071471785726,
+      "torque": 0.009172853271729897,
+      "constraint": 4.4412558075634934e-8,
+      "worstRows": [
+        {
+          "index": 201,
+          "kind": "length",
+          "edge": 67,
+          "gap": 4.4412558075634934e-8,
+          "multiplier": -579.6236784792426,
+          "coordinate": 415,
+          "violation": 4.4412558075634934e-8
+        },
+        {
+          "index": 186,
+          "kind": "length",
+          "edge": 62,
+          "gap": 4.007591236643293e-8,
+          "multiplier": -588.1667284103713,
+          "coordinate": 390,
+          "violation": 4.007591236643293e-8
+        },
+        {
+          "index": 198,
+          "kind": "length",
+          "edge": 66,
+          "gap": 3.799039482998978e-8,
+          "multiplier": -576.3710887448498,
+          "coordinate": 410,
+          "violation": 3.799039482998978e-8
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.0000010084763638878441,
+      "maxIncrement": 9.423979904792471e-7
+    },
+    {
+      "kind": "trial",
+      "iteration": 2,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 1.5803880160092376e-7,
+      "torque": 8.6307760938098e-10,
+      "constraint": 4.085620730620576e-14
+    }
+  ]
+}

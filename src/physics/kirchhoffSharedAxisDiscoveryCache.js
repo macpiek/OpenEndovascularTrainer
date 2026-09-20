@@ -15,7 +15,7 @@ const validGrid = d => finitePoint(d.a) && finitePoint(d.b) && Number.isInteger(
  * gridToken must identify the same material interval and clipping/sample grid.
  * Lookups retain the original certificate pose, so skipped motions accumulate.
  */
-export function createSharedAxisDiscoveryCache({ capacity = 2048 } = {}) {
+export function createSharedAxisDiscoveryCache({ capacity = 2048, retainOnAbort = false } = {}) {
     if (!Number.isInteger(capacity) || capacity < 1) throw new RangeError('Cache capacity must be a positive integer');
     const entries = new Map();
     const stats = { lookups: 0, clearSkips: 0, insideProofs: 0, certificates: 0, rejectedCertificates: 0, evictions: 0 };
@@ -23,6 +23,22 @@ export function createSharedAxisDiscoveryCache({ capacity = 2048 } = {}) {
         stats,
         get size() { return entries.size; },
         clear() { entries.clear(); },
+        // The replay owner validates mesh identity before binding these numeric
+        // certificates to a fresh BVH object. Never serialize object tokens.
+        capture(geometryToken) {
+            return structuredClone([...entries].filter(([,d])=>d.geometryToken===geometryToken)
+                .map(([key,{geometryToken,...d}])=>[key,d]));
+        },
+        restore(values,geometryToken) {
+            const restored=[];
+            for(const [key,d] of values??[]) {
+                if(typeof key!=='string'||typeof d.gridToken!=='string'||!validGrid({...d,geometryToken})||
+                    !(Number.isFinite(d.minimumDistance)&&d.minimumDistance>0))throw new RangeError('Invalid discovery replay certificate');
+                restored.push([key,{...d,a:Array.from(d.a),b:Array.from(d.b),geometryToken,
+                    scale:Math.max(1,d.minimumDistance,...d.a.map(Math.abs),...d.b.map(Math.abs))}]);
+            }
+            entries.clear();for(const [key,d]of restored.slice(-capacity))entries.set(key,d);
+        },
         invalidate(key) { entries.delete(key); },
         lookup(key, descriptor) {
             stats.lookups++;
@@ -49,7 +65,12 @@ export function createSharedAxisDiscoveryCache({ capacity = 2048 } = {}) {
          * A historical winner alone cannot certify the remaining sample sites.
          */
         begin(key, descriptor, { insideCertified = false, distanceError = 0 } = {}) {
-            entries.delete(key);
+            // A rejected Newton trial must not erase the certificate of an
+            // earlier pose. It is an immutable geometric fact, independent of
+            // whether the current trial succeeds. lookup still checks surface,
+            // sample grid and the complete displacement from that old pose.
+            // Publish a replacement only after every sample was certified.
+            if(!retainOnAbort)entries.delete(key);
             const d = descriptor;
             const valid = validGrid(d) && insideCertified === true && Number.isFinite(distanceError) && distanceError >= 0;
             const a = valid ? Array.from(d.a) : null, b = valid ? Array.from(d.b) : null;
@@ -80,7 +101,7 @@ export function createSharedAxisDiscoveryCache({ capacity = 2048 } = {}) {
                         scale: Math.max(1, minimumDistance, ...a.map(Math.abs), ...b.map(Math.abs)) });
                     stats.certificates++; return true;
                 },
-                abort() { if (!finished) stats.rejectedCertificates++; finished = true; entries.delete(key); }
+                abort() { if (!finished) stats.rejectedCertificates++; finished = true; if(!retainOnAbort)entries.delete(key); }
             };
         }
     };

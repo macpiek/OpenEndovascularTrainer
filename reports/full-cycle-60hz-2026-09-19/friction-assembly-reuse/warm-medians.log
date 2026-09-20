@@ -1,0 +1,80 @@
+slow-777 false {
+  medianAssemblyMs: 42.14768849999905,
+  medianMs: 199.52372950000017,
+  medianCpuMs: 247.4795,
+  medianLinearMs: 145.6184600000056,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+slow-777 true {
+  medianAssemblyMs: 40.635893999996824,
+  medianMs: 193.6424165000003,
+  medianCpuMs: 281.49199999999996,
+  medianLinearMs: 142.87114800000472,
+  factorizations: 279,
+  maxPositionDifferenceMm: 0
+}
+slow-842 false {
+  medianAssemblyMs: 36.187167999998564,
+  medianMs: 116.6234585000002,
+  medianCpuMs: 141.4735,
+  medianLinearMs: 69.92501299998275,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-842 true {
+  medianAssemblyMs: 35.60989599999721,
+  medianMs: 113.5015414999998,
+  medianCpuMs: 132.54950000000002,
+  medianLinearMs: 68.3807154999904,
+  factorizations: 178,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 false {
+  medianAssemblyMs: 7.281020000002172,
+  medianMs: 14.7309580000001,
+  medianCpuMs: 24.6045,
+  medianLinearMs: 2.1337915000021894,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-1300 true {
+  medianAssemblyMs: 6.031104499999856,
+  medianMs: 12.483354499999223,
+  medianCpuMs: 13.7515,
+  medianLinearMs: 1.9571034999999029,
+  factorizations: 3,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 false {
+  medianAssemblyMs: 8.864103500003694,
+  medianMs: 19.367895999999746,
+  medianCpuMs: 24.0915,
+  medianLinearMs: 5.198647000004712,
+  factorizations: 8,
+  maxPositionDifferenceMm: 0
+}
+slow-4245 true {
+  medianAssemblyMs: 8.4661659999947,
+  medianMs: 19.00391650000165,
+  medianCpuMs: 27.666,
+  medianLinearMs: 5.128916500007108,
+  factorizations: 8,
+  maxPositionDifferenceMm: 0
+}
+slow-4895 false {
+  medianAssemblyMs: 57.92030749999867,
+  medianMs: 134.47643749999952,
+  medianCpuMs: 149.8545,
+  medianLinearMs: 60.64752500000213,
+  factorizations: 114,
+  maxPositionDifferenceMm: 0
+}
+slow-4895 true {
+  medianAssemblyMs: 57.64279449998867,
+  medianMs: 134.15572900000188,
+  medianCpuMs: 163.8705,
+  medianLinearMs: 61.112999999997555,
+  factorizations: 114,
+  maxPositionDifferenceMm: 0
+}

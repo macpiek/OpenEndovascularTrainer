@@ -42,7 +42,7 @@ test('composite selection requires and reports the installed complete-step provi
 });
 
 test('whole-step reports snapshot counters and nested diagnostics independently of later provider mutation',()=>{
-    for(const id of ['shared-axis','shared-axis-adaptive','shared-axis-projective','composite-joint']) {
+    for(const id of ['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime','composite-joint']) {
         const system={id,step(){},reset(){},diagnostics:{acceptedSteps:2,pendingSlices:3,
             last:{cpuMs:4,quality:{finite:true,bodies:[{id:'wire',maxSpeed:5}]}}}};
         const selection=createCoupledSolverSelection(id,{wholeStepSystem:system});

@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-full-cycle-certified-samples",
+  "candidateDirectory": "/tmp/oet-full-cycle-force-0001",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1950,
+      "rmsMm": 14.581204684827044,
+      "maxMm": 127.07886834729057
+    },
+    "catheter-in": {
+      "samples": 2869,
+      "rmsMm": 31.81787218370179,
+      "maxMm": 123.88571905334373
+    },
+    "catheter-out": {
+      "samples": 4932,
+      "rmsMm": 24.888353719384398,
+      "maxMm": 106.79664804031229
+    },
+    "wire-out": {
+      "samples": 2037,
+      "rmsMm": 6.369781295392516,
+      "maxMm": 61.262344690183895
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.85525511310037e-7,
+    "maxRelativeLengthError": 1.3396586862057802e-7,
+    "maxCertifiedResidual": 0.0009993522804734312,
+    "totalFactorizations": 27033,
+    "totalIterations": 15070
+  }
+}

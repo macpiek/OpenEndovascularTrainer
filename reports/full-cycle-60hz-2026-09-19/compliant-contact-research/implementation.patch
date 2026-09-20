@@ -1,0 +1,343 @@
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -11,11 +11,15 @@
+     if(!Number.isInteger(maxFrictionIterations)||maxFrictionIterations<1)throw new RangeError('Positive friction iteration limit required');
+     const incoming=captureSharedAxisNative(s),acceptedSolves=s.acceptedSolves,started=performance.now();
+     const history=s.wallFrictionHistory,gaps=s.acceptedWallGaps,velocities=s.velocities,angularVelocities=s.angularVelocities;
+-    const previousTriangleKernel=s.reuseTriangleKernel;
++    const previousTriangleKernel=s.reuseTriangleKernel,previousCompliance=s.wallCompliance;
++    const wallCompliance=options.wallCompliance??0;
++    if(!(Number.isFinite(wallCompliance)&&wallCompliance>=0))throw new RangeError('Nonnegative finite wall compliance required');
++    if(wallCompliance&&(options.modifiedNewton||options.incrementalContacts))throw new RangeError('Compliant contacts require the ordinary linear solver');
+     let committed=false;
+     try {
+     const tolerance=options.forceTolerance??1e-6;
+     if(!(Number.isFinite(tolerance)&&tolerance>0))throw new RangeError('Positive force tolerance required');
++    s.wallCompliance=wallCompliance;
+     s.cacheMechanicalAssembly=true;s.reuseTriangleKernel=options.reuseTriangleKernel===true;
+     prepareSharedAxisDynamicStep(s,dt);prepareSharedAxisWallFriction(s,{feedById,liveNormalLoad:options.liveWallNormalLoad===true,lightweightFriction:options.lightweightFriction===true});
+     let predictedInitialPose=false;
+@@ -69,6 +73,7 @@
+     }
+     return {...result,predictedInitialPose,converged:false,retainedDiscoveryTrials,coupledFrictionRefreshes,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,ms:performance.now()-started};
+     } finally {
++        s.wallCompliance=previousCompliance;
+         s.reuseTriangleKernel=previousTriangleKernel;
+         s.cacheMechanicalAssembly=false;s.mechanicalAssemblyCache=null;s.wallGeometryCache=null;s.bufferedWallGeometryCache=null;
+         if(!committed){restoreSharedAxisNative(s,incoming);s.acceptedSolves=acceptedSolves;s.acceptedWallGaps=gaps;
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -82,6 +82,8 @@
+             }
+             // No force column or Hessian from the preceding use may survive.
+             clearDeferredSharedAxisContact(row);
++            if(s.wallCompliance&&def.witness)row.compliance=s.wallCompliance;
++            else if(row.compliance!==undefined)delete row.compliance;
+             row.geometricHessian=undefined;row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
+         }
+ 
+@@ -152,7 +154,10 @@
+         if(storage) {
+             row.gap=gap;row.multiplier=multiplier;row.geometricHessian=geometricHessian;
+             for(let i=0;i<J.length;i++)row.jacobian[i]=J[i];
+-        } else rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
++        } else {
++            rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
++            if(s.wallCompliance&&def.witness)rows[index].compliance=s.wallCompliance;
++        }
+     }
+     return rows;
+ }
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -1,3 +1,4 @@
++import {sharedAxisEffectiveGap,sharedAxisContactElasticEnergy} from './kirchhoffSharedAxisCompliance.js';
+ import {prunableSharedAxisWitnesses} from './kirchhoffSharedAxisWitnessPruning.js';
+ import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
+ import {createSharedAxisModifiedNewton} from './kirchhoffSharedAxisModifiedNewton.js';
+@@ -336,12 +337,16 @@
+         rows[column.rowIndex].extraForceJacobian=column.values;
+     }
+     if(s.pendingVesselRows?.size)throw new Error('shared-axis-wall-discovery');
++    if(s.wallCompliance) {
++        const elastic=sharedAxisContactElasticEnergy(rows);energy+=elastic;
++        if(frictionBase)frictionBase.energy+=elastic;
++    }
+     let force = 0, torque = 0, constraint = 0;
+     const positionDofs = sharedAxisPositionDofMask(layout);
+     for (let i = 0; i < g.length; i++) if (!s.fixed[i]) {
+         if (positionDofs[i]) force = Math.max(force, Math.abs(g[i])); else torque = Math.max(torque, Math.abs(g[i]));
+     }
+-    rows.forEach((r, i) => { constraint = Math.max(constraint, Math.abs(s.definitions[i].kind === 'length' ? r.gap : Math.max(0, r.multiplier - r.gap) - r.multiplier)); });
++    rows.forEach((r, i) => { constraint = Math.max(constraint, Math.abs(s.definitions[i].kind === 'length' ? r.gap : Math.max(0, r.multiplier - sharedAxisEffectiveGap(r)) - r.multiplier)); });
+     if(capture){promotion.key=s.geometryKey;promotion.dynamicStep=s.dynamicStep;promotion.materials=s.materials;promotion.tangentMode=tangentMode;}
+     if(promote&&!mechanicalReused)promotion.hits++;
+     chain.energy = energy; chain.hessianValid = withTangent;
+@@ -395,6 +400,7 @@
+ 
+ function* correctTrialConstraints(s,base,reuseStructure,projectionMode,reuseConstraintWork,reuseMatrixAssembly) {
+     materializeSharedAxisContacts(base.rows);
++    if(s.wallCompliance)base={...base,rows:base.rows.map(r=>({...r,gap:sharedAxisEffectiveGap(r),compliance:0}))};
+     // Second-order SQP correction: restore the nonlinear lengths and gaps
+     // after a finite tangent step. This is not an accepted physical update;
+     // the caller still certifies energy and the full physical residual.
+@@ -414,7 +420,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -449,7 +455,7 @@
+         while(true) {try{return assemble();}catch(error){if(!discover(error))throw error;}}
+     };
+     const merit = m => Math.max(m.force / forceTolerance, m.torque / forceTolerance, m.constraint / lengthTolerance);
+-    const violation = m => m.rows.reduce((v, r) => v + (r.kind === 'length' ? Math.abs(r.gap) : Math.max(0, -r.gap)), 0);
++    const violation = m => m.rows.reduce((v, r) => v + (r.kind === 'length' ? Math.abs(r.gap) : Math.max(0, -sharedAxisEffectiveGap(r))), 0);
+     try {
+         base = assembleDiscovered();
+         for (; iterations < maxIterations; iterations++) {
+@@ -483,7 +489,7 @@
+                 if(!isModified)modified?.invalidate();
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+-                const linearOptions = { wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
++                const linearOptions = { batchActivationSize, simultaneousContactRelease, wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 const direction = isModified?modified.solve(base.rows,s.chain.gradient,linearOptions.tolerance):
+                     yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
+@@ -500,6 +506,9 @@
+                 let predictedSlope = s.chain.gradient.reduce((sum, v, i) => sum + v * direction.increment[i], 0);
+                 for (const r of base.rows) predictedSlope -= (r.kind === 'wall' ? -1 : 1) * r.multiplier *
+                     r.dofs.reduce((sum, dof, i) => sum + r.jacobian[i] * direction.increment[dof], 0);
++                if(s.wallCompliance)for(let i=0;i<base.rows.length;i++) {
++                    const r=base.rows[i];if(r.compliance)predictedSlope+=r.compliance*r.multiplier*direction.multiplierIncrement[i];
++                }
+                 predictedSlope -= penalty * baseViolation;
+                 if (!isGaussNewton && predictedSlope >= 0) {
+                     observeTrial?.({kind:'non-descent',state:s,iteration:iterations,method,predictedSlope});
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -1,3 +1,4 @@
++import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
+ import {materializeSharedAxisContacts,separatedSharedAxisContactDirection} from './kirchhoffSharedAxisInactiveContacts.js';
+ import { assemblePreparedSharedAxisMatrix, applyPreparedSharedAxisFixedMask } from './kirchhoffSharedAxisMatrixAssembly.js';
+ import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
+@@ -144,11 +145,12 @@
+         // reaction (including its own sign). It is NOT a constraint Jacobian:
+         // there is deliberately no transpose in the dual equation below.
+         r.extraForceDofs?.forEach((p,k)=>add(primal[p],d,r.extraForceJacobian[k]));
+-        if (!active || !movable) {
++        if (!active || (!movable&&!r.compliance)) {
+             if (active && (r.kind === 'length' ? Math.abs(r.gap) > tolerance : r.gap < -tolerance)) throw new RangeError('Incompatible fixed shared axis constraint');
+             add(d, d, 1); F[d] = r.multiplier;
+         } else {
+-            F[d] = r.gap;
++            F[d] = sharedAxisEffectiveGap(r);
++            if(r.compliance)add(d,d,r.compliance);
+             r.dofs.forEach((p, k) => add(d, primal[p], r.jacobian[k]));
+         }
+         if (r.geometricHessian) r.dofs.forEach((p, i) => r.dofs.forEach((q, j) => add(primal[p], primal[q], r.geometricHessian[i * r.dofs.length + j])));
+@@ -338,6 +340,19 @@
+                 if(fraction<alpha){alpha=fraction;change=i;worst=target;}
+             }
+         }
++        if(change>=0&&options.simultaneousContactRelease&&batchSize>1) {
++            // Semismooth working-set update. This changes only the private
++            // search path; the final original LCP certificate is unchanged.
++            // Cycling/failed directions still retry the single-pivot solver.
++            for(let i=0;i<rows.length;i++) {
++                const target=rows[i].multiplier+result.multiplierIncrement[i];
++                dual[i]=rows[i].kind==='wall'?Math.max(0,target):target;
++                if(rows[i].kind==='wall'&&activeSet[i]&&target < -tolerance) {
++                    activeSet[i]=0;batchedRows++;
++                }
++            }
++            continue;
++        }
+         if(change>=0) {
+             // At alpha=0 these contacts are tied first blockers. All have
+             // zero feasible reaction; releasing them together preserves the
+@@ -361,7 +376,7 @@
+             for(let i=0;i<rows.length;i++) {
+                 const r=rows[i];if(r.kind!=='wall'||activeSet[i])continue;
+                 if(separatedSharedAxisContactDirection(r,result.increment))continue;
+-                const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0);
++                const residual=r.gap+r.dofs.reduce((sum,p,k)=>sum+r.jacobian[k]*result.increment[p],0)+(r.compliance??0)*(r.multiplier+result.multiplierIncrement[i]);
+                 if(batchSize>1&&residual<-tolerance)violated.push({index:i,residual});
+                 if(residual<worst){worst=residual;change=i;}
+             }
+@@ -407,10 +422,14 @@
+ export function* iterateSharedAxisLinear(w,chain,options) {
+     if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
+     options.observeLinearSystem?.({chain,options});
+-    options.rows.forEach(r=>validateExtraForce(r,chain.layout.dofCount));
++    options.rows.forEach(r=>{
++        validateExtraForce(r,chain.layout.dofCount);
++        if(r.compliance!==undefined&&(!(r.compliance>=0)||!Number.isFinite(r.compliance)||r.kind!=='wall'&&r.compliance!==0))
++            throw new RangeError('Only walls may have nonnegative finite compliance');
++    });
+     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');
+     const batchSize=options.batchActivation===false?1:(options.batchActivationSize??8);
+-    if(!Number.isInteger(batchSize)||batchSize<1||batchSize>16)throw new RangeError('Batch activation size must be between 1 and 16');
++    if(!Number.isInteger(batchSize)||batchSize<1||batchSize>256)throw new RangeError('Batch activation size must be between 1 and 256');
+     const iterator=iterateWithFallback(w,chain,options,batchSize);let cpuMs=0,done=false;
+     try {
+         while(true) {
+--- a/src/physics/kirchhoffSharedAxisMatrixAssembly.js
++++ b/src/physics/kirchhoffSharedAxisMatrixAssembly.js
+@@ -1,3 +1,4 @@
++import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
+ // Numeric data belongs to one immutable linear call. Address maps belong to
+ // its bounded layout workspace; changing row supports are read on every assembly.
+ // No matrix values survive a new pose, reaction update, or cancelled call.
+@@ -88,11 +89,12 @@
+             const p=r.extraForceDofs[k],row=primal[p];
+             add(A,d<starts[row]||d>ends[row]?-1:maps.primalOffsets[p]+d,r.extraForceJacobian[k]);
+         }
+-        if(!active||!movable) {
++        if(!active||(!movable&&!r.compliance)) {
+             if(active&&(r.kind==='length'?Math.abs(r.gap)>tolerance:r.gap < -tolerance))throw new RangeError('Incompatible fixed shared axis constraint');
+             add(A,dualOffset+d,1);F[d]=r.multiplier;
+         } else {
+-            F[d]=r.gap;
++            F[d]=sharedAxisEffectiveGap(r);
++            if(r.compliance)add(A,dualOffset+d,r.compliance);
+             for(let k=0;k<r.dofs.length;k++) {
+                 const column=primal[r.dofs[k]];
+                 add(A,column<starts[d]||column>ends[d]?-1:dualOffset+column,r.jacobian[k]);
+--- a/src/physics/kirchhoffSharedAxisActiveBasis.js
++++ b/src/physics/kirchhoffSharedAxisActiveBasis.js
+@@ -13,12 +13,12 @@
+     if(same)for(let i=0;i<fixed.length;i++)if(saved.fixed[i]!==fixed[i]){same=false;break;}
+     if(same)for(let i=0;i<rows.length;i++) {
+         const a=rows[i],b=saved.rows[i];
+-        if(a.kind!==b.kind||a.dofs.length!==b.dofs.length||a.jacobian.length!==b.jacobian.length){same=false;break;}
++        if(a.kind!==b.kind||a.compliance!==b.compliance||a.dofs.length!==b.dofs.length||a.jacobian.length!==b.jacobian.length){same=false;break;}
+         for(let j=0;j<a.dofs.length;j++)if(a.dofs[j]!==b.dofs[j]||!Object.is(a.jacobian[j],b.jacobian[j])){same=false;break;}
+         if(!same)break;
+     }
+     if(same)return saved.token;
+-    saved={token:Symbol('basis-jacobians'),fixed:fixed.slice(),rows:rows.map(r=>({kind:r.kind,dofs:r.dofs.slice(),jacobian:r.jacobian.slice()}))};
++    saved={token:Symbol('basis-jacobians'),fixed:fixed.slice(),rows:rows.map(r=>({kind:r.kind,compliance:r.compliance,dofs:r.dofs.slice(),jacobian:r.jacobian.slice()}))};
+     linearizations.set(fixed,saved);return saved.token;
+ }
+ 
+@@ -37,7 +37,7 @@
+ function prepareOrder(w,rows,activeSet) {
+     let changed=false;
+     for(let i=0;i<rows.length;i++) {
+-        const kind=rows[i].kind==='length'?1:rows[i].kind==='wall'?2:0,active=activeSet[i]?1:0;
++        const kind=rows[i].kind==='length'?1:rows[i].kind==='wall'&&!rows[i].compliance?2:0,active=activeSet[i]?1:0;
+         if(w.orderKinds[i]!==kind||w.orderActive[i]!==active)changed=true;
+         w.orderKinds[i]=kind;w.orderActive[i]=active;
+     }
+@@ -114,7 +114,7 @@
+         else {
+             order.length=0;
+             for(let i=0;i<rows.length;i++)if(rows[i].kind==='length'&&activeSet[i])order.push(i);
+-            for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i])order.push(i);
++            for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&!rows[i].compliance&&activeSet[i])order.push(i);
+             w.orderKinds.fill(0);w.orderActive.fill(0);
+         }
+         // This token is scoped to one immutable linearization. Reuse only
+--- /dev/null
++++ b/src/physics/kirchhoffSharedAxisCompliance.js
+@@ -0,0 +1,13 @@
++/** Optional elastic normal contact: gap + C * reaction >= 0, reaction >= 0.
++ * C is a physical compliance, not a numerical regularizer. Geometric gaps
++ * remain unchanged in contact rows, diagnostics, discovery and replay.
++ */
++export const sharedAxisEffectiveGap = row => row.compliance
++    ? row.gap + row.compliance * row.multiplier : row.gap;
++
++export function sharedAxisContactElasticEnergy(rows) {
++    let energy=0;
++    for(const row of rows)if(row.compliance)
++        energy+=.5*row.compliance*row.multiplier*row.multiplier;
++    return energy;
++}
+--- /dev/null
++++ b/tests/kirchhoffSharedAxisCompliance.test.js
+@@ -0,0 +1,79 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createSharedAxisLinear,solveSharedAxisLinear} from '../src/physics/kirchhoffSharedAxisLinear.js';
++import {createSharedAxisNative,captureSharedAxisNative,extendSharedAxisNativeRows} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {iterateSharedAxisTimeStep,stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++
++test('compliant parallel contacts share load and match the analytic spring equilibrium',()=>{
++    for(const count of [1,2,8,40])for(const compliance of [0,.01])
++    for(const compactWorkingSet of [false,true])for(const reuseMatrixAssembly of [false,true])for(const wasmLinearAssembly of [false,true]) {
++        const layout={dofCount:1,band:1},chain={layout,hessian:new Float64Array([10])};
++        const rows=Array.from({length:count},()=>({kind:'wall',dofs:[0],jacobian:[1],gap:.1,multiplier:0,compliance}));
++        const result=solveSharedAxisLinear(createSharedAxisLinear(layout,rows),chain,{rows,
++            gradient:new Float64Array([20]),fixed:new Uint8Array(1),compactWorkingSet,reuseMatrixAssembly,wasmLinearAssembly,
++            simultaneousContactRelease:true,batchActivationSize:64});
++        assert.ok(result.converged,JSON.stringify(result));
++        const x=result.increment[0],expected=(-count*.1-compliance*20)/(count+compliance*10);
++        assert.ok(Math.abs(x-expected)<1e-9,`${x} versus ${expected}`);
++        const reactions=Array.from(result.multiplierIncrement);
++        assert.ok(Math.abs(10*x+20-reactions.reduce((a,b)=>a+b,0))<1e-9);
++        for(const reaction of reactions) {
++            assert.ok(reaction>=-1e-9);
++            assert.ok(Math.abs(reaction*(.1+x+compliance*reaction))<1e-8);
++            if(compliance)assert.ok(Math.abs(reaction-(-x-.1)/compliance)<1e-8);
++        }
++    }
++});
++
++test('a fixed penetrating point can carry a compliant wall reaction',()=>{
++    const layout={dofCount:1,band:1},chain={layout,hessian:new Float64Array([1])};
++    const rows=[{kind:'wall',dofs:[0],jacobian:[1],gap:-.02,multiplier:0,compliance:.001}];
++    const result=solveSharedAxisLinear(createSharedAxisLinear(layout,rows),chain,{rows,
++        gradient:new Float64Array(1),fixed:new Uint8Array([1]),reuseMatrixAssembly:true});
++    assert.ok(result.converged,JSON.stringify(result));
++    assert.equal(Math.abs(result.increment[0]),0);
++    assert.ok(Math.abs(result.multiplierIncrement[0]-20)<1e-9);
++});
++
++test('simultaneous release solves all separating loaded contacts without changing equilibrium',()=>{
++    const n=24,layout={dofCount:n,band:1},chain={layout,hessian:new Float64Array(n).fill(1)};
++    for(const compliance of [0,.001]) {
++        const rows=Array.from({length:n},(_,i)=>({kind:'wall',dofs:[i],jacobian:[1],gap:1,multiplier:2,compliance}));
++        const options={rows,gradient:new Float64Array(n).fill(-2),fixed:new Uint8Array(n),batchActivationSize:64};
++        const reference=solveSharedAxisLinear(createSharedAxisLinear(layout,rows),chain,options);
++        const actual=solveSharedAxisLinear(createSharedAxisLinear(layout,rows),chain,{...options,simultaneousContactRelease:true});
++        assert.ok(reference.converged&&actual.converged);
++        assert.equal(actual.factorizations,2);
++        assert.ok(actual.factorizations<reference.factorizations);
++        for(let i=0;i<n;i++) {
++            assert.ok(Math.abs(actual.increment[i])<1e-9);
++            assert.ok(Math.abs(actual.multiplierIncrement[i]+2)<1e-9);
++        }
++    }
++});
++
++test('compliance is scoped to the private timestep and cancellation restores its previous value',()=>{
++    const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});
++    s.wallCompliance=.003;s.velocities=s.positions.map(()=>[0,2,0]);
++    const before=captureSharedAxisNative(s),iterator=iterateSharedAxisTimeStep(s,1/60,{wallCompliance:1e-6});
++    assert.equal(iterator.next().done,false);assert.equal(s.wallCompliance,1e-6);
++    iterator.return();assert.equal(s.wallCompliance,.003);
++    assert.deepEqual(captureSharedAxisNative(s),before);
++    for(const wallCompliance of [-1,NaN,Infinity])assert.throws(()=>stepSharedAxis(s,1/60,{wallCompliance}),RangeError);
++});
++
++test('a complete timestep reports geometric penetration separately from compliant equilibrium',()=>{
++    const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});
++    s.fixed.fill(1);
++    const edge=s.positions.length-2,dofs=[s.layout.positions[edge],s.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2]);
++    extendSharedAxisNativeRows(s,[{kind:'wall',id:'test-plane',edge,dofs,witness:{face:0,t:1},
++        evaluate:({b})=>({gap:b[1]-.02,jacobian:[0,0,0,0,1,0]})}]);
++    const result=stepSharedAxis(s,1/60,{wallCompliance:.001,reuseRowBuffers:true,reuseConstraintWork:true,
++        reuseMatrixAssembly:true,wasmLinearAssembly:true,projectionMode:'reduced',reuseFrictionAssembly:true});
++    assert.ok(result.converged,JSON.stringify(result));
++    assert.ok(Math.abs(s.multipliers.at(-1)-20)<1e-9);
++    assert.ok(result.residual.length<1e-9);
++    assert.equal(result.quality.maxPenetration,.02,'Do not hide penetration inside the compliant gap');
++    assert.equal(s.acceptedWallGaps.get('test-plane'),-.02);
++    assert.equal(s.wallCompliance,undefined);
++});

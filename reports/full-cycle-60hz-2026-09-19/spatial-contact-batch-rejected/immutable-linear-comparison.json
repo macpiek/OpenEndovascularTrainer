@@ -1,0 +1,368 @@
+{
+  "scope": "Repeated immutable linearizations from one accepted prepared step; not a browser or full-trajectory benchmark. Repeat 0 is warmup. Includes workspace assembly and solve, excludes material/contact geometry assembly.",
+  "sourceFixture": "/tmp/oet-full-cycle-certified-samples/slow-777.json",
+  "stepResult": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 9,
+    "frictionRefreshMs": 4.304458000000068,
+    "retainedDiscoveryTrials": 3,
+    "iterations": 16,
+    "factorizations": 279,
+    "workingSetReuses": 18,
+    "backtracks": 3,
+    "geometryRestarts": 12,
+    "ms": 569.9024999999999,
+    "timings": {
+      "assemblyMs": 137.31662400000005,
+      "linearMs": 315.1676259999981,
+      "frictionMs": 7.87920800000029,
+      "tangentAssemblyMs": 83.31095700000014,
+      "residualAssemblyMs": 54.0056669999999,
+      "projectionMs": 77.62754100000029
+    },
+    "fullAssemblies": 35,
+    "residualAssemblies": 25,
+    "promotedAssemblies": 7,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 2.2537527399890678e-14,
+      "contacts": 23,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.2880363442491217e-12,
+          "maxBendAngleDegrees": 30.887938139882912,
+          "maxBendNode": 82,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 41.66164599074761,
+          "activeWallContacts": 17,
+          "currentNormalLoad": 54370.453282293936
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.552713678800501e-16,
+          "maxBendAngleDegrees": 1.529370711952564,
+          "maxBendNode": 7,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.0006243320590587874,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 95854.72633714894
+        }
+      ]
+    },
+    "residual": {
+      "force": 4.534877007245086e-8,
+      "torque": 3.3730085391425746e-9,
+      "length": 6.440181721245608e-12
+    },
+    "dofs": 363,
+    "matrixEntries": 22008,
+    "linearScratch": {
+      "allocations": 2,
+      "capacityBytes": 1048576,
+      "grows": 1,
+      "viewBuilds": 87,
+      "requests": 491
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": false,
+    "certificateBound": 4.534877007245086e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 13,
+      "sliding": 13
+    },
+    "frictionIterations": 2,
+    "predictorFallbacks": 1,
+    "predictorRecovery": {
+      "attempted": true,
+      "early": true,
+      "predictorStatus": "linear-solve",
+      "converged": true
+    },
+    "wallNormalFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.534877007245086e-8,
+          "torque": 3.3730085391425746e-9,
+          "length": 6.440181721245608e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 13,
+          "sliding": 13
+        },
+        "iterations": 16,
+        "factorizations": 279
+      }
+    ],
+    "subdivisions": 1
+  },
+  "systems": 23,
+  "sizes": [
+    {
+      "primal": 363,
+      "rows": 488
+    },
+    {
+      "primal": 363,
+      "rows": 492
+    },
+    {
+      "primal": 363,
+      "rows": 501
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 509
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 511
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 516
+    },
+    {
+      "primal": 363,
+      "rows": 517
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 519
+    },
+    {
+      "primal": 363,
+      "rows": 523
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 528
+    },
+    {
+      "primal": 363,
+      "rows": 531
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    },
+    {
+      "primal": 363,
+      "rows": 532
+    }
+  ],
+  "samples": [
+    {
+      "repeat": 0,
+      "name": "compact",
+      "totalMs": 377.2111680000007,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 0,
+      "name": "spatial",
+      "totalMs": 158.30883100000028,
+      "factorizations": 214,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 3519.5825184044984,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "spatial",
+      "totalMs": 138.9155840000003,
+      "factorizations": 214,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 3519.5825184044984,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 1,
+      "name": "compact",
+      "totalMs": 133.5168730000005,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "compact",
+      "totalMs": 156.39554300000054,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 2,
+      "name": "spatial",
+      "totalMs": 164.41079199999967,
+      "factorizations": 214,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 3519.5825184044984,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "spatial",
+      "totalMs": 117.73595700000033,
+      "factorizations": 214,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 3519.5825184044984,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 3,
+      "name": "compact",
+      "totalMs": 129.1364169999997,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "compact",
+      "totalMs": 130.91541599999937,
+      "factorizations": 231,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 0,
+      "statusDifferences": 0,
+      "borderedStats": []
+    },
+    {
+      "repeat": 4,
+      "name": "spatial",
+      "totalMs": 117.1422520000001,
+      "factorizations": 214,
+      "updates": 0,
+      "reuses": 0,
+      "backsolves": 0,
+      "updateFailures": 0,
+      "rankResets": 0,
+      "changedRows": {},
+      "maxDifference": 3519.5825184044984,
+      "statusDifferences": 0,
+      "borderedStats": []
+    }
+  ]
+}

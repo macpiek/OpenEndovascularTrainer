@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-closed-compliance-pdas",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 2092,
+      "rmsMm": 2.64919871324172,
+      "maxMm": 29.300283572470097
+    },
+    "catheter-in": {
+      "samples": 3664,
+      "rmsMm": 4.119952165142302,
+      "maxMm": 11.138091851961098
+    },
+    "catheter-out": {
+      "samples": 6154,
+      "rmsMm": 7.172897609676873,
+      "maxMm": 16.651128690478295
+    },
+    "wire-out": {
+      "samples": 2093,
+      "rmsMm": 6.2967726419763,
+      "maxMm": 25.79702784532829
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 0.040070757903007403,
+    "maxRelativeLengthError": 3.480468307935117e-8,
+    "maxCertifiedResidual": 0.0000998857310605672,
+    "totalFactorizations": 69620,
+    "totalIterations": 23317
+  }
+}

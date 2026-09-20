@@ -1,8 +1,10 @@
+import {createSharedAxisRealtimeSystem} from '../src/physics/kirchhoffSharedAxisRealtime.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
-import {Quaternion,Vector3} from 'three';
+import {Quaternion,Vector3,BufferGeometry,Float32BufferAttribute} from 'three';
+import {MeshBVH} from 'three-mesh-bvh';
 import {createSharedAxisAppSystem,sampleSharedAxisPosition,advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {EndovascularPhysicsWorld,DEFAULT_TOOL_PROFILES} from '../src/physics/endovascularPhysicsWorld.js';
 import {createCoupledSolverSelection,resolveAppCoupledSolver} from '../src/physics/coupledSolverSelection.js';
@@ -10,7 +12,13 @@ import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js
 import {createPreparedInputCheckpoint} from '../src/physics/preparedInputCheckpoint.js';
 
 const dt=1/120;
-function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,physicsOptions}={}) {
+// The synthetic provider reports open space. A distant real triangle gives
+// the realtime segment guard a matching finite-mesh adapter for replay tests.
+const openSpaceGeometry=new BufferGeometry();
+openSpaceGeometry.setAttribute('position',new Float32BufferAttribute([1e7,0,0,1e7,1,0,1e7,0,1],3));
+openSpaceGeometry.boundsTree=new MeshBVH(openSpaceGeometry);
+test.after(()=>openSpaceGeometry.dispose());
+function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,physicsOptions,realtime=false}={}) {
     const controls={reads:0,queries:0,throwQuery:false,failQueries:0};
     const world=new EndovascularPhysicsWorld({fixedDt:dt});
     const tools=['wire','catheter'].map(id=>{
@@ -18,13 +26,13 @@ function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projective
         return {id,body,insertion:0,rotation:0,type:id==='wire'?'glidewire':'straight',shaftStiffness:1,tipStiffness:1,
             nodeCoordinates:Array.from({length:13},(_,i)=>-40+5*i)};
     });
-    world.contactField={voxelSize:1,queryCapsuleSoA(x,y,z,r,edge,out){
+    world.contactField={...(realtime?{fallbackGeometry:openSpaceGeometry}:{}),voxelSize:1,queryCapsuleSoA(x,y,z,r,edge,out){
         controls.queries++;
         if(controls.failQueries>0){controls.failQueries--;throw new Error('synthetic one-off contact query failure');}
         if(controls.throwQuery)throw new Error('synthetic contact query failed');
         Object.assign(out,{signedDistance:100,signedGap:100-r[edge],segmentT:.5,faceIndex:0});return out;
     }};
-    const system=createSharedAxisAppSystem({workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,onRejectedStep,physicsOptions,
+    const system=(realtime?createSharedAxisRealtimeSystem:createSharedAxisAppSystem)({workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,onRejectedStep,physicsOptions,
         readTools(){controls.reads++;return tools.map(t=>({...t,nodeCoordinates:t.nodeCoordinates.slice()}));},
         readSheath:()=>({start:origin,end:[origin[0]+10,origin[1],origin[2]],innerRadius:2,proximalExtension:40})});
     world.wholeStepSystem=system;
@@ -41,6 +49,25 @@ function finish(f,{maxSlices=1000,onPending=()=>{}}={}) {
 const positions=body=>Array.from({length:body.count},(_,i)=>[body.x[i],body.y[i],body.z[i]]);
 const frame=body=>new Quaternion(body.orientationX[0],body.orientationY[0],body.orientationZ[0],body.orientationW[0]);
 const close=(a,b,tol=1e-6)=>assert.ok(Math.abs(a-b)<tol,`${a} vs ${b}`);
+
+test('one-shot slice budgets preserve physical dt, prepared inputs and atomic publication',()=>{
+    const a=fixture({workSliceMs:Infinity}),b=fixture({workSliceMs:Infinity});
+    finish(a);finish(b);
+    for(const f of [a,b]){f.tools[0].insertion=3;f.tools[1].insertion=1;}
+    const views=b.tools.map(t=>t.body.jointStateView),reads=b.controls.reads;
+    b.system.setWorkSliceBudget(0);
+    assert.equal(b.system.step(b.world,dt).pending,true);
+    b.tools.forEach((t,j)=>assert.equal(t.body.jointStateView,views[j]));
+    assert.equal(b.controls.reads,reads+1);
+    finish(a);
+    assert.equal(b.system.step(b.world,dt).accepted,true,'next invocation restores the configured infinite budget');
+    assert.equal(b.controls.reads,reads+1);
+    assert.deepEqual(b.tools.map(t=>positions(t.body)),a.tools.map(t=>positions(t.body)));
+    assert.equal(b.system.diagnostics.last.factorizations,a.system.diagnostics.last.factorizations);
+    for(const value of [NaN,Infinity,-1])assert.throws(()=>b.system.setWorkSliceBudget(value),/Invalid/);
+    b.system.setWorkSliceBudget(0);b.system.reset();
+    assert.equal(b.system.step(b.world,dt).accepted,true,'reset discards the unused scheduling hint');
+});
 
 test('adaptive provider publishes actual mechanical nodes atomically and clears mesh diagnostics on reset',()=>{
     const f=fixture({adaptiveMesh:true});finish(f);
@@ -421,4 +448,32 @@ test('a failed archive observer cannot prevent recovery or physical publication'
     assert.equal(finish(f).accepted,true);
     assert.equal(called,1);
     assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),12);
+});
+
+
+test('60 Hz experiment has its own selection, report identity and replay policy without changing adaptive reference',()=>{
+    for(const realtime of [false,true]){
+        const events=[];const f=fixture({realtime,adaptiveMesh:true,onRejectedStep:r=>events.push(r),physicsOptions:{liveWallNormalLoad:false}});
+        const id=realtime?'shared-axis-realtime':'shared-axis-adaptive';
+        const selection=createCoupledSolverSelection(id,{wholeStepSystem:f.system});
+        assert.equal(selection.wholeStepSystem,f.system);assert.equal(f.system.id,id);
+        f.tools[0].insertion=11;finish(f);f.tools[0].insertion=12;f.controls.failQueries=1;finish(f);
+        assert.equal(events.length,1);assert.equal(events[0].failure.solver,id);
+        assert.equal(events[0].retainDiscoveryCertificates===true,realtime);
+        assert.equal(events[0].continuousDiscoverySign===true,realtime);
+        assert.equal(events[0].certifiedDiscoverySamples===true,realtime);
+        assert.equal(events[0].continuousSegmentContacts??false,realtime?'axis':false);
+        assert.equal(events[0].stepRequest.options.wasmLinearAssembly,realtime);
+        assert.equal(events[0].stepRequest.options.reuseFrictionAssembly,realtime);
+        assert.equal(f.system.diagnostics.reuseFrictionAssembly,realtime);
+        assert.equal(events[0].stepRequest.options.lazyBasisCoefficients,realtime);
+        assert.equal(events[0].stepRequest.options.deferActiveBasis,realtime);
+        assert.equal(events[0].stepRequest.options.earlyPredictorFallback,false);
+        const restored=restoreSharedAxisReplay(JSON.parse(JSON.stringify(events[0])),f.world.contactField);
+        assert.equal(restored.wallSamples[1].retainDiscoveryCertificates,realtime);
+        assert.equal(restored.wallSamples[1].continuousDiscoverySign,realtime);
+        assert.equal(restored.wallSamples[1].certifiedDiscoverySamples,realtime);
+        if(realtime)assert.deepEqual(restored.wallSamples[1].insideProofs.capture(),events[0].insideContinuation);
+        f.system.reset();assert.equal(f.system.diagnostics.solver,id);
+    }
 });

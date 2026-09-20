@@ -1,0 +1,41 @@
+{
+  "scope": "Summary read from completed browser report; raw steps not exported",
+  "durationMs": 200479.9,
+  "averagePhysicsHz": 28.7160957283,
+  "acceptedSteps": 5757,
+  "completedCycle": true,
+  "rejectedSteps": 0,
+  "minimumOneSecondPhysicsHz": 15.0285542532,
+  "p50StepMs": 18.1999999285,
+  "p95StepMs": 28.1999999285,
+  "p99StepMs": 40.2000001669,
+  "maxStepMs": 490.600000024,
+  "stepsOverBudget": 3396,
+  "maxAcceptedIntervalMs": 676,
+  "sumFactorizations": 29011,
+  "sumIterations": 16473,
+  "meanCpuMs": 17.1406114301,
+  "meanProviderMs": 16.5491922881,
+  "meanAssemblyMs": 8.6799027264,
+  "meanLinearMs": 3.8763939554,
+  "frameCpu": {
+    "samples": 9283,
+    "simulationAverageMs": 10.0876225362,
+    "updateAverageMs": 6.9703113216,
+    "renderAverageMs": 0.5403856515,
+    "totalAverageMs": 17.5983195093,
+    "updateMaximumMs": 55.8,
+    "totalP95Ms": 53.3
+  },
+  "configuration": {
+    "solver": "shared-axis-realtime",
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true,
+    "resumePendingInFrame": true,
+    "maxSlicesPerFrame": 6,
+    "fastNewton": true,
+    "predictiveNewton": true,
+    "pruneWitnesses": true,
+    "fluoroscopy": false
+  }
+}

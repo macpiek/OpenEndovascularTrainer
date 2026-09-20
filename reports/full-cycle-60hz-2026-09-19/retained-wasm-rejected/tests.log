@@ -1,0 +1,15 @@
+✔ retained pivoted nonsymmetric LU handles new RHS and added/removed row updates (8.389458ms)
+✔ rank budget refactors, singular updates reject without overwriting output, then recover (0.562958ms)
+✔ WASM retained packing and certification preserve updates, changed scaling, and original residuals (2.927041ms)
+✔ active-set updates retain unilateral certificates and discard factors after cancellation (6.623333ms)
+✔ bordered updates match general active sets with nonsymmetric force columns and physical reaction offsets (37.986083ms)
+✔ retained leases are isolated from other solvers and invalid after release (1.034625ms)
+﹣ ROLLOUT GATE: captured pigtail withdrawal retains strict state parity (0.050167ms) # Experimental path is disabled: strict Pigtail parity has not passed; set OET_INCREMENTAL_ROLLOUT=1 to run the gate
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 155.695916

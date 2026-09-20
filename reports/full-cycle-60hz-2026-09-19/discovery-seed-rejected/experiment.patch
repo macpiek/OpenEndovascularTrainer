@@ -1,0 +1,98 @@
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -290,7 +290,17 @@
+     // release all initially negative target reactions at the same first blocker.
+     // The single-pivot fallback retains the original physical starting dual.
+     let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?(options.zeroDualStart&&batchSize>1?0:Math.max(0,r.multiplier)):r.multiplier);
+-    const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses});
++    const seed=batchSize>1?options.workingSetSeed:null;
++    if(seed) {
++        if(seed.active.length!==seed.dual.length||seed.active.length>rows.length||!seed.dual.every(Number.isFinite))
++            throw new RangeError('Invalid shared-axis working-set seed');
++        activeSet.set(seed.active);dual.set(seed.dual);
++    }
++    const finish=extra=>{
++        const complete={...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses};
++        if(options.captureWorkingSet&&complete.converged)complete.workingSet={active:activeSet.slice(),dual:dual.slice()};
++        return complete;
++    };
+     let basisRequired=!options.deferActiveBasis;
+     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
+         yield {kind:'linear-active-set',attempt,batchSize};
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -386,7 +386,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,discoveryWorkingSet=false,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -395,6 +395,7 @@
+     let lastOutsideContact=null;
+     let candidate = null, coupledFrictionRefreshes=0, frictionRefreshMs=0, retainedDiscoveryTrials=0;
+     const modified=modifiedNewton?createSharedAxisModifiedNewton():null;
++    const discoverySeeds=discoveryWorkingSet?new Map():null;let seedPose=null,discoverySeedUses=0;
+     let cycleGuard=null,detectedCycle=null,stagnationGuard=null,detectedStagnation=null;
+     const timings = { assemblyMs: 0, linearMs: 0, tangentAssemblyMs:0, residualAssemblyMs:0, projectionMs:0 };
+     let fullAssemblies=0,residualAssemblies=0;
+@@ -455,10 +456,15 @@
+                 if(!isModified)modified?.invalidate();
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+-                const linearOptions = { wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
++                if(discoverySeeds&&seedPose!==s.geometryKey){discoverySeeds.clear();seedPose=s.geometryKey;}
++                const seedKey=isGaussNewton?'gauss-newton':'newton',previousSeed=discoverySeeds?.get(seedKey);
++                const workingSetSeed=previousSeed&&previousSeed.active.length<base.rows.length?previousSeed:null;
++                if(workingSetSeed)discoverySeedUses++;
++                const linearOptions = { captureWorkingSet:!!discoverySeeds,workingSetSeed,wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 const direction = isModified?modified.solve(base.rows,s.chain.gradient,linearOptions.tolerance):
+                     yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
++                if(direction.workingSet)discoverySeeds?.set(seedKey,direction.workingSet);
+                 if(method===0&&direction.converged)modified?.seal(base.rows,s.fixed);
+                 if(isModified)modified.diagnostics.modifiedFallbacks++;
+                 timings.linearMs += direction.cpuMs ?? performance.now() - linearStart;
+@@ -584,7 +590,7 @@
+         }
+     }
+     return { converged, status, error, ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
+-        ...modified?.diagnostics,timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
++        ...modified?.diagnostics,...(discoverySeeds?{discoverySeedUses}:{}),timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
+         ...(detectedCycle?{detectedCycle}:{}),...(detectedStagnation?{detectedStagnation}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
+ }
+ 
+--- a/tests/kirchhoffSharedAxisBatchActivation.test.js
++++ b/tests/kirchhoffSharedAxisBatchActivation.test.js
+@@ -42,6 +42,29 @@
+         result.multiplierIncrement.forEach((v,i)=>close(v,reference.multiplierIncrement[i]));
+     }
+     assert.deepEqual(f,snapshot,'Batching must not modify physical inputs');
++});
++
++test('a discovered-row working-set seed still certifies new contacts and does not mutate physical reactions',()=>{
++    const f=independent(12),oldRows=f.rows.slice(0,8);
++    const old=solve({...f,rows:oldRows},{captureWorkingSet:true});
++    const seed=structuredClone(old.workingSet),snapshot=structuredClone(f);
++    const warm=solve(f,{workingSetSeed:seed}),reference=solve(f);
++    certify(f,warm);assert.ok(warm.factorizations<reference.factorizations);
++    assert.deepEqual(warm.increment,reference.increment);
++    assert.deepEqual(warm.multiplierIncrement,reference.multiplierIncrement);
++    assert.deepEqual(seed,old.workingSet);assert.deepEqual(f,snapshot);
++    // A newly inactive contact must also be removable from the guessed set.
++    f.rows[0].gap=1;
++    const released=solve(f,{workingSetSeed:seed});certify(f,released);
++    assert.deepEqual(released.multiplierIncrement,solve(f).multiplierIncrement);
++});
++
++test('single-pivot recovery ignores the optional discovered-row seed',()=>{
++    const f=independent(5),seed={active:new Uint8Array(5).fill(1),dual:new Float64Array(5).fill(100)};
++    const reference=solve(f,{batchActivation:false}),seeded=solve(f,{batchActivation:false,workingSetSeed:seed});
++    assert.deepEqual(seeded.increment,reference.increment);
++    assert.equal(seeded.activeSetAttempts,reference.activeSetAttempts);
++    assert.equal(seeded.factorizations,reference.factorizations);
+ });
+ 
+ test('seeded feasible QPs agree with single activation and satisfy global stationarity and complementarity',()=>{

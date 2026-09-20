@@ -1,0 +1,95 @@
+{
+  "contactQueries": {
+    "pointQueries": 36022,
+    "capsuleQueries": 291092,
+    "capsuleSamples": 1973554,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 32642,
+    "bvhRefinements": 1973554,
+    "signRefinements": 1477,
+    "signCacheHits": 0,
+    "signCacheMisses": 1477,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 3380,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 1973554,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 284367,
+    "certifiedCapsuleSamples": 1937532,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 2073,
+  "processCpu": {
+    "meanMs": 20.178675349734675,
+    "p50Ms": 19.218,
+    "p95Ms": 39.572,
+    "maxMs": 1017.373
+  },
+  "meanMs": 16.393951520984064,
+  "p50Ms": 17.703958999998576,
+  "p95Ms": 28.183250000001863,
+  "p99Ms": 37.05854099999851,
+  "maxMs": 702.2103750000006,
+  "overBudget": 1154,
+  "meanIterations": 3.484322238301978,
+  "meanFactorizations": 11.648335745296672,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 28.476,
+        "p50Ms": 28.476,
+        "p95Ms": 28.476,
+        "maxMs": 28.476
+      },
+      "meanMs": 17.457540999999992,
+      "p50Ms": 17.457540999999992,
+      "p95Ms": 17.457540999999992,
+      "p99Ms": 17.457540999999992,
+      "maxMs": 17.457540999999992,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 1364,
+      "processCpu": {
+        "meanMs": 17.48776466275663,
+        "p50Ms": 13.835,
+        "p95Ms": 37.259,
+        "maxMs": 1017.373
+      },
+      "meanMs": 13.74884273826976,
+      "p50Ms": 9.986124999999447,
+      "p95Ms": 27.551625000000058,
+      "p99Ms": 33.76875000000018,
+      "maxMs": 702.2103750000006,
+      "overBudget": 522,
+      "meanIterations": 3.279325513196481,
+      "meanFactorizations": 11.11950146627566
+    },
+    "catheter-in": {
+      "steps": 709,
+      "processCpu": {
+        "meanMs": 25.35554724964739,
+        "p50Ms": 22.079,
+        "p95Ms": 46.225,
+        "maxMs": 486.67
+      },
+      "meanMs": 21.482708050775766,
+      "p50Ms": 19.772291000001132,
+      "p95Ms": 29.02783400000044,
+      "p99Ms": 40.4285830000008,
+      "maxMs": 400.6838330000028,
+      "overBudget": 632,
+      "meanIterations": 3.8787023977433006,
+      "meanFactorizations": 12.665726375176305
+    }
+  }
+}

@@ -1,0 +1,50 @@
+import test,{after} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
+import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+import {captureSharedAxisReplay} from '../src/physics/kirchhoffSharedAxisReplay.js';
+
+const fixture=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/shared-axis/closed-root-wire-745.80-stagnation-residual.json.gz',import.meta.url))));
+const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
+test('near-wall patch queries retain sampling, distances and mandatory inside certificates',()=>{
+    const field=anatomy.field,before=field.getStats();
+    const points=fixture.insideContinuation.filter(p=>p.clearance>.1&&p.clearance<1.5).slice(0,500);
+    for(let repeat=0;repeat<5;repeat++)for(let count=0;count<points.length;count++) {
+        const entry=points[count];
+        const a=entry.point.map((x,k)=>x+(k===0?repeat*.001:0)),b=a.map((x,k)=>x+(k===1?.01:0));
+        const descriptor={a,b,radius:.4445,sampleCount:3,gridToken:`patch-test/${count}`,geometryToken:field.fallbackGeometry.boundsTree};
+        const proof={knownInside:true,lowerBound:entry.clearance-.05},expected=[],actual=[];
+        const collect=out=>(c,t)=>out.push({t,face:c.faceIndex,distance:c.signedDistance,inside:c.inside,gap:c.signedGap,source:c.source});
+        const originalHint=field._bvhClosest.faceIndex;
+        assert.ok(field.visitCertifiedInsideCapsule(descriptor,proof,collect(expected)));
+        field._bvhClosest.faceIndex=originalHint;
+        assert.ok(field.visitCertifiedInsideCapsule({...descriptor,cachedDiscoveryPatches:true},proof,collect(actual)));
+        assert.equal(actual.length,4);
+        for(let i=0;i<4;i++) {
+            assert.equal(actual[i].t,expected[i].t);assert.equal(actual[i].inside,true);
+            assert.equal(actual[i].source,expected[i].source);
+            assert.equal(actual[i].distance,expected[i].distance);
+            assert.equal(actual[i].face,expected[i].face);
+            assert.ok(Math.abs(actual[i].gap-expected[i].gap)<1e-10);
+        }
+        const stats=field.getStats();
+        assert.equal(field.visitCertifiedInsideCapsule({...descriptor,cachedDiscoveryPatches:true},{knownInside:false,lowerBound:1},()=>assert.fail()),false);
+        assert.equal(field.getStats().certifiedPatchHits,stats.certifiedPatchHits);
+    }
+    const after=field.getStats();
+    assert.ok(after.certifiedPatchBuilds>before.certifiedPatchBuilds);
+    assert.ok(after.certifiedPatchHits>before.certifiedPatchHits+1000);
+    assert.ok(after.certifiedPatchBytes>0);
+    assert.equal(after.runtimeBytes,field.runtimeBytes+after.certifiedPatchBytes);
+});
+
+test('replay retains the patch strategy without serializing transient geometry caches',()=>{
+    const input=restoreSharedAxisReplay({...fixture,cachedDiscoveryPatches:true},anatomy.field);
+    assert.ok(input.wallSamples.some(s=>s.cachedDiscoveryPatches));
+    const saved=captureSharedAxisReplay(input,fixture.sheath);
+    assert.equal(saved.cachedDiscoveryPatches,true);
+    assert.equal(saved._certifiedMeshPatches,undefined);
+    assert.ok(restoreSharedAxisReplay(saved,anatomy.field).wallSamples.some(s=>s.cachedDiscoveryPatches));
+});

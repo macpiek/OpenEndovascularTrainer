@@ -1,0 +1,9 @@
+file:///Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/scripts/physics/experimental-collision-geometry.mjs:12
+    if(expected&&expected.meshSha256!==sha256)throw new Error('Replay contact triangle identities require the original experiment mesh');
+                                                    ^
+
+Error: Replay contact triangle identities require the original experiment mesh
+    at installExperimentalCollisionGeometry (file:///Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/scripts/physics/experimental-collision-geometry.mjs:12:53)
+    at file:///Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/scripts/physics/replay-shared-axis-cycle-step.mjs:16:28
+
+Node.js v24.6.0

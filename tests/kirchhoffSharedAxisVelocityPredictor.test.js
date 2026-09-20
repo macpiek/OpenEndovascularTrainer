@@ -51,3 +51,61 @@ test('invalid prediction strengths are rejected before physical work',()=>{
         assert.deepEqual(captureSharedAxisNative(s),before);
     }
 });
+
+test('early predictor recovery tries the incoming pose before friction fallbacks',()=>{
+    const a=rod(),b=rod(),common={forceTolerance:1e-6,lengthTolerance:1e-5,
+        coupledFrictionNewton:true,liveWallNormalLoad:true};
+    const ref=stepSharedAxis(a,1/120,common);let injected=false;
+    const actual=stepSharedAxis(b,1/120,{...common,velocityPredictor:1,earlyPredictorFallback:true,predictorRecoveryFactorizations:0,
+        observeTrial:()=>{if(!injected){injected=true;throw new Error('bad prediction');}}});
+    assert.ok(ref.converged&&actual.converged);
+    assert.equal(actual.predictorRecovery.early,true);
+    assert.equal(actual.coupledFrictionFallbacks,0);
+    assert.equal(actual.wallNormalFallbacks,0);
+    assert.ok(actual.factorizations>ref.factorizations);
+    assert.deepEqual(b.positions,a.positions);
+    assert.deepEqual(b.velocities,a.velocities);
+});
+
+test('cancelling early predictor recovery restores the whole incoming state',()=>{
+    const s=rod(),before=captureSharedAxisNative(s),velocities=s.velocities;
+    let failed=false,recovering=false;
+    const iterator=iterateSharedAxisTimeStep(s,1/120,{velocityPredictor:1,coupledFrictionNewton:true,earlyPredictorFallback:true,predictorRecoveryFactorizations:0,
+        observeIteration:()=>{if(failed)recovering=true;},
+        observeTrial:()=>{if(!failed){failed=true;throw new Error('bad prediction');}}});
+    for(let n=0;n<200&&!recovering;n++)assert.equal(iterator.next().done,false);
+    assert.ok(recovering);iterator.return();
+    assert.deepEqual(captureSharedAxisNative(s),before);
+    assert.equal(s.velocities,velocities);
+    assert.equal(s.dynamicStep,null);assert.equal(s.wallFrictionStep,null);
+});
+
+test('zero motion does not lose the normal fallback when early prediction is enabled',()=>{
+    const s=rod();s.velocities=s.velocities.map(()=>[0,0,0]);
+    let injected=false;
+    const result=stepSharedAxis(s,1/120,{velocityPredictor:1,coupledFrictionNewton:true,earlyPredictorFallback:true,predictorRecoveryFactorizations:0,
+        observeIteration:()=>{if(!injected){injected=true;throw new Error('first attempt failed');}}});
+    assert.ok(injected);assert.ok(result.converged);
+    assert.equal(result.predictedInitialPose,false);
+    assert.equal(result.predictorFallbacks??0,0);
+    assert.ok(result.certificateBound<=1e-6);
+});
+
+test('failed early recovery still runs the original predicted friction fallback and counts the extra work',()=>{
+    const a=rod(),b=rod(),dt=1/120;
+    const reference=stepSharedAxis(a,dt,{velocityPredictor:1,coupledFrictionNewton:false});
+    let injected=false,unpredictedFailures=0;
+    const result=stepSharedAxis(b,dt,{velocityPredictor:1,coupledFrictionNewton:true,
+        earlyPredictorFallback:true,predictorRecoveryFactorizations:0,
+        observeIteration:({state,iteration})=>{
+            if(!injected||iteration!==0)return;
+            const predicted=state.positions.some((p,n)=>p.some((v,k)=>Math.abs(v-state.dynamicStep.positions[n][k])>1e-6));
+            if(!predicted){unpredictedFailures++;throw new Error('incoming pose did not recover');}
+        },
+        observeTrial:()=>{if(!injected){injected=true;throw new Error('initial predicted strategy failed');}}});
+    assert.ok(unpredictedFailures>0);assert.ok(result.converged&&reference.converged);
+    assert.equal(result.earlyPredictorRecovery.converged,false);
+    assert.equal(result.predictorFallbacks,1);
+    assert.ok(result.factorizations>reference.factorizations);
+    assert.deepEqual(b.positions,a.positions);assert.deepEqual(b.velocities,a.velocities);
+});

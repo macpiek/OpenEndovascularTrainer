@@ -82,6 +82,8 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
             }
             // No force column or Hessian from the preceding use may survive.
             clearDeferredSharedAxisContact(row);
+            if(s.wallCompliance&&def.witness)row.compliance=s.wallCompliance;
+            else if(row.compliance!==undefined)delete row.compliance;
             row.geometricHessian=undefined;row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
         }
 
@@ -91,7 +93,7 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
             const contact=prepared.contacts[index];
             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
         } else {
-            const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&s.multipliers[index]!==0;
+            const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&(s.multipliers[index]!==0||(s.primalCompliantContacts&&def.witness));
             const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
             // A GN assembly without geometry caching must not overwrite the
             // retained Newton contact/Hessian needed if that method is retried.
@@ -152,7 +154,10 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
         if(storage) {
             row.gap=gap;row.multiplier=multiplier;row.geometricHessian=geometricHessian;
             for(let i=0;i<J.length;i++)row.jacobian[i]=J[i];
-        } else rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
+        } else {
+            rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
+            if(s.wallCompliance&&def.witness)rows[index].compliance=s.wallCompliance;
+        }
     }
     return rows;
 }

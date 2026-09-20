@@ -1,0 +1,6 @@
+{
+  "src/physics/kirchhoffSharedAxisNative.js": "39f9779f4883a5695c88f2ce28c6745b2bf19f00e249051ae20d147c6b2259e2",
+  "src/physics/kirchhoffSharedAxisAppSystem.js": "8efb961a2054886c6775922d01dae47691b83c092850604fbf1a8251b221795d",
+  "src/physics/kirchhoffSharedAxisRealtime.js": "bb59fdfca93e2c142aeb029b7b4ed814a82f39103b543dc2faf65d9ff5f1c9d5",
+  "src/simulator.js": "a09085cae7041688333cf0f8e7688692f1424e3dc35b315c55f416cae6615c60"
+}

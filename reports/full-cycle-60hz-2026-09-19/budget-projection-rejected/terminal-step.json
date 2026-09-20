@@ -1,0 +1,264 @@
+{
+  "index": 478,
+  "phase": "wire-in",
+  "wire": 350.5333333333331,
+  "catheter": 0,
+  "elapsedMs": 947.3646250000002,
+  "processCpuMs": 1112.966,
+  "converged": false,
+  "status": "linear-solve",
+  "error": null,
+  "coupledFrictionRefreshes": 19,
+  "frictionRefreshMs": 0,
+  "retainedDiscoveryTrials": 0,
+  "iterations": 29,
+  "factorizations": 1997,
+  "workingSetReuses": 275,
+  "backtracks": 0,
+  "geometryRestarts": 20,
+  "ms": 284.8291680000002,
+  "timings": {
+    "assemblyMs": 83.71498999999949,
+    "linearMs": 823.1651039999979,
+    "frictionMs": 3.031624999998712,
+    "tangentAssemblyMs": 68.25003299999844,
+    "residualAssemblyMs": 15.46495700000105,
+    "projectionMs": 0
+  },
+  "fullAssemblies": 148,
+  "residualAssemblies": 48,
+  "promotedAssemblies": 14,
+  "quality": null,
+  "residual": {
+    "force": 1207056.3945950484,
+    "torque": 1205.9842956615953,
+    "length": 0.007553733718253575
+  },
+  "dofs": 251,
+  "matrixEntries": 17424,
+  "linearScratch": {
+    "allocations": 4,
+    "capacityBytes": 524288,
+    "grows": 3,
+    "viewBuilds": 933,
+    "requests": 15549
+  },
+  "interToolRows": 0,
+  "modifiedAttempts": 0,
+  "modifiedAccepted": 0,
+  "modifiedFallbacks": 0,
+  "predictedInitialPose": false,
+  "frictionIterations": 42,
+  "wallNormalFallbacks": 8,
+  "wallNormalFallback": {
+    "attempted": true,
+    "liveFailure": "linear-solve",
+    "converged": false
+  },
+  "coupledFrictionFallbacks": 8,
+  "coupledFrictionRecovery": {
+    "attempted": true,
+    "experimentStatus": "linear-solve",
+    "converged": false
+  },
+  "predictorFallbacks": 5,
+  "predictorRecovery": {
+    "attempted": true,
+    "predictorStatus": "linear-solve",
+    "converged": false
+  },
+  "projectedPredictorRecovery": {
+    "firstStatus": "predictor-work-budget",
+    "projectedStatus": "predictor-work-budget",
+    "projectedAccepted": false,
+    "referenceRetried": true
+  },
+  "substepAttempts": 9,
+  "attempts": [
+    {
+      "subdivisions": 1,
+      "index": 1,
+      "dt": 0.016666666666666666,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 14296.27441670911,
+        "torque": 76.00134322423226,
+        "length": 0.06022636225221323
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 2,
+      "factorizations": 469
+    },
+    {
+      "subdivisions": 2,
+      "index": 1,
+      "dt": 0.008333333333333333,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 14231.286601643513,
+        "torque": 140.6335493686825,
+        "length": 0.02861816852862792
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 2,
+      "factorizations": 360
+    },
+    {
+      "subdivisions": 4,
+      "index": 1,
+      "dt": 0.004166666666666667,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 5.8931983630827744e-06,
+        "torque": 6.957509707250509e-10,
+        "length": 3.730349362740526e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 16,
+        "sliding": 16
+      },
+      "iterations": 3,
+      "factorizations": 8
+    },
+    {
+      "subdivisions": 4,
+      "index": 2,
+      "dt": 0.004166666666666667,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 36520.25387883166,
+        "torque": 264.50481657912246,
+        "length": 0.013142988520174204
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 2,
+      "factorizations": 339
+    },
+    {
+      "subdivisions": 8,
+      "index": 1,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 9.933046385413036e-09,
+        "torque": 8.537072854197802e-10,
+        "length": 2.5757174171303632e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 15,
+        "sliding": 15
+      },
+      "iterations": 3,
+      "factorizations": 8
+    },
+    {
+      "subdivisions": 8,
+      "index": 2,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.17801243707072e-08,
+        "torque": 2.8678215358013404e-09,
+        "length": 3.8191672047105385e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 16,
+        "sliding": 16
+      },
+      "iterations": 3,
+      "factorizations": 9
+    },
+    {
+      "subdivisions": 8,
+      "index": 3,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 3.6587607610272244e-08,
+        "torque": 7.109955610373753e-10,
+        "length": 3.019806626980426e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 18,
+        "sliding": 13
+      },
+      "iterations": 8,
+      "factorizations": 57
+    },
+    {
+      "subdivisions": 8,
+      "index": 4,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 7.265225576702505e-08,
+        "torque": 4.978787174203525e-10,
+        "length": 3.730349362740526e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 17,
+        "sliding": 9
+      },
+      "iterations": 4,
+      "factorizations": 12
+    },
+    {
+      "subdivisions": 8,
+      "index": 5,
+      "dt": 0.0020833333333333333,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 1207056.3945950484,
+        "torque": 1205.9842956615953,
+        "length": 0.007553733718253575
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 2,
+      "factorizations": 735
+    }
+  ]
+}

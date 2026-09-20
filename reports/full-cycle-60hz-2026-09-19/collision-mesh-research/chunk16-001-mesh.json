@@ -1,0 +1,56 @@
+{
+  "generatorSha256": "6a4bcb50d572451a4f1e3c853f122b84de58ce422915e57fe3b902f4a18da300",
+  "simplifier": {
+    "name": "meshoptimizer",
+    "version": "1.1.1"
+  },
+  "sourceSha256": "f7a0baf87cd490daa4223c106726f2d84574b1d0a19370bc0780407282d41fc2",
+  "meshSha256": "664654fdb3d207e180db8611b60d84321ad027d6c14f97d04bc3ba6208e78362",
+  "coordinateSystem": "world-mm",
+  "transform": {
+    "version": 2,
+    "rotationX": -1.5707963267948966,
+    "scale": 0.9685961233993883,
+    "sourceCenter": [
+      10.555252075195312,
+      -165.03330612182617,
+      -436.6159362792969
+    ],
+    "sourceSize": [
+      475.8706359863281,
+      252.8294563293457,
+      1823.5354919433594
+    ],
+    "targetCenter": [
+      0,
+      -180,
+      0
+    ],
+    "targetLength": 470
+  },
+  "requestedErrorMm": 0.01,
+  "estimatedErrorMm": 0.009999901987612247,
+  "chunkMm": 16,
+  "chunkCount": 1929,
+  "weldMm": 0,
+  "exactUniqueVertices": 506997,
+  "weldedUniqueVertices": 506997,
+  "removedDegenerateTriangles": 0,
+  "originalTriangles": 1014411,
+  "triangles": 877081,
+  "simplifyMs": 436.7037090000001,
+  "originalToReduced": {
+    "samples": 142023,
+    "maxMm": 0.10029344614458895,
+    "p99Mm": 0.007232221416564479,
+    "rmsMm": 0.0014990491464139685,
+    "queryMs": 336.62974999999983
+  },
+  "reducedToOriginal": {
+    "samples": 142786,
+    "maxMm": 0.03731518887932184,
+    "p99Mm": 0.004317273536334057,
+    "rmsMm": 0.0007871479478056873,
+    "queryMs": 403.9369999999999
+  }
+}

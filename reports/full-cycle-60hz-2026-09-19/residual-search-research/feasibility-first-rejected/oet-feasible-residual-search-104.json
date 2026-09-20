@@ -1,0 +1,334 @@
+{
+  "inputPath": "/tmp/oet-closed-residual-search/failed-incoming.json",
+  "collisionExperiment": null,
+  "options": {
+    "forceTolerance": 0.0001,
+    "lengthTolerance": 0.001,
+    "continuousSegmentContacts": "axis",
+    "wasmLinearAssembly": true,
+    "reuseFrictionAssembly": true,
+    "certifiedDiscoverySamples": true,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true,
+    "earlyPredictorFallback": false,
+    "liveWallNormalLoad": true,
+    "promoteTrialAssembly": true,
+    "projectionMode": "reduced",
+    "stagnationFallback": true,
+    "wasmMaterial": true,
+    "reuseMaterialScratch": true,
+    "lightweightFriction": true,
+    "reuseTriangleKernel": true,
+    "earlyContactPreflight": true,
+    "reuseConstraintWork": true,
+    "reuseMatrixAssembly": true,
+    "reuseRowBuffers": true,
+    "pruneInactiveWitnesses": true,
+    "coupledFrictionNewton": true,
+    "zeroDualStart": true,
+    "velocityPredictor": 1,
+    "wallCompliance": 0.000001,
+    "batchActivationSize": 64,
+    "simultaneousContactRelease": true,
+    "condenseCompliantContacts": true,
+    "residualLineSearch": true
+  },
+  "elapsedMs": 27.153749999999945,
+  "result": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 3,
+    "frictionRefreshMs": 1.3021659999999429,
+    "retainedDiscoveryTrials": 0,
+    "iterations": 3,
+    "factorizations": 4,
+    "workingSetReuses": 0,
+    "backtracks": 0,
+    "geometryRestarts": 1,
+    "ms": 24.104249999999865,
+    "timings": {
+      "assemblyMs": 13.249250000000302,
+      "linearMs": 5.471290999999837,
+      "frictionMs": 1.4141239999999016,
+      "tangentAssemblyMs": 10.357833000000255,
+      "residualAssemblyMs": 2.8914170000000468,
+      "projectionMs": 0
+    },
+    "fullAssemblies": 4,
+    "residualAssemblies": 6,
+    "promotedAssemblies": 2,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 0.0003371971404427798,
+      "contacts": 7,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 1.6425217350618394e-15,
+          "maxBendAngleDegrees": 1.528068594610914,
+          "maxBendNode": 5,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 8.837950197915724,
+          "activeWallContacts": 1,
+          "currentNormalLoad": 337.19714046896127
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.552713678800501e-16,
+          "maxBendAngleDegrees": 1.528068594610914,
+          "maxBendNode": 5,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.000011453217557470893,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 95498.54256783049
+        }
+      ]
+    },
+    "residual": {
+      "force": 2.3704700424787006e-9,
+      "torque": 1.498718399491759e-10,
+      "length": 7.993605777301127e-15
+    },
+    "dofs": 99,
+    "matrixEntries": 4357,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 131072,
+      "grows": 0,
+      "viewBuilds": 1,
+      "requests": 8
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": true,
+    "certificateBound": 2.3704700424787006e-9,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 1,
+      "sliding": 1
+    },
+    "frictionIterations": 1,
+    "predictorFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 1,
+    "wallNormalFallbacks": 0,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.3704700424787006e-9,
+          "torque": 1.498718399491759e-10,
+          "length": 7.993605777301127e-15
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 1,
+          "sliding": 1
+        },
+        "iterations": 3,
+        "factorizations": 4
+      }
+    ],
+    "subdivisions": 1
+  },
+  "events": [
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 0,
+      "force": 8.826700081954186e-8,
+      "torque": 1.021826425433499e-8,
+      "constraint": 0.13539858157683088,
+      "liveNormalLoad": true,
+      "frictionModes": {},
+      "worstRows": [
+        {
+          "index": 87,
+          "id": "vessel/100/104.86666666666677/1/276623",
+          "kind": "wall",
+          "edge": 21,
+          "gap": -0.13539858157683088,
+          "multiplier": 0,
+          "coordinate": 100,
+          "violation": 0.13539858157683088
+        },
+        {
+          "index": 30,
+          "kind": "length",
+          "edge": 10,
+          "gap": 4.014566457044566e-13,
+          "multiplier": 0,
+          "coordinate": 25,
+          "violation": 4.014566457044566e-13
+        },
+        {
+          "index": 27,
+          "kind": "length",
+          "edge": 9,
+          "gap": -2.7355895326763857e-13,
+          "multiplier": 0,
+          "coordinate": 5,
+          "violation": 2.7355895326763857e-13
+        }
+      ],
+      "converged": true,
+      "factorizations": 2,
+      "condensationStats": {
+        "attempts": 1,
+        "eliminatedRows": 1,
+        "fallbacks": 0
+      },
+      "maxPosition": 0.14806002570000504,
+      "maxIncrement": 0.11360884409299161
+    },
+    {
+      "kind": "trial",
+      "iteration": 0,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 3.179131155448829,
+      "torque": 1.209318852554606e-10,
+      "constraint": 0.0016787900659744892
+    },
+    {
+      "kind": "direction",
+      "iteration": 1,
+      "method": 0,
+      "force": 2.7684344335283413,
+      "torque": 1.209318852554606e-10,
+      "constraint": 0.0016787900659744892,
+      "liveNormalLoad": true,
+      "frictionModes": {
+        "slide": 1
+      },
+      "worstRows": [
+        {
+          "index": 63,
+          "kind": "length",
+          "edge": 21,
+          "gap": 0.0016787900659744892,
+          "multiplier": -140.1825534076519,
+          "coordinate": 100,
+          "violation": 0.0016787900659744892
+        },
+        {
+          "index": 87,
+          "id": "vessel/100/104.86666666666677/1/276623",
+          "kind": "wall",
+          "edge": 21,
+          "gap": -0.0003420729661913202,
+          "multiplier": 342.0729661963995,
+          "coordinate": 100,
+          "violation": 0.0003420729661911537
+        },
+        {
+          "index": 60,
+          "kind": "length",
+          "edge": 20,
+          "gap": 0.00005220565179708814,
+          "multiplier": -140.18255285539408,
+          "coordinate": 95,
+          "violation": 0.00005220565179708814
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "condensationStats": {
+        "attempts": 1,
+        "eliminatedRows": 1,
+        "fallbacks": 0
+      },
+      "maxPosition": 0.0018922059968815841,
+      "maxIncrement": 0.0013977141731513036
+    },
+    {
+      "kind": "trial",
+      "iteration": 1,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 0.000329788909077422,
+      "torque": 4.742979324886986e-10,
+      "constraint": 2.0205558115549138e-8
+    },
+    {
+      "kind": "direction",
+      "iteration": 2,
+      "method": 0,
+      "force": 0.000329788909077422,
+      "torque": 4.742979324886986e-10,
+      "constraint": 2.0205558115549138e-8,
+      "liveNormalLoad": true,
+      "frictionModes": {
+        "slide": 1
+      },
+      "worstRows": [
+        {
+          "index": 87,
+          "id": "vessel/100/104.86666666666677/1/276623",
+          "kind": "wall",
+          "edge": 21,
+          "gap": -0.00033719721675867786,
+          "multiplier": 337.19721675856914,
+          "coordinate": 100,
+          "violation": 0.00033719721676561676
+        },
+        {
+          "index": 60,
+          "kind": "length",
+          "edge": 20,
+          "gap": 2.0205558115549138e-8,
+          "multiplier": -135.68125128084841,
+          "coordinate": 95,
+          "violation": 2.0205558115549138e-8
+        },
+        {
+          "index": 57,
+          "kind": "length",
+          "edge": 19,
+          "gap": 4.949715304292113e-9,
+          "multiplier": -135.59010949063386,
+          "coordinate": 90,
+          "violation": 4.949715304292113e-9
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "condensationStats": {
+        "attempts": 1,
+        "eliminatedRows": 1,
+        "fallbacks": 0
+      },
+      "maxPosition": 7.639297720307556e-8,
+      "maxIncrement": 4.905217126515842e-8
+    },
+    {
+      "kind": "trial",
+      "iteration": 2,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 2.3704700424787006e-9,
+      "torque": 1.498718399491759e-10,
+      "constraint": 7.993605777301127e-15
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+✔ adaptive provider publishes actual mechanical nodes atomically and clears mesh diagnostics on reset (38.7115ms)
+✔ adaptive tolerance changes preserve a pending step and wake an unchanged sleeping state (44.224125ms)
+✔ contact margin applies after a pending solve and wakes a sleeping adaptive provider (32.84225ms)
+✔ arc-loss and spacing controls are frozen during a pending step and wake sleeping physics (59.726958ms)
+✔ shared-axis selection installs its whole-step provider without the split coupled kernel (1.000334ms)
+✔ pending global solves publish both tools atomically and freeze prepared controls (3.597ms)
+✔ World consumes one prepared dt only after cooperative completion (2.567125ms)
+✔ independent feed and proximal spin share exactly one overlap curve in world coordinates (15.283708ms)
+✔ sampling translates local coordinates once and extrapolates the exposed proximal reservoir (0.113291ms)
+✔ reset abandons private work and clears both published curves and solver counters (5.287625ms)
+✔ missing anatomy rejects without preparing tools or publishing geometry (0.361ms)
+✔ unchanged settled commands sleep with stable diagnostics and parameter changes wake the solver (22.56875ms)
+✔ a throwing geometry callback preserves both published bodies and reset permits recovery (22.910875ms)
+✔ terminal failure is latched, rolls back input, and a changed command resumes without resetting the accepted solver (5.972625ms)
+✔ catheter material stiffness changes the solved transient shape, not only the command key (93.293291ms)
+✔ whole-step diagnostics sum wall-load fallbacks and their cost across rejected and accepted subdivisions (1.560375ms)
+✔ rejection records the accepted state and frozen command; replay survives JSON and later recovery (11.536084ms)
+✔ PD provider publishes only complete steps and keeps its solver identity and actual DOF count (13.965791ms)
+✔ fast Newton provider is explicit, forwards its counters and is disabled for projective dynamics (1.123334ms)
+✔ predictive Newton can be disabled while keeping fast friction enabled (4.242ms)
+✔ recovered substep rejections emit the original replay once, before publishing the accepted state (9.102542ms)
+✔ a failed archive observer cannot prevent recovery or physical publication (3.152167ms)
+✔ 60 Hz experiment has its own selection, report identity and replay policy without changing adaptive reference (6.432959ms)
+✔ certified samples preserve exact mesh distances, face selection and endpoint-first order without SDF work (14.139958ms)
+✔ certified-only discovery preserves a captured nonlinear solve and its physical checkpoint (1579.369875ms)
+✔ local continuation can move along a thin wall but cannot cross it even if both endpoints are outside solid wall material (5.645833ms)
+✔ remeshed sites can inherit a nearby proof, replay snapshots own data and BVH replacement invalidates all old evidence (9.474125ms)
+✔ a cold SDF sign reversal is repaired only on the connected side of the wall; reference discovery is unchanged (3.115667ms)
+✔ clearance-ball evidence survives skipped motion beyond the local ray limit and remeshing (0.670209ms)
+✔ nonfinite queries and invalid limits cannot produce geometric evidence (0.644375ms)
+✔ a remeshed sample can prove membership along an entire coarse edge, but never through a thin wall (0.756583ms)
+collision centerline lumen samples 60981
+collision centerline minimum wall distance mm 0.039193
+packed lumen max distance error mm 3.381e-2
+collision asset encoded MB 60.93
+collision field runtime MB 76.93
+collision SDF validation samples 10914
+collision SDF max error mm 0.1994
+collision SDF sign mismatches 0
+collision BVH refinements 5226
+collision SDF worst sample {"point":[3.732816899428144,-218.7858208459802,37.33545712730847],"closest":[3.1991548264653433,-218.90988819047632,38.841024187731165],"expected":1.602161067907687,"actual":1.4027761107973467,"branchId":10633}
+✔ tests/vesselContactField.test.js (41712.456583ms)
+vessel contact sampling reuse tests passed
+✔ tests/vesselContactSamplingReuse.test.js (80.059208ms)
+✖ physical capsule removes the captured safe-core threshold jump without changing default queries (168.264416ms)
+✔ endpoint cache cannot cross physical/default modes, including coincident capsules (278.598125ms)
+✔ physical capsule evaluates every requested existing sample (109.097542ms)
+✔ exception restores transient physical/refinement modes for subsequent ordinary query (125.221958ms)
+✖ mesh reference for step663 exposes SDF penetration artifact and has a consistent derivative (168.312041ms)
+✔ finite mesh capsule compares exact triangle distances at every sample, with separate endpoint cache (248.60825ms)
+✔ optional capsule visitor exposes every already evaluated finite sample without extra geometry queries (218.194ms)
+✔ a capsule visitor exception restores query flags and invalidates its partial endpoint cache (165.127708ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 39
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41720.506125
+
+✖ failing tests:
+
+test at tests/vesselPhysicalCapsuleGap.test.js:26:1
+✖ physical capsule removes the captured safe-core threshold jump without changing default queries (168.264416ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 0.5
+  
+      at TestContext.<anonymous> (file:///Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/tests/vesselPhysicalCapsuleGap.test.js:28:63)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.start (node:internal/test_runner/test:978:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:332:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0.5,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/vesselPhysicalCapsuleGap.test.js:74:1
+✖ mesh reference for step663 exposes SDF penetration artifact and has a consistent derivative (168.312041ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  326674 !== 325170
+  
+      at TestContext.<anonymous> (file:///Users/macpiek/.codex/worktrees/e55c/OpenEndovascularTrainer/tests/vesselPhysicalCapsuleGap.test.js:91:61)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1081:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:763:18)
+      at Test.postRun (node:internal/test_runner/test:1210:19)
+      at Test.run (node:internal/test_runner/test:1138:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 326674,
+    expected: 325170,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

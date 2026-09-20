@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-closed-contact-mechanics10",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 1392,
+      "rmsMm": 60.94147188211042,
+      "maxMm": 314.5121608950129
+    },
+    "catheter-in": {
+      "samples": 2171,
+      "rmsMm": 139.1134209879361,
+      "maxMm": 369.24568028311757
+    },
+    "catheter-out": {
+      "samples": 3951,
+      "rmsMm": 140.82072315014065,
+      "maxMm": 364.9674997299345
+    },
+    "wire-out": {
+      "samples": 1417,
+      "rmsMm": 53.450837334296075,
+      "maxMm": 353.4554966814293
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.793692578030644e-7,
+    "maxRelativeLengthError": 3.539929870369705e-8,
+    "maxCertifiedResidual": 0.00009987973180614063,
+    "totalFactorizations": 131077,
+    "totalIterations": 27360
+  }
+}

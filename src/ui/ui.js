@@ -227,6 +227,8 @@ export function initUI(options) {
   const reproduceRetrogradeGapButton = document.getElementById('reproduceRetrogradeGap');
   const reproduceArchBolusButton = document.getElementById('reproduceArchBolus');
   const catheterAortaSetupStatusEl = document.getElementById('catheterAortaSetupStatus');
+  const runFullCycleBenchmarkButton = document.getElementById('runFullCycleBenchmark');
+  runFullCycleBenchmarkButton?.addEventListener('click',()=>onStartBrowserBenchmark?.({mode:'full-cycle-60hz',skipWarmup:true,automated:true}));
   const runWire60BenchmarkButton = document.getElementById('runWire60Benchmark');
   runWire60BenchmarkButton?.addEventListener('click',()=>onStartBrowserBenchmark?.({mode:'wire60-catheter',skipWarmup:true,automated:true}));
   const runSoloCatheterBenchmarkButton = document.getElementById('runSoloCatheterBenchmark');
@@ -1638,8 +1640,10 @@ export function initUI(options) {
     perfElapsed = 0;
     perfFrames = 0;
   }
+  let renderedBrowserBenchmarkReport=null;
   function updateBrowserBenchmarkStatus(status, report = null) {
     const running = !!status?.running;
+    if (runFullCycleBenchmarkButton) runFullCycleBenchmarkButton.disabled = running;
     if (runWire60BenchmarkButton) runWire60BenchmarkButton.disabled = running;
     if (runSoloCatheterBenchmarkButton) runSoloCatheterBenchmarkButton.disabled = running;
     if (runGuidewireBenchmarkButton) runGuidewireBenchmarkButton.disabled = running;
@@ -1653,6 +1657,7 @@ export function initUI(options) {
 
     browserBenchmarkStatusEl.classList.remove('passed', 'failed');
     if (running) {
+      renderedBrowserBenchmarkReport=null;
       if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = 'Running';
       if (status.warmingUp) {
         browserBenchmarkStatusEl.textContent = 'Warming up';
@@ -1667,6 +1672,7 @@ export function initUI(options) {
     }
     if (!report?.frameCount) {
       browserBenchmarkStatusEl.textContent = 'Idle';
+      renderedBrowserBenchmarkReport=null;
       if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = 'No report';
       return;
     }
@@ -1679,7 +1685,11 @@ export function initUI(options) {
       `${fullRun ? (passed ? 'PASS' : 'FAIL') : 'Smoke'} · ` +
       `${report.averageFps.toFixed(1)} FPS · 1% ${report.onePercentLowFps.toFixed(1)} · ` +
       `pen ${report.physicsEnvelope.maxPostStepPenetrationMm.toFixed(3)} mm`;
-    if (browserBenchmarkReportEl) browserBenchmarkReportEl.value = JSON.stringify(report);
+    // A completed report is immutable and can contain thousands of steps.
+    // Do not serialize and replace the same large textarea every 250 ms.
+    if (browserBenchmarkReportEl && renderedBrowserBenchmarkReport!==report) {
+      browserBenchmarkReportEl.value = JSON.stringify(report);renderedBrowserBenchmarkReport=report;
+    }
   }
 
   function updateCatheterAortaSetupStatus(status) {

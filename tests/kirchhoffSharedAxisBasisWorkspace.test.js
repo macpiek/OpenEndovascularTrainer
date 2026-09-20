@@ -3,13 +3,15 @@ import assert from 'node:assert/strict';
 import {prepareSharedAxisActiveBasis as optimized} from '../src/physics/kirchhoffSharedAxisActiveBasis.js';
 import {prepareSharedAxisActiveBasis as reference} from './helpers/sharedAxisActiveBasisReference.js';
 
-function run(fn,rows,fixed,active,dual) {
+function run(fn,rows,fixed,active,dual,options={}) {
     const activeSet=Uint8Array.from(active),workingDual=Float64Array.from(dual),trace=[];
-    const result=fn({rows,fixed,activeSet,dual:workingDual,trace});return {result,activeSet,dual:workingDual,trace};
+    const result=fn({rows,fixed,activeSet,dual:workingDual,trace,...options});return {result,activeSet,dual:workingDual,trace};
 }
 function compare(rows,fixed,active,dual) {
     const saved=structuredClone(rows),a=run(reference,rows,fixed,active,dual),b=run(optimized,rows,fixed,active,dual);
-    assert.deepEqual(b,a);assert.deepEqual(rows,saved);return b;
+    assert.deepEqual(b,a);
+    for(const reuseStructure of [true,false])assert.deepEqual(run(optimized,rows,fixed,active,dual,{lazyBasisCoefficients:true,reuseStructure}),a);
+    assert.deepEqual(rows,saved);return b;
 }
 const random=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2**32;};
 function rowSet(rng,edges) {
@@ -102,4 +104,15 @@ test('unchanged linearizations reuse a numerical prefix but new tokens and activ
     // first token's prefix, even if the first generator later resumes.
     run(input=>optimized({...input,basisCache:Symbol()}),rows,fixed,active,dual);
     assert.deepEqual(run(cached,rows,fixed,active,dual),run(reference,rows,fixed,active,dual));
+});
+
+
+test('lazy reaction coefficients preserve cached-prefix pivots when active rows change and when switching modes',()=>{
+    const rng=random(547812),fixed=new Uint8Array(63),rows=rowSet(rng,20),token=Symbol('fixed-jacobians');
+    for(let trial=0;trial<60;trial++) {
+        const active=rows.map(r=>r.kind==='length'||rng()>.2?1:0),dual=rows.map(r=>r.kind==='length'?rng()-.5:2*rng());
+        const expected=run(reference,rows,fixed,active,dual);
+        const actual=run(optimized,rows,fixed,active,dual,{lazyBasisCoefficients:trial%4!==0,basisCache:token});
+        assert.deepEqual(actual,expected);
+    }
 });

@@ -1,0 +1,13 @@
+✔ closure manifest matches the shipped model and original wall triangle bytes are preserved (75.105667ms)
+✔ every closed outlet blocks axial passage across its center and sampled near-rim interior (36.009333ms)
+✔ inside continuation cannot relabel an escaped root point as lumen after closure (0.91675ms)
+✔ the root closure supplies inward wall constraints for both wire and catheter radii (0.981ms)
+✔ the rebuilt collision field sees the root cap for both tool diameters (175.247959ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1444.008375

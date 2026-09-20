@@ -1,0 +1,39 @@
+diff --git a/src/physics/kirchhoffSharedAxisNative.js b/src/physics/kirchhoffSharedAxisNative.js
+index 55ceb8c..671ad17 100644
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -386,7 +386,7 @@ function* correctTrialConstraints(s,base,reuseStructure,projectionMode,reuseCons
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,deferFrictionTangent=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
+@@ -415,8 +415,8 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
+         if(!localContactRestarts || error.message !== 'shared-axis-wall-discovery' || !s.pendingVesselRows?.size || geometryRestarts >= 64)return false;
+         extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();modified?.invalidate();geometryRestarts++;cycleGuard=null;stagnationGuard=null;return true;
+     };
+-    const assembleDiscovered = () => {
+-        while(true) {try{return assemble();}catch(error){if(!discover(error))throw error;}}
++    const assembleDiscovered = (withTangent=true) => {
++        while(true) {try{return assemble(undefined,withTangent);}catch(error){if(!discover(error))throw error;}}
+     };
+     const merit = m => Math.max(m.force / forceTolerance, m.torque / forceTolerance, m.constraint / lengthTolerance);
+     const violation = m => m.rows.reduce((v, r) => v + (r.kind === 'length' ? Math.abs(r.gap) : Math.max(0, -r.gap)), 0);
+@@ -539,7 +539,13 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
+                             const change=refreshSharedAxisWallFriction(s,{forceTolerance:0});
+                             frictionRefreshMs+=performance.now()-started;coupledFrictionRefreshes++;
+                             observeTrial?.({kind:'friction-refresh',state:s,iteration:iterations,change});
+-                            if(change.forceChange>0){modified?.invalidate();base=assembleDiscovered();}
++                            if(change.forceChange>0){
++                                modified?.invalidate();
++                                // A refreshed friction chart needs a current residual to
++                                // certify equilibrium. Build its Jacobian only if the
++                                // next iteration actually needs another Newton direction.
++                                base=assembleDiscovered(!deferFrictionTangent);
++                            }
+                         }
+                         break;
+                     }

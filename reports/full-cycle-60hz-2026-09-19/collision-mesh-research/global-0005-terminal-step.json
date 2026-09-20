@@ -1,0 +1,216 @@
+{
+  "index": 866,
+  "phase": "wire-in",
+  "wire": 635.0666666666723,
+  "catheter": 0,
+  "elapsedMs": 4103.546416999998,
+  "processCpuMs": 4705.674,
+  "converged": false,
+  "status": "linear-solve",
+  "error": null,
+  "coupledFrictionRefreshes": 14,
+  "frictionRefreshMs": 0,
+  "retainedDiscoveryTrials": 0,
+  "iterations": 22,
+  "factorizations": 4483,
+  "workingSetReuses": 442,
+  "backtracks": 0,
+  "geometryRestarts": 18,
+  "ms": 493.66812500000015,
+  "timings": {
+    "assemblyMs": 194.63516999997591,
+    "linearMs": 3842.147848000048,
+    "frictionMs": 4.389169000005495,
+    "tangentAssemblyMs": 161.26545999998416,
+    "residualAssemblyMs": 33.369709999991755,
+    "projectionMs": 0
+  },
+  "fullAssemblies": 161,
+  "residualAssemblies": 22,
+  "promotedAssemblies": 14,
+  "quality": null,
+  "residual": {
+    "force": 80671.12798456728,
+    "torque": 1904.2861871605442,
+    "length": 0.009502505872531597
+  },
+  "dofs": 479,
+  "matrixEntries": 32953,
+  "linearScratch": {
+    "allocations": 5,
+    "capacityBytes": 1048576,
+    "grows": 4,
+    "viewBuilds": 4576,
+    "requests": 40963
+  },
+  "interToolRows": 0,
+  "modifiedAttempts": 0,
+  "modifiedAccepted": 0,
+  "modifiedFallbacks": 0,
+  "predictedInitialPose": false,
+  "frictionIterations": 40,
+  "wallNormalFallbacks": 8,
+  "wallNormalFallback": {
+    "attempted": true,
+    "liveFailure": "linear-solve",
+    "converged": false
+  },
+  "coupledFrictionFallbacks": 8,
+  "coupledFrictionRecovery": {
+    "attempted": true,
+    "experimentStatus": "linear-solve",
+    "converged": false
+  },
+  "predictorFallbacks": 9,
+  "predictorRecovery": {
+    "attempted": true,
+    "predictorStatus": "linear-solve",
+    "converged": false
+  },
+  "substepAttempts": 7,
+  "attempts": [
+    {
+      "subdivisions": 1,
+      "index": 1,
+      "dt": 0.016666666666666666,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 247727.3093447031,
+        "torque": 342.41459236566953,
+        "length": 0.07887525047988203
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 2,
+      "factorizations": 1663
+    },
+    {
+      "subdivisions": 2,
+      "index": 1,
+      "dt": 0.008333333333333333,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 245901.97662466348,
+        "torque": 552.1008949064574,
+        "length": 0.03949498349255426
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 1,
+      "factorizations": 1221
+    },
+    {
+      "subdivisions": 4,
+      "index": 1,
+      "dt": 0.004166666666666667,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.2774620447307825e-06,
+        "torque": 1.2686837180808652e-07,
+        "length": 5.1514348342607263e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 26,
+        "sliding": 26
+      },
+      "iterations": 6,
+      "factorizations": 217
+    },
+    {
+      "subdivisions": 4,
+      "index": 2,
+      "dt": 0.004166666666666667,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 24521.37738106123,
+        "torque": 932.8803820785006,
+        "length": 0.019016661152013503
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 1,
+      "factorizations": 846
+    },
+    {
+      "subdivisions": 8,
+      "index": 1,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.4976543500088155e-08,
+        "torque": 1.5212222592708713e-09,
+        "length": 4.884981308350689e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 25,
+        "sliding": 22
+      },
+      "iterations": 5,
+      "factorizations": 26
+    },
+    {
+      "subdivisions": 8,
+      "index": 2,
+      "dt": 0.0020833333333333333,
+      "status": "converged",
+      "error": null,
+      "converged": true,
+      "residual": {
+        "force": 2.8087924874853343e-08,
+        "torque": 9.758984731433884e-10,
+        "length": 3.730349362740526e-14
+      },
+      "friction": {
+        "converged": true,
+        "forceChange": 0,
+        "contacts": 23,
+        "sliding": 21
+      },
+      "iterations": 5,
+      "factorizations": 21
+    },
+    {
+      "subdivisions": 8,
+      "index": 3,
+      "dt": 0.0020833333333333333,
+      "status": "linear-solve",
+      "error": null,
+      "converged": false,
+      "residual": {
+        "force": 80671.12798456728,
+        "torque": 1904.2861871605442,
+        "length": 0.009502505872531597
+      },
+      "wallNormalFallback": {
+        "attempted": true,
+        "liveFailure": "linear-solve",
+        "converged": false
+      },
+      "iterations": 2,
+      "factorizations": 489
+    }
+  ]
+}

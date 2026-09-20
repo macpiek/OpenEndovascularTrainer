@@ -78,3 +78,61 @@ test('invalid arena shapes cannot allocate or corrupt an already usable arena',(
         assert.throws(()=>arena.getViews(...shape),/arena shape/);
     assert.deepEqual({...arena.diagnostics},before);assert.equal(arena.getViews(4,4),views);
 });
+
+test('WASM packing and certification preserve bitwise solutions and diagnostics across shared arena growth',()=>{
+    const arena=createCoulombBandLUArena();
+    const fixtures=[[0,0,0],[1,0,0],[4,1,2],[37,5,3],[600,30,20],[13,2,0],[800,45,18]]
+        .map(([n,kl,ku],i)=>system(n,kl,ku,i+1));
+    const fast=fixtures.map(s=>createCoulombBandLU(s.layout,s.count,{arena,wasmAssembly:true}));
+    const reference=fixtures.map(s=>createCoulombBandLU(s.layout,s.count));
+    for(const order of [fixtures.map((_,i)=>i),fixtures.map((_,i)=>fixtures.length-1-i)]) {
+        for(const i of order) {
+            const before=structuredClone(fixtures[i]);
+            assert.equal(compare(fixtures[i],fast[i],reference[i],i%2?.01:0),true);
+            assert.deepEqual(fixtures[i],before);
+        }
+    }
+    assert.ok(arena.diagnostics.grows>0);
+});
+
+test('WASM certificate retains rejection, pivot diagnostics, signed zero and independent owned storage',()=>{
+    const arena=createCoulombBandLUArena();
+    for(const values of [[.001,2,3,4],[0,1,0,2],[1,-0,0,1],[1e-200,2e-200,3e-200,4e-200]]) {
+        const s=system(2,1,1);s.J.set(values);
+        for(const shared of [false,true]) {
+            const fast=createCoulombBandLU(s.layout,s.count,{wasmAssembly:true,...(shared?{arena}:{})});
+            const reference=createCoulombBandLU(s.layout,s.count);
+            compare(s,fast,reference);s.F[0]*=2;compare(s,fast,reference,.0001);
+        }
+    }
+});
+
+test('WASM unscaled certificate uses the original RHS after a refinement solve',()=>{
+    const s=system(29,4,3),lu=createCoulombBandLU(s.layout,s.count,{arena:createCoulombBandLUArena(),wasmAssembly:true});
+    const solution=new Float64Array(s.count),errors=new Float64Array(s.count);
+    assert.ok(lu.solve(s.J,s.F,s.scales,0,solution));
+    for(let i=0;i<s.count;i++)solution[i]*=s.scales[i];
+    const expected=Float64Array.from(s.F);
+    for(let i=0;i<s.count;i++)for(let j=s.layout.starts[i];j<=s.layout.ends[i];j++)
+        expected[i]+=s.J[s.layout.offsets[i]+j]*solution[j];
+    // A refinement overwrites the arena's RHS, but not the original equation.
+    assert.ok(lu.solve(s.J,expected,s.scales,0,new Float64Array(s.count)));
+    const residual=lu.measureOriginalResidual(solution,errors,s.F);
+    assert.deepEqual(errors,expected);
+    assert.equal(residual,Math.max(...expected.map(Math.abs)));
+});
+
+test('WASM row equilibration preserves the reference scales, direction and backward error',()=>{
+    const s=system(31,5,3),expectedScales=new Float64Array(s.count);
+    for(let i=0;i<s.count;i++) {
+        let maximum=0;
+        for(let j=s.layout.starts[i];j<=s.layout.ends[i];j++)maximum=Math.max(maximum,Math.abs(s.J[s.layout.offsets[i]+j]));
+        expectedScales[i]=1/Math.sqrt(Math.max(maximum,1e-30));
+    }
+    const reference=createCoulombBandLU(s.layout,s.count),fast=createCoulombBandLU(s.layout,s.count,{wasmAssembly:true});
+    const expected=new Float64Array(s.count),actual=expected.slice(),scales=new Float64Array(s.count).fill(NaN);
+    assert.equal(reference.solve(s.J,s.F,expectedScales,.002,expected),true);
+    assert.equal(fast.solve(s.J,s.F,scales,.002,actual,true),true);
+    assert.deepEqual(scales,expectedScales);assert.deepEqual(actual,expected);
+    assert.deepEqual(fast.diagnostics,reference.diagnostics);
+});

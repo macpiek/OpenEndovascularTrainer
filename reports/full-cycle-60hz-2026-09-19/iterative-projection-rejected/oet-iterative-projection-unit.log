@@ -1,0 +1,25 @@
+✔ bounded projection matches the identity QP for coupled equalities and unilateral walls (7.144541ms)
+✔ a short sweep budget is explicitly a partial private proposal and cancellation leaves the rod unchanged (1.717834ms)
+✔ duplicate DOFs are combined before diagonal scaling (0.082375ms)
+✔ incompatible fixed contact and nonfinite input cannot produce an applicable correction (0.226459ms)
+✔ one authoritative axis; independent spins and one length equation per spatial edge (10.376458ms)
+✔ native energy pullback has the correct spatial and independent spin derivatives (8.789458ms)
+✔ external cantilever oracle: shared rigidity is the sum; unloading recovers the straight shape (17.558625ms)
+✔ a stiff straight wire counteracts the native curved catheter energy (4.036417ms)
+✔ frictionless independent rotation: catheter torque does not rotate the wire (1.309167ms)
+✔ independent feed/withdrawal crosses mesh nodes and either tool may extend beyond the other (91.936125ms)
+✔ planar wall acts on the outer catheter radius in overlap and wire radius beyond it (8.383666ms)
+✔ nonconverged solve is atomic and never commits a partial relaxation (1.234792ms)
+✔ a failed geometry callback restores the complete accepted state (0.670959ms)
+✔ invalid and degenerate geometry is rejected explicitly (0.538291ms)
+✔ partial-overlap cantilever agrees with the piecewise rigidity integral (10.890792ms)
+✔ long wire / short overlap remains converged after feed and curved-material rotation (56.540375ms)
+✔ experimental nonlinear tolerance can retain precise active-set solves without changing the default (1.113916ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 332.424709

@@ -152,3 +152,20 @@ test('long wire / short overlap remains converged after feed and curved-material
     for(let step=1;step<=12;step++) {s=feedSharedAxisNative(s,{wire:309+step*.25,catheter:100+step*.25});accepted(s);}
     rotateSharedAxisNative(s,'catheter',.005);accepted(s);
 });
+
+test('experimental nonlinear tolerance can retain precise active-set solves without changing the default',()=>{
+    const reference=createSharedAxisNative({tools:[{id:'wire',insertion:30,type:beam()}]});
+    reference.loads[reference.layout.positions.at(-1)+1]=1;accepted(reference);
+    for(const cap of [undefined,1e-6]) {
+        const s=createSharedAxisNative({tools:[{id:'wire',insertion:30,type:beam()}]});
+        s.loads[s.layout.positions.at(-1)+1]=1;
+        const tolerances=[];
+        const result=relaxSharedAxisNative(s,{forceTolerance:.01,lengthTolerance:.001,
+            ...(cap===undefined?{}:{linearToleranceCap:cap}),observeLinearSystem:({options})=>tolerances.push(options.tolerance)});
+        assert.ok(result.converged,JSON.stringify(result));assert.ok(tolerances.length>0);
+        assert.equal(tolerances[0],cap??1e-5);
+        assert.ok(result.residual.force<=.01&&result.residual.length<=.001);
+        assert.ok(Math.abs(s.positions.at(-1)[1]-reference.positions.at(-1)[1])<1e-6);
+    }
+    for(const linearToleranceCap of [0,-1,NaN,'1'])assert.throws(()=>relaxSharedAxisNative(straightPair(30),{linearToleranceCap}),/convergence options/);
+});

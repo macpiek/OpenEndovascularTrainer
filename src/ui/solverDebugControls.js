@@ -1,6 +1,7 @@
 export const DEBUG_SOLVERS = Object.freeze([
     {id:'shared-axis', label:'Kirchhoff — siatka 5 mm (referencyjny)'},
     {id:'shared-axis-adaptive', label:'Kirchhoff — siatka adaptacyjna (eksperymentalny)'},
+    {id:'shared-axis-realtime', label:'Kirchhoff — eksperyment 60 Hz (w rozwoju)'},
     {id:'shared-axis-projective', label:'Projective Dynamics — pręt podatny, siatka adaptacyjna (eksperymentalny)'},
     {id:'joint-active-coulomb', label:'Starszy sprzężony Kirchhoff / Coulomb'},
     {id:'reference', label:'Starszy bezpośredni Kirchhoff'}
@@ -38,10 +39,10 @@ export function initSolverDebugControls({select, button, current, navigate, href
     const originalPredictive=new URL(href).searchParams.get('predictiveNewton')!=='0';
     if(predictiveNewtonToggle)predictiveNewtonToggle.checked=originalPredictive;
     const refreshChoice=()=>{
-        if(modifiedNewtonToggle)modifiedNewtonToggle.disabled=!['shared-axis','shared-axis-adaptive'].includes(select.value);
-        if(pruneWitnessesToggle)pruneWitnessesToggle.disabled=!['shared-axis','shared-axis-adaptive'].includes(select.value);
-        if(fastNewtonToggle)fastNewtonToggle.disabled=!['shared-axis','shared-axis-adaptive'].includes(select.value);
-        if(predictiveNewtonToggle)predictiveNewtonToggle.disabled=!['shared-axis','shared-axis-adaptive'].includes(select.value)||!!fastNewtonToggle&&!fastNewtonToggle.checked;
+        if(modifiedNewtonToggle)modifiedNewtonToggle.disabled=!['shared-axis','shared-axis-adaptive','shared-axis-realtime'].includes(select.value);
+        if(pruneWitnessesToggle)pruneWitnessesToggle.disabled=!['shared-axis','shared-axis-adaptive','shared-axis-realtime'].includes(select.value);
+        if(fastNewtonToggle)fastNewtonToggle.disabled=!['shared-axis','shared-axis-adaptive','shared-axis-realtime'].includes(select.value);
+        if(predictiveNewtonToggle)predictiveNewtonToggle.disabled=!['shared-axis','shared-axis-adaptive','shared-axis-realtime'].includes(select.value)||!!fastNewtonToggle&&!fastNewtonToggle.checked;
         button.disabled=(!predictiveNewtonToggle||predictiveNewtonToggle.checked===originalPredictive)&&(!fastNewtonToggle||fastNewtonToggle.checked===originalFast)&&select.value===current&&(!modifiedNewtonToggle||modifiedNewtonToggle.checked===originalModified)&&(!pruneWitnessesToggle||pruneWitnessesToggle.checked===originalPruned);
     };
     refreshChoice();
@@ -56,7 +57,7 @@ export function initSolverDebugControls({select, button, current, navigate, href
         [maxSpacing, maxSpacingOutput, onMaxSpacingChange, 0, ' mm']
     ]) {
         if (!slider) continue;
-        slider.disabled = !['shared-axis-adaptive','shared-axis-projective'].includes(current);
+        slider.disabled = !['shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(current);
         const updateLabel = () => {
             if (output) output.textContent = `${Number(slider.value).toFixed(decimals).replace('.', ',')}${suffix}`;
         };

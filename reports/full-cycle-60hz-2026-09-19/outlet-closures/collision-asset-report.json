@@ -1,0 +1,1387 @@
+{
+  "source": {
+    "path": "res/Aorta_plain.stl",
+    "byteLength": 52286834,
+    "stlSha256": "5efc1bcb3b6f18f68567ad5edda8cf3f01e6c27a948e80f2b5eefa48468812e3",
+    "triangleCount": 1045735
+  },
+  "transform": {
+    "version": 2,
+    "rotationX": -1.5707963267948966,
+    "scale": 0.9685961233993883,
+    "sourceCenter": [
+      10.555252075195312,
+      -165.03330612182617,
+      -436.6159362792969
+    ],
+    "sourceSize": [
+      475.8706359863281,
+      252.8294563293457,
+      1823.5354919433594
+    ],
+    "targetCenter": [
+      0,
+      -180,
+      0
+    ],
+    "targetLength": 470
+  },
+  "bounds": {
+    "min": [
+      -230.46322631835938,
+      -1393.25,
+      -118.03494262695312
+    ],
+    "max": [
+      230.46322631835938,
+      373.01934814453125,
+      126.85468292236328
+    ]
+  },
+  "centerline": {
+    "stride": 9,
+    "segmentCount": 10966,
+    "nodeCount": 10967,
+    "minSafeRadius": 0,
+    "maxSafeRadius": 14.758963893482276,
+    "diagnostics": {
+      "source": "medial-slice-teasar",
+      "algorithm": "medial-slice-teasar",
+      "timings": {
+        "extractionMs": 5510.006,
+        "treeMs": 4078.3544999999986,
+        "refinementMs": 7083.6719170000015,
+        "clearanceMs": 9135.038333,
+        "backtrackMs": 268.0346669999999,
+        "simulationSmoothingMs": 4524.906125000001,
+        "finalBacktrackMs": 157.26241700000537,
+        "centeringCorrectionMs": 5116.009749999997,
+        "postCenteringBacktrackMs": 19.661374999996042,
+        "invalidRerouteMs": 1443.6628330000021,
+        "finalResamplingMs": 0.9969169999967562,
+        "centeringMs": 1921.2694170000032,
+        "totalMs": 39570.500708
+      },
+      "axes": "y-medial-skeleton",
+      "axisDiagnostics": [
+        {
+          "axis": "y",
+          "pass": "medial-skeleton",
+          "sliceCount": 1961,
+          "contourCount": 15397,
+          "candidateSegmentCount": 56758,
+          "componentCount": 24,
+          "usedLumenSurfaceSlices": true,
+          "centerMode": "topological-medial-axis",
+          "sliceSpacing": 0.9,
+          "elapsedMs": 9588.360499999999
+        }
+      ],
+      "sliceCount": 1961,
+      "contourCount": 15397,
+      "edgeCount": 10966,
+      "stubSegmentCount": 0,
+      "isolatedNodeCount": 0,
+      "componentCount": 1,
+      "componentSegmentCounts": [
+        10966
+      ],
+      "uncoveredNodeCount": 0,
+      "centerlineCoverage": {
+        "sampleCount": 26799,
+        "coveredSampleCount": 26799,
+        "uncoveredSampleCount": 0,
+        "coverageRate": 1
+      },
+      "centerlineNodeSpacing": 2,
+      "finalResampleInsertedNodeCount": 2,
+      "centerlineMinLumenArea": 0.5,
+      "centerlineMinCompactness": 0.04,
+      "centerlineGraphNodeCount": 10967,
+      "centerlineGraphCycleCount": 0,
+      "centerlineCyclePrunedSegmentCount": 0,
+      "centerlineTopologyBeforeCleanup": {
+        "nodeCount": 10967,
+        "leafNodeCount": 196,
+        "branchNodeCount": 186,
+        "degreeTwoNodeCount": 10585,
+        "sharpTurnNodeCount": 93,
+        "severeBacktrackNodeCount": 0,
+        "maxDeflectionDegrees": 82.32540722537209
+      },
+      "centerlineTopologyAfterCleanup": {
+        "nodeCount": 10967,
+        "leafNodeCount": 196,
+        "branchNodeCount": 186,
+        "degreeTwoNodeCount": 10585,
+        "sharpTurnNodeCount": 93,
+        "severeBacktrackNodeCount": 0,
+        "maxDeflectionDegrees": 82.32540722537209
+      },
+      "centerlineBacktrackCollapsedNodeCount": 473,
+      "centerlineBacktrackRemovedSegmentCount": 946,
+      "centerlineBacktrackInsertedSegmentCount": 473,
+      "centerlineBacktrackRejectedNodeCount": 71,
+      "centerlineBacktrackPathLengthReduction": 668.5619510753,
+      "centerlineSimulationSmoothing": {
+        "passCount": 5,
+        "movedNodeCount": 4477,
+        "averageShift": 0.09221061478075393,
+        "maxShift": 0.6546722802780486
+      },
+      "centerlineCenteringCorrection": {
+        "attemptedNodeCount": 8,
+        "correctedNodeCount": 7,
+        "averageShift": 0.3918298193854071,
+        "maxShift": 0.798863621150527,
+        "rolledBack": false
+      },
+      "centerlineInvalidSegmentCountBeforeReroute": 6,
+      "centerlineInvalidSegmentCountAfterReroute": 4,
+      "centerlineInvalidSegmentCountFinal": 1,
+      "centerlineInvalidRerouteAttemptedChainCount": 15,
+      "centerlineInvalidReroutedChainCount": 1,
+      "centerlineInvalidRerouteReplacedSegmentCount": 5,
+      "centerlineInvalidRerouteInsertedSegmentCount": 21,
+      "centerlineInvalidRerouteBlockedSegmentCount": 4,
+      "centerlineInvalidRerouteChoices": [
+        {
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "expansionSteps": 3,
+          "span": 6.191338593787385,
+          "pathLength": 7.335211534511295,
+          "replacedSegmentCount": 5,
+          "insertedSegmentCount": 21,
+          "routeType": "grid"
+        }
+      ],
+      "centerlineInvalidRerouteBlockedComponents": [
+        {
+          "segmentCount": 1,
+          "endpointCount": 2,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": -208.66309234434686,
+              "y": -534.825127149439,
+              "z": 25.666305948426032
+            },
+            "max": {
+              "x": -207.1026823526284,
+              "y": -534.0047729250464,
+              "z": 25.830676488945457
+            }
+          }
+        },
+        {
+          "segmentCount": 1,
+          "endpointCount": 2,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": 45.79851956548862,
+              "y": 98.33800000001908,
+              "z": -14.389805986801829
+            },
+            "max": {
+              "x": 46.08765744385535,
+              "y": 98.67402215772526,
+              "z": -12.728885769154234
+            }
+          }
+        },
+        {
+          "segmentCount": 1,
+          "endpointCount": 2,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": 44.04012013641276,
+              "y": -428.16199999997787,
+              "z": -90.93539460190267
+            },
+            "max": {
+              "x": 44.05100162708771,
+              "y": -427.6703305064641,
+              "z": -89.96533904192997
+            }
+          }
+        },
+        {
+          "segmentCount": 1,
+          "endpointCount": 2,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "bounds": {
+            "isBox3": true,
+            "min": {
+              "x": 83.95010662397812,
+              "y": -148.85497077901803,
+              "z": -52.183780507717664
+            },
+            "max": {
+              "x": 84.65608721267675,
+              "y": -148.26199999998153,
+              "z": -50.76466477416665
+            }
+          }
+        }
+      ],
+      "centerlineCenteringMeasuredNodeCount": 9673,
+      "centerlineCenteringFailedNodeCount": 1294,
+      "centerlineCenteringAverageOffset": 0.05418276787019177,
+      "centerlineCenteringMaxOffset": 1.9996004443924913,
+      "centerlineCenteringAverageNormalizedOffset": 0.020242899362399227,
+      "centerlineCenteringMaxNormalizedOffset": 0.6747849458049552,
+      "centerlineCenteringWorstOffsets": [
+        {
+          "key": "node:medial-node:4851:medial-node:4852:5013:r2:medial-node:4852:5601:r2:100,216,-13",
+          "offset": 1.9996004443924913,
+          "normalizedOffset": 0.19804907533256652,
+          "degree": 2,
+          "radius": 3.4088408104249908,
+          "meanRadius": 10.096489675777264,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 25.04656463036027,
+            "y": 53.9717080588169,
+            "z": -3.3133227433217174
+          },
+          "shift": {
+            "x": -0.9227044473709481,
+            "y": 0.6314862474381872,
+            "z": -1.6577827237949363
+          }
+        },
+        {
+          "key": "node:medial-node:4826:medial-node:4826:medial-node:4827:4985:r1:5537:r1:50,141,12",
+          "offset": 1.9849947445537408,
+          "normalizedOffset": 0.09856606065166389,
+          "degree": 2,
+          "radius": 7.892222735025534,
+          "meanRadius": 20.138724540983592,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 12.602832725484499,
+            "y": 35.34637614454977,
+            "z": 3.028543900316368
+          },
+          "shift": {
+            "x": -0.5743831386270412,
+            "y": -1.8150984741374576,
+            "z": 0.5618769217104335
+          }
+        },
+        {
+          "key": "node:medial-node:4824:medial-node:4824:medial-node:4825:4983:r1:5532:r3:50,156,13",
+          "offset": 1.9652682678266444,
+          "normalizedOffset": 0.11286183911098857,
+          "degree": 2,
+          "radius": 6.3418955985381285,
+          "meanRadius": 17.413044863587555,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 12.508819786424137,
+            "y": 38.951810583196455,
+            "z": 3.3535903658545037
+          },
+          "shift": {
+            "x": 1.566395819889863,
+            "y": -0.05010465905412677,
+            "z": -1.1858216658077105
+          }
+        },
+        {
+          "key": "node:medial-node:4822:medial-node:4823:4981:r1:43,196,20",
+          "offset": 1.9437670651589576,
+          "normalizedOffset": 0.16106152612171315,
+          "degree": 2,
+          "radius": 5.795237635571746,
+          "meanRadius": 12.068475395483745,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 10.796567987659976,
+            "y": 48.90933547242022,
+            "z": 5.0662633226440965
+          },
+          "shift": {
+            "x": 1.3946493847133206,
+            "y": 0.4334657915122338,
+            "z": -1.2826889353635573
+          }
+        },
+        {
+          "key": "node:medial-node:4823:medial-node:4824:4982:r1:medial-node:4824:medial-node:4824:medial-node:4825:4983:r1:5532:r3:5494:r1:51,161,14",
+          "offset": 1.903090976846456,
+          "normalizedOffset": 0.11245445147841285,
+          "degree": 2,
+          "radius": 6.088139034026364,
+          "meanRadius": 16.923216038377813,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 12.655503774411201,
+            "y": 40.15823899604368,
+            "z": 3.6144616470099318
+          },
+          "shift": {
+            "x": 1.761481418817903,
+            "y": 0.049834264556054726,
+            "z": -0.7186480525193272
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:7:-583,526,65",
+          "offset": 1.775516864592445,
+          "normalizedOffset": 0.6446491296859193,
+          "degree": 2,
+          "radius": 1.754207249169445,
+          "meanRadius": 2.7542375888376642,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -145.76776975140396,
+            "y": 131.523037596705,
+            "z": 16.333307414134186
+          },
+          "shift": {
+            "x": -0.4033811918362795,
+            "y": 1.6813766278254438,
+            "z": 0.4033811918362932
+          }
+        },
+        {
+          "key": "node:medial-node:1654:medial-node:1654:medial-node:1655:1713:r1:1946:r2:medial-node:1654:medial-node:1654:medial-node:1655:1713:r1:1946:r3:1920:r1:54,-641,-30",
+          "offset": 1.7032992041249666,
+          "normalizedOffset": 0.22957055579764088,
+          "degree": 2,
+          "radius": 2.8287243427456374,
+          "meanRadius": 7.41950202719538,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 13.381437298678707,
+            "y": -160.13615543808095,
+            "z": -7.49414281705982
+          },
+          "shift": {
+            "x": -1.3211417497092264,
+            "y": -1.0539603532496717,
+            "z": 0.21208543025350884
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:8:-582,526,67",
+          "offset": 1.677800775581795,
+          "normalizedOffset": 0.600733713093861,
+          "degree": 2,
+          "radius": 1.8782156514125024,
+          "meanRadius": 2.792919290214113,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -145.45276975140393,
+            "y": 131.523037596705,
+            "z": 16.648307414134187
+          },
+          "shift": {
+            "x": -0.35888917339200593,
+            "y": 1.5991912221453906,
+            "z": 0.35888917339202014
+          }
+        },
+        {
+          "key": "node:medial-node:1326:medial-node:1327:1371:r2:medial-node:1327:1480:r1:-2,-1178,16",
+          "offset": 1.637662570423933,
+          "normalizedOffset": 0.20130820214803724,
+          "degree": 2,
+          "radius": 4.393270730242323,
+          "meanRadius": 8.135101068657079,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": -0.46848533826709077,
+            "y": -294.47349319142137,
+            "z": 3.9963933648066643
+          },
+          "shift": {
+            "x": -1.3762901238360117,
+            "y": -0.8845833184211573,
+            "z": 0.072639812568534
+          }
+        },
+        {
+          "key": "node:medial-node:5969:medial-node:5970:6180:r1:medial-node:5970:6898:r1:75,165,-13",
+          "offset": 1.6311423135526308,
+          "normalizedOffset": 0.10002377137227732,
+          "degree": 2,
+          "radius": 13.173784821058117,
+          "meanRadius": 16.307546607912844,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 18.713827751297668,
+            "y": 41.24161629724654,
+            "z": -3.2587870342753016
+          },
+          "shift": {
+            "x": -0.8091400840997865,
+            "y": 1.2961313156906282,
+            "z": 0.570930104172919
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:9:-581,526,68",
+          "offset": 1.5621491066807265,
+          "normalizedOffset": 0.5612840288805129,
+          "degree": 2,
+          "radius": 2.0328076030169555,
+          "meanRadius": 2.783170420502522,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -145.13776975140394,
+            "y": 131.523037596705,
+            "z": 16.963307414134185
+          },
+          "shift": {
+            "x": -0.3022062250464125,
+            "y": 1.502548710221997,
+            "z": 0.3022062250464108
+          }
+        },
+        {
+          "key": "node:medial-junction:20419:73,157,-6",
+          "offset": 1.512296762754673,
+          "normalizedOffset": 0.09303565872752335,
+          "degree": 3,
+          "radius": 12.732240345836397,
+          "meanRadius": 16.25502289593915,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 18.193834955831296,
+            "y": 39.20090965458042,
+            "z": -1.5207030162437845
+          },
+          "shift": {
+            "x": -0.9621714734148481,
+            "y": 1.0831462825927827,
+            "z": 0.4336607947352405
+          }
+        }
+      ],
+      "centerlineCenteringWorstNormalizedOffsets": [
+        {
+          "key": "node:medial-junction:7185:670,-2513,56",
+          "offset": 0.5336581996715841,
+          "normalizedOffset": 0.6747849458049552,
+          "degree": 3,
+          "radius": 0.6,
+          "meanRadius": 0.790856706257695,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 167.60037032469035,
+            "y": -628.3207547279186,
+            "z": 14.080932915767749
+          },
+          "shift": {
+            "x": 0.42687092541328,
+            "y": -0.2638884190836516,
+            "z": -0.181480548233295
+          }
+        },
+        {
+          "key": "node:medial-node:5941:183,395,-58",
+          "offset": 0.6070205373135846,
+          "normalizedOffset": 0.652427789613026,
+          "degree": 2,
+          "radius": 0.6,
+          "meanRadius": 0.9304026391543287,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 45.79851956548862,
+            "y": 98.67402215772526,
+            "z": -14.389805986801829
+          },
+          "shift": {
+            "x": -0.30189774916526485,
+            "y": 0.4073100428055385,
+            "z": 0.3338116396999514
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:18:-569,526,69",
+          "offset": 1.2636138386321567,
+          "normalizedOffset": 0.6477740427803985,
+          "degree": 2,
+          "radius": 2.175148726857867,
+          "meanRadius": 1.9507015644042,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -142.30276975140396,
+            "y": 131.523037596705,
+            "z": 17.278307414134186
+          },
+          "shift": {
+            "x": 0,
+            "y": 1.1768510999776403,
+            "z": 0.4601536935243618
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:7:-583,526,65",
+          "offset": 1.775516864592445,
+          "normalizedOffset": 0.6446491296859193,
+          "degree": 2,
+          "radius": 1.754207249169445,
+          "meanRadius": 2.7542375888376642,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -145.76776975140396,
+            "y": 131.523037596705,
+            "z": 16.333307414134186
+          },
+          "shift": {
+            "x": -0.4033811918362795,
+            "y": 1.6813766278254438,
+            "z": 0.4033811918362932
+          }
+        },
+        {
+          "key": "node:medial-junction:7224:825,-2507,79",
+          "offset": 0.433404749862127,
+          "normalizedOffset": 0.6127110682348436,
+          "degree": 3,
+          "radius": 0.6,
+          "meanRadius": 0.7073558359419241,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 206.27056371318182,
+            "y": -626.8256417257801,
+            "z": 19.65943059442519
+          },
+          "shift": {
+            "x": 0.3274575909464268,
+            "y": -0.259756681399641,
+            "z": 0.11461967458888084
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:17:-570,526,69",
+          "offset": 1.202492952806706,
+          "normalizedOffset": 0.6103097152204854,
+          "degree": 2,
+          "radius": 2.1944632856509503,
+          "meanRadius": 1.9702995427039596,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -142.61776975140396,
+            "y": 131.523037596705,
+            "z": 17.278307414134186
+          },
+          "shift": {
+            "x": 0,
+            "y": 1.1497284117195536,
+            "z": 0.3522980000434622
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:19:-568,526,69",
+          "offset": 1.1239187054595188,
+          "normalizedOffset": 0.6032898526869829,
+          "degree": 2,
+          "radius": 2.149118338920156,
+          "meanRadius": 1.8629829433624907,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -141.98776975140396,
+            "y": 131.523037596705,
+            "z": 17.278307414134186
+          },
+          "shift": {
+            "x": 0,
+            "y": 0.963973692125931,
+            "z": 0.5778823213863712
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:8:-582,526,67",
+          "offset": 1.677800775581795,
+          "normalizedOffset": 0.600733713093861,
+          "degree": 2,
+          "radius": 1.8782156514125024,
+          "meanRadius": 2.792919290214113,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -145.45276975140393,
+            "y": 131.523037596705,
+            "z": 16.648307414134187
+          },
+          "shift": {
+            "x": -0.35888917339200593,
+            "y": 1.5991912221453906,
+            "z": 0.35888917339202014
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:16:-572,526,69",
+          "offset": 1.2477961967565037,
+          "normalizedOffset": 0.5886151308374216,
+          "degree": 2,
+          "radius": 2.1933411182624236,
+          "meanRadius": 2.1198846774143685,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -142.93276975140395,
+            "y": 131.523037596705,
+            "z": 17.278307414134186
+          },
+          "shift": {
+            "x": 0,
+            "y": 1.213082358674229,
+            "z": 0.29227818891146184
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:15:-573,526,69",
+          "offset": 1.2735888895640097,
+          "normalizedOffset": 0.5750858268857734,
+          "degree": 2,
+          "radius": 2.181691087760287,
+          "meanRadius": 2.2146066378662064,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -143.24776975140395,
+            "y": 131.523037596705,
+            "z": 17.278307414134186
+          },
+          "shift": {
+            "x": 0,
+            "y": 1.2451404417773664,
+            "z": 0.267682535611407
+          }
+        },
+        {
+          "key": "node:medial-junction:9125:831,-2134,102",
+          "offset": 0.41837239929009545,
+          "normalizedOffset": 0.5675656713085674,
+          "degree": 3,
+          "radius": 0.6,
+          "meanRadius": 0.737134785346522,
+          "sources": [
+            "stl-medial-tree"
+          ],
+          "point": {
+            "x": 207.76263441504378,
+            "y": -533.4309768338968,
+            "z": 25.535457311237984
+          },
+          "shift": {
+            "x": -0.216259334122219,
+            "y": -0.34897661737164726,
+            "z": 0.0805151254150945
+          }
+        },
+        {
+          "key": "node:route:medial-junction:24486:medial-node:4505:medial-node:4506:4648:r1:-584,519,58:-561,511,61:14:-574,526,69",
+          "offset": 1.2991125838891364,
+          "normalizedOffset": 0.5631437985202747,
+          "degree": 2,
+          "radius": 2.1953019601202755,
+          "meanRadius": 2.306893172405884,
+          "sources": [
+            "stl-slice-invalid-reroute"
+          ],
+          "point": {
+            "x": -143.56276975140395,
+            "y": 131.523037596705,
+            "z": 17.278307414134186
+          },
+          "shift": {
+            "x": 0,
+            "y": 1.2761578091509436,
+            "z": 0.24313525405044067
+          }
+        }
+      ],
+      "centerlineRefinement": true,
+      "centerlineRefinedNodeCount": 17844,
+      "centerlineRefinementSkippedNodeCount": 0,
+      "centerlineRefinementFailedNodeCount": 2632,
+      "centerlineRefinementWallRejectedSegmentCount": 39,
+      "centerlineRefinementWallClampedSegmentCount": 32,
+      "centerlineRefinementAverageShift": 0.27867869175560644,
+      "centerlineRefinementMaxShift": 15.16395344885455,
+      "centerlineClearanceMaximization": {
+        "passCount": 5,
+        "movedNodeCount": 4053,
+        "averageShift": 0.3847228912743476,
+        "maxShift": 1.2500000000000004,
+        "averageClearanceGain": 0.2147739250747605,
+        "maxClearanceGain": 1.2496504563835087
+      },
+      "medialTree": {
+        "source": "medial-slice-teasar",
+        "gridSpacing": 0.855,
+        "nodeSpacing": 2,
+        "sliceCount": 1961,
+        "contourCount": 15397,
+        "rasterCellCount": 483898,
+        "thinningPassCount": 34486,
+        "graphNodeCount": 27008,
+        "graphEdgeCount": 56758,
+        "graphComponentCount": 24,
+        "graphComponentSizes": [
+          26799,
+          69,
+          50,
+          25,
+          23,
+          8,
+          7,
+          5,
+          4,
+          3,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "graphComponentDetails": [
+          {
+            "nodeCount": 26799,
+            "edgeLength": 69978.41994453584,
+            "averageClearance": 1.9795752352403009,
+            "nearestPrimaryDistance": 0,
+            "min": {
+              "x": -229.0489365261646,
+              "y": -1392.062,
+              "z": -116.62436012686972
+            },
+            "max": {
+              "x": 229.3823105518026,
+              "y": 371.93800000001715,
+              "z": 125.69484654283491
+            }
+          },
+          {
+            "nodeCount": 69,
+            "edgeLength": 79.13301262514977,
+            "averageClearance": 0.5563263485527922,
+            "nearestPrimaryDistance": 15.48320413195156,
+            "min": {
+              "x": -139.78774736744757,
+              "y": 27.238000000018918,
+              "z": -11.990609067411294
+            },
+            "max": {
+              "x": -134.28006153912762,
+              "y": 83.93800000001899,
+              "z": -3.9231189181427046
+            }
+          },
+          {
+            "nodeCount": 50,
+            "edgeLength": 126.07914168691585,
+            "averageClearance": 1.022472160809032,
+            "nearestPrimaryDistance": 4.9053791006908085,
+            "min": {
+              "x": -139.38130891861206,
+              "y": 85.738000000019,
+              "z": -10.321370792490852
+            },
+            "max": {
+              "x": -133.9041113081486,
+              "y": 110.03800000001915,
+              "z": 8.001095152292596
+            }
+          },
+          {
+            "nodeCount": 25,
+            "edgeLength": 45.458363549827176,
+            "averageClearance": 0.47631718391731703,
+            "nearestPrimaryDistance": 5.043107940801152,
+            "min": {
+              "x": 94.27570805053519,
+              "y": 93.83800000001905,
+              "z": -21.17039202517918
+            },
+            "max": {
+              "x": 97.79457619071475,
+              "y": 110.03800000001915,
+              "z": -12.17971188750999
+            }
+          },
+          {
+            "nodeCount": 23,
+            "edgeLength": 76.33852035746499,
+            "averageClearance": 0.47026868326775967,
+            "nearestPrimaryDistance": 2.0081465085312846,
+            "min": {
+              "x": -37.440268910316036,
+              "y": -175.2619999999817,
+              "z": 88.87324959179446
+            },
+            "max": {
+              "x": -26.4970794356148,
+              "y": -172.56199999998168,
+              "z": 92.48356815480594
+            }
+          },
+          {
+            "nodeCount": 8,
+            "edgeLength": 7.628562806004656,
+            "averageClearance": 0.5907009976772717,
+            "nearestPrimaryDistance": 16.690657212966276,
+            "min": {
+              "x": 205.1900387097581,
+              "y": -206.7619999999819,
+              "z": -95.1495571782239
+            },
+            "max": {
+              "x": 205.9061006778781,
+              "y": -200.46199999998186,
+              "z": -91.05872826397618
+            }
+          },
+          {
+            "nodeCount": 7,
+            "edgeLength": 6.257454312596403,
+            "averageClearance": 0.5575147150166344,
+            "nearestPrimaryDistance": 17.960260092274815,
+            "min": {
+              "x": -205.6487571608379,
+              "y": -206.7619999999819,
+              "z": -94.13193738262102
+            },
+            "max": {
+              "x": -204.86987838823717,
+              "y": -201.36199999998186,
+              "z": -91.0697036832184
+            }
+          },
+          {
+            "nodeCount": 5,
+            "edgeLength": 4.983305191658001,
+            "averageClearance": 0.45242102254997524,
+            "nearestPrimaryDistance": 16.167495098360558,
+            "min": {
+              "x": -206.5848825647994,
+              "y": -200.46199999998186,
+              "z": -96.00922920003903
+            },
+            "max": {
+              "x": -204.87488256479938,
+              "y": -200.46199999998186,
+              "z": -94.29922920003902
+            }
+          },
+          {
+            "nodeCount": 4,
+            "edgeLength": 6.50941403998265,
+            "averageClearance": 2.032367383643946,
+            "nearestPrimaryDistance": 0.9458288243196149,
+            "min": {
+              "x": -100.11036859829794,
+              "y": -483.96199999997646,
+              "z": -3.6799762098524225
+            },
+            "max": {
+              "x": -99.16019935578825,
+              "y": -483.0619999999765,
+              "z": -2.824976209852422
+            }
+          },
+          {
+            "nodeCount": 3,
+            "edgeLength": 2.0641525958289937,
+            "averageClearance": 14.444720154578413,
+            "nearestPrimaryDistance": 0.9425543364347474,
+            "min": {
+              "x": 8.4005299949646,
+              "y": 2.038000000018932,
+              "z": 11.13550245285034
+            },
+            "max": {
+              "x": 10.110529994964597,
+              "y": 2.038000000018932,
+              "z": 11.99050245285034
+            }
+          },
+          {
+            "nodeCount": 2,
+            "edgeLength": 1.2091525958289968,
+            "averageClearance": 0.6530715822936008,
+            "nearestPrimaryDistance": 1.0524561499927594,
+            "min": {
+              "x": -37.797392360139256,
+              "y": -171.66199999998167,
+              "z": 88.93892959805255
+            },
+            "max": {
+              "x": -36.94239236013926,
+              "y": -171.66199999998167,
+              "z": 89.79392959805256
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.6581271354676902,
+            "nearestPrimaryDistance": 2.4210484521377045,
+            "min": {
+              "x": -119.23131252319274,
+              "y": -483.96199999997646,
+              "z": -4.588173375291586
+            },
+            "max": {
+              "x": -119.23131252319274,
+              "y": -483.96199999997646,
+              "z": -4.588173375291586
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.5588672070910362,
+            "nearestPrimaryDistance": 0.9294460937034241,
+            "min": {
+              "x": -110.17315553151737,
+              "y": -483.96199999997646,
+              "z": 1.9062534620511067
+            },
+            "max": {
+              "x": -110.17315553151737,
+              "y": -483.96199999997646,
+              "z": 1.9062534620511067
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 0.9423323620111723,
+            "min": {
+              "x": -117.80906085142087,
+              "y": -483.96199999997646,
+              "z": -3.2116171305368275
+            },
+            "max": {
+              "x": -117.80906085142087,
+              "y": -483.96199999997646,
+              "z": -3.2116171305368275
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.5859950379589302,
+            "nearestPrimaryDistance": 1.1211965016445324,
+            "min": {
+              "x": 60.454489680111436,
+              "y": -470.4619999999768,
+              "z": -24.23488061393988
+            },
+            "max": {
+              "x": 60.454489680111436,
+              "y": -470.4619999999768,
+              "z": -24.23488061393988
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 2.9330135528999297,
+            "min": {
+              "x": 60.98065889614917,
+              "y": -402.0619999999785,
+              "z": 24.718215841467135
+            },
+            "max": {
+              "x": 60.98065889614917,
+              "y": -402.0619999999785,
+              "z": 24.718215841467135
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 3.8866021281490903,
+            "min": {
+              "x": 61.27073289402089,
+              "y": -401.16199999997855,
+              "z": 24.856902245891437
+            },
+            "max": {
+              "x": 61.27073289402089,
+              "y": -401.16199999997855,
+              "z": 24.856902245891437
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 1.2513024321402613,
+            "min": {
+              "x": -67.19626282417893,
+              "y": -388.56199999997887,
+              "z": 47.8756116439444
+            },
+            "max": {
+              "x": -67.19626282417893,
+              "y": -388.56199999997887,
+              "z": 47.8756116439444
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 2.294238604842476,
+            "min": {
+              "x": 45.28112087204203,
+              "y": -357.06199999997966,
+              "z": 70.18275570121835
+            },
+            "max": {
+              "x": 45.28112087204203,
+              "y": -357.06199999997966,
+              "z": 70.18275570121835
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 1.3069902539848741,
+            "min": {
+              "x": -84.2818145640315,
+              "y": -356.1619999999797,
+              "z": -66.0396907483923
+            },
+            "max": {
+              "x": -84.2818145640315,
+              "y": -356.1619999999797,
+              "z": -66.0396907483923
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 1.0442292425308084,
+            "min": {
+              "x": -53.46508552987083,
+              "y": -287.7619999999814,
+              "z": 38.53975372644442
+            },
+            "max": {
+              "x": -53.46508552987083,
+              "y": -287.7619999999814,
+              "z": 38.53975372644442
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.38475,
+            "nearestPrimaryDistance": 4.411635137730907,
+            "min": {
+              "x": 10.86776966491856,
+              "y": -231.06199999998205,
+              "z": 70.92653541169976
+            },
+            "max": {
+              "x": 10.86776966491856,
+              "y": -231.06199999998205,
+              "z": 70.92653541169976
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 1.2524791023370654,
+            "nearestPrimaryDistance": 1.2177509092395957,
+            "min": {
+              "x": -72.91548461159259,
+              "y": -134.76199999998144,
+              "z": -4.687709558273427
+            },
+            "max": {
+              "x": -72.91548461159259,
+              "y": -134.76199999998144,
+              "z": -4.687709558273427
+            }
+          },
+          {
+            "nodeCount": 1,
+            "edgeLength": 0,
+            "averageClearance": 0.7291801405856217,
+            "nearestPrimaryDistance": 1.0176270211301104,
+            "min": {
+              "x": -37.703432239870104,
+              "y": 85.738000000019,
+              "z": -10.313225902370894
+            },
+            "max": {
+              "x": -37.703432239870104,
+              "y": 85.738000000019,
+              "z": -10.313225902370894
+            }
+          }
+        ],
+        "graphConnectorCount": 69,
+        "graphRoutedConnectorCount": 0,
+        "graphFailedRouteCount": 1,
+        "componentCount": 1,
+        "discardedDisconnectedComponentCount": 23,
+        "discardedDisconnectedNodeCount": 209,
+        "retainedGraphNodeCount": 26799,
+        "acceptedBranchCount": 196,
+        "rejectedTwigCount": 0,
+        "unreachableNodeCount": 0,
+        "coveredNodeCount": 26799,
+        "uncoveredNodeCount": 0,
+        "treeNodeCount": 17776,
+        "treeEdgeCount": 17775,
+        "endpointCount": 196,
+        "junctionCount": 186,
+        "chainCount": 381,
+        "smoothing": {
+          "movedNodeCount": 18988,
+          "averageShift": 0.047161385216422665,
+          "maxShift": 1.7427424788310597
+        },
+        "elapsedMs": 4077.96825
+      },
+      "wallValidation": "stl-bvh-with-packed-lumen-seam-check",
+      "centerlineWallIntersectionCount": 4,
+      "centerlineAcceptedInternalWallSeamCount": 3,
+      "centerlineInvalidSegmentDetailsFinal": [
+        {
+          "start": [
+            45.79851956548862,
+            98.67402215772526,
+            -14.389805986801829
+          ],
+          "end": [
+            46.08765744385535,
+            98.33800000001908,
+            -12.728885769154234
+          ],
+          "length": 1.7190600840478112,
+          "minimumClearance": -0.0999091299019357
+        }
+      ]
+    }
+  },
+  "broadPhase": {
+    "cellSize": 16,
+    "origin": [
+      -240,
+      -1408,
+      -128
+    ],
+    "dimensions": [
+      30,
+      112,
+      17
+    ],
+    "entryCount": 59313
+  },
+  "lumen": {
+    "axisCount": 13,
+    "sliceCount": 8440,
+    "contourCount": 58354,
+    "pointCount": 2815287,
+    "pointQuantization": 0.05,
+    "signature": "f1ae7934176002ea741715ed98bd784a917f5ee3a50aa976a8c33262abb246a8",
+    "diagnostics": {
+      "source": "multi-axis-slice-field",
+      "sliceCount": 1960,
+      "contourCount": 11217,
+      "debugSegmentCount": 17621,
+      "requestedSliceCount": 1000,
+      "sliceSpacing": 0.9,
+      "taggingRequestedSliceCount": 1000,
+      "taggingSliceSpacing": 1.7662693481445313,
+      "minCompactness": 0.1,
+      "taggingAxes": [
+        {
+          "axis": "y",
+          "sliceCount": 1960,
+          "contourCount": 11217,
+          "taggedTriangleCount": 261872
+        },
+        {
+          "axis": "x",
+          "sliceCount": 260,
+          "contourCount": 2237,
+          "taggedTriangleCount": 120038
+        },
+        {
+          "axis": "z",
+          "sliceCount": 130,
+          "contourCount": 2741,
+          "taggedTriangleCount": 128340
+        },
+        {
+          "axis": "xy+",
+          "sliceCount": 754,
+          "contourCount": 4660,
+          "taggedTriangleCount": 166360
+        },
+        {
+          "axis": "xy-",
+          "sliceCount": 775,
+          "contourCount": 4818,
+          "taggedTriangleCount": 166313
+        },
+        {
+          "axis": "xz+",
+          "sliceCount": 232,
+          "contourCount": 2606,
+          "taggedTriangleCount": 126110
+        },
+        {
+          "axis": "xz-",
+          "sliceCount": 231,
+          "contourCount": 2775,
+          "taggedTriangleCount": 137579
+        },
+        {
+          "axis": "yz+",
+          "sliceCount": 728,
+          "contourCount": 4862,
+          "taggedTriangleCount": 165194
+        },
+        {
+          "axis": "yz-",
+          "sliceCount": 766,
+          "contourCount": 4736,
+          "taggedTriangleCount": 164175
+        },
+        {
+          "axis": "xyz+++",
+          "sliceCount": 621,
+          "contourCount": 4322,
+          "taggedTriangleCount": 163126
+        },
+        {
+          "axis": "xyz++-",
+          "sliceCount": 666,
+          "contourCount": 4388,
+          "taggedTriangleCount": 166797
+        },
+        {
+          "axis": "xyz+-+",
+          "sliceCount": 681,
+          "contourCount": 4472,
+          "taggedTriangleCount": 163775
+        },
+        {
+          "axis": "xyz-++",
+          "sliceCount": 636,
+          "contourCount": 4520,
+          "taggedTriangleCount": 164903
+        }
+      ]
+    }
+  },
+  "sdf": {
+    "voxelSize": 0.5,
+    "brickSize": 8,
+    "band": 4,
+    "quantization": 0.02,
+    "distanceQuantization": 0.02,
+    "origin": [
+      -236,
+      -1400,
+      -124
+    ],
+    "dimensions": [
+      118,
+      445,
+      64
+    ],
+    "brickCount": 86178,
+    "candidateBrickCount": 112465,
+    "signEncoding": "inside-bitset-lsb",
+    "signByteLength": 5515392
+  },
+  "decodedBytes": 63894592,
+  "timings": {
+    "preprocessMs": 4194.079458,
+    "centerlineMs": 39572.657292,
+    "lumenMs": 60346.704207999996,
+    "lumenReused": false,
+    "sdfMs": 249339.162083,
+    "sdfReused": false,
+    "sdfSignMs": 120258,
+    "sdfSignsReused": false,
+    "totalMs": 475148.057416
+  },
+  "encodedBytes": 63921560
+}

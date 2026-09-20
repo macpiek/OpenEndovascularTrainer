@@ -1,0 +1,8 @@
+{
+  "iterations": 21033,
+  "factorizations": 133917,
+  "fullAssemblies": 40451,
+  "residualAssemblies": 45080,
+  "motionSteps": 5025,
+  "motionAttempts": 5029
+}

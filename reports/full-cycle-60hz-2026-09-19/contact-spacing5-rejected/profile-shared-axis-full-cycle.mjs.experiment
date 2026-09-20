@@ -1,0 +1,73 @@
+/** Complete feed/retraction benchmark, not a 60 cm feed-only proxy.
+ * Run: node scripts/physics/profile-shared-axis-full-cycle.mjs /tmp/oet-cycle
+ * OPTIONS and MESH accept JSON overrides for explicitly labelled experiments.
+ * Node timings exclude UI/rendering and cannot alone prove browser 60 Hz. */
+import {readFileSync,writeFileSync,mkdirSync,readdirSync,appendFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {Session} from 'node:inspector';
+import {installExperimentalCollisionGeometry} from './experimental-collision-geometry.mjs';
+import {fullCyclePhases} from '../../src/benchmark/fullCycleBenchmark.js';
+import {promisify} from 'node:util';
+import {loadCoupledRuntimeAnatomy} from '../../tests/helpers/coupledRuntimeFixture.js';
+import {createSharedAxisContacts} from '../../src/physics/kirchhoffSharedAxisContacts.js';
+import {createSharedAxisNative} from '../../src/physics/kirchhoffSharedAxisNative.js';
+import {advanceSharedAxis} from '../../src/physics/kirchhoffSharedAxisAppSystem.js';
+import {captureSharedAxisReplay} from '../../src/physics/kirchhoffSharedAxisReplay.js';
+import {DEFAULT_ADAPTIVE_MESH,ADAPTIVE_SOLVE_OPTIONS} from '../../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
+import {DEFAULT_TOOL_PROFILES} from '../../src/physics/endovascularPhysicsWorld.js';
+import {catheterNodeMass} from '../../src/physics/catheterDiscretization.js';
+import {INTRODUCER_SHEATH_INNER_RADIUS_MM} from '../../src/toolDimensions.js';
+const output=process.argv[2];if(!output)throw new Error('Output directory required');mkdirSync(output,{recursive:true});
+const realtime=process.env.SOLVER!=='adaptive';
+const spacing=Number(process.env.SPACING_MM??5);
+const dt=1/60,target=Number(process.env.TARGET_MM??1000);
+if(!(target>0&&target<=1000))throw new Error('Invalid insertion target');
+const adaptiveMesh={...DEFAULT_ADAPTIVE_MESH,...JSON.parse(process.env.MESH??'{}')};
+const options={...ADAPTIVE_SOLVE_OPTIONS,continuousSegmentContacts:realtime?'axis':false,wasmLinearAssembly:realtime,reuseFrictionAssembly:realtime,certifiedDiscoverySamples:realtime,lazyBasisCoefficients:realtime,deferActiveBasis:realtime,earlyPredictorFallback:false,liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,pruneInactiveWitnesses:true,coupledFrictionNewton:true,zeroDualStart:true,velocityPredictor:1,...JSON.parse(process.env.OPTIONS??'{}')};
+const tools=[{id:'wire',type:process.env.WIRE_TYPE??'glidewire',mass:DEFAULT_TOOL_PROFILES.guidewire.mass,radius:DEFAULT_TOOL_PROFILES.guidewire.radius,shaftStiffness:9.6,tipStiffness:6.8,wallStaticFriction:.006,wallKineticFriction:.002},
+{id:'catheter',type:process.env.CATHETER_TYPE??'berenstein',mass:catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass),radius:DEFAULT_TOOL_PROFILES.catheter.radius,shaftStiffness:40.65,tipStiffness:66.8,wallStaticFriction:DEFAULT_TOOL_PROFILES.catheter.wallFriction,wallKineticFriction:DEFAULT_TOOL_PROFILES.catheter.wallFriction}];
+const sourceFiles=[...readdirSync(new URL('../../src/physics/',import.meta.url)).filter(n=>n.endsWith('.js')).map(n=>'src/physics/'+n),'src/benchmark/fullCycleBenchmark.js','scripts/physics/profile-shared-axis-full-cycle.mjs'];
+const sourceHashes=Object.fromEntries(sourceFiles.sort().map(n=>[n,createHash('sha256').update(readFileSync(new URL('../../'+n,import.meta.url))).digest('hex')]));
+const anatomy=await loadCoupledRuntimeAnatomy(),sheath={...anatomy.vessel.sheath,innerRadius:INTRODUCER_SHEATH_INNER_RADIUS_MM,proximalExtension:40};
+// Explicit research-only collision geometry. Generated in world millimetres by
+// simplify-collision-experiment.mjs. Keep the packed lumen/sign field unchanged
+// to isolate the triangle kernel; this is not a new production collision asset.
+const experiment=process.env.COLLISION_WORLD_STL?installExperimentalCollisionGeometry(anatomy,process.env.COLLISION_WORLD_STL):null;
+const collisionExperiment=experiment?.metadata??null;
+const capture=(state)=>({...captureSharedAxisReplay(state,sheath),...(collisionExperiment?{collisionExperiment}:{})});
+let state=createSharedAxisNative({...createSharedAxisContacts({sheath,contactField:anatomy.field,localCoordinates:true,retainDiscoveryCertificates:realtime,continuousDiscoverySign:realtime,continuousSegmentContacts:options.continuousSegmentContacts??false,contactSampleSpacing:options.contactSampleSpacing??0,certifiedDiscoverySamples:options.certifiedDiscoverySamples===true}),spacing,maxBendAngle:Math.PI/4,adaptiveMesh,tools:tools.map(t=>({...t,insertion:0}))});
+let rotations={wire:0,catheter:0},failed=false;const samples=[],snapshots=[],slowest=[];
+const metadata={solver:realtime?'shared-axis-realtime':'shared-axis-adaptive',createdAt:new Date().toISOString(),target,dt,spacing,tools,adaptiveMesh,options,sourceHashes,anatomySha256:createHash('sha256').update(readFileSync(new URL('../../res/Aorta_plain.stl',import.meta.url))).digest('hex'),collisionExperiment,timingScope:'Entire synchronous advanceSharedAxis, all subdivisions and failed attempts; excludes rendering and UI'};
+writeFileSync(output+'/metadata.json',JSON.stringify(metadata,null,2));
+let session,post;if(process.env.CPU_PROFILE==='1'){session=new Session();session.connect();post=promisify(session.post.bind(session));await post('Profiler.enable');await post('Profiler.start');}
+function step(phase,feeds={}){
+    const request=state.materials.map(m=>({...m.spec,insertion:feeds[m.spec.id]??m.spec.insertion,rotation:rotations[m.spec.id]}));
+    const cpuStart=process.cpuUsage(),start=performance.now();const it=advanceSharedAxis(state,rotations,dt,request,options);let n;do{n=it.next();}while(!n.done);
+    const elapsedMs=performance.now()-start,cpu=process.cpuUsage(cpuStart),next=n.value.state,result=n.value.result;
+    const row={index:samples.length,phase,wire:request[0].insertion,catheter:request[1].insertion,elapsedMs,processCpuMs:(cpu.user+cpu.system)/1000,nodes:next?.coordinates.length,definitions:next?.definitions.length,...result};
+    samples.push(row);appendFileSync(output+'/steps.jsonl',JSON.stringify(row)+'\n');
+    if(elapsedMs>100&&(slowest.length<5||elapsedMs>slowest.at(-1).ms)){
+        const replay={...capture(state),stepRequest:{dt,tools:request,rotations,options}};
+        slowest.push({index:row.index,ms:elapsedMs,replay});slowest.sort((a,b)=>b.ms-a.ms);if(slowest.length>5)slowest.pop();
+    }
+    if(!next){failed=true;writeFileSync(output+'/failed-incoming.json',JSON.stringify({...capture(state),stepRequest:{dt,tools:request,rotations,options}}));console.log('FAILED',phase,row.wire,row.catheter,result.status,result.error);return false;}
+    state=next;rotations=n.value.rotations;
+    if(samples.length%60===0||phase==='initial')snapshots.push({index:row.index,phase,wire:row.wire,catheter:row.catheter,coordinates:state.coordinates,positions:state.positions.map(p=>p.slice()),origin:state.origin});
+    if(samples.length%100===0)console.log(phase,samples.length,row.wire.toFixed(2),row.catheter.toFixed(2),elapsedMs.toFixed(1)+'ms',row.iterations+'it',row.factorizations+'LU',row.nodes+'nodes');
+    return true;
+}
+try{
+ if(step('initial'))for(const {name:phase,tool:id,rate,sign}of fullCyclePhases(dt,target)){
+    const end=sign>0?target:0;
+    let x=state.materials.find(m=>m.spec.id===id).spec.insertion;
+    while(Math.abs(end-x)>1e-8){x=sign>0?Math.min(end,x+rate*dt):Math.max(end,x-rate*dt);if(!step(phase,{[id]:x}))break;}if(failed)break;
+ }
+}finally{
+ if(session){const {profile}=await post('Profiler.stop');session.disconnect();writeFileSync(output+'/cycle.cpuprofile',JSON.stringify(profile));}
+ const stats=rows=>{const cpu=rows.map(r=>r.processCpuMs).sort((a,b)=>a-b);const sorted=rows.map(r=>r.elapsedMs).sort((a,b)=>a-b),q=p=>sorted[Math.floor((sorted.length-1)*p)];return {steps:rows.length,processCpu:{meanMs:cpu.reduce((a,b)=>a+b,0)/cpu.length,p50Ms:cpu[Math.floor((cpu.length-1)*.5)],p95Ms:cpu[Math.floor((cpu.length-1)*.95)],maxMs:cpu.at(-1)},meanMs:rows.reduce((a,r)=>a+r.elapsedMs,0)/rows.length,p50Ms:q(.5),p95Ms:q(.95),p99Ms:q(.99),maxMs:q(1),overBudget:rows.filter(r=>r.elapsedMs>1000/60).length,meanIterations:rows.reduce((a,r)=>a+r.iterations,0)/rows.length,meanFactorizations:rows.reduce((a,r)=>a+r.factorizations,0)/rows.length};};
+ const summary={contactQueries:anatomy.field.getStats(),failed,completed:!failed&&state.materials.every(m=>m.spec.insertion<1e-8),...stats(samples.slice(1)),phases:Object.fromEntries([...new Set(samples.map(r=>r.phase))].map(p=>[p,stats(samples.filter(r=>r.phase===p))]))};
+ writeFileSync(output+'/summary.json',JSON.stringify(summary,null,2));writeFileSync(output+'/shapes.json',JSON.stringify(snapshots));writeFileSync(output+'/terminal.json',JSON.stringify(capture(state)));
+ for(const entry of slowest)writeFileSync(output+`/slow-${entry.index}.json`,JSON.stringify(entry.replay));
+ console.log(JSON.stringify(summary,null,2));experiment?.dispose();anatomy.dispose();
+}
+process.exitCode=failed?1:0;

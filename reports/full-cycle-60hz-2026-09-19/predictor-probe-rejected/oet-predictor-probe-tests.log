@@ -1,0 +1,19 @@
+✔ velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation (6.854583ms)
+✔ a failed predictor retries from the original pose and includes failed work (7.504625ms)
+✔ velocity prediction retains the same dynamic equilibrium and force certificate for a free rod (1.650583ms)
+✔ invalid prediction strengths are rejected before physical work (0.925125ms)
+✔ early predictor recovery tries the incoming pose before friction fallbacks (2.335875ms)
+✔ cancelling early predictor recovery restores the whole incoming state (0.832792ms)
+✔ zero motion does not lose the normal fallback when early prediction is enabled (0.467125ms)
+✔ failed early recovery still runs the original predicted friction fallback and counts the extra work (1.642625ms)
+✔ a failed bounded predictor probe reruns the entire unrestricted predicted strategy (1.762125ms)
+✔ cancelling the alternate seed after a budget stop rolls back rates, pose and friction history (0.538958ms)
+✔ a probe limit applies only to an actually predicted pose and rejects invalid limits (0.862375ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.096167

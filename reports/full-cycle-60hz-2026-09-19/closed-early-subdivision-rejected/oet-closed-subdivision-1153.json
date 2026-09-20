@@ -1,0 +1,878 @@
+{
+  "inputPath": "/tmp/oet-closed-baseline/slow-1153.json",
+  "collisionExperiment": null,
+  "options": {
+    "forceTolerance": 0.0001,
+    "lengthTolerance": 0.001,
+    "wasmLinearAssembly": true,
+    "reuseFrictionAssembly": true,
+    "certifiedDiscoverySamples": true,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true,
+    "earlyPredictorFallback": true,
+    "liveWallNormalLoad": true,
+    "promoteTrialAssembly": true,
+    "projectionMode": "reduced",
+    "stagnationFallback": true,
+    "wasmMaterial": true,
+    "reuseMaterialScratch": true,
+    "lightweightFriction": true,
+    "reuseTriangleKernel": true,
+    "earlyContactPreflight": true,
+    "reuseConstraintWork": true,
+    "reuseMatrixAssembly": true,
+    "reuseRowBuffers": true,
+    "pruneInactiveWitnesses": true,
+    "coupledFrictionNewton": true,
+    "zeroDualStart": true,
+    "velocityPredictor": 1,
+    "earlySubdivision": true
+  },
+  "result": {
+    "converged": true,
+    "status": "converged",
+    "error": null,
+    "coupledFrictionRefreshes": 8,
+    "frictionRefreshMs": 3.6001659999997173,
+    "retainedDiscoveryTrials": 2,
+    "iterations": 8,
+    "factorizations": 183,
+    "workingSetReuses": 7,
+    "backtracks": 0,
+    "geometryRestarts": 5,
+    "ms": 163.95412499999998,
+    "timings": {
+      "assemblyMs": 118.58870699999943,
+      "linearMs": 368.1523830000001,
+      "frictionMs": 8.202374999999847,
+      "tangentAssemblyMs": 88.58558199999993,
+      "residualAssemblyMs": 30.0031249999995,
+      "projectionMs": 0
+    },
+    "fullAssemblies": 19,
+    "residualAssemblies": 16,
+    "promotedAssemblies": 4,
+    "quality": {
+      "mesh": "shared-axis",
+      "interToolRows": 0,
+      "finite": true,
+      "maxPenetration": 4.674038933671909e-14,
+      "contacts": 39,
+      "bodies": [
+        {
+          "id": "wire",
+          "finite": true,
+          "maxLengthError": 9.769962616701378e-15,
+          "maxBendAngleDegrees": 45.000000000001194,
+          "maxBendNode": 158,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 116.29825433148201,
+          "activeWallContacts": 33,
+          "currentNormalLoad": 631589.416602166
+        },
+        {
+          "id": "catheter",
+          "finite": true,
+          "maxLengthError": 3.552713678800501e-16,
+          "maxBendAngleDegrees": 1.5281594247206096,
+          "maxBendNode": 5,
+          "maxBendLimitDegrees": 45,
+          "maxSpeed": 0.0025159664037934706,
+          "activeWallContacts": 6,
+          "currentNormalLoad": 97226.8597872209
+        }
+      ]
+    },
+    "residual": {
+      "force": 2.2152562451083213e-8,
+      "torque": 2.087036321540836e-9,
+      "length": 4.796163466380676e-14
+    },
+    "dofs": 675,
+    "matrixEntries": 35865,
+    "linearScratch": {
+      "allocations": 1,
+      "capacityBytes": 1048576,
+      "grows": 0,
+      "viewBuilds": 36,
+      "requests": 358
+    },
+    "interToolRows": 0,
+    "modifiedAttempts": 0,
+    "modifiedAccepted": 0,
+    "modifiedFallbacks": 0,
+    "predictedInitialPose": true,
+    "certificateBound": 2.2152562451083213e-8,
+    "friction": {
+      "converged": true,
+      "forceChange": 0,
+      "contacts": 30,
+      "sliding": 30
+    },
+    "frictionIterations": 3,
+    "predictorFallbacks": 0,
+    "coupledFrictionFallbacks": 0,
+    "substepAttempts": 3,
+    "wallNormalFallbacks": 0,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "linear-solve",
+        "error": null,
+        "converged": false,
+        "residual": {
+          "force": 21204.42033756428,
+          "torque": 895.8235217149011,
+          "length": 0.26164368976787955
+        },
+        "iterations": 0,
+        "factorizations": 79
+      },
+      {
+        "subdivisions": 2,
+        "index": 1,
+        "dt": 0.008333333333333333,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 0.000007759696018183604,
+          "torque": 8.081835556339456e-8,
+          "length": 1.4551915228366852e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 29,
+          "sliding": 29
+        },
+        "iterations": 3,
+        "factorizations": 33
+      },
+      {
+        "subdivisions": 2,
+        "index": 2,
+        "dt": 0.008333333333333333,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.2152562451083213e-8,
+          "torque": 2.087036321540836e-9,
+          "length": 4.796163466380676e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 30,
+          "sliding": 30
+        },
+        "iterations": 5,
+        "factorizations": 71
+      }
+    ],
+    "subdivisions": 2
+  },
+  "events": [
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 0,
+      "force": 21204.42033756428,
+      "torque": 895.8235217149011,
+      "constraint": 0.26164368976787955,
+      "worstRows": [
+        {
+          "index": 864,
+          "id": "vessel/355/360/0/697487",
+          "kind": "wall",
+          "edge": 67,
+          "gap": 0.2616436897678872,
+          "multiplier": 1939.5421097905084,
+          "coordinate": 355,
+          "violation": 0.26164368976787955
+        },
+        {
+          "index": 751,
+          "id": "vessel/450/455/0/881045",
+          "kind": "wall",
+          "edge": 86,
+          "gap": 0.21587371041621217,
+          "multiplier": 1713.5309609357469,
+          "coordinate": 450,
+          "violation": 0.21587371041619008
+        },
+        {
+          "index": 975,
+          "id": "vessel/590/595/0.3333333333333333/925042",
+          "kind": "wall",
+          "edge": 114,
+          "gap": 0.19491846427341641,
+          "multiplier": 8460.664744427715,
+          "coordinate": 590,
+          "violation": 0.19491846427263226
+        }
+      ],
+      "converged": false,
+      "failure": "active-set-limit",
+      "factorizations": 16,
+      "maxPosition": 1.3824970456592849,
+      "maxIncrement": 1.2621295704579492
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 1,
+      "force": 21204.420337564276,
+      "torque": 895.8235217147324,
+      "constraint": 0.26164368976787955,
+      "worstRows": [
+        {
+          "index": 864,
+          "id": "vessel/355/360/0/697487",
+          "kind": "wall",
+          "edge": 67,
+          "gap": 0.2616436897678872,
+          "multiplier": 1939.5421097905084,
+          "coordinate": 355,
+          "violation": 0.26164368976787955
+        },
+        {
+          "index": 751,
+          "id": "vessel/450/455/0/881045",
+          "kind": "wall",
+          "edge": 86,
+          "gap": 0.21587371041621217,
+          "multiplier": 1713.5309609357469,
+          "coordinate": 450,
+          "violation": 0.21587371041619008
+        },
+        {
+          "index": 975,
+          "id": "vessel/590/595/0.3333333333333333/925042",
+          "kind": "wall",
+          "edge": 114,
+          "gap": 0.19491846427341641,
+          "multiplier": 8460.664744427715,
+          "coordinate": 590,
+          "violation": 0.19491846427263226
+        }
+      ],
+      "converged": false,
+      "failure": "active-set-limit",
+      "factorizations": 31,
+      "maxPosition": 0.171731100161857,
+      "maxIncrement": 0.16391936233754412
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 2,
+      "force": 21204.42033756428,
+      "torque": 895.8235217149011,
+      "constraint": 0.26164368976787955,
+      "worstRows": [
+        {
+          "index": 864,
+          "id": "vessel/355/360/0/697487",
+          "kind": "wall",
+          "edge": 67,
+          "gap": 0.2616436897678872,
+          "multiplier": 1939.5421097905084,
+          "coordinate": 355,
+          "violation": 0.26164368976787955
+        },
+        {
+          "index": 751,
+          "id": "vessel/450/455/0/881045",
+          "kind": "wall",
+          "edge": 86,
+          "gap": 0.21587371041621217,
+          "multiplier": 1713.5309609357469,
+          "coordinate": 450,
+          "violation": 0.21587371041619008
+        },
+        {
+          "index": 975,
+          "id": "vessel/590/595/0.3333333333333333/925042",
+          "kind": "wall",
+          "edge": 114,
+          "gap": 0.19491846427341641,
+          "multiplier": 8460.664744427715,
+          "coordinate": 590,
+          "violation": 0.19491846427263226
+        }
+      ],
+      "converged": false,
+      "failure": "active-set-limit",
+      "factorizations": 32,
+      "maxPosition": 0.8025051860786405,
+      "maxIncrement": 0.6440358712477944
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 0,
+      "force": 17693.087572894332,
+      "torque": 613.7042125253809,
+      "constraint": 0.08168677241656042,
+      "worstRows": [
+        {
+          "index": 860,
+          "id": "vessel/355/360/0/697487",
+          "kind": "wall",
+          "edge": 67,
+          "gap": 0.0816867724165653,
+          "multiplier": 1939.5421097905084,
+          "coordinate": 355,
+          "violation": 0.08168677241656042
+        },
+        {
+          "index": 971,
+          "id": "vessel/590/595/0.3333333333333333/925042",
+          "kind": "wall",
+          "edge": 114,
+          "gap": 0.04183141236126575,
+          "multiplier": 8460.664744427715,
+          "coordinate": 590,
+          "violation": 0.0418314123617165
+        },
+        {
+          "index": 1078,
+          "id": "vessel/235/240/0.6666666666666666/614455",
+          "kind": "wall",
+          "edge": 47,
+          "gap": -0.03605532313795212,
+          "multiplier": 0,
+          "coordinate": 235,
+          "violation": 0.03605532313795212
+        }
+      ],
+      "converged": false,
+      "failure": "active-set-limit",
+      "factorizations": 16,
+      "maxPosition": 0.0676079590319836,
+      "maxIncrement": 0.056312985332959635
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 1,
+      "force": 17693.087572894332,
+      "torque": 613.7042125253807,
+      "constraint": 0.08168677241656042,
+      "worstRows": [
+        {
+          "index": 860,
+          "id": "vessel/355/360/0/697487",
+          "kind": "wall",
+          "edge": 67,
+          "gap": 0.0816867724165653,
+          "multiplier": 1939.5421097905084,
+          "coordinate": 355,
+          "violation": 0.08168677241656042
+        },
+        {
+          "index": 971,
+          "id": "vessel/590/595/0.3333333333333333/925042",
+          "kind": "wall",
+          "edge": 114,
+          "gap": 0.04183141236126575,
+          "multiplier": 8460.664744427715,
+          "coordinate": 590,
+          "violation": 0.0418314123617165
+        },
+        {
+          "index": 1078,
+          "id": "vessel/235/240/0.6666666666666666/614455",
+          "kind": "wall",
+          "edge": 47,
+          "gap": -0.03605532313795212,
+          "multiplier": 0,
+          "coordinate": 235,
+          "violation": 0.03605532313795212
+        }
+      ],
+      "converged": true,
+      "factorizations": 15,
+      "maxPosition": 0.06404598214321507,
+      "maxIncrement": 0.057168802227396946
+    },
+    {
+      "kind": "trial",
+      "iteration": 0,
+      "method": 1,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 323.94491784008187,
+      "torque": 710.3451934431808,
+      "constraint": 0.0006674172131084788
+    },
+    {
+      "kind": "direction",
+      "iteration": 1,
+      "method": 0,
+      "force": 323.94491784008187,
+      "torque": 710.3451934431808,
+      "constraint": 0.0006674172131084788,
+      "worstRows": [
+        {
+          "index": 78,
+          "kind": "length",
+          "edge": 26,
+          "gap": 0.0006674172131084788,
+          "multiplier": -12648.797307005136,
+          "coordinate": 120,
+          "violation": 0.0006674172131084788
+        },
+        {
+          "index": 168,
+          "kind": "length",
+          "edge": 56,
+          "gap": 0.0001475263141816896,
+          "multiplier": -12628.105028024638,
+          "coordinate": 295,
+          "violation": 0.0001475263141816896
+        },
+        {
+          "index": 477,
+          "kind": "length",
+          "edge": 159,
+          "gap": 0.00010566354984309356,
+          "multiplier": 600.9932326674079,
+          "coordinate": 820,
+          "violation": 0.00010566354984309356
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.0063798105872864335,
+      "maxIncrement": 0.006146314982722136
+    },
+    {
+      "kind": "trial",
+      "iteration": 1,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 0.36528081157348424,
+      "torque": 0.0037170531263366335,
+      "constraint": 0.000005806330591440201
+    },
+    {
+      "kind": "direction",
+      "iteration": 2,
+      "method": 0,
+      "force": 0.36528081157348424,
+      "torque": 0.0037170531263326367,
+      "constraint": 0.000005806330591440201,
+      "worstRows": [
+        {
+          "index": 648,
+          "id": "bend/805/810/815",
+          "kind": "wall",
+          "subtype": "bend-limit",
+          "edge": 156,
+          "gap": -0.0000058063258800977735,
+          "multiplier": 83908.4536447298,
+          "coordinate": 805,
+          "violation": 0.000005806330591440201
+        },
+        {
+          "index": 468,
+          "kind": "length",
+          "edge": 156,
+          "gap": 0.0000031663461914632762,
+          "multiplier": -66614.37581580979,
+          "coordinate": 805,
+          "violation": 0.0000031663461914632762
+        },
+        {
+          "index": 647,
+          "id": "bend/800/805/810",
+          "kind": "wall",
+          "subtype": "bend-limit",
+          "edge": 155,
+          "gap": -0.0000010291426927322433,
+          "multiplier": 17603.55813918297,
+          "coordinate": 800,
+          "violation": 0.0000010291441867593676
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.000009056691359191509,
+      "maxIncrement": 0.000008195993717621368
+    },
+    {
+      "kind": "trial",
+      "iteration": 2,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 0.000007759692380204797,
+      "torque": 8.081835556339456e-8,
+      "constraint": 1.4551915228366852e-11
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 0,
+      "force": 57436.047183621806,
+      "torque": 622.9327481172797,
+      "constraint": 0.10263422145840195,
+      "worstRows": [
+        {
+          "index": 785,
+          "id": "vessel/395/400/0/760359",
+          "kind": "wall",
+          "edge": 76,
+          "gap": 0.10263422145841428,
+          "multiplier": 1128.7040526734124,
+          "coordinate": 395,
+          "violation": 0.10263422145840195
+        },
+        {
+          "index": 1036,
+          "id": "vessel/640/645/0/928306",
+          "kind": "wall",
+          "edge": 125,
+          "gap": 0.051800874393918006,
+          "multiplier": 8063.455094214268,
+          "coordinate": 640,
+          "violation": 0.05180087439384806
+        },
+        {
+          "index": 874,
+          "id": "vessel/715/720/0/911224",
+          "kind": "wall",
+          "edge": 140,
+          "gap": 0.03790337903345897,
+          "multiplier": 1546.8684327798771,
+          "coordinate": 715,
+          "violation": 0.037903379033423334
+        }
+      ],
+      "converged": false,
+      "failure": "active-set-limit",
+      "factorizations": 16,
+      "maxPosition": 0.11244482328209775,
+      "maxIncrement": 0.09565428259575039
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 1,
+      "force": 57436.04718362175,
+      "torque": 622.9327481174533,
+      "constraint": 0.10263422145840195,
+      "worstRows": [
+        {
+          "index": 785,
+          "id": "vessel/395/400/0/760359",
+          "kind": "wall",
+          "edge": 76,
+          "gap": 0.10263422145841428,
+          "multiplier": 1128.7040526734124,
+          "coordinate": 395,
+          "violation": 0.10263422145840195
+        },
+        {
+          "index": 1036,
+          "id": "vessel/640/645/0/928306",
+          "kind": "wall",
+          "edge": 125,
+          "gap": 0.051800874393918006,
+          "multiplier": 8063.455094214268,
+          "coordinate": 640,
+          "violation": 0.05180087439384806
+        },
+        {
+          "index": 874,
+          "id": "vessel/715/720/0/911224",
+          "kind": "wall",
+          "edge": 140,
+          "gap": 0.03790337903345897,
+          "multiplier": 1546.8684327798771,
+          "coordinate": 715,
+          "violation": 0.037903379033423334
+        }
+      ],
+      "converged": false,
+      "failure": "active-set-limit",
+      "factorizations": 32,
+      "maxPosition": 0.09925288852291932,
+      "maxIncrement": 0.09642427800280386
+    },
+    {
+      "kind": "direction",
+      "iteration": 0,
+      "method": 2,
+      "force": 57436.047183621806,
+      "torque": 622.9327481172797,
+      "constraint": 0.10263422145840195,
+      "worstRows": [
+        {
+          "index": 785,
+          "id": "vessel/395/400/0/760359",
+          "kind": "wall",
+          "edge": 76,
+          "gap": 0.10263422145841428,
+          "multiplier": 1128.7040526734124,
+          "coordinate": 395,
+          "violation": 0.10263422145840195
+        },
+        {
+          "index": 1036,
+          "id": "vessel/640/645/0/928306",
+          "kind": "wall",
+          "edge": 125,
+          "gap": 0.051800874393918006,
+          "multiplier": 8063.455094214268,
+          "coordinate": 640,
+          "violation": 0.05180087439384806
+        },
+        {
+          "index": 874,
+          "id": "vessel/715/720/0/911224",
+          "kind": "wall",
+          "edge": 140,
+          "gap": 0.03790337903345897,
+          "multiplier": 1546.8684327798771,
+          "coordinate": 715,
+          "violation": 0.037903379033423334
+        }
+      ],
+      "converged": true,
+      "factorizations": 17,
+      "maxPosition": 0.09805728403446497,
+      "maxIncrement": 0.09568989847986402
+    },
+    {
+      "kind": "trial",
+      "iteration": 0,
+      "method": 2,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 1661.820629363352,
+      "torque": 197.58916937150138,
+      "constraint": 0.001856137783761369
+    },
+    {
+      "kind": "direction",
+      "iteration": 1,
+      "method": 0,
+      "force": 1707.6477989879886,
+      "torque": 197.58916937150138,
+      "constraint": 0.001856137783761369,
+      "worstRows": [
+        {
+          "index": 882,
+          "id": "vessel/745/750/0.6666666666666666/905695",
+          "kind": "wall",
+          "edge": 146,
+          "gap": 0.0018561377843334115,
+          "multiplier": 29639.702542717027,
+          "coordinate": 745,
+          "violation": 0.001856137783761369
+        },
+        {
+          "index": 78,
+          "kind": "length",
+          "edge": 26,
+          "gap": 0.0017672630953251556,
+          "multiplier": -14683.165045459984,
+          "coordinate": 120,
+          "violation": 0.0017672630953251556
+        },
+        {
+          "index": 81,
+          "kind": "length",
+          "edge": 27,
+          "gap": 0.0015078814790534523,
+          "multiplier": -14441.542132100269,
+          "coordinate": 125,
+          "violation": 0.0015078814790534523
+        }
+      ],
+      "converged": true,
+      "factorizations": 2,
+      "maxPosition": 0.015942957716622908,
+      "maxIncrement": 0.012411145597388977
+    },
+    {
+      "kind": "trial",
+      "iteration": 1,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 162.40678121488077,
+      "torque": 0.284312790574031,
+      "constraint": 0.00019745911959034856
+    },
+    {
+      "kind": "direction",
+      "iteration": 2,
+      "method": 0,
+      "force": 155.6294646047902,
+      "torque": 1.187077579005381,
+      "constraint": 0.00019745911959034856,
+      "worstRows": [
+        {
+          "index": 1220,
+          "id": "vessel/745/750/0.6666666666666666/905693",
+          "kind": "wall",
+          "edge": 146,
+          "gap": 0.00019745911953111817,
+          "multiplier": 8723.175696134544,
+          "coordinate": 745,
+          "violation": 0.00019745911959034856
+        },
+        {
+          "index": 414,
+          "kind": "length",
+          "edge": 138,
+          "gap": 0.000003766527828297228,
+          "multiplier": -35029.40488450232,
+          "coordinate": 705,
+          "violation": 0.000003766527828297228
+        },
+        {
+          "index": 441,
+          "kind": "length",
+          "edge": 147,
+          "gap": 0.0000026891191895472843,
+          "multiplier": -6904.68570391726,
+          "coordinate": 750,
+          "violation": 0.0000026891191895472843
+        }
+      ],
+      "converged": true,
+      "factorizations": 2,
+      "maxPosition": 0.007084425340742723,
+      "maxIncrement": 0.005565995196962987
+    },
+    {
+      "kind": "trial",
+      "iteration": 2,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 79.40891827690484,
+      "torque": 0.06655729855099679,
+      "constraint": 8.69045375218036e-7
+    },
+    {
+      "kind": "direction",
+      "iteration": 3,
+      "method": 0,
+      "force": 79.40891827690484,
+      "torque": 0.06655729855099768,
+      "constraint": 8.69045375218036e-7,
+      "worstRows": [
+        {
+          "index": 441,
+          "kind": "length",
+          "edge": 147,
+          "gap": 8.69045375218036e-7,
+          "multiplier": -7107.343662409187,
+          "coordinate": 750,
+          "violation": 8.69045375218036e-7
+        },
+        {
+          "index": 432,
+          "kind": "length",
+          "edge": 144,
+          "gap": 5.396858444584041e-7,
+          "multiplier": -9052.725495898152,
+          "coordinate": 735,
+          "violation": 5.396858444584041e-7
+        },
+        {
+          "index": 435,
+          "kind": "length",
+          "edge": 145,
+          "gap": 5.10984292212413e-7,
+          "multiplier": -6776.905496198738,
+          "coordinate": 740,
+          "violation": 5.10984292212413e-7
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 0.0013884718184642075,
+      "maxIncrement": 0.0010980928174571763
+    },
+    {
+      "kind": "trial",
+      "iteration": 3,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 0.0076164337569935014,
+      "torque": 0.0026005219383476996,
+      "constraint": 3.361963507586552e-8
+    },
+    {
+      "kind": "direction",
+      "iteration": 4,
+      "method": 0,
+      "force": 0.0076164337569935014,
+      "torque": 0.0026005219383482547,
+      "constraint": 3.361963507586552e-8,
+      "worstRows": [
+        {
+          "index": 441,
+          "kind": "length",
+          "edge": 147,
+          "gap": 3.361963507586552e-8,
+          "multiplier": -7064.99023869231,
+          "coordinate": 750,
+          "violation": 3.361963507586552e-8
+        },
+        {
+          "index": 432,
+          "kind": "length",
+          "edge": 144,
+          "gap": 2.0739854278417624e-8,
+          "multiplier": -9059.73258518418,
+          "coordinate": 735,
+          "violation": 2.0739854278417624e-8
+        },
+        {
+          "index": 435,
+          "kind": "length",
+          "edge": 145,
+          "gap": 1.957290507448306e-8,
+          "multiplier": -6784.710656930844,
+          "coordinate": 740,
+          "violation": 1.957290507448306e-8
+        }
+      ],
+      "converged": true,
+      "factorizations": 1,
+      "maxPosition": 8.611929831594403e-8,
+      "maxIncrement": 7.54434088337784e-8
+    },
+    {
+      "kind": "trial",
+      "iteration": 4,
+      "method": 0,
+      "trial": 0,
+      "scale": 1,
+      "accept": true,
+      "force": 1.9593244360294193e-8,
+      "torque": 2.087036321540836e-9,
+      "constraint": 4.796163466380676e-14
+    }
+  ]
+}

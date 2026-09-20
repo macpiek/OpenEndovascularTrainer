@@ -1,0 +1,26 @@
+✔ batch activation reduces independent wall LU solves with identical unique primal solution (10.73475ms)
+✔ a discovered-row working-set seed still certifies new contacts and does not mutate physical reactions (0.942833ms)
+✔ single-pivot recovery ignores the optional discovered-row seed (0.341875ms)
+✔ seeded feasible QPs agree with single activation and satisfy global stationarity and complementarity (40.501208ms)
+✔ failed batched factorization retries original rows and counts both searches without stale result views (3.1595ms)
+✔ infeasible active basis remains explicitly rejected after reference fallback (0.38575ms)
+✔ cooperative linear solve yields between attempts, excludes pauses from CPU time, and matches synchronous output (24.412291ms)
+✔ interrupting a private linear iterator leaves physical inputs available for a fresh reference solve (3.759167ms)
+✔ cancellation in the unscaled residual is certified accurately without loosening the threshold (0.301292ms)
+✔ bounded trial direction stops early without mutating state and unrestricted search remains available (1.85975ms)
+✔ velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation (8.739541ms)
+✔ a failed predictor retries from the original pose and includes failed work (8.699958ms)
+✔ velocity prediction retains the same dynamic equilibrium and force certificate for a free rod (1.730083ms)
+✔ invalid prediction strengths are rejected before physical work (1.034208ms)
+✔ early predictor recovery tries the incoming pose before friction fallbacks (2.687584ms)
+✔ cancelling early predictor recovery restores the whole incoming state (2.0195ms)
+✔ zero motion does not lose the normal fallback when early prediction is enabled (0.959084ms)
+✔ failed early recovery still runs the original predicted friction fallback and counts the extra work (5.232416ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.497125

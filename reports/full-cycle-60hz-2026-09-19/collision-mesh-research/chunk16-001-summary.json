@@ -1,0 +1,78 @@
+{
+  "contactQueries": {
+    "pointQueries": 6121,
+    "capsuleQueries": 381694,
+    "capsuleSamples": 1518829,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 6121,
+    "bvhRefinements": 1518829,
+    "signRefinements": 1106,
+    "signCacheHits": 0,
+    "signCacheMisses": 1106,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 0,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 1518829,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 379814,
+    "certifiedCapsuleSamples": 1512708,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 782,
+  "processCpu": {
+    "meanMs": 81.23143734015343,
+    "p50Ms": 12.409,
+    "p95Ms": 188.243,
+    "maxMs": 7489.724
+  },
+  "meanMs": 69.1119297647059,
+  "p50Ms": 7.261250000000473,
+  "p95Ms": 166.17616700000144,
+  "p99Ms": 836.1680000000015,
+  "maxMs": 6687.669625000002,
+  "overBudget": 250,
+  "meanIterations": 6.827365728900256,
+  "meanFactorizations": 74.50639386189258,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 26.719,
+        "p50Ms": 26.719,
+        "p95Ms": 26.719,
+        "maxMs": 26.719
+      },
+      "meanMs": 15.98287500000015,
+      "p50Ms": 15.98287500000015,
+      "p95Ms": 15.98287500000015,
+      "p99Ms": 15.98287500000015,
+      "maxMs": 15.98287500000015,
+      "overBudget": 0,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 782,
+      "processCpu": {
+        "meanMs": 81.23143734015343,
+        "p50Ms": 12.409,
+        "p95Ms": 188.243,
+        "maxMs": 7489.724
+      },
+      "meanMs": 69.1119297647059,
+      "p50Ms": 7.261250000000473,
+      "p95Ms": 166.17616700000144,
+      "p99Ms": 836.1680000000015,
+      "maxMs": 6687.669625000002,
+      "overBudget": 250,
+      "meanIterations": 6.827365728900256,
+      "meanFactorizations": 74.50639386189258
+    }
+  }
+}

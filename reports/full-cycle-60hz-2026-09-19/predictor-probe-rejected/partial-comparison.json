@@ -1,0 +1,11 @@
+{
+  "reason": "Natural terminal failure at 734.80 mm; detected by final summary after requesting termination for downstream regression",
+  "steps": 1003,
+  "lastWire": 734.8000000000077,
+  "referenceFactorizations": 8862,
+  "probeFactorizations": 67898,
+  "referenceIterations": 3080,
+  "probeIterations": 4700,
+  "terminalFailure": true,
+  "status": "linear-solve"
+}

@@ -1,0 +1,306 @@
+--- a/tests/helpers/sharedAxisReplay.js
++++ b/tests/helpers/sharedAxisReplay.js
+@@ -8,7 +8,7 @@
+ 
+ export function restoreSharedAxisReplay(fixture,field) {
+     assert.equal(fixture.version,1);
+-    const s=createSharedAxisNative({...createSharedAxisContacts({sheath:fixture.sheath,contactField:field,localCoordinates:!!fixture.origin,retainDiscoveryCertificates:fixture.retainDiscoveryCertificates===true,continuousDiscoverySign:fixture.continuousDiscoverySign===true,continuousSegmentContacts:fixture.continuousSegmentContacts??false,certifiedDiscoverySamples:fixture.certifiedDiscoverySamples===true}),
++    const s=createSharedAxisNative({...createSharedAxisContacts({sheath:fixture.sheath,contactField:field,localCoordinates:!!fixture.origin,retainDiscoveryCertificates:fixture.retainDiscoveryCertificates===true,continuousDiscoverySign:fixture.continuousDiscoverySign===true,continuousSegmentContacts:fixture.continuousSegmentContacts??false,certifiedDiscoverySamples:fixture.certifiedDiscoverySamples===true,cachedDiscoveryPatches:fixture.cachedDiscoveryPatches===true}),
+         fractionalTipThreshold:fixture.fractionalTipThreshold??0,rebaseNearTips:fixture.rebaseNearTips??false,spacing:fixture.spacing,tools:fixture.tools,maxBendAngle:fixture.maxBendAngle??Infinity,minimumEdgeLength:fixture.minimumEdgeLength??0,
+         spatialKnots:fixture.coordinates,adaptiveMesh:fixture.adaptiveMesh});
+     if(fixture.discoveryState)s.wallSamples.find(sample=>sample.restoreDiscoveryState)?.restoreDiscoveryState(fixture.discoveryState);
+--- a/scripts/physics/profile-shared-axis-full-cycle.mjs
++++ b/scripts/physics/profile-shared-axis-full-cycle.mjs
+@@ -35,7 +35,7 @@
+ const experiment=process.env.COLLISION_WORLD_STL?installExperimentalCollisionGeometry(anatomy,process.env.COLLISION_WORLD_STL):null;
+ const collisionExperiment=experiment?.metadata??null;
+ const capture=(state)=>({...captureSharedAxisReplay(state,sheath),...(collisionExperiment?{collisionExperiment}:{})});
+-let state=createSharedAxisNative({...createSharedAxisContacts({sheath,contactField:anatomy.field,localCoordinates:true,retainDiscoveryCertificates:realtime,continuousDiscoverySign:realtime,continuousSegmentContacts:options.continuousSegmentContacts??false,certifiedDiscoverySamples:options.certifiedDiscoverySamples===true}),spacing,maxBendAngle:Math.PI/4,adaptiveMesh,tools:tools.map(t=>({...t,insertion:0}))});
++let state=createSharedAxisNative({...createSharedAxisContacts({sheath,contactField:anatomy.field,localCoordinates:true,retainDiscoveryCertificates:realtime,continuousDiscoverySign:realtime,continuousSegmentContacts:options.continuousSegmentContacts??false,certifiedDiscoverySamples:options.certifiedDiscoverySamples===true,cachedDiscoveryPatches:options.cachedDiscoveryPatches===true}),spacing,maxBendAngle:Math.PI/4,adaptiveMesh,tools:tools.map(t=>({...t,insertion:0}))});
+ let rotations={wire:0,catheter:0},failed=false;const samples=[],snapshots=[],slowest=[];
+ const metadata={solver:realtime?'shared-axis-realtime':'shared-axis-adaptive',createdAt:new Date().toISOString(),target,dt,spacing,tools,adaptiveMesh,options,sourceHashes,anatomySha256:createHash('sha256').update(readFileSync(new URL('../../res/Aorta_plain.stl',import.meta.url))).digest('hex'),collisionExperiment,timingScope:'Entire synchronous advanceSharedAxis, all subdivisions and failed attempts; excludes rendering and UI'};
+ writeFileSync(output+'/metadata.json',JSON.stringify(metadata,null,2));
+--- a/scripts/physics/replay-shared-axis-cycle-step.mjs
++++ b/scripts/physics/replay-shared-axis-cycle-step.mjs
+@@ -15,8 +15,9 @@
+ if(process.env.COLLISION_WORLD_STL&&!collision)throw new Error('Cannot change triangle identities in a reference replay');
+ const experiment=collision?installExperimentalCollisionGeometry(anatomy,process.env.COLLISION_WORLD_STL??collision.path,collision):null;
+ try {
+- const s=restoreSharedAxisReplay(input,anatomy.field),events=[],request=input.stepRequest;
++ const events=[],request=input.stepRequest;
+  const options={...request.options,...JSON.parse(process.env.OPTIONS??'{}')};
++ const s=restoreSharedAxisReplay({...input,cachedDiscoveryPatches:options.cachedDiscoveryPatches??input.cachedDiscoveryPatches},anatomy.field);
+  const started=performance.now();
+  const it=advanceSharedAxis(s,request.rotations,request.dt,request.tools,{...options,observeTrial:e=>{
+   if(e.kind==='outside-vessel'||e.kind==='projection'||e.kind==='residual-search-activation')events.push(e);
+@@ -32,7 +33,7 @@
+    force:e.candidate.force,torque:e.candidate.torque,constraint:e.candidate.constraint});
+  }});let next;do{next=it.next();}while(!next.done);
+  const elapsedMs=performance.now()-started;
+- writeFileSync(outputPath,JSON.stringify({inputPath,collisionExperiment:experiment?.metadata??null,options,elapsedMs,result:next.value.result,events},null,2));
++ writeFileSync(outputPath,JSON.stringify({inputPath,collisionExperiment:experiment?.metadata??null,options,elapsedMs,contactQueries:anatomy.field.getStats(),result:next.value.result,events},null,2));
+  console.log(JSON.stringify({status:next.value.result.status,error:next.value.result.error,iterations:next.value.result.iterations,
+   factorizations:next.value.result.factorizations,events:events.length}));
+ }finally{experiment?.dispose();anatomy.dispose();}
+--- a/src/physics/kirchhoffSharedAxisReplay.js
++++ b/src/physics/kirchhoffSharedAxisReplay.js
+@@ -5,7 +5,7 @@
+  * frame, reaction and external load is restored as a double precision number. */
+ export function captureSharedAxisReplay(s,sheath) {
+     const pose=captureSharedAxisNative(s);
+-    return structuredClone({version:1,sheath,...(s.wallSamples?.some(sample=>sample.continuousSegmentContacts)?{continuousSegmentContacts:s.wallSamples.find(sample=>sample.continuousSegmentContacts).continuousSegmentContacts}:{}),...(s.wallSamples?.some(sample=>sample.certifiedDiscoverySamples)?{certifiedDiscoverySamples:true}:{}),...(s.wallSamples?.some(sample=>sample.retainDiscoveryCertificates)?{discoveryState:s.wallSamples.find(sample=>sample.captureDiscoveryState)?.captureDiscoveryState()}:{}),...(s.wallSamples?.some(sample=>sample.continuousDiscoverySign)?{continuousDiscoverySign:true,insideContinuation:s.wallSamples.find(sample=>sample.insideProofs)?.insideProofs.capture()}:{}),...(s.wallSamples?.some(sample=>sample.retainDiscoveryCertificates)?{retainDiscoveryCertificates:true}:{}),...(s.adaptiveMesh?{adaptiveMesh:s.adaptiveMesh}:{}),...(s.rebaseNearTips?{rebaseNearTips:true}:{}),...(s.wallFrictionHistory||s.wallFrictionStep?{wallFriction:captureSharedAxisWallFriction(s)}:{}),spacing:s.spacing,...(s.acceptedSolves?{acceptedSolves:s.acceptedSolves}:{}),
++    return structuredClone({version:1,sheath,...(s.wallSamples?.some(sample=>sample.cachedDiscoveryPatches)?{cachedDiscoveryPatches:true}:{}),...(s.wallSamples?.some(sample=>sample.continuousSegmentContacts)?{continuousSegmentContacts:s.wallSamples.find(sample=>sample.continuousSegmentContacts).continuousSegmentContacts}:{}),...(s.wallSamples?.some(sample=>sample.certifiedDiscoverySamples)?{certifiedDiscoverySamples:true}:{}),...(s.wallSamples?.some(sample=>sample.retainDiscoveryCertificates)?{discoveryState:s.wallSamples.find(sample=>sample.captureDiscoveryState)?.captureDiscoveryState()}:{}),...(s.wallSamples?.some(sample=>sample.continuousDiscoverySign)?{continuousDiscoverySign:true,insideContinuation:s.wallSamples.find(sample=>sample.insideProofs)?.insideProofs.capture()}:{}),...(s.wallSamples?.some(sample=>sample.retainDiscoveryCertificates)?{retainDiscoveryCertificates:true}:{}),...(s.adaptiveMesh?{adaptiveMesh:s.adaptiveMesh}:{}),...(s.rebaseNearTips?{rebaseNearTips:true}:{}),...(s.wallFrictionHistory||s.wallFrictionStep?{wallFriction:captureSharedAxisWallFriction(s)}:{}),spacing:s.spacing,...(s.acceptedSolves?{acceptedSolves:s.acceptedSolves}:{}),
+         ...(s.acceptedWallGaps?{acceptedWallGaps:[...s.acceptedWallGaps]}:{}),...(Number.isFinite(s.maxBendAngle)?{maxBendAngle:s.maxBendAngle}:{}),...(s.origin?.some(v=>v!==0)?{origin:s.origin}:{}),...(s.fractionalTipThreshold>0?{fractionalTipThreshold:s.fractionalTipThreshold}:{}),...(s.minimumEdgeLength?{minimumEdgeLength:s.minimumEdgeLength}:{}),tools:s.materials.map(t=>t.spec),coordinates:s.coordinates.slice(),
+         definitions:s.definitions.map(({evaluate,...d})=>d),positions:pose.positions,
+         frames:pose.frames.map(f=>f.map(q=>Array.from(q))),multipliers:Array.from(pose.multipliers),
+--- a/src/physics/kirchhoffSharedAxisVesselWitnesses.js
++++ b/src/physics/kirchhoffSharedAxisVesselWitnesses.js
+@@ -87,7 +87,7 @@
+  * in the normal cone of a mesh corner. Discovery is transactional: restart
+  * from the incoming pose with extra geometry, never with a rejected force.
+  */
+-export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true,indexedContacts=true,reuseContactBuffers=true,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false}={}) {
++export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true,indexedContacts=true,reuseContactBuffers=true,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,cachedDiscoveryPatches=false,continuousSegmentContacts=false}={}) {
+     if(![false,true,'axis'].includes(continuousSegmentContacts))throw new RangeError('Unknown continuous segment contact mode');
+     const segmentContact=continuousSegmentContacts?createSharedAxisSegmentContact(field.fallbackGeometry):null;
+     const clearance=createSharedAxisDiscoveryCache({retainOnAbort:retainDiscoveryCertificates});
+@@ -117,6 +117,7 @@
+             const length=(coordinateB-coordinateA)*(end-start),count=Math.max(1,Math.ceil(length/Math.max(field.voxelSize*4,Math.max(.5,radius))));
+             const key=`${coordinateA}/${coordinateB}/${start}/${end}`,descriptor=query??{a:[x[0],y[0],z[0]],b:[x[1],y[1],z[1]],sampleCount:count,
+                 geometryToken:field.fallbackGeometry?.boundsTree,gridToken:key,radius};
++            descriptor.cachedDiscoveryPatches=cachedDiscoveryPatches;
+             // lookup is synchronous; begin copies both endpoints and tokens
+             // into its certificate before this descriptor can be reused.
+             if(query){query.sampleCount=count;query.geometryToken=field.fallbackGeometry?.boundsTree;query.gridToken=key;query.radius=radius;}
+@@ -211,6 +212,7 @@
+     sample.retainDiscoveryCertificates=retainDiscoveryCertificates;
+     sample.continuousDiscoverySign=continuousDiscoverySign;
+     sample.certifiedDiscoverySamples=certifiedDiscoverySamples;
++    sample.cachedDiscoveryPatches=cachedDiscoveryPatches;
+     sample.continuousSegmentContacts=continuousSegmentContacts;
+     sample.segmentContact=segmentContact;
+     sample.insideProofs=insideProofs;
+--- a/src/physics/kirchhoffSharedAxisContacts.js
++++ b/src/physics/kirchhoffSharedAxisContacts.js
+@@ -9,7 +9,7 @@
+  * already the preceding edge's last endpoint). Vessel queries are shielded by the
+  * material sheath interval, as in the existing application's collision mask.
+  */
+-export function createSharedAxisContacts({sheath,contactField=null,localCoordinates=false,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false}) {
++export function createSharedAxisContacts({sheath,contactField=null,localCoordinates=false,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,cachedDiscoveryPatches=false,continuousSegmentContacts=false}) {
+     const worldStart=xyz(sheath.start),end=xyz(sheath.end),delta=end.map((v,i)=>v-worldStart[i]);
+     const origin=localCoordinates?worldStart:[0,0,0],start=worldStart.map((v,i)=>v-origin[i]);
+     const length=Math.hypot(...delta),axis=delta.map(v=>v/length),extension=sheath.proximalExtension??40;
+@@ -35,7 +35,7 @@
+     wallSamples[0].sharedAxisGeometryOnly=true;
+     wallSamples[0].sharedAxisSheath=true;
+     wallSamples[0].contactOutputOwned=true;
+-    if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length,{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts}));
++    if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length,{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,cachedDiscoveryPatches,continuousSegmentContacts}));
+     return {rebaseNearTips:localCoordinates,startCoordinate:-extension,boundaryCoordinates:[0,length],wallSamples,length,origin,
+         samplePosition:coordinate=>start.map((v,i)=>v+coordinate*axis[i])};
+ }
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -23,7 +23,7 @@
+  * A coroutine yields between global solves. Native render/measurement buffers
+  * are published only after the complete requested timestep has been accepted.
+  */
+-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,reuseFrictionAssembly=false,wasmLinearAssembly=false,lazyBasisCoefficients=false,deferActiveBasis=false,earlyPredictorFallback=false,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
++export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,reuseFrictionAssembly=false,wasmLinearAssembly=false,lazyBasisCoefficients=false,deferActiveBasis=false,earlyPredictorFallback=false,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,cachedDiscoveryPatches=false,continuousSegmentContacts=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
+     modifiedNewton=modifiedNewton&&!projectiveDynamics;
+     coupledFrictionNewton=coupledFrictionNewton&&!projectiveDynamics;
+@@ -51,7 +51,7 @@
+         // Archive observers cannot reject an otherwise valid physical step.
+         try{onRejectedStep?.(structuredClone(lastFailure));}catch{/* The panel reports storage errors separately. */}
+     }
+-    const diagnostics={continuousSegmentContacts,reuseFrictionAssembly,wasmLinearAssembly,certifiedDiscoverySamples,lazyBasisCoefficients,deferActiveBasis,earlyPredictorFallback,modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
++    const diagnostics={continuousSegmentContacts,reuseFrictionAssembly,wasmLinearAssembly,certifiedDiscoverySamples,cachedDiscoveryPatches,lazyBasisCoefficients,deferActiveBasis,earlyPredictorFallback,modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
+     function publish(tools,dt) {
+         diagnostics.mesh={nodes:state.coordinates.length,dofs:diagnostics.last?.pd?.dofs??state.layout.dofCount,
+             minSpacing:Math.min(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
+@@ -80,7 +80,7 @@
+     }
+     function* solve(world,dt,tools) {
+         if(!state) {
+-            state=createSharedAxisNative({...createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true,retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts}),
++            state=createSharedAxisNative({...createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true,retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,cachedDiscoveryPatches,continuousSegmentContacts}),
+                 maxBendAngle:Math.PI/4,adaptiveMesh:pending.adaptiveMesh, tools:tools.map(t=>({...profile(t),insertion:0}))});
+             rotations=Object.fromEntries(tools.map(t=>[t.id,0]));pending.rotations={...rotations};diagnostics.initializations++;
+         }
+--- a/src/physics/collision/scalarMeshBvhClosestPoint.js
++++ b/src/physics/collision/scalarMeshBvhClosestPoint.js
+@@ -388,3 +388,89 @@
+     target.faceIndex = scratch.closestFaceIndex;
+     return true;
+ }
++
++/** Local exact-distance cache for a static BVH. Every triangle in every leaf
++ * intersecting the seed ball is retained. All omitted subtrees are farther
++ * than radius at the seed, hence farther than radius - displacement now.
++ * This certifies unsigned nearest distance only, never lumen membership. */
++export function createScalarMeshBvhPatch(capacity=256) {
++    if(!Number.isInteger(capacity)||capacity<1)throw new RangeError('Positive triangle patch capacity required');
++    return {nodes:new Int32Array(0),roots:new Int32Array(0),rootCount:0,capacity,count:0,tree:null,x:0,y:0,z:0,radius:0};
++}
++
++export function buildScalarMeshBvhPatch(tree,x,y,z,distance,scratch,patch,margin=.5) {
++    patch.tree=null;patch.count=0;patch.rootCount=0;
++    if(scratch.boundsTree!==tree||![x,y,z,distance,margin].every(Number.isFinite)||distance<0||distance>2||!(margin>0))return false;
++    const radius=distance+margin,scale=Math.max(1,Math.abs(x),Math.abs(y),Math.abs(z),radius);
++    const expanded=radius+512*Number.EPSILON*scale,limit=expanded*expanded;
++    const nodes=scratch.patchNodeData??=[],roots=scratch.patchRootData??=[];
++    nodes.length=roots.length=0;let count=0,overflow=false;
++    for(let root=0;root<scratch.rootFloat32.length;root++) {
++        const bounds=scratch.rootFloat32[root],u32=scratch.rootUint32[root],u16=scratch.rootUint16[root];
++        const visit=node=>{
++            if(pointBoxDistanceSquared(x,y,z,bounds,node)>=limit)return -1;
++            if(u16[node*2+15]===LEAF_SENTINEL) {
++                count+=u16[node*2+14];
++                if(count>patch.capacity){overflow=true;return -1;}
++                const index=nodes.length;nodes.push(node,-1,-1);return index;
++            }
++            const left=visit(node+NODE_WORDS);if(overflow)return -1;
++            const right=visit(u32[node+6]);if(overflow)return -1;
++            if(left<0)return right;if(right<0)return left;
++            // Collapse unary paths, but keep this original branching node.
++            // Its ORIGINAL child bounds determine near/far order on replay,
++            // including exact-distance ties at shared mesh edges/vertices.
++            const index=nodes.length;nodes.push(node,left,right);return index;
++        };
++        const first=visit(0);if(overflow)return false;
++        if(first>=0)roots.push(root,first);
++    }
++    if(!count)return false;
++    const buffer=(old,length)=>old.length>=length?old:new Int32Array(2**Math.ceil(Math.log2(Math.max(8,length))));
++    patch.nodes=buffer(patch.nodes,nodes.length);patch.nodes.set(nodes);
++    patch.roots=buffer(patch.roots,roots.length);patch.roots.set(roots);
++    Object.assign(patch,{tree,x,y,z,radius,count,rootCount:roots.length/2});return true;
++}
++
++export function closestPointToPointScalarPatch(tree,x,y,z,target,scratch,patch,hintFaceIndex=-1) {
++    if(patch?.tree!==tree||scratch.boundsTree!==tree||!patch.count)return false;
++    const scale=Math.max(1,Math.abs(x),Math.abs(y),Math.abs(z),Math.abs(patch.x),Math.abs(patch.y),Math.abs(patch.z),patch.radius);
++    const remaining=patch.radius-Math.hypot(x-patch.x,y-patch.y,z-patch.z)-512*Number.EPSILON*scale;
++    if(!(remaining>0))return false;
++    scratch.closestDistanceSquared=Infinity;scratch.closestFaceIndex=-1;
++    const {indices,positions,nodeStack,distanceStack}=scratch;
++    let seeded=-1;
++    if(Number.isInteger(hintFaceIndex)&&hintFaceIndex>=0&&hintFaceIndex<scratch.triangleCount) {
++        seeded=hintFaceIndex;considerTriangle(x,y,z,seeded,indices,positions,scratch);
++    }
++    for(let ri=0;ri<patch.rootCount;ri++) {
++        const root=patch.roots[2*ri],bounds=scratch.rootFloat32[root],u32=scratch.rootUint32[root],u16=scratch.rootUint16[root];
++        let size=1;nodeStack[0]=patch.roots[2*ri+1];distanceStack[0]=0;
++        while(size) {
++            const at=--size,index=nodeStack[at];
++            if(distanceStack[at]>=scratch.closestDistanceSquared)continue;
++            const node=patch.nodes[index],leftIndex=patch.nodes[index+1],rightIndex=patch.nodes[index+2];
++            if(leftIndex<0) {
++                const first=u32[node+6],count=u16[node*2+14];
++                for(let face=first;face<first+count;face++)if(face!==seeded)
++                    considerTriangle(x,y,z,face,indices,positions,scratch);
++                continue;
++            }
++            const ld=pointBoxDistanceSquared(x,y,z,bounds,node+NODE_WORDS),rd=pointBoxDistanceSquared(x,y,z,bounds,u32[node+6]);
++            const leftFirst=ld<=rd,near=leftFirst?leftIndex:rightIndex,far=leftFirst?rightIndex:leftIndex,
++                nearDistance=leftFirst?ld:rd,farDistance=leftFirst?rd:ld;
++            if(farDistance<scratch.closestDistanceSquared) {
++                if(size>=nodeStack.length)return false;
++                nodeStack[size]=far;distanceStack[size++]=farDistance;
++            }
++            if(nearDistance<scratch.closestDistanceSquared) {
++                if(size>=nodeStack.length)return false;
++                nodeStack[size]=near;distanceStack[size++]=nearDistance;
++            }
++        }
++    }
++    if(scratch.closestFaceIndex<0||!(scratch.closestDistanceSquared<remaining*remaining))return false;
++    target.point.set(scratch.closestX,scratch.closestY,scratch.closestZ);
++    target.distance=Math.sqrt(scratch.closestDistanceSquared);target.faceIndex=scratch.closestFaceIndex;
++    return true;
++}
+--- a/src/physics/collision/vesselContactField.js
++++ b/src/physics/collision/vesselContactField.js
+@@ -3,7 +3,10 @@
+ import { createPackedLumenField, createPackedLumenQueryResult } from './packedLumenField.js';
+ import {
+     closestPointToPointScalarBvh,
+-    createScalarMeshBvhScratch
++    createScalarMeshBvhScratch,
++    createScalarMeshBvhPatch,
++    buildScalarMeshBvhPatch,
++    closestPointToPointScalarPatch
+ } from './scalarMeshBvhClosestPoint.js';
+ 
+ const SOURCE_SAFE_CORE = 'centerline-safe-core';
+@@ -38,7 +41,10 @@
+ const STAT_KNOWN_INSIDE_NEAR_WALL_HITS = 17;
+ const STAT_CERTIFIED_CAPSULE_QUERIES = 18;
+ const STAT_CERTIFIED_CAPSULE_SAMPLES = 19;
+-const STAT_COUNT = 20;
++const STAT_CERTIFIED_PATCH_HITS = 20;
++const STAT_CERTIFIED_PATCH_BUILDS = 21;
++const STAT_CERTIFIED_PATCH_MISSES = 22;
++const STAT_COUNT = 23;
+ const CONTACT_SIGNED_DISTANCE = 0;
+ const CONTACT_SIGNED_GAP = 1;
+ const CONTACT_DISTANCE = 2;
+@@ -901,7 +907,11 @@
+                 stats[STAT_KNOWN_INSIDE_NEAR_WALL_HITS],
+             certifiedCapsuleQueries: stats[STAT_CERTIFIED_CAPSULE_QUERIES],
+             certifiedCapsuleSamples: stats[STAT_CERTIFIED_CAPSULE_SAMPLES],
+-            runtimeBytes: this.runtimeBytes
++            certifiedPatchHits: stats[STAT_CERTIFIED_PATCH_HITS],
++            certifiedPatchBuilds: stats[STAT_CERTIFIED_PATCH_BUILDS],
++            certifiedPatchMisses: stats[STAT_CERTIFIED_PATCH_MISSES],
++            certifiedPatchBytes: this._certifiedMeshPatchBytes??0,
++            runtimeBytes: this.runtimeBytes+(this._certifiedMeshPatchBytes??0)
+         };
+     }
+ 
+@@ -1028,10 +1038,42 @@
+             a?.length!==3||b?.length!==3||!a.every(Number.isFinite)||!b.every(Number.isFinite))
+             throw new RangeError('Invalid certified capsule grid');
+         const contact=this._certifiedMeshContact??={source:SOURCE_SDF_BVH,inside:true,signedDistance:0,signedGap:0,faceIndex:-1};
++        let patches=null;
++        if(descriptor.cachedDiscoveryPatches&&descriptor.gridToken!=null) {
++            const cache=this._certifiedMeshPatches??=new Map();
++            if(this._certifiedMeshPatchTree!==tree) {
++                cache.clear();this._certifiedMeshPatchBytes=0;this._certifiedMeshPatchTree=tree;
++            }
++            patches=cache.get(descriptor.gridToken);
++            if(!patches||patches.tree!==tree||patches.count!==sampleCount) {
++                if(patches)this._certifiedMeshPatchBytes-=patches.bytes;
++                if(cache.size>=2048&&!cache.has(descriptor.gridToken)) {
++                    const key=cache.keys().next().value;this._certifiedMeshPatchBytes-=cache.get(key).bytes;cache.delete(key);
++                }
++                patches={tree,count:sampleCount,samples:[],bytes:0};cache.set(descriptor.gridToken,patches);
++            }
++        }
+         const send=(x,y,z,t)=>{
+             const previousFace=this._bvhClosest.faceIndex;
+             this._bvhClosest.distance=Infinity;
+-            let hit=closestPointToPointScalarBvh(tree,x,y,z,this._bvhClosest,this._scalarBvhScratch,Infinity,previousFace)?this._bvhClosest:null;
++            const index=Math.round(t*sampleCount);
++            let patch=patches?.samples[index];
++            if(patches&&!patch) {
++                patch=patches.samples[index]=createScalarMeshBvhPatch();
++            }
++            let hit=null;
++            if(patch&&closestPointToPointScalarPatch(tree,x,y,z,this._bvhClosest,this._scalarBvhScratch,patch,previousFace)) {
++                hit=this._bvhClosest;this.stats[STAT_CERTIFIED_PATCH_HITS]++;
++            } else {
++                if(patch)this.stats[STAT_CERTIFIED_PATCH_MISSES]++;
++                hit=closestPointToPointScalarBvh(tree,x,y,z,this._bvhClosest,this._scalarBvhScratch,Infinity,previousFace)?this._bvhClosest:null;
++                if(patch&&hit) {
++                    const before=patch.nodes.byteLength+patch.roots.byteLength;
++                    if(buildScalarMeshBvhPatch(tree,x,y,z,hit.distance,this._scalarBvhScratch,patch))this.stats[STAT_CERTIFIED_PATCH_BUILDS]++;
++                    const added=patch.nodes.byteLength+patch.roots.byteLength-before;
++                    patches.bytes+=added;this._certifiedMeshPatchBytes+=added;
++                }
++            }
+             if(!hit){this._bvhPoint.set(x,y,z);hit=tree.closestPointToPoint(this._bvhPoint,this._bvhClosest);}
+             if(!hit||!(hit.distance>0)||!Number.isFinite(hit.distance))throw new RangeError('Invalid certified mesh distance');
+             this.stats[STAT_CAPSULE_SAMPLES]++;

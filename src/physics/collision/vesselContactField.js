@@ -36,7 +36,9 @@ const STAT_RESULT_ALLOCATIONS = 14;
 const STAT_BVH_CLEARANCE_REFINEMENTS = 15;
 const STAT_BVH_CONTACT_REFINEMENTS = 16;
 const STAT_KNOWN_INSIDE_NEAR_WALL_HITS = 17;
-const STAT_COUNT = 18;
+const STAT_CERTIFIED_CAPSULE_QUERIES = 18;
+const STAT_CERTIFIED_CAPSULE_SAMPLES = 19;
+const STAT_COUNT = 20;
 const CONTACT_SIGNED_DISTANCE = 0;
 const CONTACT_SIGNED_GAP = 1;
 const CONTACT_DISTANCE = 2;
@@ -897,6 +899,8 @@ export class VesselContactField {
                 stats[STAT_BVH_CONTACT_REFINEMENTS],
             knownInsideNearWallHits:
                 stats[STAT_KNOWN_INSIDE_NEAR_WALL_HITS],
+            certifiedCapsuleQueries: stats[STAT_CERTIFIED_CAPSULE_QUERIES],
+            certifiedCapsuleSamples: stats[STAT_CERTIFIED_CAPSULE_SAMPLES],
             runtimeBytes: this.runtimeBytes
         };
     }
@@ -1009,6 +1013,43 @@ export class VesselContactField {
             radius,
             out
         );
+    }
+
+    /** Exact sampled distances when the caller has a geometric inside proof
+     * for this entire grid. This deliberately supplies no branch metadata:
+     * shared-axis discovery needs only the exact face and signed distance.
+     * An ordinary inside hint is insufficient; use the full query without a
+     * certified positive displacement bound for the current mesh and grid. */
+    visitCertifiedInsideCapsule(descriptor, proof, visitor) {
+        const {a,b,radius,sampleCount,geometryToken}=descriptor;
+        const tree=this.fallbackGeometry?.boundsTree;
+        if(!tree||geometryToken!==tree||proof?.knownInside!==true||!(proof.lowerBound>0))return false;
+        if(!Number.isInteger(sampleCount)||sampleCount<1||!Number.isFinite(radius)||radius<0||
+            a?.length!==3||b?.length!==3||!a.every(Number.isFinite)||!b.every(Number.isFinite))
+            throw new RangeError('Invalid certified capsule grid');
+        const contact=this._certifiedMeshContact??={source:SOURCE_SDF_BVH,inside:true,signedDistance:0,signedGap:0,faceIndex:-1};
+        const send=(x,y,z,t)=>{
+            const previousFace=this._bvhClosest.faceIndex;
+            this._bvhClosest.distance=Infinity;
+            let hit=closestPointToPointScalarBvh(tree,x,y,z,this._bvhClosest,this._scalarBvhScratch,Infinity,previousFace)?this._bvhClosest:null;
+            if(!hit){this._bvhPoint.set(x,y,z);hit=tree.closestPointToPoint(this._bvhPoint,this._bvhClosest);}
+            if(!hit||!(hit.distance>0)||!Number.isFinite(hit.distance))throw new RangeError('Invalid certified mesh distance');
+            this.stats[STAT_CAPSULE_SAMPLES]++;
+            this.stats[STAT_CERTIFIED_CAPSULE_SAMPLES]++;
+            this.stats[STAT_BVH_REFINEMENTS]++;this.stats[STAT_BVH_CONTACT_REFINEMENTS]++;
+            contact.signedDistance=hit.distance;contact.signedGap=hit.distance-radius;contact.faceIndex=hit.faceIndex;
+            // A visitor may reuse or mutate its scratch result. Reset the
+            // classification fields before publishing each exact sample.
+            contact.source=SOURCE_SDF_BVH;contact.inside=true;
+            visitor(contact,t);
+        };
+        this.stats[STAT_CAPSULE_QUERIES]++;
+        this.stats[STAT_CERTIFIED_CAPSULE_QUERIES]++;
+        // Keep the full query's endpoint-first order and interpolation order.
+        send(a[0],a[1],a[2],0);send(b[0],b[1],b[2],1);
+        const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2];
+        for(let i=1;i<sampleCount;i++){const t=i/sampleCount;send(a[0]+dx*t,a[1]+dy*t,a[2]+dz*t,t);}
+        return true;
     }
 
     queryCapsuleSoA(

@@ -1,0 +1,21 @@
+✔ discovery preflight skips material only on a complete restart and never duplicates geometry queries (10.399666ms)
+✔ geometry failure before discovery preserves query order, partial pending rows and error priority (1.451541ms)
+✔ geometry failure after discovery preserves query order, partial pending rows and error priority (1.685458ms)
+✔ unmarked custom samplers retain the original assembly order (1.033875ms)
+✔ prepared geometry preserves defensive copies for a marked sampler with reused output (1.769ms)
+✔ fused preflight retains loaded contact Hessians and the material/friction/constraint force order (3.22725ms)
+✔ an early discovery restart invalidates the previous friction certificate before publication (0.2965ms)
+✔ early contact preflight preserves every direction/acceptance decision and complete physical output: anatomy-berenstein-feed-138.67-live-cycle (784.810417ms)
+✔ early contact preflight preserves every direction/acceptance decision and complete physical output: anatomy-pigtail-wire-withdraw-200.27-incoming (322.833666ms)
+✔ three banks preserve base and uncorrected trial while repeated corrected poses reuse numeric storage (20.603042ms)
+✔ time step cancellation and completion release private contact storage and preserve atomic state (8.953833ms)
+✔ reused rows clear inactive derivatives and update definitions after discovery; observed measures own their data (1.598709ms)
+✔ buffered finite-triangle contacts preserve retained rows across feature changes, Hessian promotion and throwing evaluations (8.458791ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2051.444584

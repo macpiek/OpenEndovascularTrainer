@@ -1,0 +1,37 @@
+{
+  "failed": true,
+  "completed": false,
+  "steps": 959,
+  "meanMs": 10.641013296141827,
+  "p50Ms": 7.488000000000284,
+  "p95Ms": 31.433375000000524,
+  "p99Ms": 54.698333000000275,
+  "maxMs": 353.972084,
+  "overBudget": 146,
+  "meanIterations": 3.0792492179353492,
+  "meanFactorizations": 8.115745568300312,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "meanMs": 22.067542000000003,
+      "p50Ms": 22.067542000000003,
+      "p95Ms": 22.067542000000003,
+      "p99Ms": 22.067542000000003,
+      "maxMs": 22.067542000000003,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 959,
+      "meanMs": 10.641013296141827,
+      "p50Ms": 7.488000000000284,
+      "p95Ms": 31.433375000000524,
+      "p99Ms": 54.698333000000275,
+      "maxMs": 353.972084,
+      "overBudget": 146,
+      "meanIterations": 3.0792492179353492,
+      "meanFactorizations": 8.115745568300312
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "stepsIncludingInitial": 5758,
+  "identicalNumericalStepDiagnostics": 5758,
+  "identicalFactorizationCountIncludingReused": 5758,
+  "totalReusedFactorizations": 878,
+  "referenceTotalFactorizations": 28832,
+  "candidateTotalFactorizations": 27954,
+  "warmStepReferenceMs": 208.957958,
+  "warmStepCandidateMs": 202.99475
+}

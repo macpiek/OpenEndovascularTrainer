@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-axis-no-early-full",
+  "candidateDirectory": "/tmp/oet-closed-strategy-memory",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0,
+      "maxMm": 0
+    },
+    "wire-in": {
+      "samples": 2089,
+      "rmsMm": 7.810063136647948,
+      "maxMm": 56.95363956452916
+    },
+    "catheter-in": {
+      "samples": 3567,
+      "rmsMm": 13.247516312159432,
+      "maxMm": 37.262310996709935
+    },
+    "catheter-out": {
+      "samples": 6060,
+      "rmsMm": 11.086420570487272,
+      "maxMm": 32.90183418679951
+    },
+    "wire-out": {
+      "samples": 2144,
+      "rmsMm": 8.078887853377402,
+      "maxMm": 45.830616486504645
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 9.672805771909765e-7,
+    "maxRelativeLengthError": 3.469585388955948e-8,
+    "maxCertifiedResidual": 0.00009980593935175145,
+    "totalFactorizations": 101353,
+    "totalIterations": 21775
+  }
+}

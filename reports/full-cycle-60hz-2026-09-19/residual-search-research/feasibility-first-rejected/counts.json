@@ -1,0 +1,59 @@
+{
+  "iterations": 24438,
+  "factorizations": 84383,
+  "fullAssemblies": 36668,
+  "residualAssemblies": 54061,
+  "worstSteps": [
+    {
+      "index": 1247,
+      "phase": "wire-in",
+      "wire": 914.4666666666781,
+      "catheter": 0,
+      "elapsedMs": 5386.867625000006,
+      "iterations": 165,
+      "factorizations": 2561,
+      "timings": {
+        "assemblyMs": 2730.4762239999545,
+        "linearMs": 2355.980283999823,
+        "frictionMs": 18.331791999968118,
+        "tangentAssemblyMs": 266.9313769999935,
+        "residualAssemblyMs": 2463.544846999961,
+        "projectionMs": 1628.4641859999247
+      }
+    },
+    {
+      "index": 1173,
+      "phase": "wire-in",
+      "wire": 860.2000000000103,
+      "catheter": 0,
+      "elapsedMs": 3774.0072080000027,
+      "iterations": 133,
+      "factorizations": 2693,
+      "timings": {
+        "assemblyMs": 1658.785359000016,
+        "linearMs": 1884.9879840001304,
+        "frictionMs": 21.359252000009292,
+        "tangentAssemblyMs": 199.07895000002463,
+        "residualAssemblyMs": 1459.7064089999913,
+        "projectionMs": 869.4632190000193
+      }
+    },
+    {
+      "index": 4746,
+      "phase": "wire-out",
+      "wire": 741.133333333328,
+      "catheter": 1.5756063120875297e-11,
+      "elapsedMs": 1866.3580420000071,
+      "iterations": 90,
+      "factorizations": 1719,
+      "timings": {
+        "assemblyMs": 719.1788740000338,
+        "linearMs": 1053.64502400122,
+        "frictionMs": 9.080290000070818,
+        "tangentAssemblyMs": 133.6332050000492,
+        "residualAssemblyMs": 585.5456689999846,
+        "projectionMs": 287.28686900035245
+      }
+    }
+  ]
+}

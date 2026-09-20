@@ -1,0 +1,10 @@
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -188,6 +188,7 @@
+                 last=yield* (physicsOptions.projectiveDynamics?iterateSharedAxisProjective:iterateSharedAxisTimeStep)(candidate,dt/subdivisions,{...physicsOptions,feedById});
+                 attempts.push({subdivisions,index,dt:dt/subdivisions,status:last.status,error:last.error,converged:last.converged,
+                     residual:last.residual,friction:last.friction,wallNormalFallback:last.wallNormalFallback,
++                    ...(last.convergenceMode?{convergenceMode:last.convergenceMode,motionConvergence:last.motionConvergence}:{}),
+                     iterations:last.iterations,factorizations:last.factorizations});
+                 totals.substepAttempts++;for(const key of Object.keys(totals))if(key!=='substepAttempts')
+                     totals[key]+=last[key]??(key==='wallNormalFallbacks'?Number(last.wallNormalFallback?.attempted===true):0);

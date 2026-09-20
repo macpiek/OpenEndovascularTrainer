@@ -1,0 +1,11 @@
+✔ residual globalization retains cantilever response and elastic unloading (33.313292ms)
+✔ closed-root residual cycles stop without accepting a looser equilibrium or crossing the wall (2642.651125ms)
+✔ first contact repairs geometric infeasibility before enforcing monotone force residual (1039.246417ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3840.180833

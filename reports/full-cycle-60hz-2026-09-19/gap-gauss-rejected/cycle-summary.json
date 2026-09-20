@@ -1,0 +1,78 @@
+{
+  "contactQueries": {
+    "pointQueries": 6752,
+    "capsuleQueries": 97190,
+    "capsuleSamples": 387013,
+    "sweepQueries": 0,
+    "sweepSamples": 0,
+    "batchQueries": 0,
+    "safeCoreHits": 0,
+    "sdfHits": 6595,
+    "bvhRefinements": 387013,
+    "signRefinements": 620,
+    "signCacheHits": 0,
+    "signCacheMisses": 620,
+    "fallbackHits": 0,
+    "centerlineEstimateHits": 157,
+    "resultAllocations": 0,
+    "bvhClearanceRefinements": 0,
+    "bvhContactRefinements": 387013,
+    "knownInsideNearWallHits": 0,
+    "certifiedCapsuleQueries": 95255,
+    "certifiedCapsuleSamples": 380261,
+    "runtimeBytes": 80668990
+  },
+  "failed": true,
+  "completed": false,
+  "steps": 896,
+  "processCpu": {
+    "meanMs": 14.397531250000013,
+    "p50Ms": 9.292,
+    "p95Ms": 29.384,
+    "maxMs": 1907.566
+  },
+  "meanMs": 10.22899660602678,
+  "p50Ms": 7.423333000000184,
+  "p95Ms": 19.418666999999914,
+  "p99Ms": 42.77562499999931,
+  "maxMs": 1494.4412080000002,
+  "overBudget": 70,
+  "meanIterations": 3.25,
+  "meanFactorizations": 9.303571428571429,
+  "phases": {
+    "initial": {
+      "steps": 1,
+      "processCpu": {
+        "meanMs": 30.83,
+        "p50Ms": 30.83,
+        "p95Ms": 30.83,
+        "maxMs": 30.83
+      },
+      "meanMs": 19.82966599999986,
+      "p50Ms": 19.82966599999986,
+      "p95Ms": 19.82966599999986,
+      "p99Ms": 19.82966599999986,
+      "maxMs": 19.82966599999986,
+      "overBudget": 1,
+      "meanIterations": 5,
+      "meanFactorizations": 13
+    },
+    "wire-in": {
+      "steps": 896,
+      "processCpu": {
+        "meanMs": 14.397531250000013,
+        "p50Ms": 9.292,
+        "p95Ms": 29.384,
+        "maxMs": 1907.566
+      },
+      "meanMs": 10.22899660602678,
+      "p50Ms": 7.423333000000184,
+      "p95Ms": 19.418666999999914,
+      "p99Ms": 42.77562499999931,
+      "maxMs": 1494.4412080000002,
+      "overBudget": 70,
+      "meanIterations": 3.25,
+      "meanFactorizations": 9.303571428571429
+    }
+  }
+}

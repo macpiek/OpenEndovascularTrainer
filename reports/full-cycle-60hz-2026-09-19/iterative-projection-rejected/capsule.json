@@ -1,0 +1,1728 @@
+{
+  "source": "/tmp/oet-closed-iterative-projection",
+  "scope": "Continuous spatial capsule clearance for saved snapshots; not temporal CCD or a lumen-membership proof.",
+  "frames": 96,
+  "intervals": 12318,
+  "overlappingIntervals": 2565,
+  "worst": {
+    "index": 1199,
+    "phase": "wire-in",
+    "wire": 879.2666666666773,
+    "catheter": 0,
+    "total": 163,
+    "overlap": 83,
+    "worst": {
+      "edge": 134,
+      "owner": "wire",
+      "radius": 0.4445,
+      "site": 656.0806510181278,
+      "distance": 0.3788811378451953,
+      "penetration": 0.06561886215480472,
+      "face": 935632,
+      "crossing": false
+    }
+  },
+  "details": [
+    {
+      "index": 0,
+      "phase": "initial",
+      "wire": 0,
+      "catheter": 0,
+      "total": 0,
+      "overlap": 0,
+      "worst": null
+    },
+    {
+      "index": 59,
+      "phase": "wire-in",
+      "wire": 43.266666666666694,
+      "catheter": 0,
+      "total": 0,
+      "overlap": 0,
+      "worst": null
+    },
+    {
+      "index": 119,
+      "phase": "wire-in",
+      "wire": 87.26666666666675,
+      "catheter": 0,
+      "total": 5,
+      "overlap": 0,
+      "worst": {
+        "edge": 16,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 70.00000000000001,
+        "distance": 0.4455,
+        "penetration": 0,
+        "face": -1,
+        "crossing": false
+      }
+    },
+    {
+      "index": 179,
+      "phase": "wire-in",
+      "wire": 131.26666666666674,
+      "catheter": 0,
+      "total": 13,
+      "overlap": 1,
+      "worst": {
+        "edge": 25,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 131.26666666666674,
+        "distance": 0.4444155519977969,
+        "penetration": 0.00008444800220308579,
+        "face": 290351,
+        "crossing": false
+      }
+    },
+    {
+      "index": 239,
+      "phase": "wire-in",
+      "wire": 175.26666666666594,
+      "catheter": 0,
+      "total": 22,
+      "overlap": 8,
+      "worst": {
+        "edge": 34,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 161.01367188717535,
+        "distance": 0.4103757858062062,
+        "penetration": 0.0341242141937938,
+        "face": 300624,
+        "crossing": false
+      }
+    },
+    {
+      "index": 299,
+      "phase": "wire-in",
+      "wire": 219.26666666666515,
+      "catheter": 0,
+      "total": 30,
+      "overlap": 7,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 181.1363115303317,
+        "distance": 0.3867526747700161,
+        "penetration": 0.05774732522998388,
+        "face": 305702,
+        "crossing": false
+      }
+    },
+    {
+      "index": 359,
+      "phase": "wire-in",
+      "wire": 263.2666666666646,
+      "catheter": 0,
+      "total": 37,
+      "overlap": 8,
+      "worst": {
+        "edge": 28,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.61377848992551,
+        "distance": 0.4148812456723064,
+        "penetration": 0.02961875432769362,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 419,
+      "phase": "wire-in",
+      "wire": 307.2666666666655,
+      "catheter": 0,
+      "total": 42,
+      "overlap": 9,
+      "worst": {
+        "edge": 43,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 225.35710589561265,
+        "distance": 0.40808736657097894,
+        "penetration": 0.03641263342902107,
+        "face": 611841,
+        "crossing": false
+      }
+    },
+    {
+      "index": 479,
+      "phase": "wire-in",
+      "wire": 351.2666666666664,
+      "catheter": 0,
+      "total": 48,
+      "overlap": 8,
+      "worst": {
+        "edge": 49,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 225.320970307011,
+        "distance": 0.41248128554278213,
+        "penetration": 0.03201871445721788,
+        "face": 611841,
+        "crossing": false
+      }
+    },
+    {
+      "index": 539,
+      "phase": "wire-in",
+      "wire": 395.26666666666733,
+      "catheter": 0,
+      "total": 53,
+      "overlap": 8,
+      "worst": {
+        "edge": 43,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 225.86652380386212,
+        "distance": 0.3958321039963346,
+        "penetration": 0.04866789600366539,
+        "face": 611842,
+        "crossing": false
+      }
+    },
+    {
+      "index": 599,
+      "phase": "wire-in",
+      "wire": 439.26666666666824,
+      "catheter": 0,
+      "total": 56,
+      "overlap": 12,
+      "worst": {
+        "edge": 49,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 226.0114970561177,
+        "distance": 0.40330625535671516,
+        "penetration": 0.041193744643284846,
+        "face": 611841,
+        "crossing": false
+      }
+    },
+    {
+      "index": 659,
+      "phase": "wire-in",
+      "wire": 483.26666666666915,
+      "catheter": 0,
+      "total": 64,
+      "overlap": 8,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.60943641247087,
+        "distance": 0.41484622319874503,
+        "penetration": 0.029653776801254972,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 719,
+      "phase": "wire-in",
+      "wire": 527.2666666666701,
+      "catheter": 0,
+      "total": 66,
+      "overlap": 8,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.61058692084657,
+        "distance": 0.4147959838216327,
+        "penetration": 0.02970401617836732,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 779,
+      "phase": "wire-in",
+      "wire": 571.266666666671,
+      "catheter": 0,
+      "total": 80,
+      "overlap": 8,
+      "worst": {
+        "edge": 59,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.88780730994785,
+        "distance": 0.41442133367761635,
+        "penetration": 0.03007866632238365,
+        "face": 688739,
+        "crossing": false
+      }
+    },
+    {
+      "index": 839,
+      "phase": "wire-in",
+      "wire": 615.2666666666719,
+      "catheter": 0,
+      "total": 76,
+      "overlap": 10,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 181.3080544088227,
+        "distance": 0.40210155599561836,
+        "penetration": 0.04239844400438164,
+        "face": 305702,
+        "crossing": false
+      }
+    },
+    {
+      "index": 899,
+      "phase": "wire-in",
+      "wire": 659.2666666666728,
+      "catheter": 0,
+      "total": 100,
+      "overlap": 14,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 181.2789635143031,
+        "distance": 0.4001228741073135,
+        "penetration": 0.0443771258926865,
+        "face": 305702,
+        "crossing": false
+      }
+    },
+    {
+      "index": 959,
+      "phase": "wire-in",
+      "wire": 703.2666666666737,
+      "catheter": 0,
+      "total": 120,
+      "overlap": 20,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 181.24647863578892,
+        "distance": 0.396136095211354,
+        "penetration": 0.048363904788645995,
+        "face": 305702,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1019,
+      "phase": "wire-in",
+      "wire": 747.2666666666746,
+      "catheter": 0,
+      "total": 133,
+      "overlap": 38,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 183.8222454661379,
+        "distance": 0.4018697235184254,
+        "penetration": 0.04263027648157458,
+        "face": 308033,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1079,
+      "phase": "wire-in",
+      "wire": 791.2666666666755,
+      "catheter": 0,
+      "total": 145,
+      "overlap": 70,
+      "worst": {
+        "edge": 132,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 646.2948183413388,
+        "distance": 0.39274250558692986,
+        "penetration": 0.05175749441307015,
+        "face": 937861,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1139,
+      "phase": "wire-in",
+      "wire": 835.2666666666764,
+      "catheter": 0,
+      "total": 153,
+      "overlap": 74,
+      "worst": {
+        "edge": 132,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 651.2482097011957,
+        "distance": 0.40380885897530183,
+        "penetration": 0.040691141024698174,
+        "face": 937861,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1199,
+      "phase": "wire-in",
+      "wire": 879.2666666666773,
+      "catheter": 0,
+      "total": 163,
+      "overlap": 83,
+      "worst": {
+        "edge": 134,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 656.0806510181278,
+        "distance": 0.3788811378451953,
+        "penetration": 0.06561886215480472,
+        "face": 935632,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1259,
+      "phase": "wire-in",
+      "wire": 923.2666666666782,
+      "catheter": 0,
+      "total": 172,
+      "overlap": 79,
+      "worst": {
+        "edge": 133,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 648.7233413171238,
+        "distance": 0.39840903190408,
+        "penetration": 0.046090968095920004,
+        "face": 935760,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1319,
+      "phase": "wire-in",
+      "wire": 967.2666666666792,
+      "catheter": 0,
+      "total": 174,
+      "overlap": 43,
+      "worst": {
+        "edge": 125,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 647.6297571561258,
+        "distance": 0.39179872676468164,
+        "penetration": 0.05270127323531837,
+        "face": 938838,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1379,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 13.000000000000005,
+      "total": 153,
+      "overlap": 23,
+      "worst": {
+        "edge": 45,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 225.32498173234185,
+        "distance": 0.4092093926885973,
+        "penetration": 0.03529060731140271,
+        "face": 611843,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1439,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 65.00000000000001,
+      "total": 177,
+      "overlap": 29,
+      "worst": {
+        "edge": 21,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.58423898020747,
+        "distance": 0.4152338924925437,
+        "penetration": 0.029266107507456285,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1499,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 116.99999999999962,
+      "total": 185,
+      "overlap": 34,
+      "worst": {
+        "edge": 62,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.66512150544264,
+        "distance": 0.39663158291294937,
+        "penetration": 0.04786841708705064,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1559,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 168.9999999999999,
+      "total": 183,
+      "overlap": 26,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 141.97831987560497,
+        "distance": 0.7981527177755208,
+        "penetration": 0.03518061555781249,
+        "face": 297544,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1619,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 221.00000000000034,
+      "total": 169,
+      "overlap": 22,
+      "worst": {
+        "edge": 54,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 285.5181322251608,
+        "distance": 0.4089764245751614,
+        "penetration": 0.03552357542483858,
+        "face": 638138,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1679,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 273.0000000000008,
+      "total": 161,
+      "overlap": 31,
+      "worst": {
+        "edge": 119,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 697.2487201824266,
+        "distance": 0.4097418450226332,
+        "penetration": 0.034758154977366784,
+        "face": 904640,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1739,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 325.00000000000125,
+      "total": 168,
+      "overlap": 33,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.61392756344893,
+        "distance": 0.7974569303123502,
+        "penetration": 0.03587640302098305,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1799,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 377.0000000000017,
+      "total": 169,
+      "overlap": 28,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.61108061878377,
+        "distance": 0.7978648052209617,
+        "penetration": 0.035468528112371556,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1859,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 429.00000000000216,
+      "total": 166,
+      "overlap": 26,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60426894982007,
+        "distance": 0.7954186733225589,
+        "penetration": 0.03791466001077437,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1919,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 481.0000000000026,
+      "total": 162,
+      "overlap": 32,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6096425912206,
+        "distance": 0.7969124983541177,
+        "penetration": 0.036420834979215555,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 1979,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 533.0000000000031,
+      "total": 171,
+      "overlap": 33,
+      "worst": {
+        "edge": 61,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 322.7378304794108,
+        "distance": 0.7924882025670394,
+        "penetration": 0.04084513076629381,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2039,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 585.0000000000035,
+      "total": 174,
+      "overlap": 34,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6027174973333,
+        "distance": 0.796262414816995,
+        "penetration": 0.03707091851633826,
+        "face": 297581,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2099,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 637.000000000004,
+      "total": 176,
+      "overlap": 37,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60273701481373,
+        "distance": 0.7962956702755262,
+        "penetration": 0.03703766305780709,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2159,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 689.0000000000044,
+      "total": 170,
+      "overlap": 31,
+      "worst": {
+        "edge": 97,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 502.5484275118522,
+        "distance": 0.7967783292363126,
+        "penetration": 0.036555004097020616,
+        "face": 890306,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2219,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 741.0000000000049,
+      "total": 177,
+      "overlap": 36,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6203187995894,
+        "distance": 0.7982633420303512,
+        "penetration": 0.03506999130298205,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2279,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 793.0000000000053,
+      "total": 174,
+      "overlap": 32,
+      "worst": {
+        "edge": 61,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 322.7400212657115,
+        "distance": 0.7958154866604531,
+        "penetration": 0.03751784667288016,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2339,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 845.0000000000058,
+      "total": 177,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60531296184146,
+        "distance": 0.7965430121147163,
+        "penetration": 0.03679032121861692,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2399,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 897.0000000000063,
+      "total": 168,
+      "overlap": 38,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6067716398679,
+        "distance": 0.7968191210346214,
+        "penetration": 0.03651421229871188,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2459,
+      "phase": "catheter-in",
+      "wire": 1000,
+      "catheter": 949.0000000000067,
+      "total": 180,
+      "overlap": 35,
+      "worst": {
+        "edge": 190,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 984.1746846649118,
+        "distance": 0.40044507128707846,
+        "penetration": 0.04405492871292155,
+        "face": 350328,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2519,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 999.4666666666667,
+      "total": 176,
+      "overlap": 34,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60856192372918,
+        "distance": 0.7971392187124116,
+        "penetration": 0.0361941146209217,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2579,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 967.4666666666685,
+      "total": 180,
+      "overlap": 36,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60357033204193,
+        "distance": 0.7966878184596863,
+        "penetration": 0.03664551487364698,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2639,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 935.4666666666703,
+      "total": 179,
+      "overlap": 38,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6047615490594,
+        "distance": 0.7968165502848297,
+        "penetration": 0.03651678304850359,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2699,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 903.4666666666722,
+      "total": 176,
+      "overlap": 36,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60401894306483,
+        "distance": 0.7967222146439976,
+        "penetration": 0.03661111868933564,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2759,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 871.466666666674,
+      "total": 171,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6053121680567,
+        "distance": 0.7968294687517241,
+        "penetration": 0.03650386458160915,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2819,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 839.4666666666758,
+      "total": 178,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60523017106166,
+        "distance": 0.7967894264210513,
+        "penetration": 0.03654390691228193,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2879,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 807.4666666666776,
+      "total": 173,
+      "overlap": 37,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60604605228548,
+        "distance": 0.7968831967954755,
+        "penetration": 0.03645013653785778,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2939,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 775.4666666666794,
+      "total": 169,
+      "overlap": 33,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6072695360426,
+        "distance": 0.7970488184127306,
+        "penetration": 0.036284514920602695,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 2999,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 743.4666666666812,
+      "total": 175,
+      "overlap": 38,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6015399243861,
+        "distance": 0.7963965961367369,
+        "penetration": 0.0369367371965964,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3059,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 711.4666666666831,
+      "total": 175,
+      "overlap": 37,
+      "worst": {
+        "edge": 61,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 322.7321824379573,
+        "distance": 0.795396558927393,
+        "penetration": 0.03793677440594023,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3119,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 679.4666666666849,
+      "total": 176,
+      "overlap": 35,
+      "worst": {
+        "edge": 61,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 322.6303723960988,
+        "distance": 0.7884709238233087,
+        "penetration": 0.044862409510024515,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3179,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 647.4666666666867,
+      "total": 175,
+      "overlap": 38,
+      "worst": {
+        "edge": 134,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 682.1991831023006,
+        "distance": 0.39742162173820667,
+        "penetration": 0.04707837826179334,
+        "face": 904634,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3239,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 615.4666666666885,
+      "total": 175,
+      "overlap": 29,
+      "worst": {
+        "edge": 139,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 712.7428956159533,
+        "distance": 0.409689357020928,
+        "penetration": 0.03481064297907199,
+        "face": 898602,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3299,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 583.4666666666903,
+      "total": 176,
+      "overlap": 32,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6079884888624,
+        "distance": 0.797196948717685,
+        "penetration": 0.036136384615648276,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3359,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 551.4666666666922,
+      "total": 176,
+      "overlap": 34,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.6019442284788,
+        "distance": 0.7963887124506982,
+        "penetration": 0.03694462088263506,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3419,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 519.466666666694,
+      "total": 176,
+      "overlap": 34,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60368466761142,
+        "distance": 0.7965592801835356,
+        "penetration": 0.03677405314979765,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3479,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 487.4666666666932,
+      "total": 174,
+      "overlap": 30,
+      "worst": {
+        "edge": 107,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 551.0561619726069,
+        "distance": 0.4062488440353571,
+        "penetration": 0.0382511559646429,
+        "face": 900016,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3539,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 455.4666666666916,
+      "total": 161,
+      "overlap": 27,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.5986373868227,
+        "distance": 0.7960629414407202,
+        "penetration": 0.03727039189261305,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3599,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 423.46666666669,
+      "total": 165,
+      "overlap": 28,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60040578587808,
+        "distance": 0.7959064355336667,
+        "penetration": 0.03742689779966657,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3659,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 391.4666666666884,
+      "total": 174,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.60255550245077,
+        "distance": 0.7960784791020296,
+        "penetration": 0.0372548542313037,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3719,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 359.4666666666868,
+      "total": 170,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.59853943761001,
+        "distance": 0.7964265584220187,
+        "penetration": 0.036906774911314555,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3779,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 327.4666666666852,
+      "total": 170,
+      "overlap": 33,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.596527840038,
+        "distance": 0.7961801763089948,
+        "penetration": 0.03715315702433841,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3839,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 295.46666666668364,
+      "total": 167,
+      "overlap": 36,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.59575930593923,
+        "distance": 0.7971080962637201,
+        "penetration": 0.036225237069613114,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3899,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 263.46666666668204,
+      "total": 169,
+      "overlap": 35,
+      "worst": {
+        "edge": 57,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.673370841249,
+        "distance": 0.4030270563732418,
+        "penetration": 0.041472943626758185,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 3959,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 231.46666666668176,
+      "total": 175,
+      "overlap": 41,
+      "worst": {
+        "edge": 63,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.34833064904154,
+        "distance": 0.390818775862412,
+        "penetration": 0.053681224137588024,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4019,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 199.46666666668187,
+      "total": 171,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 142.61783570988976,
+        "distance": 0.7982474629293015,
+        "penetration": 0.03508587040403177,
+        "face": 297577,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4079,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 167.466666666682,
+      "total": 174,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "catheter",
+        "radius": 0.8333333333333333,
+        "site": 141.9998763739798,
+        "distance": 0.8019304863932174,
+        "penetration": 0.03140284694011586,
+        "face": 297544,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4139,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 135.4666666666821,
+      "total": 173,
+      "overlap": 35,
+      "worst": {
+        "edge": 28,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 142.12078963346292,
+        "distance": 0.40707769919640785,
+        "penetration": 0.03742230080359216,
+        "face": 297544,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4199,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 103.46666666668222,
+      "total": 175,
+      "overlap": 38,
+      "worst": {
+        "edge": 63,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.7045790388959,
+        "distance": 0.4031360193109215,
+        "penetration": 0.04136398068907848,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4259,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 71.46666666668233,
+      "total": 174,
+      "overlap": 38,
+      "worst": {
+        "edge": 61,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.4475944467678,
+        "distance": 0.39444322832930107,
+        "penetration": 0.05005677167069894,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4319,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 39.46666666668244,
+      "total": 173,
+      "overlap": 38,
+      "worst": {
+        "edge": 63,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.51271805483685,
+        "distance": 0.3963554408909496,
+        "penetration": 0.04814455910905041,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4379,
+      "phase": "catheter-out",
+      "wire": 1000,
+      "catheter": 7.466666666682421,
+      "total": 173,
+      "overlap": 38,
+      "worst": {
+        "edge": 64,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.51054228454444,
+        "distance": 0.39640808169276387,
+        "penetration": 0.04809191830723614,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4439,
+      "phase": "wire-out",
+      "wire": 966.266666666666,
+      "catheter": 1.5756063120875297e-11,
+      "total": 172,
+      "overlap": 35,
+      "worst": {
+        "edge": 68,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.5092812855654,
+        "distance": 0.3968333092174938,
+        "penetration": 0.04766669078250618,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4499,
+      "phase": "wire-out",
+      "wire": 922.2666666666651,
+      "catheter": 1.5756063120875297e-11,
+      "total": 164,
+      "overlap": 35,
+      "worst": {
+        "edge": 68,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.5053431284208,
+        "distance": 0.39605748564129495,
+        "penetration": 0.04844251435870506,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4559,
+      "phase": "wire-out",
+      "wire": 878.2666666666642,
+      "catheter": 1.5756063120875297e-11,
+      "total": 155,
+      "overlap": 34,
+      "worst": {
+        "edge": 68,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.5079104025338,
+        "distance": 0.39663030022894746,
+        "penetration": 0.04786969977105254,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4619,
+      "phase": "wire-out",
+      "wire": 834.2666666666632,
+      "catheter": 1.5756063120875297e-11,
+      "total": 150,
+      "overlap": 33,
+      "worst": {
+        "edge": 68,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.5039962362511,
+        "distance": 0.39572630497308786,
+        "penetration": 0.048773695026912145,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4679,
+      "phase": "wire-out",
+      "wire": 790.2666666666623,
+      "catheter": 1.5756063120875297e-11,
+      "total": 140,
+      "overlap": 32,
+      "worst": {
+        "edge": 68,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 322.5093416629944,
+        "distance": 0.39584307088316406,
+        "penetration": 0.048656929116835945,
+        "face": 686080,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4739,
+      "phase": "wire-out",
+      "wire": 746.2666666666614,
+      "catheter": 1.5756063120875297e-11,
+      "total": 133,
+      "overlap": 28,
+      "worst": {
+        "edge": 104,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 502.6151811815696,
+        "distance": 0.4018218233072387,
+        "penetration": 0.042678176692761305,
+        "face": 890409,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4799,
+      "phase": "wire-out",
+      "wire": 702.2666666666605,
+      "catheter": 1.5756063120875297e-11,
+      "total": 124,
+      "overlap": 26,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 181.2190381844204,
+        "distance": 0.40305662405136683,
+        "penetration": 0.04144337594863318,
+        "face": 305702,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4859,
+      "phase": "wire-out",
+      "wire": 658.2666666666596,
+      "catheter": 1.5756063120875297e-11,
+      "total": 108,
+      "overlap": 16,
+      "worst": {
+        "edge": 60,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 285.50076210070324,
+        "distance": 0.4016939967508288,
+        "penetration": 0.04280600324917122,
+        "face": 638146,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4919,
+      "phase": "wire-out",
+      "wire": 614.2666666666587,
+      "catheter": 1.5756063120875297e-11,
+      "total": 98,
+      "overlap": 16,
+      "worst": {
+        "edge": 109,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 595.5141647363592,
+        "distance": 0.38942814695745304,
+        "penetration": 0.05507185304254697,
+        "face": 930439,
+        "crossing": false
+      }
+    },
+    {
+      "index": 4979,
+      "phase": "wire-out",
+      "wire": 570.2666666666578,
+      "catheter": 1.5756063120875297e-11,
+      "total": 79,
+      "overlap": 9,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.60665561451249,
+        "distance": 0.41432377283038074,
+        "penetration": 0.030176227169619263,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5039,
+      "phase": "wire-out",
+      "wire": 526.2666666666569,
+      "catheter": 1.5756063120875297e-11,
+      "total": 67,
+      "overlap": 8,
+      "worst": {
+        "edge": 43,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 226.074732010687,
+        "distance": 0.4144780168751606,
+        "penetration": 0.03002198312483939,
+        "face": 611841,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5099,
+      "phase": "wire-out",
+      "wire": 482.26666666665596,
+      "catheter": 1.5756063120875297e-11,
+      "total": 65,
+      "overlap": 9,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.60374847051666,
+        "distance": 0.4149624764866168,
+        "penetration": 0.02953752351338318,
+        "face": 276951,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5159,
+      "phase": "wire-out",
+      "wire": 438.26666666665506,
+      "catheter": 1.5756063120875297e-11,
+      "total": 59,
+      "overlap": 9,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.60374381191274,
+        "distance": 0.41496525398540235,
+        "penetration": 0.029534746014597657,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5219,
+      "phase": "wire-out",
+      "wire": 394.26666666665415,
+      "catheter": 1.5756063120875297e-11,
+      "total": 58,
+      "overlap": 7,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.6033090152893,
+        "distance": 0.4149694072719905,
+        "penetration": 0.029530592728009508,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5279,
+      "phase": "wire-out",
+      "wire": 350.26666666665324,
+      "catheter": 1.5756063120875297e-11,
+      "total": 44,
+      "overlap": 7,
+      "worst": {
+        "edge": 43,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 225.35540796224223,
+        "distance": 0.4072568980347078,
+        "penetration": 0.03724310196529218,
+        "face": 611841,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5339,
+      "phase": "wire-out",
+      "wire": 306.2666666666523,
+      "catheter": 1.5756063120875297e-11,
+      "total": 42,
+      "overlap": 8,
+      "worst": {
+        "edge": 43,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 225.36280194481537,
+        "distance": 0.40525401127291455,
+        "penetration": 0.03924598872708546,
+        "face": 611841,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5399,
+      "phase": "wire-out",
+      "wire": 262.2666666666514,
+      "catheter": 1.5756063120875297e-11,
+      "total": 36,
+      "overlap": 10,
+      "worst": {
+        "edge": 22,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 107.60556853661654,
+        "distance": 0.4151982282502482,
+        "penetration": 0.029301771749751793,
+        "face": 276945,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5459,
+      "phase": "wire-out",
+      "wire": 218.266666666652,
+      "catheter": 1.5756063120875297e-11,
+      "total": 30,
+      "overlap": 6,
+      "worst": {
+        "edge": 37,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 181.16669938592744,
+        "distance": 0.38212394427178076,
+        "penetration": 0.06237605572821925,
+        "face": 305702,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5519,
+      "phase": "wire-out",
+      "wire": 174.26666666665278,
+      "catheter": 1.5756063120875297e-11,
+      "total": 21,
+      "overlap": 6,
+      "worst": {
+        "edge": 30,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 145.57016436876256,
+        "distance": 0.4115102493153945,
+        "penetration": 0.03298975068460552,
+        "face": 297751,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5579,
+      "phase": "wire-out",
+      "wire": 130.26666666665358,
+      "catheter": 1.5756063120875297e-11,
+      "total": 12,
+      "overlap": 2,
+      "worst": {
+        "edge": 23,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 126.07928392673195,
+        "distance": 0.41677696147309234,
+        "penetration": 0.027723038526907662,
+        "face": 289852,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5639,
+      "phase": "wire-out",
+      "wire": 86.26666666665356,
+      "catheter": 1.5756063120875297e-11,
+      "total": 5,
+      "overlap": 0,
+      "worst": {
+        "edge": 16,
+        "owner": "wire",
+        "radius": 0.4445,
+        "site": 70.00000000000001,
+        "distance": 0.4455,
+        "penetration": 0,
+        "face": -1,
+        "crossing": false
+      }
+    },
+    {
+      "index": 5699,
+      "phase": "wire-out",
+      "wire": 42.26666666665351,
+      "catheter": 1.5756063120875297e-11,
+      "total": 0,
+      "overlap": 0,
+      "worst": null
+    }
+  ]
+}

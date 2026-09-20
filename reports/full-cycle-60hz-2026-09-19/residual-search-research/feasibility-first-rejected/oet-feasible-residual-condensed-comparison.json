@@ -1,0 +1,42 @@
+{
+  "referenceDirectory": "/tmp/oet-closed-condensed",
+  "candidateDirectory": "/tmp/oet-closed-feasible-residual",
+  "comparedSnapshots": 96,
+  "comparison": "Common arc coordinates with linear interpolation, world coordinates including each snapshot origin",
+  "trajectory": {
+    "initial": {
+      "samples": 9,
+      "rmsMm": 0.0013764061833893338,
+      "maxMm": 0.004129218410596607
+    },
+    "wire-in": {
+      "samples": 2051,
+      "rmsMm": 35.74987511556233,
+      "maxMm": 291.1587351950044
+    },
+    "catheter-in": {
+      "samples": 3563,
+      "rmsMm": 130.38749283549052,
+      "maxMm": 450.10571636344457
+    },
+    "catheter-out": {
+      "samples": 6051,
+      "rmsMm": 131.8532339722242,
+      "maxMm": 451.67970110985465
+    },
+    "wire-out": {
+      "samples": 2081,
+      "rmsMm": 51.385439096606824,
+      "maxMm": 389.9794711165749
+    }
+  },
+  "quality": {
+    "allFinite": true,
+    "missingQuality": 0,
+    "maxPenetrationMm": 0.040195754877999534,
+    "maxRelativeLengthError": 3.480708716567087e-8,
+    "maxCertifiedResidual": 0.00009999365011026384,
+    "totalFactorizations": 84383,
+    "totalIterations": 24438
+  }
+}

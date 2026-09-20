@@ -1,0 +1,72 @@
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -106,6 +106,7 @@
+ }
+ 
+ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly }) {
++    if(incrementalContext?.enabled===false)incrementalContext=null;
+     // Optional force support can appear after an originally normal-only
+     // workspace was created. Rebuild the reference band when it no longer
+     // contains that support; compact workspaces are keyed by both supports.
+@@ -213,7 +214,7 @@
+ }
+ 
+ function solveCompactWorkingSet(w,chain,options,activeSet) {
+-    const context=options.incrementalContext;
++    const context=options.incrementalContext?.enabled===false?null:options.incrementalContext;
+     if(context?.bordered) {
+         const updated=context.bordered.solve(activeSet,options.tolerance??1e-8,w,context.maxRank);
+         if(updated)return updated;
+@@ -289,6 +290,10 @@
+     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
+         yield {kind:'linear-active-set',attempt,batchSize};
+         activeSetAttempts++;
++        // Ordinary directions keep the fast shared scratch LU. Only a long
++        // active-set search pays for an exclusive factor and border updates.
++        if(options.incrementalContext?.enabled===false&&factorizations>=4)
++            options.incrementalContext.enabled=true;
+         const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients}):{converged:true};
+         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
+         const setKey=activeSet.join('');
+@@ -378,7 +383,7 @@
+     // Numerical Jacobian prefixes may survive another solve only after exact
+     // support/Jacobian/fixed-mask validation. Matrix and solution caches below
+     // remain local to this immutable linearization.
+-    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:options.reuseStructure===false?null:options.reuseConstraintWork?sharedAxisBasisLinearization(options.rows,options.fixed):Symbol('linear-basis')};
++    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{enabled:options.incrementalContacts!=='delayed',maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:options.reuseStructure===false?null:options.reuseConstraintWork?sharedAxisBasisLinearization(options.rows,options.fixed):Symbol('linear-basis')};
+     try {
+         const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
+         const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};
+--- a/tests/kirchhoffIncrementalContactLU.test.js
++++ b/tests/kirchhoffIncrementalContactLU.test.js
+@@ -45,6 +45,30 @@
+     chain.hessian.fill(3);
+     const c=solveSharedAxisLinear(w,chain,{...options,incrementalContacts:true});assert.ok(c.converged);assert.ok(c.incrementalStats[0].factorizations>0);
+     for(let i=0;i<n;i++)assert.ok(Math.abs(c.multiplierIncrement[i]-3*(1+i/10))<1e-9);
++});
++
++test('delayed updates leave short searches unchanged and retain factors only for long active-set searches',()=>{
++    for(const n of [2,12]) {
++        const layout={dofCount:n,band:1},chain={layout,hessian:new Float64Array(n).fill(2)};
++        const rows=Array.from({length:n},(_,i)=>({id:i,kind:'wall',dofs:[i],jacobian:[1],gap:-1-i/10,multiplier:0}));
++        const options={rows,gradient:new Float64Array(n),fixed:new Uint8Array(n),batchActivation:false};
++        const reference=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,options);
++        const w=createSharedAxisLinear(layout,rows,{lazy:true});
++        const actual=solveSharedAxisLinear(w,chain,{...options,incrementalContacts:'delayed'});
++        assert.ok(actual.converged);assert.equal(actual.activeSetAttempts,reference.activeSetAttempts);
++        for(const key of ['increment','multiplierIncrement'])for(let i=0;i<actual[key].length;i++)
++            assert.ok(Math.abs(actual[key][i]-reference[key][i])<1e-10);
++        if(n===2){assert.equal(actual.factorizations,reference.factorizations);assert.deepEqual(actual.incrementalStats,[]);}
++        else {
++            assert.ok(actual.factorizations<reference.factorizations);
++            const iterator=iterateSharedAxisLinear(w,chain,{...options,incrementalContacts:'delayed'});
++            for(let i=0;i<7;i++)assert.equal(iterator.next().done,false);
++            iterator.return();chain.hessian.fill(3);
++            const after=solveSharedAxisLinear(w,chain,{...options,incrementalContacts:'delayed'});
++            assert.ok(after.converged);
++            for(let i=0;i<n;i++)assert.ok(Math.abs(after.multiplierIncrement[i]-3*(1+i/10))<1e-9);
++        }
++    }
+ });
+ 
+ test('bordered updates match general active sets with nonsymmetric force columns and physical reaction offsets',()=>{

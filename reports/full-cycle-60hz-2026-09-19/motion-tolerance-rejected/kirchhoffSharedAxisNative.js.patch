@@ -1,0 +1,77 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -1,3 +1,4 @@
++import {measureSharedAxisCorrection,validateSharedAxisMotionTolerance} from './kirchhoffSharedAxisMotionTolerance.js';
+ import {sharedAxisEffectiveGap,sharedAxisContactElasticEnergy} from './kirchhoffSharedAxisCompliance.js';
+ import {prunableSharedAxisWitnesses} from './kirchhoffSharedAxisWitnessPruning.js';
+ import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
+@@ -420,12 +421,14 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, motionTolerance=null, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, localContactRestarts = true, reuseWorkingSet = true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
++    validateSharedAxisMotionTolerance(motionTolerance);
+     const initial = captureSharedAxisNative(s), started = performance.now();
++    let motionConvergence=null;
+     let lastOutsideContact=null;
+     let candidate = null, coupledFrictionRefreshes=0, frictionRefreshMs=0, retainedDiscoveryTrials=0;
+     const modified=modifiedNewton?createSharedAxisModifiedNewton():null;
+@@ -501,6 +504,24 @@
+                 yield {kind:'direction',iteration:iterations,method};
+                 if (!direction.converged) continue;
+                 solvedDirection = true;
++                // An explicit inexact solve may stop at the current feasible
++                // pose when a full Newton correction is below the requested
++                // motion AND reaction resolution. Never infer this from a
++                // damped/Gauss-Newton direction, failed solve or wall geometry.
++                // A frozen loaded friction chart still needs the original
++                // force budget for its outer refresh certificate. Stopping
++                // it inexactly can multiply outer iterations (or prevent the
++                // chart from ever certifying). Coupled Newton refreshes the
++                // chart at this pose before constructing the direction.
++                const currentFrictionChart=coupledFrictionNewton||!s.wallFrictionStep?.records.length;
++                if(motionTolerance&&currentFrictionChart&&!isGaussNewton&&!isModified&&base.constraint<=lengthTolerance) {
++                    const correction=measureSharedAxisCorrection(s,direction);
++                    if(correction.position<=motionTolerance.position&&correction.angle<=motionTolerance.angle&&
++                        correction.reaction<=motionTolerance.reaction) {
++                        motionConvergence={estimatedCorrection:correction,tolerance:{...motionTolerance}};
++                        accepted=true;break;
++                    }
++                }
+                 const penalty = Math.max(1, ...s.multipliers.map((v, i) => 2 * Math.abs(v + direction.multiplierIncrement[i])));
+                 const baseViolation=violation(base),basePotential = base.energy + penalty * baseViolation;
+                 let predictedSlope = s.chain.gradient.reduce((sum, v, i) => sum + v * direction.increment[i], 0);
+@@ -604,6 +625,7 @@
+                     }
+                 }
+             }
++            if(motionConvergence)break;
+             if (!accepted) {
+                 status = !solvedDirection ? 'linear-solve' : attemptedTrial ? 'line-search' : 'non-descent';
+                 break;
+@@ -621,16 +643,17 @@
+         candidate = base;
+     } catch (e) { error = e.message; lastOutsideContact=e.contact??lastOutsideContact; status = 'unsupported-direction'; }
+     finally {modified?.dispose();}
+-    const converged = candidate !== null && merit(candidate) <= 1;
++    const forceConverged=candidate!==null&&merit(candidate)<=1;
++    const converged=forceConverged||!!motionConvergence;
+     if (!converged) restoreSharedAxisNative(s, initial); else {
+-        status = 'converged'; s.acceptedSolves++;
++        status = forceConverged?'converged':'converged-motion'; s.acceptedSolves++;
+         if(deferContactPublication)deferContactPublication(candidate.rows);
+         else {
+             materializeSharedAxisContacts(candidate.rows);
+             s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.gap]));
+         }
+     }
+-    return { converged, status, error, ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
++    return { converged, status, error, ...(motionTolerance?{forceConverged,convergenceMode:forceConverged?'force':motionConvergence?'motion-resolution':'none',...(motionConvergence?{motionConvergence}:{})}:{}), ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
+         ...modified?.diagnostics,timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
+         ...(detectedCycle?{detectedCycle}:{}),...(detectedStagnation?{detectedStagnation}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
+ }

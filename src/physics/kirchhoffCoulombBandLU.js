@@ -14,9 +14,11 @@ export function createCoulombBandLUArena() {
         get grows(){return grows;},get viewBuilds(){return viewBuilds;},get requests(){return requests;}
     });
     return {diagnostics,
-        getViews(count,stride) {
-            const entries=count*stride,required=8*entries+16*count+128;
+        getViews(count,stride,assemblyEntries=0) {
+            const entries=count*stride,required=8*entries+16*count+128+
+                (assemblyEntries?8*assemblyEntries+44*count+40:0);
             if(!Number.isSafeInteger(count)||count<0||!Number.isSafeInteger(stride)||stride<1||
+                !Number.isSafeInteger(assemblyEntries)||assemblyEntries<0||
                 !Number.isSafeInteger(required)||required>0x100000000)
                 throw new RangeError('Invalid Coulomb band arena shape');
             requests++;
@@ -27,12 +29,20 @@ export function createCoulombBandLUArena() {
                 if(kernel)grows++;
                 kernel=nextKernel;buffer=nextBuffer;capacityBytes=nextCapacity;allocations++;shapes.clear();
             }
-            const key=`${count}/${stride}`;
+            const key=`${count}/${stride}/${assemblyEntries}`;
             let views=shapes.get(key);
             if(!views) {
                 if(shapes.size>=32)shapes.delete(shapes.keys().next().value);
                 views={kernel,factor:new Float64Array(buffer,0,entries),rhs:new Float64Array(buffer,8*entries,count),
                     right:new Int32Array(buffer,8*(entries+count),count)};
+                if(assemblyEntries) {
+                    let at=8*entries+16*count;
+                    const take=(Type,n)=>{at=Math.ceil(at/8)*8;const view=new Type(buffer,at,n);at+=view.byteLength;return view;};
+                    views.assembly={matrix:take(Float64Array,assemblyEntries),input:take(Float64Array,count),
+                        scales:take(Float64Array,count),starts:take(Int32Array,count),ends:take(Int32Array,count),
+                        offsets:take(Int32Array,count),out:take(Float64Array,5),
+                        solution:take(Float64Array,count),error:take(Float64Array,count)};
+                }
                 shapes.set(key,views);viewBuilds++;
             }
             return views;
@@ -93,19 +103,43 @@ export function createCoulombBandLayout(matrix, count, band, groups, matrixForma
  * it never needs to swap previously stored L entries outside this band.
  * No positive-definiteness assumption or diagonal pivot replacement is used.
  */
-export function createCoulombBandLU(layout, count, {arena}={}) {
+export function createCoulombBandLU(layout, count, {arena,wasmAssembly=false}={}) {
     const { starts, ends, offsets, kl, ku } = layout, stride = 2 * kl + ku + 1;
-    const ownedKernel=arena?null:createKirchhoffLinearKernel(8*count*stride+16*count+128);
+    const ownedKernel=arena||wasmAssembly?null:createKirchhoffLinearKernel(8*count*stride+16*count+128);
     const owned=ownedKernel?{kernel:ownedKernel,factor:ownedKernel.alloc(Float64Array,count*stride),
-        rhs:ownedKernel.alloc(Float64Array,count),right:ownedKernel.alloc(Int32Array,count)}:null;
+        rhs:ownedKernel.alloc(Float64Array,count),right:ownedKernel.alloc(Int32Array,count)}:
+        !arena?createCoulombBandLUArena().getViews(count,stride,layout.entries):null;
     const diagnostics = { linearSolver: 'band-lu', jacobianEntries: layout.entries,
         factorEntries: count*stride, lowerBandwidth: kl, upperBandwidth: ku, rowSwaps: 0,
         maximumLinearBackwardError: 0, maximumPivotGrowth: 0, linearResidualFailures: 0 };
     return { diagnostics,
-        solve(J, F, scales, shift, direction) {
-            const {kernel,factor,rhs,right}=owned??arena.getViews(count,stride);
+        // Synchronous companion to solve(): the caller must not yield or run
+        // another arena solve before certifying these same original equations.
+        measureOriginalResidual(solution,error,originalRhs) {
+            const {kernel,assembly}=owned??arena.getViews(count,stride,wasmAssembly?layout.entries:0);
+            if(!assembly)return count===0?0:null;
+            assembly.solution.set(solution);assembly.input.set(originalRhs);
+            const residual=kernel.measureOriginalBandResidual(assembly.matrix.byteOffset,assembly.input.byteOffset,
+                assembly.solution.byteOffset,assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,
+                assembly.error.byteOffset,count);
+            error.set(assembly.error);return residual;
+        },
+        solve(J, F, scales, shift, direction, equilibrate=false) {
+            const {kernel,factor,rhs,right,assembly}=owned??arena.getViews(count,stride,wasmAssembly?layout.entries:0);
             factor.fill(0); right.set(ends);
             let originalMaximum = 0;
+            if(assembly) {
+                assembly.matrix.set(J);assembly.input.set(F);
+                assembly.starts.set(starts);assembly.ends.set(ends);assembly.offsets.set(offsets);
+                if(equilibrate) {
+                    kernel.equilibrateGeneralBand(assembly.matrix.byteOffset,assembly.starts.byteOffset,
+                        assembly.ends.byteOffset,assembly.offsets.byteOffset,assembly.scales.byteOffset,count);
+                    scales.set(assembly.scales);
+                } else assembly.scales.set(scales);
+                originalMaximum=kernel.prepareGeneralBandLU(assembly.matrix.byteOffset,assembly.input.byteOffset,
+                    assembly.scales.byteOffset,assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,
+                    factor.byteOffset,rhs.byteOffset,right.byteOffset,count,stride,kl,shift);
+            } else {
             for (let i = 0; i < count; i++) {
                 rhs[i] = -F[i] * scales[i];
                 const target = i * stride + kl - i, source = offsets[i];
@@ -113,10 +147,17 @@ export function createCoulombBandLU(layout, count, {arena}={}) {
                 factor[target + i] += shift;
                 for (let j = starts[i]; j <= ends[i]; j++) originalMaximum = Math.max(originalMaximum, Math.abs(factor[target + j]));
             }
+            }
             const swaps = kernel.solveGeneralBandLU(factor.byteOffset, rhs.byteOffset, right.byteOffset, count, kl, ku);
             if (swaps < 0) return false;
             diagnostics.rowSwaps += swaps;
             let residualNorm = 0, matrixNorm = 0, rhsNorm = 0, solutionNorm = 0, factorMaximum = 0;
+            if(assembly) {
+                kernel.measureGeneralBandLU(assembly.matrix.byteOffset,assembly.input.byteOffset,
+                    assembly.scales.byteOffset,assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,
+                    factor.byteOffset,rhs.byteOffset,right.byteOffset,count,stride,kl,assembly.out.byteOffset,shift);
+                [residualNorm,matrixNorm,rhsNorm,solutionNorm,factorMaximum]=assembly.out;
+            } else {
             for (let i = 0; i < count; i++) {
                 let error = F[i] * scales[i], rowNorm = 0;
                 for (let j = starts[i]; j <= ends[i]; j++) {
@@ -127,6 +168,7 @@ export function createCoulombBandLU(layout, count, {arena}={}) {
                 rhsNorm = Math.max(rhsNorm, Math.abs(F[i] * scales[i])); solutionNorm = Math.max(solutionNorm, Math.abs(rhs[i]));
                 const base = i * stride + kl - i;
                 for (let j = i; j <= right[i]; j++) factorMaximum = Math.max(factorMaximum, Math.abs(factor[base + j]));
+            }
             }
             const backwardError = residualNorm / Math.max(Number.MIN_VALUE, matrixNorm * solutionNorm + rhsNorm);
             diagnostics.maximumLinearBackwardError = Math.max(diagnostics.maximumLinearBackwardError, backwardError);
