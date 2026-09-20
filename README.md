@@ -96,6 +96,25 @@ appropriate sides of the paired forearm bones, and anterior to the hand
 skeleton. They share the same hollow Boolean wall, collision field, and
 contrast-flow tree as the pre-existing vessels.
 
+The shipped subclavian arteries have a subsequent bilateral correction relative
+to the loaded clavicles and first ribs. Their arches turn medially and posteriorly
+before descending toward the axillae. The rendered STL and collision asset share
+this correction. This is a model-based anatomical approximation; a single AP
+angiogram cannot determine a patient-specific 3D course.
+
+The reproducible offline correction is `scripts/align-subclavian-arteries.mjs`.
+It requires Python with NumPy (`PYTHON` selects the interpreter) and accepts
+distinct input/output resource directories. It checks the input STL hash against
+`scripts/anatomy/subclavian-landmarks.json`; the source revision is recorded there.
+It locally subdivides the surface, transports both subclavian regions and outlet
+landmarks, and reconstructs hollow extension junctions and small shoulder branches.
+After this step, regenerate `Aorta_plain.collision.bin` with `npm run collision:build`
+in the prepared project, and install the STL, collision binary and both JSON
+manifests together. `npm run test:anatomy` and `node --test tests/aortaOutletClosures.test.js` check
+the shared assets, the subclavian clearance and the preserved terminal walls.
+Running the older `anatomy:rebuild` generator alone restores the earlier course;
+it does not apply this later correction or the outlet closures.
+
 At the unchanged superior endpoints of the source model, the STL also
 continues both common carotid and vertebral arteries. It includes the external
 and internal carotids, vertebrobasilar system, complete Circle of Willis, and

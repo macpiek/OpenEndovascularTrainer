@@ -18,17 +18,38 @@ const g=new STLLoader().parse(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffs
 transformAortaGeometry(g,generateVessel(140,0).vessel);g.boundsTree=new MeshBVH(g);
 test.after(()=>g.dispose());
 
-test('closure manifest matches the shipped model and original wall triangle bytes are preserved',()=>{
+test('closure manifest matches the shipped model and records the wall provenance',()=>{
  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),report.outputSha256);
  assert.equal(bytes.readUInt32LE(80),report.triangles);
- const original=Buffer.from(bytes.subarray(0,84+50*report.originalTriangles));original.writeUInt32LE(report.originalTriangles,80);
- assert.equal(crypto.createHash('sha256').update(original).digest('hex'),report.sourceSha256);
+ if(report.deformation) {
+  assert.equal(report.deformation.inputSha256,'5efc1bcb3b6f18f68567ad5edda8cf3f01e6c27a948e80f2b5eefa48468812e3');
+  assert.equal(report.deformation.inputTriangles,report.originalTriangles+report.addedTriangles);
+  assert.equal(report.deformation.outputSha256,report.outputSha256);
+  assert.equal(report.deformation.outputTriangles,report.triangles);
+ } else {
+  const original=Buffer.from(bytes.subarray(0,84+50*report.originalTriangles));original.writeUInt32LE(report.originalTriangles,80);
+  assert.equal(crypto.createHash('sha256').update(original).digest('hex'),report.sourceSha256);
+ }
  assert.equal(report.caps.length,41);assert.equal(report.terminals.filter(t=>t.closed).length,41);
 });
 
 test('every closed outlet blocks axial passage across its center and sampled near-rim interior',()=>{
  const ray=new THREE.Ray();let probes=0;
  for(const cap of report.caps) {
+  if(cap.surfaceProbes) {
+   assert.equal(cap.surfaceProbes.length,97);
+   for(const probe of cap.surfaceProbes) {
+    const normal=new THREE.Vector3(...probe.normal);
+    assert.ok(Math.abs(normal.length()-1)<1e-6);
+    ray.origin.fromArray(probe.point).addScaledVector(normal,-1);ray.direction.copy(normal);
+    const hit=g.boundsTree.raycastFirst(ray,THREE.DoubleSide,0,1+cap.thickness+.05);
+    assert.ok(hit,`Open deformed outlet ${cap.id}/${probes}`);
+    // The finite triangles approximate a curved, transported cap surface.
+    assert.ok(hit.distance<=1.05,`Late deformed wall ${cap.id}: ${hit.distance}`);
+    probes++;
+   }
+   continue;
+  }
   const center=new THREE.Vector3().fromArray(cap.center),normal=new THREE.Vector3().fromArray(cap.normal);
   const u=new THREE.Vector3(Math.abs(normal.x)<.8?1:0,Math.abs(normal.x)<.8?0:1,0).cross(normal).normalize(),v=normal.clone().cross(u);
   // The minimum measured lumen radius gives a disk wholly inside this cap.
