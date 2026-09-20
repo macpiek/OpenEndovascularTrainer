@@ -309,3 +309,19 @@ npm run test:catheter:mechanics
 npm run benchmark:kirchhoff
 npm run benchmark:collision
 ```
+
+### Dwa dostępy udowe
+
+Przyciski **Prawa koszulka** i **Lewa koszulka** w zakładce **Tool selection**
+wybierają aktywny dostęp.
+Każdy dostęp ma osobny prowadnik, cewnik, ustawienia sztywności i historię solvera.
+Klawisze oraz przyciski sterują aktywnym zestawem. Zmiana dostępu kończy bieżący
+krok, zatrzymuje automatyczne wycofywanie i podawanie kontrastu; drugi zestaw
+pozostaje widoczny i jest nadal symulowany, z zerowym poleceniem wsuwania/obrotu.
+Oba solvery mają niezależne zegary, kroki w toku i punkty odtwarzania po odrzuceniu.
+Wskaźnik fizyki pokazuje osobno Hz prawego (P) i lewego (L) dostępu. Kontrast jest następnie podawany z wybranej koszulki lub jej cewnika.
+W debug aktywna koszulka jest żółta. Kolizje między narzędziami należącymi do
+różnych dostępów nie są obecnie rozwiązywane; sprzężenie prowadnik–cewnik działa
+osobno dla każdego dostępu.
+
+Testy przełączania i położenia koszulek: `node --test tests/femoralAccess.test.js`.

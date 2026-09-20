@@ -138,6 +138,20 @@ export class HybridContrastSystem {
         };
     }
 
+    setAccess(sheath, catheter) {
+        // An in-progress injection belongs to the old access, never teleport it.
+        this.stopInjection();
+        this.sheath = sheath;
+        this.catheter = catheter;
+        this._sheathStart = cloneVector(sheath.start);
+        this._sheathEnd = cloneVector(sheath.end);
+        this._sheathDirection = this._sheathEnd.clone().sub(this._sheathStart).normalize();
+        this._sheathLength = this._sheathStart.distanceTo(this._sheathEnd);
+        this._sheathPort.position = this._sheathEnd;
+        this._sheathPort.direction = this._sheathDirection;
+        this._hydraulicRevision++;
+    }
+
     setCatheter(catheter) {
         this.catheter = catheter;
     }

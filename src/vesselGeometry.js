@@ -75,6 +75,17 @@ export function generateVessel(
 
     vessel.sheath = { start: sheathStart, end: sheathEnd, radius: sheathRadius, length: finalLength, isSheath: true };
 
+    // Patient left is +X. These landmarks follow the actual asymmetric STL
+    // femoral lumen; reflecting the right sheath would put its tip outside it.
+    const leftTip = {x: 38.5, y: -390, z: 10};
+    const leftAxis = new THREE.Vector3(-0.45, 0.70, -0.56).normalize();
+    const leftSheath = {
+        start: {x:leftTip.x-leftAxis.x*finalLength, y:leftTip.y-leftAxis.y*finalLength,
+            z:leftTip.z-leftAxis.z*finalLength},
+        end: leftTip, radius:sheathRadius, length:finalLength, isSheath:true
+    };
+    vessel.sheaths = {right:vessel.sheath, left:leftSheath};
+
     // Add a segment for the sheath so the guidewire can traverse it
     vessel.segments.push(vessel.sheath);
 

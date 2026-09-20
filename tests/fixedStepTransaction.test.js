@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {createFemoralAccessController} from '../src/femoralAccessController.js';
 import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js';
 import {createCoupledRuntimeFixture} from './helpers/coupledRuntimeFixture.js';
 import {createCoupledSolverSelection} from '../src/physics/coupledSolverSelection.js';
@@ -122,7 +123,7 @@ const simulatorSource=fs.readFileSync(new URL('../src/simulator.js',import.meta.
 function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=false}={}) {
     const world=stubWorld(outcomes,fixedDt),queue=[],errors=[];let clock=0;
     const originalAdvance=world.advance.bind(world);world.advance=(...args)=>{clock+=sliceMs;return originalAdvance(...args);};
-    const state={world,queue,errors,runPhysicsFrameBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
+    const state={world,queue,errors,activeAccessId:'right',isControlledAccess:()=>true,accessController:{applyRequested:()=>false,values:()=>[],run:(_id,operation)=>operation()},runPhysicsFrameBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
         fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',FULL_CYCLE_BENCHMARK_MODE:'full-cycle-60hz',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
         TARGET_RENDER_FRAME_MS:1000/60,PHYSICS_IDLE_GUARD_MS:.75,PHYSICS_RENDER_RESERVE_MS:3.5,
         PHYSICS_MIN_SLICE_MS:.5,PHYSICS_MAX_SLICE_MS:4,simulationRenderReserveMs:3.5,sliceBudgets:[],
@@ -288,7 +289,7 @@ test('actual benchmark sampler advances no clock; lifecycle reset runs before Wo
 
 test('actual post-commit credits only the originating benchmark epoch while always advancing committed contrast once',()=>{
     const calls={sync:0,metrics:0,envelope:0,resistance:0,contrast:0,dose:0};
-    const state={xpbdWireBody:{syncToRodState:()=>calls.sync++},xpbdCatheterBody:{},wire:{},
+    const state={isControlledAccess:()=>true,xpbdWireBody:{syncToRodState:()=>calls.sync++},xpbdCatheterBody:{},wire:{},
         xpbdContainment:{outerStartNode:0,innerRadius:1,closestSegment:null},spatiallyCapturedContainmentEnd:()=>0,
         browserBenchmarkEpoch:2,browserBenchmarkScenario:{running:true,simulationElapsedMs:0},
         simulationAccumulator:3*dt,shortCatheterBenchmarkMetrics:{recordStep:()=>calls.metrics++},
@@ -465,4 +466,65 @@ test('realtime idle work can use a partial slice but stops before the deadline g
     assert.ok(s.sliceBudgets.at(-1)<1);
     assert.equal(s.prepares,1);assert.equal(s.commits,0);
     assert.equal(s.simulationAccumulator,.02);
+});
+
+test('access switch drains one prepared step without preparing further commands', () => {
+    const s=schedulerHarness([cooperative(),true,true],{shared:true,realtime:true,fixedDt:1/60});
+    s.world.contactField={};
+    s.simulationAccumulator=2/60;
+    s.simulationStepTransaction.beginFrame();
+    assert.equal(s.executeAccumulatedPhysicsStep(),false);
+    assert.equal(s.simulationStepTransaction.pending,true);
+    s.accessController.switchRequested=true;
+    assert.equal(s.executeAccumulatedPhysicsStep(),true);
+    assert.equal(s.executeAccumulatedPhysicsStep(),false);
+    assert.equal(s.prepares,1);
+    assert.equal(s.commits,1);
+});
+
+test('idle work scheduled for an old access cannot advance the newly selected world', () => {
+    const s=schedulerHarness([true],{shared:true,realtime:true,fixedDt:1/60});
+    s.world.contactField={};s.simulationAccumulator=1/60;s.lastRenderTime=0;
+    s.scheduleIdlePhysicsCatchup();assert.equal(s.queue.length,1);
+    const newWorld=stubWorld([true],1/60);
+    s.simulationStepTransaction=createFixedStepTransaction({world:newWorld,prepare:()=>{}});
+    s.queue.shift()();
+    assert.equal(s.world.attempts,0);
+    assert.equal(newWorld.attempts,0);
+});
+
+test('both access schedulers advance and a control switch preserves a background pending step', () => {
+    const s=schedulerHarness([true],{shared:true,realtime:true,fixedDt:1/60});
+    s.world.contactField={};
+    const keys=Object.keys(s).filter(key=>key.startsWith('simulation')).concat([
+        'activeAccessId','endovascularWorld','compositePhysicsClockStarted','prepares','commits']);
+    const capture=()=>Object.fromEntries(keys.map(key=>[key,s[key]]));
+    const restore=state=>{for(const key of keys)s[key]=state[key];};
+    const right=capture();
+    const leftWorld=stubWorld([cooperative(),cooperative(),true],1/60);
+    leftWorld.contactField={};
+    const left={...right,activeAccessId:'left',endovascularWorld:leftWorld};
+    left.simulationStepTransaction=createFixedStepTransaction({world:leftWorld,
+        prepare:()=>({preparation:++s.prepares}),now:()=>0});
+    s.accessController=createFemoralAccessController({initial:'right',entries:{right,left},capture,restore,
+        isPending:()=>s.simulationStepTransaction.pending});
+    s.isControlledAccess=()=>s.activeAccessId===s.accessController.activeId;
+    s.frame(0);s.frame(20);
+    assert.equal(s.world.stepCount,1);
+    assert.equal(leftWorld.stepCount,0);
+    assert.equal(left.simulationStepTransaction.pending,true);
+    assert.equal(left.prepares,1);
+    s.accessController.request('left');
+    s.frame(40);
+    assert.equal(s.activeAccessId,'left');
+    assert.ok(leftWorld.stepCount>=1);
+    assert.ok(s.world.stepCount>=2,'right continues to run with left controls selected');
+    assert.deepEqual(leftWorld.admitted.slice(0,3),[1/60,0,0], 'resume the old dt without adding another one');
+    s.frame(60);s.frame(80);
+    const steps=s.accessController.getCompletedSteps();
+    assert.ok(steps.right>=4 && steps.left>=4);
+    for(const id of ['right','left'])s.accessController.run(id,()=>{
+        assert.ok(Math.abs(s.simulationAcceptedTime-s.simulationExecutedSteps/60-s.simulationAccumulator)<1e-10);
+    });
+    assert.equal(s.activeAccessId,'left','background scopes restore the control context');
 });

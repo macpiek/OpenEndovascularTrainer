@@ -34,6 +34,7 @@ export function initUI(options) {
     displayMaterial,
     blendMaterial,
     wireMaterial,
+    onAccessChange,
     onStartInjection,
     onStopInjection,
     onModeChange,
@@ -1068,6 +1069,8 @@ export function initUI(options) {
     let shaftStiffnessScale = parseFloat(catheterShaftStiffnessSlider.value);
     let tipStiffnessScale = parseFloat(catheterTipStiffnessSlider.value);
     const applyCatheterStiffness = () => {
+      shaftStiffnessScale = parseFloat(catheterShaftStiffnessSlider.value);
+      tipStiffnessScale = parseFloat(catheterTipStiffnessSlider.value);
       if (catheterShaftStiffnessValue) {
         catheterShaftStiffnessValue.textContent =
           `${shaftStiffnessScale.toFixed(2).replace('.', ',')}×`;
@@ -1106,6 +1109,8 @@ export function initUI(options) {
       }
     };
     const applyStiffness = () => {
+      shaftStiffnessScale = parseFloat(shaftStiffnessSlider.value);
+      tipStiffnessScale = parseFloat(tipStiffnessSlider.value);
       updateStiffnessValues();
       onGuidewireStiffnessChange?.({
         shaftStiffnessScale,
@@ -1127,6 +1132,8 @@ export function initUI(options) {
     let staticFriction = parseFloat(staticFricSlider.value);
     let kineticFriction = parseFloat(kineticFricSlider.value);
     const applyFriction = () => {
+      staticFriction = parseFloat(staticFricSlider.value);
+      kineticFriction = parseFloat(kineticFricSlider.value);
       onGuidewireFrictionChange?.({ staticFriction, kineticFriction });
     };
     applyFriction();
@@ -1164,6 +1171,51 @@ export function initUI(options) {
     if (typeof onModeChange === 'function') onModeChange(fluoroscopy);
   }
 
+  const accessButtons = Array.from(document.querySelectorAll('[data-femoral-access]'));
+  let accessSwitchPending = false;
+  const accessStatus = document.getElementById('femoralAccessStatus');
+  const accessSliders = [shaftStiffnessSlider, tipStiffnessSlider,
+    catheterShaftStiffnessSlider, catheterTipStiffnessSlider, staticFricSlider, kineticFricSlider];
+  const accessOutputs = [guidewireStiffnessValue, guidewireTipStiffnessValue,
+    catheterShaftStiffnessValue, catheterTipStiffnessValue];
+  function captureAccessControls() {
+    return {selectedCatheterType, selectedGuidewireType,
+      sliders:accessSliders.map(slider => slider?.value),
+      outputs:accessOutputs.map(output => output?.textContent)};
+  }
+  function restoreAccessControls(state) {
+    selectedCatheterType = state.selectedCatheterType;
+    selectedGuidewireType = state.selectedGuidewireType;
+    catheterTypeSelect.value = selectedCatheterType;
+    guidewireTypeSelect.value = selectedGuidewireType;
+    accessSliders.forEach((slider, i) => { if (slider) slider.value = state.sliders[i]; });
+    accessOutputs.forEach((output, i) => { if (output) output.textContent = state.outputs[i]; });
+  }
+  function releaseToolInputs() {
+    advance = guidewireRotation = catheterAdvance = catheterRotation = 0;
+    stopGuidewireAutoWithdraw();
+    stopCatheterAutoWithdraw();
+  }
+  accessButtons.forEach(button => button.addEventListener('click', () => {
+    if (accessSwitchPending || button.getAttribute('aria-pressed') === 'true') return;
+    releaseToolInputs();
+    accessSwitchPending = true;
+    accessButtons.forEach(control => { control.disabled = true; });
+    accessStatus.textContent = 'Kończenie kroku i przełączanie koszulki…';
+    onAccessChange?.(button.dataset.femoralAccess);
+    button.blur();
+  }));
+  function setActiveAccess(id) {
+    const readout = document.getElementById('activeAccessReadout');
+    if (readout) readout.textContent = id === 'left' ? 'Lewa koszulka' : 'Prawa koszulka';
+    accessSwitchPending = false;
+    accessButtons.forEach(button => {
+      button.disabled = false;
+      button.setAttribute('aria-pressed', String(button.dataset.femoralAccess === id));
+    });
+    if (accessStatus) accessStatus.textContent = `Aktywna: ${id === 'left' ? 'lewa' : 'prawa'} · oba solvery działają`;
+  }
+
   // Keyboard controls for guidewire advance and keyboard-triggered injection
   let advance = 0;
   let guidewireRotation = 0;
@@ -1192,6 +1244,7 @@ export function initUI(options) {
   function wireHoldButton(button, onDown, onUp) {
     if (!button) return;
     button.addEventListener('pointerdown', e => {
+      if (accessSwitchPending) return;
       onDown();
       button.setPointerCapture?.(e.pointerId);
       e.preventDefault();
@@ -1211,6 +1264,7 @@ export function initUI(options) {
   wireHoldButton(guidewireRotateRightButton, () => setGuidewireRotation(1), stopGuidewireRotation);
 
   document.addEventListener('keydown', e => {
+    if (e.repeat || accessSwitchPending || e.target?.matches?.('input, select, textarea, [contenteditable=true]')) return;
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
       stopGuidewireAutoWithdraw();
       advance = 1; e.preventDefault();
@@ -1620,7 +1674,7 @@ export function initUI(options) {
   }
   let perfElapsed = 0;
   let perfFrames = 0;
-  let perfPhysicsStepsStart = 0;
+  let perfPhysicsStepsStart = {};
   function updatePerfStats(dtSeconds, completedPhysicsSteps) {
     if (!perfStatsEl) return;
     perfElapsed += dtSeconds;
@@ -1629,14 +1683,17 @@ export function initUI(options) {
     const fps = (perfFrames / Math.max(1e-6, perfElapsed)).toFixed(1);
     // Count committed timesteps, including work completed between render
     // frames. Cooperative slices and rejected trials must not inflate this.
-    const physicsHz = (Math.max(0, completedPhysicsSteps - perfPhysicsStepsStart) /
-      Math.max(1e-6, perfElapsed)).toFixed(1);
+    const counts = typeof completedPhysicsSteps === 'number' ? {active:completedPhysicsSteps} : completedPhysicsSteps;
+    const physicsHz = Object.entries(counts).map(([id, steps]) => {
+      const hz = (Math.max(0, steps - (perfPhysicsStepsStart[id] ?? 0)) / Math.max(1e-6, perfElapsed)).toFixed(1);
+      return `${id === 'right' ? 'P: ' : id === 'left' ? 'L: ' : ''}${hz}`;
+    }).join(' / ');
     let mem = 'N/A';
     if (performance.memory) {
       mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
     }
     perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz | Mem: ${mem}`;
-    perfPhysicsStepsStart = completedPhysicsSteps;
+    perfPhysicsStepsStart = {...counts};
     perfElapsed = 0;
     perfFrames = 0;
   }
@@ -2038,6 +2095,7 @@ export function initUI(options) {
   };
 
   return {
+    releaseToolInputs, captureAccessControls, restoreAccessControls, setActiveAccess,
     monitor,
     getAdvance: () => guidewireAutoWithdraw.active ? guidewireAutoWithdraw.command : advance,
     getGuidewireRotation: () => guidewireRotation,

@@ -7,6 +7,7 @@ export function describeSolverFailure(report) {
     const {result={},capturedAt,captureError,recovered}=report.failure;
     const rejected=(result.attempts??[]).filter(a=>a.converged===false);
     const lines=[`Ostatnie odrzucenie: ${capturedAt}`,`Wynik kroku: ${recovered?'odzyskano zbieżność po odrzuceniu podkroku':'odrzucony'}`,`Przyczyna: ${result.error || rejected[0]?.error || rejected[0]?.status || result.status || 'nieznana'}`];
+    if (report.accessId) lines.push(`Dostęp udowy: ${report.accessId === 'left' ? 'lewy' : 'prawy'}`);
     for (const tool of report.stepRequest?.tools ?? []) {
         const before=report.tools?.find(t=>t.id===tool.id);
         lines.push(`${tool.id}: ${before?.insertion ?? '?'} → ${tool.insertion} mm; obrót ${report.stepRequest.rotations?.[tool.id] ?? '?'} → ${tool.rotation} rad`);

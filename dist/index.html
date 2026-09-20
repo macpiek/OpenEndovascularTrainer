@@ -14,9 +14,9 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-DFqdzUGM.js"></script>
+  <script type="module" crossorigin src="/assets/index-n-Z4AAa-.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-DMIugAIR.css">
+  <link rel="stylesheet" crossorigin href="/assets/index-CAWlw2bJ.css">
 </head>
 <body class="system-initializing">
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -65,6 +65,7 @@
     </div>
     <div id="perfStats">FPS: 0 | Mem: N/A</div>
     <div class="control-readout-strip">
+        <div class="control-readout" id="activeAccessReadout">Prawa koszulka</div>
         <div class="control-readout" id="insertedLength">Wire 0 cm</div>
         <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
         <div class="control-readout" id="currentDose">Contrast 0 ml</div>
@@ -88,6 +89,12 @@
 
     <div class="control-tab-panels">
         <div class="control-tab-panel active" data-control-panel="toolSelection" role="tabpanel">
+            <div class="femoral-access-controls" role="group" aria-label="Sterowanie koszulką">
+                <span>Sterowanie koszulką</span>
+                <button type="button" data-femoral-access="right" aria-pressed="true">Prawa koszulka</button>
+                <button type="button" data-femoral-access="left" aria-pressed="false">Lewa koszulka</button>
+                <span id="femoralAccessStatus" role="status">Aktywna: prawa · oba solvery działają</span>
+            </div>
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
                 <div class="section-content tool-selection-grid">
