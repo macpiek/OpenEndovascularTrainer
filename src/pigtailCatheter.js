@@ -1,3 +1,4 @@
+import {deliveryMaterialProfile} from './devices/stentGraftDeliveryMechanics.js';
 import { CATHETER_PHYSICS_SPACING_MM } from './physics/catheterDiscretization.js';
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
 import { transportCatheterThroughSheath } from './physics/catheterSheathTransport.js';
@@ -456,13 +457,14 @@ export class PigtailCatheter {
         this.physicsActiveCount = body.count;
         this.physicsLumenStartNode = feed.lumenStart;
         this.physicsLumenOrigin = feed.lumenOrigin;
-        body.nodeRadius.fill(CATHETER_RADIUS);
+        body.radius=this.type==='stentgraft-delivery'?3:CATHETER_RADIUS;
+        body.nodeRadius.fill(body.radius);
         const material = this._kirchhoffMaterialOptions;
         material.activeStart = body.activeStart;
         material.activeEnd = body.activeEnd;
         material.materialCoordinates = body.materialCoordinate;
         material.tipCoordinate = this.progress;
-        applyKirchhoffMaterialProfile(body, this.type, material);
+        applyKirchhoffMaterialProfile(body, this.type==='stentgraft-delivery'?deliveryMaterialProfile(this.deliveryExposureMm):this.type, material);
         this._kirchhoffBoundaryOptions.twist = this.rotation;
         this._kirchhoffBoundaryOptions.segment = body.activeStart;
         applyProximalTwistBoundary(body, this._kirchhoffBoundaryOptions);
@@ -1261,13 +1263,13 @@ export class PigtailCatheter {
         }
     }
 
-    advance(command, dt, guidewireInserted) {
+    advance(command, dt, guidewireInserted, speedOverride = null) {
         this.motionCommand = command;
         this._feedDt = dt;
         this.previousGuidewireInserted = this.guidewireInserted;
         this.guidewireInserted = Math.max(0, guidewireInserted);
         this.guidewireDelta = this.guidewireInserted - this.previousGuidewireInserted;
-        const speed = command > 0 ? CATHETER_ADVANCE_SPEED : CATHETER_WITHDRAW_SPEED;
+        const speed = speedOverride ?? (command > 0 ? CATHETER_ADVANCE_SPEED : CATHETER_WITHDRAW_SPEED);
         const nextProgress = clamp(this.progress + command * speed * dt, 0, this.maxLength);
         if (!this.vessel?.sheath && nextProgress > this.progress) {
             this.#recordGuidewirePath(Math.min(nextProgress, this.guidewireInserted));
@@ -1361,6 +1363,7 @@ export class PigtailCatheter {
     }
 
     updateMesh() {
+        if(this.type==='stentgraft-delivery'){this.mesh.visible=false;this.tipMarker.visible=false;return;}
         if (this.physicsBody && this.physicsActiveCount < 2) {
             this.mesh.visible = false; this.tipMarker.visible = false; return;
         }
@@ -1427,6 +1430,7 @@ export class PigtailCatheter {
 
     getInjectionPorts(out = []) {
         out.length = 0;
+        if(this.type==='stentgraft-delivery')return out;
         const body = this.physicsBody;
         const points = body ? null : this.#buildCenterline();
         const pointCount = body ? this.physicsActiveCount : this._centerlinePointCount;
@@ -2321,6 +2325,7 @@ export class PigtailCatheter {
     }
 
     #normalizeType(type) {
+        if(type==='stentgraft-delivery')return type;
         if (
             type === CATHETER_TYPE_SIM1 ||
             type === 'sim-1' ||

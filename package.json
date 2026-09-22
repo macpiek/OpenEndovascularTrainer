@@ -37,7 +37,7 @@
     "anatomy:align-subclavians": "node --max-old-space-size=8192 scripts/align-subclavian-arteries.mjs",
     "anatomy:aneurysm": "node scripts/rebuild-infrarenal-aneurysm.mjs",
     "test:anatomy:aneurysm": "node --test tests/anatomyControls.test.js tests/infrarenalAneurysm.test.js tests/aneurysmRebuild.test.js",
-    "test:stentgraft": "node --test tests/stentGraft.test.js tests/stentGraftInteraction.test.js tests/stentGraftControls.test.js",
+    "test:stentgraft": "node --test tests/stentGraft.test.js tests/stentGraftInteraction.test.js tests/stentGraftControls.test.js tests/stentGraftDeployment.test.js tests/stentGraftWallFit.test.js tests/stentGraftMechanics.test.js tests/stentGraftNose.test.js tests/stentGraftRotation.test.js tests/stentGraftExpansion.test.js tests/stentGraftCannulation.test.js",
     "test:anatomy:mesh": "node --test tests/vesselMeshIntegrity.test.js tests/aortaOutletClosures.test.js tests/subclavianAlignment.test.js tests/infrarenalAneurysm.test.js"
   },
   "keywords": [],

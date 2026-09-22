@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260920stent-tool-selection-2">
+    <link rel="stylesheet" href="style.css?v=20260922-stent-models-1">
 </head>
 <body class="system-initializing">
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -128,14 +128,17 @@
                             <strong id="stentGraftSelection"></strong>
                             <div class="stent-graft-actions">
                                 <button id="stentGraftConfigure" type="button">Wybierz stentgraft</button>
-                                <button id="stentGraftDeploy" type="button" disabled>Rozłóż stentgraft</button>
+                                <button id="stentGraftDeploy" aria-keyshortcuts="J" type="button" aria-pressed="false" disabled>Zsuń koszulkę · J — przytrzymaj</button>
+                                <button id="stentGraftResheath" aria-keyshortcuts="K" type="button" aria-pressed="false" disabled>Nasuń koszulkę · K — przytrzymaj</button>
+                                <button id="stentGraftReleaseTip" aria-keyshortcuts="L" type="button" aria-pressed="false" hidden disabled>Uwolnij mocowanie · L — przytrzymaj</button>
+                                <button id="stentGraftRetractNose" type="button" aria-pressed="false" disabled>Ściągnij nosecone do koszulki · N — przytrzymaj</button>
                                 <button id="stentGraftRemove" type="button" disabled>Usuń system</button>
                             </div>
                             <progress id="stentGraftDeployment" value="0" max="1" aria-label="Rozłożenie implantu"></progress>
                             <output id="stentGraftStatus" role="status"></output>
                             <output id="stentGraftPlacement"></output>
                             <output id="stentGraftImplants"></output>
-                            <small>Wsuwaj i wycofuj przyciskami cewnika lub klawiszami D / A. Po rozłożeniu korpusu wybierz nóżkę w przeciwnej koszulce.</small>
+                            <small>Wsuwaj i wycofuj przyciskami cewnika lub klawiszami D / A. Przytrzymaj J, aby zsuwać koszulkę, K, aby ją nasuwać, L, aby uwalniać mocowanie. Koszulka działa niezależnie od mocowania. Po uwolnieniu mocowania przytrzymaj N lub „Ściągnij nosecone do koszulki”, aby zbliżyć go do końca koszulki. Puszczenie klawisza lub przycisku zatrzymuje ruch. Po rozłożeniu korpusu wybierz nóżkę w przeciwnej koszulce.</small>
                         </div>
                         <label class="guidewire-stiffness-control" for="catheterShaftStiffness">
                             <span class="guidewire-stiffness-heading">Sztywność shaftu cewnika</span>
@@ -754,6 +757,11 @@
             <p><kbd>D</kbd> wsuń, <kbd>A</kbd> wycofaj, <kbd>Q</kbd>/<kbd>E</kbd> obróć.</p>
         </section>
         <section class="control-help-section">
+            <h2>Stentgraft</h2>
+            <p><kbd>Q</kbd> / <kbd>E</kbd> obrót zespołu; po uwolnieniu mocowania — obrót urządzenia.</p>
+            <p>Przytrzymaj <kbd>J</kbd> zsuń koszulkę, <kbd>K</kbd> nasuń, <kbd>L</kbd> uwolnij mocowanie, <kbd>N</kbd> ściągnij nosecone do koszulki.</p>
+        </section>
+        <section class="control-help-section">
             <h2>Kontrast</h2>
             <p><kbd>I</kbd> wstrzyknij wybraną dawkę.</p>
         </section>
@@ -822,13 +830,19 @@
 </script>
     <script type="module" src="./src/bootstrap.js"></script>
 <dialog id="stentGraftDialog" class="stent-graft-dialog" aria-labelledby="stentGraftDialogTitle">
-    <h2 id="stentGraftDialogTitle">Wybierz stentgraft</h2>
+    <h2 id="stentGraftDialogTitle">Endurant II / IIs — wybierz stentgraft</h2>
     <p id="stentGraftAccess"></p>
     <div class="stent-graft-controls">
         <label for="stentGraftType">Implant</label>
         <select id="stentGraftType"><option value="body">Korpus rozwidlony + nóżka ipsilateralna</option><option value="limb">Nóżka kontralateralna</option></select>
-        <label for="stentGraftDiameter">Średnica nominalna</label>
-        <div><input id="stentGraftDiameter" type="range" min="20" max="36" step="2" value="28"><output id="stentGraftDiameterValue">28 mm</output></div>
+        <div id="stentGraftMainBodies">
+            <p class="stent-graft-model-hint">Wybierz korpus na ilustracji. Turkusowy koniec to bramka kontralateralna.</p>
+            <div id="stentGraftModelCards" class="stent-graft-model-grid" role="group" aria-label="Model korpusu"></div>
+            <p id="stentGraftModelDescription" class="stent-graft-model-hint"></p>
+        </div>
+        <label for="stentGraftDiameter">Średnica proksymalna</label>
+        <div><select id="stentGraftDiameter" aria-label="Średnica proksymalna"></select><output id="stentGraftDiameterValue" hidden>28 mm</output></div>
+        <div id="stentGraftDistalField"><label for="stentGraftDistalDiameter">Średnica nóżki ipsilateralnej</label> <select id="stentGraftDistalDiameter"></select></div>
         <output id="stentGraftDialogStatus" role="alert"></output>
         <div class="stent-graft-actions"><button id="stentGraftLoad" type="button">Wybierz stentgraft</button><button id="stentGraftCancel" type="button">Anuluj</button></div>
     </div>

@@ -1,0 +1,38 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontakt z bramką stentgraftu</title>
+<style>body{background:#13212c;color:#def;font:15px system-ui;margin:20px}main{display:flex;gap:16px}figure{margin:0;flex:1}canvas{width:100%}pre{white-space:pre-wrap}</style>
+<h2>Kaniulacja kontralateralnej nóżki — test kontaktu</h2><pre id="result">Symulacja…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
+import {createStentGraftContacts} from '../src/devices/stentGraftContacts.js';
+import {createSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
+import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+import {defineKirchhoffMaterialProfile} from '../src/physics/kirchhoffMaterialProfile.js';
+try {
+ const {system,device:d}=previewFixture();
+ system.updateAccess('right',100,null,{deviceId:d.id,release:'sheath'});system.updateAccess('right',1,null,{deviceId:d.id,release:'tip'});
+ const surface=system.surface,entry=d.gate.entry.clone(),normal=entry.clone().sub(d.parts[2].points.at(-2)).normalize();
+ const type=defineKirchhoffMaterialProfile({id:'cannulation-preview',sampleEI1:()=>1e3,sampleGJ:()=>1e3});
+ let state=createSharedAxisNative({tools:[{id:'wire',insertion:10,type,radius:.4445},{id:'catheter',insertion:4,type,radius:.8333}],spacing:2,samplePosition:x=>entry.clone().addScaledVector(normal,25-x).toArray()});
+ let steps=0;
+ function feed(id,value) {
+  state.wallSamples=[createStentGraftContacts(surface,state)];state.graftRevision=surface.revision;
+  const tools=state.materials.map(m=>({...m.spec,rotation:0,insertion:m.spec.id===id?value:m.spec.insertion}));
+  const iterator=advanceSharedAxis(state,{wire:0,catheter:0},1/60,tools,{forceTolerance:1e-5,lengthTolerance:1e-5});let next;do{next=iterator.next();}while(!next.done);
+  if(!next.value.state)throw Error(JSON.stringify(next.value.result));state=next.value.state;steps++;
+ }
+ function draw(label) {
+  const scene=new THREE.Scene();scene.background=new THREE.Color('#13212c');scene.add(system.group);
+  const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints(state.positions.map(p=>new THREE.Vector3(...p))),new THREE.LineBasicMaterial({color:0x50ffce}));scene.add(wire);
+  const catheter=state.materials.find(m=>m.spec.id==='catheter'),points=state.positions.slice(0,catheter.last+1).map(p=>new THREE.Vector3(...p));
+  const mesh=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),80,.8333,8,false),new THREE.MeshBasicMaterial({color:0xffbf66}));scene.add(mesh);
+  const camera=new THREE.OrthographicCamera(-36,36,62,-62,.1,1000),center=entry.clone().add(new THREE.Vector3(-6,16,0));camera.position.copy(center).add(new THREE.Vector3(35,0,300));camera.lookAt(center);
+  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(360,620);renderer.render(scene,camera);
+  const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;figure.append(renderer.domElement,caption);document.querySelector('main').append(figure);
+ }
+ for(let x=10.5;x<=43;x+=.5)feed('wire',x);draw('Prowadnik przez otwartą bramkę');
+ for(let x=4.5;x<=40;x+=.5)feed('catheter',x);draw('Cewnik po prowadniku w nóżce');
+ for(let x=39.5;x>=4;x-=.5)feed('catheter',x);for(let x=42.5;x>=10;x-=.5)feed('wire',x);draw('Narzędzia wycofane przez bramkę');
+ document.querySelector('#result').textContent=`PASS: ${steps} przyjętych kroków. Kontrola przecięcia materiału aktywna. Turkus: prowadnik, pomarańczowy: cewnik.`;
+}catch(e){document.querySelector('#result').textContent='FAIL: '+e.stack;throw e;}
+</script></html>

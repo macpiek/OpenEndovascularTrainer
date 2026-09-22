@@ -7,7 +7,7 @@ import {adaptiveMeshOptions,ADAPTIVE_SOLVE_OPTIONS} from './kirchhoffSharedAxisA
 import {createStentGraftContacts} from '../devices/stentGraftContacts.js';
 
 const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
-const profile=t=>({id:t.id,type:t.type,shaftStiffness:t.shaftStiffness,tipStiffness:t.tipStiffness,length:t.length??1000,mass:t.mass??t.body?.mass,radius:t.radius??t.body?.radius,
+const profile=t=>({id:t.id,type:t.type,...(t.type==='stentgraft-delivery'?{deliveryExposureMm:t.deliveryExposureMm??0}:{}),shaftStiffness:t.shaftStiffness,tipStiffness:t.tipStiffness,length:t.length??1000,mass:t.mass??t.body?.mass,radius:t.radius??t.body?.radius,
     wallStaticFriction:t.wallStaticFriction??t.body?.wallStaticFriction??0,wallKineticFriction:t.wallKineticFriction??t.body?.wallKineticFriction??0});
 function edgeAt(coordinates,x) {
     let low=0,high=coordinates.length-1;
@@ -89,6 +89,11 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
         // may arrive between yields and must only affect the following step.
         const surface=pending.graftSurface;
         const wallSamples=state.wallSamples.filter(sample=>!sample.graftSurface);
+        // A selected large-bore delivery system uses its matching introducer.
+        // Replace only the inlet sampler; preserve the accepted rod and wall history.
+        const inlet=createSharedAxisContacts({sheath:pending.sheath,localCoordinates:true}).wallSamples[0];
+        const inletIndex=wallSamples.findIndex(sample=>sample.sharedAxisSheath);
+        if(inletIndex>=0)wallSamples[inletIndex]=inlet;
         const graft=surface?createStentGraftContacts(surface,state):null;
         if(graft)wallSamples.push(graft);
         const source = {...state,wallSamples,graftRevision:surface?.revision??0,graftRecovery:graft?.recovery,adaptiveMesh:pending.adaptiveMesh};

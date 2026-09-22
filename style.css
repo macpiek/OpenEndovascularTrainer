@@ -2591,3 +2591,18 @@ canvas {
 .tool-select-label:has(#catheterType option[value="stentgraft"]:checked) .catheter-tip-preview,
 .tool-select-label:has(#catheterType option[value="stentgraft"]:checked) > .tool-hint { display:none; }
 .catheter-type-picker:has(#catheterType option[value="stentgraft"]:checked) { grid-template-columns:minmax(0,1fr); }
+
+#stentGraftDeploy, #stentGraftReleaseTip { touch-action:none; user-select:none; }
+.stent-graft-actions button[aria-pressed="true"] { background:#19796f; border-color:#83efdc; }
+.stent-graft-actions button[hidden] { display:none; }
+
+.stent-graft-dialog { width:min(720px,92vw); max-height:90vh; overflow:auto; }
+.stent-graft-model-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.stent-graft-model-grid .stent-graft-model { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; background:#111d29; color:#d7e8f4; border:2px solid #385169; border-radius:8px; cursor:pointer; }
+.stent-graft-model svg { width:100%; height:205px; }
+.stent-graft-model-grid .stent-graft-model[aria-pressed="true"] { border-color:#49ebda; background:#203d49; }
+.stent-graft-model:focus-visible { outline:3px solid #fff; outline-offset:2px; }
+.stent-graft-model-hint { font-size:13px; line-height:1.45; color:#afc8db; margin:4px 0 10px; }
+#stentGraftDistalField { display:flex; align-items:center; gap:12px; }
+#stentGraftDistalField[hidden], #stentGraftMainBodies[hidden] { display:none; }
+@media(max-width:520px) { .stent-graft-model-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .stent-graft-model svg { height:160px; } }

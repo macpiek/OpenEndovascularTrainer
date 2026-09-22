@@ -1,7 +1,22 @@
+import {graftLumenAt} from './stentGraftLumenContact.js';
 import * as THREE from 'three';
 import {sharedAxisOuterIntervals} from '../physics/kirchhoffSharedAxisNative.js';
 import {createKirchhoffWallWitnessGeometryWorkspace,evaluateKirchhoffWallWitnessGeometry} from '../physics/kirchhoffWallWitnessGeometry.js';
 import {createSharedAxisSegmentContact} from '../physics/kirchhoffSharedAxisSegmentContact.js';
+
+// A stiff normal response arrests motion before the centreline reaches the
+// fabric. The logarithmic term steepens near the sheet; CCD remains a final
+// guard, rather than the first mechanism that notices contact.
+export function graftContactResponse(distance,radius) {
+    const floor=radius*.01,d=Math.max(distance,floor),gap=d-radius;
+    if(gap>=0)return {energy:0,slope:0,curvature:0};
+    const log=Math.log(d/radius),stiffness=1e5,barrier=1e3;
+    const energy=.5*stiffness*gap*gap-barrier*gap*gap*log;
+    const slope=stiffness*gap-barrier*(2*gap*log+gap*gap/d);
+    const curvature=stiffness-barrier*(2*log+4*gap/d-gap*gap/(d*d));
+    const delta=distance-d;
+    return {energy:energy+slope*delta+.5*curvature*delta*delta,slope:slope+curvature*delta,curvature};
+}
 
 const inactive=()=>({gap:1,jacobian:[0,0,0,0,0,0]});
 function referencePoint(state,coordinate) {
@@ -43,6 +58,11 @@ export function createStentGraftContacts(surface,previous) {
     const sample=({state,a,b,radius,coordinateA,coordinateB})=>{
         const wa=new THREE.Vector3(...a).add(new THREE.Vector3(...state.origin)),wb=new THREE.Vector3(...b).add(new THREE.Vector3(...state.origin));
         const oldA=referencePoint(reference,coordinateA),oldB=referencePoint(reference,coordinateB);
+        // The owning wire may initially lie outside a newly opened target ring.
+        // Let the one-sided lumen potential pull it inward through that incoming
+        // surface; keep CCD once it has recovered to the lumen.
+        const mid=(coordinateA+coordinateB)/2;
+        if([coordinateA,mid,coordinateB].some(s=>graftLumenAt(surface.lumenSections,s,referencePoint(reference,s).toArray(),radius)?.penetration>0))return inactive();
         if(!bounds.intersectsBox(new THREE.Box3().setFromPoints([wa,wb,oldA,oldB])))return inactive();
         // A kinematic release can initially overlap an existing tool. Let the
         // elastic potential resolve that incoming overlap; CCD must not freeze
@@ -65,7 +85,7 @@ export function createStentGraftContacts(surface,previous) {
         for(let e=0;e<state.positions.length-1;e++) {
             const a=new THREE.Vector3(...state.positions[e]).add(new THREE.Vector3(...state.origin));
             const b=new THREE.Vector3(...state.positions[e+1]).add(new THREE.Vector3(...state.origin));
-            if(!bounds.intersectsBox(new THREE.Box3().setFromPoints([a,b])))continue;
+            if(!bounds.intersectsBox(new THREE.Box3().setFromPoints([a,b]))&&!surface.lumenSections?.some(s=>s.start<=state.coordinates[e+1]&&s.end>=state.coordinates[e]))continue;
             const intervals=sharedAxisOuterIntervals(state,e);
             const dofs=[layout.positions[e],layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]);
             for(const interval of intervals) {
@@ -73,6 +93,26 @@ export function createStentGraftContacts(surface,previous) {
                 const count=Math.max(1,Math.ceil(length/.8));
                 for(let i=0;i<=count;i++) {
                     const t=interval.start+(interval.end-interval.start)*i/count;point.copy(a).lerp(b,t);
+                    const lumen=graftLumenAt(surface.lumenSections,state.coordinates[e]+t*(state.coordinates[e+1]-state.coordinates[e]),point.toArray(),radius);
+                    if(lumen) {
+                        const penetration=lumen.penetration;
+                        if(penetration>0) {
+                            const k=1000*length/count*((i===0||i===count)?.5:1),n=lumen.normal;
+                            energy+=.5*k*penetration*penetration;contacts++;maxPenetration=Math.max(maxPenetration,penetration);
+                            for(let j=0;j<6;j++)for(let l=0;l<6;l++) {
+                                const wj=j<3?1-t:t,wl=l<3?1-t:t,jj=j%3,ll=l%3;
+                                const curvature=((jj===ll?1:0)-lumen.axis[jj]*lumen.axis[ll]-n[jj]*n[ll])/Math.max(1e-12,lumen.distance);
+                                add(dofs[j],dofs[l],k*wj*wl*(n[jj]*n[ll]+penetration*curvature));
+                            }
+                            for(let j=0;j<6;j++)chain.gradient[dofs[j]]+=k*penetration*(j<3?1-t:t)*n[j%3];
+                        }
+                        // The circular owning-lumen guide is only a recovery
+                        // aid, not a replacement for the actual cloth mesh.
+                        // Once the incoming point is inside it, retain ordinary
+                        // fabric forces so CCD does not become the only contact.
+                        const old=referencePoint(reference,state.coordinates[e]+t*(state.coordinates[e+1]-state.coordinates[e]));
+                        if(graftLumenAt(surface.lumenSections,state.coordinates[e]+t*(state.coordinates[e+1]-state.coordinates[e]),old.toArray(),radius)?.penetration>0)continue;
+                    }
                     const faces=[];
                     surface.geometry.boundsTree.shapecast({
                         intersectsBounds:box=>box.distanceToPoint(point)<radius,
@@ -92,8 +132,9 @@ export function createStentGraftContacts(surface,previous) {
                             n=old.sub(new THREE.Vector3(...g.closestPoint)).normalize().toArray();
                             if(Math.hypot(...n)<1e-8)n=[1,0,0];
                         }
-                        const gap=g.distance-radius,k=1000*length/count*((i===0||i===count) ? .5 : 1);
-                        energy+=.5*k*gap*gap;contacts++;maxPenetration=Math.max(maxPenetration,-gap);
+                        const gap=g.distance-radius,weight=length/count*((i===0||i===count) ? .5 : 1);
+                        const response=graftContactResponse(g.distance,radius);
+                        energy+=weight*response.energy;contacts++;maxPenetration=Math.max(maxPenetration,-gap);
                         const J=[...n.map(v=>v*(1-t)),...n.map(v=>v*t)];
                         const edge=[0,0,0];
                         if(g.feature==='edge') {
@@ -102,11 +143,11 @@ export function createStentGraftContacts(surface,previous) {
                             const length=Math.hypot(...edge);for(let j=0;j<3;j++)edge[j]/=length;
                         }
                         for(let j=0;j<6;j++) {
-                            chain.gradient[dofs[j]]+=k*gap*J[j];
+                            chain.gradient[dofs[j]]+=weight*response.slope*J[j];
                             for(let l=0;l<6;l++) {
                                 const curvature=g.feature==='face'||g.distance<1e-8?0:
                                     (j<3?1-t:t)*(l<3?1-t:t)*((j%3===l%3?1:0)-edge[j%3]*edge[l%3]-n[j%3]*n[l%3])/g.distance;
-                                add(dofs[j],dofs[l],k*(J[j]*J[l]+gap*curvature));
+                                add(dofs[j],dofs[l],weight*(response.curvature*J[j]*J[l]+response.slope*curvature));
                             }
                         }
                     }

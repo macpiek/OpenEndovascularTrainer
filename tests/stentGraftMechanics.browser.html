@@ -1,0 +1,79 @@
+<!doctype html><meta charset="utf-8"><title>Stentgraft mechanical integration smoke</title>
+<style>body{font:14px monospace;background:#182028;color:#eff}iframe{width:100%;height:650px;border:0}pre{white-space:pre-wrap}</style>
+<pre id="report">Loading independent test scene…</pre>
+<iframe id="sim" src="/?coupledSolver=shared-axis-realtime&solverDebug=1&pruneWitnesses=1&anatomy=infrarenal-aneurysm"></iframe>
+<script type="module">
+const deep=new URLSearchParams(location.search).has('deep'),wireTarget=deep?340:160,deliveryTarget=deep?280:100;
+const frame=document.querySelector('iframe'),report=document.querySelector('pre'),rows=[];
+const pause=()=>new Promise(r=>setTimeout(r,100));
+const log=(value)=>{rows.push(value);report.textContent=rows.join('\n');};
+async function until(check,label,limit=90000){const start=performance.now();while(!check()){if(performance.now()-start>limit)throw Error(`Timeout: ${label}`);await pause();}}
+try {
+ await until(()=>frame.contentWindow.__OET_BENCHMARK__ && !frame.contentDocument.getElementById('loadingScreen'),'scene ready');
+ const w=frame.contentWindow,doc=frame.contentDocument,physics=w.__OET_PHYSICS__,snapshot=()=>w.__OET_BENCHMARK__.getContrastDebugSnapshot();
+ const key=(type,code)=>doc.dispatchEvent(new w.KeyboardEvent(type,{code,bubbles:true}));
+ const choose=(id,value)=>{const e=doc.getElementById(id);e.value=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
+ log('Scene ready; advancing wire through real anatomy.');
+ key('keydown','KeyW');
+ await until(()=>snapshot().guidewireProgressMm>=wireTarget,'wire target');key('keyup','KeyW');
+ log(`Wire ${snapshot().guidewireProgressMm.toFixed(2)} mm; selecting graft through tool selection.`);
+ choose('catheterType','stentgraft');doc.getElementById('stentGraftLoad').click();
+ key('keydown','KeyD');
+ await until(()=>snapshot().catheterProgressMm>=deliveryTarget,'mechanical delivery target');key('keyup','KeyD');
+ if(new URLSearchParams(location.search).has('rotate')) {
+  const rotation=()=>doc.getElementById('catheterRotation')?.textContent??doc.getElementById('catheterLength').textContent;
+  const initial=rotation();key('keydown','KeyE');
+  await until(()=>rotation()!==initial,'rotation of delivery');key('keyup','KeyE');
+  log(JSON.stringify({stage:'rotated',before:initial,after:rotation()}));
+ }
+ const state=snapshot();
+ if(state.catheterType!=='stentgraft-delivery'||state.ports.length)throw Error('Wrong material type or unintended injection ports');
+ log(JSON.stringify({stage:'inserted',type:state.catheterType,wire:state.guidewireProgressMm,delivery:state.catheterProgressMm,ports:state.ports.length,acceptance:physics.getStepAcceptance()}));
+ // A second access must keep its ordinary catheter material and solver alive.
+ doc.querySelector('[data-femoral-access="left"]').click();
+ await until(()=>physics.getActiveAccess()==='left','switch to left');
+ if(snapshot().catheterType==='stentgraft-delivery')throw Error('Delivery leaked into other access');
+ doc.querySelector('[data-femoral-access="right"]').click();
+ await until(()=>physics.getActiveAccess()==='right','switch back');
+ if(snapshot().catheterType!=='stentgraft-delivery'||snapshot().catheterProgressMm<deliveryTarget-1)throw Error('Delivery state lost on switch');
+ if(deep){
+  key('keydown','KeyJ');
+  await until(()=>physics.world.readStentGraftSurface()?.lumenSections?.length>=10,'partial fabric and lumen contact');
+  key('keyup','KeyJ');
+  const releaseSteps=physics.getAccesses().find(a=>a.id==='right').steps;
+  await until(()=>physics.getAccesses().find(a=>a.id==='right').steps>releaseSteps+5 && physics.getStepAcceptance().accepted && !physics.getStepAcceptance().pending,'accepted partial release');
+  log(JSON.stringify({stage:'partial-release',fabricVertices:physics.world.readStentGraftSurface().geometry.attributes.position.count,lumenSections:physics.world.readStentGraftSurface().lumenSections.length,acceptance:physics.getStepAcceptance()}));
+  if(new URLSearchParams(location.search).has('reposition')) {
+   const beforeMove=snapshot().catheterProgressMm,angleBefore=doc.getElementById('catheterLength').textContent;
+   key('keydown','KeyD');key('keydown','KeyE');key('keydown','KeyJ');
+   await until(()=>snapshot().catheterProgressMm>beforeMove+2,'translation during partial release');
+   key('keyup','KeyD');key('keyup','KeyE');key('keyup','KeyJ');
+   if(doc.getElementById('catheterLength').textContent===angleBefore)throw Error('Pose label did not update');
+   log(JSON.stringify({stage:'move-and-roll-during-release',from:beforeMove,to:snapshot().catheterProgressMm,label:doc.getElementById('catheterLength').textContent}));
+   key('keydown','KeyA');await until(()=>snapshot().catheterProgressMm<beforeMove+.5,'withdraw during partial release');key('keyup','KeyA');
+  }
+  const before=physics.world.readStentGraftSurface().lumenSections.length;
+  key('keydown','KeyK');key('keydown','KeyL');
+  await until(()=>physics.world.readStentGraftSurface()?.lumenSections?.length<before,'keyboard resheathing');
+  key('keyup','KeyK');key('keyup','KeyL');
+  const status=doc.getElementById('stentGraftStatus').textContent;
+  if(!/Mocowanie: [1-9]/.test(status))throw Error('Tip capture did not release independently while resheathing');
+  const reverseSteps=physics.getAccesses().find(a=>a.id==='right').steps;
+  await until(()=>physics.getAccesses().find(a=>a.id==='right').steps>reverseSteps+5&&!physics.getStepAcceptance().pending,'accepted resheathing');
+  log(JSON.stringify({stage:'reversed-cover-and-capture',status,acceptance:physics.getStepAcceptance()}));
+  if(new URLSearchParams(location.search).has('nose')) {
+   key('keydown','KeyL');
+   await until(()=>doc.getElementById('stentGraftReleaseTip').disabled,'complete fixation release');key('keyup','KeyL');
+   const nose=doc.getElementById('stentGraftRetractNose');
+   if(nose.disabled)throw Error('Nose retraction button should be enabled after release');
+   key('keydown','KeyN');
+   await until(()=>nose.disabled&&doc.getElementById('stentGraftStatus').textContent.includes('Nosecone do koszulki: 0.0 mm'),'nose docks with cover');
+   key('keyup','KeyN');
+   log(JSON.stringify({stage:'nose-retracted',status:doc.getElementById('stentGraftStatus').textContent,acceptance:physics.getStepAcceptance()}));
+  }
+
+
+ }
+ log('PASS: app routes stentgraft advancement through the coupled mechanical catheter and accepts steps.');
+} catch(error){log(`FAIL: ${error.stack}`);log(JSON.stringify(frame.contentWindow.__OET_PHYSICS__?.getStepAcceptance()));}finally{for(const code of ['KeyW','KeyD','KeyA','KeyJ','KeyK','KeyL','KeyQ','KeyE','KeyN'])frame.contentDocument.dispatchEvent(new frame.contentWindow.KeyboardEvent('keyup',{code,bubbles:true}));}
+</script>

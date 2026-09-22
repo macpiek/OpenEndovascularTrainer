@@ -399,6 +399,11 @@ export function sampleSim1RestCenterline(
  * stiffness, guidewire support, contact and XPBD equilibrium are shared.
  */
 export const CATHETER_MATERIAL_PROFILES = Object.freeze({
+    'stentgraft-delivery': Object.freeze({
+        id:'stentgraft-delivery',naturalArcLength:0,frameNormalSign:1,shaftFoldLimitDegrees:24,
+        integrateIntrinsicTurn:()=>0,
+        sampleRestCenterline:(_length,distance,_scale,out={})=>Object.assign(out,{tangentDistance:distance,normalDistance:0})
+    }),
     pigtail: Object.freeze({
         id: 'pigtail',
         naturalArcLength: PIGTAIL_NATURAL_ARC_LENGTH_MM,
@@ -427,6 +432,7 @@ export const CATHETER_MATERIAL_PROFILES = Object.freeze({
 });
 
 export function catheterMaterialProfile(type) {
+    if(type==='stentgraft-delivery')return CATHETER_MATERIAL_PROFILES[type];
     if (type === 'sim1' || type === 'sim-1' || type === 'simmons-1') {
         return CATHETER_MATERIAL_PROFILES.sim1;
     }

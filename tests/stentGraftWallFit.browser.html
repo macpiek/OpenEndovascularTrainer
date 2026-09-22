@@ -1,0 +1,44 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Stent nadnerkowy — dopasowanie do ściany</title>
+<style>body{margin:20px;background:#101922;color:#e5edf5;font:15px system-ui}main{display:flex;gap:12px}figure{margin:0;flex:1;min-width:0}canvas{width:100%;height:auto}figcaption{padding:12px 0}pre{white-space:pre-wrap}</style>
+<h2>Korona nadnerkowa przy prowadniku pod boczną ścianą</h2><pre id="result">Wczytywanie anatomii…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
+import {MeshBVH} from 'three-mesh-bvh';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {transformAortaGeometry} from '../src/aortaTransform.js';
+import {generateVessel} from '../src/vesselGeometry.js';
+import {StentGraftSystem} from '../src/devices/stentGraftSystem.js';
+import {StentGraftWallFit} from '../src/devices/stentGraftWallFit.js';
+import {DevicePath,createAorticRoutes,AORTIC_NECK} from '../src/devices/stentGraftPaths.js';
+try {
+const [stl,bin]=await Promise.all(['stl','collision.bin'].map(async ext=>(await fetch('/res/Aorta_infrarenal_aneurysm.'+ext)).arrayBuffer()));
+const {vessel}=generateVessel(),asset=decodeCollisionAsset(bin),segments=[],data=asset.arrays.centerlineSegments;
+for(let i=0;i<data.length;i+=9)segments.push({id:i/9,start:new THREE.Vector3().fromArray(data,i),end:new THREE.Vector3().fromArray(data,i+3),radiusStart:data[i+6],radiusEnd:data[i+7],safeRadius:data[i+8]});
+const geometry=new STLLoader().parse(stl);transformAortaGeometry(geometry,vessel);geometry.boundsTree=new MeshBVH(geometry);
+const contactField=new VesselContactField(asset,{fallbackGeometry:geometry}),anatomy={geometry,contactField,centerlineBroadPhase:{segments}};
+const fit=new StentGraftWallFit(anatomy),routes=createAorticRoutes(segments,vessel.sheaths);
+for(const [stage,label] of [[0,'Korona uchwycona'],[.5,'Mocowanie 50% — korona nadal uchwycona'],[1,'Mocowanie uwolnione — korona odskoczyła']]) {
+ const sources={};for(const side of ['right','left']) {
+  const path=new DevicePath([new THREE.Vector3(...Object.values(vessel.sheaths[side].start)),...routes[side].points]);
+  sources[side]={nodes:path.points,coordinate:i=>path.coordinates[i],catheterMm:0};
+ }
+ const system=new StentGraftSystem({readAccess:side=>sources[side],readAnatomy:()=>anatomy,sheaths:vessel.sheaths});
+ system.load('right','body');system.positionAtTarget('right');system.updateAccess('right',100);
+ const d=system.accesses.right.device;d.diameter=20;
+ const params=new URLSearchParams(location.search);
+ for(const p of sources.right.nodes){const shift=6*Math.exp(-p.distanceToSquared(AORTIC_NECK)/900);p.copy(fit.fit(p.clone().add(new THREE.Vector3(shift,0,0)),p,.9));}
+ system.deploy('right');system.updateAccess('right',100,null,{deviceId:d.id,release:'sheath'});
+ if(params.has('roll'))system.updateAccess('right',.1,null,{deviceId:d.id,mechanicalRotation:Number(params.get('roll'))*Math.PI/180});
+ if(stage)system.updateAccess('right',stage,null,{deviceId:d.id,release:'tip'});
+ system.refreshDelivery('right');
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#101922');scene.add(system.group);
+ const wall=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:0x4b81b8,transparent:true,opacity:.15,depthWrite:false,side:THREE.DoubleSide}));scene.add(wall);
+ const camera=new THREE.OrthographicCamera(-40,40,60,-60,.1,1000);camera.position.set(5,-220,300);if(params.get('view')==='side')camera.position.set(300,-220,5);camera.lookAt(5,-220,0);
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(400,600);renderer.render(scene,camera);
+ const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;figure.append(renderer.domElement,caption);document.querySelector('main').append(figure);
+}
+document.getElementById('result').textContent='Gotowe — rzeczywista geometria tętniaka, prowadnik przesunięty o 6 mm w stronę ściany.';
+}catch(e){document.getElementById('result').textContent='FAIL: '+e.stack;throw e;}
+</script></html>

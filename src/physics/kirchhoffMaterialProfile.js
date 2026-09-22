@@ -266,6 +266,9 @@ const steelJRigidity = guidewireRigiditySamplers(GUIDEWIRE_TYPE_STEEL_J_035);
 
 export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
     ...catheterProfiles(),
+    'stentgraft-delivery': defineKirchhoffMaterialProfile({
+        id:'stentgraft-delivery',sampleEI1:()=>8_000_000,sampleGJ:()=>8_000_000/1.4
+    }),
     [GUIDEWIRE_TYPE_GLIDEWIRE]: defineKirchhoffMaterialProfile({
         id: GUIDEWIRE_TYPE_GLIDEWIRE,
         naturalTipLengthMm: 0,
@@ -288,6 +291,7 @@ export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
 });
 
 export const KIRCHHOFF_PROFILE_EXPECTED_TURNS = Object.freeze({
+    'stentgraft-delivery': 0,
     pigtail: -PIGTAIL_NATURAL_TURNS * TWO_PI,
     berenstein: BERENSTEIN_NATURAL_BEND_ANGLE_RAD,
     sim1: -SIM1_TOTAL_TURN_RAD,
@@ -296,6 +300,7 @@ export const KIRCHHOFF_PROFILE_EXPECTED_TURNS = Object.freeze({
 });
 
 export function normalizeKirchhoffMaterialType(type) {
+    if (type === 'stentgraft-delivery') return type;
     if (type === 'bernstein') return 'berenstein';
     if (type === 'sim-1' || type === 'simmons-1') return 'sim1';
     if (type === 'pigtail' || type === 'berenstein' || type === 'sim1') return type;

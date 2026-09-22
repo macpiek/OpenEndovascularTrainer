@@ -1,0 +1,33 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Stentgraft — etapy uwalniania</title>
+<style>body{margin:20px;background:#101922;color:#e5edf5;font:15px system-ui}h1{font-size:22px}main{display:flex;gap:12px}figure{margin:0;flex:1;min-width:0}canvas{width:100%;height:auto}figcaption{padding:12px 0;color:#afd7de}pre{white-space:pre-wrap}</style>
+<h1>Endurant II — test stopniowego uwalniania</h1><pre id="result">Rendering…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
+const stages=['Wsuwany — widoczne elementy w koszulce','Częściowo odsłonięty korpus','Bramka otwarta, szczyty nadal uchwycone','Stent nadnerkowy i długa nóżka uwolnione'];
+try {
+for(let i=0;i<4;i++) {
+ const {system,device:d}=previewFixture('right','body',i!==0);
+ const step=(dt,release)=>system.updateAccess('right',dt,null,{deviceId:d.id,release});
+ if(i===1)step(4,'sheath');
+ if(i>=2)step(100,'sheath');
+ if(i===3){step(1,'tip');step(100,'sheath');}
+ const frozen=d.sheathWithdrawal;step(10,null);if(d.sheathWithdrawal!==frozen)throw Error('Release failed to pause');
+ system.refreshDelivery('right');
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#162534');scene.add(system.group);
+ const camera=new THREE.OrthographicCamera(-55,55,110,-110,.1,1000);const orbit=Number(new URLSearchParams(location.search).get('orbit')??0);camera.position.set(300*Math.sin(orbit),-235,300*Math.cos(orbit));camera.lookAt(0,-235,0);
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(1);renderer.setSize(300,600);
+ const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=stages[i];figure.append(renderer.domElement,caption);document.querySelector('main').append(figure);
+ if(new URLSearchParams(location.search).has('xray')) {
+  const {renderMetalProjection}=await import('../src/imaging/renderMetalProjection.js');
+  system.setFluoroscopy(true);scene.background=new THREE.Color('#ffffff');
+  // An independent contrast-negative projection verifies the actual mask path.
+  system.group.traverse(o=>{if(o.userData?.projectionMaterial)o.userData.projectionMaterial.color.set('#111111');});
+  const mask=new THREE.MeshBasicMaterial({color:'#111111'});
+  renderMetalProjection(renderer,scene,camera,{wireGroups:[],graftGroup:system.group,wireMaterial:mask,graftMaterial:mask});
+ } else renderer.render(scene,camera);
+ const gl=renderer.getContext();if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL error');
+}
+document.getElementById('result').textContent='PASS: cztery etapy renderowane; zwolnienie sterowania zatrzymuje koszulkę we wszystkich etapach.';
+} catch(e){document.getElementById('result').textContent='FAIL: '+e.stack;throw e;}
+</script></html>

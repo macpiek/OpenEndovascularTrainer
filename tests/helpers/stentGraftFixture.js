@@ -36,5 +36,10 @@ export function place(system,side,type) {
     for(let i=0;i<1200;i++)system.updateAccess(side,1/60);
     const check=system.validation(side);assert.equal(check.ok,true,check.reason);
 }
-export function finish(system,side) {for(let i=0;i<190;i++)system.updateAccess(side,1/60);}
+export function finish(system,side) {
+    const d=system.accesses[side].device;
+    for(let i=0;i<3000&&d.phase==='deploying';i++)system.updateAccess(side,1/30,null,
+        {deviceId:d.id,release:d.releaseStage==='tip'?'tip':'sheath'});
+    assert.equal(d.phase,'deployed');
+}
 

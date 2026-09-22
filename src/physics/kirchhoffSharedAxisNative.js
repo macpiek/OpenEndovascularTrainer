@@ -1,3 +1,4 @@
+import {deliveryMaterialProfile} from '../devices/stentGraftDeliveryMechanics.js';
 import {sharedAxisEffectiveGap,sharedAxisContactElasticEnergy} from './kirchhoffSharedAxisCompliance.js';
 import {prunableSharedAxisWitnesses} from './kirchhoffSharedAxisWitnessPruning.js';
 import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
@@ -108,7 +109,7 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
         body.restLength = Float64Array.from(body.restLength);
         const coveredCoordinates=coordinates.slice(0,last+1).map(x=>Math.min(x,input.insertion));
         const materialCoordinates = coveredCoordinates.map(x => (input.length ?? 1000) + (x - input.insertion));
-        applyKirchhoffMaterialProfile(body, input.type ?? (input.id === 'catheter' ? 'berenstein' : 'glidewire'), {
+        applyKirchhoffMaterialProfile(body, input.type==='stentgraft-delivery'?deliveryMaterialProfile(input.deliveryExposureMm):input.type ?? (input.id === 'catheter' ? 'berenstein' : 'glidewire'), {
             materialCoordinates, tipCoordinate: input.length ?? 1000,
             shaftStiffnessScale: input.shaftStiffness ?? 1, tipStiffnessScale: input.tipStiffness ?? 1
         });

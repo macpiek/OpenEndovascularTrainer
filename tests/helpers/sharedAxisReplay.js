@@ -18,7 +18,7 @@ export function restoreSharedAxisReplay(fixture,field) {
         graftGeometry=new BufferGeometry();graftGeometry.setAttribute('position',new Float32BufferAttribute(graft.positions,3));
         if(graft.indices)graftGeometry.setIndex(graft.indices);
         graftGeometry.boundsTree=new MeshBVH(graftGeometry);graftGeometry.computeBoundingBox();
-        graftSampler=createStentGraftContacts({geometry:graftGeometry,bounds:graftGeometry.boundingBox,revision:graft.revision},
+        graftSampler=createStentGraftContacts({geometry:graftGeometry,bounds:graftGeometry.boundingBox,revision:graft.revision,lumenSections:graft.lumenSections??[]},
             {coordinates:fixture.coordinates,positions:fixture.positions,origin:fixture.origin??[0,0,0]});
         if(graft.hasBaseRows)contacts.wallSamples.push(graftSampler);
     }

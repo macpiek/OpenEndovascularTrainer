@@ -1389,17 +1389,21 @@ export function initUI(options) {
     }
     updateToolSelectionLocks();
   }
+  function syncInjectionSourceToCatheter(cm) {
+    if (!injSourceSelect) return;
+    injSourceSelect.value = selectedCatheterTool !== 'stentgraft' && cm > 0 ? 'catheter' : 'sheath';
+    updateInjectionDuration();
+  }
   function updateCatheterLength(cm, rotationRadians = 0) {
     const stentMode=selectedCatheterTool==='stentgraft';
-    if(stentMode){cm=(readCatheterDeliveryState?.()?.position??0)/10;rotationRadians=0;}
+    if(stentMode){const device=readCatheterDeliveryState?.();cm=(device?.position??0)/10;rotationRadians=device?.deliveryRotation??0;}
     const wasInserted = catheterLengthCm > 0;
     catheterLengthCm = Math.max(0, cm);
     const isInserted = catheterLengthCm > 0;
     // Follow accepted insertion/removal, before rounding the displayed length.
     // A manual source choice persists until the next insertion/removal boundary.
     if (!stentMode && isInserted !== wasInserted && injSourceSelect) {
-      injSourceSelect.value = isInserted ? 'catheter' : 'sheath';
-      updateInjectionDuration();
+      syncInjectionSourceToCatheter(catheterLengthCm);
     }
     catheterAutoWithdraw.updateLength(catheterLengthCm);
     const nextTenths = Math.round(catheterLengthCm * 10);
@@ -1417,7 +1421,7 @@ export function initUI(options) {
     if (catheterLengthEl) {
       const sign = nextRotationDegrees > 0 ? '+' : '';
       catheterLengthEl.textContent =
-        stentMode ? `Stentgraft ${display} cm` : `Catheter ${display} cm · ${sign}${nextRotationDegrees}°`;
+        stentMode ? `Stentgraft ${display} cm · ${sign}${nextRotationDegrees}°` : `Catheter ${display} cm · ${sign}${nextRotationDegrees}°`;
     }
     updateToolSelectionLocks();
   }
@@ -2123,6 +2127,7 @@ export function initUI(options) {
     setSelectedCatheterTool,
     getSelectedGuidewireType: () => selectedGuidewireType,
     getInjectionSource: () => injSourceSelect?.value || 'sheath',
+    syncInjectionSourceToCatheter,
     getInjectionRequest,
     getFluoroscopy: () => fluoroscopy,
     getDebugLayerState: () => ({ ...debugLayerState }),
