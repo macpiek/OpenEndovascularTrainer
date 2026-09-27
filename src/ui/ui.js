@@ -2,7 +2,7 @@ import {createSolverFailurePanel} from './solverFailurePanel.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js';
 import { setupCArmControls } from '../carmControls.js';
-import { AutomaticWithdrawalController } from './automaticWithdrawalController.js';
+import { AccessAutomaticWithdrawalController } from './automaticWithdrawalController.js';
 import { renderCatheterTipPreviews } from './catheterTipPreview.js';
 import { renderGuidewireTipPreviews } from './guidewireTipPreview.js';
 import { shouldStartInjectionFromKeydown } from './injectionShortcut.js';
@@ -115,6 +115,8 @@ export function initUI(options) {
   const modeToggle = document.getElementById('modeToggle');
   const voxelRenderToggle = document.getElementById('renderVoxels');
   const debugStlModelToggle = document.getElementById('showDebugStlModel');
+  const debugVesselShadingToggle = document.getElementById('showDebugVesselShading');
+  const debugLegacyVesselToggle = document.getElementById('showDebugLegacyVessel');
   const debugLumenCastToggle = document.getElementById('showDebugLumenCast');
   const debugSectionsToggle = document.getElementById('showDebugSections');
   const debugCenterlineToggle = document.getElementById('showDebugCenterline');
@@ -274,6 +276,8 @@ export function initUI(options) {
   }
   const debugLayerState = {
     stlModel: debugStlModelToggle?.checked ?? true,
+    vesselShading: debugVesselShadingToggle?.checked ?? true,
+    legacyVesselView: debugLegacyVesselToggle?.checked ?? true,
     lumenCast: debugLumenCastToggle?.checked ?? false,
     sections: debugSectionsToggle?.checked ?? false,
     centerline: debugCenterlineToggle?.checked ?? false,
@@ -284,6 +288,7 @@ export function initUI(options) {
   };
 
   function emitDebugLayerChange() {
+    if (debugVesselShadingToggle) debugVesselShadingToggle.disabled = debugLayerState.legacyVesselView;
     if (typeof onDebugLayerChange === 'function') {
       onDebugLayerChange({ ...debugLayerState });
     }
@@ -291,6 +296,14 @@ export function initUI(options) {
 
   debugStlModelToggle?.addEventListener('change', e => {
     debugLayerState.stlModel = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugVesselShadingToggle?.addEventListener('change', e => {
+    debugLayerState.vesselShading = e.target.checked;
+    emitDebugLayerChange();
+  });
+  debugLegacyVesselToggle?.addEventListener('change', e => {
+    debugLayerState.legacyVesselView = e.target.checked;
     emitDebugLayerChange();
   });
   debugLumenCastToggle?.addEventListener('change', e => {
@@ -349,12 +362,10 @@ export function initUI(options) {
   let selectedCatheterTool = selectedCatheterType;
   let selectedGuidewireType = guidewireTypeSelect?.value || 'glidewire';
   const TOOL_SELECTION_UNLOCK_EPSILON_CM = 0.05;
-  const guidewireAutoWithdraw = new AutomaticWithdrawalController({
+  const automaticWithdrawals = new AccessAutomaticWithdrawalController({
     emptyThresholdCm: TOOL_SELECTION_UNLOCK_EPSILON_CM
   });
-  const catheterAutoWithdraw = new AutomaticWithdrawalController({
-    emptyThresholdCm: TOOL_SELECTION_UNLOCK_EPSILON_CM
-  });
+  let {guidewire:guidewireAutoWithdraw,catheter:catheterAutoWithdraw}=automaticWithdrawals.forAccess('right');
 
   function updateAutoWithdrawButton(button, controller) {
     if (!button) return;
@@ -1206,14 +1217,13 @@ export function initUI(options) {
     accessSliders.forEach((slider, i) => { if (slider) slider.value = state.sliders[i]; });
     accessOutputs.forEach((output, i) => { if (output) output.textContent = state.outputs[i]; });
   }
-  function releaseToolInputs() {
+  function releaseToolInputs({preserveAutomaticWithdrawal=false}={}) {
     advance = guidewireRotation = catheterAdvance = catheterRotation = 0;
-    stopGuidewireAutoWithdraw();
-    stopCatheterAutoWithdraw();
+    if(!preserveAutomaticWithdrawal){stopGuidewireAutoWithdraw();stopCatheterAutoWithdraw();}
   }
   accessButtons.forEach(button => button.addEventListener('click', () => {
     if (accessSwitchPending || button.getAttribute('aria-pressed') === 'true') return;
-    releaseToolInputs();
+    releaseToolInputs({preserveAutomaticWithdrawal:true});
     accessSwitchPending = true;
     accessButtons.forEach(control => { control.disabled = true; });
     accessStatus.textContent = 'Kończenie kroku i przełączanie koszulki…';
@@ -1221,6 +1231,9 @@ export function initUI(options) {
     button.blur();
   }));
   function setActiveAccess(id) {
+    ({guidewire:guidewireAutoWithdraw,catheter:catheterAutoWithdraw}=automaticWithdrawals.forAccess(id));
+    updateAutoWithdrawButton(guidewireAutoWithdrawButton,guidewireAutoWithdraw);
+    updateAutoWithdrawButton(catheterAutoWithdrawButton,catheterAutoWithdraw);
     const readout = document.getElementById('activeAccessReadout');
     if (readout) readout.textContent = id === 'left' ? 'Lewa koszulka' : 'Prawa koszulka';
     accessSwitchPending = false;
@@ -2117,6 +2130,14 @@ export function initUI(options) {
 
   return {
     releaseToolInputs, captureAccessControls, restoreAccessControls, setActiveAccess,
+    getAutomaticWithdrawal: id => automaticWithdrawals.commands(id),
+    cancelAccessAutomaticWithdrawal: id => {
+      const access=automaticWithdrawals.forAccess(id);
+      access.guidewire.cancel();access.catheter.cancel();
+      updateAutoWithdrawButton(guidewireAutoWithdrawButton,guidewireAutoWithdraw);
+      updateAutoWithdrawButton(catheterAutoWithdrawButton,catheterAutoWithdraw);
+    },
+    updateAutomaticWithdrawalLengths: (id,wireCm,catheterCm) => automaticWithdrawals.updateLengths(id,wireCm,catheterCm),
     monitor,
     getAdvance: () => guidewireAutoWithdraw.active ? guidewireAutoWithdraw.command : advance,
     getGuidewireRotation: () => guidewireRotation,

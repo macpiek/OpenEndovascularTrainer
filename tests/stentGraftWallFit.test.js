@@ -40,7 +40,7 @@ test(`${variant}: eccentric delivery does not tilt the graft rim or push the rel
         step(100,'sheath');assert.equal(d.phase,'deployed');
         for(const part of d.parts) {
             const positions=part.mesh.geometry.attributes.position;
-            for(let i=0;i<positions.count;i++)assert.equal(contactField.querySphere(new THREE.Vector3().fromBufferAttribute(positions,i),.2,result).violation,false,'fabric has wall clearance');
+            for(let i=0;i<positions.count;i++)assert.equal(fit.query(new THREE.Vector3().fromBufferAttribute(positions,i),.2).violation,false,'fabric has wall clearance');
         }
         assert.ok(system.surface,'contact surface is still published after release');
     } finally {f.dispose();}

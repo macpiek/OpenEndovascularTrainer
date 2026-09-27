@@ -3,7 +3,7 @@
   "sourcePath": "res/Aorta_plain.stl",
   "outputPath": "res/Aorta_infrarenal_aneurysm.stl",
   "sourceSha256": "e25d2e602235d788c2f3bfba002bee1a350cf4fdd58b18c766264157fc8660d6",
-  "outputSha256": "a9de4570065b7529010ac58e72e42ae794a500a8c8b5a4fd9c64f8748a86f504",
+  "outputSha256": "59f250f9b00484e578e750446a19cbb8eb83d3d3d8cf3313616a7797a49c52e3",
   "toleranceSourceUnits": 0.0001,
   "before": {
     "triangles": 1266871,
@@ -46,7 +46,7 @@
   "method": "Remove zero-area/duplicate faces; weld compatible boundary vertices; conform T-junctions; orient manifold patches. No anatomical hole capping or Boolean union.",
   "deformation": {
     "sourceSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
-    "outputSha256": "a9de4570065b7529010ac58e72e42ae794a500a8c8b5a4fd9c64f8748a86f504",
+    "outputSha256": "59f250f9b00484e578e750446a19cbb8eb83d3d3d8cf3313616a7797a49c52e3",
     "report": "res/Aorta_infrarenal_aneurysm.json"
   }
 }

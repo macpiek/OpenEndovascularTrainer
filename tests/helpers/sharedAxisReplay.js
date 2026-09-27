@@ -1,3 +1,4 @@
+import {createCapturePotential} from '../../src/devices/stentGraftCapture.js';
 import assert from 'node:assert/strict';
 import {BufferGeometry,Float32BufferAttribute} from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
@@ -18,10 +19,11 @@ export function restoreSharedAxisReplay(fixture,field) {
         graftGeometry=new BufferGeometry();graftGeometry.setAttribute('position',new Float32BufferAttribute(graft.positions,3));
         if(graft.indices)graftGeometry.setIndex(graft.indices);
         graftGeometry.boundsTree=new MeshBVH(graftGeometry);graftGeometry.computeBoundingBox();
-        graftSampler=createStentGraftContacts({geometry:graftGeometry,bounds:graftGeometry.boundingBox,revision:graft.revision,lumenSections:graft.lumenSections??[]},
+        graftSampler=createStentGraftContacts({geometry:graftGeometry,bounds:graftGeometry.boundingBox,revision:graft.revision,complianceApplied:graft.complianceApplied??false,contactPatches:graft.contactPatches??[],otherContactPatches:graft.otherContactPatches??[],lumenSections:graft.lumenSections??[],ownedBranches:graft.ownedBranches??[]},
             {coordinates:fixture.coordinates,positions:fixture.positions,origin:fixture.origin??[0,0,0]});
         if(graft.hasBaseRows)contacts.wallSamples.push(graftSampler);
     }
+    if(fixture.graftCaptureBaseRows)contacts.wallSamples.push(createCapturePotential(fixture.graftCapture));
     const s=createSharedAxisNative({...contacts,
         fractionalTipThreshold:fixture.fractionalTipThreshold??0,rebaseNearTips:fixture.rebaseNearTips??false,spacing:fixture.spacing,tools:fixture.tools,maxBendAngle:fixture.maxBendAngle??Infinity,minimumEdgeLength:fixture.minimumEdgeLength??0,
         spatialKnots:fixture.coordinates,adaptiveMesh:fixture.adaptiveMesh});
@@ -43,9 +45,11 @@ export function restoreSharedAxisReplay(fixture,field) {
     if(graftGeometry){
         s.graftRevision=fixture.graftContactSurface.recovery?fixture.graftContactSurface.revision:undefined;
         s.graftRecovery=fixture.graftContactSurface.recovery;
+        if(fixture.graftContactSurface.exteriorPatches)graftSampler.contactPatches=fixture.graftContactSurface.exteriorPatches;
         const current=createStentGraftContacts(graftSampler.surface,s);
         s.wallSamples=s.wallSamples.map(sample=>sample.graftSurface?current:sample);
         s.graftRevision=fixture.graftContactSurface.revision;s.graftRecovery=current.recovery;
     }
+    if(fixture.graftCapture&&!fixture.graftCaptureBaseRows)s.wallSamples.push(createCapturePotential(fixture.graftCapture));
     return s;
 }

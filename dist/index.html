@@ -14,9 +14,9 @@
     }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-BMkd79of.js"></script>
+  <script type="module" crossorigin src="/assets/index-Cy3Zkj-U.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-BdctWd8i.css">
+  <link rel="stylesheet" crossorigin href="/assets/index-B0NAiJ6q.css">
 </head>
 <body class="system-initializing">
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -95,6 +95,7 @@
                 <button type="button" data-femoral-access="right" aria-pressed="true">Prawa koszulka</button>
                 <button type="button" data-femoral-access="left" aria-pressed="false">Lewa koszulka</button>
                 <span id="femoralAccessStatus" role="status">Aktywna: prawa · oba solvery działają</span>
+                <span id="toolMotionRecoveryStatus" role="status"></span>
             </div>
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
@@ -586,6 +587,7 @@
                 <output id="debugNewtonStats" class="browser-benchmark-status">Newton: dotychczasowa metoda</output>
                 <output id="debugMechanicalMesh" class="browser-benchmark-status">Siatka: inicjalizacja</output>
             </div>
+            <button id="retryToolMotionDebug" type="button" disabled>Wznów ruch z ostatniego poprawnego kroku</button>
             <div id="compositeSolverStatus" class="browser-benchmark-status" aria-label="Status wspólnego solvera" hidden>Nowy wspólny solver — inicjalizacja</div>
             <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
             <div id="contrastDiagnostics" class="contrast-diagnostics">Contrast: model loading</div>
@@ -656,6 +658,8 @@
             </div>
             <div class="debug-layer-controls" aria-label="Debug layers">
                 <label class="debug-toggle"><input id="showDebugStlModel" type="checkbox" checked> Model STL</label>
+                <label class="debug-toggle"><input id="showDebugLegacyVessel" type="checkbox" checked> Poprzedni widok — przezroczyste naczynia</label>
+                <label class="debug-toggle"><input id="showDebugVesselShading" type="checkbox" checked> Cieniowanie naczyń</label>
                 <label class="debug-toggle"><input id="showDebugLumenCast" type="checkbox"> Odlew światła</label>
                 <label class="debug-toggle"><input id="showDebugSections" type="checkbox"> Przekroje</label>
                 <label class="debug-toggle"><input id="showDebugCenterline" type="checkbox"> Centerline</label>
@@ -842,8 +846,15 @@
             <div id="stentGraftModelCards" class="stent-graft-model-grid" role="group" aria-label="Model korpusu"></div>
             <p id="stentGraftModelDescription" class="stent-graft-model-hint"></p>
         </div>
-        <label for="stentGraftDiameter">Średnica proksymalna</label>
-        <div><select id="stentGraftDiameter" aria-label="Średnica proksymalna"></select><output id="stentGraftDiameterValue" hidden>28 mm</output></div>
+        <div id="stentGraftLimbs" hidden>
+            <p class="stent-graft-model-hint">Nóżki ETLW są wspólne dla Endurant II i IIs. Wybierz rozmiar na ilustracji. Rysunki schematyczne, we wspólnej skali.</p>
+            <label for="stentGraftLimbLength">Długość nóżki</label>
+            <select id="stentGraftLimbLength" aria-label="Długość nóżki"><option value="all">Wszystkie długości</option></select>
+            <div id="stentGraftLimbCards" class="stent-graft-model-grid stent-graft-limb-grid" role="group" aria-label="Nóżki Endurant II i IIs"></div>
+            <p id="stentGraftLimbDescription" class="stent-graft-model-hint" aria-live="polite"></p>
+        </div>
+        <div id="stentGraftProximalField"><label for="stentGraftDiameter">Średnica proksymalna</label>
+        <div><select id="stentGraftDiameter" aria-label="Średnica proksymalna"></select><output id="stentGraftDiameterValue" hidden>23 mm</output></div></div>
         <div id="stentGraftDistalField"><label for="stentGraftDistalDiameter">Średnica nóżki ipsilateralnej</label> <select id="stentGraftDistalDiameter"></select></div>
         <output id="stentGraftDialogStatus" role="alert"></output>
         <div class="stent-graft-actions"><button id="stentGraftLoad" type="button">Wybierz stentgraft</button><button id="stentGraftCancel" type="button">Anuluj</button></div>

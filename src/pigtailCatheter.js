@@ -457,7 +457,7 @@ export class PigtailCatheter {
         this.physicsActiveCount = body.count;
         this.physicsLumenStartNode = feed.lumenStart;
         this.physicsLumenOrigin = feed.lumenOrigin;
-        body.radius=this.type==='stentgraft-delivery'?3:CATHETER_RADIUS;
+        body.radius=this.type==='stentgraft-delivery'?(this.deliveryRadiusMm??3):CATHETER_RADIUS;
         body.nodeRadius.fill(body.radius);
         const material = this._kirchhoffMaterialOptions;
         material.activeStart = body.activeStart;

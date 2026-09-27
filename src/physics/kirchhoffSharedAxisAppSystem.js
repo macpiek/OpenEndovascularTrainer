@@ -1,3 +1,4 @@
+import {createCapturePotential} from '../devices/stentGraftCapture.js';
 import {captureSharedAxisReplay} from './kirchhoffSharedAxisReplay.js';
 import {createSharedAxisContacts} from './kirchhoffSharedAxisContacts.js';
 import {createSharedAxisNative,feedSharedAxisNative,rotateSharedAxisNative} from './kirchhoffSharedAxisNative.js';
@@ -35,15 +36,15 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
     let state=null,pending=null,rotations={},sleepFrames=0,lastKey=null,failedKey=null,failedResult=null;
     const publication=new Map();
     let lastFailure=null;
-    let nextWorkSliceMs=null;
+    let nextWorkSliceMs=null,recoveryMode=false;
     function recordFailure(entry,result,recovered=false) {
         const failure={id:(globalThis.crypto?.randomUUID?.()??`${Date.now()}-${Math.random().toString(36).slice(2)}`),capturedAt:new Date().toISOString(),acceptedSteps:diagnostics.acceptedSteps,recovered,solver:diagnostics.solver,result};
         // The accepted state is never solved in-place: feed creates private candidates.
         // Serialize once at rejection, not on every successful frame or cooperative yield.
         try {
-            lastFailure={...captureSharedAxisReplay({...state,adaptiveMesh:entry.adaptiveMesh},entry.sheath,entry.graftSurface),
+            lastFailure={...captureSharedAxisReplay({...state,captureOverride:entry.capture,adaptiveMesh:entry.adaptiveMesh},entry.sheath,entry.graftSurface),
                 stepRequest:structuredClone({dt:entry.dt,rotations:entry.rotations,tools:entry.requestTools,
-                    options:Object.fromEntries(Object.entries(physicsOptions).filter(([,v])=>typeof v!=='function'))}),
+                    options:Object.fromEntries(Object.entries(entry.physicsOptions??physicsOptions).filter(([,v])=>typeof v!=='function'))}),
                 failure:structuredClone(failure)};
         } catch(error) {
             lastFailure={version:1,failure:{...failure,
@@ -88,7 +89,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
         // Snapshot the budget for this entire cooperative step. A UI change
         // may arrive between yields and must only affect the following step.
         const surface=pending.graftSurface;
-        const wallSamples=state.wallSamples.filter(sample=>!sample.graftSurface);
+        const wallSamples=state.wallSamples.filter(sample=>!sample.graftSurface&&!sample.graftCapture);
         // A selected large-bore delivery system uses its matching introducer.
         // Replace only the inlet sampler; preserve the accepted rod and wall history.
         const inlet=createSharedAxisContacts({sheath:pending.sheath,localCoordinates:true}).wallSamples[0];
@@ -96,11 +97,22 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
         if(inletIndex>=0)wallSamples[inletIndex]=inlet;
         const graft=surface?createStentGraftContacts(surface,state):null;
         if(graft)wallSamples.push(graft);
+        if(pending.capture)wallSamples.push(createCapturePotential(pending.capture));
         const source = {...state,wallSamples,graftRevision:surface?.revision??0,graftRecovery:graft?.recovery,adaptiveMesh:pending.adaptiveMesh};
-        return yield* advanceSharedAxis(source,{...rotations},dt,tools,physicsOptions);
+        return yield* advanceSharedAxis(source,{...rotations},dt,tools,pending.physicsOptions);
     }
     const system={id:diagnostics.solver,diagnostics,
         getLastFailure:()=>lastFailure?structuredClone(lastFailure):null,
+        retryFromLastAccepted() {
+            if(pending||!state||!failedResult)return false;
+            // Rejected candidates were private. Keep accepted positions, frames,
+            // contacts and feed; discard momentum that would repeat the collision.
+            state={...state,velocities:state.velocities.map(v=>v.map(()=>0)),
+                angularVelocities:Object.fromEntries(Object.entries(state.angularVelocities).map(([id,values])=>[id,values.map(v=>v.map(()=>0))]))};
+            failedKey=null;failedResult=null;lastKey=null;sleepFrames=0;recoveryMode=true;
+            diagnostics.recoveries=(diagnostics.recoveries??0)+1;
+            return true;
+        },
         setAdaptiveShapeTolerance(shapeTolerance) {
             if (!adaptiveMesh) return false;
             adaptiveMesh=adaptiveMeshOptions({...adaptiveMesh,shapeTolerance});
@@ -134,10 +146,11 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             if(pending&&pending.dt!==dt)throw new RangeError('Pending shared-axis timestep cannot change');
             if(!world.contactField)return {accepted:false,dt,status:'geometry-not-ready'};
             if(!pending) {
-                const tools=readTools(),graftSurface=world.readStentGraftSurface?.(),key=JSON.stringify({graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                const capture=structuredClone(world.readStentGraftCapture?.()??null);
+                const tools=readTools(),graftSurface=world.readStentGraftSurface?.(),key=JSON.stringify({capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
                 if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,adaptiveMesh,started:performance.now(),cpuMs:0,
+                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
                     sheath:structuredClone(readSheath()),rotations:{...rotations},
                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
             }
@@ -154,8 +167,19 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
                     const entry=pending,{tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,cpuMs,wallMs:performance.now()-started};
                     if(!next.value.state){failedKey=key;diagnostics.failedSteps++;recordFailure(entry,diagnostics.last);return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
                     if(diagnostics.last.attempts?.some(attempt=>attempt.converged===false))recordFailure(entry,diagnostics.last,true);
+                    // A graft publication failure must not leave a newer
+                    // native state behind bodies/input rolled back by the app.
+                    try {
+                        entry.graftSurface?.commitContactPatches?.(next.value.state.wallSamples.find(s=>s.graftSurface)?.contactPatches??[]);
+                    } catch(error) {
+                        failedKey=key;diagnostics.failedSteps++;
+                        diagnostics.last={...diagnostics.last,converged:false,status:'shared-axis-commit-error',error:error.message,stack:error.stack};
+                        recordFailure(entry,diagnostics.last);
+                        return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};
+                    }
                     failedKey=null;failedResult=null;
-                    state=next.value.state;rotations=next.value.rotations;
+                    state=next.value.state;rotations=next.value.rotations;recoveryMode=false;
+                    diagnostics.last.graftCapture=structuredClone(state.graftCaptureStats??null);
                     const speed=Math.max(0,...state.velocities.flat().map(Math.abs),...Object.values(state.angularVelocities).flat(2).map(v=>Math.abs(v)*60));
                     sleepFrames=key===lastKey&&speed<1&&(!projectiveDynamics||diagnostics.last.pd?.localGlobalConverged)?sleepFrames+1:0;lastKey=key;
                     publish(tools,dt);diagnostics.acceptedSteps++;
@@ -168,7 +192,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             pending.cpuMs+=performance.now()-start;diagnostics.pendingSlices++;return {accepted:false,pending:true,dt,status:'shared-axis-pending',diagnostics:{...diagnostics}};
         },
         reset() {
-            nextWorkSliceMs=null;
+            nextWorkSliceMs=null;recoveryMode=false;diagnostics.recoveries=0;
             pending?.iterator.return();pending=null;state=null;rotations={};sleepFrames=0;lastKey=null;failedKey=null;failedResult=null;
             for(const body of publication.keys()){body.jointStateView=null;body.sharedAxisDiagnostics=null;}publication.clear();
             diagnostics.initializations=diagnostics.acceptedSteps=diagnostics.pendingSlices=diagnostics.failedSteps=0;diagnostics.last=null;diagnostics.mesh=null;
@@ -206,6 +230,8 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
                 current=candidate;currentRotations=nextRotations;
             }
             if(!failed)return {state:current,rotations:currentRotations,result:{...result(),subdivisions}};
+
+
         }
         return {result:result()};
 }

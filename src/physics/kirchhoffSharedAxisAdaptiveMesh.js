@@ -34,6 +34,8 @@ function tipLength(tool, options) {
 export function adaptiveContactKnots(previous, options) {
     const knots = new Set();
     if (!previous) return knots;
+    for (const sample of previous.wallSamples ?? [])
+        for (const x of sample.adaptiveContactKnots?.(options) ?? []) knots.add(x);
     previous.definitions.forEach((row, i) => {
         if (row.kind !== 'wall' || row.subtype === 'bend-limit') return;
         const gap = previous.acceptedWallGaps?.get(row.id);
@@ -46,6 +48,10 @@ export function adaptiveContactKnots(previous, options) {
 
 export function retainAdaptiveShapeSamples(coordinates, positions, previous, options) {
     if (!previous) return;
+    // Penalty cloth contacts have no active KKT rows. Preserve their actual
+    // bends before resampling, but discard collinear moving-tip knots.
+    const contacts = new Set((previous.wallSamples ?? []).flatMap(sample =>
+        [...(sample.adaptiveContactKnots?.(options) ?? [])]));
     let edge = 0;
     for (let n = 0; n < previous.coordinates.length; n++) {
         const x = previous.coordinates[n];
@@ -54,7 +60,10 @@ export function retainAdaptiveShapeSamples(coordinates, positions, previous, opt
         const t = (x - coordinates[edge]) / (coordinates[edge + 1] - coordinates[edge]);
         const p = previous.positions[n];
         const error = Math.hypot(...p.map((v,k) => v - ((1-t)*positions[edge][k]+t*positions[edge+1][k])));
-        if (error > options.shapeTolerance && t > 1e-9 && t < 1-1e-9) {
+        const clothBend = contacts.has(x) && error > 1e-8 &&
+            (error > .01 || (previous.wallSamples ?? []).some(sample =>
+                sample.meshChordCrosses?.(positions[edge], positions[edge+1])));
+        if ((error > options.shapeTolerance || clothBend) && t > 1e-9 && t < 1-1e-9) {
             coordinates.splice(edge+1,0,x); positions.splice(edge+1,0,p.slice()); edge++;
         }
     }

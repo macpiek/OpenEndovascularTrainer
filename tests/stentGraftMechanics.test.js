@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {deliveryMaterialProfile,prepareDeliveryMotion,DELIVERY_COVER_EI,DELIVERY_CORE_EI} from '../src/devices/stentGraftDeliveryMechanics.js';
+import {deliveryMaterialProfile,prepareDeliveryMotion,configureDeliveryCatheter,DELIVERY_COVER_EI,DELIVERY_CORE_EI} from '../src/devices/stentGraftDeliveryMechanics.js';
 import {createSharedAxisNative,relaxSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
 import {defineKirchhoffMaterialProfile} from '../src/physics/kirchhoffMaterialProfile.js';
 import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
@@ -35,7 +35,7 @@ test('motion prepares only the solver input, limits wire overrun, and publishes 
     const {system,device:d}=previewFixture();
     try {
         d.phase='loaded';d.position=d.target=30;
-        const proxy={progress:30,advance(command,dt,wire,speed){this.progress=Math.max(0,this.progress+command*dt*speed);}};
+        const proxy={progress:30,setType(){},setStiffnessScales(){},advance(command,dt,wire,speed){this.progress=Math.max(0,this.progress+command*dt*speed);}};
         prepareDeliveryMotion(d,proxy,1,1,50);
         assert.equal(proxy.progress,38);assert.equal(d.position,30,'trial is not committed');
         proxy.progress=30;assert.equal(d.position,30,'rollback preserves public position');
@@ -69,6 +69,7 @@ for(const side of ['right','left'])test(`${side}: exposed fabric contacts the wi
         system.updateAccess(side,1,null,{deviceId:d.id,release:'sheath'});
         assert.ok(system.mechanicalSurface.revision>revision);
         assert.deepEqual(Array.from(surface.geometry.attributes.position.array),saved);
+        system.updateAccess(side,10); // Freed rings settle even while the cover is stationary.
         const frozen=system.mechanicalSurface;system.updateAccess(side,1);assert.equal(system.mechanicalSurface,frozen,'holding release reuses the surface');
     } finally {system.dispose();}
 });
@@ -86,6 +87,11 @@ test('actual catheter adapter uses the stiff profile, hides its duplicate mesh, 
         catheter.advance(1,1,100,25);catheter.syncXpbdBody(body);catheter.updateMesh();
         assert.equal(catheter.progress,25);assert.equal(body.radius,3);assert.equal(catheter.mesh.visible,false);
         assert.deepEqual(catheter.getInjectionPorts([]),[]);
+        for(const [device,radius] of [[{type:'limb',diameter:16,length:80},14/6],[{type:'body',diameter:36,length:103},20/6],[{type:'limb',diameter:24,length:80},16/6]]) {
+            configureDeliveryCatheter(device,catheter);catheter.syncXpbdBody(body);
+            assert.equal(body.radius,radius,'selected device sets the physical contact radius');
+            assert.ok(Array.from(body.nodeRadius).every(r=>Math.abs(r-radius)<1e-6));
+        }
         assert.ok(Array.from(body.x).every(Number.isFinite));
         catheter.setType('berenstein');catheter.syncXpbdBody(body);catheter.updateMesh();
         assert.ok(body.radius<1);assert.ok(catheter.mesh.visible);

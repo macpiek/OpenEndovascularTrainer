@@ -1,11 +1,12 @@
-import {graftCoverWithdrawal} from './stentGraftDeployment.js';
+import {graftFaceExposed} from './stentGraftDeployment.js';
 import * as THREE from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
 import {StentGraftSurface} from './stentGraftSurface.js';
 
 /** Map the union's exterior to release distances once. Using the union removes
  * the internal membranes where the trunk and its two limbs overlap. The cover
- * carries folded/transitioning rows; fabric contacts start at fully open rows. */
+ * carries covered rows; ipsilateral contacts also follow exposed transitioning
+ * rows so the original wire remains threaded during release. */
 export function preparePartialSurface(device) {
     const surface=new StentGraftSurface([device],0),p=surface.geometry.attributes.position,ix=surface.geometry.index;
     const parts=device.parts.map(part=>{
@@ -44,7 +45,9 @@ export function preparePartialSurface(device) {
             }
             return {part,indices,weights};
         });
-        faces.push({distance,positions:vertices.flatMap(v=>v.toArray()),bindings});
+        faces.push({distance,gate:device.type==='body'&&(owner===device.parts[2]||bindings.some(b=>b.part===device.parts[2])),
+            ipsilateral:device.type==='body'&&(owner===device.parts[1]||bindings.some(b=>b.part===device.parts[1])),
+            positions:vertices.flatMap(v=>v.toArray()),bindings});
     }
     for(const {geometry} of parts)geometry.dispose();surface.dispose();
     return faces;
@@ -55,8 +58,7 @@ export function partialSurfaceSnapshot(devices,complete,revision) {
     if(complete){const p=complete.geometry.attributes.position,ix=complete.geometry.index;
         for(let i=0;i<(ix?.count??p.count);i++){const n=ix?ix.getX(i):i;wall.push(p.getX(n),p.getY(n),p.getZ(n));}}
     for(const device of devices) {
-        const exposed=graftCoverWithdrawal(device)-device.coverLead-2;
-        for(const face of device.contactFaces)if(face.distance<=exposed)wall.push(...face.positions);
+        for(const face of device.contactFaces)if(graftFaceExposed(device,face))wall.push(...face.positions);
     }
     if(!wall.length)return null;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(wall,3));
@@ -64,9 +66,10 @@ export function partialSurfaceSnapshot(devices,complete,revision) {
     return {geometry,bounds:geometry.boundingBox.clone(),revision};
 }
 
-export function updatePartialSurfacePose(device) {
+export function updatePartialSurfacePose(device,actual=false) {
     for(const face of device.contactFaces)for(let v=0;v<3;v++) {
         const {part,indices,weights}=face.bindings[v];
-        for(let axis=0;axis<3;axis++)face.positions[v*3+axis]=indices.reduce((sum,index,k)=>sum+part.target[index*3+axis]*weights[k],0);
+        const positions=actual?(part.contactBasePositions??part.mesh.geometry.attributes.position.array):part.target;
+        for(let axis=0;axis<3;axis++)face.positions[v*3+axis]=indices.reduce((sum,index,k)=>sum+positions[index*3+axis]*weights[k],0);
     }
 }

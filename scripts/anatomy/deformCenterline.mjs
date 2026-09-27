@@ -1,21 +1,26 @@
 import * as THREE from 'three';
 import {createInfrarenalDeformation} from './infrarenalAneurysm.mjs';
+import {createMesentericDisplacement} from './mesentericDisplacement.mjs';
 
 // Preserve the established branch topology while transporting it through the
 // same map as the surface. Short subdivisions follow curved displaced branches.
 export function deformCenterline(asset,report,geometry) {
     const {move}=createInfrarenalDeformation(report),segments=[];
     const selected=report.selectedCenterlineSegments ? new Set(report.selectedCenterlineSegments) : null;
+    const mesenteric=report.mesentericDisplacement;
+    const mesentericSelected=new Set(mesenteric?.selectedCenterlineSegments || []);
+    const mesentericMove=mesenteric && createMesentericDisplacement(mesenteric).move;
     const data=asset.arrays.centerlineSegments,edges=asset.arrays.centerlineEdges;
     const target={point:new THREE.Vector3()};
     let inserted=0;
     for(let i=0;i<edges.length/2;i++) {
         const a=new THREE.Vector3().fromArray(data,i*9),b=new THREE.Vector3().fromArray(data,i*9+3);
-        const changed=(!selected || selected.has(i)) && Math.max(a.y,b.y)>report.distalY && Math.min(a.y,b.y)<report.proximalY;
+        const branchMove=mesentericSelected.has(i)?mesentericMove:move;
+        const changed=mesentericSelected.has(i) || ((!selected || selected.has(i)) && Math.max(a.y,b.y)>report.distalY && Math.min(a.y,b.y)<report.proximalY);
         const count=changed?Math.max(1,Math.ceil(a.distanceTo(b)/.35)):1;
         const points=[];
         for(let j=0;j<=count;j++) {
-            const original=a.clone().lerp(b,j/count),point=changed ? new THREE.Vector3(...move(...original.toArray())) : original.clone();
+            const original=a.clone().lerp(b,j/count),point=changed ? new THREE.Vector3(...branchMove(...original.toArray())) : original.clone();
             const moved=point.distanceToSquared(original)>1e-14;
             const radius=moved ? geometry.boundsTree.closestPointToPoint(point,target).distance
                 : data[i*9+6]+(data[i*9+7]-data[i*9+6])*j/count;

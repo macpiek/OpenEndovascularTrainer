@@ -162,21 +162,44 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
 
 /** Physical material coverage within a spatial cell. Almost coincident tips
  * retain exact material endpoints on one affine spatial segment. */
+const coreMaterials=new WeakMap();
+function contactMaterialAt(material,coordinate) {
+    if(material?.spec.type!=='stentgraft-delivery'||!(material.spec.deliveryExposureMm>0)||
+        coordinate<material.spec.insertion-material.spec.deliveryExposureMm)return material;
+    let core=coreMaterials.get(material);
+    if(!core) {
+        // Only the exposed 0.8 mm radius inner shaft remains beyond the cover.
+        // Keep the original rod mechanics and identity; this view changes the
+        // collision envelope, not stiffness or material coordinates.
+        const body=Object.create(material.body);body.radius=Math.min(material.body.radius,.8);
+        core={...material,body};coreMaterials.set(material,core);
+    }
+    return core;
+}
 export function sharedAxisOuterMaterialAt(s,edge,t=1,preferredOwner=null) {
     const catheter=s.materials.find(m=>m.spec.id==='catheter'&&edge<m.last);
     if(catheter) {
         const end=edge===catheter.last-1?catheter.endFraction:1;
-        if(t<end||t===end&&preferredOwner!=='wire'||end===1)return catheter;
+        if(t<end||t===end&&preferredOwner!=='wire'||end===1)
+            return contactMaterialAt(catheter,s.coordinates[edge]+t*(s.coordinates[edge+1]-s.coordinates[edge]));
     }
     return s.materials.find(m=>m.spec.id==='wire'&&edge<m.last)??catheter;
 }
 export function sharedAxisOuterIntervals(s,edge) {
     const catheter=s.materials.find(m=>m.spec.id==='catheter'&&edge<m.last);
-    if(catheter&&edge===catheter.last-1&&catheter.endFraction<1) {
-        const wire=s.materials.find(m=>m.spec.id==='wire'&&edge<m.last);
-        return [{start:0,end:catheter.endFraction,material:catheter},{start:catheter.endFraction,end:1,material:wire}];
-    }
-    return [{start:0,end:1,material:sharedAxisOuterMaterialAt(s,edge)}];
+    const wire=s.materials.find(m=>m.spec.id==='wire'&&edge<m.last);
+    const intervals=[];
+    if(catheter) {
+        const end=edge===catheter.last-1?catheter.endFraction:1;
+        const split=(catheter.spec.insertion-(catheter.spec.deliveryExposureMm??0)-s.coordinates[edge])/(s.coordinates[edge+1]-s.coordinates[edge]);
+        const knots=catheter.spec.type==='stentgraft-delivery'&&split>0&&split<end?[0,split,end]:[0,end];
+        for(let i=1;i<knots.length;i++) {
+            const start=knots[i-1],stop=knots[i],coordinate=s.coordinates[edge]+(start+stop)/2*(s.coordinates[edge+1]-s.coordinates[edge]);
+            intervals.push({start,end:stop,material:contactMaterialAt(catheter,coordinate)});
+        }
+        if(end<1)intervals.push({start:end,end:1,material:wire});
+    } else intervals.push({start:0,end:1,material:wire});
+    return intervals;
 }
 
 function syncNativePositions(s) {
@@ -444,6 +467,10 @@ export function* iterateSharedAxisNative(s, { maxIterations = 160, forceToleranc
         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
         !(newtonActiveSetLimit === Infinity || (Number.isInteger(newtonActiveSetLimit) && newtonActiveSetLimit > 0))) throw new RangeError('Invalid shared axis convergence options');
     if(primalCompliantContacts&&(!s.primalCompliantContacts||!s.wallCompliance||modifiedNewton||incrementalContacts))throw new RangeError('Primal contact solve requires a compliant timestep');
+    // Continuous discovery must not repeatedly add almost coincident contacts
+    // for errors already below the requested nonlinear length budget. Keep a
+    // stricter cap (0.1 micrometre); true surface crossings are always rejected.
+    s.segmentContactTolerance=Math.min(1e-4,lengthTolerance*.1);
     const initial = captureSharedAxisNative(s), started = performance.now();
     let lastOutsideContact=null;
     let candidate = null, coupledFrictionRefreshes=0, frictionRefreshMs=0, retainedDiscoveryTrials=0;

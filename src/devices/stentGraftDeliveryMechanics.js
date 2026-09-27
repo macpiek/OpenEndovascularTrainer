@@ -1,3 +1,5 @@
+import {advanceRelease,deliveryNoseState} from './stentGraftDeployment.js';
+import {deliveryRadiusMm} from './stentGraftModels.js';
 import {defineKirchhoffMaterialProfile} from '../physics/kirchhoffMaterialProfile.js';
 
 export const STENT_GRAFT_DELIVERY_TYPE='stentgraft-delivery';
@@ -12,11 +14,37 @@ export function deliveryMaterialProfile(exposedLength=0) {
     return defineKirchhoffMaterialProfile({id:STENT_GRAFT_DELIVERY_TYPE,sampleEI1:rigidity,sampleGJ:s=>rigidity(s)/1.4});
 }
 
-/** Prepared rod input only. The public delivery position is published after
- * the complete coupled step commits; rollback restores the catheter proxy. */
-export function prepareDeliveryMotion(device,catheter,dt,advance,wireInserted) {
+/** The rod ends at the retractable core base, never at the old implant
+ * coordinate once the nose has been pulled back. The flexible cone beyond
+ * this base remains a separate rendered component. */
+export function deliveryMechanicalExtent(device) {
+    const position=Math.max(0,device.position??0),nose=deliveryNoseState({...device,position});
+    const insertion=Math.max(0,Math.min(position,nose.position));
+    return {insertion,exposedLength:Math.max(0,insertion-nose.sheathEdge)};
+}
+
+/** Prepare both feed and release on a private scalar copy. Only the matching
+ * committed step publishes the handle position and advances release, so a
+ * rejected nose/cover movement cannot leave a different physical pose behind. */
+export function prepareDeliveryMotion(device,catheter,dt,advance,wireInserted,release=null) {
+    if(!(dt>0))return device.position;
     let command=Math.max(-1,Math.min(1,Number(advance)||0));
-    if(!command)command=Math.max(-1,Math.min(1,(device.target-catheter.progress)/Math.max(1e-9,25*dt)));
-    if(command>0)command=Math.min(command,Math.max(0,wireInserted-12-catheter.progress)/Math.max(1e-9,25*dt));
-    catheter.advance(command,dt,wireInserted,25);
+    if(!command)command=Math.max(-1,Math.min(1,(device.target-device.position)/(25*dt)));
+    if(command>0)command=Math.min(command,Math.max(0,wireInserted-12-device.position)/(25*dt));
+    const position=Math.max(0,Math.min(catheter.maxLength??Infinity,device.position+command*25*dt));
+    const trial={...device,position};
+    if(trial.phase==='deploying'||trial.phase==='deployed')advanceRelease(trial,dt,release);
+    const extent=deliveryMechanicalExtent(trial);
+    catheter.advance((extent.insertion-catheter.progress)/(25*dt),dt,wireInserted,25);
+    configureDeliveryCatheter(trial,catheter);
+    return position;
+}
+
+/** Refresh per access before reading solver inputs, including device exchanges. */
+export function configureDeliveryCatheter(device,catheter) {
+    catheter.setType(STENT_GRAFT_DELIVERY_TYPE);
+    catheter.setStiffnessScales({shaftStiffnessScale:1,tipStiffnessScale:1});
+    catheter.deliveryRadiusMm=deliveryRadiusMm(device);
+    catheter.deliveryExposureMm=Number.isFinite(device.position)?deliveryMechanicalExtent(device).exposedLength:
+        Math.max(0,(device.sheathWithdrawal??0)-(device.coverLead??0));
 }

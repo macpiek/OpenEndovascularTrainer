@@ -77,7 +77,8 @@ function makeRecord(s,def,index,old) {
     if(!(norm>1e-10))throw new RangeError('Loaded wall friction needs a surface normal');
     for(let k=0;k<3;k++)n[k]/=norm;
     const reference=step.dynamicStep.positions,edge=reference[e+1].map((v,k)=>v-reference[e][k]),length=Math.hypot(...edge),tangent=scale(edge,1/length);
-    const tool=s.materials.indexOf(material),q0=new Quaternion(...step.dynamicStep.frames[tool][e].old),rho0=scale(n,-radius);
+    // Contact-radius views preserve the owner ID but are not the rod object.
+    const tool=s.materials.findIndex(m=>m.spec.id===material.spec.id),q0=new Quaternion(...step.dynamicStep.frames[tool][e].old),rho0=scale(n,-radius);
     const id=`${material.spec.id}/${def.id}`,siteCoordinate=(1-t)*s.coordinates[e]+t*s.coordinates[e+1];
     // A changed mesh interval must not erase an unchanged physical wall site.
     // Do not extrapolate a loaded history to an unrelated contact point.

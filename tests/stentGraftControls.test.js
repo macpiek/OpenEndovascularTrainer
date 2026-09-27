@@ -50,12 +50,14 @@ test('selection opens a modal, cancel restores catheter, choose loads diameter a
     try {
         f.controls.selectTool('stentgraft');f.ui.setSelectedCatheterTool('stentgraft');
         assert.equal(f.e('stentGraftDialog').open,true);
+        assert.equal(f.e('stentGraftDiameter').value,'23');
         f.e('stentGraftCancel').click();assert.equal(f.ui.getSelectedCatheterTool(),'berenstein');
         assert.equal(f.system.accesses.right.device,null);
         f.controls.selectTool('stentgraft');f.ui.setSelectedCatheterTool('stentgraft');
         f.e('stentGraftDiameter').value='32';f.e('stentGraftLoad').click();
         assert.equal(f.e('stentGraftDialog').open,false);
         assert.equal(f.system.accesses.right.device.diameter,32);
+        assert.equal(f.system.accesses.right.device.modelId,'iis-103');
         assert.equal(f.e('stentGraftDeploy').disabled,true,'selection must not deploy');
         assert.equal(f.system.accesses.right.device.phase,'loaded');
         assert.equal(f.e('catheterRotateLeft').disabled,false);
@@ -189,4 +191,21 @@ test('N retracts the nose only after capture release and stops on keyup, blur or
         f.setSide('right');d.noseRetraction=33;f.controls.refresh();
         f.root.dispatchEvent(key('keydown'));assert.equal(f.controls.readRelease('right'),null,'docked nose cannot retract further');
     } finally {f.controls.dispose();f.system.dispose();}
+});
+
+test('limb image selection loads the chosen catalogue SKU and survives access switching',()=>{
+    const f=controlsFixture();
+    try {
+        f.controls.selectTool('stentgraft');
+        f.e('stentGraftType').value='limb';f.e('stentGraftType').dispatchEvent(new Event('change'));
+        assert.equal(f.e('stentGraftLimbs').hidden,false);assert.equal(f.e('stentGraftProximalField').hidden,true);
+        f.e('stentGraftLimbLength').value='199';f.e('stentGraftLimbLength').dispatchEvent(new Event('change'));
+        assert.equal(f.e('graftLimb-ETLW1610C82EE').hidden,true);
+        assert.equal(f.e('graftLimb-ETLW1628C199EE').hidden,false);
+        f.e('graftLimb-ETLW1628C199EE').click();f.e('stentGraftLoad').click();
+        const d=f.system.accesses.right.device;
+        assert.equal(d.modelId,'ETLW1628C199EE');assert.equal(d.diameter,16);assert.equal(d.distalDiameter,28);assert.equal(d.length,199);
+        assert.match(f.e('stentGraftSelection').textContent,/16 → 28 × 199/);
+        f.setSide('left');f.controls.refresh();assert.equal(f.system.accesses.right.device,d);
+    }finally{f.system.dispose();}
 });

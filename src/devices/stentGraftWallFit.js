@@ -9,16 +9,36 @@ export class StentGraftWallFit {
         this.wall=anatomy?.geometry?.boundsTree;
         this.contact=createContactResult();
     }
+    query(point,clearance=0) {
+        const hit=this.field.querySphere(point,clearance,this.contact);
+        // Sparse SDF tiles do not cover the full expanded aneurysm lumen.
+        // A centreline tube is a broad-phase approximation, not a vessel wall.
+        if(hit.source==='centerline-estimate'&&this.wall&&this.field.packedLumenField) {
+            const nearest=this.wall.closestPointToPoint(point);
+            if(nearest) {
+                const inside=this.field.packedLumenField.isInsideCoordinates(point.x,point.y,point.z);
+                const signed=(inside?1:-1)*nearest.distance;
+                hit.inside=inside;hit.signedDistance=signed;hit.signedGap=signed-clearance;hit.violation=signed<clearance;
+                hit.distance=Math.max(0,signed);hit.source='graft-mesh';hit.conservative=false;hit.faceIndex=nearest.faceIndex;
+                hit.penetration=Math.max(0,clearance-signed);
+                const normal=point.clone().sub(nearest.point).multiplyScalar((inside?1:-1)/Math.max(nearest.distance,1e-8));
+                Object.assign(hit.normal,{x:normal.x,y:normal.y,z:normal.z});
+                Object.assign(hit.closestPoint,{x:nearest.point.x,y:nearest.point.y,z:nearest.point.z});
+                Object.assign(hit.target,{x:point.x+normal.x*hit.penetration,y:point.y+normal.y*hit.penetration,z:point.z+normal.z*hit.penetration});
+            }
+        }
+        return hit;
+    }
     connected(a,b) {
         if(!this.field)return a.distanceTo(b)<=14;
         const count=Math.max(1,Math.ceil(a.distanceTo(b)));
-        for(let i=0;i<=count;i++)if(this.field.querySphere(a.clone().lerp(b,i/count),0,this.contact).violation)return false;
+        for(let i=0;i<=count;i++)if(this.query(a.clone().lerp(b,i/count),0).violation)return false;
         return true;
     }
     fit(point,anchor,clearance=.35) {
         const center=anchor.clone();
         if(this.field)for(let i=0;i<12;i++) {
-            const hit=this.field.querySphere(center,clearance,this.contact);
+            const hit=this.query(center,clearance);
             if(!hit.violation)break;
             center.addScaledVector(hit.normal,hit.penetration+.02);
         }
@@ -28,12 +48,12 @@ export class StentGraftWallFit {
         const hit=this.wall?.raycastFirst(new THREE.Ray(center,direction),THREE.DoubleSide,0,length+clearance);
         let end=hit?Math.min(length,Math.max(0,hit.distance-clearance)):length;
         point.copy(center).addScaledVector(direction,end);
-        if(this.field&&this.field.querySphere(point,clearance,this.contact).violation) {
+        if(this.field&&this.query(point,clearance).violation) {
             let start=0;
             for(let i=0;i<16;i++) {
                 const mid=(start+end)/2;
                 point.copy(center).addScaledVector(direction,mid);
-                if(this.field.querySphere(point,clearance,this.contact).violation)end=mid;else start=mid;
+                if(this.query(point,clearance).violation)end=mid;else start=mid;
             }
             point.copy(center).addScaledVector(direction,start);
         }

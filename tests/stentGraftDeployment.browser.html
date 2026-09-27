@@ -5,12 +5,17 @@
 import * as THREE from 'three';
 import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
 const stages=['Wsuwany — widoczne elementy w koszulce','Częściowo odsłonięty korpus','Bramka otwarta, szczyty nadal uchwycone','Stent nadnerkowy i długa nóżka uwolnione'];
+const params=new URLSearchParams(location.search);
 try {
 for(let i=0;i<4;i++) {
- const {system,device:d}=previewFixture('right','body',i!==0);
+ const {system,device:d}=previewFixture('right','body',false,params.get('model')??undefined);
+ if(params.has('diameter'))system.setDiameter('right',Number(params.get('diameter')));
+ if(params.has('distal'))system.setDistalDiameter('right',Number(params.get('distal')));
+ if(i!==0)system.deploy('right');
  const step=(dt,release)=>system.updateAccess('right',dt,null,{deviceId:d.id,release});
  if(i===1)step(4,'sheath');
- if(i>=2)step(100,'sheath');
+ if(i===2)step(d.gateTravel/12,'sheath');
+ if(i===3)step(100,'sheath');
  if(i===3){step(1,'tip');step(100,'sheath');}
  const frozen=d.sheathWithdrawal;step(10,null);if(d.sheathWithdrawal!==frozen)throw Error('Release failed to pause');
  system.refreshDelivery('right');

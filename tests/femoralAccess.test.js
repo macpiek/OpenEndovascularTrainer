@@ -109,3 +109,39 @@ test('interleaved access work isolates rollback snapshots and restores context a
     manager.run('right',()=>state.checkpoint.restore());
     assert.equal(entries.right.body.x[0],1);
 });
+
+test('automatic wire and catheter withdrawal continue on the background sheath and stop independently',async()=>{
+    const {AccessAutomaticWithdrawalController}=await import('../src/ui/automaticWithdrawalController.js');
+    const withdrawals=new AccessAutomaticWithdrawalController();
+    const right=createAccess('right'),left=createAccess('left');let current=right;
+    const manager=createFemoralAccessController({initial:'right',entries:{right,left},
+        capture:()=>({...current}),restore:state=>{current=state;},isPending:()=>false});
+    for(const [id,access] of Object.entries({right,left})) {
+        access.guidewireTransport.advance(1,2);
+        access.pigtailCatheter.advance(1,1,88);
+        withdrawals.updateLengths(id,access.guidewireTransport.progress/10,access.pigtailCatheter.progress/10);
+    }
+    const initialRight=[right.guidewireTransport.progress,right.pigtailCatheter.progress];
+    const initialLeft=[left.guidewireTransport.progress,left.pigtailCatheter.progress];
+    withdrawals.forAccess('right').guidewire.toggle();withdrawals.forAccess('right').catheter.toggle();
+    manager.request('left');manager.applyRequested();
+    const step=id=>manager.run(id,()=>{
+        const c=withdrawals.commands(id);
+        current.guidewireTransport.advance(c.guidewireAdvance,1/60);
+        current.pigtailCatheter.advance(c.catheterAdvance,1/60,current.guidewireTransport.progress);
+        withdrawals.updateLengths(id,current.guidewireTransport.progress/10,current.pigtailCatheter.progress/10);
+    });
+    for(let i=0;i<30;i++){step('right');step('left');}
+    assert.ok(right.guidewireTransport.progress<initialRight[0]);assert.ok(right.pigtailCatheter.progress<initialRight[1]);
+    assert.deepEqual([left.guidewireTransport.progress,left.pigtailCatheter.progress],initialLeft,'background command never leaks to selected sheath');
+    withdrawals.forAccess('left').guidewire.toggle();
+    manager.request('right');manager.applyRequested();
+    assert.equal(withdrawals.forAccess('right').guidewire.active,true,'returning preserves the latched state');
+    withdrawals.forAccess('right').guidewire.cancel();const stopped=right.guidewireTransport.progress;
+    for(let i=0;i<300;i++){step('right');step('left');}
+    assert.equal(right.guidewireTransport.progress,stopped,'manual stop is scoped to the selected tool');
+    assert.equal(withdrawals.forAccess('right').catheter.active,false);
+    assert.ok(right.pigtailCatheter.progress<=.5);
+    assert.equal(withdrawals.forAccess('left').guidewire.active,false);
+    assert.ok(left.guidewireTransport.progress<=.5);
+});

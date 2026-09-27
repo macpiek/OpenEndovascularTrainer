@@ -1,0 +1,15 @@
+<!doctype html><html><meta charset="utf-8"><title>Debug vessel depth regression</title><pre id="result">Running</pre>
+<script type="module">
+import * as T from 'three';import{mergeGeometries}from'three/examples/jsm/utils/BufferGeometryUtils.js';import{createDebugVesselSurface}from'../src/debugVesselSurface.js';
+try{
+const renderer=new T.WebGLRenderer();renderer.setSize(160,160);const target=new T.WebGLRenderTarget(160,160);const scene=new T.Scene();scene.background=new T.Color(0);const camera=new T.OrthographicCamera(-2,2,2,-2,.1,100);camera.position.z=10;camera.lookAt(0,0,0);
+const front=new T.PlaneGeometry(2,2).translate(0,0,1),back=front.clone().translate(0,0,-2);
+const single=createDebugVesselSurface(front),overlap=createDebugVesselSurface(mergeGeometries([front,back]));
+function draw(surface){scene.clear();scene.add(surface.mesh);surface.prepare(renderer,camera);renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(160*160*4);renderer.readRenderTargetPixels(target,0,0,160,160,p);renderer.setRenderTarget(null);return p;}
+const a=draw(single),b=draw(overlap);let differences=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])differences++;
+if(differences)throw Error(`Hidden wall leaked into image: ${differences} channels`);
+const wire=new T.Mesh(new T.PlaneGeometry(.1,1.5),new T.MeshBasicMaterial({color:0xffffff,depthTest:false}));wire.position.z=0;wire.renderOrder=7;scene.add(wire);renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(4);renderer.readRenderTargetPixels(target,80,80,1,1,p);renderer.setRenderTarget(null);if(p[0]<100)throw Error('Internal wire hidden by vessel depth');
+document.querySelector('#result').textContent=`PASS: posterior wall adds ${differences} changed channels; internal wire visible (${Array.from(p)}).`;
+single.dispose();overlap.dispose();renderer.dispose();
+}catch(e){document.querySelector('#result').textContent='FAIL '+e.stack;throw e;}
+</script></html>

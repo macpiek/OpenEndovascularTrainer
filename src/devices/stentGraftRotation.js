@@ -1,3 +1,5 @@
+import {graftScale} from './stentGraftModels.js';
+import {fitGraftJunction} from './stentGraftJunction.js';
 import {fitExpandedGraft} from './stentGraftExpansion.js';
 import * as THREE from 'three';
 import {DevicePath} from './stentGraftPaths.js';
@@ -23,34 +25,41 @@ export function rotateGraftPose(device,angle,position=device.implantPosition) {
         return axis.sample(s);
     };
     const tangent=s=>sample(s-.5).sub(sample(s+.5)).normalize();
-    const transform=(point,s=axis.nearest(point).s)=>{
-        const origin=sample(s);
-        const from=tangent(s),to=tangent(s-shift);
-        return point.clone().sub(origin).applyAxisAngle(from,angle)
-            .applyQuaternion(new THREE.Quaternion().setFromUnitVectors(from,to)).add(sample(s-shift));
-    };
+    // A delivery motion changes the pose of the assembled implant. Mapping
+    // every section along a polyline that turns into the ipsilateral branch
+    // folded the body at that artificial elbow when translating it a few mm.
+    // Transport one frame at the proximal attachment; then fit the moved
+    // implant to the vessel, retaining its material shape and sewn junction.
+    const origin=sample(0),destination=sample(-shift);
+    const from=tangent(0),to=tangent(-shift);
+    const transport=new THREE.Quaternion().setFromUnitVectors(from,to);
+    const rotate=v=>v.clone().applyAxisAngle(from,angle).applyQuaternion(transport);
+    const transform=point=>rotate(point.clone().sub(origin)).add(destination);
+    const pose=new THREE.Matrix4().compose(destination.clone().sub(rotate(origin)),
+        new THREE.Quaternion().setFromAxisAngle(from,angle).premultiply(transport),new THREE.Vector3(1,1,1));
+    const delta=pose.clone().multiply((device.releasePoseMatrix??new THREE.Matrix4()).clone().invert());
+    const deltaRotation=new THREE.Quaternion().setFromRotationMatrix(delta);
+    device.releasePoseMatrix=pose;
     for(const part of device.parts) {
-        // All vertices of a section use its material-axis coordinate. Finding
-        // the nearest axis point separately for every vertex sheared rings at
-        // bends during roll.
-        part.points=part.referencePoints.map((p,i)=>device.wallFit.fit(transform(p,part.axisCoordinates[i]),p,.7));
-        const frames=part.referenceFrames.map((frame,i)=>{
-            const s=part.axisCoordinates[i],from=tangent(s),to=tangent(s-shift);
-            const q=new THREE.Quaternion().setFromUnitVectors(from,to);
-            const rotate=v=>v.clone().applyAxisAngle(from,angle).applyQuaternion(q);
-            return {u:rotate(frame.u),v:rotate(frame.v),tangent:rotate(frame.tangent)};
-        });
+        // Commanded translation/roll moves released cloth as one assembly
+        // while captured. Rod bending alone cannot rewrite its release pose.
+        part.folded?.forEach(p=>p.applyMatrix4(delta));
+        part.foldedFrames?.forEach(f=>{for(const key of ['u','v','tangent'])f[key].applyQuaternion(deltaRotation);});
+        // All sections share the same rigid transport before wall fitting.
+        part.points=part.referencePoints.map(p=>device.wallFit.fit(transform(p),p,.7));
+        const frames=part.referenceFrames.map(frame=>({
+            u:rotate(frame.u),v:rotate(frame.v),tangent:rotate(frame.tangent)
+        }));
         fitExpandedGraft(part,device.wallFit,frames);
         part.path=new DevicePath(part.points,part.path.coordinates);
-        part.exposure.fill(-1);
+        part.releasePoseDirty=true;
     }
+    if(device.type==='body')fitGraftJunction(device.parts,device.wallFit);
     if(device.referenceCrown)device.crownPath=new DevicePath(device.referenceCrown.map(p=>transform(p)));
     if(device.gate) {
         const path=device.parts[2].path;
         device.gate.entry=path.sample(path.length);
-        device.gate.docking=path.sample(Math.max(0,path.length-10));
-        device.gate.marker.position.copy(device.gate.entry);
-        device.gate.marker.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),path.sample(path.length-2).sub(device.gate.entry).normalize());
+        device.gate.docking=path.sample(Math.max(0,path.length-10*graftScale(device)));
     }
     device.crownOpening=null;device.expandedCrown=null;
     device.graftRotation=angle;device.implantPosition=position;

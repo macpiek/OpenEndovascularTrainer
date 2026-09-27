@@ -1,0 +1,12 @@
+✔ stent-graft-ring-release-block: captured rejection settles and permits withdrawal (17532.398833ms)
+ℹ {"steps":24,"firstStep":{"iterations":103,"factorizations":1590,"fullAssemblies":162,"residualAssemblies":167,"ms":134.78254199999992},"maxIterations":103,"maxFactorizations":1590,"totalIterations":416}
+✔ stent-graft-late-ring-release-block: captured rejection settles and permits withdrawal (13957.161583ms)
+ℹ {"steps":24,"firstStep":{"iterations":12,"factorizations":156,"fullAssemblies":20,"residualAssemblies":23,"ms":233.83079199999702},"maxIterations":123,"maxFactorizations":2945,"totalIterations":374}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32178.736375

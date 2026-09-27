@@ -1,5 +1,5 @@
-import {MAIN_BODY_MODELS,DEFAULT_MAIN_BODY,mainBodyModel,proximalDiameters,distalDiameters} from '../devices/stentGraftModels.js';
-import {mainBodyCards} from './stentGraftModelCards.js';
+import {MAIN_BODY_MODELS,DEFAULT_MAIN_BODY,LIMB_MODELS,LIMB_LENGTHS,DEFAULT_LIMB,limbModel,mainBodyModel,proximalDiameters,distalDiameters} from '../devices/stentGraftModels.js';
+import {mainBodyCards,limbCards} from './stentGraftModelCards.js';
 import {deliveryNoseState,graftAttached} from '../devices/stentGraftDeployment.js';
 export function initStentGraftControls({system,activeSide,ui,root=document}) {
     const el=id=>root.getElementById(id);
@@ -9,8 +9,11 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
     const nose=el('stentGraftRetractNose');
     const buttons={sheath:deploy,resheath,tip,nose},keys={KeyJ:'sheath',KeyK:'resheath',KeyL:'tip',KeyN:'nose'};
     const held=new Map(),listeners=[];
-    let dialogSide=null,modelId=DEFAULT_MAIN_BODY;
+    let dialogSide=null,modelId=DEFAULT_MAIN_BODY,limbId=DEFAULT_LIMB;
     el('stentGraftModelCards').innerHTML=mainBodyCards();
+    el('stentGraftLimbCards').innerHTML=limbCards(LIMB_MODELS);
+    el('stentGraftLimbLength').innerHTML='<option value="all">Wszystkie długości</option>'+LIMB_LENGTHS.map(n=>`<option value="${n}">${n} mm</option>`).join('');
+    el('stentGraftLimbLength').value='all';
     function listen(target,type,fn){target?.addEventListener?.(type,fn);listeners.push(()=>target?.removeEventListener?.(type,fn));}
     function paintHeld(){for(const [control,button] of Object.entries(buttons))button.setAttribute('aria-pressed',String([...held.values()].some(h=>h.control===control)));}
     function stopRelease(token){if(typeof token==='string')held.delete(token);else held.clear();paintHeld();}
@@ -28,10 +31,26 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
         distal.innerHTML=options(values);distal.value=String(values.includes(previous)?previous:values.includes(16)?16:values[0]);
         el('stentGraftDiameterValue').textContent=`${diameter.value} mm`;
     }
+    function updateLimb() {
+        const m=limbModel(limbId),length=el('stentGraftLimbLength').value;
+        for(const candidate of LIMB_MODELS) {
+            const card=el(`graftLimb-${candidate.id}`);
+            card.setAttribute('aria-pressed',String(candidate.id===limbId));
+            card.hidden=length!=='all'&&candidate.length!==Number(length);
+        }
+        el('stentGraftLimbDescription').textContent=`Wybrano: Endurant II / IIs · ${m.diameter} → ${m.distalDiameter} × ${m.length} mm · ${m.deliveryFr} Fr · ${m.id}`;
+    }
+    for(const m of LIMB_MODELS)listen(el(`graftLimb-${m.id}`),'click',()=>{limbId=m.id;updateLimb();});
+    listen(el('stentGraftLimbLength'),'change',()=>{
+        const length=Number(el('stentGraftLimbLength').value),current=limbModel(limbId);
+        if(length)limbId=LIMB_MODELS.find(m=>m.length===length&&m.distalDiameter===current.distalDiameter).id;
+        updateLimb();
+    });
     function diameterRange() {
         const body=type.value==='body',values=body?proximalDiameters(modelId):[10,13,14,16,20,24,28],previous=Number(diameter.value);
-        diameter.innerHTML=options(values);diameter.value=String(values.includes(previous)?previous:body?28:14);
+        diameter.innerHTML=options(values);diameter.value=String(values.includes(previous)?previous:body?23:14);
         el('stentGraftMainBodies').hidden=!body;el('stentGraftDistalField').hidden=!body;
+        el('stentGraftProximalField').hidden=!body;el('stentGraftLimbs').hidden=body;updateLimb();
         updateDistal();
         for(const model of MAIN_BODY_MODELS)el(`graftModel-${model.id}`).setAttribute('aria-pressed',String(model.id===modelId));
         el('stentGraftModelDescription').textContent=modelId==='iis-103'
@@ -67,10 +86,10 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
     diameter.addEventListener('input',updateDistal);
     el('stentGraftLoad').addEventListener('click',()=>{
         if(dialogSide!==activeSide()){error('Koszulka została zmieniona. Otwórz wybór ponownie.');return;}
-        const result=system.load(dialogSide,type.value,modelId);
+        const result=system.load(dialogSide,type.value,type.value==='body'?modelId:limbId);
         if(!result.ok){error(result.reason);return;}
-        system.setDiameter(dialogSide,Number(diameter.value));
-        system.setDistalDiameter(dialogSide,Number(el('stentGraftDistalDiameter').value));
+        if(type.value==='body'){system.setDiameter(dialogSide,Number(diameter.value));
+        system.setDistalDiameter(dialogSide,Number(el('stentGraftDistalDiameter').value));}
         ui.setSelectedCatheterTool('stentgraft');close();
     });
     function start(control,token) {
@@ -129,12 +148,12 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
         nose.title=d?.type==='body'&&!(d.tipRelease>=1)?'Najpierw uwolnij mocowanie stentu nadnerkowego.':'Przytrzymaj N, aby ściągać nosecone do końca koszulki; puść, aby zatrzymać.';
         for(const [token,h] of held)if(buttons[h.control].disabled)stopRelease(token);
         remove.disabled=!d||d.phase==='deploying'||d.position>.5;
-        el('stentGraftSelection').textContent=d?`${d.type==='body'?mainBodyModel(d.modelId).name:'Endurant II'} · ${d.type==='body'?'korpus rozwidlony':'nóżka kontralateralna'} · ${d.diameter}${d.type==='body'?' / '+d.distalDiameter:''} × ${d.length} mm`:'Wybierz implant';
+        el('stentGraftSelection').textContent=d?`${d.type==='body'?mainBodyModel(d.modelId).name:'Endurant II / IIs'} · ${d.type==='body'?'korpus rozwidlony':'nóżka kontralateralna'} · ${d.diameter}${d.type==='body'?' / ':' → '}${d.distalDiameter} × ${d.length} mm`:'Wybierz implant';
         el('stentGraftDeployment').value=d?.deployment??0;
         el('stentGraftStatus').textContent=d&&d.phase!=='loaded'
-            ?`${Math.round(d.deployment*100)}% · Koszulka: ${d.sheathWithdrawal.toFixed(1)} / ${d.sheathTravel.toFixed(1)} mm. ${d.phase==='deployed'?'Implant uwolniony; ruch koszulki nie składa go ponownie.':d.type==='body'?`Mocowanie: ${Math.round(d.tipRelease*100)}% uwolnione. Koszulka i mocowanie sterowane niezależnie.`:'Zsuwaj lub nasuwaj koszulkę; puszczenie zatrzymuje ruch.'}`
+            ?`${Math.round(d.deployment*100)}% · Koszulka: ${(d.sheathWithdrawal/(d.dimensionScale??1)).toFixed(1)} / ${(d.sheathTravel/(d.dimensionScale??1)).toFixed(1)} mm. ${d.phase==='deployed'?'Implant uwolniony; ruch koszulki nie składa go ponownie.':d.type==='body'?`Mocowanie: ${Math.round(d.tipRelease*100)}% uwolnione. Koszulka i mocowanie sterowane niezależnie.`:d.limbReleased?'Nóżka odłączona; kończy samoczynne rozprężanie.':'Zsuwaj lub nasuwaj koszulkę; odłączenie po odsłonięciu całej nóżki.'}`
             :state.message||'Wybierz implant i wprowadź prowadnik.';
-        if(d&&d.phase!=='loaded')el('stentGraftStatus').textContent+=` Nosecone do koszulki: ${deliveryNoseState(d).remaining.toFixed(1)} mm.`;
+        if(d&&d.phase!=='loaded')el('stentGraftStatus').textContent+=` Nosecone do koszulki: ${(deliveryNoseState(d).remaining/(d.dimensionScale??1)).toFixed(1)} mm.`;
         el('stentGraftPlacement').textContent=state.validation?.reason??'';
         el('stentGraftImplants').textContent=state.implants.map(i=>
             `${i.type==='body'?'Korpus':'Nóżka'} · ${i.side==='right'?'prawa':'lewa'} · ${Math.round(i.deployment*100)}%`).join(' | ');
@@ -149,5 +168,5 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
         }
         if(selected)ui.updateCatheterLength(0);
     }
-    refresh();return {refresh,selectTool,readRelease,dispose(){stopRelease();for(const remove of listeners)remove();}};
+    refresh();return {refresh,selectTool,readRelease,stopRelease,dispose(){stopRelease();for(const remove of listeners)remove();}};
 }

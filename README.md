@@ -144,6 +144,15 @@ an already prepared solver step consumes its captured input when it commits.
 The outer cover is transparent in debug and radiolucent in X-ray; only its distal
 marker is drawn. The covered graft stays compressed on the delivery axis, and only sections
 passed by the cover edge expand. There is no stop at the contralateral gate.
+Release uses shared opening coordinates at 9 mm ring spacing and a smooth
+12 mm envelope at the cover edge, rather than a 2 mm linear vertex transition.
+Section rotation and radius interpolate separately to prevent opposite frames
+from collapsing intermediate rings. This remains a reduced geometric model,
+not a simulation of nitinol strain or fabric stresses. Target-surface contacts
+start only after the entire neighbouring ring is clear (a conservative 21 mm
+offset); completion uses the same offset, so the mesh does not jump on detachment.
+The packed limbs sit side by side. The thin contralateral rim marker follows
+the actual opening throughout release instead of appearing at full diameter.
 Before full detachment, advancing the cover refolds the covered sections and
 updates their mechanical contacts. Cover movement and capture release can be
 combined, with opposite cover commands cancelling each other. Once fully
@@ -159,6 +168,8 @@ The renderer includes M-profile nitinol struts, an uncovered suprarenal crown,
 radiopaque end markers, an e-shaped orientation marker, shaft and a 60 mm
 tapered nose. The nose bends along the simulated guidewire, with tangent
 continuation beyond its tip; it has no independent elastic rod. Body struts
+have rounded turns without thicker wires. The polymer nose has a faint X-ray
+projection with a separate radiopaque base band. Body struts
 have an illustrative 0.045 mm radius and crown struts 0.055 mm. Continuous
 round-ended line segments follow the fabric circumference. A one-pixel sampling footprint prevents subpixel wire dropouts, with opacity
 scaled by actual projected wire diameter rather than an opaque minimum thickness.
@@ -177,7 +188,7 @@ to the lumen with clearance throughout tip release. This is a geometric wall
 fit, not a radial-force or elastic apposition solver. Release uses the current delivery position and is not restricted
 to the renal landing zone. A limb can also be released away from the body, in
 which case it remains unconnected and does not seal the aneurysm flow model.
-Nominal body diameter is adjustable from 20–36 mm. Withdraw and
+Nominal body diameters use the catalogue combinations: 23, 25, 28, 32 and 36 mm (36 mm is unavailable for II 124 mm). Withdraw and
 remove the delivery system; the implant retains its deployed pose. Switch to the
 opposite sheath, place its wire through the open cyan gate, load the separate
 limb (10–20 mm nominal diameter, 80 mm long), position its nose with 10 mm overlap,
@@ -241,13 +252,34 @@ The visual design is inspired by the
 This is a kinematic approximation, not an exact product CAD or validated device
 mechanics model. Covered lengths and diameters use the
 [Medtronic sizing sheet](https://www.medtronic.com/content/dam/medtronic-wide/public/western-europe/products/cardiac-vascular/cardiovascular/aortic-stent-grafts/endurant-ii-sizing-sheet-print-en-gb.pdf);
-crotch geometry, gate length, ring spacing and marker placement remain approximate.
+gate covered length (74/84 mm from the proximal fabric edge), gate diameter
+(12 mm for II 23 mm bodies, otherwise 14 mm), trunk length and combined crotch
+width follow the [Medtronic Aortic Product Catalogue, pp. 15–18](https://www.medtronic.com/content/dam/medtronic-wide/public/western-europe/products/cardiac-vascular/cardiovascular/aortic-stent-grafts/aortic-product-catalogue.pdf).
+A tapered trunk and complementary half-section leg roots remove cylinder-union
+shelves. Larger distal legs taper from their proximal calibre. The precise
+three-dimensional crotch, crown, ring spacing and markers are still procedural
+approximations, not manufacturer CAD.
 The existing two-component ideal-seal contrast model is retained; selecting the
 IIs body does not add a separate ipsilateral extension workflow. Independent reversible cover controls
 are a simulation feature, not a reproduction of the device release interlocks. Partial
 release has fabric contact but does not remodel flow until components are fully
 released and connected. The bare suprarenal struts have no independent rod-contact
-model, and radial deployment is not a bidirectional elastic shell simulation. Endoleaks, collateral flow and fabric elasticity are not modelled.
+model, and radial deployment is not a bidirectional elastic shell simulation. Endoleaks and collateral flow are not modelled.
+
+Apposed fabric has a reduced local indentation response for exterior guidewires
+and ordinary catheters (radius at most 1.1 mm). An exterior tool lifts a bounded,
+smooth patch towards the graft lumen while the vessel remains a hard boundary.
+The displaced contact mesh retains crossing checks; a restoring spring resists
+the opening, and the displayed fabric/struts follow committed indentations from
+both accesses. The shape recovers when the tool leaves. This is an uncalibrated
+local compliance approximation, not a bidirectional nitinol/fabric shell model;
+the contrast model still assumes ideal sealing and does not simulate the gutter.
+Fabric contact uses 0.15 mm quadrature where no owning-lumen guide exists, so a
+wire near the bifurcation is supported before the crossing guard rejects it.
+The real-time vessel solver now checks the full finite-radius segment, including
+between sampled sites. A sampled-field clearance certificate cannot suppress
+this exact test. Legacy snapshots already crossing a vessel are rejected
+atomically instead of being silently projected through the wall.
 
 Run `npm run test:stentgraft` for both-access deployment, docking, wall containment,
 simulation-clock and implant-persistence checks against both anatomy assets.

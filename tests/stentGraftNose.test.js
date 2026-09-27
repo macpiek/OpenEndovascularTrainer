@@ -31,6 +31,8 @@ test('scaffold struts are thinner and delivery uses the flexible 60 mm nose mesh
         assert.equal(d.parts[0].rings.userData.wireRadius,.045);
         assert.equal(d.crown.userData.wireRadius,.055);
         system.refreshDelivery('right');assert.equal(d.noseMarker.geometry.type,'BufferGeometry');
+        assert.ok(d.noseMarker.userData.projectionMaterial.opacity<.2,'polymer nose is faint in the X-ray metal projection');
+        assert.ok(d.noseBand.visible,'a separate opaque band identifies the nose base');
         assert.ok(d.noseMarker.geometry.attributes.position.count>400);
         const positions=Array.from(d.noseMarker.geometry.attributes.position.array);
         assert.ok(positions.every(Number.isFinite));

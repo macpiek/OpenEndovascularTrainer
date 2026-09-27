@@ -2606,3 +2606,9 @@ canvas {
 #stentGraftDistalField { display:flex; align-items:center; gap:12px; }
 #stentGraftDistalField[hidden], #stentGraftMainBodies[hidden] { display:none; }
 @media(max-width:520px) { .stent-graft-model-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .stent-graft-model svg { height:160px; } }
+
+.stent-graft-limb-grid { grid-template-columns:repeat(3,minmax(0,1fr)); max-height:45vh; overflow:auto; margin:12px 0; padding:2px; }
+.stent-graft-limb-grid .stent-graft-model svg { height:145px; }
+.stent-graft-limb-grid .stent-graft-model[hidden] { display:none; }
+.stent-graft-limb-grid small { font-size:10px; color:#afc8db; }
+@media(max-width:520px) { .stent-graft-limb-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

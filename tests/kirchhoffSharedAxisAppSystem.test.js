@@ -462,7 +462,7 @@ test('60 Hz experiment has its own selection, report identity and replay policy 
         assert.equal(events[0].retainDiscoveryCertificates===true,realtime);
         assert.equal(events[0].continuousDiscoverySign===true,realtime);
         assert.equal(events[0].certifiedDiscoverySamples===true,realtime);
-        assert.equal(events[0].continuousSegmentContacts??false,realtime?'axis':false);
+        assert.equal(events[0].continuousSegmentContacts??false,realtime);
         assert.equal(events[0].stepRequest.options.wasmLinearAssembly,realtime);
         assert.equal(events[0].stepRequest.options.reuseFrictionAssembly,realtime);
         assert.equal(f.system.diagnostics.reuseFrictionAssembly,realtime);
@@ -487,11 +487,64 @@ test('graft surface revisions wake sleeping physics and remain frozen through a 
     f.tools[0].insertion=3;
     assert.equal(f.system.step(f.world,dt).pending,true);
     surface=make(2);finish(f);
-    assert.deepEqual(seen,[1],'pending geometry is immutable');
+    assert.ok(seen.length>0&&seen.every(revision=>revision===1),'pending geometry is immutable');
     finish(f);assert.equal(seen.at(-1),2);
     for(let i=0;i<20;i++)finish(f);
     const before=f.system.diagnostics.acceptedSteps;
     surface=make(3);finish(f);
     assert.equal(seen.at(-1),3);
     assert.ok(f.system.diagnostics.acceptedSteps>before,'new fabric wakes an unchanged tool');
+});
+
+test('manual recovery clears a latched failure without losing accepted pose, feed or rejection archive',()=>{
+    const f=fixture({workSliceMs:Infinity});finish(f);
+    f.tools[0].insertion=11;finish(f);
+    const accepted=f.tools.map(t=>positions(t.body)),steps=f.system.diagnostics.acceptedSteps;
+    f.controls.throwQuery=true;f.tools[0].insertion=12;
+    assert.equal(f.system.step(f.world,dt).terminal,true);
+    const failure=f.system.getLastFailure();
+    f.tools[0].insertion=11;f.controls.throwQuery=false;
+    assert.equal(f.system.retryFromLastAccepted(),true);
+    assert.deepEqual(f.tools.map(t=>positions(t.body)),accepted);
+    assert.equal(f.system.diagnostics.acceptedSteps,steps);
+    const result=finish(f);assert.equal(result.accepted,true);
+    assert.equal(f.tools[0].insertion,11);assert.equal(f.system.diagnostics.recoveries,1);
+    assert.deepEqual(f.system.getLastFailure(),failure);
+    f.tools[0].insertion=10;assert.equal(finish(f).accepted,true);
+    assert.equal(f.system.retryFromLastAccepted(),false);
+});
+
+test('attached capture enters the actual provider, freezes per step and detachment wakes the solver',()=>{
+    const f=fixture({workSliceMs:0});f.tools.forEach(t=>t.insertion=11);finish(f);
+    let capture={offset:[12,0,0],roots:[[150,-73,29]],armLength:9,stiffness:.01};
+    f.world.readStentGraftCapture=()=>capture;
+    const first=f.system.step(f.world,dt);assert.equal(first.pending,true);
+    capture=null;
+    finish(f);const attached=f.tools[0].body.y[10];
+    assert.ok(attached>f.origin[1],'capture load reaches the published wire');
+    finish(f);
+    assert.equal(f.system.diagnostics.last.graftCapture,null,'detachment removes load immediately; inertia may continue the previous motion');
+    assert.equal(f.system.diagnostics.initializations,1);
+});
+
+test('a failed graft contact commit preserves the accepted native state and permits retry',()=>{
+    const events=[],f=fixture({workSliceMs:Infinity,onRejectedStep:event=>events.push(event)});
+    finish(f);
+    const before=f.tools.map(t=>positions(t.body)),accepted=f.system.diagnostics.acceptedSteps;
+    openSpaceGeometry.computeBoundingBox();
+    let throwCommit=true;
+    f.world.readStentGraftSurface=()=>({geometry:openSpaceGeometry,bounds:openSpaceGeometry.boundingBox,revision:1,
+        commitContactPatches(){if(throwCommit)throw new Error('synthetic contact commit failed');}});
+    f.tools[0].insertion=3;f.tools[1].insertion=1;
+    const result=f.system.step(f.world,dt);
+    assert.equal(result.status,'shared-axis-commit-error');assert.equal(result.terminal,true);
+    assert.equal(f.system.diagnostics.acceptedSteps,accepted);
+    assert.deepEqual(f.tools.map(t=>positions(t.body)),before);
+    assert.equal(events.length,1);
+    assert.deepEqual(events[0].tools.map(t=>t.insertion),[0,0],'archive must retain the accepted material lengths');
+    throwCommit=false;
+    assert.equal(f.system.retryFromLastAccepted(),true);
+    finish(f);
+    assert.deepEqual(f.tools.map(t=>t.body.jointStateView.coordinates.at(-1)),[3,1]);
+    assert.ok(f.tools.every(t=>positions(t.body).flat().every(Number.isFinite)));
 });

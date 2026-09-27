@@ -89,7 +89,7 @@ export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=tr
  */
 export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true,indexedContacts=true,reuseContactBuffers=true,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false}={}) {
     if(![false,true,'axis'].includes(continuousSegmentContacts))throw new RangeError('Unknown continuous segment contact mode');
-    const segmentContact=continuousSegmentContacts?createSharedAxisSegmentContact(field.fallbackGeometry):null;
+    const segmentContact=continuousSegmentContacts?createSharedAxisSegmentContact(field.fallbackGeometry,{cacheCapacity:queryReuse?2048:0}):null;
     const clearance=createSharedAxisDiscoveryCache({retainOnAbort:retainDiscoveryCertificates});
     const insideProofs=continuousDiscoverySign?createSharedAxisInsideContinuation(field.fallbackGeometry):null,signPoint=[0,0,0];
     const x=new Float64Array(2),y=x.slice(),z=x.slice(),r=x.slice(),out=createContactResult();
@@ -125,9 +125,9 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
                 // A sample's empty ball covers at most half a grid cell.
                 // Only the stronger bound can certify the complete segment.
                 const spatialHalfCell=Math.hypot(x[1]-x[0],y[1]-y[0],z[1]-z[0])/(2*count);
-                if(!proof||proof.lowerBound<=radius+spatialHalfCell) {
-                    const hit=segmentContact.query(descriptor.a,descriptor.b,radius+.01,{axisOnly:continuousSegmentContacts==='axis'});
-                    if(hit.face>=0&&(hit.crossing||hit.distance<radius-1e-6)) {
+                if(!proof||proof.lowerBound<=radius+.01+spatialHalfCell) {
+                    const hit=segmentContact.query(descriptor.a,descriptor.b,radius+.01,{axisOnly:continuousSegmentContacts==='axis',cacheKey:key});
+                    if(hit.face>=0&&(hit.crossing||hit.distance<radius-(state.segmentContactTolerance??1e-6))) {
                         const t=start+(end-start)*hit.t,face=hit.face;
                         const owner=intervals.length>1?interval.material.spec.id:null;
                         const id=`vessel/${coordinateA}/${coordinateB}/${t}/${face}${owner?'/'+owner:''}`;
@@ -135,7 +135,9 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
                             const pending=state.pendingVesselRows??=new Map();
                             pending.set(id,createSharedAxisVesselWitness(field,{kind:'wall',edge,id,witness:{face,t,...(owner?{owner}:{})},
                                 dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(i=>[i,i+1,i+2])},{reuseBuffers:reuseContactBuffers}));
-                            throw new Error(NEED_ROWS);
+                            // Collect non-crossing capsule overlaps across the whole
+                            // rod; native assembly publishes them in one restart.
+                            if(hit.crossing)throw new Error(NEED_ROWS);
                         }
                         if(hit.crossing)throw outsideError('Shared axis segment crossed the vessel surface');
                     }
@@ -213,6 +215,8 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
     sample.certifiedDiscoverySamples=certifiedDiscoverySamples;
     sample.continuousSegmentContacts=continuousSegmentContacts;
     sample.segmentContact=segmentContact;
+    sample.vesselField=field;
+    sample.sheathLength=sheathLength;
     sample.insideProofs=insideProofs;
     return sample;
 }

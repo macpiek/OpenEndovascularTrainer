@@ -115,3 +115,36 @@ test('lost capture and hidden tab stop held movements without a jump on return',
     document.visibilityState='visible';event(document,'visibilitychange');
     frame(60000);assert.equal(yaw(),held);
 }));
+
+test('joystick returns from LAO 90 through AP to RAO without pitching or flipping',()=>fixture(({event,frame,yaw,camera,bounded,elements})=>{
+    event('angleJoystick','pointerdown',{clientX:60,clientY:10});
+    for(let i=0;i<400;i++)frame();
+    assert.ok(Math.abs(yaw()-Math.PI/2)<1e-8,'joystick must reach LAO 90');
+    assert.equal(elements.get('carmPitchReadout').textContent,'CRA 0°');
+    event('angleJoystick','pointermove',{clientX:60,clientY:110});
+    let previous=yaw(),rotation=camera.quaternion.clone(),crossedAP=false;
+    for(let i=0;i<550;i++) {
+        frame();bounded();
+        const current=yaw();
+        assert.ok(current<=previous+1e-10,'RAO command must decrease LAO continuously');
+        if(previous>-Math.PI/2+1e-8)assert.ok(current<previous,'reverse must immediately move away from LAO stop');
+        assert.ok(rotation.angleTo(camera.quaternion)<THREE.MathUtils.degToRad(1),'camera must not flip');
+        assert.ok(Math.abs(camera.position.y)<1e-8,'LAO/RAO motion must not change pitch');
+        crossedAP ||= previous>=0 && current<0;
+        previous=current;rotation.copy(camera.quaternion);
+    }
+    assert.ok(crossedAP);assert.ok(Math.abs(yaw()+Math.PI/2)<1e-8);
+    event('angleJoystick','pointermove',{clientX:60,clientY:10});frame();
+    assert.ok(yaw()>-Math.PI/2,'reverse must also leave RAO 90 immediately');
+    event('angleJoystick','pointerup');
+}));
+
+test('independent joystick axis controls only CRA and CAU, independently of LAO/RAO',()=>fixture(({event,frame,yaw,camera})=>{
+    event('angleJoystick','pointerdown',{clientX:10,clientY:60});
+    for(let i=0;i<220;i++)frame();
+    assert.ok(Math.abs(yaw())<1e-8);assert.ok(Math.abs(Math.asin(camera.position.y/500)-Math.PI/4)<1e-8);
+    event('angleJoystick','pointermove',{clientX:110,clientY:60});
+    for(let i=0;i<400;i++)frame();
+    assert.ok(Math.abs(yaw())<1e-8);assert.ok(Math.abs(Math.asin(camera.position.y/500)+Math.PI/4)<1e-8);
+    event('angleJoystick','pointerup');
+}));

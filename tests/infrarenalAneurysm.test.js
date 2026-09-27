@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
+import path from 'node:path';
 import * as THREE from 'three';
 import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
 import {MeshBVH} from 'three-mesh-bvh';
@@ -11,12 +12,16 @@ import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetForma
 import {VesselContactField,createContactResult} from '../src/physics/collision/vesselContactField.js';
 import {createInfrarenalDeformation,axialSection} from '../scripts/anatomy/infrarenalAneurysm.mjs';
 import {selectInfrarenalSurface,selectInfrarenalCenterline} from '../scripts/anatomy/infrarenalSelection.mjs';
+import {createMesentericDisplacement} from '../scripts/anatomy/mesentericDisplacement.mjs';
 
-const read=name=>fs.readFileSync(new URL('../res/'+name,import.meta.url));
+// Validate staged geometry/collision pairs before publishing them to Vite.
+const read=name=>fs.readFileSync(process.env.OET_ANATOMY_ASSET_DIR && name.startsWith('Aorta_infrarenal_aneurysm')
+    ? path.join(process.env.OET_ANATOMY_ASSET_DIR,name) : new URL('../res/'+name,import.meta.url));
 const arrayBuffer=b=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const report=JSON.parse(read('Aorta_infrarenal_aneurysm.json'));
 const deformation=createInfrarenalDeformation(report);
+const mesenteric=createMesentericDisplacement(report.mesentericDisplacement);
 const baseline=read('Aorta_plain.stl'),generated=read('Aorta_infrarenal_aneurysm.stl');
 const geometries=[baseline,generated].map(bytes=>{
     const geometry=new STLLoader().parse(arrayBuffer(bytes));
@@ -33,6 +38,7 @@ test('aneurysm is approximately 50 mm and preserves baseline anatomy outside its
     assert.ok(diameter>49 && diameter<51,`diameter ${diameter}`);
     for(let i=0;i<original.length;i+=3) {
         if(original[i+1]>report.distalY && original[i+1]<report.proximalY)continue;
+        if(original[i+1]>report.mesentericDisplacement.distalY && original[i+1]<report.mesentericDisplacement.proximalY)continue;
         assert.equal(next[i],original[i]);assert.equal(next[i+1],original[i+1]);assert.equal(next[i+2],original[i+2]);
     }
     for(const p of [...report.renalOrigins,report.bifurcation,[-73,-383,14],[38.5,-390,10]])
@@ -54,13 +60,15 @@ test('sac stays enlarged down to the bifurcation without a distal aortic neck',(
     assert.deepEqual(deformation.move(...bif),bif,'branch center stays in place');
 });
 
-test('neighboring vessels in the same slab keep their original vertices and centerlines',()=>{
+test('only the aortic sac and selected mesenteric branch change; other vessels stay fixed',()=>{
     assert.equal(report.selection,'connected-infrarenal-slab');
     const original=geometries[0].attributes.position.array,next=geometries[1].attributes.position.array;
     const selected=selectInfrarenalSurface(original,report,deformation.centerAt);
+    const branchSelected=selectInfrarenalSurface(original,report.mesentericDisplacement,mesenteric.centerAt);
     let protectedVertices=0,previouslyMoved=0;
     for(let i=0;i<selected.length;i++) {
-        if(selected[i])continue;
+        assert.ok(!selected[i] || !branchSelected[i],`overlapping selections ${i}`);
+        if(selected[i] || branchSelected[i])continue;
         for(let k=0;k<3;k++)assert.equal(next[3*i+k],original[3*i+k],`unrelated vertex ${i}`);
         const p=Array.from(original.slice(3*i,3*i+3));
         if(p[1]<=report.distalY || p[1]>=report.proximalY)continue;
@@ -72,16 +80,55 @@ test('neighboring vessels in the same slab keep their original vertices and cent
     const asset=decodeCollisionAsset(arrayBuffer(read('Aorta_plain.collision.bin')));
     const selectedSegments=selectInfrarenalCenterline(asset,report,deformation.centerAt);
     assert.deepEqual(report.selectedCenterlineSegments,selectedSegments);
+    const mesentericSegments=selectInfrarenalCenterline(asset,report.mesentericDisplacement,mesenteric.centerAt);
+    assert.deepEqual(report.mesentericDisplacement.selectedCenterlineSegments,mesentericSegments);
     const generatedAsset=decodeCollisionAsset(arrayBuffer(read('Aorta_infrarenal_aneurysm.collision.bin')));
     const key=(data,i)=>Array.from(data.slice(i,i+6)).join(',');
     const unchanged=new Set();
     for(let i=0;i<generatedAsset.arrays.centerlineSegments.length;i+=9)
         unchanged.add(key(generatedAsset.arrays.centerlineSegments,i));
-    const included=new Set(selectedSegments);
+    const included=new Set([...selectedSegments,...mesentericSegments]);
     for(let i=0;i<asset.arrays.centerlineSegments.length/9;i++) {
         if(included.has(i))continue;
         assert.ok(unchanged.has(key(asset.arrays.centerlineSegments,9*i)),`unrelated centerline segment ${i}`);
     }
+});
+
+test('mesenteric surface clears the sac, retains its origin and follows the collision centerline',()=>{
+    const original=geometries[0].attributes.position.array,next=geometries[1].attributes.position.array;
+    const sac=selectInfrarenalSurface(original,report,deformation.centerAt);
+    const branch=selectInfrarenalSurface(original,report.mesentericDisplacement,mesenteric.centerAt);
+    const selectedGeometry=selection=>{
+        const vertices=[];
+        for(let i=0;i<selection.length;i+=3)if(selection[i] || selection[i+1] || selection[i+2])
+            for(let j=0;j<9;j++)vertices.push(next[3*i+j]);
+        const geometry=new THREE.BufferGeometry();
+        geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+        geometry.boundsTree=new MeshBVH(geometry);return geometry;
+    };
+    const sacGeometry=selectedGeometry(sac),branchGeometry=selectedGeometry(branch);
+    const separation=sacGeometry.boundsTree.closestPointToGeometry(branchGeometry,new THREE.Matrix4());
+    assert.ok(separation.distance>3.5,`mesenteric/sac clearance ${separation.distance}`);
+    assert.equal(sacGeometry.boundsTree.intersectsGeometry(branchGeometry,new THREE.Matrix4()),false);
+    for(let i=0;i<branch.length;i++)if(branch[i]) {
+        const expected=mesenteric.move(...original.slice(3*i,3*i+3));
+        assert.ok(Math.hypot(...expected.map((v,k)=>v-next[3*i+k]))<.0001,`branch map at ${i}`);
+    }
+    const cfg=report.mesentericDisplacement;
+    for(const y of [cfg.proximalY,cfg.displacementStartY,cfg.distalY,-168])assert.deepEqual(mesenteric.move(8,y,0),[8,y,0]);
+    // The boundary slope is zero, avoiding a kink where the unchanged origin joins.
+    assert.ok(Math.abs(mesenteric.move(8,cfg.displacementStartY-.001,0)[2])<1e-6);
+    assert.ok(Math.abs(mesenteric.move(8,cfg.distalY+.001,0)[2])<1e-6);
+    const before=decodeCollisionAsset(arrayBuffer(read('Aorta_plain.collision.bin')));
+    const after=decodeCollisionAsset(arrayBuffer(read('Aorta_infrarenal_aneurysm.collision.bin')));
+    const nodes=[];
+    for(let i=0;i<after.arrays.centerlineSegments.length;i+=9)for(let k=0;k<2;k++)
+        nodes.push(Array.from(after.arrays.centerlineSegments.slice(i+3*k,i+3*k+3)));
+    for(const i of cfg.selectedCenterlineSegments)for(let k=0;k<2;k++) {
+        const expected=mesenteric.move(...before.arrays.centerlineSegments.slice(9*i+3*k,9*i+3*k+3));
+        assert.ok(nodes.some(actual=>Math.hypot(...expected.map((v,j)=>v-actual[j]))<.0001),`transported node ${i}/${k}`);
+    }
+    sacGeometry.dispose();branchGeometry.dispose();
 });
 
 test('smooth surrounding displacement does not fold the anatomy',()=>{

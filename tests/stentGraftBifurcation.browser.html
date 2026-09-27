@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><title>Progressive bifurcation deployment regression</title><style>body{background:#182028;color:white;font:13px monospace}iframe{width:100%;height:700px}pre{white-space:pre-wrap;max-height:150px;overflow:auto}</style><pre>Loading</pre><iframe src="/?coupledSolver=shared-axis-realtime&solverDebug=1&fastNewton=1&predictiveNewton=1&pruneWitnesses=1&anatomy=infrarenal-aneurysm&panel=debug"></iframe><script type="module">
+const f=document.querySelector('iframe'),out=document.querySelector('pre'),logs=[];
+const log=x=>{logs.push(typeof x==='string'?x:JSON.stringify(x));out.textContent=logs.join('\n')};
+const wait=async(check,label,limit=240000)=>{const start=performance.now();while(!check()){if(performance.now()-start>limit)throw Error(label);await new Promise(r=>setTimeout(r,100))}};
+try{
+await wait(()=>f.contentWindow.__OET_BENCHMARK__&&!f.contentDocument.getElementById('loadingScreen'),'load');
+const w=f.contentWindow,d=f.contentDocument,p=w.__OET_PHYSICS__,snap=()=>w.__OET_BENCHMARK__.getContrastDebugSnapshot();
+const key=(type,code)=>d.dispatchEvent(new w.KeyboardEvent(type,{code,bubbles:true}));
+log('Advancing wire');key('keydown','KeyW');await wait(()=>snap().guidewireProgressMm>=418,'wire');key('keyup','KeyW');
+const select=d.getElementById('catheterType');select.value='stentgraft';select.dispatchEvent(new w.Event('change',{bubbles:true}));const diameter=d.getElementById('stentGraftDiameter');diameter.value=new URLSearchParams(location.search).get('diameter')??'23';diameter.dispatchEvent(new w.Event('change',{bubbles:true}));d.getElementById('stentGraftLoad').click();
+log('Advancing delivery');key('keydown','KeyD');await wait(()=>snap().catheterProgressMm>=295,'delivery');key('keyup','KeyD');
+log('Deploying with crown captured');key('keydown','KeyJ');
+let last=-1;
+await wait(()=>{const status=d.getElementById('stentGraftStatus')?.textContent??Array.from(d.querySelectorAll('[role="status"]')).find(x=>x.textContent.includes('Koszulka:'))?.textContent??'';const cover=Number(status.match(/Koszulka: ([\d.]+)/)?.[1]);if(Math.floor(cover/5)>last){last=Math.floor(cover/5);log({status,acceptance:p.getStepAcceptance()});}return cover>=136;},'deploy');key('keyup','KeyJ');log('Complete cover withdrawal; releasing fixation');key('keydown','KeyL');await wait(()=>!p.world.readStentGraftCapture(),'tip release');key('keyup','KeyL');const acceptedSteps=p.getAccesses().find(a=>a.id==='right').steps;await wait(()=>p.getAccesses().find(a=>a.id==='right').steps>acceptedSteps+30,'settle');log({result:'PASS',acceptance:p.getStepAcceptance(),lastRejected:p.getLastRejectedStep()?.failure?.result?.status??null});
+}catch(e){log({error:e.message,stack:e.stack});}
+</script>

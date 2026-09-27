@@ -1,0 +1,208 @@
+{
+  "source": {
+    "path": "/tmp/oet-mesenteric/assets/Aorta_infrarenal_aneurysm.stl",
+    "byteLength": 65466484,
+    "stlSha256": "59f250f9b00484e578e750446a19cbb8eb83d3d3d8cf3313616a7797a49c52e3",
+    "triangleCount": 1309328
+  },
+  "transform": {
+    "version": 2,
+    "rotationX": -1.5707963267948966,
+    "scale": 0.9685961233993883,
+    "sourceCenter": [
+      10.555252075195312,
+      -165.03330612182617,
+      -436.6159362792969
+    ],
+    "sourceSize": [
+      475.8706359863281,
+      252.8294563293457,
+      1823.5354919433594
+    ],
+    "targetCenter": [
+      0,
+      -180,
+      0
+    ],
+    "targetLength": 470
+  },
+  "bounds": {
+    "min": [
+      -230.46322631835938,
+      -1393.25,
+      -118.03494262695312
+    ],
+    "max": [
+      230.46322631835938,
+      373.01934814453125,
+      126.85468292236328
+    ]
+  },
+  "centerline": {
+    "stride": 9,
+    "segmentCount": 12051,
+    "nodeCount": 12052,
+    "minSafeRadius": 0,
+    "maxSafeRadius": 19.11406670925292,
+    "diagnostics": {
+      "source": "deformed-baseline-centerline",
+      "baselineSha256": "298e70f50d52fceb3c25cf13ae8df46ecd92c0bae36cea8fd91be236bc8b0aa2",
+      "componentCount": 1,
+      "centerlineGraphCycleCount": 0,
+      "centerlineGraphNodeCount": 12052,
+      "insertedNodeCount": 1498,
+      "centerlineWallIntersectionCount": 4,
+      "centerlineAcceptedInternalWallSeamCount": 4,
+      "centerlineInvalidSegmentCountFinal": 0,
+      "centerlineInvalidSegmentDetailsFinal": [],
+      "wallValidation": "stl-bvh-with-packed-lumen-seam-check"
+    }
+  },
+  "broadPhase": {
+    "cellSize": 16,
+    "origin": [
+      -240,
+      -1408,
+      -128
+    ],
+    "dimensions": [
+      30,
+      112,
+      17
+    ],
+    "entryCount": 72845
+  },
+  "lumen": {
+    "axisCount": 13,
+    "sliceCount": 8440,
+    "contourCount": 58305,
+    "pointCount": 3032757,
+    "pointQuantization": 0.05,
+    "signature": "36c07af59376de7968ecb4f31c92d70bfa8a459ea3b8a37fe6ae7ab1667d6986",
+    "diagnostics": {
+      "source": "multi-axis-slice-field",
+      "sliceCount": 1960,
+      "contourCount": 11122,
+      "debugSegmentCount": 17999,
+      "requestedSliceCount": 1000,
+      "sliceSpacing": 0.9,
+      "taggingRequestedSliceCount": 1000,
+      "taggingSliceSpacing": 1.7662693481445313,
+      "minCompactness": 0.1,
+      "taggingAxes": [
+        {
+          "axis": "y",
+          "sliceCount": 1960,
+          "contourCount": 11122,
+          "taggedTriangleCount": 306495
+        },
+        {
+          "axis": "x",
+          "sliceCount": 260,
+          "contourCount": 2297,
+          "taggedTriangleCount": 137504
+        },
+        {
+          "axis": "z",
+          "sliceCount": 130,
+          "contourCount": 2786,
+          "taggedTriangleCount": 146835
+        },
+        {
+          "axis": "xy+",
+          "sliceCount": 755,
+          "contourCount": 4667,
+          "taggedTriangleCount": 189228
+        },
+        {
+          "axis": "xy-",
+          "sliceCount": 775,
+          "contourCount": 4757,
+          "taggedTriangleCount": 187846
+        },
+        {
+          "axis": "xz+",
+          "sliceCount": 232,
+          "contourCount": 2667,
+          "taggedTriangleCount": 142267
+        },
+        {
+          "axis": "xz-",
+          "sliceCount": 231,
+          "contourCount": 2826,
+          "taggedTriangleCount": 155028
+        },
+        {
+          "axis": "yz+",
+          "sliceCount": 728,
+          "contourCount": 4730,
+          "taggedTriangleCount": 187586
+        },
+        {
+          "axis": "yz-",
+          "sliceCount": 766,
+          "contourCount": 4794,
+          "taggedTriangleCount": 185606
+        },
+        {
+          "axis": "xyz+++",
+          "sliceCount": 621,
+          "contourCount": 4292,
+          "taggedTriangleCount": 182679
+        },
+        {
+          "axis": "xyz++-",
+          "sliceCount": 665,
+          "contourCount": 4418,
+          "taggedTriangleCount": 185741
+        },
+        {
+          "axis": "xyz+-+",
+          "sliceCount": 681,
+          "contourCount": 4495,
+          "taggedTriangleCount": 183116
+        },
+        {
+          "axis": "xyz-++",
+          "sliceCount": 636,
+          "contourCount": 4454,
+          "taggedTriangleCount": 188036
+        }
+      ]
+    }
+  },
+  "sdf": {
+    "voxelSize": 0.5,
+    "brickSize": 8,
+    "band": 4,
+    "quantization": 0.02,
+    "distanceQuantization": 0.02,
+    "origin": [
+      -236,
+      -1400,
+      -124
+    ],
+    "dimensions": [
+      118,
+      445,
+      64
+    ],
+    "brickCount": 88062,
+    "candidateBrickCount": 114396,
+    "signEncoding": "inside-bitset-lsb",
+    "signByteLength": 5635968
+  },
+  "decodedBytes": 65957688,
+  "timings": {
+    "preprocessMs": 3985.0754159999997,
+    "centerlineMs": 107.70929199999955,
+    "lumenMs": 29761.485249999998,
+    "lumenReused": false,
+    "sdfMs": 194482.49429099998,
+    "sdfReused": false,
+    "sdfSignMs": 125132.92729199998,
+    "sdfSignsReused": false,
+    "totalMs": 354655.89725
+  },
+  "encodedBytes": 65962384
+}

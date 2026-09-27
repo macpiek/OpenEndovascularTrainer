@@ -136,7 +136,7 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=f
         simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,simulationAbandonedBacklog:0,
         browserConstraintStageProfile:{record:()=>{}},loadingAssetsReady:()=>true,
         browserBenchmarkScenario:{running:false},shortCatheterBenchmarkMetrics:null,guidewireTransport:{progress:0},
-        recordBrowserFrame:()=>{},document:{visibilityState:'visible'},runtime:{timeout:cb=>queue.push(cb)},
+        recordBrowserFrame:()=>{},recoveryButtons:[],document:{visibilityState:'visible',getElementById:()=>({textContent:''})},runtime:{timeout:cb=>queue.push(cb)},
         prepares:0,commits:0,contrastTime:0,benchmarkTime:0,throwPresentation:false};
     state.wholeAxisAppSystem=state.sharedAxisAppSystem;
     if(shared)state.sharedAxisAppSystem.setWorkSliceBudget=budget=>state.sliceBudgets.push(budget);
@@ -289,14 +289,14 @@ test('actual benchmark sampler advances no clock; lifecycle reset runs before Wo
 
 test('actual post-commit credits only the originating benchmark epoch while always advancing committed contrast once',()=>{
     const calls={sync:0,metrics:0,envelope:0,resistance:0,contrast:0,dose:0};
-    const state={isControlledAccess:()=>true,xpbdWireBody:{syncToRodState:()=>calls.sync++},xpbdCatheterBody:{},wire:{},
+    const state={activeAccessId:'right',stentGraftSystem:null,isControlledAccess:()=>true,xpbdWireBody:{syncToRodState:()=>calls.sync++},xpbdCatheterBody:{},wire:{},
         xpbdContainment:{outerStartNode:0,innerRadius:1,closestSegment:null},spatiallyCapturedContainmentEnd:()=>0,
         browserBenchmarkEpoch:2,browserBenchmarkScenario:{running:true,simulationElapsedMs:0},
         simulationAccumulator:3*dt,shortCatheterBenchmarkMetrics:{recordStep:()=>calls.metrics++},
         endovascularWorld:{},recordBrowserPhysicsEnvelope:()=>calls.envelope++,
-        contrastSystem:{update:time=>calls.contrast+=time,totalDeliveredVolumeMl:1},displayedContrastDoseMl:0,
+        contrastSystem:{setStentGraftSurface:()=>{},update:time=>calls.contrast+=time,totalDeliveredVolumeMl:1},displayedContrastDoseMl:0,
         updateGuidewireResistance:()=>calls.resistance++,guidewireRotation:.1,
-        pigtailCatheter:{progress:4,rotation:.2},ui:{updateInsertedLength:()=>{},updateCatheterLength:()=>{},updateDose:()=>calls.dose++}};
+        pigtailCatheter:{progress:4,rotation:.2},ui:{updateAutomaticWithdrawalLengths:()=>{},updateInsertedLength:()=>{},updateCatheterLength:()=>{},updateDose:()=>calls.dose++}};
     vm.createContext(state);vm.runInContext(simulatorSource.slice(simulatorSource.indexOf('function commitSimulationStep('),
         simulatorSource.indexOf('const renderHiddenObjects')),state);
     const context={dt,automatedCommands:{benchmarkPhase:4},inserted:12,firstContainedNode:0,materialEndNode:0,
@@ -527,4 +527,23 @@ test('both access schedulers advance and a control switch preserves a background
         assert.ok(Math.abs(s.simulationAcceptedTime-s.simulationExecutedSteps/60-s.simulationAccumulator)<1e-10);
     });
     assert.equal(s.activeAccessId,'left','background scopes restore the control context');
+});
+
+test('terminal rejection retries at rest once and explicit recovery never resets the world clock',()=>{
+    const world=stubWorld([{accepted:false,terminal:true,status:'collision'},
+        {accepted:false,terminal:true,status:'collision'},true]);
+    world.abandonFailedWholeStep=function(){this.pending=false;this.accumulator-=dt;};
+    let feed=4,command=1,retries=0;
+    const owner=createFixedStepTransaction({world,prepare:()=>{const before=feed;feed+=command;return before;},
+        recovery:{readKey:()=>command,rollback:before=>feed=before,retry:()=>{retries++;command=0;return true;}}});
+    owner.beginFrame();assert.equal(owner.attempt(dt).terminal,true);
+    assert.equal(feed,4);assert.equal(retries,1);assert.equal(owner.blocked,false);
+    assert.equal(owner.attempt(dt).attempted,false,'no same-frame recovery loop');
+    owner.beginFrame();assert.equal(owner.attempt(dt).terminal,true);
+    assert.equal(owner.blocked,true);assert.equal(retries,1);
+    for(let i=0;i<5;i++){owner.beginFrame();assert.equal(owner.attempt(dt).attempted,false);}
+    assert.equal(owner.retryRejected(),true);assert.equal(retries,2);
+    assert.equal(owner.attempt(dt).accepted,true);assert.equal(feed,4);assert.equal(world.stepCount,1);
+    assert.equal(owner.retryRejected(),false,'only rejected transactions can be retried');
+    assert.equal(world.accumulator,0);
 });

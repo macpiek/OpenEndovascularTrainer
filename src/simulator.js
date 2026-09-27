@@ -1,4 +1,5 @@
-import {prepareDeliveryMotion} from './devices/stentGraftDeliveryMechanics.js';
+import {createDebugVesselSurface} from './debugVesselSurface.js';
+import {prepareDeliveryMotion,configureDeliveryCatheter} from './devices/stentGraftDeliveryMechanics.js';
 import {resolveAnatomyVariant} from './anatomyVariant.js';
 import {StentGraftSystem} from './devices/stentGraftSystem.js';
 import {renderMetalProjection} from './imaging/renderMetalProjection.js';
@@ -193,7 +194,7 @@ function initializeAccessSolver() {
         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
         onRejectedStep:report=>ui.updateSolverFailure({...report, accessId:activeAccessId,anatomy:selectedAnatomy.id}),
-        readSheath: () => ({...activeSheath, innerRadius: pigtailCatheter?.type==='stentgraft-delivery'?3.2:INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
+        readSheath: () => ({...activeSheath, innerRadius: pigtailCatheter?.type==='stentgraft-delivery'?(pigtailCatheter.deliveryRadiusMm??3)+.2:INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
         readTools: () => [
             {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
                 type:activeGuidewireType,shaftStiffness:guidewireShaftStiffnessScale,tipStiffness:guidewireTipStiffnessScale,
@@ -792,11 +793,15 @@ sheathFluoroMesh.add(...Object.values(vessel.sheaths).map(createSheathFluoroMesh
 sheathFluoroMesh.visible = true;
 alignVascularRenderObject(sheathFluoroMesh);
 scene.add(sheathFluoroMesh);
+let debugVesselSurface = null;
+runtime.onDispose(() => debugVesselSurface?.dispose());
 const lumenDebugGroup = new THREE.Group();
 lumenDebugGroup.visible = false;
 vesselGroup.add(lumenDebugGroup);
 const debugLayerVisibility = {
     stlModel: true,
+    vesselShading: true,
+    legacyVesselView: true,
     lumenCast: false,
     sections: false,
     centerline: false,
@@ -806,6 +811,8 @@ const debugLayerVisibility = {
     rodNodes: true
 };
 function applyDebugLayerVisibility() {
+    debugVesselSurface?.setShadingEnabled(debugLayerVisibility.vesselShading);
+    debugVesselSurface?.setLegacyViewEnabled(debugLayerVisibility.legacyVesselView);
     lumenDebugGroup.traverse(object => {
         const layer = object.userData?.debugLayer;
         if (!layer || !(layer in debugLayerVisibility)) return;
@@ -836,12 +843,11 @@ const aortaModel = createAortaModel(vessel, {
             );
         }
         lumenDebugGroup.clear();
-        lumenDebugGroup.add(createExactLumenDebugMesh(collision.geometry, {
-            debugLayer: 'stlModel',
-            color: STL_MODEL_DEBUG_COLOR,
-            opacity: 0.18,
-            renderOrder: 2.8
-        }));
+        debugVesselSurface?.dispose();
+        debugVesselSurface = createDebugVesselSurface(collision.geometry, STL_MODEL_DEBUG_COLOR);
+        debugVesselSurface.mesh.userData.debugLayer = 'stlModel';
+        debugVesselSurface.mesh.renderOrder = 2.8;
+        lumenDebugGroup.add(debugVesselSurface.mesh);
         if (collision.preprocessing?.lumenCastGeometry) {
             lumenDebugGroup.add(createExactLumenDebugMesh(collision.preprocessing.lumenCastGeometry, {
                 debugLayer: 'lumenCast',
@@ -3427,7 +3433,13 @@ function initializeAccessTransaction() {
             readKey: () => isControlledAccess()
                 ? [ui.getAdvance(),ui.getGuidewireRotation(),ui.getCatheterAdvance(),ui.getCatheterRotation(),
                     ui.getSelectedGuidewireType(),ui.getSelectedCatheterType(),browserBenchmarkEpoch]
-                : ['background', activeAccessId],
+                : ['background', activeAccessId,ui.getAutomaticWithdrawal(activeAccessId).guidewireAdvance,ui.getAutomaticWithdrawal(activeAccessId).catheterAdvance],
+            retry: () => {
+                if(browserBenchmarkScenario.running)return false;
+                if(isControlledAccess()) {ui.releaseToolInputs();stentGraftControls?.stopRelease();}
+                ui.cancelAccessAutomaticWithdrawal(activeAccessId);
+                return sharedAxisAppSystem.retryFromLastAccepted();
+            },
             rollback: () => {
                 sharedInputCheckpoint.restore();
                 ({tailProgress,guidewireRotation,lastGuidewireAdvanceCommand,xpbdPortalInnerDriven}=sharedInputScalars);
@@ -3440,6 +3452,11 @@ function initializeAccessTransaction() {
     });
 }
 initializeAccessTransaction();
+const recoveryButtons=['retryToolMotionDebug'].map(id=>document.getElementById(id)).filter(Boolean);
+for(const button of recoveryButtons)button.addEventListener('click',()=>{
+    simulationStepTransaction.retryRejected();
+    button.blur();
+});
 let lastFluoroPulseTime = -Infinity;
 let fluoroPulseIndex = 0;
 let autoExposureLevel = 0;
@@ -3519,6 +3536,7 @@ accessController = createFemoralAccessController({
     },
     afterSwitch: () => {
         contrastSystem?.setAccess(activeSheath, pigtailCatheter);
+        ui.setActiveAccess(activeAccessId);
         ui.restoreAccessControls(accessController.active.controls);
         ui.updateInsertedLength(guidewireTransport.progress / 10, guidewireRotation);
         ui.updateCatheterLength(pigtailCatheter.progress / 10, pigtailCatheter.rotation);
@@ -3561,13 +3579,14 @@ stentGraftSystem = new StentGraftSystem({
 });
 alignVascularRenderObject(stentGraftSystem.group);scene.add(stentGraftSystem.group);
 for(const access of accessController.values())access.endovascularWorld.readStentGraftSurface=()=>stentGraftSystem.mechanicalSurfaceForAccess(access.activeAccessId);
+for(const access of accessController.values())access.endovascularWorld.readStentGraftCapture=()=>stentGraftSystem.captureForAccess(access.activeAccessId);
 stentGraftControls=initStentGraftControls({system:stentGraftSystem,activeSide:()=>accessController.activeId,ui});
 function requestAccessSwitch(id) {
     if (!accessController || id === activeAccessId) return;
     if (browserBenchmarkScenario.running) stopBrowserBenchmarkScenario('access-changed');
     stopCatheterAortaSetup(catheterAortaSetup);
     ui.updateCatheterAortaSetupStatus?.(getCatheterAortaSetupStatus());
-    ui.releaseToolInputs();
+    ui.releaseToolInputs({preserveAutomaticWithdrawal:true});
     accessController.active.controls = ui.captureAccessControls();
     accessController.request(id);
 }
@@ -3710,15 +3729,13 @@ function prepareSimulationStep(dt) {
     if (controlled) updateGuidewireType(ui.getSelectedGuidewireType());
     const deliveryDevice=stentGraftSystem?.accesses[activeAccessId].device;
     if(deliveryDevice) {
-        pigtailCatheter.setType('stentgraft-delivery');
-        pigtailCatheter.setStiffnessScales({shaftStiffnessScale:1,tipStiffnessScale:1});
-        pigtailCatheter.deliveryExposureMm=Math.max(0,(deliveryDevice.sheathWithdrawal??0)-(deliveryDevice.coverLead??0));
+        configureDeliveryCatheter(deliveryDevice,pigtailCatheter);
     } else if(controlled) {
         pigtailCatheter.setType(automatedCommands?.catheterType ?? ui.getSelectedCatheterType());
         pigtailCatheter.setStiffnessScales({shaftStiffnessScale:catheterShaftStiffnessScale,tipStiffnessScale:catheterTipStiffnessScale});
         pigtailCatheter.deliveryExposureMm=0;
     }
-    for(const sheath of endovascularWorld.sheaths)sheath.innerRadius=deliveryDevice?3.2:INTRODUCER_SHEATH_INNER_RADIUS_MM;
+    for(const sheath of endovascularWorld.sheaths)sheath.innerRadius=deliveryDevice?pigtailCatheter.deliveryRadiusMm+.2:INTRODUCER_SHEATH_INNER_RADIUS_MM;
     if(sharedInputCheckpoint) {
         sharedInputScalars={tailProgress,guidewireRotation,lastGuidewireAdvanceCommand,xpbdPortalInnerDriven};
         sharedInputCheckpoint.capture([wire.nodeStorage,guidewireTransport,guidewireTransport.performanceStats,
@@ -3726,7 +3743,8 @@ function prepareSimulationStep(dt) {
             pigtailCatheter._kirchhoffMaterialOptions,pigtailCatheter._kirchhoffBoundaryOptions,
             xpbdContainment,xpbdExternalToolContact]);
     }
-    const advance = controlled ? automatedCommands?.guidewireAdvance ?? ui.getAdvance() : 0;
+    const backgroundWithdrawal=ui.getAutomaticWithdrawal(activeAccessId);
+    const advance = controlled ? automatedCommands?.guidewireAdvance ?? ui.getAdvance() : backgroundWithdrawal.guidewireAdvance;
     const guidewireRotationCommand = controlled ? ui.getGuidewireRotation() : 0;
     if (guidewireRotationCommand !== 0) {
         guidewireRotation += guidewireRotationCommand *
@@ -3738,16 +3756,16 @@ function prepareSimulationStep(dt) {
     }
     const stentMode=!!deliveryDevice || (controlled && ui.getSelectedCatheterTool()==='stentgraft');
     const stentGraftCommand=deliveryDevice ? {deviceId:deliveryDevice.id,
-        advance:controlled ? ui.getCatheterAdvance() : 0,
+        advance:controlled ? ui.getCatheterAdvance() : backgroundWithdrawal.catheterAdvance,
         release:controlled ? stentGraftControls?.readRelease(activeAccessId) : null} : null;
     const catheterAdvance = stentMode ? 0 :
-        controlled ? automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance() : 0;
+        controlled ? automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance() : backgroundWithdrawal.catheterAdvance;
     const catheterRotation = controlled ? automatedCommands?.catheterRotation ?? ui.getCatheterRotation() : 0;
     const guidewireProgressDelta = advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
     const catheterProgressBefore = pigtailCatheter.progress;
     const catheterRotationBefore = pigtailCatheter.rotation;
-    if(deliveryDevice)prepareDeliveryMotion(deliveryDevice,pigtailCatheter,dt,stentGraftCommand.advance,inserted);
+    if(deliveryDevice)stentGraftCommand.mechanicalPosition=prepareDeliveryMotion(deliveryDevice,pigtailCatheter,dt,stentGraftCommand.advance,inserted,stentGraftCommand.release);
     else pigtailCatheter.advance(catheterAdvance, dt, inserted);
     const catheterProgressDelta = pigtailCatheter.progress - catheterProgressBefore;
     pigtailCatheter.rotate(catheterRotation, dt);
@@ -3908,7 +3926,11 @@ function commitSimulationStep(context) {
     xpbdWireBody.syncToRodState(wire);
     stentGraftSystem?.updateAccess(activeAccessId,dt,{nodes:wire.nodes,
         coordinate:i=>guidewireTransport.insertedCoordinate(i),catheterMm:pigtailCatheter.type==='stentgraft-delivery'?0:pigtailCatheter.progress},
-        context.stentGraftCommand?{...context.stentGraftCommand,mechanicalPosition:pigtailCatheter.progress,mechanicalRotation:pigtailCatheter.rotation}:null);
+        context.stentGraftCommand?{...context.stentGraftCommand,mechanicalRotation:pigtailCatheter.rotation}:null);
+    // Publish accepted lengths for both sheaths: a background withdrawal must
+    // stop at the inlet without touching the foreground UI or trial state.
+    ui.updateAutomaticWithdrawalLengths(activeAccessId,inserted/10,
+        (stentGraftSystem?.accesses[activeAccessId].device?.position??pigtailCatheter.progress)/10);
     if (!isControlledAccess()) return;
     const sameBenchmark = context.benchmarkEpoch === browserBenchmarkEpoch &&
         context.benchmarkRunning && browserBenchmarkScenario.running;
@@ -4361,6 +4383,12 @@ function animate(time) {
                 : result?.status === 'computing' ? ` · obliczanie: iteracja ${progress?.directions ?? 0}, ocena ${progress?.evaluations ?? 0}`
                 : result?.accepted === false ? ` · wstrzymany: ${result.message || result.status}` : '');
         if (compositeStatus.textContent !== status) compositeStatus.textContent = status;
+        for(const button of recoveryButtons)button.disabled=!sharedAxisAppSystem||!simulationStepTransaction.blocked;
+        const recoveryStatus=document.getElementById('toolMotionRecoveryStatus');
+        const recoveries=sharedAxisAppSystem?.diagnostics.recoveries??0;
+        recoveryStatus.textContent=simulationStepTransaction.blocked
+            ?'Ruch cofnięty do ostatniego poprawnego stanu. Zmień kierunek lub użyj przycisku Wznów ruch.'
+            :recoveries?'Przywrócono ostatni poprawny stan. Możesz ponownie sterować narzędziami.':'';
     }
     const frameCpuStartedAt = performance.now();
     const frameMs = lastRenderTime === null ? 0 : time - lastRenderTime;
@@ -4649,6 +4677,7 @@ function animate(time) {
         lastFluoroPulseTime = -Infinity;
         updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
+        if (debugVesselSurface?.mesh.visible) debugVesselSurface.prepare(renderer, camera);
         renderer.render(scene, camera);
         if (debugLayerVisibility.vesselLabels) anatomyLabelRenderer.render(scene, camera);
         completeFirstLoadedFrame();

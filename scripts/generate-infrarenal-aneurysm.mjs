@@ -8,6 +8,7 @@ import {transformAortaGeometry} from '../src/aortaTransform.js';
 import {generateVessel} from '../src/vesselGeometry.js';
 import {INFRARENAL_ANEURYSM,createInfrarenalDeformation,axialSection} from './anatomy/infrarenalAneurysm.mjs';
 import {selectInfrarenalSurface,selectInfrarenalCenterline} from './anatomy/infrarenalSelection.mjs';
+import {MESENTERIC_DISPLACEMENT,createMesentericDisplacement} from './anatomy/mesentericDisplacement.mjs';
 const sourcePath='res/Aorta_plain.stl',outputPath='res/Aorta_infrarenal_aneurysm.stl';
 // The rebuild pipeline stages all outputs until the matching collision asset
 // is ready, so the dev server keeps serving a complete previous variant.
@@ -45,17 +46,23 @@ const referenceDiameterMm=axialSection(geometry.attributes.position.array,midY,p
 const deformation=createInfrarenalDeformation({axis,referenceDiameterMm});
 const surfaceSelection=selectInfrarenalSurface(geometry.attributes.position.array,INFRARENAL_ANEURYSM,deformation.centerAt);
 const selectedCenterlineSegments=selectInfrarenalCenterline(asset,INFRARENAL_ANEURYSM,deformation.centerAt);
+const mesenteric=createMesentericDisplacement();
+const mesentericSelection=selectInfrarenalSurface(geometry.attributes.position.array,MESENTERIC_DISPLACEMENT,mesenteric.centerAt);
+const mesentericSegments=selectInfrarenalCenterline(asset,MESENTERIC_DISPLACEMENT,mesenteric.centerAt);
+if(surfaceSelection.some((value,i)=>value && mesentericSelection[i]) ||
+    mesentericSegments.some(i=>selectedCenterlineSegments.includes(i)))throw Error('Mesenteric selection overlaps the aortic trunk');
 const result=Buffer.from(source),position=geometry.attributes.position,triangles=source.readUInt32LE(80);
-let movedVertices=0,changedTriangles=0;
+let movedVertices=0,changedTriangles=0,mesentericMovedVertices=0;
 const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3();
 for(let i=0;i<triangles;i++) {
     let changed=false;const base=84+i*50;
     for(let k=0;k<3;k++) {
         const index=i*3+k,x=position.getX(index),y=position.getY(index),z=position.getZ(index);
-        if(!surfaceSelection[index])continue;
-        const p=deformation.move(x,y,z);
+        if(!surfaceSelection[index] && !mesentericSelection[index])continue;
+        const p=surfaceSelection[index]?deformation.move(x,y,z):mesenteric.move(x,y,z);
         if(Math.hypot(p[0]-x,p[1]-y,p[2]-z)<1e-9)continue;
         changed=true;movedVertices++;
+        if(mesentericSelection[index])mesentericMovedVertices++;
         const offset=base+12+k*12,t=transform;
         result.writeFloatLE((p[0]-t.targetCenter[0])/t.scale+t.sourceCenter[0],offset);
         result.writeFloatLE(-(p[2]-t.targetCenter[2])/t.scale+t.sourceCenter[1],offset+4);
@@ -72,6 +79,7 @@ if(Math.abs(diameterMm-INFRARENAL_ANEURYSM.targetDiameterMm)>1)throw Error(`Unex
 fs.writeFileSync(outputFile(path.basename(outputPath)),result);
 const report={...INFRARENAL_ANEURYSM,sourcePath,outputPath,outputSha256:hash(result),transform,axis,
     selection:'connected-infrarenal-slab',selectedCenterlineSegments,
+    mesentericDisplacement:{...MESENTERIC_DISPLACEMENT,selectedCenterlineSegments:mesentericSegments,movedVertices:mesentericMovedVertices},
     referenceDiameterMm,measuredDiameterMm:diameterMm,triangles,movedVertices,changedTriangles,
     reference:'https://www.med.umich.edu/1libr/Surgery/VascularSurgery/Illustrations/TypesofAAA.pdf'};
 fs.writeFileSync(outputFile('Aorta_infrarenal_aneurysm.json'),JSON.stringify(report,null,2)+'\n');

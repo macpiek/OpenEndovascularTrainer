@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {applyAnteriorCArmPose} from './carmPose.js';
 import {
     getDetectorZoomMode
 } from './imaging/detectorZoomModes.js';
@@ -131,29 +132,10 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     function updateCamera() {
-        // Every control path, including reset, must stay in the mechanical
-        // envelope. Never let an invalid angle reach the spherical camera pose.
-        const boundedAngle = (angle, limit) => Number.isFinite(angle)
-            ? THREE.MathUtils.clamp(angle, -limit, limit) : 0;
-        carmYaw = boundedAngle(carmYaw, maxYaw);
-        carmPitch = boundedAngle(carmPitch, maxPitch);
-        carmRoll = boundedAngle(carmRoll, maxRoll);
         const pivot = getPivotPoint();
-        // Direction from isocentre toward the source/detector axis.
-        const dir = new THREE.Vector3().setFromSpherical(
-            new THREE.Spherical(1, Math.PI / 2 - carmPitch, carmYaw)
-        ).normalize();
-
-        // Position the source (camera) opposite the detector.
-        const sourcePos = pivot.clone().addScaledVector(dir, cameraRadius);
-        const detectorPos = pivot.clone().addScaledVector(dir, -detectorRadius);
-
-        // Render from the source position while looking toward the detector so
-        // the perspective matches the detector's recorded image.
-        camera.position.copy(sourcePos);
-        camera.up.set(0, 1, 0);
-        camera.lookAt(detectorPos);
-        camera.rotateZ(carmRoll);
+        ({yaw: carmYaw, pitch: carmPitch, roll: carmRoll} = applyAnteriorCArmPose(
+            camera, pivot, cameraRadius, carmYaw, carmPitch, carmRoll
+        ));
 
         const previewDx = carmX - initialX;
         const previewDy = carmY - initialY;

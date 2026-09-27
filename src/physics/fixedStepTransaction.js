@@ -4,7 +4,7 @@
  * This adapter does not change any solver acceptance or numerical limit. */
 export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},now=()=>performance.now(),recovery=null}) {
     let pending=null,frame=0,lastRejectedFrame=-1,epoch=0,disposed=false;
-    let blocked=null,changeRevision=0;
+    let blocked=null,changeRevision=0,recovering=false;
     const deferred=new Map();
     const recoveryKey=()=>JSON.stringify([recovery?.readKey(),changeRevision]);
     const canAttempt=()=>!disposed&&lastRejectedFrame!==frame&&(!blocked||blocked.key!==recoveryKey());
@@ -16,6 +16,11 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
         get pending(){return pending!==null;},get epoch(){return epoch;},get frame(){return frame;},
         get disposed(){return disposed;},canAttempt,
         get blocked(){return blocked!==null;},
+        retryRejected() {
+            if(disposed||pending||!blocked||!recovery?.retry?.())return false;
+            blocked=null;recovering=true;changeRevision++;epoch++;lastRejectedFrame=-1;
+            return true;
+        },
         beginFrame(){if(!disposed)frame++;},
         blockCurrentFrame(){lastRejectedFrame=frame;},
         change(key,apply) {
@@ -26,7 +31,7 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
         flushChanges,
         // Caller resets World's physical state/debt as part of the same
         // explicit lifecycle action. Retaining application backlog is allowed.
-        reset(){pending=null;blocked=null;lastRejectedFrame=-1;epoch++;},
+        reset(){pending=null;blocked=null;recovering=false;lastRejectedFrame=-1;epoch++;},
         dispose(){disposed=true;pending=null;blocked=null;deferred.clear();epoch++;},
         attempt(dt) {
             if(!canAttempt())return{accepted:false,pending:false,attempted:false,status:disposed?'disposed':blocked?'awaiting-input':'frame-blocked',durationMs:0};
@@ -39,7 +44,7 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
                     beforePrepare();flushChanges();
                     if(Math.abs(world.accumulator)>1e-9)throw new Error('World must own only the application current timestep');
                     blocked=null;
-                    pending={dt,context:null,queued:false,prepared:false,preparationFailed:false,recoveryKey:recovery?recoveryKey():null};
+                    pending={dt,recovering,context:null,queued:false,prepared:false,preparationFailed:false,recoveryKey:recovery?recoveryKey():null};
                 }
                 const entry=pending;
                 if(entry.dt!==dt)throw new Error('A pending timestep must retain its dt');
@@ -57,7 +62,7 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
                 accepted=committed===1;
                 status=accepted?'accepted':world.lastStepResult?.status??'rejected';
                 if(accepted) {
-                    context=entry.context;
+                    context=entry.context;recovering=false;
                     // Consume BEFORE any application accounting/presentation.
                     // A fallible UI update must never replay this solved dt.
                     pending=null;
@@ -69,7 +74,13 @@ export function createFixedStepTransaction({world,prepare,beforePrepare=()=>{},n
                     if(!cooperativePending&&world.lastStepResult?.terminal===true&&recovery) {
                         recovery.rollback(entry.context,world.lastStepResult);
                         world.abandonFailedWholeStep();
-                        blocked={key:entry.recoveryKey};pending=null;epoch++;terminal=true;
+                        blocked={key:entry.recoveryKey};pending=null;epoch++;terminal=true;recovering=false;
+                        // One stationary retry after rollback; never a busy loop.
+                        // A failed recovery remains available to new input or the
+                        // explicit retry button, without discarding the scene.
+                        if(!entry.recovering&&recovery.retry?.()) {
+                            blocked=null;recovering=true;changeRevision++;
+                        }
                     }
                     if(!cooperativePending)lastRejectedFrame=frame;
                 }

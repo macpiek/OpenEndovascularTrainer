@@ -1,0 +1,1145 @@
+{
+  "summary": [
+    {
+      "fixture": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "beforeMs": 748.0557500000004,
+      "afterMs": 443.71145799999977,
+      "speedup": 1.6859058663299176,
+      "beforeFactors": 499,
+      "afterFactors": 219,
+      "beforeAssemblies": 58,
+      "afterAssemblies": 26,
+      "beforeQueries": 2401,
+      "afterQueries": 287,
+      "maximumCapsuleOverlap": 5.077106598444514e-05
+    },
+    {
+      "fixture": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "beforeMs": 1066.8675829999993,
+      "afterMs": 304.7974999999997,
+      "speedup": 3.5002504384058284,
+      "beforeFactors": 1437,
+      "afterFactors": 331,
+      "beforeAssemblies": 148,
+      "afterAssemblies": 48,
+      "beforeQueries": 2481,
+      "afterQueries": 355,
+      "maximumCapsuleOverlap": 2.8208144100649868e-05
+    },
+    {
+      "fixture": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "beforeMs": 534.8269170000003,
+      "afterMs": 96.79800000000023,
+      "speedup": 5.525185613339109,
+      "beforeFactors": 489,
+      "afterFactors": 31,
+      "beforeAssemblies": 71,
+      "afterAssemblies": 12,
+      "beforeQueries": 5445,
+      "afterQueries": 183,
+      "maximumCapsuleOverlap": 9.356445487362919e-05
+    }
+  ],
+  "baseline": [
+    {
+      "round": 0,
+      "name": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "mode": true,
+      "ms": 910.580584,
+      "queryMs": 69.39262200000394,
+      "stats": {
+        "queries": 2401,
+        "triangles": 160660,
+        "crossings": 0
+      },
+      "maxRows": 1163,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 25,
+      "factorizations": 499,
+      "assemblies": 58,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.104628079763643e-15,
+        "contacts": 16,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0658141036401503e-14,
+            "maxBendAngleDegrees": 25.888513928517714,
+            "maxBendNode": 118,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 11.486258886970607,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 78923.25261361612
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.9539925233402757e-15,
+            "maxBendAngleDegrees": 7.4252670229809015,
+            "maxBendNode": 29,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.8591470997356496,
+            "activeWallContacts": 10,
+            "currentNormalLoad": 156196.86797407962
+          }
+        ]
+      },
+      "geometryRestarts": 22,
+      "timings": {
+        "assemblyMs": 258.3848750000011,
+        "linearMs": 609.224944,
+        "frictionMs": 2.3097490000000107,
+        "tangentAssemblyMs": 258.3848750000011,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 0,
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "mode": true,
+      "ms": 1171.6831670000001,
+      "queryMs": 120.03251300000102,
+      "stats": {
+        "queries": 2481,
+        "triangles": 354837,
+        "crossings": 0
+      },
+      "maxRows": 620,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 58,
+      "factorizations": 1437,
+      "assemblies": 148,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 3.189537266523601e-07,
+        "contacts": 12,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 2.6645352591003757e-15,
+            "maxBendAngleDegrees": 43.54327721519124,
+            "maxBendNode": 47,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 49.75840806197333,
+            "activeWallContacts": 0,
+            "currentNormalLoad": 0
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 2.6645352591003757e-15,
+            "maxBendAngleDegrees": 45,
+            "maxBendNode": 51,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 64.62321459482271,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 455404.14060118387
+          }
+        ]
+      },
+      "geometryRestarts": 42,
+      "timings": {
+        "assemblyMs": 311.8666620000031,
+        "linearMs": 816.7008509999914,
+        "frictionMs": 2.2530000000001564,
+        "tangentAssemblyMs": 311.8666620000031,
+        "residualAssemblyMs": 0,
+        "projectionMs": 27.366246999999476
+      }
+    },
+    {
+      "round": 0,
+      "name": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "mode": true,
+      "ms": 673.6866660000001,
+      "queryMs": 166.7538639999916,
+      "stats": {
+        "queries": 5445,
+        "triangles": 453799,
+        "crossings": 0
+      },
+      "maxRows": 603,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 31,
+      "factorizations": 489,
+      "assemblies": 71,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 2.8525393541700694e-07,
+        "contacts": 18,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0835776720341527e-14,
+            "maxBendAngleDegrees": 35.36161112953403,
+            "maxBendNode": 83,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 43.972371092805076,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 54327.83784231138
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.552713678800501e-16,
+            "maxBendAngleDegrees": 1.5294205831496528,
+            "maxBendNode": 7,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 0.0026344905424075258,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 95674.05838594517
+          }
+        ]
+      },
+      "geometryRestarts": 21,
+      "timings": {
+        "assemblyMs": 326.58179200000086,
+        "linearMs": 312.9459039999965,
+        "frictionMs": 2.097124999999778,
+        "tangentAssemblyMs": 100.85820900000044,
+        "residualAssemblyMs": 225.72358300000042,
+        "projectionMs": 44.26041200000009
+      }
+    },
+    {
+      "round": 1,
+      "name": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "mode": true,
+      "ms": 735.641709,
+      "queryMs": 58.87745299998278,
+      "stats": {
+        "queries": 2401,
+        "triangles": 160660,
+        "crossings": 0
+      },
+      "maxRows": 1163,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 25,
+      "factorizations": 499,
+      "assemblies": 58,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.104628079763643e-15,
+        "contacts": 16,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0658141036401503e-14,
+            "maxBendAngleDegrees": 25.888513928517714,
+            "maxBendNode": 118,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 11.486258886970607,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 78923.25261361612
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.9539925233402757e-15,
+            "maxBendAngleDegrees": 7.4252670229809015,
+            "maxBendNode": 29,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.8591470997356496,
+            "activeWallContacts": 10,
+            "currentNormalLoad": 156196.86797407962
+          }
+        ]
+      },
+      "geometryRestarts": 22,
+      "timings": {
+        "assemblyMs": 172.30308800000194,
+        "linearMs": 536.1772329999994,
+        "frictionMs": 2.1982910000006086,
+        "tangentAssemblyMs": 172.30308800000194,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 1,
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "mode": true,
+      "ms": 1063.9167499999994,
+      "queryMs": 115.03594399999474,
+      "stats": {
+        "queries": 2481,
+        "triangles": 354837,
+        "crossings": 0
+      },
+      "maxRows": 620,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 58,
+      "factorizations": 1437,
+      "assemblies": 148,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 3.189537266523601e-07,
+        "contacts": 12,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 2.6645352591003757e-15,
+            "maxBendAngleDegrees": 43.54327721519124,
+            "maxBendNode": 47,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 49.75840806197333,
+            "activeWallContacts": 0,
+            "currentNormalLoad": 0
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 2.6645352591003757e-15,
+            "maxBendAngleDegrees": 45,
+            "maxBendNode": 51,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 64.62321459482271,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 455404.14060118387
+          }
+        ]
+      },
+      "geometryRestarts": 42,
+      "timings": {
+        "assemblyMs": 268.633660999998,
+        "linearMs": 760.005755000012,
+        "frictionMs": 1.8554170000006707,
+        "tangentAssemblyMs": 268.633660999998,
+        "residualAssemblyMs": 0,
+        "projectionMs": 13.15712099999746
+      }
+    },
+    {
+      "round": 1,
+      "name": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "mode": true,
+      "ms": 534.8269170000003,
+      "queryMs": 155.39164299998083,
+      "stats": {
+        "queries": 5445,
+        "triangles": 453799,
+        "crossings": 0
+      },
+      "maxRows": 603,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 31,
+      "factorizations": 489,
+      "assemblies": 71,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 2.8525393541700694e-07,
+        "contacts": 18,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0835776720341527e-14,
+            "maxBendAngleDegrees": 35.36161112953403,
+            "maxBendNode": 83,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 43.972371092805076,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 54327.83784231138
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.552713678800501e-16,
+            "maxBendAngleDegrees": 1.5294205831496528,
+            "maxBendNode": 7,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 0.0026344905424075258,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 95674.05838594517
+          }
+        ]
+      },
+      "geometryRestarts": 21,
+      "timings": {
+        "assemblyMs": 272.1250899999941,
+        "linearMs": 237.90067899999394,
+        "frictionMs": 1.4569989999999962,
+        "tangentAssemblyMs": 72.77146299999731,
+        "residualAssemblyMs": 199.35362699999678,
+        "projectionMs": 27.873838999994405
+      }
+    },
+    {
+      "round": 2,
+      "name": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "mode": true,
+      "ms": 748.0557500000004,
+      "queryMs": 57.44804199996179,
+      "stats": {
+        "queries": 2401,
+        "triangles": 160660,
+        "crossings": 0
+      },
+      "maxRows": 1163,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 25,
+      "factorizations": 499,
+      "assemblies": 58,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.104628079763643e-15,
+        "contacts": 16,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0658141036401503e-14,
+            "maxBendAngleDegrees": 25.888513928517714,
+            "maxBendNode": 118,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 11.486258886970607,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 78923.25261361612
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.9539925233402757e-15,
+            "maxBendAngleDegrees": 7.4252670229809015,
+            "maxBendNode": 29,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.8591470997356496,
+            "activeWallContacts": 10,
+            "currentNormalLoad": 156196.86797407962
+          }
+        ]
+      },
+      "geometryRestarts": 22,
+      "timings": {
+        "assemblyMs": 171.1872069999945,
+        "linearMs": 547.6216199999963,
+        "frictionMs": 2.228791000000456,
+        "tangentAssemblyMs": 171.1872069999945,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 2,
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "mode": true,
+      "ms": 1066.8675829999993,
+      "queryMs": 116.44829200000822,
+      "stats": {
+        "queries": 2481,
+        "triangles": 354837,
+        "crossings": 0
+      },
+      "maxRows": 620,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 58,
+      "factorizations": 1437,
+      "assemblies": 148,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 3.189537266523601e-07,
+        "contacts": 12,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 2.6645352591003757e-15,
+            "maxBendAngleDegrees": 43.54327721519124,
+            "maxBendNode": 47,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 49.75840806197333,
+            "activeWallContacts": 0,
+            "currentNormalLoad": 0
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 2.6645352591003757e-15,
+            "maxBendAngleDegrees": 45,
+            "maxBendNode": 51,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 64.62321459482271,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 455404.14060118387
+          }
+        ]
+      },
+      "geometryRestarts": 42,
+      "timings": {
+        "assemblyMs": 269.5580029999992,
+        "linearMs": 746.5228939999824,
+        "frictionMs": 6.789791999999579,
+        "tangentAssemblyMs": 269.5580029999992,
+        "residualAssemblyMs": 0,
+        "projectionMs": 13.689790999997058
+      }
+    },
+    {
+      "round": 2,
+      "name": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "mode": true,
+      "ms": 522.250500000001,
+      "queryMs": 153.70887100001983,
+      "stats": {
+        "queries": 5445,
+        "triangles": 453799,
+        "crossings": 0
+      },
+      "maxRows": 603,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 31,
+      "factorizations": 489,
+      "assemblies": 71,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 2.8525393541700694e-07,
+        "contacts": 18,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0835776720341527e-14,
+            "maxBendAngleDegrees": 35.36161112953403,
+            "maxBendNode": 83,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 43.972371092805076,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 54327.83784231138
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.552713678800501e-16,
+            "maxBendAngleDegrees": 1.5294205831496528,
+            "maxBendNode": 7,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 0.0026344905424075258,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 95674.05838594517
+          }
+        ]
+      },
+      "geometryRestarts": 21,
+      "timings": {
+        "assemblyMs": 264.5332510000035,
+        "linearMs": 230.66680999999608,
+        "frictionMs": 1.3624160000017582,
+        "tangentAssemblyMs": 66.15404099999978,
+        "residualAssemblyMs": 198.3792100000037,
+        "projectionMs": 28.072373000015432
+      }
+    }
+  ],
+  "optimized": [
+    {
+      "round": 0,
+      "name": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "mode": true,
+      "ms": 568.2618750000001,
+      "maximumCapsuleOverlap": 5.077106598444514e-05,
+      "crossings": 0,
+      "queryMs": 30.423434000003454,
+      "stats": {
+        "queries": 287,
+        "triangles": 53636,
+        "crossings": 0,
+        "cacheHits": 89,
+        "clearanceHits": 764
+      },
+      "maxRows": 1155,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 14,
+      "factorizations": 219,
+      "assemblies": 26,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.739853037312059e-14,
+        "contacts": 15,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0302869668521452e-14,
+            "maxBendAngleDegrees": 25.889197911276916,
+            "maxBendNode": 118,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 11.488496001028762,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 78747.73901552528
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.7763568394002505e-15,
+            "maxBendAngleDegrees": 7.42371764460658,
+            "maxBendNode": 29,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.8321123899851846,
+            "activeWallContacts": 9,
+            "currentNormalLoad": 155988.07781369312
+          }
+        ]
+      },
+      "geometryRestarts": 5,
+      "timings": {
+        "assemblyMs": 185.65091799999936,
+        "linearMs": 351.7246589999995,
+        "frictionMs": 2.485125000000153,
+        "tangentAssemblyMs": 185.65091799999936,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 0,
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "mode": true,
+      "ms": 341.39045899999996,
+      "maximumCapsuleOverlap": 2.8208144100649868e-05,
+      "crossings": 0,
+      "queryMs": 36.2059179999992,
+      "stats": {
+        "queries": 355,
+        "triangles": 105670,
+        "crossings": 0,
+        "cacheHits": 36,
+        "clearanceHits": 423
+      },
+      "maxRows": 606,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 24,
+      "factorizations": 331,
+      "assemblies": 48,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 3.497202527569243e-14,
+        "contacts": 13,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 3.907985046680551e-15,
+            "maxBendAngleDegrees": 43.56041937901151,
+            "maxBendNode": 47,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 49.77829143687369,
+            "activeWallContacts": 0,
+            "currentNormalLoad": 0
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.907985046680551e-15,
+            "maxBendAngleDegrees": 45.00000000000001,
+            "maxBendNode": 50,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 64.83134949488375,
+            "activeWallContacts": 13,
+            "currentNormalLoad": 454219.8454353165
+          }
+        ]
+      },
+      "geometryRestarts": 11,
+      "timings": {
+        "assemblyMs": 114.65824600000155,
+        "linearMs": 210.0381559999962,
+        "frictionMs": 1.6790820000001077,
+        "tangentAssemblyMs": 114.65824600000155,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 0,
+      "name": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "mode": true,
+      "ms": 113.4665,
+      "maximumCapsuleOverlap": 9.356445487362919e-05,
+      "crossings": 0,
+      "queryMs": 12.342909000003601,
+      "stats": {
+        "queries": 183,
+        "triangles": 32328,
+        "crossings": 0,
+        "cacheHits": 6,
+        "clearanceHits": 324
+      },
+      "maxRows": 594,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 7,
+      "factorizations": 31,
+      "assemblies": 12,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.434541705540141e-14,
+        "contacts": 18,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 7.993605777301127e-15,
+            "maxBendAngleDegrees": 35.360899028989444,
+            "maxBendNode": 83,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 43.97360135275946,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 54227.07677741091
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.552713678800501e-16,
+            "maxBendAngleDegrees": 1.5294092888094746,
+            "maxBendNode": 7,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 0.0019062539267148233,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 95714.65037301838
+          }
+        ]
+      },
+      "geometryRestarts": 4,
+      "timings": {
+        "assemblyMs": 51.16516600000159,
+        "linearMs": 50.99370799999906,
+        "frictionMs": 2.0589590000008684,
+        "tangentAssemblyMs": 31.141460000001643,
+        "residualAssemblyMs": 20.023705999999947,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 1,
+      "name": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "mode": true,
+      "ms": 443.71145799999977,
+      "maximumCapsuleOverlap": 5.077106598444514e-05,
+      "crossings": 0,
+      "queryMs": 22.487742000001163,
+      "stats": {
+        "queries": 287,
+        "triangles": 53636,
+        "crossings": 0,
+        "cacheHits": 89,
+        "clearanceHits": 764
+      },
+      "maxRows": 1155,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 14,
+      "factorizations": 219,
+      "assemblies": 26,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.739853037312059e-14,
+        "contacts": 15,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0302869668521452e-14,
+            "maxBendAngleDegrees": 25.889197911276916,
+            "maxBendNode": 118,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 11.488496001028762,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 78747.73901552528
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.7763568394002505e-15,
+            "maxBendAngleDegrees": 7.42371764460658,
+            "maxBendNode": 29,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.8321123899851846,
+            "activeWallContacts": 9,
+            "currentNormalLoad": 155988.07781369312
+          }
+        ]
+      },
+      "geometryRestarts": 5,
+      "timings": {
+        "assemblyMs": 133.9098720000011,
+        "linearMs": 289.9261500000034,
+        "frictionMs": 1.9764580000000933,
+        "tangentAssemblyMs": 133.9098720000011,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 1,
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "mode": true,
+      "ms": 298.86304199999995,
+      "maximumCapsuleOverlap": 2.8208144100649868e-05,
+      "crossings": 0,
+      "queryMs": 33.27166899999838,
+      "stats": {
+        "queries": 355,
+        "triangles": 105670,
+        "crossings": 0,
+        "cacheHits": 36,
+        "clearanceHits": 423
+      },
+      "maxRows": 606,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 24,
+      "factorizations": 331,
+      "assemblies": 48,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 3.497202527569243e-14,
+        "contacts": 13,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 3.907985046680551e-15,
+            "maxBendAngleDegrees": 43.56041937901151,
+            "maxBendNode": 47,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 49.77829143687369,
+            "activeWallContacts": 0,
+            "currentNormalLoad": 0
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.907985046680551e-15,
+            "maxBendAngleDegrees": 45.00000000000001,
+            "maxBendNode": 50,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 64.83134949488375,
+            "activeWallContacts": 13,
+            "currentNormalLoad": 454219.8454353165
+          }
+        ]
+      },
+      "geometryRestarts": 11,
+      "timings": {
+        "assemblyMs": 108.1557040000007,
+        "linearMs": 176.14221800000723,
+        "frictionMs": 1.8029999999998836,
+        "tangentAssemblyMs": 108.1557040000007,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 1,
+      "name": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "mode": true,
+      "ms": 69.21416699999963,
+      "maximumCapsuleOverlap": 9.356445487362919e-05,
+      "crossings": 0,
+      "queryMs": 11.595755999995617,
+      "stats": {
+        "queries": 183,
+        "triangles": 32328,
+        "crossings": 0,
+        "cacheHits": 6,
+        "clearanceHits": 324
+      },
+      "maxRows": 594,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 7,
+      "factorizations": 31,
+      "assemblies": 12,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.434541705540141e-14,
+        "contacts": 18,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 7.993605777301127e-15,
+            "maxBendAngleDegrees": 35.360899028989444,
+            "maxBendNode": 83,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 43.97360135275946,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 54227.07677741091
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.552713678800501e-16,
+            "maxBendAngleDegrees": 1.5294092888094746,
+            "maxBendNode": 7,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 0.0019062539267148233,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 95714.65037301838
+          }
+        ]
+      },
+      "geometryRestarts": 4,
+      "timings": {
+        "assemblyMs": 33.95262600000069,
+        "linearMs": 27.353629000001092,
+        "frictionMs": 1.5447909999998046,
+        "tangentAssemblyMs": 18.559667000000445,
+        "residualAssemblyMs": 15.392959000000246,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 2,
+      "name": "anatomy-berenstein-feed-138.67-live-cycle.json",
+      "mode": true,
+      "ms": 352.51062500000035,
+      "maximumCapsuleOverlap": 5.077106598444514e-05,
+      "crossings": 0,
+      "queryMs": 20.732087999992928,
+      "stats": {
+        "queries": 287,
+        "triangles": 53636,
+        "crossings": 0,
+        "cacheHits": 89,
+        "clearanceHits": 764
+      },
+      "maxRows": 1155,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 14,
+      "factorizations": 219,
+      "assemblies": 26,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.739853037312059e-14,
+        "contacts": 15,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.0302869668521452e-14,
+            "maxBendAngleDegrees": 25.889197911276916,
+            "maxBendNode": 118,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 11.488496001028762,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 78747.73901552528
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.7763568394002505e-15,
+            "maxBendAngleDegrees": 7.42371764460658,
+            "maxBendNode": 29,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.8321123899851846,
+            "activeWallContacts": 9,
+            "currentNormalLoad": 155988.07781369312
+          }
+        ]
+      },
+      "geometryRestarts": 5,
+      "timings": {
+        "assemblyMs": 89.02491900000132,
+        "linearMs": 244.45441500000197,
+        "frictionMs": 1.541874000000007,
+        "tangentAssemblyMs": 89.02491900000132,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 2,
+      "name": "anatomy-pigtail-wire-withdraw-200.27-incoming.json",
+      "mode": true,
+      "ms": 304.7974999999997,
+      "maximumCapsuleOverlap": 2.8208144100649868e-05,
+      "crossings": 0,
+      "queryMs": 35.70346300000256,
+      "stats": {
+        "queries": 355,
+        "triangles": 105670,
+        "crossings": 0,
+        "cacheHits": 36,
+        "clearanceHits": 423
+      },
+      "maxRows": 606,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 24,
+      "factorizations": 331,
+      "assemblies": 48,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 3.497202527569243e-14,
+        "contacts": 13,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 3.907985046680551e-15,
+            "maxBendAngleDegrees": 43.56041937901151,
+            "maxBendNode": 47,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 49.77829143687369,
+            "activeWallContacts": 0,
+            "currentNormalLoad": 0
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.907985046680551e-15,
+            "maxBendAngleDegrees": 45.00000000000001,
+            "maxBendNode": 50,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 64.83134949488375,
+            "activeWallContacts": 13,
+            "currentNormalLoad": 454219.8454353165
+          }
+        ]
+      },
+      "geometryRestarts": 11,
+      "timings": {
+        "assemblyMs": 103.74474999999893,
+        "linearMs": 185.2187899999999,
+        "frictionMs": 1.7048319999998967,
+        "tangentAssemblyMs": 103.74474999999893,
+        "residualAssemblyMs": 0,
+        "projectionMs": 0
+      }
+    },
+    {
+      "round": 2,
+      "name": "anatomy-wire-569.80-poor-prediction.json.gz",
+      "mode": true,
+      "ms": 96.79800000000023,
+      "maximumCapsuleOverlap": 9.356445487362919e-05,
+      "crossings": 0,
+      "queryMs": 16.02199499999233,
+      "stats": {
+        "queries": 183,
+        "triangles": 32328,
+        "crossings": 0,
+        "cacheHits": 6,
+        "clearanceHits": 324
+      },
+      "maxRows": 594,
+      "converged": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 7,
+      "factorizations": 31,
+      "assemblies": 12,
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.434541705540141e-14,
+        "contacts": 18,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 7.993605777301127e-15,
+            "maxBendAngleDegrees": 35.360899028989444,
+            "maxBendNode": 83,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 43.97360135275946,
+            "activeWallContacts": 12,
+            "currentNormalLoad": 54227.07677741091
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 3.552713678800501e-16,
+            "maxBendAngleDegrees": 1.5294092888094746,
+            "maxBendNode": 7,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 0.0019062539267148233,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 95714.65037301838
+          }
+        ]
+      },
+      "geometryRestarts": 4,
+      "timings": {
+        "assemblyMs": 49.263042999999016,
+        "linearMs": 27.35316800000055,
+        "frictionMs": 1.1225819999999658,
+        "tangentAssemblyMs": 32.42129199999954,
+        "residualAssemblyMs": 16.841750999999476,
+        "projectionMs": 0
+      }
+    }
+  ]
+}

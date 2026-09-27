@@ -202,3 +202,20 @@ test('reused friction tangent scratch scatters every contact and switches safely
             assert.ok(Math.abs(whole[key][i]-parts[0][key][i]-parts[1][key][i])<1e-11);
     }
 });
+
+test('uncovered delivery core keeps its catheter frame and finite-radius wall friction',()=>{
+    for(const lightweightFriction of [false,true]) {
+        const s=createSharedAxisNative({tools:[{id:'wire',insertion:30},{id:'catheter',type:'stentgraft-delivery',insertion:25,radius:3,deliveryExposureMm:10,wallStaticFriction:.8,wallKineticFriction:.6}]});
+        const e=3,t=.4;
+        extendSharedAxisNativeRows(s,[{kind:'wall',edge:e,id:'core-wall',witness:{face:1,t},
+            dofs:[s.layout.positions[e],s.layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]),
+            evaluate:()=>({gap:0,jacobian:[0,1-t,0,0,t,0]})}]);
+        s.multipliers[s.multipliers.length-1]=100;prepareSharedAxisDynamicStep(s,1/60);
+        prepareSharedAxisWallFriction(s,{feedById:{catheter:.1},lightweightFriction});
+        const record=s.wallFrictionStep.records[0];assert.equal(record.owner,'catheter');
+        assert.equal(record.material.body.radius,.8);assert.equal(s.materials[1].body.radius,3);
+        assert.ok(sample(s).energy>0);assert.ok(sample(s).gradient.every(Number.isFinite));
+        assert.ok(refreshSharedAxisWallFriction(s).converged);commitSharedAxisWallFriction(s);
+        assert.equal(s.wallFrictionHistory[0].owner,'catheter');
+    }
+});

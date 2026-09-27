@@ -73,7 +73,7 @@ for(const variant of ['Aorta_plain','Aorta_infrarenal_aneurysm'])test(`${variant
         for(const implant of system.implants)for(const part of implant.parts) {
             const p=part.mesh.geometry.attributes.position;
             for(let i=0;i<p.count;i++) {
-                total++;if(contactField.querySphere(new THREE.Vector3(p.getX(i),p.getY(i),p.getZ(i)),0,result).violation)outside++;
+                total++;if(implant.wallFit.query(new THREE.Vector3(p.getX(i),p.getY(i),p.getZ(i)),0).violation)outside++;
             }
             for(let i=0;i<part.target.length;i++)assert.ok(Math.abs(p.array[i]-part.target[i])<1e-4,'every row must fully expand');
         }

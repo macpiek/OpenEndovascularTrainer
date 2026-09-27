@@ -1,0 +1,3847 @@
+[
+  {
+    "step": 0,
+    "ms": 206.07474999999977,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 99,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.4911535117789754e-08,
+          "torque": 1.1366552143954323e-09,
+          "length": 1.7763568394002505e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 3,
+          "sliding": 3
+        },
+        "iterations": 7,
+        "factorizations": 99
+      }
+    ]
+  },
+  {
+    "step": 1,
+    "ms": 165.64991599999985,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 59,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.2553421483025886e-05,
+          "torque": 1.6185006552760228e-06,
+          "length": 4.18367562815547e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 7,
+        "factorizations": 59
+      }
+    ]
+  },
+  {
+    "step": 2,
+    "ms": 123.4601660000003,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 61,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.1292362362146378e-07,
+          "torque": 1.4330900910408673e-09,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 7,
+        "factorizations": 61
+      }
+    ]
+  },
+  {
+    "step": 3,
+    "ms": 114.09662500000013,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 67,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.597913978912402e-07,
+          "torque": 2.7760101772855705e-08,
+          "length": 2.042810365310288e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 6,
+        "factorizations": 67
+      }
+    ]
+  },
+  {
+    "step": 4,
+    "ms": 70.80391599999984,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 37,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.4302328205958474e-06,
+          "torque": 4.01766486746169e-09,
+          "length": 1.865174681370263e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 6,
+        "factorizations": 37
+      }
+    ]
+  },
+  {
+    "step": 5,
+    "ms": 66.77820800000018,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 37,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7378973754821345e-08,
+          "torque": 9.427520986093896e-10,
+          "length": 1.687538997430238e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 6,
+        "factorizations": 37
+      }
+    ]
+  },
+  {
+    "step": 6,
+    "ms": 37.82779199999959,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 16,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.729627107735723e-07,
+          "torque": 1.045739494998088e-09,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 16
+      }
+    ]
+  },
+  {
+    "step": 7,
+    "ms": 46.8572079999999,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 16,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.113353963930422e-05,
+          "torque": 8.853850985701683e-10,
+          "length": 1.7763568394002505e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 16
+      }
+    ]
+  },
+  {
+    "step": 8,
+    "ms": 29.426625000000058,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 8.306799918500474e-05,
+          "torque": 7.913331709019644e-06,
+          "length": 6.912159733474255e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 3,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 9,
+    "ms": 45.82883300000003,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 9.228358260315872e-05,
+          "torque": 3.8171617311455464e-08,
+          "length": 1.7763568394002505e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 5,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 10,
+    "ms": 27.79329100000041,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 6,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.6060540626058355e-07,
+          "torque": 1.0287645402229373e-08,
+          "length": 1.865174681370263e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 6
+      }
+    ]
+  },
+  {
+    "step": 11,
+    "ms": 29.651957999999922,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.7760514715046156e-08,
+          "torque": 6.963521204106371e-09,
+          "length": 1.3322676295501878e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 12,
+    "ms": 38.775542000000314,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.4525434128008783e-08,
+          "torque": 9.79800240941131e-10,
+          "length": 1.4210854715202004e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 13,
+    "ms": 33.8441670000002,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 26,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 9.874477655102964e-06,
+          "torque": 1.001451952475918e-07,
+          "length": 9.094947017729282e-13
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 3,
+        "factorizations": 26
+      }
+    ]
+  },
+  {
+    "step": 14,
+    "ms": 31.809374999999818,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7725036488845944e-08,
+          "torque": 7.80417397372446e-10,
+          "length": 1.865174681370263e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 15,
+    "ms": 45.13700000000017,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 19,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.531203103397274e-06,
+          "torque": 3.37103811531847e-09,
+          "length": 1.4210854715202004e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 19
+      }
+    ]
+  },
+  {
+    "step": 16,
+    "ms": 40.953791999999794,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 15,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.412994141806848e-07,
+          "torque": 1.2896113510407758e-08,
+          "length": 1.865174681370263e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 15
+      }
+    ]
+  },
+  {
+    "step": 17,
+    "ms": 49.26720900000009,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.511831346893814e-07,
+          "torque": 9.147825830169154e-10,
+          "length": 1.865174681370263e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 6,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 18,
+    "ms": 64.44354199999998,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 32,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 8.902588888304308e-09,
+          "torque": 9.176801540888846e-10,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 7,
+        "factorizations": 32
+      }
+    ]
+  },
+  {
+    "step": 19,
+    "ms": 46.218875000000025,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 23,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.331265467451885e-08,
+          "torque": 9.848668547363104e-10,
+          "length": 1.9539925233402755e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 5,
+        "factorizations": 23
+      }
+    ]
+  },
+  {
+    "step": 20,
+    "ms": 164.57283300000017,
+    "converged": true,
+    "status": "converged",
+    "iterations": 17,
+    "factorizations": 71,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.161574906902388e-08,
+          "torque": 1.0157528151921724e-09,
+          "length": 1.687538997430238e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 2.1695284235789813e-07,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "wallNormalFallback": {
+          "attempted": true,
+          "liveFailure": "linear-solve",
+          "converged": true
+        },
+        "iterations": 17,
+        "factorizations": 71
+      }
+    ]
+  },
+  {
+    "step": 21,
+    "ms": 109.71187499999996,
+    "converged": true,
+    "status": "converged",
+    "iterations": 13,
+    "factorizations": 58,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.43485112352937e-06,
+          "torque": 1.314225284154702e-09,
+          "length": 9.84294129147134e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 3.5106006990304195e-09,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 13,
+        "factorizations": 58
+      }
+    ]
+  },
+  {
+    "step": 22,
+    "ms": 83.2487500000002,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 15,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.194925398020132e-06,
+          "torque": 8.960632791321643e-10,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 5,
+        "factorizations": 15
+      }
+    ]
+  },
+  {
+    "step": 23,
+    "ms": 120.23025000000007,
+    "converged": true,
+    "status": "converged",
+    "iterations": 13,
+    "factorizations": 65,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.393370207049884e-08,
+          "torque": 2.134926013752647e-09,
+          "length": 1.9539925233402755e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 7.377011357334595e-08,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 13,
+        "factorizations": 65
+      }
+    ]
+  },
+  {
+    "step": 24,
+    "ms": 66.3553750000001,
+    "converged": true,
+    "status": "converged",
+    "iterations": 8,
+    "factorizations": 29,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.556288382038474e-05,
+          "torque": 1.269503169254449e-09,
+          "length": 1.509903313490213e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 8,
+        "factorizations": 29
+      }
+    ]
+  },
+  {
+    "step": 25,
+    "ms": 37.82608399999981,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 15,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.3149731785233598e-05,
+          "torque": 1.4401838122068966e-07,
+          "length": 1.8189894035458565e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 15
+      }
+    ]
+  },
+  {
+    "step": 26,
+    "ms": 49.90212500000007,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 22,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.638727553654462e-08,
+          "torque": 6.251097348086709e-10,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 6,
+        "factorizations": 22
+      }
+    ]
+  },
+  {
+    "step": 27,
+    "ms": 44.141541999999845,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 17,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.5684600991080515e-08,
+          "torque": 9.055158844972766e-10,
+          "length": 2.1871393585115584e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 5,
+        "factorizations": 17
+      }
+    ]
+  },
+  {
+    "step": 28,
+    "ms": 88.52408299999934,
+    "converged": true,
+    "status": "converged",
+    "iterations": 9,
+    "factorizations": 57,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.122377271822188e-09,
+          "torque": 9.884323082243185e-10,
+          "length": 2.9753977059954195e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 1.3584542379874165e-09,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 9,
+        "factorizations": 57
+      }
+    ]
+  },
+  {
+    "step": 29,
+    "ms": 32.200291999999536,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 9,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.545095074106939e-08,
+          "torque": 6.841696098547345e-10,
+          "length": 1.4210854715202004e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 9
+      }
+    ]
+  },
+  {
+    "step": 30,
+    "ms": 32.257666999999856,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.377421618708468e-05,
+          "torque": 1.681360028982226e-08,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 31,
+    "ms": 63.961999999999534,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 44,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.5437166876353103e-05,
+          "torque": 6.384710182771869e-08,
+          "length": 7.275957614183426e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 44
+      }
+    ]
+  },
+  {
+    "step": 32,
+    "ms": 75.7617909999999,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 41,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7033422611566493e-08,
+          "torque": 1.108107161584826e-09,
+          "length": 1.7763568394002505e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 7,
+        "factorizations": 41
+      }
+    ]
+  },
+  {
+    "step": 33,
+    "ms": 46.89929200000006,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 32,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7302772650728002e-05,
+          "torque": 1.7357640551551867e-06,
+          "length": 2.1827872842550278e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 32
+      }
+    ]
+  },
+  {
+    "step": 34,
+    "ms": 46.169582999999875,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 28,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.7914558156917337e-06,
+          "torque": 5.771595912307248e-08,
+          "length": 3.2862601528904634e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 28
+      }
+    ]
+  },
+  {
+    "step": 35,
+    "ms": 54.67754199999945,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 43,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.7611591829336248e-07,
+          "torque": 2.2363675356018575e-09,
+          "length": 1.971756091734278e-13
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 43
+      }
+    ]
+  },
+  {
+    "step": 36,
+    "ms": 51.97920900000008,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 28,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.6380803319625556e-08,
+          "torque": 1.3085781902510973e-09,
+          "length": 2.042810365310288e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 6,
+        "factorizations": 28
+      }
+    ]
+  },
+  {
+    "step": 37,
+    "ms": 25.86725000000024,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.8736666334007168e-05,
+          "torque": 9.224129460250197e-09,
+          "length": 2.1316282072803006e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 3,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 38,
+    "ms": 40.74095899999975,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 26,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.4479644960374571e-05,
+          "torque": 1.6755933085477182e-07,
+          "length": 1.0913936421275139e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 4,
+        "factorizations": 26
+      }
+    ]
+  },
+  {
+    "step": 39,
+    "ms": 42.231957999999395,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 18,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.2117744669667445e-07,
+          "torque": 3.79848996701071e-08,
+          "length": 1.687538997430238e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 5,
+          "sliding": 5
+        },
+        "iterations": 5,
+        "factorizations": 18
+      }
+    ]
+  },
+  {
+    "step": 40,
+    "ms": 37.331333000000086,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 16,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 8.320660413119185e-06,
+          "torque": 9.734958117402215e-09,
+          "length": 1.7319479184152442e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 5,
+        "factorizations": 16
+      }
+    ]
+  },
+  {
+    "step": 41,
+    "ms": 45.568750000000364,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 18,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.298250809777528e-09,
+          "torque": 6.21979481807422e-10,
+          "length": 1.4210854715202004e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 6,
+        "factorizations": 18
+      }
+    ]
+  },
+  {
+    "step": 42,
+    "ms": 56.20070900000064,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 19,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.515641194302589e-09,
+          "torque": 8.466879419799511e-10,
+          "length": 1.1546319456101628e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 7,
+        "factorizations": 19
+      }
+    ]
+  },
+  {
+    "step": 43,
+    "ms": 48.29529100000036,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 22,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.0834841052419506e-07,
+          "torque": 1.132339222387202e-09,
+          "length": 5.411772807661919e-08
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 6,
+        "factorizations": 22
+      }
+    ]
+  },
+  {
+    "step": 44,
+    "ms": 31.562957999999526,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.3310364010976627e-07,
+          "torque": 9.034439862887211e-10,
+          "length": 9.644479792569882e-08
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 45,
+    "ms": 52.69354199999998,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 17,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.2387463256309275e-08,
+          "torque": 9.265272438163663e-10,
+          "length": 1.3134824961014147e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 7,
+        "factorizations": 17
+      }
+    ]
+  },
+  {
+    "step": 46,
+    "ms": 35.34608399999979,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 14,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.1752877071558032e-07,
+          "torque": 5.467795993752134e-09,
+          "length": 1.1655118559161792e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 14
+      }
+    ]
+  },
+  {
+    "step": 47,
+    "ms": 93.4878749999998,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 23,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.1959197056276025e-06,
+          "torque": 7.132320956060312e-09,
+          "length": 1.2856715292386411e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 5,
+        "factorizations": 23
+      }
+    ]
+  },
+  {
+    "step": 48,
+    "ms": 47.069915999999466,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 9,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.3045401121635223e-05,
+          "torque": 9.037097736808164e-10,
+          "length": 1.7222450621190433e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 9
+      }
+    ]
+  },
+  {
+    "step": 49,
+    "ms": 85.31991700000071,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 23,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.4745924090675544e-06,
+          "torque": 7.853941941249332e-10,
+          "length": 1.9327083755626973e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 23
+      }
+    ]
+  },
+  {
+    "step": 50,
+    "ms": 44.73120800000015,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.276603699006955e-05,
+          "torque": 4.9918391642478355e-09,
+          "length": 2.2158802659433263e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 51,
+    "ms": 56.323874999999134,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.610693966038525e-08,
+          "torque": 7.066969232027986e-10,
+          "length": 2.31161671582214e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 7,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 52,
+    "ms": 40.73329199999989,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 13,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.207710612216033e-08,
+          "torque": 1.9775798776322517e-09,
+          "length": 2.4775243945285297e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 13
+      }
+    ]
+  },
+  {
+    "step": 53,
+    "ms": 56.889250000000175,
+    "converged": true,
+    "status": "converged",
+    "iterations": 7,
+    "factorizations": 18,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.8059424292005133e-05,
+          "torque": 1.697158547031563e-08,
+          "length": 2.7322804285745406e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 7,
+        "factorizations": 18
+      }
+    ]
+  },
+  {
+    "step": 54,
+    "ms": 41.598040999999284,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 20,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.254109287809115e-06,
+          "torque": 1.772241287056886e-08,
+          "length": 3.0889037549997056e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 20
+      }
+    ]
+  },
+  {
+    "step": 55,
+    "ms": 48.41141599999992,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.680145485101093e-06,
+          "torque": 3.3438087143622397e-07,
+          "length": 3.165064410559637e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 56,
+    "ms": 80.96520800000053,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 13,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.856704668374732e-06,
+          "torque": 8.432399489777254e-08,
+          "length": 3.3618924843992204e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 13
+      }
+    ]
+  },
+  {
+    "step": 57,
+    "ms": 54.535917000000154,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.8953550807054853e-05,
+          "torque": 4.44243823949364e-08,
+          "length": 3.48873518074555e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 6,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 58,
+    "ms": 49.152665999999954,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.692870106737246e-06,
+          "torque": 9.708645620776224e-08,
+          "length": 3.6634974343030535e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 59,
+    "ms": 30.25012500000048,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.533365765586495e-09,
+          "torque": 9.550609192388038e-10,
+          "length": 3.6438988448850296e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 60,
+    "ms": 30.067834000000403,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.0996507575764554e-05,
+          "torque": 1.1875901817504086e-08,
+          "length": 3.664683765336463e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 4,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 61,
+    "ms": 21.516959000000497,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 8,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.4817863959469832e-05,
+          "torque": 2.4892560397837826e-05,
+          "length": 3.337247060919424e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 3,
+        "factorizations": 8
+      }
+    ]
+  },
+  {
+    "step": 62,
+    "ms": 35.801540999999816,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 9,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.7747902347764466e-07,
+          "torque": 1.7519598966009298e-09,
+          "length": 3.2814975670092394e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 6,
+          "sliding": 6
+        },
+        "iterations": 5,
+        "factorizations": 9
+      }
+    ]
+  },
+  {
+    "step": 63,
+    "ms": 47.314667000000554,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 32,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.6030693334178068e-06,
+          "torque": 2.3529389991949756e-08,
+          "length": 3.511607373773984e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 32
+      }
+    ]
+  },
+  {
+    "step": 64,
+    "ms": 50.44633299999987,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 23,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7231806143390713e-07,
+          "torque": 8.119183103616479e-10,
+          "length": 5.714369808451636e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 6,
+        "factorizations": 23
+      }
+    ]
+  },
+  {
+    "step": 65,
+    "ms": 104.14870799999971,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 45,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 9.195325219479855e-06,
+          "torque": 1.1875839389663412e-07,
+          "length": 7.823486720681672e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 6,
+        "factorizations": 45
+      }
+    ]
+  },
+  {
+    "step": 66,
+    "ms": 37.810208999999304,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 13,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.0709218940974097e-05,
+          "torque": 1.1067735838921067e-08,
+          "length": 7.926158951399032e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 13
+      }
+    ]
+  },
+  {
+    "step": 67,
+    "ms": 59.830416000000696,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 20,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.752811039703374e-08,
+          "torque": 7.09875019877515e-10,
+          "length": 8.277759562247411e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 6,
+        "factorizations": 20
+      }
+    ]
+  },
+  {
+    "step": 68,
+    "ms": 57.36283300000014,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 14,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 7.618414201715495e-07,
+          "torque": 1.3255574415893534e-08,
+          "length": 2.842594257757014e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 5,
+        "factorizations": 14
+      }
+    ]
+  },
+  {
+    "step": 69,
+    "ms": 39.5694169999997,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 13,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.1228109997318825e-08,
+          "torque": 7.697424364572214e-10,
+          "length": 2.638032516877331e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 13
+      }
+    ]
+  },
+  {
+    "step": 70,
+    "ms": 51.710165999999845,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 27,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.752390279667452e-07,
+          "torque": 9.63753299387804e-10,
+          "length": 2.79248193457704e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 5,
+        "factorizations": 27
+      }
+    ]
+  },
+  {
+    "step": 71,
+    "ms": 46.462500000000546,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.016311999701429e-07,
+          "torque": 9.831212510746923e-10,
+          "length": 2.6249529927468984e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 4,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 72,
+    "ms": 42.74716600000011,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 21,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.349182513076812e-09,
+          "torque": 9.96377869100229e-10,
+          "length": 2.834564676312823e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 21
+      }
+    ]
+  },
+  {
+    "step": 73,
+    "ms": 53.16200000000026,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 32,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.3276396657602163e-06,
+          "torque": 8.409963836442103e-10,
+          "length": 3.163756590041089e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 10
+        },
+        "iterations": 5,
+        "factorizations": 32
+      }
+    ]
+  },
+  {
+    "step": 74,
+    "ms": 53.793125000000146,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 29,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.4293881071789656e-05,
+          "torque": 2.515856856177834e-09,
+          "length": 3.157541894616145e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 29
+      }
+    ]
+  },
+  {
+    "step": 75,
+    "ms": 39.711457999999766,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 25,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.182252839906141e-05,
+          "torque": 1.3569516799094572e-07,
+          "length": 2.0426308600107745e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 25
+      }
+    ]
+  },
+  {
+    "step": 76,
+    "ms": 49.87525000000005,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 23,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.3661985778744565e-05,
+          "torque": 1.0082601420435822e-09,
+          "length": 8.392515660204936e-08
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 23
+      }
+    ]
+  },
+  {
+    "step": 77,
+    "ms": 60.71766699999989,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 16,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.732187335321214e-07,
+          "torque": 6.524857876222256e-10,
+          "length": 1.509903313490213e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 6,
+        "factorizations": 16
+      }
+    ]
+  },
+  {
+    "step": 78,
+    "ms": 111.0552089999992,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 37,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.6039725702939904e-06,
+          "torque": 7.055751538587174e-10,
+          "length": 1.9539925233402755e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 37
+      }
+    ]
+  },
+  {
+    "step": 79,
+    "ms": 45.04291700000067,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.4828879102424253e-06,
+          "torque": 7.314933103685917e-10,
+          "length": 7.582254824001211e-10
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 80,
+    "ms": 51.569791000000805,
+    "converged": true,
+    "status": "converged",
+    "iterations": 6,
+    "factorizations": 14,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.915074557880871e-07,
+          "torque": 4.84671147660265e-09,
+          "length": 1.7763568394002505e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 6,
+        "factorizations": 14
+      }
+    ]
+  },
+  {
+    "step": 81,
+    "ms": 29.67858299999989,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 4,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.9043885686187423e-05,
+          "torque": 2.008544885967467e-09,
+          "length": 2.9753977059954195e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 4
+      }
+    ]
+  },
+  {
+    "step": 82,
+    "ms": 25.89258300000074,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 3,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.929476707118738e-05,
+          "torque": 4.418856121013448e-06,
+          "length": 6.002665031701326e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 3,
+        "factorizations": 3
+      }
+    ]
+  },
+  {
+    "step": 83,
+    "ms": 70.94170899999972,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.334524262754712e-05,
+          "torque": 1.9206834107832194e-05,
+          "length": 2.091837814077735e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 84,
+    "ms": 41.85533399999986,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 5,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.623907918561599e-05,
+          "torque": 2.4394537084804213e-09,
+          "length": 1.687538997430238e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 5
+      }
+    ]
+  },
+  {
+    "step": 85,
+    "ms": 42.24370799999997,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 23,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.041901441567461e-06,
+          "torque": 7.868995455240224e-10,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 23
+      }
+    ]
+  },
+  {
+    "step": 86,
+    "ms": 25.662666000000172,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 7.690257916692644e-06,
+          "torque": 1.79783707920933e-07,
+          "length": 1.8189894035458565e-12
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 3,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 87,
+    "ms": 28.662709000000177,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.192871412873501e-07,
+          "torque": 9.333139261435974e-10,
+          "length": 2.3092638912203256e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 88,
+    "ms": 30.503999999999905,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.239609552314505e-08,
+          "torque": 8.558530967262001e-10,
+          "length": 1.9539925233402755e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 89,
+    "ms": 29.781541999999718,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 6,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.0186538474954432e-05,
+          "torque": 7.343849972585303e-10,
+          "length": 1.7763568394002505e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 4,
+        "factorizations": 6
+      }
+    ]
+  },
+  {
+    "step": 90,
+    "ms": 44.354082999999264,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 17,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.9335857359692454e-08,
+          "torque": 7.8871263686775e-10,
+          "length": 2.1316282072803006e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 7,
+          "sliding": 7
+        },
+        "iterations": 5,
+        "factorizations": 17
+      }
+    ]
+  },
+  {
+    "step": 91,
+    "ms": 41.36779099999967,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 9,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.3156887841178104e-06,
+          "torque": 9.243538556802378e-08,
+          "length": 4.691581345639406e-09
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 5,
+        "factorizations": 9
+      }
+    ]
+  },
+  {
+    "step": 92,
+    "ms": 39.906582999999955,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.3562612366513349e-08,
+          "torque": 7.491745834808938e-10,
+          "length": 1.687538997430238e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 5,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 93,
+    "ms": 37.9160839999995,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7355781639926136e-08,
+          "torque": 9.748776785833968e-10,
+          "length": 2.3092638912203256e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 5,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 94,
+    "ms": 37.02333300000009,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.7093466769656516e-05,
+          "torque": 1.0903357106073486e-09,
+          "length": 2.842170943040401e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 10
+        },
+        "iterations": 4,
+        "factorizations": 12
+      }
+    ]
+  },
+  {
+    "step": 95,
+    "ms": 38.74816699999974,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.771835276391357e-08,
+          "torque": 2.301306645247081e-09,
+          "length": 2.1316282072803006e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 4,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 96,
+    "ms": 34.28925000000072,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 10,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.147389113815734e-05,
+          "torque": 1.016681183685364e-09,
+          "length": 2.1316282072803006e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 10
+      }
+    ]
+  },
+  {
+    "step": 97,
+    "ms": 40.7554999999993,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 8,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.754843639100727e-06,
+          "torque": 9.369369169398567e-10,
+          "length": 5.954228838866982e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 5,
+        "factorizations": 8
+      }
+    ]
+  },
+  {
+    "step": 98,
+    "ms": 41.47375000000011,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 7.209564500954002e-09,
+          "torque": 8.027603859428467e-10,
+          "length": 1.2434497875801753e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 5,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 99,
+    "ms": 31.55054100000052,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 3,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.147961902210227e-05,
+          "torque": 1.3868324062471515e-06,
+          "length": 1.2732925824820995e-11
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 3,
+        "factorizations": 3
+      }
+    ]
+  },
+  {
+    "step": 100,
+    "ms": 74.54641700000047,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 14,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 9.230786770331179e-05,
+          "torque": 9.133872716660107e-05,
+          "length": 1.900444246416555e-10
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 11,
+          "sliding": 10
+        },
+        "iterations": 4,
+        "factorizations": 14
+      }
+    ]
+  },
+  {
+    "step": 101,
+    "ms": 42.89666699999998,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 5,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.134300641249865e-08,
+          "torque": 1.6367625033097966e-09,
+          "length": 2.8144153674247718e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 5
+      }
+    ]
+  },
+  {
+    "step": 102,
+    "ms": 96.59158300000036,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 13,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.187828610862198e-06,
+          "torque": 4.900323036238774e-09,
+          "length": 1.5987211554602254e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 10
+        },
+        "iterations": 4,
+        "factorizations": 13
+      }
+    ]
+  },
+  {
+    "step": 103,
+    "ms": 53.80091699999957,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 9,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 7.196103979367763e-08,
+          "torque": 4.207970194514132e-09,
+          "length": 1.865174681370263e-14
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 9,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 9
+      }
+    ]
+  },
+  {
+    "step": 104,
+    "ms": 46.38224999999966,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 9,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 9.439087023110915e-08,
+          "torque": 2.9003866530707967e-09,
+          "length": 3.464007409803571e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 11,
+          "sliding": 11
+        },
+        "iterations": 4,
+        "factorizations": 9
+      }
+    ]
+  },
+  {
+    "step": 105,
+    "ms": 35.570291,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.874286292353645e-05,
+          "torque": 1.0630866903782454e-05,
+          "length": 1.6744122222078772e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 11,
+          "sliding": 10
+        },
+        "iterations": 3,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 106,
+    "ms": 42.6215000000002,
+    "converged": true,
+    "status": "converged",
+    "iterations": 5,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 8.677034202264622e-09,
+          "torque": 5.685459880666599e-10,
+          "length": 1.9012714735922032e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 11,
+          "sliding": 9
+        },
+        "iterations": 5,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 107,
+    "ms": 30.31566699999985,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 7,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 9.853434676188044e-06,
+          "torque": 6.799790722156196e-08,
+          "length": 1.4894072108972978e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 11,
+          "sliding": 7
+        },
+        "iterations": 3,
+        "factorizations": 7
+      }
+    ]
+  },
+  {
+    "step": 108,
+    "ms": 55.46429100000023,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 8,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.484344001160935e-07,
+          "torque": 1.6234355804112255e-07,
+          "length": 9.68457862460248e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 8
+      }
+    ]
+  },
+  {
+    "step": 109,
+    "ms": 160.4610419999999,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 8,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 2.8860631573479623e-06,
+          "torque": 6.468796605041405e-07,
+          "length": 1.1114125131328478e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 8
+        },
+        "iterations": 3,
+        "factorizations": 8
+      }
+    ]
+  },
+  {
+    "step": 110,
+    "ms": 76.28345800000079,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 3,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 6.654028396724243e-05,
+          "torque": 7.168676252611306e-07,
+          "length": 1.3103547269466276e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 9
+        },
+        "iterations": 3,
+        "factorizations": 3
+      }
+    ]
+  },
+  {
+    "step": 111,
+    "ms": 64.25470800000039,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 3,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.24111237609759e-06,
+          "torque": 3.8135471869260584e-07,
+          "length": 1.3237211682337602e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 8
+        },
+        "iterations": 3,
+        "factorizations": 3
+      }
+    ]
+  },
+  {
+    "step": 112,
+    "ms": 210.87166699999943,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 3,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.722967216570396e-05,
+          "torque": 3.204878056162208e-06,
+          "length": 1.5646608231278947e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 10
+        },
+        "iterations": 3,
+        "factorizations": 3
+      }
+    ]
+  },
+  {
+    "step": 113,
+    "ms": 76.31204199999956,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 5,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.0437952369102277e-05,
+          "torque": 2.986222640000147e-07,
+          "length": 1.52556108190538e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 8
+        },
+        "iterations": 3,
+        "factorizations": 5
+      }
+    ]
+  },
+  {
+    "step": 114,
+    "ms": 82.8731659999994,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 6,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 5.2064351166336564e-05,
+          "torque": 5.825614940446755e-08,
+          "length": 1.7183095746275967e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 9
+        },
+        "iterations": 4,
+        "factorizations": 6
+      }
+    ]
+  },
+  {
+    "step": 115,
+    "ms": 69.99908300000061,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 8,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.8840710254153237e-06,
+          "torque": 5.881266268437102e-08,
+          "length": 1.9777474946636175e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 10
+        },
+        "iterations": 3,
+        "factorizations": 8
+      }
+    ]
+  },
+  {
+    "step": 116,
+    "ms": 184.4145410000001,
+    "converged": true,
+    "status": "converged",
+    "iterations": 3,
+    "factorizations": 14,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.0153971895051654e-05,
+          "torque": 6.797947665337922e-07,
+          "length": 2.9726823802533886e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 3,
+        "factorizations": 14
+      }
+    ]
+  },
+  {
+    "step": 117,
+    "ms": 127.10800000000017,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 14,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 4.938738129567355e-08,
+          "torque": 7.663202572505412e-10,
+          "length": 3.474209537834838e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 4,
+        "factorizations": 14
+      }
+    ]
+  },
+  {
+    "step": 118,
+    "ms": 129.99504199999865,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 11,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 3.5244738683104515e-08,
+          "torque": 6.411957076402075e-10,
+          "length": 3.5608716286716913e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 10,
+          "sliding": 10
+        },
+        "iterations": 4,
+        "factorizations": 11
+      }
+    ]
+  },
+  {
+    "step": 119,
+    "ms": 82.38966700000128,
+    "converged": true,
+    "status": "converged",
+    "iterations": 4,
+    "factorizations": 12,
+    "subdivisions": 1,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "index": 1,
+        "dt": 0.016666666666666666,
+        "status": "converged",
+        "error": null,
+        "converged": true,
+        "residual": {
+          "force": 1.3242323234408104e-05,
+          "torque": 4.343744697266061e-09,
+          "length": 3.0250785343355346e-07
+        },
+        "friction": {
+          "converged": true,
+          "forceChange": 0,
+          "contacts": 8,
+          "sliding": 8
+        },
+        "iterations": 4,
+        "factorizations": 12
+      }
+    ]
+  }
+]
