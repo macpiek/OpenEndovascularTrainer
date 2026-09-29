@@ -892,7 +892,6 @@ scene.add(skeletonModel);
 const voxelGroup = alignVascularRenderObject(new THREE.Group());
 scene.add(voxelGroup);
 let contrastVolumeRenderer = null;
-let contrastRenderAccumulator = 0;
 const contrastHemodynamics = {
     cardiacOutputMlPerMin: 5000,
     heartRateBpm: 72
@@ -3941,7 +3940,8 @@ function commitSimulationStep(context) {
         recordBrowserPhysicsEnvelope();
     }
     // Physical/contrast time is committed before fallible UI presentation.
-    contrastSystem?.setStentGraftSurface(stentGraftSystem?.surface);
+    contrastSystem?.setStentGraftSurface(stentGraftSystem?.getContrastSurface(dt,
+        contrastSystem.isInjecting||contrastSystem.hasVisibleContrast()));
     contrastSystem?.update(dt);
     updateGuidewireResistance();
     ui.updateInsertedLength(inserted / 10, guidewireRotation);
@@ -4483,13 +4483,8 @@ function animate(time) {
         contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()
     );
     if (contrastShouldRender) {
-        contrastRenderAccumulator += dt;
-        const contrastRenderInterval = contrastSystem.isInjecting ? 1 / 30 : 1 / 24;
-        if (contrastRenderAccumulator >= contrastRenderInterval || (fluoroscopy && dsaRecordingFrameDue())) {
-            contrastRenderAccumulator = 0;
-            contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
-            contrastVolumeRenderer?.update();
-        }
+        contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
+        contrastVolumeRenderer?.update({reuseUnchanged:true});
     } else if (contrastVolumeRenderer) {
         contrastVolumeRenderer.group.visible = false;
     }

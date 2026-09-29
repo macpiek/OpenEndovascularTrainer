@@ -1,0 +1,114 @@
+{
+  "baseline": [
+    {
+      "edges": 12051,
+      "vertices": 361752,
+      "transport": {
+        "median": 0.6343329999999696,
+        "p95": 3.882957999999917,
+        "total": 272.69248800000105
+      },
+      "render": {
+        "median": 1.4997909999999592,
+        "p95": 2.790666999999985,
+        "total": 274.38766599999894
+      },
+      "mass": {
+        "intravascularIodineMassMg": 542.9702270629973,
+        "outletIodineMassMg": 57.02977293700272
+      }
+    },
+    {
+      "edges": 12051,
+      "vertices": 361752,
+      "transport": {
+        "median": 0.7447499999998399,
+        "p95": 4.551917000000003,
+        "total": 309.4807140000006
+      },
+      "render": {
+        "median": 1.6048330000000988,
+        "p95": 3.207249999999931,
+        "total": 292.1976660000046
+      },
+      "mass": {
+        "intravascularIodineMassMg": 542.9702270629973,
+        "outletIodineMassMg": 57.02977293700272
+      }
+    },
+    {
+      "edges": 12051,
+      "vertices": 361752,
+      "transport": {
+        "median": 0.7182500000001255,
+        "p95": 4.168290999999954,
+        "total": 297.0296660000006
+      },
+      "render": {
+        "median": 1.5577920000000631,
+        "p95": 2.4924579999999423,
+        "total": 273.7185000000013
+      },
+      "mass": {
+        "intravascularIodineMassMg": 542.9702270629973,
+        "outletIodineMassMg": 57.02977293700272
+      }
+    }
+  ],
+  "improved": [
+    {
+      "edges": 12051,
+      "vertices": 361752,
+      "transport": {
+        "median": 0.33875000000011823,
+        "p95": 3.548416999999972,
+        "total": 226.62104299999953
+      },
+      "render": {
+        "median": 1.0359169999999267,
+        "p95": 2.520458999999846,
+        "total": 230.85962099999836
+      },
+      "mass": {
+        "intravascularIodineMassMg": 542.9702270629975,
+        "outletIodineMassMg": 57.02977293700272
+      }
+    },
+    {
+      "edges": 12051,
+      "vertices": 361752,
+      "transport": {
+        "median": 0.34512500000005275,
+        "p95": 3.560583999999835,
+        "total": 228.82950699999833
+      },
+      "render": {
+        "median": 1.0272079999999733,
+        "p95": 2.8223749999999654,
+        "total": 237.2505869999984
+      },
+      "mass": {
+        "intravascularIodineMassMg": 542.9702270629975,
+        "outletIodineMassMg": 57.02977293700272
+      }
+    },
+    {
+      "edges": 12051,
+      "vertices": 361752,
+      "transport": {
+        "median": 0.3479160000001684,
+        "p95": 3.4817920000000413,
+        "total": 226.60849899999903
+      },
+      "render": {
+        "median": 1.024708000000146,
+        "p95": 2.586124999999811,
+        "total": 243.50533899999834
+      },
+      "mass": {
+        "intravascularIodineMassMg": 542.9702270629975,
+        "outletIodineMassMg": 57.02977293700272
+      }
+    }
+  ]
+}

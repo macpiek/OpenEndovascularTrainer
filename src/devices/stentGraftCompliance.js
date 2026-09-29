@@ -1,3 +1,4 @@
+import {graftBranchContactAt} from './stentGraftBranchContact.js';
 import {createSharedAxisSegmentContact} from '../physics/kirchhoffSharedAxisSegmentContact.js';
 import * as THREE from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
@@ -49,7 +50,13 @@ export function compliantGraftSurface(surface,previous) {
             if(!bounds.containsPoint(p))continue;
             // A still-threaded delivery wire inside the graft cannot be an
             // exterior tool lifting the fabric away from the vessel wall.
-            if(surface.ownedBranches?.length&&surface.contains?.(p))continue;
+            if(surface.ownedBranches?.length) {
+                if(surface.contains?.(p))continue;
+                // During extension release, contains() can describe only the
+                // already deployed parent. Check the moving extension as well.
+                const branch=graftBranchContactAt(surface.ownedBranches,p.toArray(),radius);
+                if(branch&&!branch.outside)continue;
+            }
             const hit=surface.geometry.boundsTree.closestPointToPoint(p,{},0,radius+.6);
             if(!hit||hit.distance>radius+.6)continue;
             const f=hit.faceIndex;

@@ -1,0 +1,24 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Stała długość tkaniny</title><style>body{margin:20px;background:#111c26;color:#e6eef6;font:15px system-ui}h1{font-size:23px}main{display:flex;gap:15px}section{flex:1;min-width:0}canvas{width:100%;height:auto}h2{font-size:17px}</style><h1>Kontrola długości nóżki ipsilateralnej</h1><p>Wymiary materiału pozostają stałe podczas uwalniania; tkanina może się fałdować.</p><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
+for(const [fraction,label]of [[.55,'Początek rozwidlenia'],[.70,'Uwalnianie nóżek'],[1,'Pełne rozłożenie']]) {
+ const {system,device:d}=previewFixture();
+ for(let i=0;i<35;i++)system.updateAccess('right',d.sheathTravel*fraction/12/35,null,{deviceId:d.id,release:'sheath'});
+ if(fraction===1)system.updateAccess('right',2,null,{deviceId:d.id,release:'tip'});
+ system.delivery.visible=false;
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#213342');scene.add(system.group);
+ const bounds=new THREE.Box3().setFromPoints(d.parts.flatMap(p=>p.points)),center=bounds.getCenter(new THREE.Vector3());
+ const camera=new THREE.OrthographicCamera(-36,36,70,-70,.1,1000);camera.position.copy(center).add(new THREE.Vector3(0,0,250));camera.lookAt(center);
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(330,510);renderer.render(scene,camera);
+ const section=document.createElement('section'),h=document.createElement('h2'),p=document.createElement('p');h.textContent=label;
+ const active=d.parts.flatMap(p=>p.scaffoldRings).filter(r=>!r.packed),delta=Math.max(0,...active.map(r=>Math.abs(r.currentHeight-r.height)));
+ const leg=d.parts[1],pos=leg.mesh.geometry.attributes.position;
+ const centers=Array.from({length:leg.rows},(_,r)=>{
+  const c=new THREE.Vector3();for(let j=0;j<leg.sides;j++)c.add(new THREE.Vector3().fromBufferAttribute(pos,r*leg.sides+j));return c.divideScalar(leg.sides);
+ });
+ const length=centers.slice(1).reduce((sum,p,i)=>sum+p.distanceTo(centers[i]),0);
+ p.textContent='Długość osi nóżki: '+length.toFixed(1)+' mm / materiał '+leg.path.length.toFixed(1)+' mm';
+ section.append(h,renderer.domElement,p);document.querySelector('main').append(section);
+}
+</script></html>

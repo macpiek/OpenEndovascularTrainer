@@ -77,6 +77,7 @@ export class HybridContrastSystem {
         localOptions = {}
     } = {}) {
         this.contactField = contactField;
+        this.anatomyContactField = contactField;
         this.sheath = sheath;
         this.catheter = catheter;
         this.medium = { ...DEFAULT_CONTRAST_MEDIUM, ...medium };
@@ -162,16 +163,17 @@ export class HybridContrastSystem {
 
     setStentGraftSurface(surface) {
         if(!applyStentGraftFlow(this.flowNetwork,surface))return false;
-        this.contactField=graftFluidContactField(this.contactField,surface);
+        this.contactField=this.anatomyContactField&&!surface.empty?graftFluidContactField(this.anatomyContactField,surface):this.anatomyContactField;
         this.localSolver.contactField=this.contactField;
-        this.localSolver.graftSurface=surface;
+        this.localSolver.graftSurface=surface.empty?null:surface;
         // Pre-existing iodine trapped outside the graft does not teleport into
         // its lumen and does not disappear from the mass balance.
         const local=this.localSolver;
         for(let i=local.count-1;i>=0;i--) {
             const point=new THREE.Vector3(local.positionX[i],local.positionY[i],local.positionZ[i]);
-            if(surface.bounds.containsPoint(point)&&!surface.contains(point)) {
+            if(surface.sealed&&surface.bounds.containsPoint(point)&&!surface.contains(point)) {
                 this.flowNetwork.stentGraftRemodeling.trappedIodineMassMg+=local.iodineMassMg[i];
+                this.flowNetwork.stentGraftRemodeling.unmappedTrappedIodineMassMg+=local.iodineMassMg[i];
                 local._removeParticle(i);
             }
         }
@@ -590,9 +592,12 @@ export class HybridContrastSystem {
         const balanceErrorMg = this.totalInjectedIodineMassMg - accountedMass;
         return {
             stentGraft: this.flowNetwork.stentGraftRemodeling ? {
-                sealed:true, coveredEdges:this.flowNetwork.stentGraftRemodeling.coveredEdges,
+                sealed:!!this.flowNetwork.stentGraftRemodeling.surface.sealed, coveredEdges:this.flowNetwork.stentGraftRemodeling.coveredEdges,
                 excludedEdges:this.flowNetwork.stentGraftRemodeling.excludedEdges,
-                trappedIodineMassMg:this.flowNetwork.stentGraftRemodeling.trappedIodineMassMg
+                trappedIodineMassMg:this.flowNetwork.stentGraftRemodeling.trappedIodineMassMg,
+                openGateTransport:!!this.flowNetwork.stentGraftRemodeling.sac,
+                gateToSacIodineMassMg:this.flowNetwork.stentGraftRemodeling.sac?.receivedMassMg??0,
+                sacOutflowIodineMassMg:this.flowNetwork.stentGraftRemodeling.sac?.drainedMassMg??0
             } : {sealed:false},
             totalDeliveredVolumeMl: this.totalDeliveredVolumeMl,
             simulationTimeSeconds: this.simulationTimeSeconds,

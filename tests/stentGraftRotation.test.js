@@ -120,12 +120,12 @@ test('subpixel wires retain physical coverage while folded radiopaque markers re
         for(const mesh of [part.rings,part.markers])mesh.onBeforeRender(renderer,null,camera,mesh.geometry,mesh.userData.projectionMaterial);
         const thin=part.rings.userData.projectionMaterial,marker=part.markers.userData.projectionMaterial;
         assert.equal(thin.linewidth,1);assert.ok(thin.opacity<.3,'sampling footprint must not become an opaque pixel');
-        assert.ok(Math.abs(thin.linewidth*thin.opacity-.09*600/220)<1e-6);
+        assert.ok(Math.abs(thin.linewidth*thin.opacity-.06*.55*600/220)<1e-6);
         assert.ok(marker.linewidth*marker.opacity>6*thin.linewidth*thin.opacity);
         assert.equal(part.markers.visible,true);assert.equal(part.markers.material.depthTest,false);
         assert.ok(part.markers.renderOrder>part.rings.renderOrder);
         const a=part.markers.geometry.attributes.instanceStart,b=part.markers.geometry.attributes.instanceEnd;
-        assert.ok(new THREE.Vector3().fromBufferAttribute(a,0).distanceTo(new THREE.Vector3().fromBufferAttribute(b,0))>2,'packed markers are short longitudinal strips');
+        assert.ok(new THREE.Vector3().fromBufferAttribute(a,0).distanceTo(new THREE.Vector3().fromBufferAttribute(b,0))<1,'packed button markers stay compact');
     } finally {system.dispose();}
 });
 
@@ -143,5 +143,30 @@ test('contralateral outlet springs to the side even when both iliac routes share
         assert.ok(center().distanceTo(folded)>5,'distal end opens laterally when it clears the cover');
         assert.ok(gate.path.sample(gate.path.length).distanceTo(d.parts[1].path.sample(gate.path.length))>13.5,'short and long outlets do not converge onto one axis');
         assert.equal(d.gate.marker.visible,true);
+    } finally {system.dispose();}
+});
+
+test('IFU marker landmarks are shared by packed and deployed implants without duplicating tube seams',()=>{
+    for(const modelId of ['ii-124','iis-103']) {
+        const {system,device:d}=previewFixture('right','body',false,modelId);
+        try {
+            system.refreshDelivery('right');
+            const packed=d.foldedPreview.slice(0,3).map(p=>p.markerLayout);
+            assert.deepEqual(packed.map(m=>m.length),[4,modelId==='iis-103'?2:1,0]);
+            assert.equal(packed.flat().filter(m=>m.role==='flow-divider').length,1);
+            assert.ok(d.foldedPreview[0].orientationMarker.visible);
+            assert.equal(d.foldedPreview[2].gateMarker.count,96,'requested thin circumferential gate marker is present even while packed');
+            system.deploy('right');
+            assert.deepEqual(d.parts.map(p=>p.markerLayout),packed);
+            assert.equal(d.parts[2].markers.geometry.instanceCount,0);
+        } finally {system.dispose();}
+    }
+    const {system,device:d}=previewFixture('left','limb',false);
+    try {
+        system.refreshDelivery('left');
+        const packed=d.foldedPreview[0].markerLayout;
+        assert.deepEqual(packed.map(m=>m.role),['proximal','proximal','distal','distal','overlap']);
+        assert.equal(packed[4].start-packed[0].start,25*(d.dimensionScale??1));
+        system.deploy('left');assert.deepEqual(d.parts[0].markerLayout,packed);
     } finally {system.dispose();}
 });

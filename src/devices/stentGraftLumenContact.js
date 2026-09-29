@@ -20,7 +20,9 @@ export function graftLumenAt(sections,coordinate,point,radius=0) {
 }
 
 export function graftLumenSections(device) {
-    if(device.phase==='deployed')return [];
+    // Added limbs use their actual, moving fabric from the first exposed ring.
+    // A second guide based on the final axis can pull the rod out of that lumen.
+    if(device.phase==='deployed'||device.type==='limb')return [];
     const sections=[],exposed=fullyOpenDistance(device);
     for(const part of device.parts.slice(0,device.type==='body'?2:1)) {
         const positions=part.wasCaptured?part.mesh.geometry.attributes.position.array:part.target;

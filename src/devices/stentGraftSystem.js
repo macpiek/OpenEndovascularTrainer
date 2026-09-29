@@ -1,10 +1,16 @@
+import {continueGraftRelease,GRAFT_RELEASE_SPEED_MM_S} from './stentGraftReleaseContinuity.js';
+import {updateSewnSurface} from './stentGraftSewnSurface.js';
+import {constrainSewnAssembly} from './stentGraftAssemblyConstraints.js';
+import {unchangedDeliveryPose} from './stentGraftDeliveryCache.js';
+import {buildGraftPart} from './stentGraftPart.js';
+import {graftMarkerLayout} from './stentGraftMarkers.js';
 import {graftOwnedBranches} from './stentGraftBranchContact.js';
 import {captureConfiguration,capturedRoot,captureLinks} from './stentGraftCapture.js';
 import {calibrateStentGrafts} from './stentGraftCalibration.js';
 import {graftDisplacementSampler} from './stentGraftCompliance.js';
 import {fitGraftJunction,fitIIsTrunkSection} from './stentGraftJunction.js';
 import {packedLayout,packedFrames,releaseSection,constrainReleaseCenters,separateReleaseBranches} from './stentGraftReleaseShape.js';
-import {relaxGraftAxis,fitExpandedGraft,graftRestAxes} from './stentGraftExpansion.js';
+import {fitExpandedGraft,graftRestAxes} from './stentGraftExpansion.js';
 import {disposeWire} from './stentGraftWire.js';
 import {mainBodyModel,limbModel,LIMB_MODELS,LIMB_DISTAL_DIAMETERS,worldBodyDimensions,graftScale,nominalPartRadius,proximalDiameters,distalDiameters,deliveryRadiusMm} from './stentGraftModels.js';
 import {captureGraftPose,rotateGraftPose} from './stentGraftRotation.js';
@@ -14,9 +20,10 @@ import {AORTIC_NECK,AORTIC_BIFURCATION,DevicePath,wireDevicePath,createAorticRou
 import {createFlexibleNoseGeometry,NOSECONE_LENGTH_MM,NOSECONE_BASE_RADIUS_MM} from './stentGraftNose.js';
 import {graftLumenSections} from './stentGraftLumenContact.js';
 import {preparePartialSurface,partialSurfaceSnapshot,updatePartialSurfacePose} from './stentGraftPartialSurface.js';
+import {createContrastReleaseSurface} from './stentGraftContrastSurface.js';
 import {StentGraftSurface} from './stentGraftSurface.js';
 import {StentGraftWallFit} from './stentGraftWallFit.js';
-import {initializeRelease,advanceRelease,partExposure,deliveryNoseState,graftAttached,graftFaceExposed} from './stentGraftDeployment.js';
+import {initializeRelease,advanceRelease,partExposure,sewnRingExposure,deliveryNoseState,graftAttached,exposedGraftFaces} from './stentGraftDeployment.js';
 import {createScaffold,updateScaffold,createSuprarenalCrown,updateSuprarenalCrown,createOrientationMarker,createGateMarker} from './stentGraftScaffold.js';
 
 const fail=reason=>({ok:false,reason});
@@ -37,8 +44,8 @@ export class StentGraftSystem {
         this.group=new THREE.Group();this.group.name='stent-grafts';
         this.fabric=new THREE.Group();this.metal=new THREE.Group();this.delivery=new THREE.Group();
         this.group.add(this.fabric,this.metal,this.delivery);
-        this.fabricMaterial=new THREE.MeshBasicMaterial({color:0xeee8dc,transparent:true,opacity:.38,side:THREE.DoubleSide,depthWrite:false});
-        this.metalMaterial=new THREE.MeshBasicMaterial({color:0xc6ced5});
+        this.fabricMaterial=new THREE.MeshBasicMaterial({color:0xeee8dc,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false});
+        this.metalMaterial=new THREE.MeshBasicMaterial({color:0xb6bfc7,transparent:true,opacity:.55});
         this.deliveryMaterial=new THREE.MeshBasicMaterial({color:0xca8ce8});
         this.noseMaterial=new THREE.MeshBasicMaterial({color:0xca8ce8,transparent:true,opacity:.3,depthWrite:false});
         this.noseProjectionMaterial=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.16,depthWrite:false,toneMapped:false,side:THREE.FrontSide});
@@ -146,8 +153,9 @@ export class StentGraftSystem {
             };
             branchOffset(ipsi,side==='right'?-1:1);
             branchOffset(contraPath,side==='right'?1:-1);
-            const overlap=trunk.at(-2).clone().sub(trunk.at(-1)).normalize().multiplyScalar(2);
-            ipsi[0].add(overlap);contraPath[0].add(overlap);
+            // The outlets are stitched to the trunk edge. An axial overlap
+            // would create a second layer of fabric across that seam.
+            const overlap=new THREE.Vector3();
             graftRestAxes(trunk,ipsi,contraPath,dimensions,overlap,freePlacement?null:this.wallFit);
             if(freePlacement) {
                 const origin=trunk[0].clone(),from=origin.clone().sub(route.sample(top-2)).normalize();
@@ -191,9 +199,10 @@ export class StentGraftSystem {
             part.path=new DevicePath(part.points,part.points.map((_,i)=>length*i/(part.rows-1)));
             parts.push(part);
             d.parentId=connected?gate.parent.id:null;
-            if(connected){gate.parent.connectedLimbId=d.id;gate.marker.material.color.copy(this.metalMaterial.color);}
+            if(connected)gate.parent.connectedLimbId=d.id;
         }
         d.parts=parts;d.phase='deploying';d.deployment=0;
+        if(d.type==='body')for(const part of parts.slice(1))part.sewnParent=parts[0];
         d.deliveryPath=new DevicePath(wire.points,wire.coordinates);
         initializeRelease(d);
         // Axis through the trunk and delivery-side route provides a stable
@@ -204,6 +213,7 @@ export class StentGraftSystem {
         if(d.type==='body')this.metal.add(createOrientationMarker(parts[0],this.markerMaterial));
         for(const [index,part] of parts.entries()) {
             part.dimensionScale=scale;
+            part.markerLayout=graftMarkerLayout(d,index,part.path.length);
             // Keep the first branch wire off the sewn seam, while reserving
             // enough axial band for inextensible waves in the fitted gate.
             part.scaffoldInset=d.type==='body'&&index>0?.25*scale:0;
@@ -214,7 +224,9 @@ export class StentGraftSystem {
             this.expandPart(part,d);
         }
         separateReleaseBranches(d);
-        for(const part of parts)updateScaffold(part);
+        constrainSewnAssembly(d);
+        updateSewnSurface(d,this.fabric,this.fabricMaterial);
+        for(const part of parts)updateScaffold(part,{constrain:false});
         if(d.type==='body') {
             d.crown=createSuprarenalCrown(this.metalMaterial);this.metal.add(d.crown);updateSuprarenalCrown(d);
         }
@@ -239,9 +251,9 @@ export class StentGraftSystem {
             const path=wireDevicePath(committedSource);
             this.committedSources[side]={path,catheterMm:committedSource.catheterMm};
             // The original threading ceases when the wire is withdrawn from
-            // the long outlet. A later wire is free to cannulate either portal.
-            for(const implant of this.implants)if(implant.side===side&&implant.type==='body'&&!implant.deliveryWireReleased) {
-                const part=implant.parts[1],entry=implant.implantPosition-part.releaseOffset-part.path.length;
+            // the delivery-side outlet. A later wire can enter either portal normally.
+            for(const implant of this.implants)if(implant.side===side&&!implant.deliveryWireReleased) {
+                const part=implant.parts[implant.type==='body'?1:0],entry=implant.implantPosition-part.releaseOffset-part.path.length;
                 if(path.length<entry-2) {
                     implant.deliveryWireReleased=true;
                     this.mechanicalSurfaceKey=null;this.refreshMechanicalSurface();
@@ -293,14 +305,17 @@ export class StentGraftSystem {
                 const live=part.path.coordinates.map(s=>d.deliveryPath.sample(d.implantPosition-part.releaseOffset-s));
                 const frames=packedFrames(live,d.graftRotation??0);
                 part.foldedFrames??=packedFrames(part.folded,d.graftRotation??0);
-                for(let i=0;i<part.rows;i++)if(part.exposure[i]<=0) {
+                for(let i=0;i<part.rows;i++)if((d.type==='limb'?(sewnRingExposure(part,part.path.coordinates[i],true)??part.exposure[i]):part.exposure[i])<=0) {
                     if(part.folded[i].distanceToSquared(live[i])>1e-16||part.foldedFrames[i].u.distanceToSquared(frames[i].u)>1e-16)part.exposure[i]=-1;
                     part.folded[i]=live[i];part.foldedFrames[i]=frames[i];
                 }
-                this.expandPart(part,d);
+                this.expandPart(part,d,dt);
             }
             separateReleaseBranches(d);
-            for(const part of d.parts)updateScaffold(part);
+            constrainSewnAssembly(d);
+            continueGraftRelease(d,dt);
+            updateSewnSurface(d,this.fabric,this.fabricMaterial);
+            for(const part of d.parts)updateScaffold(part,{constrain:false});
             if(d.crown)updateSuprarenalCrown(d);
             // Collision faces and the owning lumen must follow the restrained
             // fabric, not the unrestrained expansion target behind it.
@@ -318,7 +333,7 @@ export class StentGraftSystem {
                 d.contactPoseKey=contactPoseKey;
             }
 
-            if(d.deployment===1&&d.releaseStage==='complete'){
+            if(d.deployment===1&&d.releaseStage==='complete'&&!d.releaseMotionLimited){
                 d.phase='deployed';if(d.gate)d.gate.marker.visible=true;
                 access.message=d.type==='body'?'Korpus rozłożony. Otwarta bramka — dołącz nóżkę z przeciwnej koszulki.':
                     d.parentId!==null?'Nóżka połączona. Kontrast płynie światłem stentgraftu.':'Nóżka rozłożona bez połączenia z korpusem.';
@@ -332,11 +347,24 @@ export class StentGraftSystem {
         }
     }
 
+    getContrastSurface(dt=0,active=true) {
+        this.contrastRefreshTime=(this.contrastRefreshTime??0)+dt;
+        if(!this.implants.some(d=>d.phase==='deploying'))return this.surface;
+        if(!active)return this.contrastSurface??this.surface;
+        const key=this.implants.map(d=>`${d.id}:${d.phase}:${d.poseRevision??0}:${d.parts.map(p=>p.mesh.geometry.attributes.position.version).join('/')}`).join('|');
+        if(key===this.contrastSurfaceKey||this.contrastSurface&&this.contrastRefreshTime<.1)return this.contrastSurface;
+        const next=createContrastReleaseSurface(this.implants,++this.geometryRevision);
+        this.contrastSurface?.dispose();this.contrastSurface=next;
+        this.contrastSurfaceKey=key;this.contrastRefreshTime=0;
+        return next??this.surface;
+    }
+
     refreshMechanicalSurface() {
         const devices=this.implants.filter(d=>d.phase==='deploying');
         // Rebuild when exposed topology or actual fabric pose changes.
         // Old snapshots remain immutable for suspended Newton steps.
-        const key=[this.surface?.revision??0,...devices.map(d=>`${d.id}:${d.poseRevision??0}:${d.gateOpening===1?1:0}:${d.contactFaces.filter(f=>graftFaceExposed(d,f)).length}`)].join('|');
+        const exposed=new Map(devices.map(d=>[d,exposedGraftFaces(d)]));
+        const key=[this.surface?.revision??0,...devices.map(d=>`${d.id}:${d.poseRevision??0}:${d.gateOpening===1?1:0}:${exposed.get(d).length}`)].join('|');
         if(key===this.mechanicalSurfaceKey)return;
         this.mechanicalSurfaceKey=key;
         this.lumenSections={right:[],left:[]};
@@ -346,7 +374,7 @@ export class StentGraftSystem {
             this.ownedBranches[device.side].push(...graftOwnedBranches(device));
         }
         const previous=this.mechanicalSurface;
-        this.mechanicalSurface=devices.length?partialSurfaceSnapshot(devices,this.surface,++this.geometryRevision):this.surface;
+        this.mechanicalSurface=devices.length?partialSurfaceSnapshot(devices,this.surface,++this.geometryRevision,exposed):this.surface;
         if(previous&&previous!==this.surface&&!this.surfaces.includes(previous))previous.geometry.dispose();
     }
     captureForAccess(side) {
@@ -369,6 +397,7 @@ export class StentGraftSystem {
         for(const device of this.implants)for(const part of device.parts) {
             const positions=part.mesh.geometry.attributes.position;let changed=false;
             const capture=part===device.parts[0]?captureConfiguration(device):null;
+            part.sewnCapture=capture;
             // Preserve the currently released cloth, including its sewn-axis
             // constraint. Clearing indentation must not jump back to the
             // unconstrained, fully expanded target during partial deployment.
@@ -383,23 +412,24 @@ export class StentGraftSystem {
                     positions.setXYZ(index,point.x,point.y,point.z);changed=true;
                 }
             }
-            if(changed){positions.needsUpdate=true;updateScaffold(part);}
+            if(changed){positions.needsUpdate=true;updateScaffold(part,{constrain:false});}
             if(!patches.length)delete part.contactBasePositions;
         }
-        for(const device of this.implants)if(device.crown)updateSuprarenalCrown(device);
+        for(const device of this.implants){updateSewnSurface(device,this.fabric,this.fabricMaterial);if(device.crown)updateSuprarenalCrown(device);}
     }
     refreshDelivery(side) {
         const d=this.accesses[side].device;if(!d)return;
-        if(d.position<1){setFoldedPreviewVisible(d.foldedPreview,false);for(const key of ['deliveryMesh','noseMarker','noseBand','sheathMarker','rotationMarker'])if(d[key])d[key].visible=false;return;}
+        if(d.position<1){d.deliveryGeometryState=null;setFoldedPreviewVisible(d.foldedPreview,false);for(const key of ['deliveryMesh','noseMarker','noseBand','sheathMarker','rotationMarker'])if(d[key])d[key].visible=false;return;}
         const wire=d.phase==='deploying'?d.deliveryPath:this.getPath(side);
         if(wire.length<d.position)return;
+        const tip=deliveryNoseState(d).position;
+        if(unchangedDeliveryPose(d,wire,tip))return;
         if(d.phase==='loaded'&&wire.points.length>=2){
             d.foldedPreview??=createFoldedGraftPreview(d,this);
             updateFoldedGraftPreview(d.foldedPreview,wire,d.position,d.graftRotation);
             setFoldedPreviewVisible(d.foldedPreview,true);
         }
         const lead=d.type==='body'?12*graftScale(d):0;
-        const tip=deliveryNoseState(d).position;
         const travel=d.sheathWithdrawal??0;
         const edge=Math.max(0,d.position+lead-travel);
         const start=Math.max(0,edge-160);
@@ -439,41 +469,37 @@ export class StentGraftSystem {
         d.rotationMarker.position.copy(wire.sample(tip)).addScaledVector(radial,2.5);d.rotationMarker.visible=true;
     }
     buildPart(points,radius,endRadius=radius,distalStraight=null,radiusProfile=null,dimensionScale=1,oppositeBranch=null) {
-        const rows=points.length,sides=24,positions=new Float32Array(rows*sides*3),target=new Float32Array(positions.length),indices=[];
-        relaxGraftAxis(points,this.wallFit,oppositeBranch);
-        for(let i=0;i<rows-1;i++)for(let j=0;j<sides;j++) {
-            const a=i*sides+j,b=i*sides+(j+1)%sides,c=a+sides,e=b+sides;indices.push(a,c,b,b,c,e);
-        }
-        const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));geometry.setIndex(indices);
-        const mesh=new THREE.Mesh(geometry,this.fabricMaterial);mesh.frustumCulled=false;this.fabric.add(mesh);
-        const part={points,rows,sides,radius,target,mesh,path:new DevicePath(points),exposure:new Float64Array(rows).fill(-1)};
-        part.rowRadii=Float64Array.from(points,(_,i)=>{
-            if(radiusProfile)return radiusProfile(i/(rows-1));
-            const t=distalStraight===null?i/(rows-1)
-                :THREE.MathUtils.clamp((part.path.coordinates[i]-(part.path.length-distalStraight-10*dimensionScale))/(10*dimensionScale),0,1);
-            const smooth=t*t*t*(10-15*t+6*t*t);
-            return distalStraight===null?radius+(endRadius-radius)*smooth:endRadius+(radius-endRadius)*smooth;
-        });
-        fitExpandedGraft(part,this.wallFit);
-        part.path=new DevicePath(points);
-        return part;
+        const part=buildGraftPart({points,radius,endRadius,distalStraight,radiusProfile,dimensionScale,oppositeBranch,
+            wallFit:this.wallFit,fabricMaterial:this.fabricMaterial});
+        this.fabric.add(part.mesh);return part;
     }
-    expandPart(part,device) {
+    expandPart(part,device,dt=0) {
         part.releaseShapeChanged=false;
         const positions=part.mesh.geometry.attributes.position;
+        if(dt>0) {
+            part.releasePreviousPositions??=new Float32Array(positions.array.length);
+            part.releasePreviousPositions.set(positions.array);
+        }
         let geometryChanged=false;
+        const relaxation=-Math.expm1(-12*dt),stepLimit=GRAFT_RELEASE_SPEED_MM_S*graftScale(device)*dt;
+        const previousPoint=new THREE.Vector3();
         const frames=part.foldedFrames??packedFrames(part.folded,device.graftRotation??0);
         const capture=part===device.parts[0]?captureConfiguration(device):null;
+        part.sewnCapture=capture;
+        const openings=part.path.coordinates.map(s=>partExposure(device,part,s));
+        const captureUnchanged=capture?part.wasCaptured&&part.lastCaptureArmLength===capture.material.armLength&&
+            part.lastCaptureLatch?.distanceToSquared(capture.latch)===0:!part.wasCaptured;
+        if(!part.releaseRelaxing&&!part.releasePoseDirty&&captureUnchanged&&openings.every((v,i)=>v===part.exposure[i]))return;
+        part.lastCaptureLatch=capture?.latch.clone();part.lastCaptureArmLength=capture?.material.armLength;
         if(capture) {
             const section=releaseSection(part,0,partExposure(device,part,0),frames[0],part.packedLayout);
             device.captureRestRoots=Array.from({length:part.sides},(_,j)=>section.point(j));
         }
         const rootShift=capture?device.captureRestRoots.map(p=>capturedRoot(p,capture.latch,capture.material.armLength).sub(p)):null;
-        const openings=part.path.coordinates.map(s=>partExposure(device,part,s));
-        const settled=!capture&&!part.wasCaptured&&!part.releasePoseDirty&&openings.every((v,i)=>v===part.exposure[i]||v===0);
+        const settled=!part.releaseRelaxing&&!capture&&!part.wasCaptured&&!part.releasePoseDirty&&openings.every((v,i)=>v===part.exposure[i]||v===0);
         if(settled&&openings.every((v,i)=>v===part.exposure[i]))return;
         part.releaseShapeChanged=!settled;
-        const sections=constrainReleaseCenters(part,openings.map((local,i)=>releaseSection(part,i,local,frames[i],part.packedLayout)),openings);
+        const sections=constrainReleaseCenters(part,openings.map((local,i)=>releaseSection(part,i,local,frames[i],part.packedLayout,device.type==='limb'?Math.min(local,sewnRingExposure(part,part.path.coordinates[i],true)??local):local)),openings);
         for(let i=0;i<part.rows;i++) {
             const local=openings[i];
             if(settled&&local>0)continue;
@@ -487,6 +513,11 @@ export class StentGraftSystem {
                 }
                 if(local>0&&local<1)device.wallFit.fit(q,section.center,.7);
                 const index=i*part.sides+j;
+                if(dt>0&&local>0&&!part.releasePoseDirty) {
+                    previousPoint.fromBufferAttribute(positions,index);
+                    q.sub(previousPoint).multiplyScalar(relaxation);
+                    q.clampLength(0,stepLimit).add(previousPoint);
+                }
                 if(part.contactBasePositions)q.toArray(part.contactBasePositions,index*3);
                 if(positions.getX(index)!==Math.fround(q.x)||positions.getY(index)!==Math.fround(q.y)||positions.getZ(index)!==Math.fround(q.z)) {
                     positions.setXYZ(index,q.x,q.y,q.z);geometryChanged=true;
@@ -504,6 +535,7 @@ export class StentGraftSystem {
             validation:d?.phase==='loaded'?this.validation(side):null,implants:this.implants};
     }
     dispose() {
+        this.contrastSurface?.dispose();
         if(this.mechanicalSurface&&!this.surfaces.includes(this.mechanicalSurface))this.mechanicalSurface.geometry.dispose();
         for(const surface of this.surfaces)surface.dispose();
         this.group.traverse(o=>{o.geometry?.dispose();disposeWire(o);if(o.isInstancedMesh)o.dispose();if(o.isLineSegments)o.material.dispose();});

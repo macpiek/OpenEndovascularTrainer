@@ -301,7 +301,7 @@ function rasterize(
                     lumenCoverage *
                     SIGNAL_GAIN;
                 const pixelIndex = y * IMAGE_SIZE + x;
-                const transferredSignal = opticalDepth * opticalDepth;
+                const transferredSignal = opticalDepth; // Premultiplied ONE blending, like the GPU.
                 signal[pixelIndex] = maximumUnionTriangle
                     ? Math.max(signal[pixelIndex], transferredSignal)
                     : signal[pixelIndex] + transferredSignal;

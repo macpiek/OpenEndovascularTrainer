@@ -32,7 +32,11 @@ export function prepareDeliveryMotion(device,catheter,dt,advance,wireInserted,re
     if(!command)command=Math.max(-1,Math.min(1,(device.target-device.position)/(25*dt)));
     if(command>0)command=Math.min(command,Math.max(0,wireInserted-12-device.position)/(25*dt));
     const position=Math.max(0,Math.min(catheter.maxLength??Infinity,device.position+command*25*dt));
+    // Ring release state is mutable. A rejected solver trial must not advance
+    // the real implant's springs through this shallow device copy.
     const trial={...device,position};
+    if(trial.phase==='deploying')trial.parts=device.parts?.map(part=>({...part,
+        scaffoldRings:part.scaffoldRings?.map(ring=>({...ring}))}));
     if(trial.phase==='deploying'||trial.phase==='deployed')advanceRelease(trial,dt,release);
     const extent=deliveryMechanicalExtent(trial);
     catheter.advance((extent.insertion-catheter.progress)/(25*dt),dt,wireInserted,25);

@@ -1,18 +1,22 @@
+import {sewnRingExposure} from './stentGraftDeployment.js';
 import * as THREE from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
 
-// The delivery wire is already threaded through the ipsilateral branch when
-// the sewn divider opens. Preserve that side of the moving cloth, rather than
-// assigning it to whichever outlet happens to be closest after deployment.
+// The delivery wire is already threaded through the long body branch or
+// the separately delivered limb when its cloth opens. Preserve that side of
+// the moving cloth instead of selecting whichever outlet is currently closest.
 // These are actual fabric triangles, not a circular centreline tether.
 export function graftOwnedBranches(device) {
-    if(device.type!=='body'||device.deliveryWireReleased)return [];
-    const part=device.parts[1];
+    if(device.deliveryWireReleased)return [];
+    const part=device.parts[device.type==='body'?1:0];
+    if(!part)return [];
     const complete=device.phase==='deployed'||part.exposure?.every(value=>value===1);
-    // Contact follows the visible moving cloth from the first exposed
-    // rows rather than waiting for full radial expansion. Covered rows
-    // belong to the larger delivery cover and are excluded.
-    const exposedRows=part.exposure?.filter(x=>x>0).length??0;
+    // Free rings contact the tools while still expanding. A partly uncovered
+    // ring is carried by the delivery cover until its trailing struts clear.
+    // A still-captured ring surrounds the delivery cover, whose outer radius
+    // exceeds the crimped graft lumen. Do not collide the cover with that lumen.
+    const firstCaptured=part.path.coordinates.findIndex((s,i)=>(sewnRingExposure(part,s,true)??part.exposure?.[i]??0)<=0);
+    const exposedRows=firstCaptured<0?part.rows:firstCaptured;
     const rows=complete?part.rows:exposedRows;
     const positions=part.contactBasePositions??part.mesh.geometry.attributes.position.array;
     if(rows<2)return [];

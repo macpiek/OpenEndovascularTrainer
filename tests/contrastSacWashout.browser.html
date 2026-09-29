@@ -1,0 +1,33 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Wymywanie kontrastu z worka</title><style>body{background:#15202b;color:#e6edf5;font:16px system-ui;margin:24px}main{display:flex;gap:18px}section{flex:1;min-width:0}canvas{width:100%}h1{font-size:24px}h2{font-size:18px}</style><h1>Wymywanie worka po zakończeniu bolusa</h1><p>Test rozdzielonych objętości: błękit — światło; pomarańcz — kontrast w worku (kolor diagnostyczny).</p><main></main><script type="module">
+import * as THREE from 'three';
+import {buildGraftPart} from '../src/devices/stentGraftPart.js';
+import {StentGraftSurface} from '../src/devices/stentGraftSurface.js';
+import {HybridContrastSystem} from '../src/contrast/hybridContrastSystem.js';
+import {ContrastVolumeRenderer} from '../src/contrast/contrastVolumeRenderer.js';
+function bifurcatedOpenGraft() {
+ const nodes=[[-20,0,0],[20,0,0],[50,0,0],[80,-6,0],[110,-12,0],[70,6,0],[110,12,0]];
+ const segments=[[0,1],[1,2],[2,3],[3,4],[2,5],[5,6]].map(([a,b],id)=>({id,nodeStartId:a,nodeEndId:b,start:new THREE.Vector3(...nodes[a]),end:new THREE.Vector3(...nodes[b]),radiusStart:10,radiusEnd:10}));
+ const material=new THREE.MeshBasicMaterial();
+ const make=(points,radius)=>buildGraftPart({points:points.map(p=>new THREE.Vector3(...p)),radius,wallFit:{fit:p=>p},fabricMaterial:material});
+ const parts=[make([[20,0,0],[35,0,0],[50,0,0]],7),make([[48,-2,0],[65,-4,0],[80,-6,0]],4),make([[48,2,0],[60,4,0],[70,6,0]],4)];
+ const surface=new StentGraftSurface([{id:1,type:'body',parts}],1);
+ const system=new HybridContrastSystem({centerlineSegments:segments,flowOptions:{rootPoint:new THREE.Vector3(-20,0,0),cardiacOutputMlPerMin:600,axialDispersionMm2PerS:0}});
+ system.setStentGraftSurface(surface);
+ return {system,surface,dispose(){surface.dispose();for(const part of parts)part.mesh.geometry.dispose();material.dispose();}};
+}
+
+
+for(const seconds of [1,3,10]) {
+ const f=bifurcatedOpenGraft(),n=f.system.flowNetwork,r=new ContrastVolumeRenderer(f.system);
+ for(let i=0;i<Math.round(seconds*60);i++) {if(i<30)n.depositIodine(0,0,360);f.system.update(1/60);}
+ r.setDebugMode(true);r.update();
+ for(const m of r._trappedMesh.material)m.uniforms.debugColor.value.set('#ffb15b');
+ const scene=new THREE.Scene();scene.background=new THREE.Color('black');scene.add(r.group);
+ for(const part of f.surface.parts){const geo=part.mesh.geometry.clone();geo.attributes.position.array.set(part.target);scene.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({wireframe:true,color:'#75869b',transparent:true,opacity:.18})));}
+ const camera=new THREE.OrthographicCamera(-75,75,42,-42,.1,500);camera.position.set(45,0,200);camera.lookAt(45,0,0);
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(370,245);renderer.render(scene,camera);
+ const section=document.createElement('section'),h=document.createElement('h2'),p=document.createElement('p');
+ h.textContent=seconds.toFixed(1)+' s symulacji';p.textContent='Przez bramkę do worka: '+n.stentGraftRemodeling.sac.receivedMassMg.toFixed(2)+' mg; obecnie w worku: '+n.stentGraftRemodeling.trappedIodineMassMg.toFixed(2)+' mg';
+ section.append(h,renderer.domElement,p);document.querySelector('main').append(section);
+}
+</script></html>

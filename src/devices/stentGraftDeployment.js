@@ -95,12 +95,29 @@ export function advanceRelease(device,dt,control) {
     return progress()!==before;
 }
 
-// One committed opening coordinate per sewn ring. The whole ring must leave
-// the cover before it expands; stopping the cover does not stop a freed ring.
+// A retained ring forms a funnel: the free proximal end approaches its
+// nominal radius while the trailing end remains crimped. This reduced release
+// envelope is not a measured nitinol constitutive law; the final 15% opens
+// with the whole-band spring only after all trailing struts clear the cover.
+export const PARTIAL_RING_OPENING=.85;
+function ringExposureAt(ring,s) {
+    const full=ring.opening??0;
+    if(full===1)return 1;
+    const revealed=smooth(((ring.revealEdge??-Infinity)-s)/(ring.revealWidth??2));
+    // Full ring expansion takes over the preliminary flare without adding a
+    // second radial displacement (which made the transition taper pinch the wire).
+    return Math.max(full,(ring.partialOpening??0)*revealed);
+}
 function advanceRingOpenings(device,dt,previousEdge) {
     const edge=graftCoverWithdrawal(device)-device.coverLead;
     for(const part of device.parts??[])for(const ring of part.scaffoldRings??[]) {
-        const end=part.releaseOffset+(ring===part.scaffoldRings.at(-1)?part.path.length:ring.center+ring.maxHeight/2);
+        const start=ring.center-ring.maxHeight/2;
+        const localEnd=ring===part.scaffoldRings.at(-1)?part.path.length:ring.center+ring.maxHeight/2;
+        const end=part.releaseOffset+localEnd;
+        ring.revealEdge=device.limbReleased?Math.max(localEnd,edge-part.releaseOffset):edge-part.releaseOffset;
+        // Spread the funnel over 6 mm instead of a narrow kink at the sleeve lip.
+        ring.revealWidth=6*graftScale(device);
+        ring.partialOpening=PARTIAL_RING_OPENING*smooth(2*(ring.revealEdge-start)/Math.max(1e-6,localEnd-start));
         if(edge<end-1e-8&&!device.limbReleased) {ring.freeTime=0;ring.opening=0;continue;}
         const freeDt=previousEdge<end&&edge>previousEdge?Math.max(0,dt-(end-previousEdge)/(SHEATH_SPEED_MM_S*graftScale(device))):dt;
         ring.freeTime=(ring.freeTime??0)+freeDt;
@@ -123,16 +140,23 @@ function advanceRingOpenings(device,dt,previousEdge) {
         ring.opening=t>=8?1:1-(1+t)*Math.exp(-t);
     }
 }
-export function sewnRingExposure(part,s) {
+// freeOnly omits the retained-ring flare for shaft support and lumen contacts.
+export function sewnRingExposure(part,s,freeOnly=false) {
     const rings=part.scaffoldRings;
     if(!rings?.length)return null;
-    // Ring bands are fixed material coordinates; interpolate only across the
-    // unstented fabric between them, never along the metal's own band.
+    // Fixed sewn material coordinates: partial flaring is confined to the
+    // uncovered portion. The trailing portion remains inside the sleeve.
     for(let i=0;i<rings.length;i++) {
         const ring=rings[i],end=ring.center+ring.maxHeight/2;
-        if(s<=end||i===rings.length-1)return ring.opening??0;
+        if(s<=end||i===rings.length-1)return freeOnly?(ring.opening??0):ringExposureAt(ring,s);
         const next=rings[i+1],start=next.center-next.maxHeight/2;
-        if(s<start)return (ring.opening??0)*(1-smooth((s-end)/(start-end)))+(next.opening??0)*smooth((s-end)/(start-end));
+        if(s<start) {
+            const t=smooth((s-end)/(start-end));
+            const opening=freeOnly?(ring.opening??0)*(1-t)+(next.opening??0)*t:
+                ringExposureAt(ring,s)*(1-t)+ringExposureAt(next,s)*t;
+            // Interpolation across unstented fabric must not lift a covered row.
+            return Math.min(opening,smooth(((ring.revealEdge??-Infinity)-s)/(ring.revealWidth??2)));
+        }
     }
 }
 export function rowExposure(device,distance,offset=0) {
@@ -180,14 +204,27 @@ export function partExposure(device,part,s) {
     if(edge<part.releaseOffset+s)return 0;
     return Math.max(root,device.gateOpening);
 }
-export function graftFaceExposed(device,face) {
-    if(face.gate&&face.bindings)return face.bindings.every(binding=>binding.indices.every(index=>binding.part.exposure[Math.floor(index/binding.part.sides)]>0));
+function contactRowExposed(part,index) {
+    const row=Math.floor(index/part.sides);
+    return (sewnRingExposure(part,part.path.coordinates[row],true)??part.exposure[row])>0;
+}
+export function graftFaceExposed(device,face,context=null) {
+    const exposed=(part,index)=>context?context.rows.get(part)[Math.floor(index/part.sides)]:contactRowExposed(part,index);
+    if(face.gate&&face.bindings)return face.bindings.every(binding=>binding.indices.every(index=>exposed(binding.part,index)));
     if(face.gate)return device.gateOpening===1;
     if(face.ipsilateral) {
         if(device.ipsiOpening===1)return true;
         // Actual, exposed cloth participates immediately. Folded rows under
         // the delivery cover do not become an artificial wall for the shaft.
-        if(face.bindings?.every(binding=>binding.indices.every(index=>binding.part.exposure[Math.floor(index/binding.part.sides)]>0)))return true;
+        if(face.bindings?.every(binding=>binding.indices.every(index=>exposed(binding.part,index))))return true;
     }
-    return face.distance<=fullyOpenDistance(device);
+    return face.distance<=(context?.distance??fullyOpenDistance(device));
+}
+
+// Evaluate ring-opening predicates once per cloth row, not for every bound
+// vertex of every triangle (and again while constructing the same snapshot).
+export function exposedGraftFaces(device) {
+    const rows=new Map(device.parts.map(part=>[part,Uint8Array.from(part.path.coordinates,(_,i)=>contactRowExposed(part,i*part.sides)?1:0)]));
+    const context={rows,distance:fullyOpenDistance(device)};
+    return device.contactFaces.filter(face=>graftFaceExposed(device,face,context));
 }

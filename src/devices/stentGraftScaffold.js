@@ -1,3 +1,4 @@
+import {constrainSewnFabric} from './stentGraftSewnConstraints.js';
 import {CROWN_SUBDIVISIONS,crownMaterial,inextensibleCrown} from './stentGraftCrownKinematics.js';
 import {ringLayout,inextensibleRing,ringWave} from './stentGraftRingKinematics.js';
 import {relaxGraftAxis,fitExpandedGraft} from './stentGraftExpansion.js';
@@ -15,9 +16,15 @@ export function fabricPoint(part,s,angle) {
     const t=THREE.MathUtils.clamp((s-row[i-1])/Math.max(1e-9,row[i]-row[i-1]),0,1);
     const col=((angle/(2*Math.PI)*part.sides)%part.sides+part.sides)%part.sides;
     const j=Math.floor(col),u=col-j,p=part.mesh.geometry.attributes.position;
-    const at=r=>new THREE.Vector3().fromBufferAttribute(p,r*part.sides+j)
-        .lerp(new THREE.Vector3().fromBufferAttribute(p,r*part.sides+(j+1)%part.sides),u);
-    return at(i-1).lerp(at(i),t);
+    const a=p.array,low=((i-1)*part.sides+j)*3,high=(i*part.sides+j)*3;
+    const next=(j+1)%part.sides,lowNext=((i-1)*part.sides+next)*3,highNext=(i*part.sides+next)*3;
+    const out=new THREE.Vector3();
+    for(let c=0;c<3;c++) {
+        const x=a[low+c]+(a[lowNext+c]-a[low+c])*u;
+        const y=a[high+c]+(a[highNext+c]-a[high+c])*u;
+        out.setComponent(c,x+(y-x)*t);
+    }
+    return out;
 }
 export function createScaffold(part,material,markerMaterial) {
     const segments=[],length=part.path.length;
@@ -33,27 +40,39 @@ export function createScaffold(part,material,markerMaterial) {
         segments.push([at(j),at(j+1)]);
     }
     const metal=struts(segments.length,material);metal.name='nitinol-M-stents';
-    const markers=struts(8,markerMaterial,.4);
+    const markers=struts(Math.max(1,part.markerLayout?.length??0),markerMaterial,.3);
+    markers.geometry.instanceCount=part.markerLayout?.length??0;
+    markers.count=part.markerLayout?.length??0;
     markers.material.depthTest=false;markers.renderOrder=20;
     markers.frustumCulled=false;markers.name='radiopaque-end-markers';
     part.scaffoldSegments=segments;part.markers=markers;part.rings=metal;
     return [metal,markers];
 }
-export function updateScaffold(part) {
+export function updateScaffold(part,{constrain=true}={}) {
     let index=0;
+    for(const ring of part.scaffoldRings) {
+        const low=ring.center-ring.maxHeight/2,high=ring.center+ring.maxHeight/2;
+        ring.packed=!part.exposure||!part.path.coordinates.some((s,i)=>s>=low-2&&s<=high+2&&part.exposure[i]>0);
+    }
+    if(constrain)constrainSewnFabric(part);
     // Sew metal just inside the fabric. Adjacent branches have a shared fabric
     // septum; putting both wires on that zero-thickness plane made them overlap.
     const positions=part.mesh.geometry.attributes.position;
     const centers=part.path.coordinates.map((_,i)=>{
         const c=new THREE.Vector3();
-        for(let j=0;j<part.sides;j++)c.add(new THREE.Vector3().fromBufferAttribute(positions,i*part.sides+j));
+        for(let j=0;j<part.sides;j++) {
+            const index=(i*part.sides+j)*3,a=positions.array;
+            c.x+=a[index];c.y+=a[index+1];c.z+=a[index+2];
+        }
         return c.multiplyScalar(1/part.sides);
     });
     const sample=(s,a)=>{
         const row=part.path.coordinates;let i=1;while(i<row.length-1&&row[i]<s)i++;
         const t=THREE.MathUtils.clamp((s-row[i-1])/(row[i]-row[i-1]),0,1);
-        const c=centers[i-1].clone().lerp(centers[i],t),p=fabricPoint(part,s,a);
-        return p.addScaledVector(c.sub(p).normalize(),.2);
+        const c=centers[i-1],d=centers[i],p=fabricPoint(part,s,a);
+        const x=c.x+(d.x-c.x)*t-p.x,y=c.y+(d.y-c.y)*t-p.y,z=c.z+(d.z-c.z)*t-p.z;
+        const length=Math.sqrt(x*x+y*y+z*z),factor=(part.sewnParent ? .2 : .15)/(length||1);
+        p.x+=x*factor;p.y+=y*factor;p.z+=z*factor;return p;
     };
     for(const ring of part.scaffoldRings) {
         // Fully settled sewn bands do not need another arc-length solve when
@@ -70,38 +89,38 @@ export function updateScaffold(part) {
         for(let i=1;i<points.length;i++)segment(part.rings,index++,points[i-1],points[i]);
     }
     updateWire(part.rings);
-    for(let i=0;i<8;i++) {
-        const start=i<4?0:Math.max(0,part.path.length-2.2),end=i<4?Math.min(2.2,part.path.length):part.path.length;
-        segment(part.markers,i,fabricPoint(part,start,i%4*Math.PI/2),fabricPoint(part,end,i%4*Math.PI/2));
+    for(const [i,marker] of (part.markerLayout??[]).entries()) {
+        segment(part.markers,i,fabricPoint(part,marker.start,marker.angle),fabricPoint(part,marker.end,marker.angle));
     }
     updateWire(part.markers);
     if(part.gateMarker) {
-        for(let i=0;i<48;i++)segment(part.gateMarker,i,
-            fabricPoint(part,part.path.length,i/48*2*Math.PI),
-            fabricPoint(part,part.path.length,(i+1)/48*2*Math.PI));
+        const end=part.path.length;
+        for(let i=0;i<part.gateMarker.count;i++)segment(part.gateMarker,i,fabricPoint(part,end,i/part.gateMarker.count*2*Math.PI),fabricPoint(part,end,(i+1)/part.gateMarker.count*2*Math.PI));
         updateWire(part.gateMarker);
     }
     if(part.orientationMarker) {
         const points=[[.12,0],[-.13,0],[-.12,-1.4],[0,-2],[.12,-1.4],[.13,0],[.1,1.5],[0,2],[-.12,1.3]];
         for(let i=1;i<points.length;i++) {
-            const at=([angle,s])=>fabricPoint(part,Math.min(part.path.length,8+s),Math.PI/2+angle);
+            const at=([angle,s])=>fabricPoint(part,Math.min(part.path.length,(2.75+s)*(part.dimensionScale??1)),Math.PI/2+angle);
             segment(part.orientationMarker,i-1,at(points[i-1]),at(points[i]));
         }
         updateWire(part.orientationMarker);
     }
 }
 export function createGateMarker(part,material) {
-    part.gateMarker=struts(48,material,.18);
-    part.gateMarker.name='contralateral-gate-rim';
+    part.gateMarker=struts(part.sides*4,material,.12);
+    part.gateMarker.material.depthTest=false;part.gateMarker.renderOrder=20;
+    part.gateMarker.name='contralateral-gate-marker';
     return part.gateMarker;
 }
 export function createOrientationMarker(part,material) {
-    part.orientationMarker=struts(8,material,.3);part.orientationMarker.name='e-orientation-marker';
+    part.orientationMarker=struts(8,material,.25);part.orientationMarker.name='e-orientation-marker';
+    part.orientationMarker.material.depthTest=false;part.orientationMarker.renderOrder=20;
     return part.orientationMarker;
 }
 
 export function createSuprarenalCrown(material) {
-    const mesh=struts(12*(2*CROWN_SUBDIVISIONS+1),material,.055);mesh.name='suprarenal-capture-crown';return mesh;
+    const mesh=struts(12*(2*CROWN_SUBDIVISIONS+1),material,.035);mesh.name='suprarenal-capture-crown';return mesh;
 }
 export function updateSuprarenalCrown(device) {
     const part=device.parts[0],p=part.points[0],path=device.crownPath;

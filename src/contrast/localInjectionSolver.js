@@ -635,7 +635,11 @@ export class LocalContrastInjectionSolver {
                 );
             if ((validateExactWall || this.graftSurface?.bounds.containsPoint({x:nextX,y:nextY,z:nextZ})) && this.contactField?.querySphere) {
                 this._pointScratch.set(nextX, nextY, nextZ);
-                const contact = this.contactField.querySphere(
+                const previousPosition={x:oldX,y:oldY,z:oldZ};
+                const queryContact=this.contactField.querySphereFrom
+                    ?(position,radius,out)=>this.contactField.querySphereFrom(position,radius,out,previousPosition)
+                    :(position,radius,out)=>this.contactField.querySphere(position,radius,out);
+                const contact = queryContact(
                     this._pointScratch,
                     0.05,
                     this._contactScratch
@@ -660,7 +664,7 @@ export class LocalContrastInjectionSolver {
                         nextY = settledContact.target.y + settledContact.inward.y * 0.01;
                         nextZ = settledContact.target.z + settledContact.inward.z * 0.01;
                         this._pointScratch.set(nextX, nextY, nextZ);
-                        settledContact = this.contactField.querySphere(
+                        settledContact = queryContact(
                             this._pointScratch,
                             0.05,
                             this._contactScratch
@@ -675,7 +679,7 @@ export class LocalContrastInjectionSolver {
                         nextY = nextLocation.centerY;
                         nextZ = nextLocation.centerZ;
                         this._pointScratch.set(nextX, nextY, nextZ);
-                        settledContact = this.contactField.querySphere(
+                        settledContact = queryContact(
                             this._pointScratch,
                             0.05,
                             this._contactScratch
@@ -765,8 +769,10 @@ export class LocalContrastInjectionSolver {
                     index++;
                     continue;
                 }
-                let handedOff = false;
-                if (reachedPreferredEdge) {
+                let handedOff = this.flowNetwork.depositGraftSacAtCoordinates(nextX,nextY,nextZ,this.iodineMassMg[index]);
+                if (handedOff) {
+                    // Preserve the fabric side at local-to-network handoff.
+                } else if (reachedPreferredEdge) {
                     handedOff = this.flowNetwork.depositIodine(
                         preferredEdgeIndex,
                         this.preferredHandoffCellIndex[index],

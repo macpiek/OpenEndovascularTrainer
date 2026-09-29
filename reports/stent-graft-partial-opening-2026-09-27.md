@@ -1,0 +1,9 @@
+# Partial stent-ring opening — 2026-09-27
+
+Uncovered struts now flare before the entire sewn ring clears the delivery cover. Covered material remains crimped. Preliminary flare is conservatively limited to 5% of the travel from crimped to expanded geometry, with a smooth 2 mm sleeve-edge transition. The existing committed-time spring takes over after full ring release, without adding a second radial displacement. Metal material coordinates and arc-length fitting are retained.
+
+A retained ring remains supported by the delivery system. In a separately delivered limb, preliminary radial expansion does not move its axis toward the released rest pose. Captured rings do not create a lumen collision against the larger cover enclosing them; normal moving-lumen contact begins once the ring clears the sleeve. Fully released rings continue to settle when cover motion stops. Reverse cover motion recaptures retained material, and zero committed time does not advance release.
+
+Validation: 53/53 tests passed across SewnRelease, Deployment, BifurcationStability, LimbThreading and RingKinematics. Includes both access sides, continuous motion through the bifurcation, metal length/separation, cover reversal, rejected-trial isolation, and tool containment during insertion/release/withdrawal. The 360-step bilateral mechanical sequence now permits up to two additional seconds of bounded settling with physical contact checks on every step; contact/penetration tolerances were preserved. Larger preliminary flares were rejected because they destabilized moving contact.
+
+Production build passed (existing bundle-size warning). Browser inspected four ring stages. Screenshot: screenshots/stent-partial-opening-2026-09-27.png. This is the existing reduced geometric spring model, not a material-calibrated nitinol shell simulation.

@@ -209,3 +209,39 @@ test('limb image selection loads the chosen catalogue SKU and survives access sw
         f.setSide('left');f.controls.refresh();assert.equal(f.system.accesses.right.device,d);
     }finally{f.system.dispose();}
 });
+
+test('picker redraws actual proximal/distal dimensions without losing model selection handlers',()=>{
+    const f=controlsFixture(),change=id=>f.e(id).dispatchEvent(new Event('change'));
+    try {
+        f.controls.selectTool('stentgraft');
+        f.e('stentGraftDiameter').value='32';change('stentGraftDiameter');
+        assert.match(f.e('graftModel-iis-103').innerHTML,/data-proximal-mm="32"/);
+        assert.match(f.e('graftModel-iis-103').innerHTML,/data-distal-mm="14"/);
+        f.e('graftModel-ii-145').click();
+        f.e('stentGraftDistalDiameter').value='20';change('stentGraftDistalDiameter');
+        assert.match(f.e('graftModel-ii-145').innerHTML,/data-distal-mm="20"/);
+        assert.equal(f.e('graftModel-ii-145')['aria-pressed'],'true');
+        f.e('stentGraftLoad').click();
+        const d=f.system.accesses.right.device;
+        assert.equal(d.diameter,32);assert.equal(d.distalDiameter,20);assert.equal(d.modelId,'ii-145');
+    }finally{f.controls.dispose();f.system.dispose();}
+});
+
+test('catalogue projection preserves physical diameters, lengths, distal flare and scaffold geometry',async()=>{
+    const {catalogueGeometry}=await import('../src/ui/stentGraftModelGeometry.js');
+    const {cardDimensions}=await import('../src/ui/stentGraftModelCards.js');
+    const {mainBodyModel,limbModel}=await import('../src/devices/stentGraftModels.js');
+    const width=(outline,y)=>{const row=outline.filter(p=>Math.abs(p.y-y)<1e-5);return Math.max(...row.map(p=>p.x))-Math.min(...row.map(p=>p.x));};
+    for(const diameter of [23,36]) {
+        const d=cardDimensions(mainBodyModel('iis-103'),diameter,14),g=catalogueGeometry(d);
+        assert.ok(Math.abs(width(g.silhouettes[0],0)-diameter)<1e-5);
+        assert.ok(Math.abs(width(g.silhouettes[1],103)-14)<1e-5);
+        assert.ok(Math.abs(width(g.silhouettes[2],84)-14)<1e-5);
+        assert.ok(g.wires.flat().every(p=>Number.isFinite(p.x+p.y+p.z)));
+    }
+    const m=limbModel('ETLW1628C124EE'),g=catalogueGeometry({...m,type:'limb',modelId:m.id});
+    assert.ok(Math.abs(width(g.silhouettes[0],0)-16)<1e-5);
+    assert.ok(Math.abs(width(g.silhouettes[0],124)-28)<.001);
+    assert.ok(Math.abs(width(g.silhouettes[0],40)-16)<1e-5,'the flare must not expand the entire shaft');
+    assert.equal(g.markers.length,5);
+});

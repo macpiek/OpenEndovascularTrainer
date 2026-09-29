@@ -1,0 +1,35 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast i stentgraft</title><style>body{margin:20px;background:#141b23;color:#e0e8f1;font:15px system-ui}h1{font-size:23px}main{display:flex;gap:18px}section{flex:1;min-width:0}canvas{width:100%;height:auto}h2{font-size:17px}p{line-height:1.6}</style><h1>Przepływ kontrastu przez stentgraft</h1><p>Test transportu: główne naczynie z bocznym odejściem. Jasna obwódka pokazuje przebieg naczynia.</p><main></main><p id="status"></p>
+<script type="module">
+import * as THREE from 'three';
+import {HybridContrastSystem} from '../src/contrast/hybridContrastSystem.js';
+import {ContrastVolumeRenderer} from '../src/contrast/contrastVolumeRenderer.js';
+import {buildGraftPart} from '../src/devices/stentGraftPart.js';
+import {StentGraftSurface} from '../src/devices/stentGraftSurface.js';
+const nodes=[[-20,0,0],[0,0,0],[20,0,0],[50,0,0],[80,0,0],[100,0,0],[50,30,0]];
+const segments=[[0,1],[1,2],[2,3],[3,4],[4,5],[3,6]].map(([a,b],id)=>({id,nodeStartId:a,nodeEndId:b,start:new THREE.Vector3(...nodes[a]),end:new THREE.Vector3(...nodes[b]),radiusStart:id<5?10:3,radiusEnd:id<5?10:3}));
+for(const state of ['native','open','sealed']) {
+ const s=new HybridContrastSystem({centerlineSegments:segments,flowOptions:{rootPoint:new THREE.Vector3(-20,0,0),cardiacOutputMlPerMin:600}});
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#000000');
+ if(state!=='native') {
+  const p=buildGraftPart({points:[20,40,60,80].map(x=>new THREE.Vector3(x,0,0)),radius:5,wallFit:{fit:p=>p},fabricMaterial:new THREE.MeshBasicMaterial()});
+  const surface=new StentGraftSurface([{type:'limb',id:1,parts:[p]}],1);surface.sealed=state==='sealed';s.setStentGraftSurface(surface);
+ }
+ const r=new ContrastVolumeRenderer(s);r.setDebugMode(true);scene.add(r.group);
+ for(const segment of segments) {
+  const geometry=new THREE.CylinderGeometry(segment.radiusStart,segment.radiusEnd,segment.start.distanceTo(segment.end),24,1,true);
+  geometry.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),segment.end.clone().sub(segment.start).normalize()));
+  geometry.translate(...segment.start.clone().lerp(segment.end,.5).toArray());
+  const mesh=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:'#7d8da0',wireframe:true,transparent:true,opacity:.12}));scene.add(mesh);
+ }
+ for(let i=0;i<270;i++){s.flowNetwork.depositIodine(0,0,20);s.update(1/60);r.update({reuseUnchanged:true});}
+ s._solverAccumulator=1/60;r.update({reuseUnchanged:true});
+ const camera=new THREE.OrthographicCamera(-68,68,45,-45,.1,1000);camera.position.set(40,8,200);camera.lookAt(40,8,0);
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(370,290); renderer.render(scene,camera);
+ const section=document.createElement('section'),h=document.createElement('h2'),p=document.createElement('p');
+ h.textContent={native:'Bez stentgraftu',open:'Otwarta bramka / przepływ obok',sealed:'Uszczelniony stentgraft'}[state];
+ const blocked=s.flowNetwork.edges.find(e=>e.end.y===30).transportExcluded;
+ p.textContent=blocked?'Zakryte odejście nie otrzymuje nowego kontrastu. Odpływ przez koniec pozostaje otwarty.':'Odejście boczne jest drożne; kontrast dociera do jego światła.';
+ section.append(h,renderer.domElement,p);document.querySelector('main').append(section);
+}
+document.querySelector('#status').textContent='Render GPU ze wspólnych próbek stężenia. Klatki pośrednie interpolowane bez zmiany masy kontrastu.';
+</script></html>

@@ -28,8 +28,8 @@ test('long tapered nose follows a curved wire and updates when the wire bends',(
 test('scaffold struts are thinner and delivery uses the flexible 60 mm nose mesh',()=>{
     const {system,device:d}=previewFixture();
     try {
-        assert.equal(d.parts[0].rings.userData.wireRadius,.045);
-        assert.equal(d.crown.userData.wireRadius,.055);
+        assert.equal(d.parts[0].rings.userData.wireRadius,.03);
+        assert.equal(d.crown.userData.wireRadius,.035);
         system.refreshDelivery('right');assert.equal(d.noseMarker.geometry.type,'BufferGeometry');
         assert.ok(d.noseMarker.userData.projectionMaterial.opacity<.2,'polymer nose is faint in the X-ray metal projection');
         assert.ok(d.noseBand.visible,'a separate opaque band identifies the nose base');

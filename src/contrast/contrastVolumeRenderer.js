@@ -23,6 +23,13 @@ const SIDE_OSTIUM_CLIP_FULL_COVERAGE_OUTSIDE_MM = 0.05;
 
 const flowLumenVertexShader = `
     attribute float flowConcentration;
+    attribute float previousFlowConcentration;
+    uniform float displayAlpha;
+    uniform bool useFlowSamples;
+    uniform sampler2D flowSamples;
+    uniform vec2 flowSampleSize;
+    attribute float flowSampleIndex;
+    attribute float flowConnectorMask;
     attribute float flowRadius;
     attribute float flowOpticalWeight;
     varying float vConcentration;
@@ -35,7 +42,12 @@ const flowLumenVertexShader = `
         vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
         vViewNormal = normalize(normalMatrix * normal);
         vViewRay = normalize(-viewPosition.xyz);
-        vConcentration = flowConcentration;
+        vConcentration = mix(previousFlowConcentration, flowConcentration, displayAlpha);
+        if(useFlowSamples) {
+            vec2 uv=(vec2(mod(flowSampleIndex,flowSampleSize.x),floor(flowSampleIndex/flowSampleSize.x))+.5)/flowSampleSize;
+            vec2 values=texture2D(flowSamples,uv).rg;
+            vConcentration=max(mix(values.y,values.x,displayAlpha),vConcentration*flowConnectorMask);
+        }
         vRadius = flowRadius;
         vOpticalWeight = flowOpticalWeight;
         gl_Position = projectionMatrix * viewPosition;
@@ -89,12 +101,10 @@ const flowLumenFragmentShader = `
             signalGain;
         if (opticalDepth < 0.0001) discard;
 
-        // WebGL ignores blend factors for MIN/MAX equations. Maximum-union
-        // surfaces must therefore emit the same premultiplied signal that an
-        // ordinary additive surface obtains from source-alpha blending.
-        float transferDepth = maximumBlend
-            ? opticalDepth * opticalDepth
-            : opticalDepth;
+        // Premultiplied ONE blending accumulates iodine path length once.
+        // Multiplying by alpha again squared the signal, erasing dilute fronts
+        // and making a narrower graft disproportionately dark.
+        float transferDepth = opticalDepth;
         vec3 signal = debugMode
             ? debugColor * transferDepth
             : vec3(transferDepth);
@@ -305,6 +315,10 @@ function createFlowMaterial({
     const material = new THREE.ShaderMaterial({
         uniforms: {
             debugMode: { value: false },
+            displayAlpha: { value: 1 },
+            useFlowSamples: { value: false },
+            flowSamples: { value: null },
+            flowSampleSize: { value: new THREE.Vector2(1,1) },
             connectorMode: { value: connectorMode },
             maximumBlend: { value: usesMaximumBlend },
             debugColor: { value: new THREE.Color(0x14b8ff) },
@@ -314,6 +328,7 @@ function createFlowMaterial({
         fragmentShader: flowLumenFragmentShader,
         side: THREE.FrontSide,
         transparent: true,
+        premultipliedAlpha: true,
         blending: usesMaximumBlend
             ? THREE.CustomBlending
             : THREE.AdditiveBlending,
@@ -345,6 +360,7 @@ function createPlumeMaterial() {
         vertexShader: plumeVertexShader,
         fragmentShader: plumeFragmentShader,
         transparent: true,
+        premultipliedAlpha: true,
         blending: THREE.AdditiveBlending,
         depthTest: false,
         depthWrite: false,
@@ -2232,6 +2248,18 @@ export class ContrastVolumeRenderer {
                 this.flowSideOstiumConnectorMaterial
             ]
         );
+        this._previousFlowConcentration=new Float32Array(flow.concentrations.length);
+        flow.geometry.setAttribute('previousFlowConcentration',new THREE.BufferAttribute(this._previousFlowConcentration,1));
+        const width=256,height=Math.max(1,Math.ceil(this._flowConcentrationSampleValue.length/width));
+        this._flowSampleData=new Float32Array(width*height*4);
+        this._flowSampleTexture=new THREE.DataTexture(this._flowSampleData,width,height,THREE.RGBAFormat,THREE.FloatType);
+        this._flowSampleTexture.needsUpdate=true;
+        flow.geometry.setAttribute('flowSampleIndex',new THREE.Float32BufferAttribute(this._flowVertexConcentrationSampleSlot,1));
+        flow.geometry.setAttribute('flowConnectorMask',new THREE.Float32BufferAttribute(this._flowVertexIsJunctionConnector,1));
+        for(const material of this.flowMesh.material) {
+            material.uniforms.flowSamples.value=this._flowSampleTexture;
+            material.uniforms.flowSampleSize.value.set(width,height);
+        }
         this.flowMesh.name = 'contrast-flow-lumen';
         this.flowMesh.frustumCulled = false;
         this.flowMesh.renderOrder = 6;
@@ -2253,38 +2281,87 @@ export class ContrastVolumeRenderer {
         this.plumeMesh.visible = false;
     }
 
-    update() {
-        const remodeling=this.system.flowNetwork.stentGraftRemodeling;
-        if(remodeling&&this._graftRevision!==remodeling.surface.revision) {
-            this._graftRevision=remodeling.surface.revision;
-            if(remodeling.trappedIodineMassMg>0) {
-                const geometry=this.flowMesh.geometry.clone(),attribute=geometry.attributes.flowConcentration;
-                let visible=false;
-                for(let i=0;i<attribute.count;i++) {
-                    const edgeIndex=this._flowVertexConcentrationEdgeIndex[i],entry=remodeling.trapped.get(edgeIndex);
-                    const cell=entry?Math.min(entry.mass.length-1,Math.floor(this._flowVertexConcentrationEdgeT[i]*entry.mass.length)):0;
-                    const concentration=entry?entry.mass[cell]/entry.volumes[cell]/(this.system.medium.iodineMgPerMl/1000):0;
-                    attribute.setX(i,concentration);visible||=concentration>FLOW_DETECTION_FLOOR;
-                }
-                this._trappedMesh=new THREE.Mesh(geometry,this.flowMesh.material.map(m=>m.clone()));
-                this._trappedMesh.name='trapped-contrast-outside-graft';this._trappedMesh.visible=visible;
-                this._trappedMesh.frustumCulled=false;this._trappedMesh.renderOrder=6;
-                this.group.add(this._trappedMesh);
+    _rebuildGraftDisplay(remodeling) {
+        for(const mesh of this._graftMeshes??[]) {this.group.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();}
+        this._graftMeshes=[];
+        if(this._trappedMesh&&!remodeling.trapped.size) {this.group.remove(this._trappedMesh);this._trappedMesh.geometry.dispose();this._trappedMesh.userData.texture?.dispose();for(const m of this._trappedMesh.material)m.dispose();this._trappedMesh=null;}
+        if(remodeling.trapped.size>0&&!this._trappedMesh) {
+            const geometry=this.flowMesh.geometry.clone(),attribute=geometry.attributes.flowConcentration;
+            let visible=false;
+            for(let i=0;i<attribute.count;i++) {
+                const entry=remodeling.trapped.get(this._flowVertexConcentrationEdgeIndex[i]);
+                const cell=entry?Math.min(entry.mass.length-1,Math.floor(this._flowVertexConcentrationEdgeT[i]*entry.mass.length)):0;
+                const c=entry?entry.mass[cell]/Math.max(1e-9,entry.volumes[cell])/(this.system.medium.iodineMgPerMl/1000):0;
+                attribute.setX(i,c);geometry.attributes.previousFlowConcentration.setX(i,c);visible||=c>FLOW_DETECTION_FLOOR;
             }
-            // Keep the full-tree topology buffers. Only deployed sections move;
-            // rebuilding every remote branch at deployment would stall a frame.
-            const geometry=this.flowMesh.geometry,positions=geometry.attributes.position;
-            const point=new THREE.Vector3(),contact=createContactResult();
-            for(let i=0;i<positions.count;i++) {
-                const edge=this.system.flowNetwork.edges[this._flowVertexConcentrationEdgeIndex[i]];
-                if(!edge?.graftCovered)continue;
-                point.fromBufferAttribute(positions,i);
-                const result=this.system.contactField.querySphere(point,0,contact);
-                if(result.source==='stent-graft'&&result.violation)positions.setXYZ(i,result.target.x,result.target.y,result.target.z);
-                geometry.attributes.flowRadius.setX(i,THREE.MathUtils.lerp(edge.radiusStart,edge.radiusEnd,this._flowVertexConcentrationEdgeT[i]));
-            }
-            positions.needsUpdate=true;geometry.attributes.flowRadius.needsUpdate=true;geometry.computeVertexNormals();
+            this._trappedMesh=new THREE.Mesh(geometry,this.flowMesh.material.map(m=>m.clone()));
+            const data=new Float32Array(this._flowSampleData.length);
+            const texture=new THREE.DataTexture(data,this._flowSampleTexture.image.width,this._flowSampleTexture.image.height,THREE.RGBAFormat,THREE.FloatType);
+            texture.needsUpdate=true;
+            this._trappedMesh.userData={data,texture,initialized:false};
+            geometry.attributes.flowConnectorMask.array.fill(0);
+            for(const material of this._trappedMesh.material) {material.uniforms.useFlowSamples.value=true;material.uniforms.flowSamples.value=texture;}
+            this._trappedMesh.name='trapped-contrast-outside-graft';this._trappedMesh.visible=visible;
+            this._trappedMesh.frustumCulled=false;this._trappedMesh.renderOrder=6;this.group.add(this._trappedMesh);
         }
+        for(const part of remodeling.surface.parts??[]) {
+            const geometry=part.mesh.geometry.clone(),n=part.target.length/3;
+            geometry.attributes.position.array.set(part.target);geometry.computeVertexNormals();
+            const concentration=new Float32Array(n),previous=new Float32Array(n),radii=new Float32Array(n),weights=new Float32Array(n).fill(1),samples=[];
+            for(let row=0;row<part.rows;row++) {
+                const location=this.system.flowNetwork.findNearestLocation(part.points[row],{});
+                samples.push({edgeIndex:location.edgeIndex,t:location.t});
+                // A geometry refresh is not a new bolus: do not interpolate
+                // from a black frame when replacing the exposed cloth mesh.
+                const c=location.edgeIndex>=0?this._sampleFlowCellConcentration(location.edgeIndex,location.t):0;
+                concentration.fill(c,row*part.sides,(row+1)*part.sides);
+                previous.fill(c,row*part.sides,(row+1)*part.sides);
+                const r=remodeling.surface.paths?.find(entry=>entry.part===part)?.radii[row]??part.radius;
+                radii.fill(r,row*part.sides,(row+1)*part.sides);
+            }
+            for(const [name,array] of Object.entries({flowConcentration:concentration,previousFlowConcentration:previous,flowRadius:radii,flowOpticalWeight:weights}))geometry.setAttribute(name,new THREE.BufferAttribute(array,1));
+            geometry.setAttribute('flowSampleIndex',new THREE.BufferAttribute(new Float32Array(n),1));
+            geometry.setAttribute('flowConnectorMask',new THREE.BufferAttribute(new Float32Array(n),1));
+            const mesh=new THREE.Mesh(geometry,createFlowMaterial({maximumBlend:true}));
+            mesh.name='contrast-graft-lumen';mesh.frustumCulled=false;mesh.renderOrder=6;
+            mesh.userData={part,samples,concentration,previous};this._graftMeshes.push(mesh);this.group.add(mesh);
+        }
+    }
+
+    _updateSacDisplay(remodeling,alpha,advanceHistory) {
+        const {data,texture}=this._trappedMesh.userData,stock=this.system.medium.iodineMgPerMl/1000;
+        let visible=false;
+        for(let slot=0;slot<this._flowConcentrationSampleValue.length;slot++) {
+            const edgeIndex=this._flowConcentrationSampleEdgeIndex[slot],t=this._flowConcentrationSampleEdgeT[slot],entry=remodeling.trapped.get(edgeIndex);
+            const cell=entry?Math.min(entry.mass.length-1,Math.floor(t*entry.mass.length)):0;
+            const c=entry?entry.mass[cell]/Math.max(1e-9,entry.volumes[cell])/stock:0;
+            if(!this._trappedMesh.userData.initialized)data[slot*4+1]=c;
+            else if(advanceHistory)data[slot*4+1]=data[slot*4];
+            data[slot*4]=c;visible||=c>FLOW_DETECTION_FLOOR||data[slot*4+1]>FLOW_DETECTION_FLOOR;
+        }
+        this._trappedMesh.userData.initialized=true;
+        texture.needsUpdate=true;this._trappedMesh.visible=visible;
+        for(const m of this._trappedMesh.material)m.uniforms.displayAlpha.value=alpha;
+    }
+
+    // Only uniforms change between committed contrast steps. Interpolation is
+    // presentation-only: it neither transports nor creates iodine.
+    update({reuseUnchanged=false}={}) {
+        const remodeling=this.system.flowNetwork.stentGraftRemodeling;
+        const revision=remodeling?.surface.revision??-1;
+        const time=this.system.simulationTimeSeconds??this.system.flowNetwork.time;
+        const alpha=reuseUnchanged?Math.min(1,(this.system._solverAccumulator??1/30)*30):1;
+        for(const material of this.flowMesh.material) {material.uniforms.displayAlpha.value=alpha;material.uniforms.useFlowSamples.value=reuseUnchanged;}
+        for(const mesh of this._graftMeshes??[])mesh.material.uniforms.displayAlpha.value=alpha;
+        for(const m of this._trappedMesh?.material??[])m.uniforms.displayAlpha.value=alpha;
+        if(reuseUnchanged&&this._lastDisplayTime===time&&this._graftRevision===revision&&this._lastUsedSamples&&this._lastDisplayStats)return this._lastDisplayStats;
+        const advanceHistory=this._lastDisplayTime!==time;
+        this._lastDisplayTime=time;this._lastUsedSamples=reuseUnchanged;
+        if(reuseUnchanged)for(const i of this._flowTrueJunctionConnectorVertexIndices)this._previousFlowConcentration[i]=this._flowVertexConcentration[i];
+        else this._previousFlowConcentration.set(this._flowVertexConcentration);
+        if(remodeling&&this._graftRevision!==revision)this._rebuildGraftDisplay(remodeling);
+        if(this._trappedMesh)this._updateSacDisplay(remodeling,alpha,advanceHistory);
+        this._graftRevision=revision;
         const mediumConcentrationMgPerMm3 =
             this.system.medium.iodineMgPerMl / 1000;
         const edges = this.system.flowNetwork.edges;
@@ -2309,11 +2386,15 @@ export class ContrastVolumeRenderer {
                     this._plumeLocationScratch
                 );
             if (location.edgeIndex >= 0) {
-                const localCellIndex =
-                    this._flowCellOffset[location.edgeIndex] +
-                    location.cellIndex;
-                this._flowCellLocalPlumeMassMg[localCellIndex] +=
-                    solver.iodineMassMg[index];
+                // Cloud-in-cell deposition avoids a parcel flickering between
+                // adjacent rectangular bins as it advances along the vessel.
+                const edge=edges[location.edgeIndex],position=location.t*edge.cellCount-.5;
+                const lower=Math.max(0,Math.min(edge.cellCount-1,Math.floor(position)));
+                const upper=Math.max(0,Math.min(edge.cellCount-1,Math.ceil(position)));
+                const fraction=Math.max(0,Math.min(1,position-lower));
+                const offset=this._flowCellOffset[location.edgeIndex],mass=solver.iodineMassMg[index];
+                this._flowCellLocalPlumeMassMg[offset+lower]+=mass*(1-fraction);
+                this._flowCellLocalPlumeMassMg[offset+upper]+=mass*fraction;
             }
             const vesselRadius = Math.max(
                 physicalRadius,
@@ -2364,6 +2445,10 @@ export class ContrastVolumeRenderer {
         }
 
         let activeFlowEdges = 0;
+        // Edge averages are retained for diagnostic callers. The rendered
+        // signal uses cell samples exclusively; avoid two redundant full-tree
+        // smoothing passes in the production update.
+        if(!reuseUnchanged) {
         for (let edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
             const normalized = THREE.MathUtils.clamp(
                 edges[edgeIndex].meanConcentrationMgPerMm3 /
@@ -2392,6 +2477,7 @@ export class ContrastVolumeRenderer {
                 normalized * detectability;
         }
 
+        }
         for (let edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
             const edge = edges[edgeIndex];
             const cellOffset = this._flowCellOffset[edgeIndex];
@@ -2463,21 +2549,43 @@ export class ContrastVolumeRenderer {
                     this._flowConcentrationSampleEdgeT[slot]
                 );
         }
-        for (
-            let vertexIndex = 0;
-            vertexIndex < this._flowVertexConcentration.length;
-            vertexIndex++
-        ) {
-            this._flowVertexConcentration[vertexIndex] =
-                this._flowConcentrationSampleValue[
-                    this._flowVertexConcentrationSampleSlot[vertexIndex]
-                ];
+        if(reuseUnchanged) {
+            for(let slot=0;slot<this._flowConcentrationSampleValue.length;slot++) {
+                const edge=edges[this._flowConcentrationSampleEdgeIndex[slot]],t=this._flowConcentrationSampleEdgeT[slot];
+                const hidden=edge.transportExcluded||((remodeling?.surface.sealed||remodeling?.surface.openGate)&&this._graftMeshes?.length&&edge.graftSections?.[Math.min(edge.cellCount-1,Math.floor(t*edge.cellCount))]);
+                this._flowSampleData[slot*4+1]=this._flowSampleData[slot*4];
+                this._flowSampleData[slot*4]=hidden?0:this._flowConcentrationSampleValue[slot];
+            }
+            this._flowSampleTexture.needsUpdate=true;
+            for(const i of this._flowTrueJunctionConnectorVertexIndices)this._flowVertexConcentration[i]=0;
+        } else {
+            for(let i=0;i<this._flowVertexConcentration.length;i++)this._flowVertexConcentration[i]=this._flowConcentrationSampleValue[this._flowVertexConcentrationSampleSlot[i]];
         }
         this._updateTrueJunctionConnectorConcentrations();
         this._updateJunctionOpticalWeights();
-        if(remodeling)for(let i=0;i<this._flowVertexConcentration.length;i++)
-            if(this.system.flowNetwork.edges[this._flowVertexConcentrationEdgeIndex[i]]?.transportExcluded)this._flowVertexConcentration[i]=0;
-        this.flowMesh.geometry.attributes.flowConcentration.needsUpdate = true;
+        for(const mesh of this._graftMeshes??[]) {
+            const {part,samples,concentration,previous}=mesh.userData;previous.set(concentration);
+            for(let row=0;row<part.rows;row++) {
+                const sample=samples[row],c=sample.edgeIndex>=0?this._sampleFlowCellConcentration(sample.edgeIndex,sample.t):0;
+                concentration.fill(c,row*part.sides,(row+1)*part.sides);
+            }
+            mesh.geometry.attributes.flowConcentration.needsUpdate=true;
+            mesh.geometry.attributes.previousFlowConcentration.needsUpdate=true;
+            mesh.material.uniforms.displayAlpha.value=alpha;mesh.material.uniforms.debugMode.value=this._debugMode;
+        }
+        if(remodeling)for(const i of (reuseUnchanged?this._flowTrueJunctionConnectorVertexIndices:this._flowVertexConcentration.keys())) {
+            const edge=edges[this._flowVertexConcentrationEdgeIndex[i]];
+            const cell=Math.min(edge.cellCount-1,Math.floor(this._flowVertexConcentrationEdgeT[i]*edge.cellCount));
+            if(edge.transportExcluded||(remodeling.surface.sealed||remodeling.surface.openGate)&&this._graftMeshes.length&&edge.graftSections?.[cell])this._flowVertexConcentration[i]=0;
+        }
+        for(const name of ['previousFlowConcentration','flowConcentration']) {
+            const attribute=this.flowMesh.geometry.attributes[name];attribute.clearUpdateRanges();
+            if(reuseUnchanged&&this._flowTrueJunctionConnectorVertexIndices.length) {
+                const first=this._flowTrueJunctionConnectorVertexIndices[0],last=this._flowTrueJunctionConnectorVertexIndices.at(-1);
+                attribute.addUpdateRange(first,last-first+1);
+            }
+            attribute.needsUpdate=!reuseUnchanged||this._flowTrueJunctionConnectorVertexIndices.length>0;
+        }
         this.flowMesh.geometry.attributes.flowOpticalWeight.needsUpdate =
             this._flowDynamicOpticalVertexIndices.length > 0;
         this.flowMesh.visible = activeFlowEdges > 0;
@@ -2496,7 +2604,7 @@ export class ContrastVolumeRenderer {
         }
         this.plumeMesh.visible = solver.count > 0 && this._debugMode;
         this.group.visible = activeFlowEdges > 0 || solver.count > 0 || !!this._trappedMesh?.visible;
-        return {
+        return this._lastDisplayStats={
             activeFlowEdges,
             flowChainCount: this.flowChainCount,
             flowRingCount: this.flowRingCount,
@@ -2927,6 +3035,7 @@ export class ContrastVolumeRenderer {
 
     setDebugMode(enabled) {
         this._debugMode = !!enabled;
+        for(const mesh of this._graftMeshes??[])mesh.material.uniforms.debugMode.value=this._debugMode;
         for(const material of this._trappedMesh?.material??[])material.uniforms.debugMode.value=this._debugMode;
         this.flowTubeMaterial.uniforms.debugMode.value = this._debugMode;
         this.flowJunctionMaterial.uniforms.debugMode.value = this._debugMode;
@@ -2942,7 +3051,9 @@ export class ContrastVolumeRenderer {
     }
 
     dispose() {
-        if(this._trappedMesh){this._trappedMesh.geometry.dispose();for(const material of this._trappedMesh.material)material.dispose();}
+        this._flowSampleTexture?.dispose();
+        for(const mesh of this._graftMeshes??[]) {mesh.geometry.dispose();mesh.material.dispose();}
+        if(this._trappedMesh){this._trappedMesh.geometry.dispose();this._trappedMesh.userData.texture?.dispose();for(const material of this._trappedMesh.material)material.dispose();}
         this.flowMesh.geometry.dispose();
         this.flowTubeMaterial.dispose();
         this.flowJunctionMaterial.dispose();

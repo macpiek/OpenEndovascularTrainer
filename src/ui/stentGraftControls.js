@@ -1,5 +1,5 @@
 import {MAIN_BODY_MODELS,DEFAULT_MAIN_BODY,LIMB_MODELS,LIMB_LENGTHS,DEFAULT_LIMB,limbModel,mainBodyModel,proximalDiameters,distalDiameters} from '../devices/stentGraftModels.js';
-import {mainBodyCards,limbCards} from './stentGraftModelCards.js';
+import {mainBodyCards,limbCards,mainBodyCardContent,cardDimensions} from './stentGraftModelCards.js';
 import {deliveryNoseState,graftAttached} from '../devices/stentGraftDeployment.js';
 export function initStentGraftControls({system,activeSide,ui,root=document}) {
     const el=id=>root.getElementById(id);
@@ -26,10 +26,18 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
     }
     const error=reason=>{el('stentGraftDialogStatus').textContent=reason;};
     const options=values=>values.map(value=>`<option value="${value}">${value} mm</option>`).join('');
+    function updateBodyDrawings() {
+        for(const model of MAIN_BODY_MODELS) {
+            const card=el(`graftModel-${model.id}`),d=cardDimensions(model,Number(diameter.value),Number(el('stentGraftDistalDiameter').value));
+            card.innerHTML=mainBodyCardContent(model,d.diameter,d.distalDiameter);
+            card.setAttribute('aria-label',`${model.name}, korpus ${model.length} mm, średnica proksymalna ${d.diameter} mm, nóżka ${d.distalDiameter} mm`);
+        }
+    }
     function updateDistal() {
         const distal=el('stentGraftDistalDiameter'),values=distalDiameters(modelId,Number(diameter.value)),previous=Number(distal.value);
         distal.innerHTML=options(values);distal.value=String(values.includes(previous)?previous:values.includes(16)?16:values[0]);
         el('stentGraftDiameterValue').textContent=`${diameter.value} mm`;
+        updateBodyDrawings();
     }
     function updateLimb() {
         const m=limbModel(limbId),length=el('stentGraftLimbLength').value;
@@ -53,9 +61,7 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
         el('stentGraftProximalField').hidden=!body;el('stentGraftLimbs').hidden=body;updateLimb();
         updateDistal();
         for(const model of MAIN_BODY_MODELS)el(`graftModel-${model.id}`).setAttribute('aria-pressed',String(model.id===modelId));
-        el('stentGraftModelDescription').textContent=modelId==='iis-103'
-            ?'Krótki korpus IIs, jak na schemacie: 103 mm, oba ujścia 14 mm. Ilustracja schematyczna.'
-            :`Korpus II: ${mainBodyModel(modelId).length} mm, długa nóżka ipsilateralna i krótka bramka kontralateralna.`;
+        el('stentGraftModelDescription').textContent='Model rozprężony bez ograniczeń naczynia. Wspólna skala długości i średnic; miniatury aktualizują się po zmianie wymiarów.';
     }
     for(const model of MAIN_BODY_MODELS)listen(el(`graftModel-${model.id}`),'click',()=>{modelId=model.id;diameterRange();});
     function open() {
@@ -84,6 +90,8 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
     type.addEventListener('change',diameterRange);
     diameter.addEventListener('change',updateDistal);
     diameter.addEventListener('input',updateDistal);
+    listen(el('stentGraftDistalDiameter'),'change',updateBodyDrawings);
+    listen(el('stentGraftDistalDiameter'),'input',updateBodyDrawings);
     el('stentGraftLoad').addEventListener('click',()=>{
         if(dialogSide!==activeSide()){error('Koszulka została zmieniona. Otwórz wybór ponownie.');return;}
         const result=system.load(dialogSide,type.value,type.value==='body'?modelId:limbId);

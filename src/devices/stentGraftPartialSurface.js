@@ -1,3 +1,4 @@
+import {sewnContactFaces} from './stentGraftSewnSurface.js';
 import {graftFaceExposed} from './stentGraftDeployment.js';
 import * as THREE from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
@@ -8,6 +9,7 @@ import {StentGraftSurface} from './stentGraftSurface.js';
  * carries covered rows; ipsilateral contacts also follow exposed transitioning
  * rows so the original wire remains threaded during release. */
 export function preparePartialSurface(device) {
+    if(device.type==='body')return sewnContactFaces(device);
     const surface=new StentGraftSurface([device],0),p=surface.geometry.attributes.position,ix=surface.geometry.index;
     const parts=device.parts.map(part=>{
         const geometry=part.mesh.geometry.clone();
@@ -53,12 +55,12 @@ export function preparePartialSurface(device) {
     return faces;
 }
 
-export function partialSurfaceSnapshot(devices,complete,revision) {
+export function partialSurfaceSnapshot(devices,complete,revision,exposedFaces=null) {
     const wall=[];
     if(complete){const p=complete.geometry.attributes.position,ix=complete.geometry.index;
         for(let i=0;i<(ix?.count??p.count);i++){const n=ix?ix.getX(i):i;wall.push(p.getX(n),p.getY(n),p.getZ(n));}}
     for(const device of devices) {
-        for(const face of device.contactFaces)if(graftFaceExposed(device,face))wall.push(...face.positions);
+        for(const face of exposedFaces?.get(device)??device.contactFaces.filter(f=>graftFaceExposed(device,f)))wall.push(...face.positions);
     }
     if(!wall.length)return null;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(wall,3));
@@ -70,6 +72,8 @@ export function updatePartialSurfacePose(device,actual=false) {
     for(const face of device.contactFaces)for(let v=0;v<3;v++) {
         const {part,indices,weights}=face.bindings[v];
         const positions=actual?(part.contactBasePositions??part.mesh.geometry.attributes.position.array):part.target;
-        for(let axis=0;axis<3;axis++)face.positions[v*3+axis]=indices.reduce((sum,index,k)=>sum+positions[index*3+axis]*weights[k],0);
+        for(let axis=0;axis<3;axis++){
+            let value=0;for(let k=0;k<indices.length;k++)value+=positions[indices[k]*3+axis]*weights[k];face.positions[v*3+axis]=value;
+        }
     }
 }

@@ -281,6 +281,7 @@ export class ContrastFlowNetwork {
         this.nodeOrder = [];
         this.disconnectedSourceSegmentCount = 0;
         this.time = 0;
+        this._courantEpoch=0;
         this.outletIodineMassMg = 0;
         this.totalIodineMassMg = 0;
         this._edgeOutMassMg = new Float64Array(this.sourceSegments.length);
@@ -317,6 +318,7 @@ export class ContrastFlowNetwork {
             new Float64Array(this.edges.length);
         this._queryMarks = new Uint32Array(this.edges.length);
         this._touchMarks = new Uint32Array(this.edges.length);
+        this._courantMarks=new Uint32Array(this.edges.length);
         this._computeHydraulicDistribution();
         this._buildSpatialIndex();
         this.minimumCellLength = this.edges.reduce(
@@ -379,13 +381,14 @@ export class ContrastFlowNetwork {
             throw new RangeError('signedFlowMm3PerS must be finite');
         }
         for (const edgeIndex of edgeIndices) {
-            if (this.edges[edgeIndex]) {
+            if (this.edges[edgeIndex]&&!this.edges[edgeIndex].transportExcluded) {
                 this._flowOverridesMm3PerS[edgeIndex] = signedFlowMm3PerS;
             }
         }
     }
 
     getSignedFlowMm3PerS(edgeIndex, waveform = 1) {
+        if(this.edges[edgeIndex]?.transportExcluded)return 0;
         const override = this._flowOverridesMm3PerS[edgeIndex];
         const baseFlow = Number.isFinite(override)
             ? override
@@ -398,7 +401,7 @@ export class ContrastFlowNetwork {
 
     getFaceSignedFlowMm3PerS(edgeIndex, faceIndex, waveform = 1) {
         const edge = this.edges[edgeIndex];
-        if (!edge) return 0;
+        if (!edge||edge.transportExcluded) return 0;
         const override = this._flowOverridesMm3PerS[edgeIndex];
         const baseFlow = Number.isFinite(override)
             ? override
@@ -419,7 +422,7 @@ export class ContrastFlowNetwork {
         deltaMm3PerS
     ) {
         const edge = this.edges[edgeIndex];
-        if (!edge || !Number.isFinite(deltaMm3PerS) || !deltaMm3PerS) {
+        if (!edge || edge.transportExcluded || !Number.isFinite(deltaMm3PerS) || !deltaMm3PerS) {
             return false;
         }
         const start = THREE.MathUtils.clamp(
@@ -1766,6 +1769,18 @@ export class ContrastFlowNetwork {
         out.tangentX = bestEdge.axis.x;
         out.tangentY = bestEdge.axis.y;
         out.tangentZ = bestEdge.axis.z;
+        const section=bestEdge.graftSections?.[out.cellIndex];
+        if(section?.center&&section.tangent) {
+            const tangent=section.tangent,dx=x-section.center.x,dy=y-section.center.y,dz=z-section.center.z;
+            const axial=dx*tangent.x+dy*tangent.y+dz*tangent.z;
+            const distance=Math.hypot(dx-axial*tangent.x,dy-axial*tangent.y,dz-axial*tangent.z);
+            if(this.stentGraftRemodeling?.surface.sealed||distance<section.radius) {
+                const direction=Math.sign(tangent.dot(bestEdge.axis))||1;
+                out.centerX=section.center.x+axial*tangent.x;out.centerY=section.center.y+axial*tangent.y;out.centerZ=section.center.z+axial*tangent.z;
+                out.distance=distance;out.radius=section.radius;
+                out.tangentX=tangent.x*direction;out.tangentY=tangent.y*direction;out.tangentZ=tangent.z*direction;
+            }
+        }
         return out;
     }
 
@@ -1817,8 +1832,20 @@ export class ContrastFlowNetwork {
         return this.depositIodineAtCoordinates(point.x, point.y, point.z, iodineMassMg);
     }
 
+    depositGraftSacAtCoordinates(x,y,z,mass) {
+        const remodeling=this.stentGraftRemodeling;
+        if(!remodeling?.sac||!(mass>0))return false;
+        const point={x,y,z};
+        if(!remodeling.surface.bounds.containsPoint(point)||remodeling.surface.contains(point))return false;
+        const location=this.findNearestLocationCoordinates(x,y,z,this._locationScratch);
+        const entry=remodeling.trapped.get(location.edgeIndex),cell=location.cellIndex;
+        if(!entry||!(entry.volumes[cell]>0))return false;
+        entry.mass[cell]+=mass;remodeling.trappedIodineMassMg+=mass;return true;
+    }
+
     depositIodineAtCoordinates(x, y, z, iodineMassMg) {
         if (!(iodineMassMg > 0)) return false;
+        if(this.depositGraftSacAtCoordinates(x,y,z,iodineMassMg))return true;
         const location = this.findNearestLocationCoordinates(x, y, z, this._locationScratch);
         if (location.edgeIndex < 0) return false;
         this.edges[location.edgeIndex].massMg[location.cellIndex] += iodineMassMg;
@@ -1831,6 +1858,13 @@ export class ContrastFlowNetwork {
     depositIodine(edgeIndex, cellIndex, iodineMassMg) {
         const edge = this.edges[edgeIndex];
         if (!edge || !(iodineMassMg > 0)) return false;
+        if(edge.transportExcluded) {
+            const entry=this.stentGraftRemodeling?.trapped.get(edgeIndex);
+            if(!entry)return false;
+            entry.mass[Math.max(0,Math.min(edge.cellCount-1,Math.floor(cellIndex)))]+=iodineMassMg;
+            this.stentGraftRemodeling.trappedIodineMassMg+=iodineMassMg;
+            return true;
+        }
         const index = THREE.MathUtils.clamp(Math.floor(cellIndex), 0, edge.cellCount - 1);
         edge.massMg[index] += iodineMassMg;
         edge.active = true;
@@ -1843,14 +1877,19 @@ export class ContrastFlowNetwork {
         if (!(dt > 0)) return;
         if (
             !(this.totalIodineMassMg > 1e-10) &&
-            !this._branchInletEdgeIndices.size
+            !this._branchInletEdgeIndices.size &&
+            !(this.stentGraftRemodeling?.sac && this.stentGraftRemodeling.trappedIodineMassMg > 1e-10)
         ) {
             this.time += dt;
             return;
         }
         const waveform = arterialWaveform(this.time, this.hemodynamics.heartRateBpm);
         let maximumActiveCourantRate = 0;
+        this._courantEpoch=(this._courantEpoch+1)>>>0;
+        if(!this._courantEpoch){this._courantMarks.fill(0);this._courantEpoch=1;}
         const includeCourantRate = edge => {
+            if(edge.transportExcluded||this._courantMarks[edge.index]===this._courantEpoch)return;
+            this._courantMarks[edge.index]=this._courantEpoch;
             const override = this._flowOverridesMm3PerS[edge.index];
             const baseFlow = Number.isFinite(override)
                 ? override
@@ -1906,9 +1945,10 @@ export class ContrastFlowNetwork {
         const substep = dt / substepCount;
         for (let step = 0; step < substepCount; step++) {
             this._transportSubstep(substep);
+            this.stentGraftRemodeling?.sac?.update(substep);
             this.time += substep;
         }
-        this._updateEdgeConcentrations();
+        this._updateEdgeConcentrations(true);
     }
 
     _transportSubstep(dt) {
@@ -1982,10 +2022,15 @@ export class ContrastFlowNetwork {
                 );
                 const totalOutflowMass =
                     source[cellIndex] * transportedFraction;
-                const leftMass = totalOutflowMass *
+                let leftMass = totalOutflowMass *
                     leftOutflow / totalOutflow;
-                const rightMass = totalOutflowMass - leftMass;
+                let rightMass = totalOutflowMass - leftMass;
                 next[cellIndex] -= totalOutflowMass;
+                const sac=this.stentGraftRemodeling?.sac;
+                if(sac) {
+                    leftMass-=sac.divert(edge.index,cellIndex,-1,leftMass);
+                    rightMass-=sac.divert(edge.index,cellIndex,1,rightMass);
+                }
                 if (leftMass > 0) {
                     if (cellIndex > 0) {
                         next[cellIndex - 1] += leftMass;
@@ -2135,6 +2180,7 @@ export class ContrastFlowNetwork {
                 this.outletIodineMassMg += activeMass;
                 edge.massMg.fill(0);
                 edge.nextMassMg.fill(0);
+                edge.meanConcentrationMgPerMm3=0;
             }
         }
     }
@@ -2250,9 +2296,11 @@ export class ContrastFlowNetwork {
         }
     }
 
-    _updateEdgeConcentrations() {
+    _updateEdgeConcentrations(activeOnly=false) {
         let totalMass = 0;
-        for (const edge of this.edges) {
+        const indices=activeOnly?this._activeEdgeIndices:this.edges.keys();
+        for (const index of indices) {
+            const edge=this.edges[index];
             let mass = 0;
             for (let index = 0; index < edge.cellCount; index++) mass += edge.massMg[index];
             edge.meanConcentrationMgPerMm3 = mass / Math.max(1e-9, edge.totalVolume);

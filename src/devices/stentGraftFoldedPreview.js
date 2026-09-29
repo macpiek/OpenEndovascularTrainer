@@ -1,3 +1,4 @@
+import {graftMarkerLayout} from './stentGraftMarkers.js';
 import {capturedRoot} from './stentGraftCapture.js';
 import {CROWN_SUBDIVISIONS,crownMaterial,inextensibleCrown} from './stentGraftCrownKinematics.js';
 import {wireSegment,updateWire} from './stentGraftWire.js';
@@ -6,7 +7,7 @@ import {disposeWire} from './stentGraftWire.js';
 import {worldBodyDimensions,graftScale,nominalPartRadius} from './stentGraftModels.js';
 import * as THREE from 'three';
 import {DevicePath} from './stentGraftPaths.js';
-import {createScaffold,updateScaffold,createGateMarker,createSuprarenalCrown,fabricPoint} from './stentGraftScaffold.js';
+import {createScaffold,updateScaffold,createGateMarker,createOrientationMarker,createSuprarenalCrown,fabricPoint} from './stentGraftScaffold.js';
 
 // A packed delivery preview only. It creates no implant, contacts or flow seal;
 // deployment replaces it with the anatomy-fitted parts in a single transaction.
@@ -27,6 +28,8 @@ export function createFoldedGraftPreview(device,{fabric,metal,fabricMaterial,met
         const mesh=new THREE.Mesh(geometry,fabricMaterial);mesh.frustumCulled=false;mesh.name='folded-graft-fabric';mesh.visible=!layout.crown;fabric.add(mesh);
         const nominalRadius=s=>nominalPartRadius(device,index,s);
         const part={...layout,dimensionScale:scale,nominalRadius,rows,sides,points,path:new DevicePath(points,coordinates),mesh};
+        part.markerLayout=layout.crown?[]:graftMarkerLayout(device,index,part.path.length);
+        if(device.type==='body'&&index===0)metal.add(createOrientationMarker(part,markerMaterial));
         part.scaffoldInset=device.type==='body'&&index>0&&!layout.crown?.25*scale:0;
         for(const object of createScaffold(part,metalMaterial,markerMaterial))metal.add(object);
         if(layout.crown) {
@@ -83,11 +86,11 @@ export function updateFoldedGraftPreview(parts,wire,position,rotation=0) {
     }
 }
 export function disposeFoldedGraftPreview(device) {
-    for(const part of device.foldedPreview??[])for(const object of [part.mesh,part.rings,part.markers,part.gateMarker].filter(Boolean)){
+    for(const part of device.foldedPreview??[])for(const object of [part.mesh,part.rings,part.markers,part.gateMarker,part.orientationMarker].filter(Boolean)){
         object.removeFromParent();object.geometry.dispose();disposeWire(object);if(object.isInstancedMesh)object.dispose();
     }
     device.foldedPreview=null;
 }
 export function setFoldedPreviewVisible(parts,visible) {
-    for(const part of parts??[]){part.mesh.visible=visible&&!part.crown;part.rings.visible=visible;part.markers.visible=visible&&!part.crown;if(part.gateMarker)part.gateMarker.visible=visible;}
+    for(const part of parts??[]){part.mesh.visible=visible&&!part.crown;part.rings.visible=visible;part.markers.visible=visible&&!part.crown;if(part.gateMarker)part.gateMarker.visible=visible;if(part.orientationMarker)part.orientationMarker.visible=visible;}
 }

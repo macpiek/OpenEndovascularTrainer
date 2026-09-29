@@ -5,7 +5,7 @@ import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 
 /** Round, continuous wires. A sampling footprint keeps subpixel wires continuous, but its opacity
  * is proportional to physical pixel coverage: the footprint is not wire thickness. */
-export function graftWire(count,source,radius=.045) {
+export function graftWire(count,source,radius=.03) {
     const geometry=new LineSegmentsGeometry();geometry.setPositions(new Float32Array(count*6));
     const material=new LineMaterial({color:source.color,linewidth:1,transparent:true,depthWrite:false,alphaToCoverage:false});
     const projection=new LineMaterial({color:0xffffff,linewidth:1,transparent:true,depthWrite:false,alphaToCoverage:false,depthTest:false,toneMapped:false});
@@ -22,7 +22,7 @@ export function graftWire(count,source,radius=.045) {
         const depth=camera.isPerspectiveCamera?Math.max(1,-center.z):1;
         const physicalPixels=radius*h*Math.abs(camera.projectionMatrix.elements[5])/depth;
         activeMaterial.linewidth=Math.max(1,physicalPixels);
-        activeMaterial.opacity=Math.min(1,physicalPixels/activeMaterial.linewidth);
+        activeMaterial.opacity=source.opacity*Math.min(1,physicalPixels/activeMaterial.linewidth);
         // Use ordinary alpha blending, not 4-sample alpha-to-coverage: very
         // faint wires must not quantize back into intermittent visible dots.
     };

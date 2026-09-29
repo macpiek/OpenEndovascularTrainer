@@ -19,12 +19,13 @@ const orientation=frame=>new THREE.Quaternion().setFromRotationMatrix(
 
 /** Interpolate section pose and radius separately. Linear interpolation of
  * opposite vertices collapsed and twisted rings when their frames differed.
- * The entire circumference now shares one rotation and opening coordinate. */
-export function releaseSection(part,row,opening,frame,layout) {
+ * The entire circumference shares one rotation. A retained limb can flare
+ * radially while its pose remains supported by the delivery shaft. */
+export function releaseSection(part,row,opening,frame,layout,poseOpening=opening) {
     const start=part.folded[row].clone().addScaledVector(frame.u,layout.lateral);
     const end=part.points[row],targetFrame=part.ringFrames[row];
     const from=orientation(frame),to=orientation(targetFrame),inverse=to.clone().invert();
-    const rotation=from.slerp(to,opening),center=start.lerp(end,opening);
+    const rotation=from.slerp(to,poseOpening),center=start.lerp(end,poseOpening);
     return {center,point(j){
         const target=new THREE.Vector3().fromArray(part.target,(row*part.sides+j)*3);
         if(opening===1)return target;
@@ -49,7 +50,7 @@ export function constrainReleaseCenters(part,sections,openings) {
             const i=pass%2?centers.length-2-j:j,next=i+1;
             const w=weights[i]+weights[next];if(!w)continue;
             const delta=centers[next].clone().sub(centers[i]),length=delta.length();
-            const rest=Math.max(part.path.coordinates[next]-part.path.coordinates[i],part.points[next].distanceTo(part.points[i]),part.folded[next].distanceTo(part.folded[i]));
+            const rest=part.path.coordinates[next]-part.path.coordinates[i];
             if(length<1e-10)continue;
             const correction=Math.max(0,length-rest);error=Math.max(error,correction);
             delta.multiplyScalar(correction/(length*w));
@@ -95,7 +96,6 @@ export function separateReleaseBranches(device) {
     const normal=parts[1].points[0].clone().sub(parts[0].points[0]);
     normal.addScaledVector(tangent,-normal.dot(tangent)).normalize();
     const paths=centers.map(points=>points.map(p=>({s:p.dot(tangent),x:p.dot(normal)})).sort((a,b)=>a.s-b.s));
-    const low=Math.max(...paths.map(p=>p[0].s)),high=Math.min(...paths.map(p=>p.at(-1).s));
     const lateral=(path,s)=>{
         let i=1;while(i<path.length-1&&path[i].s<s)i++;
         return THREE.MathUtils.lerp(path[i-1].x,path[i].x,THREE.MathUtils.clamp((s-path[i-1].s)/Math.max(1e-9,path[i].s-path[i-1].s),0,1));
@@ -104,8 +104,13 @@ export function separateReleaseBranches(device) {
         const part=parts[k],positions=part.mesh.geometry.attributes.position,sign=k===0?-1:1;
         let changed=false;
         for(let index=0;index<positions.count;index++) {
+            // Packed rows already have separate fixed lanes inside the cover.
+            // A plane fitted to the released limbs must not move those rows.
+            if(part.exposure[Math.floor(index/part.sides)]<=0)continue;
             const p=new THREE.Vector3().fromBufferAttribute(positions,index),axial=p.dot(tangent);
-            if(axial<low||axial>high)continue;
+            // Continue the separator through the end sections (lateral() clamps
+            // its samples). An axial on/off cutoff let flared vertices cross
+            // it and then jump several mm when a moving end overtook them.
             const mid=(lateral(paths[0],axial)+lateral(paths[1],axial))/2;
             const distance=(p.dot(normal)-mid)*sign;
             if(distance<0){p.addScaledVector(normal,-distance*sign);positions.setXYZ(index,p.x,p.y,p.z);changed=true;}
