@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="pl">
+    <meta charset="utf-8" />
+    <title>Regresja pasów kontrastu</title>
+    <h1>Stałe stężenie na granicy materiałów</h1>
+    <p>
+        Obie połowy zawierają identyczny sygnał. Test mierzy piksele GPU przed i po oddzieleniu tła.
+    </p>
+    <pre id="results">Uruchamianie…</pre>
+    <script type="module">
+        import * as THREE from 'three';
+        import { ContrastDebugPass } from '../src/contrast/contrastDebugPass.js';
+        import { FlowContrastVolume } from '../src/contrast/flowContrastVolume.js';
+        import {
+            ostialVolumeFixture,
+            bifurcationVolumeFixture
+        } from './helpers/contrastOstialVolumeFixture.js';
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(128, 128);
+        const output = new THREE.WebGLRenderTarget(128, 128);
+        const scene = new THREE.Scene(),
+            parent = new THREE.Group(),
+            root = new THREE.Group();
+        parent.position.x = 0.1;
+        scene.add(parent);
+        parent.add(new THREE.Group(), root, new THREE.Group());
+        const order = [...parent.children];
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+        camera.position.z = 2;
+        const materials = [false, true].map((maximum) => {
+            const m = new THREE.ShaderMaterial({
+                uniforms: { strength: { value: 0.1 } },
+                vertexShader:
+                    'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+                fragmentShader:
+                    'uniform float strength; void main(){gl_FragColor=vec4(vec3(strength),strength);}',
+                transparent: true,
+                premultipliedAlpha: true,
+                depthTest: false,
+                depthWrite: false,
+                blending: maximum ? THREE.CustomBlending : THREE.AdditiveBlending,
+                blendEquation: THREE.MaxEquation,
+                blendEquationAlpha: THREE.MaxEquation,
+                blendSrc: THREE.OneFactor,
+                blendDst: THREE.OneFactor,
+                blendSrcAlpha: THREE.OneFactor,
+                blendDstAlpha: THREE.OneFactor,
+                toneMapped: false
+            });
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 2), m);
+            mesh.position.x = maximum ? 0.5 : -0.5;
+            root.add(mesh);
+            return m;
+        });
+        const pass = new ContrastDebugPass(root),
+            pixel = new Uint8Array(4),
+            lines = [];
+        function read(x) {
+            renderer.readRenderTargetPixels(output, x, 64, 1, 1, pixel);
+            return pixel[0];
+        }
+        function assert(value, message) {
+            if (!value) throw Error(message);
+        }
+        try {
+            for (const background of [0, 0.02, 0.2, 0.6])
+                for (const strength of [0.04, 0.2]) {
+                    scene.background = new THREE.Color().setRGB(background, background, background);
+                    for (const m of materials) m.uniforms.strength.value = strength;
+                    renderer.setRenderTarget(output);
+                    renderer.render(scene, camera);
+                    const before = Math.abs(read(32) - read(96));
+                    pass.render(renderer, scene, camera);
+                    const left = read(32),
+                        right = read(96);
+                    assert(Math.abs(left - right) <= 1, `Szew: ${left} / ${right}`);
+                    assert(
+                        Math.abs(left - Math.round((background + strength) * 255)) <= 2,
+                        'Nie wolno wyrównywać pasów przez usunięcie lub przyciemnienie kontrastu'
+                    );
+                    if (background >= 0.2)
+                        assert(before >= 9, 'Kontrola musi odtworzyć stary błąd');
+                    assert(
+                        root.parent === parent && parent.children.every((c, i) => c === order[i]),
+                        'Zmieniona hierarchia'
+                    );
+                    assert(
+                        renderer.getRenderTarget() === output && renderer.autoClear,
+                        'Zmieniony stan renderera'
+                    );
+                    assert(
+                        Math.abs(root.matrixWorld.elements[12] - 0.1) < 1e-8,
+                        'Zmienione położenie kontrastu'
+                    );
+                    lines.push(
+                        `PASS tło=${background}, sygnał=${strength}: szew ${before} → ${Math.abs(left - right)} / 255`
+                    );
+                }
+            // A dilute cloud is the sum of many individually sub-byte samples.
+            const weakScene = new THREE.Scene(),
+                weakRoot = new THREE.Group();
+            weakScene.background = new THREE.Color(0);
+            weakScene.add(weakRoot);
+            const weakMaterial = materials[0].clone();
+            weakMaterial.uniforms.strength.value = 0.001;
+            const weakGeometry = new THREE.PlaneGeometry(2, 2);
+            for (let i = 0; i < 32; i++) weakRoot.add(new THREE.Mesh(weakGeometry, weakMaterial));
+            const weakPass = new ContrastDebugPass(weakRoot);
+            try {
+                renderer.render(weakScene, camera);
+                const roundedPerSample = read(64);
+                weakPass.render(renderer, weakScene, camera);
+                const accumulated = read(64);
+                assert(
+                    Math.abs(accumulated - Math.round(32 * 0.001 * 255)) <= 1,
+                    'Słabe próbki muszą sumować się przed kwantyzacją'
+                );
+                assert(
+                    roundedPerSample < accumulated / 2,
+                    'Kontrola musi wykazać utratę sygnału w 8 bitach'
+                );
+                lines.push(
+                    `PASS rozcieńczony kontrast: sygnał ${roundedPerSample} → ${accumulated}/255`
+                );
+            } finally {
+                weakPass.dispose();
+                weakGeometry.dispose();
+                weakMaterial.dispose();
+            }
+            // A uniform long-cell cylinder must not reveal its cell spacing as rings.
+            const edge = {
+                index: 0,
+                radiusStart: 6,
+                radiusEnd: 6,
+                cellCount: 12,
+                cellLength: 8,
+                start: new THREE.Vector3(0, -48, 0),
+                end: new THREE.Vector3(0, 48, 0),
+                axis: new THREE.Vector3(0, 1, 0),
+                massMg: new Float64Array(12).fill(Math.PI * 36 * 8 * 0.03)
+            };
+            const volume = new FlowContrastVolume({ edges: [edge] }, new Uint32Array([0]));
+            try {
+                volume.update(new Float32Array(12), 0.3, false);
+                volume.mesh.material.uniforms.signalGain.value = 1;
+                const uniformScene = new THREE.Scene();
+                uniformScene.background = new THREE.Color(0);
+                uniformScene.add(volume.mesh);
+                const volumeCamera = new THREE.OrthographicCamera(-10, 10, 48, -48, 0.1, 10);
+                volumeCamera.position.z = 2;
+                renderer.render(uniformScene, volumeCamera);
+                const values = [];
+                for (let y = 32; y < 96; y++) {
+                    renderer.readRenderTargetPixels(output, 64, y, 1, 1, pixel);
+                    values.push(pixel[0]);
+                }
+                const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                const ripple = (Math.max(...values) - Math.min(...values)) / mean;
+                assert(
+                    mean > 20 && mean < 250,
+                    'Pomiar musi obejmować widoczny, nienasycony sygnał'
+                );
+                assert(ripple < 0.015, 'Prążki objętości: ' + (ripple * 100).toFixed(2) + '%');
+                // Reconstruct the former one-kernel-per-cell image as a
+                // negative control, using the same mass, width and shader.
+                for (let cell = 0; cell < edge.cellCount; cell++) {
+                    const indices = volume.cells.flatMap((entry, i) =>
+                        entry.cell === cell ? [i] : []
+                    );
+                    const total = indices.reduce((sum, i) => sum + volume.current[i], 0);
+                    for (const i of indices) volume.current[i] = 0;
+                    const i = indices[0];
+                    volume.current[i] = total;
+                    volume.mesh.geometry.attributes.center.setXYZ(i, 0, -48 + (cell + 0.5) * 8, 0);
+                }
+                volume.mesh.geometry.attributes.center.needsUpdate = true;
+                volume.mesh.geometry.attributes.opticalMass.needsUpdate = true;
+                renderer.render(uniformScene, volumeCamera);
+                const oldValues = [];
+                for (let y = 32; y < 96; y++) {
+                    renderer.readRenderTargetPixels(output, 64, y, 1, 1, pixel);
+                    oldValues.push(pixel[0]);
+                }
+                const oldMean = oldValues.reduce((a, b) => a + b, 0) / oldValues.length;
+                const oldRipple = (Math.max(...oldValues) - Math.min(...oldValues)) / oldMean;
+                assert(oldRipple > 0.05, 'Kontrola musi odtworzyć prążki rzadkiego próbkowania');
+                lines.push(
+                    'PASS jednorodne naczynie: wahanie jasności ' +
+                        (oldRipple * 100).toFixed(2) +
+                        '% → ' +
+                        (ripple * 100).toFixed(2) +
+                        '%'
+                );
+            } finally {
+                volume.dispose();
+            }
+            // Symmetric Y spanning the old 4–6 mm representation boundary.
+            // Measure real GPU pixels: both daughters must stay filled and
+            // mirror each other; weak boluses must satisfy the same checks.
+            const yEdges = [
+                [0, 32, 0, 0, 6.8],
+                [0, 0, -22, -32, 4.5],
+                [0, 0, 22, -32, 4.5]
+            ].map(([x0, y0, x1, y1, radius], index) => {
+                const start = new THREE.Vector3(x0, y0, 0);
+                const end = new THREE.Vector3(x1, y1, 0);
+                const length = start.distanceTo(end),
+                    cellCount = Math.ceil(length / 2);
+                return {
+                    index,
+                    start,
+                    end,
+                    axis: end.clone().sub(start).normalize(),
+                    radiusStart: radius,
+                    radiusEnd: radius,
+                    cellCount,
+                    cellLength: length / cellCount,
+                    massMg: new Float64Array(cellCount)
+                };
+            });
+            const offsets = new Uint32Array([
+                0,
+                yEdges[0].cellCount,
+                yEdges[0].cellCount + yEdges[1].cellCount
+            ]);
+            const fork = new FlowContrastVolume({ edges: yEdges }, offsets);
+            const forkScene = new THREE.Scene();
+            forkScene.background = new THREE.Color(0);
+            forkScene.add(fork.mesh);
+            const forkPass = new ContrastDebugPass(fork.mesh);
+            const forkCamera = new THREE.OrthographicCamera(-24, 24, 36, -36, 0.1, 10);
+            forkCamera.position.z = 2;
+            fork.mesh.material.uniforms.signalGain.value = 1;
+            try {
+                for (const concentration of [0.012, 0.03]) {
+                    yEdges.forEach((e) =>
+                        e.massMg.fill(Math.PI * e.radiusStart ** 2 * e.cellLength * concentration)
+                    );
+                    fork.update(
+                        new Float32Array(yEdges.reduce((s, e) => s + e.cellCount, 0)),
+                        0.3,
+                        false
+                    );
+                    forkPass.render(renderer, forkScene, forkCamera);
+                    let maxAsymmetry = 0;
+                    const daughterPixels = [];
+                    for (let y = 24; y < 49; y++) {
+                        const worldY = ((y + 0.5) / 128) * 72 - 36;
+                        const x = Math.floor((((worldY * 22) / 32 + 24) / 48) * 128);
+                        renderer.readRenderTargetPixels(output, x, y, 1, 1, pixel);
+                        const left = pixel[0];
+                        renderer.readRenderTargetPixels(output, 127 - x, y, 1, 1, pixel);
+                        maxAsymmetry = Math.max(maxAsymmetry, Math.abs(left - pixel[0]));
+                        daughterPixels.push(left);
+                    }
+                    const low = Math.min(...daughterPixels),
+                        high = Math.max(...daughterPixels);
+                    assert(maxAsymmetry <= 1, 'Nierówne wypełnienie symetrycznego rozwidlenia');
+                    assert(low > 10 && high < 245, 'Ramiona muszą być widoczne bez nasycenia');
+                    assert((high - low) / high < 0.08, 'Segmenty w ramionach rozwidlenia');
+                    renderer.readRenderTargetPixels(output, 64, 64, 1, 1, pixel);
+                    assert(pixel[0] >= low, 'Ciemna przerwa w środku rozwidlenia');
+                    // Negative control: former radius blend sends only 15.625%
+                    // of a 4.5 mm vessel to the filled-volume representation.
+                    fork.cells.forEach((sample, i) => {
+                        if (sample.edge.index > 0) fork.current[i] *= 0.15625;
+                    });
+                    fork.mesh.geometry.attributes.opticalMass.needsUpdate = true;
+                    forkPass.render(renderer, forkScene, forkCamera);
+                    renderer.readRenderTargetPixels(output, 29, 32, 1, 1, pixel);
+                    assert(
+                        pixel[0] < low * 0.5,
+                        'Kontrola musi odtworzyć utratę objętościowego wypełnienia'
+                    );
+                    lines.push(
+                        `PASS rozwidlenie C=${concentration}: asymetria ${maxAsymmetry}/255, ramiona ${low}–${high}/255`
+                    );
+                }
+            } finally {
+                forkPass.dispose();
+                fork.dispose();
+            }
+            for (const variant of ['shared', 'detached', 'axial', 'empty', 'diluted']) {
+                const f = ostialVolumeFixture({
+                    detached: variant === 'detached',
+                    axial: variant === 'axial'
+                });
+                const volume = new FlowContrastVolume(f.network, f.offsets);
+                if (variant === 'empty' || variant === 'diluted')
+                    f.network.edges
+                        .slice(0, 2)
+                        .forEach((e) =>
+                            e.massMg.forEach(
+                                (m, i) => (e.massMg[i] = variant === 'empty' ? 0 : m * 0.5)
+                            )
+                        );
+                volume.update(f.plume, 0.3, false);
+                volume.mesh.material.uniforms.signalGain.value = 1;
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0);
+                scene.add(volume.mesh);
+                const pass = new ContrastDebugPass(volume.mesh);
+                const camera = new THREE.OrthographicCamera(-30, 30, 30, -30, 0.1, 200);
+                camera.position.z = 100;
+                function draw() {
+                    pass.render(renderer, scene, camera);
+                    return [72, 96].map((x) => {
+                        renderer.readRenderTargetPixels(output, x, 64, 1, 1, pixel);
+                        return pixel[0];
+                    });
+                }
+                try {
+                    const corrected = draw(),
+                        fullMass = volume.current.slice();
+                    volume.cells.forEach((s, i) => {
+                        if (s.edge.index >= 2) volume.current[i] = 0;
+                    });
+                    volume.mesh.geometry.attributes.opticalMass.needsUpdate = true;
+                    const trunkOnly = draw();
+                    volume.current.set(fullMass);
+                    volume.mesh.geometry.attributes.opticalMass.needsUpdate = true;
+                    const owners = volume.mesh.geometry.attributes.lumenOwner;
+                    for (let i = 0; i < owners.count; i++) owners.setW(i, 0);
+                    owners.needsUpdate = true;
+                    const duplicate = draw();
+                    if (variant === 'shared') {
+                        assert(
+                            Math.abs(corrected[0] - trunkOnly[0]) <= 1,
+                            'Podwójny sygnał wspólnego światła'
+                        );
+                        assert(
+                            duplicate[0] > corrected[0] + 5,
+                            'Kontrola musi odtworzyć guzek ujścia'
+                        );
+                    } else if (variant === 'diluted') {
+                        assert(
+                            Math.abs(
+                                corrected[0] - (trunkOnly[0] + (duplicate[0] - trunkOnly[0]) * 0.5)
+                            ) <= 2,
+                            'Wspólne światło musi zachować nadwyżkę stężenia bolusa w gałęzi'
+                        );
+                    } else {
+                        assert(
+                            Math.abs(corrected[0] - duplicate[0]) <= 1,
+                            'Usunięto osobne światło na innej głębokości'
+                        );
+                        assert(
+                            corrected[0] > trunkOnly[0] + 5,
+                            'Osobna gałąź musi pozostać widoczna'
+                        );
+                    }
+                    assert(
+                        corrected[1] > 5 && Math.abs(corrected[1] - duplicate[1]) <= 1,
+                        'Fragment gałęzi poza aortą musi zachować sygnał'
+                    );
+                    lines.push(
+                        `PASS ujście ${variant}: ${duplicate[0]} → ${corrected[0]}/255, sama aorta ${trunkOnly[0]}/255`
+                    );
+                } finally {
+                    pass.dispose();
+                    volume.dispose();
+                }
+            }
+            let forkReference;
+            for (const reverse of [false, true]) {
+                const f = bifurcationVolumeFixture(reverse),
+                    volume = new FlowContrastVolume(f.network, f.offsets);
+                volume.update(f.plume, 0.3, false);
+                volume.mesh.material.uniforms.signalGain.value = 1;
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0);
+                scene.add(volume.mesh);
+                const pass = new ContrastDebugPass(volume.mesh);
+                const camera = new THREE.OrthographicCamera(-30, 30, 30, -30, 0.1, 200);
+                camera.position.z = 100;
+                const pixels = new Uint8Array(128 * 128 * 4);
+                const draw = () => {
+                    pass.render(renderer, scene, camera);
+                    renderer.readRenderTargetPixels(output, 0, 0, 128, 128, pixels);
+                    return pixels.slice();
+                };
+                const at = (data, x, y) => data[(y * 128 + x) * 4];
+                try {
+                    assert(
+                        volume.junctions.regions.length === 1,
+                        'Regresja musi obejmować wspólne rozwidlenie'
+                    );
+                    const corrected = draw();
+                    const upstream = at(corrected, 64, 96);
+                    let peak = 0,
+                        asymmetry = 0;
+                    for (let y = 58; y <= 70; y++)
+                        for (let x = 58; x <= 69; x++) {
+                            peak = Math.max(peak, at(corrected, x, y));
+                            asymmetry = Math.max(
+                                asymmetry,
+                                Math.abs(at(corrected, x, y) - at(corrected, 127 - x, y))
+                            );
+                        }
+                    volume.junctions.group.visible = false;
+                    const regions = volume.mesh.geometry.attributes.junctionRegion;
+                    for (let i = 0; i < regions.count; i++) regions.setW(i, 0);
+                    regions.needsUpdate = true;
+                    const old = draw();
+                    let oldPeak = 0;
+                    for (let y = 58; y <= 70; y++)
+                        for (let x = 58; x <= 69; x++) oldPeak = Math.max(oldPeak, at(old, x, y));
+                    assert(
+                        upstream > 10 && oldPeak > upstream * 1.15,
+                        'Kontrola musi odtworzyć nadmierne wysycenie środka Y'
+                    );
+                    assert(
+                        peak <= upstream * 1.1 && at(corrected, 64, 64) >= upstream * 0.9,
+                        `Nieprawidłowy środek Y: szczyt ${peak}, pień ${upstream}`
+                    );
+                    assert(
+                        asymmetry <= 1,
+                        'Wspólny obraz Y nie może wybierać jaśniejszego ramienia'
+                    );
+                    if (forkReference)
+                        assert(
+                            corrected.every((v, i) => Math.abs(v - forkReference[i]) <= 1),
+                            'Kolejność ramion zmienia obraz'
+                        );
+                    forkReference = corrected;
+                    lines.push(
+                        `PASS wspólne Y kolejność=${reverse}: szczyt ${oldPeak} → ${peak}/255, pień ${upstream}/255, asymetria ${asymmetry}/255`
+                    );
+                } finally {
+                    pass.dispose();
+                    volume.dispose();
+                }
+            }
+            {
+                const f = bifurcationVolumeFixture(false, true),
+                    volume = new FlowContrastVolume(f.network, f.offsets);
+                volume.update(f.plume, 0.3, false);
+                volume.mesh.material.uniforms.signalGain.value = 1;
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0);
+                scene.add(volume.mesh);
+                const pass = new ContrastDebugPass(volume.mesh);
+                const camera = new THREE.OrthographicCamera(-30, 30, 30, -30, 0.1, 200);
+                camera.position.z = 100;
+                try {
+                    pass.render(renderer, scene, camera);
+                    renderer.readRenderTargetPixels(output, 64, 64, 1, 1, pixel);
+                    const base = forkReference[(64 * 128 + 64) * 4];
+                    assert(
+                        pixel[0] >= base + 7,
+                        'Wspólne Y wycina osobne naczynie przechodzące za nim'
+                    );
+                    lines.push(`PASS osobne naczynie za Y: ${base} → ${pixel[0]}/255`);
+                } finally {
+                    pass.dispose();
+                    volume.dispose();
+                }
+            }
+            document.querySelector('#results').textContent = lines.join('\n') + '\nPASS: 20/20';
+        } catch (error) {
+            document.querySelector('#results').textContent =
+                lines.join('\n') + '\nFAIL: ' + error.message;
+            throw error;
+        } finally {
+            pass.dispose();
+            output.dispose();
+            for (const mesh of root.children) {
+                mesh.geometry.dispose();
+                mesh.material.dispose();
+            }
+            renderer.dispose();
+        }
+    </script>
+</html>

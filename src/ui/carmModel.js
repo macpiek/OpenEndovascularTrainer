@@ -21,19 +21,6 @@ function capsule(radius, length, material, position, rotation = new THREE.Euler(
     return mesh;
 }
 
-function arcTube(radius, startDeg, endDeg, z, tubeRadius, material, xOffset = 0) {
-    const points = [];
-    for (let i = 0; i <= 96; i++) {
-        const angle = THREE.MathUtils.degToRad(startDeg + ((endDeg - startDeg) * i) / 96);
-        points.push(new THREE.Vector3(
-            xOffset + radius * Math.cos(angle),
-            radius * Math.sin(angle),
-            z
-        ));
-    }
-    const curve = new THREE.CatmullRomCurve3(points);
-    return new THREE.Mesh(new THREE.TubeGeometry(curve, 128, tubeRadius, 18, false), material);
-}
 
 function transverseArcTube(radius, startDeg, endDeg, x, tubeRadius, material, zOffset = 0) {
     const points = [];

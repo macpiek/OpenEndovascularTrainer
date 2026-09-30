@@ -227,14 +227,6 @@ function branchRouteKey(ix, iy, iz) {
     return `${ix},${iy},${iz}`;
 }
 
-function branchRouteEdgeValid(a, b, lumenField, wallBvh, connectorLumenClearance) {
-    const segment = {
-        start: a.point,
-        end: b.point
-    };
-    return segmentStaysInsideLumen(segment, lumenField, connectorLumenClearance);
-}
-
 function branchRouteEdgeWeight(
     a,
     b,
@@ -755,10 +747,6 @@ function rankBranchRoutes(gridRoute, lumenGeometry, extraRoutes = []) {
             cost: branchRouteScoreCost(route.centeringScore)
         }))
         .sort((a, b) => a.cost - b.cost);
-}
-
-function chooseBranchRoute(gridRoute, lumenGeometry, extraRoutes = []) {
-    return rankBranchRoutes(gridRoute, lumenGeometry, extraRoutes)?.[0]?.route || null;
 }
 
 function cloneBranchRoute(route, routeType) {
@@ -5052,13 +5040,6 @@ function isCoveredByPrimarySegments(point, primarySegments) {
     return false;
 }
 
-function shouldKeepSecondarySegment(segment, primarySegments) {
-    if (!primarySegments.length) return true;
-    const startCovered = isCoveredByPrimarySegments(segment.start, primarySegments);
-    const endCovered = isCoveredByPrimarySegments(segment.end, primarySegments);
-    return !(startCovered && endCovered);
-}
-
 function connectedNodeKey(point) {
     return [
         Math.round(point.x * 4),
@@ -5099,59 +5080,6 @@ function segmentFullyCoveredByTree(segment, treeSegments) {
         isCoveredByPrimarySegments(segment.start, treeSegments) &&
         isCoveredByPrimarySegments(segment.end, treeSegments)
     );
-}
-
-function makeBranchOriginSegment(
-    segment,
-    treeSegments,
-    lumenField,
-    connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
-    wallBvh = null,
-    maxLength = DEFAULT_BRANCH_ORIGIN_MAX_LENGTH
-) {
-    const startAttachment = nearestTreeAttachment(segment.start, treeSegments, {
-        lumenField,
-        connectorLumenClearance,
-        wallBvh,
-        branchNodeId: segment.nodeStartId,
-        branchRadius: segment.radiusStart,
-        maxSignedDistance: BRANCH_ATTACH_MARGIN,
-        requireConnector: true
-    });
-    const endAttachment = nearestTreeAttachment(segment.end, treeSegments, {
-        lumenField,
-        connectorLumenClearance,
-        wallBvh,
-        branchNodeId: segment.nodeEndId,
-        branchRadius: segment.radiusEnd,
-        maxSignedDistance: BRANCH_ATTACH_MARGIN,
-        requireConnector: true
-    });
-    const useStart = startAttachment && (
-        !endAttachment ||
-        (startAttachment.selectionScore ?? startAttachment.signedDistance) <=
-            (endAttachment.selectionScore ?? endAttachment.signedDistance)
-    );
-    const attachment = useStart ? startAttachment : endAttachment;
-    if (!attachment || attachment.signedDistance > BRANCH_ATTACH_MARGIN) return null;
-    const branchPoint = useStart ? segment.start : segment.end;
-    const branchNodeId = useStart ? segment.nodeStartId : segment.nodeEndId;
-    const branchRadius = useStart ? segment.radiusStart : segment.radiusEnd;
-    if (attachment.point.distanceTo(branchPoint) < 1e-4) return null;
-    if (Number.isFinite(maxLength) && maxLength > 0 && attachment.point.distanceTo(branchPoint) > maxLength) {
-        return null;
-    }
-    const origin = {
-        start: attachment.point.clone(),
-        end: branchPoint.clone(),
-        nodeStartId: attachment.nodeId,
-        nodeEndId: branchNodeId,
-        radiusStart: attachment.radius,
-        radiusEnd: branchRadius,
-        source: 'stl-slice-branch-origin',
-        attachment
-    };
-    return connectorStaysInsideVessel(origin, wallBvh, lumenField, connectorLumenClearance) ? origin : null;
 }
 
 function componentEndpointNodes(component) {
@@ -5285,114 +5213,11 @@ function rootCenterlineComponents(
     };
 }
 
-function segmentHasGraphConnection(segment, connectedNodes) {
-    return (
-        connectedNodes.has(segment.nodeStartId) ||
-        connectedNodes.has(segment.nodeEndId) ||
-        connectedNodes.has(connectedNodeKey(segment.start)) ||
-        connectedNodes.has(connectedNodeKey(segment.end))
-    );
-}
-
 function segmentHasNodeConnection(segment, connectedNodes) {
     return (
         connectedNodes.has(segment.nodeStartId) ||
         connectedNodes.has(segment.nodeEndId)
     );
-}
-
-function growConnectedSecondarySegments(
-    axisSegments,
-    treeSegments,
-    connectedNodes,
-    lumenField = null,
-    connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
-    wallBvh = null
-) {
-    const pending = axisSegments.slice();
-    const kept = [];
-    let accepted = true;
-    while (accepted && pending.length) {
-        accepted = false;
-        for (let i = pending.length - 1; i >= 0; i--) {
-            const segment = pending[i];
-            if (segmentFullyCoveredByTree(segment, treeSegments)) {
-                pending.splice(i, 1);
-                continue;
-            }
-            if (!segmentTouchesConnectedTree(segment, connectedNodes, treeSegments)) continue;
-            const branchOrigin = segmentHasGraphConnection(segment, connectedNodes)
-                ? null
-                : makeBranchOriginSegment(segment, treeSegments, lumenField, connectorLumenClearance, wallBvh);
-            pending.splice(i, 1);
-            if (branchOrigin) {
-                kept.push(branchOrigin);
-                addSegmentToTree(branchOrigin, treeSegments, connectedNodes);
-            }
-            kept.push(segment);
-            addSegmentToTree(segment, treeSegments, connectedNodes);
-            accepted = true;
-        }
-    }
-    return kept;
-}
-
-function growConnectedComponents(
-    components,
-    treeSegments,
-    connectedNodes,
-    lumenField = null,
-    connectorLumenClearance = DEFAULT_CONNECTOR_LUMEN_CLEARANCE,
-    wallBvh = null
-) {
-    const pending = components.slice();
-    const kept = [];
-    let accepted = true;
-    while (accepted && pending.length) {
-        accepted = false;
-        for (let i = 0; i < pending.length; i++) {
-            const component = pending[i];
-            if (componentFullyCoveredByTree(component, treeSegments)) {
-                pending.splice(i, 1);
-                i--;
-                continue;
-            }
-            let touchesTree = false;
-            for (const segment of component) {
-                if (segmentTouchesConnectedTree(segment, connectedNodes, treeSegments)) {
-                    touchesTree = true;
-                    break;
-                }
-            }
-            const hasNodeConnection = component.some(segment => segmentHasNodeConnection(segment, connectedNodes));
-            const branchOrigin = hasNodeConnection
-                ? null
-                : nearestComponentOrigin(
-                    component,
-                    treeSegments,
-                    BRANCH_ATTACH_MARGIN,
-                    lumenField,
-                    connectorLumenClearance,
-                    wallBvh
-                );
-            if (!touchesTree && !branchOrigin) continue;
-            if (!hasNodeConnection && !branchOrigin) continue;
-
-            pending.splice(i, 1);
-            i--;
-            if (branchOrigin) {
-                kept.push(branchOrigin);
-                addSegmentToTree(branchOrigin, treeSegments, connectedNodes);
-            }
-            for (const segment of component) {
-                if (segmentFullyCoveredByTree(segment, treeSegments)) continue;
-                kept.push(segment);
-                addSegmentToTree(segment, treeSegments, connectedNodes);
-            }
-            accepted = true;
-        }
-    }
-    return kept;
 }
 
 function componentPathLength(component) {
@@ -6790,7 +6615,7 @@ function relaxCenterlineNodesByLumenClearance(segments, {
             .filter(item => Number.isFinite(item.clearance))
             .sort((a, b) => a.clearance - b.clearance);
 
-        for (const { node, clearance: baseClearance } of orderedNodes) {
+        for (const { node } of orderedNodes) {
             if (!node.directions.length) continue;
             const currentPoint = currentNodePointFromIncidence(node.key, incidence);
             if (!currentPoint) continue;
@@ -7507,10 +7332,6 @@ function smoothCenterlineForSimulation(segments, geometry, wallBvh, {
         return { passCount: 0, movedNodeCount: 0, averageShift: 0, maxShift: 0 };
     }
     const lumenBvh = geometry.boundsTree || (geometry.boundsTree = new MeshBVH(geometry));
-    const originalSegments = segments.map(segment => ({
-        start: segment.start.clone(),
-        end: segment.end.clone()
-    }));
     let passCount = 0;
     let movedNodeCount = 0;
     let shiftSum = 0;

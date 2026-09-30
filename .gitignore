@@ -1,3 +1,7 @@
 node_modules
 out/centerline-diagnostics
 out/collision-asset-report.json
+
+# Local metadata and reproducible production builds
+.DS_Store
+/dist/

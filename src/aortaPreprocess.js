@@ -670,11 +670,6 @@ function findSliceInterval(slices, y, out = null) {
     return setSliceInterval(out, lo, hi, Math.max(0, Math.min(1, (y - slices[lo].y) / span)));
 }
 
-function normalize3(x, y, z, fallback = { x: 1, y: 0, z: 0 }) {
-    const length = Math.hypot(x, y, z);
-    if (length < 1e-8) return { ...fallback };
-    return { x: x / length, y: y / length, z: z / length };
-}
 
 function setVectorLike(target, x, y, z) {
     if (typeof target?.set === 'function') {

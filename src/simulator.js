@@ -356,7 +356,9 @@ const contrastScene = new THREE.Scene();
 
 // Offscreen render targets used by various post-processing passes
 const offscreenTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
-const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
+    type: THREE.HalfFloatType
+});
 const metalTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const catheterMarkerTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
@@ -3760,13 +3762,11 @@ function prepareSimulationStep(dt) {
     const catheterAdvance = stentMode ? 0 :
         controlled ? automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance() : backgroundWithdrawal.catheterAdvance;
     const catheterRotation = controlled ? automatedCommands?.catheterRotation ?? ui.getCatheterRotation() : 0;
-    const guidewireProgressDelta = advanceTailInput(advance, dt);
+    advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
-    const catheterProgressBefore = pigtailCatheter.progress;
     const catheterRotationBefore = pigtailCatheter.rotation;
     if(deliveryDevice)stentGraftCommand.mechanicalPosition=prepareDeliveryMotion(deliveryDevice,pigtailCatheter,dt,stentGraftCommand.advance,inserted,stentGraftCommand.release);
     else pigtailCatheter.advance(catheterAdvance, dt, inserted);
-    const catheterProgressDelta = pigtailCatheter.progress - catheterProgressBefore;
     pigtailCatheter.rotate(catheterRotation, dt);
     if (compositeAppSystem) compositeStepCommands = {
         wire: {spinIncrement: guidewireRotationCommand * GUIDEWIRE_ROTATION_SPEED * dt},
@@ -3924,7 +3924,8 @@ function commitSimulationStep(context) {
     );
     xpbdWireBody.syncToRodState(wire);
     stentGraftSystem?.updateAccess(activeAccessId,dt,{nodes:wire.nodes,
-        coordinate:i=>guidewireTransport.insertedCoordinate(i),catheterMm:pigtailCatheter.type==='stentgraft-delivery'?0:pigtailCatheter.progress},
+        coordinate:i=>guidewireTransport.insertedCoordinate(i),catheterMm:pigtailCatheter.type==='stentgraft-delivery'?0:pigtailCatheter.progress,
+        deliveryBody:pigtailCatheter.type==='stentgraft-delivery'?xpbdCatheterBody:null},
         context.stentGraftCommand?{...context.stentGraftCommand,mechanicalRotation:pigtailCatheter.rotation}:null);
     // Publish accepted lengths for both sheaths: a background withdrawal must
     // stop at the inlet without touching the foreground UI or trial state.
@@ -4673,7 +4674,8 @@ function animate(time) {
         updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
         if (debugVesselSurface?.mesh.visible) debugVesselSurface.prepare(renderer, camera);
-        renderer.render(scene, camera);
+        if (contrastVolumeRenderer) contrastVolumeRenderer.renderDebug(renderer, scene, camera);
+        else renderer.render(scene, camera);
         if (debugLayerVisibility.vesselLabels) anatomyLabelRenderer.render(scene, camera);
         completeFirstLoadedFrame();
     }
@@ -4757,6 +4759,7 @@ runtime.onDispose(() => {
     }
     simulationCatchupPending = false;
     disposeCArmPreview();
+    contrastVolumeRenderer?.dispose();
     disposeThreeResources({
         roots: [scene, contrastScene, blendScene, thicknessScene, displayScene, aortaModel.group],
         materials: [boneMaterial, aortaModel.material, depthMaterialFront, depthMaterialBack,

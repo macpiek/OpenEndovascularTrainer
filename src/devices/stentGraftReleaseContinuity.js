@@ -30,9 +30,6 @@ export function continueGraftRelease(device,dt) {
             p.needsUpdate=true;
             if(part.contactBasePositions)part.contactBasePositions.set(a);
         }
-        // A coarse committed step may already apply the entire equilibrium
-        // proposal. Do not restart a second relaxation merely because that
-        // completed step moved the mesh (important for paused/benchmark steps).
         part.releaseRelaxing=(fraction<1||Math.exp(-12*dt)>1e-4)&&
             a.some((v,i)=>Math.abs(v-b[i])>.0001);
     }
@@ -49,5 +46,16 @@ export function continueGraftRelease(device,dt) {
             if(fraction<1)p.needsUpdate=true;
             if(part.contactBasePositions)part.contactBasePositions.set(p.array);
         }
+    }
+    // The fully released assembly settles as one object, after eliminating
+    // branch roots. During uncovering, each part retains its own release state.
+    // Freezing an individual part early changes the next constrained proposal
+    // and can repeatedly wake its neighbours instead of reaching equilibrium.
+    // A coarse step may already have applied the full equilibrium proposal.
+    if(device.parts.every(part=>part.exposure.every(value=>value===1))) {
+        const relaxing=(fraction<1||Math.exp(-12*dt)>1e-4)&&device.parts.some(part=>
+            part.releasePreviousPositions&&part.mesh.geometry.attributes.position.array.some(
+                (v,i)=>Math.abs(v-part.releasePreviousPositions[i])>.0001));
+        for(const part of device.parts)part.releaseRelaxing=relaxing;
     }
 }

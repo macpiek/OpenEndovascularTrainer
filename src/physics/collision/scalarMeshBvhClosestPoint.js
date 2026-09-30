@@ -378,7 +378,12 @@ export function closestPointToPointScalarBvh(
             }
         }
     }
-    if (scratch.closestFaceIndex < 0) return false;
+    // A hinted triangle (or a triangle in a partially overlapping leaf) may
+    // lie beyond the search radius. It cannot certify a bounded hit: other,
+    // closer triangles outside that radius were deliberately not traversed.
+    // Report a miss so callers can perform their exact unbounded retry.
+    if (scratch.closestFaceIndex < 0 ||
+        scratch.closestDistanceSquared >= maximumDistanceSquared) return false;
     target.point.set(
         scratch.closestX,
         scratch.closestY,

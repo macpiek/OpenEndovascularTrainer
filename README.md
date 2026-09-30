@@ -409,7 +409,7 @@ For a simple static server without Vite, the helper script can serve the reposit
 index.html                  Main simulator shell and controls
 style.css                   Simulator UI styling
 src/simulator.js            Main scene, physics loop, rendering passes, and integration
-src/physics/endovascularPhysicsWorld.js Shared XPBD rod/contact world
+src/physics/endovascularPhysicsWorld.js Shared Kirchhoff rod/contact world
 src/physics/collision/         Packed collision asset and VesselContactField
 src/physics/rodState.js        Material-node storage shared with rendering
 src/physics/guidewireTransport.js Prescribed inlet feed and contact diagnostics
@@ -426,9 +426,18 @@ src/carmControls.js         C-arm movement controls
 src/ui/                    UI widgets, monitor, and C-arm preview
 res/                        Aorta STL and skeleton OBJ assets
 tests/                      Physics and solver regression tests
+scripts/run-tests.mjs        Sequential test suite runner (stops on first failure)
+scripts/test-suites.json     Ordered commands for the main and large test suites
 video/                      Remotion video composition
 out/                        Generated preview frame and video
+dist/                       Local production build (generated, not versioned)
 ```
+
+`npm run build` regenerates `dist/`; deployment should publish that build output.
+Do not commit it or local `.DS_Store` metadata. Historical measurements and
+regression captures remain in `reports/` because tests and research scripts use
+them. The larger test suites are listed in `scripts/test-suites.json`; their
+existing `npm test` / `npm run test:*` entry points remain unchanged.
 
 ## Collision And Physics
 

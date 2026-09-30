@@ -87,7 +87,6 @@ export class PressureDrivenRetrogradeColumn {
         }
         if (!dominantPort || !(retrogradeRateMlPerSec > 0)) return null;
 
-        const port = dominantPort;
         const location = dominantLocation;
 
         const target = this.flowNetwork.findUpstreamMixingJunction(location);

@@ -1,4 +1,8 @@
+import { AnatomicalContrastVolume } from './anatomicalContrastVolume.js';
+import { ContrastDebugPass } from './contrastDebugPass.js';
+import {FlowContrastVolume} from './flowContrastVolume.js';
 import * as THREE from 'three';
+import {FlowConcentrationField} from './flowConcentrationField.js';
 import {
     createContactResult
 } from '../physics/collision/vesselContactField.js';
@@ -31,6 +35,8 @@ const flowLumenVertexShader = `
     attribute float flowSampleIndex;
     attribute float flowConnectorMask;
     attribute float flowRadius;
+    attribute float flowVolumeBlend;
+    varying float vVolumeBlend;
     attribute float flowOpticalWeight;
     varying float vConcentration;
     varying float vRadius;
@@ -48,6 +54,7 @@ const flowLumenVertexShader = `
             vec2 values=texture2D(flowSamples,uv).rg;
             vConcentration=max(mix(values.y,values.x,displayAlpha),vConcentration*flowConnectorMask);
         }
+        vVolumeBlend = flowVolumeBlend;
         vRadius = flowRadius;
         vOpticalWeight = flowOpticalWeight;
         gl_Position = projectionMatrix * viewPosition;
@@ -60,6 +67,7 @@ const flowLumenFragmentShader = `
     uniform bool maximumBlend;
     uniform vec3 debugColor;
     uniform float signalGain;
+    varying float vVolumeBlend;
     varying float vConcentration;
     varying float vRadius;
     varying float vOpticalWeight;
@@ -93,7 +101,7 @@ const flowLumenFragmentShader = `
                 smoothstep(0.08, 0.82, chordFactor)
             );
         float opticalDepth =
-            max(0.0, vConcentration) *
+            (1.0 - vVolumeBlend) * max(0.0, vConcentration) *
             max(0.16, vRadius) *
             vOpticalWeight *
             filledLumenProfile *
@@ -279,7 +287,7 @@ function blendContinuousFlowConcentration(
     const downstreamVisible =
         downstreamConcentration > FLOW_DETECTION_FLOOR;
     if (!upstreamVisible && !downstreamVisible) {
-        return 0;
+        return localConcentration;
     }
     if (upstreamVisible !== downstreamVisible) {
         const neighbourConcentration = upstreamVisible
@@ -336,6 +344,8 @@ function createFlowMaterial({
         depthWrite: false,
         toneMapped: false
     });
+    // Graft meshes share this shader but do not use the native dilation layer.
+    material.defaultAttributeValues.flowVolumeBlend = [0];
     if (usesMaximumBlend) {
         material.blendEquation = THREE.MaxEquation;
         // MIN/MAX equations ignore these factors in WebGL. The shader emits
@@ -2090,6 +2100,7 @@ export class ContrastVolumeRenderer {
             totalFlowCellCount +=
                 system.flowNetwork.edges[edgeIndex].cellCount;
         }
+        this._flowField = new FlowConcentrationField(system.flowNetwork, this._flowCellOffset, totalFlowCellCount);
         this._flowCellRawConcentration =
             new Float32Array(totalFlowCellCount);
         this._flowCellSmoothConcentration =
@@ -2106,9 +2117,13 @@ export class ContrastVolumeRenderer {
         this.lastDisconnectedBranchFade = 1;
         this._debugMode = false;
         this._plumeLocationScratch = {};
+        const anatomy = system.anatomyContactField ?? system.contactField;
+        this._flowVolume = anatomy?.sdfInsideBits && anatomy?.sdfBrickLookup
+            ? new AnatomicalContrastVolume(system.flowNetwork, this._flowCellOffset, anatomy)
+            : new FlowContrastVolume(system.flowNetwork, this._flowCellOffset);
         this._createFlowLumen();
         this._createLocalPlume();
-        this.group.add(this.flowMesh, this.plumeMesh);
+        this.group.add(this.flowMesh, this.plumeMesh, this._flowVolume.mesh);
         this.update();
     }
 
@@ -2129,6 +2144,15 @@ export class ContrastVolumeRenderer {
             flow.junctionConnectorVertex;
         this._flowJunctionDynamicProfiles =
             flow.junctionDynamicProfiles;
+        this._flowJunctionBoundarySamples = flow.junctionDynamicProfiles.map(profile => {
+            const seen = new Set();
+            return profile.surfaceArms.filter(arm => {
+                if (seen.has(arm.edgeIndex)) return false;
+                seen.add(arm.edgeIndex); return true;
+            }).map(arm => ({flatIndex: this._flowCellOffset[arm.edgeIndex] +
+                (arm.edgeT < .5 ? 0 : this.system.flowNetwork.edges[arm.edgeIndex].cellCount-1),
+                weight: Math.max(.04, arm.radius*arm.radius)}));
+        });
         const dynamicOpticalVertexIndices = [];
         const trueJunctionConnectorVertexIndices = [];
         for (
@@ -2148,8 +2172,6 @@ export class ContrastVolumeRenderer {
         }
         this._flowTrueJunctionConnectorVertexIndices =
             Uint32Array.from(trueJunctionConnectorVertexIndices);
-        this._flowTrueJunctionConnectorConcentration =
-            new Float32Array(flow.junctionDynamicProfiles.length);
         this._flowDynamicOpticalVertexIndices = Uint32Array.from(
             dynamicOpticalVertexIndices
         );
@@ -2194,6 +2216,8 @@ export class ContrastVolumeRenderer {
         this._flowConcentrationSampleValue = new Float32Array(
             concentrationSampleEdgeIndices.length
         );
+        this._flowSampleStencil = this._flowField.compileSamples(
+            this._flowConcentrationSampleEdgeIndex, this._flowConcentrationSampleEdgeT);
         this._flowCellChains = flow.chains.map(chain => {
             const cells = [];
             for (const edgeIndex of chain) {
@@ -2249,6 +2273,7 @@ export class ContrastVolumeRenderer {
             ]
         );
         this._previousFlowConcentration=new Float32Array(flow.concentrations.length);
+        flow.geometry.setAttribute('flowVolumeBlend', new THREE.Float32BufferAttribute(Float32Array.from(this._flowVertexConcentrationEdgeIndex, i => this._flowVolume.weights[i]), 1));
         flow.geometry.setAttribute('previousFlowConcentration',new THREE.BufferAttribute(this._previousFlowConcentration,1));
         const width=256,height=Math.max(1,Math.ceil(this._flowConcentrationSampleValue.length/width));
         this._flowSampleData=new Float32Array(width*height*4);
@@ -2300,6 +2325,8 @@ export class ContrastVolumeRenderer {
             texture.needsUpdate=true;
             this._trappedMesh.userData={data,texture,initialized:false};
             geometry.attributes.flowConnectorMask.array.fill(0);
+            // The trapped sac has its own surface image, outside the native volume.
+            geometry.attributes.flowVolumeBlend.array.fill(0);
             for(const material of this._trappedMesh.material) {material.uniforms.useFlowSamples.value=true;material.uniforms.flowSamples.value=texture;}
             this._trappedMesh.name='trapped-contrast-outside-graft';this._trappedMesh.visible=visible;
             this._trappedMesh.frustumCulled=false;this._trappedMesh.renderOrder=6;this.group.add(this._trappedMesh);
@@ -2354,6 +2381,10 @@ export class ContrastVolumeRenderer {
         for(const material of this.flowMesh.material) {material.uniforms.displayAlpha.value=alpha;material.uniforms.useFlowSamples.value=reuseUnchanged;}
         for(const mesh of this._graftMeshes??[])mesh.material.uniforms.displayAlpha.value=alpha;
         for(const m of this._trappedMesh?.material??[])m.uniforms.displayAlpha.value=alpha;
+        const volumeUniforms = this._flowVolume.mesh.material.uniforms;
+        volumeUniforms.displayAlpha.value = alpha;
+        volumeUniforms.debugMode.value = this._debugMode;
+        volumeUniforms.signalGain.value = this.flowTubeMaterial.uniforms.signalGain.value;
         if(reuseUnchanged&&this._lastDisplayTime===time&&this._graftRevision===revision&&this._lastUsedSamples&&this._lastDisplayStats)return this._lastDisplayStats;
         const advanceHistory=this._lastDisplayTime!==time;
         this._lastDisplayTime=time;this._lastUsedSamples=reuseUnchanged;
@@ -2538,17 +2569,8 @@ export class ContrastVolumeRenderer {
             if (edgeIsActive) activeFlowEdges++;
         }
 
-        for (
-            let slot = 0;
-            slot < this._flowConcentrationSampleValue.length;
-            slot++
-        ) {
-            this._flowConcentrationSampleValue[slot] =
-                this._sampleFlowCellConcentration(
-                    this._flowConcentrationSampleEdgeIndex[slot],
-                    this._flowConcentrationSampleEdgeT[slot]
-                );
-        }
+        this._flowField.update(this._flowCellDisplayConcentration);
+        this._flowField.sampleInto(this._flowSampleStencil, this._flowConcentrationSampleValue);
         if(reuseUnchanged) {
             for(let slot=0;slot<this._flowConcentrationSampleValue.length;slot++) {
                 const edge=edges[this._flowConcentrationSampleEdgeIndex[slot]],t=this._flowConcentrationSampleEdgeT[slot];
@@ -2557,11 +2579,10 @@ export class ContrastVolumeRenderer {
                 this._flowSampleData[slot*4]=hidden?0:this._flowConcentrationSampleValue[slot];
             }
             this._flowSampleTexture.needsUpdate=true;
-            for(const i of this._flowTrueJunctionConnectorVertexIndices)this._flowVertexConcentration[i]=0;
+            for(const i of this._flowTrueJunctionConnectorVertexIndices)this._flowVertexConcentration[i]=this._flowConcentrationSampleValue[this._flowVertexConcentrationSampleSlot[i]];
         } else {
             for(let i=0;i<this._flowVertexConcentration.length;i++)this._flowVertexConcentration[i]=this._flowConcentrationSampleValue[this._flowVertexConcentrationSampleSlot[i]];
         }
-        this._updateTrueJunctionConnectorConcentrations();
         this._updateJunctionOpticalWeights();
         for(const mesh of this._graftMeshes??[]) {
             const {part,samples,concentration,previous}=mesh.userData;previous.set(concentration);
@@ -2588,7 +2609,10 @@ export class ContrastVolumeRenderer {
         }
         this.flowMesh.geometry.attributes.flowOpticalWeight.needsUpdate =
             this._flowDynamicOpticalVertexIndices.length > 0;
-        this.flowMesh.visible = activeFlowEdges > 0;
+        this._flowVolume.update(this._flowCellLocalPlumeMassMg, mediumConcentrationMgPerMm3, advanceHistory, !!((remodeling?.surface.sealed || remodeling?.surface.openGate) && this._graftMeshes.length));
+        // Native contrast is drawn once by the filled volume. Keep the surface
+        // geometry for graft/sac reconstruction without submitting invisible triangles.
+        this.flowMesh.visible = false;
 
         this.plumeMesh.geometry.instanceCount = solver.count;
         for (const attributeName of [
@@ -2603,7 +2627,7 @@ export class ContrastVolumeRenderer {
                 solver.count > 0;
         }
         this.plumeMesh.visible = solver.count > 0 && this._debugMode;
-        this.group.visible = activeFlowEdges > 0 || solver.count > 0 || !!this._trappedMesh?.visible;
+        this.group.visible = activeFlowEdges > 0 || solver.count > 0 || !!this._trappedMesh?.visible || this._flowVolume.mesh.visible;
         return this._lastDisplayStats={
             activeFlowEdges,
             flowChainCount: this.flowChainCount,
@@ -2678,42 +2702,6 @@ export class ContrastVolumeRenderer {
 
     }
 
-    _updateTrueJunctionConnectorConcentrations() {
-        for (
-            let slot = 0;
-            slot < this._flowJunctionDynamicProfiles.length;
-            slot++
-        ) {
-            const profile = this._flowJunctionDynamicProfiles[slot];
-            if (profile.hasGeometricMainContinuation) continue;
-            let maximumConcentration = 0;
-            for (const arm of profile.arms) {
-                for (const sample of arm.samples) {
-                    maximumConcentration = Math.max(
-                        maximumConcentration,
-                        this._sampleFlowCellConcentration(
-                            sample.edgeIndex,
-                            sample.edgeT
-                        )
-                    );
-                }
-            }
-            this._flowTrueJunctionConnectorConcentration[slot] =
-                maximumConcentration;
-        }
-        for (
-            const vertexIndex of
-                this._flowTrueJunctionConnectorVertexIndices
-        ) {
-            const slot =
-                this._flowVertexJunctionOpticalSlot[vertexIndex];
-            this._flowVertexConcentration[vertexIndex] = Math.max(
-                this._flowVertexConcentration[vertexIndex],
-                this._flowTrueJunctionConnectorConcentration[slot]
-            );
-        }
-    }
-
     _smoothFlowTopologyAware(source, target) {
         const network = this.system.flowNetwork;
         for (let edgeIndex = 0; edgeIndex < network.edges.length; edgeIndex++) {
@@ -2756,79 +2744,11 @@ export class ContrastVolumeRenderer {
     }
 
     _smoothFlowCellsTopologyAware(source, target) {
-        const edges = this.system.flowNetwork.edges;
-        for (let edgeIndex = 0; edgeIndex < edges.length; edgeIndex++) {
-            const edge = edges[edgeIndex];
-            const cellOffset = this._flowCellOffset[edgeIndex];
-            for (let cellIndex = 0; cellIndex < edge.cellCount; cellIndex++) {
-                const flatIndex = cellOffset + cellIndex;
-                const localConcentration = source[flatIndex];
-
-                let upstreamConcentration = 0;
-                if (cellIndex > 0) {
-                    upstreamConcentration = source[flatIndex - 1];
-                } else if (edge.parentEdgeIndex >= 0) {
-                    const parent = edges[edge.parentEdgeIndex];
-                    upstreamConcentration = source[
-                        this._flowCellOffset[parent.index] +
-                        parent.cellCount - 1
-                    ];
-                }
-
-                let downstreamConcentration = 0;
-                if (cellIndex + 1 < edge.cellCount) {
-                    downstreamConcentration = source[flatIndex + 1];
-                } else if (edge.childEdgeIndices.length) {
-                    let downstreamFlow = 0;
-                    for (const childIndex of edge.childEdgeIndices) {
-                        const child = edges[childIndex];
-                        const flow = Math.max(0, child.meanFlowMm3PerS);
-                        downstreamConcentration += source[
-                            this._flowCellOffset[childIndex]
-                        ] * flow;
-                        downstreamFlow += flow;
-                    }
-                    if (downstreamFlow > 0) {
-                        downstreamConcentration /= downstreamFlow;
-                    } else {
-                        downstreamConcentration =
-                            edge.childEdgeIndices.reduce(
-                                (sum, childIndex) => sum + source[
-                                    this._flowCellOffset[childIndex]
-                                ],
-                                0
-                            ) / edge.childEdgeIndices.length;
-                    }
-                }
-
-                target[flatIndex] = blendContinuousFlowConcentration(
-                    localConcentration,
-                    upstreamConcentration,
-                    downstreamConcentration
-                );
-            }
-        }
+        this._flowField.smooth(source, target, blendContinuousFlowConcentration);
     }
 
     _equalizeRenderedJunctionBoundaryConcentrations(concentrations) {
-        const edges = this.system.flowNetwork.edges;
-        for (const profile of this._flowJunctionDynamicProfiles) {
-            const boundarySamples = [];
-            const seenEdges = new Set();
-            for (const arm of profile.surfaceArms) {
-                if (seenEdges.has(arm.edgeIndex)) continue;
-                seenEdges.add(arm.edgeIndex);
-                const edge = edges[arm.edgeIndex];
-                if (!edge || edge.cellCount < 1) continue;
-                const cellIndex = arm.edgeT < 0.5
-                    ? 0
-                    : edge.cellCount - 1;
-                boundarySamples.push({
-                    flatIndex:
-                        this._flowCellOffset[arm.edgeIndex] + cellIndex,
-                    weight: Math.max(0.04, arm.radius * arm.radius)
-                });
-            }
+        for (const boundarySamples of this._flowJunctionBoundarySamples) {
             if (boundarySamples.length < 2) continue;
             // Mix only arms which already contain detectable iodine. A small
             // empty side branch must stay empty, but it must not prevent the
@@ -2872,6 +2792,16 @@ export class ContrastVolumeRenderer {
                     previousVisibleIndex >= 0 &&
                     chainIndex > previousVisibleIndex + 1
                 ) {
+                    let physicalGap = 0;
+                    for (let i = previousVisibleIndex+1; i < chainIndex; i++)
+                        physicalGap += this._flowField.cellLengths[chainCells[i]];
+                    // Bridge local sampling holes, never the clear interval
+                    // between two distinct boluses on a long vessel chain.
+                    if (physicalGap > 8) {
+                        previousVisibleIndex = chainIndex;
+                        previousVisibleConcentration = concentration;
+                        continue;
+                    }
                     const gapLength =
                         chainIndex - previousVisibleIndex;
                     for (
@@ -3002,39 +2932,12 @@ export class ContrastVolumeRenderer {
     }
 
     _sampleFlowCellConcentration(edgeIndex, edgeT) {
-        const edge = this.system.flowNetwork.edges[edgeIndex];
-        const cellOffset = this._flowCellOffset[edgeIndex];
-        const samplePosition = edgeT * edge.cellCount - 0.5;
-        if (samplePosition <= 0) {
-            return this._flowCellDisplayConcentration[cellOffset];
-        }
-        if (samplePosition >= edge.cellCount - 1) {
-            return this._flowCellDisplayConcentration[
-                cellOffset + edge.cellCount - 1
-            ];
-        }
-        const lowerCell = Math.max(
-            0,
-            Math.min(edge.cellCount - 1, Math.floor(samplePosition))
-        );
-        const upperCell = Math.max(
-            0,
-            Math.min(edge.cellCount - 1, lowerCell + 1)
-        );
-        const interpolation = THREE.MathUtils.clamp(
-            samplePosition - lowerCell,
-            0,
-            1
-        );
-        return THREE.MathUtils.lerp(
-            this._flowCellDisplayConcentration[cellOffset + lowerCell],
-            this._flowCellDisplayConcentration[cellOffset + upperCell],
-            interpolation
-        );
+        return this._flowField.sample(edgeIndex, edgeT);
     }
 
     setDebugMode(enabled) {
         this._debugMode = !!enabled;
+        this._flowVolume.mesh.material.uniforms.debugMode.value = this._debugMode;
         for(const mesh of this._graftMeshes??[])mesh.material.uniforms.debugMode.value=this._debugMode;
         for(const material of this._trappedMesh?.material??[])material.uniforms.debugMode.value=this._debugMode;
         this.flowTubeMaterial.uniforms.debugMode.value = this._debugMode;
@@ -3050,7 +2953,14 @@ export class ContrastVolumeRenderer {
             this.system.localSolver.count > 0 && this._debugMode;
     }
 
+    renderDebug(renderer, scene, camera) {
+        this._debugPass ??= new ContrastDebugPass(this.group);
+        this._debugPass.render(renderer, scene, camera);
+    }
+
     dispose() {
+        this._debugPass?.dispose();
+        this._flowVolume.dispose();
         this._flowSampleTexture?.dispose();
         for(const mesh of this._graftMeshes??[]) {mesh.geometry.dispose();mesh.material.dispose();}
         if(this._trappedMesh){this._trappedMesh.geometry.dispose();this._trappedMesh.userData.texture?.dispose();for(const material of this._trappedMesh.material)material.dispose();}

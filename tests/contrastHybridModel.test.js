@@ -683,10 +683,9 @@ washoutBandingRenderer.update();
 const isolatedResidueDisplay = readWashoutDisplay(
     washoutBandingRenderer
 );
-assert.equal(
-    isolatedResidueDisplay[4],
-    0,
-    'a one-cell late residue with no connected contrast should not remain as a visible segment'
+assert.ok(
+    isolatedResidueDisplay[4] > 0,
+    'a real compact bolus must remain visible; washout belongs to transport, not display deletion'
 );
 washoutBandingRenderer.dispose();
 
@@ -1167,7 +1166,7 @@ assert.equal(
     'fluoroscopic plume projection must not duplicate iodine in the physical flow network'
 );
 assert.equal(
-    localFluoroRenderer.flowMesh.visible,
+    localFluoroRenderer._flowVolume.mesh.visible,
     true,
     'the injected stream must be visible in fluoroscopy while it remains local'
 );

@@ -73,12 +73,6 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
-function setVector(target, x, y, z) {
-    target.x = x;
-    target.y = y;
-    target.z = z;
-    return target;
-}
 
 function setContact(target, source) {
     target.inside = source.inside;
@@ -1753,6 +1747,27 @@ export class VesselContactField {
             }
         }
 
+        // Sparse SDF bricks cover a band around the wall, not the complete
+        // lumen. In a wide aneurysm a missing brick can be deep inside blood
+        // while lying outside the centreline's approximate radius. Preserve
+        // anatomical classification instead of inventing an exterior sign.
+        if (this.packedLumenField) {
+            const lumen = this.packedLumenField.queryCoordinates(x, y, z, this._lumenQuery);
+            const sign = knownInside || lumen.inside ? 1 : -1;
+            stateValues[DISTANCE_SIGNED_DISTANCE] = Math.abs(lumen.signedDistance) * sign;
+            stateValues[DISTANCE_INWARD_X] = lumen.inward.x;
+            stateValues[DISTANCE_INWARD_Y] = lumen.inward.y;
+            stateValues[DISTANCE_INWARD_Z] = lumen.inward.z;
+            stateValues[DISTANCE_BRANCH_ID] = centerlineValues[CENTERLINE_BRANCH_ID];
+            state.conservative = false;
+            state.source = 'packed-lumen';
+            // A sliced-contour distance is not a 3D clearance certificate.
+            // Resolve the actual nearest triangle even outside the usual band.
+            this.#refineWithBvh(x, y, z, radius, state, true);
+            this.stats[STAT_FALLBACK_HITS]++;
+            return state;
+        }
+
         stateValues[DISTANCE_SIGNED_DISTANCE] = centerlineValues[CENTERLINE_SIGNED_DISTANCE];
         stateValues[DISTANCE_INWARD_X] = centerlineValues[CENTERLINE_INWARD_X];
         stateValues[DISTANCE_INWARD_Y] = centerlineValues[CENTERLINE_INWARD_Y];
@@ -2751,7 +2766,7 @@ export class VesselContactField {
         return inside;
     }
 
-    #refineWithBvh(x, y, z, radius, state) {
+    #refineWithBvh(x, y, z, radius, state, force = false) {
         const boundsTree = this.fallbackGeometry?.boundsTree;
         const stateValues = state.values;
         const signedGap = stateValues[DISTANCE_SIGNED_DISTANCE] - radius;
@@ -2760,7 +2775,7 @@ export class VesselContactField {
             : this.bvhValidationDistance;
         if (
             !boundsTree ||
-            (!this._finiteMeshContacts && Math.abs(signedGap) > validationDistance && (radius <= 0 || signedGap >= -0.2))
+            (!force && !this._finiteMeshContacts && Math.abs(signedGap) > validationDistance && (radius <= 0 || signedGap >= -0.2))
         ) return false;
         this._bvhPoint.set(x, y, z);
         const hintedFace = this._bvhClosest.faceIndex;

@@ -10,13 +10,13 @@ import {calibrateStentGrafts} from './stentGraftCalibration.js';
 import {graftDisplacementSampler} from './stentGraftCompliance.js';
 import {fitGraftJunction,fitIIsTrunkSection} from './stentGraftJunction.js';
 import {packedLayout,packedFrames,releaseSection,constrainReleaseCenters,separateReleaseBranches} from './stentGraftReleaseShape.js';
-import {fitExpandedGraft,graftRestAxes} from './stentGraftExpansion.js';
+import {graftRestAxes} from './stentGraftExpansion.js';
 import {disposeWire} from './stentGraftWire.js';
 import {mainBodyModel,limbModel,LIMB_MODELS,LIMB_DISTAL_DIAMETERS,worldBodyDimensions,graftScale,nominalPartRadius,proximalDiameters,distalDiameters,deliveryRadiusMm} from './stentGraftModels.js';
 import {captureGraftPose,rotateGraftPose} from './stentGraftRotation.js';
 import {createFoldedGraftPreview,updateFoldedGraftPreview,disposeFoldedGraftPreview,setFoldedPreviewVisible} from './stentGraftFoldedPreview.js';
 import * as THREE from 'three';
-import {AORTIC_NECK,AORTIC_BIFURCATION,DevicePath,wireDevicePath,createAorticRoutes} from './stentGraftPaths.js';
+import {AORTIC_NECK,AORTIC_BIFURCATION,DevicePath,wireDevicePath,deliveryBodyPath,extendDeliveryPath,createAorticRoutes} from './stentGraftPaths.js';
 import {createFlexibleNoseGeometry,NOSECONE_LENGTH_MM,NOSECONE_BASE_RADIUS_MM} from './stentGraftNose.js';
 import {graftLumenSections} from './stentGraftLumenContact.js';
 import {preparePartialSurface,partialSurfaceSnapshot,updatePartialSurfacePose} from './stentGraftPartialSurface.js';
@@ -53,6 +53,18 @@ export class StentGraftSystem {
         this.geometryRevision=0;
     }
     getPath(side){return this.committedSources[side]?.path ?? wireDevicePath(this.readAccess(side));}
+    getDeliveryPath(side) {
+        const device=this.accesses[side].device,source=this.committedSources[side];
+        const physical=source?.deliveryDeviceId===device?.id?source?.deliveryPath:null;
+        const wire=this.getPath(side),tip=deliveryNoseState(device).position;
+        // Preview-only callers have no rod. Preserve their last supported
+        // route so withdrawing the wire still permits delivery withdrawal.
+        const path=physical?.points.length>=2?physical:
+            wire.length>=device.position?wire:device.deliveryRenderPath??wire;
+        const next=extendDeliveryPath(path,tip);
+        if(next.points.length>=2)device.deliveryRenderPath=next;
+        return next;
+    }
     catheterPosition(side){return this.committedSources[side]?.catheterMm ?? this.readAccess(side).catheterMm;}
     ensureRoutes() {
         if(!this.routes) {
@@ -249,7 +261,9 @@ export class StentGraftSystem {
         // can change feed coordinates before committing a matching wire pose.
         if(committedSource) {
             const path=wireDevicePath(committedSource);
-            this.committedSources[side]={path,catheterMm:committedSource.catheterMm};
+            this.committedSources[side]={path,catheterMm:committedSource.catheterMm,
+                deliveryPath:deliveryBodyPath(committedSource.deliveryBody),
+                deliveryDeviceId:this.accesses[side].device?.id};
             // The original threading ceases when the wire is withdrawn from
             // the delivery-side outlet. A later wire can enter either portal normally.
             for(const implant of this.implants)if(implant.side===side&&!implant.deliveryWireReleased) {
@@ -295,7 +309,7 @@ export class StentGraftSystem {
         if(d.phase==='deployed')advanceRelease(d,dt,control);
         if(d.phase==='deploying') {
             advanceRelease(d,dt,control);
-            d.deliveryPath=this.getPath(side);
+            d.deliveryPath=this.getDeliveryPath(side);
             // Once cloth leaves the cover, its release pose belongs to the
             // implant. Re-sampling it from the rod creates a feedback loop:
             // contact bends the rod, which bends the same contacting cloth.
@@ -333,7 +347,11 @@ export class StentGraftSystem {
                 d.contactPoseKey=contactPoseKey;
             }
 
-            if(d.deployment===1&&d.releaseStage==='complete'&&!d.releaseMotionLimited){
+            if(d.deployment===1&&d.releaseStage==='complete'&&
+                (d.releaseMotionLimited||d.parts.some(part=>part.releaseRelaxing))) {
+                d.deployment=1-1e-6;d.releaseStage='expanding';
+            }
+            if(d.deployment===1&&d.releaseStage==='complete'){
                 d.phase='deployed';if(d.gate)d.gate.marker.visible=true;
                 access.message=d.type==='body'?'Korpus rozłożony. Otwarta bramka — dołącz nóżkę z przeciwnej koszulki.':
                     d.parentId!==null?'Nóżka połączona. Kontrast płynie światłem stentgraftu.':'Nóżka rozłożona bez połączenia z korpusem.';
@@ -420,8 +438,8 @@ export class StentGraftSystem {
     refreshDelivery(side) {
         const d=this.accesses[side].device;if(!d)return;
         if(d.position<1){d.deliveryGeometryState=null;setFoldedPreviewVisible(d.foldedPreview,false);for(const key of ['deliveryMesh','noseMarker','noseBand','sheathMarker','rotationMarker'])if(d[key])d[key].visible=false;return;}
-        const wire=d.phase==='deploying'?d.deliveryPath:this.getPath(side);
-        if(wire.length<d.position)return;
+        const wire=this.getDeliveryPath(side);
+        if(wire.points.length<2)return;
         const tip=deliveryNoseState(d).position;
         if(unchangedDeliveryPose(d,wire,tip))return;
         if(d.phase==='loaded'&&wire.points.length>=2){

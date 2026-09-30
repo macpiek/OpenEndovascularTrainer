@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {getCompositeJointRenderPath} from '../compositeJointRenderPath.js';
 
 // Landmarks in the atlas physics coordinates (shared by both anatomy variants).
 export const AORTIC_NECK = new THREE.Vector3(8, -196, -7);
@@ -50,6 +51,33 @@ export function wireDevicePath({nodes,coordinate}) {
         if(s>=0){points.push(nodes[i]);coordinates.push(s);}
     }
     return new DevicePath(points,coordinates);
+}
+
+/** Copy only a committed delivery rod. Neither later Newton trials nor a
+ * withdrawn guidewire may overwrite the delivery system's rendered pose. */
+export function deliveryBodyPath(body) {
+    if(!body)return null;
+    const view=body.jointStateView,curve=getCompositeJointRenderPath(view);
+    if(curve) {
+        const coordinates=view.continuousCurve?.coordinates??view.coordinates;
+        const start=coordinates[0],span=coordinates.at(-1)-start;
+        const nodes=Array.from(coordinates,s=>curve.getPointAt((s-start)/span,new THREE.Vector3()));
+        return wireDevicePath({nodes,coordinate:i=>coordinates[i]});
+    }
+    const nodes=[],coordinates=[];
+    for(let i=Math.max(0,body.activeStart-1);i<=body.activeEnd;i++) {
+        nodes.push(new THREE.Vector3(body.x[i],body.y[i],body.z[i]));
+        coordinates.push(body.materialCoordinate[i]);
+    }
+    return wireDevicePath({nodes,coordinate:i=>coordinates[i]});
+}
+
+export function extendDeliveryPath(path,end) {
+    if(path.points.length<2||end<=path.length)return path;
+    const last=path.points.at(-1),direction=last.clone().sub(path.points.at(-2)).normalize();
+    if(direction.lengthSq()===0)return path;
+    return new DevicePath([...path.points,last.clone().addScaledVector(direction,end-path.length)],
+        [...path.coordinates,end]);
 }
 
 export function createAorticRoutes(segments,sheaths) {

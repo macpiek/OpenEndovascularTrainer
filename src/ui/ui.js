@@ -348,9 +348,6 @@ export function initUI(options) {
   let roundedKv = -1;
   let maTenths = -1;
   let doseRateThousandths = -1;
-  let insertedLengthDisplay = '';
-  let catheterLengthDisplay = '';
-  let doseDisplay = '';
   let kvDisplay = '';
   let maDisplay = '';
   let doseRateDisplay = '';
@@ -1394,7 +1391,6 @@ export function initUI(options) {
     insertedLengthTenths = nextTenths;
     guidewireRotationDegrees = nextRotationDegrees;
     const display = (nextTenths / 10).toFixed(1);
-    insertedLengthDisplay = display;
     if (insertedLengthEl) {
       const sign = nextRotationDegrees > 0 ? '+' : '';
       insertedLengthEl.textContent =
@@ -1430,7 +1426,6 @@ export function initUI(options) {
     catheterLengthTenths = nextTenths;
     catheterRotationDegrees = nextRotationDegrees;
     const display = (nextTenths / 10).toFixed(1);
-    catheterLengthDisplay = display;
     if (catheterLengthEl) {
       const sign = nextRotationDegrees > 0 ? '+' : '';
       catheterLengthEl.textContent =
@@ -1443,7 +1438,6 @@ export function initUI(options) {
     if (nextTenths === doseTenths) return;
     doseTenths = nextTenths;
     const display = (nextTenths / 10).toFixed(1);
-    doseDisplay = display;
     if (doseDisplayEl) doseDisplayEl.textContent = `Contrast ${display} ml`;
   }
   function updateXrayTechnique(kv, ma, doseRateMgyPerSecond = 0) {

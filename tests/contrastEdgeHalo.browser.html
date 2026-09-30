@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<title>Obrys kontrastu — regresja GPU</title>
+<style>body{background:#101820;color:#e7edf3;font:16px system-ui;padding:20px}main{display:flex;gap:20px}canvas{width:384px;height:384px;image-rendering:pixelated}pre{white-space:pre-wrap}</style>
+<h1>Drobne punkty poza obrysem kontrastu</h1>
+<p>Ta sama projekcja i wzmocnienie DSA. Szum wyłączony, aby zmierzyć sam artefakt krawędzi.</p>
+<main><section><h2>Przed poprawką</h2><canvas id="before"></canvas></section><section><h2>Po poprawce</h2><canvas id="after"></canvas></section></main>
+<pre id="results">Uruchamianie…</pre>
+<script type="module">
+import * as THREE from 'three';
+import {vertexShader, fragmentShader} from '../src/shaders/displayShader.js';
+const size = 192;
+const renderer = new THREE.WebGLRenderer({antialias:false});
+renderer.setSize(size,size);
+const target = new THREE.WebGLRenderTarget(size,size);
+const mask = new THREE.WebGLRenderTarget(size,size);
+const data = new Float32Array(size*size*4);
+const texture = new THREE.DataTexture(data,size,size,THREE.RGBAFormat,THREE.FloatType);
+texture.needsUpdate = true;
+const empty = new THREE.DataTexture(new Uint8Array(4),1,1);
+empty.needsUpdate = true;
+const uniforms = {};
+for (const [,type,name] of fragmentShader.matchAll(/uniform\s+(\w+)\s+(\w+);/g)) {
+    uniforms[name] = {value:type==='sampler2D'?empty:type==='vec2'?new THREE.Vector2(size,size):type==='vec3'?new THREE.Vector3(1,1,1):type==='bool'?false:0};
+}
+for (const [name,value] of Object.entries({fluoroscopy:true,contrastOpacity:1,contrastGain:5,dsaGain:2.2,imageBrightness:.18,imageContrast:1.33,pulseRate:15,detectorZoomNoiseScale:1,detectorZoomScatterScale:1})) uniforms[name].value=value;
+const material = new THREE.ShaderMaterial({uniforms,vertexShader,fragmentShader});
+const legacy = new THREE.ShaderMaterial({uniforms,vertexShader,fragmentShader:fragmentShader.replace('min(fwidth(centerAttenuation), centerAttenuation)','fwidth(centerAttenuation)')});
+const scene = new THREE.Scene();
+const quad = new THREE.Mesh(new THREE.PlaneGeometry(2,2),material);
+scene.add(quad);
+const camera = new THREE.Camera();
+function draw(m,strength,output=target) {
+    quad.material=m;
+    uniforms.edgeStrength.value=strength;
+    renderer.setRenderTarget(output);
+    renderer.render(scene,camera);
+    const pixels=new Uint8Array(size*size*4);
+    renderer.readRenderTargetPixels(output,0,0,size,size,pixels);
+    return pixels;
+}
+function show(id,pixels) {
+    const canvas=document.getElementById(id);
+    canvas.width=canvas.height=size;
+    const flipped=new Uint8ClampedArray(pixels.length);
+    for(let y=0;y<size;y++) flipped.set(pixels.subarray(y*size*4,(y+1)*size*4),(size-y-1)*size*4);
+    canvas.getContext('2d').putImageData(new ImageData(flipped,size,size),0,0);
+}
+try {
+    let legacyArtifacts=0, fixedArtifacts=0, cases=0;
+    for(const dsa of [false,true]) for(const width of [1.2,12]) for(const phase of [0,.35,.7]) {
+        uniforms.contrastTexture.value=empty;
+        uniforms.uTexture.value=empty;
+        uniforms.dsaEnabled.value=false;
+        uniforms.dsaMaskValid.value=false;
+        uniforms.dsaMaskTexture.value=empty;
+        draw(material,0,mask);
+        uniforms.dsaMaskTexture.value=mask.texture;
+        uniforms.dsaMaskValid.value=dsa;
+        uniforms.dsaEnabled.value=dsa;
+        for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+            const center=85+.31*(y-96)+13*Math.sin(y/32)+phase;
+            // A subpixel partial-volume border, including a thin vessel.
+            const coverage=THREE.MathUtils.clamp(width+.5-Math.abs(x+.5-center),0,1);
+            const i=(x+y*size)*4;
+            data[i]=data[i+1]=data[i+2]=data[i+3]=coverage*.22;
+        }
+        texture.needsUpdate=true;
+        uniforms.contrastTexture.value=texture;
+        uniforms.uTexture.value=texture;
+        const reference=draw(material,0), before=draw(legacy,.1), after=draw(material,.1);
+        let interior=0;
+        for(let i=0;i<data.length;i+=4) {
+            if(data[i]===0) {
+                if(reference[i]-before[i]>1) legacyArtifacts++;
+                if(reference[i]-after[i]>1) fixedArtifacts++;
+            } else if(data[i]>.2 && after[i]<reference[i]+2) interior++;
+        }
+        if(interior===0) throw Error('Zniknęło wnętrze naczynia');
+        if(dsa && width===12 && phase===.35) {show('before',before);show('after',after);}
+        cases++;
+    }
+    document.getElementById('results').textContent=`${fixedArtifacts===0?'PASS':'FAIL'}: ${cases} projekcji (fluoroskopia i DSA, cienkie i szerokie naczynie, przesunięcia podpikselowe).\nDodatkowo zaciemnione piksele poza światłem: przed ${legacyArtifacts}, po ${fixedArtifacts}.`;
+    if(!legacyArtifacts) throw Error('Nie odtworzono artefaktu poprzedniego shadera');
+    if(fixedArtifacts) throw Error('Wyostrzanie nadal dodaje sygnał poza naczyniem');
+} catch(error) {document.getElementById('results').textContent+='\nFAIL '+error.message;throw error;}
+</script>
+</html>

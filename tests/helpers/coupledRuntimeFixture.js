@@ -237,7 +237,9 @@ export function createCoupledRuntimeFixture({
 }
 
 /** The same transformed STL and packed field settings as aortaModel.js. */
-export async function loadCoupledRuntimeAnatomy(root = new URL('../../', import.meta.url)) {
+export async function loadCoupledRuntimeAnatomy(root = new URL('../../', import.meta.url), anatomy = 'plain') {
+    if (!['plain', 'infrarenal-aneurysm'].includes(anatomy)) throw new RangeError('Unknown replay anatomy');
+    const assetName = anatomy === 'plain' ? 'Aorta_plain' : 'Aorta_infrarenal_aneurysm';
     const [{ readFileSync }, { STLLoader }, { MeshBVH }, { transformAortaGeometry },
         { decodeCollisionAsset }, { VesselContactField }] = await Promise.all([
         import('node:fs'), import('three/examples/jsm/loaders/STLLoader.js'), import('three-mesh-bvh'),
@@ -248,8 +250,8 @@ export async function loadCoupledRuntimeAnatomy(root = new URL('../../', import.
         const bytes = readFileSync(new URL(`res/${name}`, root));
         return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
     };
-    const asset = decodeCollisionAsset(buffer('Aorta_plain.collision.bin'));
-    const geometry = new STLLoader().parse(buffer('Aorta_plain.stl'));
+    const asset = decodeCollisionAsset(buffer(`${assetName}.collision.bin`));
+    const geometry = new STLLoader().parse(buffer(`${assetName}.stl`));
     const { vessel } = generateVessel(140, 0);
     transformAortaGeometry(geometry, vessel);
     geometry.computeBoundingBox();

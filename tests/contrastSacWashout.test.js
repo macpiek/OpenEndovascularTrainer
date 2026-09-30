@@ -37,6 +37,8 @@ test('sac and lumen history survives repeated geometry revisions without black i
   f.system._solverAccumulator=0;r.update({reuseUnchanged:true});
   const texture=r._trappedMesh.userData.texture,before=r._trappedMesh.userData.data.slice();
   assert.ok(before.some(v=>v>0));
+  assert.ok(r._trappedMesh.geometry.attributes.flowVolumeBlend.array.every(v=>v===0),
+   'native volume replacement must not hide the separately retained sac image');
   for(let i=2;i<8;i++) {
    const next=createContrastReleaseSurface([f.device],i);f.system.setStentGraftSurface(next);surface.dispose();surface=next;
    r.update({reuseUnchanged:true});

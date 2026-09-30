@@ -25,12 +25,17 @@ export function graftLumenSections(device) {
     if(device.phase==='deployed'||device.type==='limb')return [];
     const sections=[],exposed=fullyOpenDistance(device);
     for(const part of device.parts.slice(0,device.type==='body'?2:1)) {
-        const positions=part.wasCaptured?part.mesh.geometry.attributes.position.array:part.target;
+        // Match the accepted cloth before contact indentation, as the owning
+        // branch snapshots do. The expansion target is not a physical wall.
+        const positions=part.contactBasePositions??part.mesh.geometry.attributes.position.array;
         const rings=part.points.map((_,row)=>{
             const center=[0,0,0];
             for(let j=0;j<part.sides;j++)for(let k=0;k<3;k++)center[k]+=positions[(row*part.sides+j)*3+k]/part.sides;
-            let radius=Infinity;
-            for(let j=0;j<part.sides;j++)radius=Math.min(radius,Math.hypot(...center.map((v,k)=>positions[(row*part.sides+j)*3+k]-v)));
+            // This circular guide is only for recovery outside the cloth.
+            // An inscribed circle would push tools out of valid portions of
+            // elliptical/flattened rings. Actual fabric still supplies contact.
+            let radius=0;
+            for(let j=0;j<part.sides;j++)radius=Math.max(radius,Math.hypot(...center.map((v,k)=>positions[(row*part.sides+j)*3+k]-v)));
             return {center,radius};
         });
         for(let i=1;i<part.rows;i++) {

@@ -32,6 +32,30 @@ test('branch contact uses the real spatial lumen, remains free inside, and has t
  for(const x of [-20,29,71,120])assert.equal(graftBranchContactAt(branches,[x,5,0],.4445),null,'no remote tether or end cap');
 });
 
+test('recovery energy and force stay continuous when the tool axis enters the cloth',()=>{
+ const s=surface(tube()),angle=Math.PI/24,wall=3*Math.cos(angle);
+ const evaluate=distance=>{
+  const state=createSharedAxisNative({tools:[{id:'wire',insertion:60,type:beam,radius:.8}],spacing:2,
+   samplePosition:x=>[x,distance*Math.cos(angle),distance*Math.sin(angle)]});
+  const sampler=createStentGraftContacts(s,state);
+  const energy=sampler.addPotential(state,false);
+  return {energy,gradient:state.chain.gradient};
+ };
+ try {
+  const outside=evaluate(wall+1e-5),inside=evaluate(wall-1e-5);
+  assert.ok(outside.energy>0&&inside.energy>0);
+  assert.ok(Math.abs(inside.energy-outside.energy)<outside.energy*1e-4,
+   'the centreline entering must not switch a still-overlapping tool to a different potential');
+  const scale=Math.max(...outside.gradient.map(Math.abs));
+  assert.ok(inside.gradient.every((v,i)=>Math.abs(v-outside.gradient[i])<scale*1e-4));
+  const touching=evaluate(wall-.8-1e-5),overlapping=evaluate(wall-.8+1e-5);
+  assert.ok(Math.abs(touching.energy-overlapping.energy)<overlapping.energy*.001,
+   'clearing the physical radius must not drop the remaining recovery margin abruptly');
+  assert.equal(evaluate(wall-.8-.05-1e-5).energy,0,'recovery vanishes at its clearance margin');
+  assert.equal(evaluate(wall-1).energy,0,'a tool with full clearance remains force-free');
+ }finally{s.geometry.dispose();}
+});
+
 for(const side of ['right','left'])test(`${side}: ownership follows the long leg, survives release, and is absent on the other access`,()=>{
  const {system,device:d}=previewFixture(side);
  try {

@@ -1,0 +1,33 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Obrys anatomicznego kontrastu</title>
+<style>body{background:#101820;color:white;font:16px system-ui}main{display:flex;gap:12px}canvas{width:480px;height:600px}pre{white-space:pre-wrap}</style>
+<h1>Stałe stężenie — rzeczywista anatomia</h1><main></main><pre id="results">Ładowanie…</pre>
+<script type="module">
+import * as THREE from 'three';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastVolume} from '../src/contrast/anatomicalContrastVolume.js';
+const asset=decodeCollisionAsset(await(await fetch('/res/Aorta_infrarenal_aneurysm.collision.bin')).arrayBuffer());
+const field=new VesselContactField(asset), data=asset.arrays.centerlineSegments, links=asset.arrays.centerlineEdges;
+const segments=[];
+for(let i=0;i<data.length;i+=9)segments.push({id:i/9,nodeStartId:links[i/9*2],nodeEndId:links[i/9*2+1],start:new THREE.Vector3(...data.slice(i,i+3)),end:new THREE.Vector3(...data.slice(i+3,i+6)),radiusStart:data[i+6],radiusEnd:data[i+7],safeRadius:data[i+8]});
+const network=new ContrastFlowNetwork(segments);let count=0;
+const offsets=Uint32Array.from(network.edges,e=>{const i=count;count+=e.cellCount;for(let j=0;j<e.cellCount;j++)e.massMg[j]=e.volumes[j]*.03;return i;});
+const volume=new AnatomicalContrastVolume(network,offsets,field);volume.update(new Float32Array(count),.3,false);
+volume.mesh.material.uniforms.signalGain.value=1;
+const scene=new THREE.Scene();scene.add(volume.mesh);
+const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(480,600);
+const target=new THREE.WebGLRenderTarget(480,600,{type:THREE.HalfFloatType});
+const display=new THREE.Scene();const material=new THREE.ShaderMaterial({uniforms:{t:{value:target.texture}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:'varying vec2 v;uniform sampler2D t;void main(){float c=exp(-texture2D(t,v).r*16.);gl_FragColor=vec4(vec3(c*.7),1.);}'});display.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));
+const fixedShader=volume.mesh.material.fragmentShader;
+for(const legacy of [true,false]){
+ volume.mesh.material.fragmentShader=legacy?fixedShader.replace('smoothstep(0.,voxelSize*.35,distance)','smoothstep(-voxelSize*.35,voxelSize*.35,distance)'):fixedShader;
+ volume.mesh.material.needsUpdate=true;
+ const perspective=true;
+ const camera=perspective?new THREE.PerspectiveCamera(18,480/600,.1,2000):new THREE.OrthographicCamera(-44,44,55,-55,.1,2000);
+ camera.position.set(-28,-323,350);camera.lookAt(-28,-323,0);
+ renderer.setRenderTarget(target);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(display,new THREE.Camera());
+ const section=document.createElement('section');const h=document.createElement('h2');h.textContent=legacy?'Przed — halo poza światłem':'Po — kontrast wewnątrz światła';const canvas=document.createElement('canvas');canvas.width=480;canvas.height=600;canvas.getContext('2d').drawImage(renderer.domElement,0,0);section.append(h,canvas);document.querySelector('main').append(section);
+}
+document.querySelector('#results').textContent='Obraz samej objętości: bez wyostrzania, szumu, DSA i pamięci poprzednich klatek.';
+</script></html>

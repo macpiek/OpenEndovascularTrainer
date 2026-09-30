@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pl">
+    <meta charset="utf-8" />
+    <title>Kontrast w rzeczywistym świetle — test GPU</title>
+    <h1>Wypełnienie anatomii</h1>
+    <pre id="results">Uruchamianie…</pre>
+    <script type="module">
+        import * as THREE from 'three';
+        import { AnatomicalContrastVolume } from '../src/contrast/anatomicalContrastVolume.js';
+        import { anatomicalContrastFixture } from './helpers/anatomicalContrastFixture.js';
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(256, 256);
+        const target = new THREE.WebGLRenderTarget(256, 256, {
+            type: THREE.HalfFloatType
+        });
+        const camera = new THREE.OrthographicCamera(-16, 16, 16, -16, 0.1, 100);
+        camera.position.z = 40;
+        const pixels = new Uint16Array(4),
+            lines = [];
+        function assert(v, m) {
+            if (!v) throw Error(m);
+        }
+        function read(x, y) {
+            renderer.readRenderTargetPixels(
+                target,
+                Math.floor((x + 16) * 8),
+                Math.floor((y + 16) * 8),
+                1,
+                1,
+                pixels
+            );
+            return THREE.DataUtils.fromHalfFloat(pixels[0]);
+        }
+        try {
+            for (const sparse of [false, true]) {
+                const f = anatomicalContrastFixture({ sparse, wallThickness: 1 }),
+                    v = new AnatomicalContrastVolume(
+                        f.network,
+                        f.offsets,
+                        f.field
+                    );
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0);
+                scene.add(v.mesh);
+                const uniforms = v.mesh.material.uniforms;
+                uniforms.signalGain.value = 1;
+                function draw() {
+                    renderer.setRenderTarget(target);
+                    renderer.render(scene, camera);
+                }
+                try {
+                    v.update(f.plume, 0.3, false);
+                    draw();
+                    const expected = 0.5 * 0.1 * (sparse ? 24 : 6);
+                    const interior = [];
+                    for (const x of [-5, -4.1, -3.9, 0, 3.9, 4.1, 8.5])
+                        for (const y of [-8.1, -7.9, 0, 3.9, 4.1, 9])
+                            interior.push(read(x, y));
+                    assert(
+                        interior.every(
+                            (value) => Math.abs(value - expected) < 0.015
+                        ),
+                        `Niepełne wypełnienie/szew: ${Math.min(...interior)}…${Math.max(...interior)}, oczekiwano ${expected}`
+                    );
+                    assert(
+                        read(-7, 0) === 0 && read(11, 0) === 0,
+                        'Sygnał wyszedł poza anatomię'
+                    );
+                    const fixedMaterial = v.mesh.material;
+                    const legacyMaterial = fixedMaterial.clone();
+                    legacyMaterial.fragmentShader = fixedMaterial.fragmentShader.replace(
+                        'smoothstep(0.,voxelSize*.35,distance)',
+                        'smoothstep(-voxelSize*.35,voxelSize*.35,distance)'
+                    );
+                    v.mesh.material = legacyMaterial;
+                    draw();
+                    assert(read(-7, 0) > 0, 'Regresja musi odtworzyć halo zewnętrznej ściany');
+                    v.mesh.material = fixedMaterial;
+                    legacyMaterial.dispose();
+                    draw();
+                    lines.push('PASS zewnętrzna ściana: stary shader tworzył halo; aktualny daje dokładnie 0');
+                    lines.push(
+                        `PASS ${sparse ? 'rzadkie dane — odbudowa wnętrza' : 'asymetryczne światło poza promieniem osi'}: ${Math.min(...interior).toFixed(3)}–${Math.max(...interior).toFixed(3)}, cel ${expected.toFixed(3)}; poza ścianą 0`
+                    );
+                    if (!sparse) {
+                        v.mesh.rotation.y = Math.PI / 6;
+                        draw();
+                        assert(
+                            Math.abs(
+                                read(0, 0) - expected / Math.cos(Math.PI / 6)
+                            ) < 0.015,
+                            'Obrócona anatomia ma nieprawidłową grubość optyczną'
+                        );
+                        v.mesh.rotation.y = 0;
+                        lines.push('PASS projekcja obróconego światła');
+                    }
+                    const masses = f.network.edges.map((e) =>
+                        Array.from(e.massMg)
+                    );
+                    f.fill(0.06);
+                    v.update(f.plume, 0.3, true);
+                    uniforms.displayAlpha.value = 0.5;
+                    draw();
+                    assert(
+                        Math.abs(read(5, 0) - expected * 1.5) < 0.02,
+                        'Nieciągła interpolacja klatek'
+                    );
+                    uniforms.displayAlpha.value = 1;
+                    for (const e of f.network.edges)
+                        e.graftSections = Array(e.cellCount).fill(1);
+                    v.update(f.plume, 0.3, true, true);
+                    draw();
+                    assert(read(5, 0) === 0, 'Powielony kontrast poza graftem');
+                    for (let j = 0; j < f.network.edges.length; j++)
+                        assert(
+                            f.network.edges[j].massMg.every(
+                                (m, i) => Math.abs(m - 2 * masses[j][i]) < 1e-12
+                            ),
+                            'Renderer zmienił masę jodu'
+                        );
+                    v.update(f.plume, 0.3, true, false);
+                    draw();
+                    assert(
+                        read(5, 0) > 0,
+                        'Kontrola resetu wymaga widocznego kontrastu'
+                    );
+                    v.resetHistory();
+                    draw();
+                    assert(read(5, 0) === 0, 'Reset pozostawił sygnał');
+                    lines.push(
+                        'PASS interpolacja czasu, wyłączenie światła zastąpionego graftem, bilans i reset'
+                    );
+                } finally {
+                    v.dispose();
+                }
+            }
+            document.querySelector('#results').textContent =
+                lines.join('\n') + '\nWSZYSTKIE TESTY GPU ZALICZONE';
+        } catch (error) {
+            document.querySelector('#results').textContent =
+                lines.join('\n') + '\nFAIL ' + error.stack;
+            throw error;
+        } finally {
+            target.dispose();
+            renderer.dispose();
+        }
+    </script>
+</html>

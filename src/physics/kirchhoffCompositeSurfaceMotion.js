@@ -4,7 +4,6 @@ const vector = (v, n, name) => {
     return Array.from(v, x => finite(x, name));
 };
 const dot = (a, b) => a.reduce((sum, x, i) => sum + x * b[i], 0);
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const norm = a => Math.hypot(...a);
 
 // First/second forward derivatives. The extra second-order coordinate is x;

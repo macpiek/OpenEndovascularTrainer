@@ -21,6 +21,7 @@ export function graftContactResponse(distance,radius) {
 }
 
 const inactive=()=>({gap:1,jacobian:[0,0,0,0,0,0]});
+const RECOVERY_CLEARANCE_MM=.05;
 function referencePoint(state,coordinate) {
     let e=0;while(e<state.coordinates.length-2&&state.coordinates[e+1]<coordinate)e++;
     const t=THREE.MathUtils.clamp((coordinate-state.coordinates[e])/(state.coordinates[e+1]-state.coordinates[e]),0,1);
@@ -45,7 +46,7 @@ export function createStentGraftContacts(surface,previous) {
             const old=referencePoint(reference,coordinate).toArray();
             const contact=graftBranchContactAt(surface.ownedBranches,old,radius);
             if(contact) {
-                const planeGap=old.reduce((sum,v,k)=>sum+(v-contact.point[k])*contact.planeNormal[k],0)-radius-.05;
+                const planeGap=old.reduce((sum,v,k)=>sum+(v-contact.point[k])*contact.planeNormal[k],0)-radius-RECOVERY_CLEARANCE_MM;
                 // Opening is kinematic. Recover a newly displaced septum in
                 // bounded increments rather than asking one Newton solve to
                 // move the wire across the full distance between both limbs.
@@ -165,8 +166,12 @@ export function createStentGraftContacts(surface,previous) {
                     const t=interval.start+(interval.end-interval.start)*i/count;point.copy(a).lerp(b,t);
                     const coordinate=state.coordinates[e]+t*(state.coordinates[e+1]-state.coordinates[e]);
                     const oldBranch=branchReference(coordinate,radius);
-                    if(oldBranch?.outside) {
-                        const response=branchRecoveryPotential(oldBranch,point.toArray(),radius+.05);
+                    // Crossing the centreline into the lumen does not clear
+                    // a finite-radius tool. Keep the same signed recovery law
+                    // until its surface clears the cloth; switching to the
+                    // two-sided barrier at zero distance jumps the potential.
+                    if(oldBranch&&(oldBranch.outside||oldBranch.gap<RECOVERY_CLEARANCE_MM)) {
+                        const response=branchRecoveryPotential(oldBranch,point.toArray(),radius+RECOVERY_CLEARANCE_MM);
                         // Match the normal cloth stiffness: the old weak
                         // recovery spring let the stiff delivery shaft remain
                         // embedded in the divider even after full deployment.
