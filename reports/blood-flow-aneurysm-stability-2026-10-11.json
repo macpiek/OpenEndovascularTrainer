@@ -1,0 +1,656 @@
+{
+  "anatomy": "infrarenal-aneurysm",
+  "dt": 0.016666666666666666,
+  "secondsPerRun": 20,
+  "options": {
+    "velocityPredictor": 1,
+    "zeroDualStart": true,
+    "liveWallNormalLoad": true,
+    "promoteTrialAssembly": true,
+    "projectionMode": "reduced",
+    "stagnationFallback": true,
+    "wasmMaterial": true,
+    "reuseMaterialScratch": true,
+    "lightweightFriction": true,
+    "reuseTriangleKernel": true,
+    "earlyContactPreflight": true,
+    "reuseConstraintWork": true,
+    "reuseMatrixAssembly": true,
+    "reuseRowBuffers": true,
+    "reuseFrictionAssembly": false,
+    "wasmLinearAssembly": false,
+    "lazyBasisCoefficients": false,
+    "deferActiveBasis": false,
+    "earlyPredictorFallback": false,
+    "modifiedNewton": false,
+    "coupledFrictionNewton": true,
+    "projectiveDynamics": false,
+    "pruneInactiveWitnesses": false
+  },
+  "preparation": [
+    {
+      "name": "wire-in-sac",
+      "tools": [
+        {
+          "id": "wire",
+          "type": "glidewire",
+          "shaftStiffness": 13.15,
+          "tipStiffness": 19.4,
+          "length": 1000,
+          "mass": 1,
+          "radius": 0.4445,
+          "wallStaticFriction": 0.006,
+          "wallKineticFriction": 0.002,
+          "insertion": 270,
+          "rotation": 0
+        },
+        {
+          "id": "catheter",
+          "type": "berenstein",
+          "shaftStiffness": 40.65,
+          "tipStiffness": 100,
+          "length": 1000,
+          "mass": 1.75,
+          "radius": 0.8333333333333333,
+          "wallStaticFriction": 0.002,
+          "wallKineticFriction": 0.002,
+          "insertion": 0,
+          "rotation": 0
+        }
+      ],
+      "tipWorldMm": {
+        "wire": [
+          20.60537219414698,
+          -219.62415746315583,
+          20.498027570238136
+        ],
+        "catheter": [
+          -89.5932281517448,
+          -449.423937335379,
+          28.5965465972809
+        ]
+      }
+    },
+    {
+      "name": "berenstein-in-sac",
+      "tools": [
+        {
+          "id": "wire",
+          "type": "glidewire",
+          "shaftStiffness": 13.15,
+          "tipStiffness": 19.4,
+          "length": 1000,
+          "mass": 1,
+          "radius": 0.4445,
+          "wallStaticFriction": 0.006,
+          "wallKineticFriction": 0.002,
+          "insertion": 245,
+          "rotation": 0
+        },
+        {
+          "id": "catheter",
+          "type": "berenstein",
+          "shaftStiffness": 40.65,
+          "tipStiffness": 100,
+          "length": 1000,
+          "mass": 1.75,
+          "radius": 0.8333333333333333,
+          "wallStaticFriction": 0.002,
+          "wallKineticFriction": 0.002,
+          "insertion": 270,
+          "rotation": 0
+        }
+      ],
+      "tipWorldMm": {
+        "wire": [
+          12.684073573330004,
+          -243.3457653080228,
+          16.056127172527816
+        ],
+        "catheter": [
+          17.491260311947066,
+          -224.42607421695152,
+          29.096313427529523
+        ]
+      }
+    },
+    {
+      "name": "retract-for-pigtail",
+      "tools": [
+        {
+          "id": "wire",
+          "type": "glidewire",
+          "shaftStiffness": 13.15,
+          "tipStiffness": 19.4,
+          "length": 1000,
+          "mass": 1,
+          "radius": 0.4445,
+          "wallStaticFriction": 0.006,
+          "wallKineticFriction": 0.002,
+          "insertion": 270,
+          "rotation": 0
+        },
+        {
+          "id": "catheter",
+          "type": "berenstein",
+          "shaftStiffness": 40.65,
+          "tipStiffness": 100,
+          "length": 1000,
+          "mass": 1.75,
+          "radius": 0.8333333333333333,
+          "wallStaticFriction": 0.002,
+          "wallKineticFriction": 0.002,
+          "insertion": 0,
+          "rotation": 0
+        }
+      ],
+      "tipWorldMm": {
+        "wire": [
+          20.606573454130505,
+          -219.626451515879,
+          20.501342405002966
+        ],
+        "catheter": [
+          -89.59321469548792,
+          -449.4239412510195,
+          28.596544004767367
+        ]
+      }
+    },
+    {
+      "name": "pigtail-in-sac",
+      "tools": [
+        {
+          "id": "wire",
+          "type": "glidewire",
+          "shaftStiffness": 13.15,
+          "tipStiffness": 19.4,
+          "length": 1000,
+          "mass": 1,
+          "radius": 0.4445,
+          "wallStaticFriction": 0.006,
+          "wallKineticFriction": 0.002,
+          "insertion": 245,
+          "rotation": 0
+        },
+        {
+          "id": "catheter",
+          "type": "pigtail",
+          "shaftStiffness": 40.65,
+          "tipStiffness": 100,
+          "length": 1000,
+          "mass": 1.75,
+          "radius": 0.8333333333333333,
+          "wallStaticFriction": 0.002,
+          "wallKineticFriction": 0.002,
+          "insertion": 270,
+          "rotation": 0
+        }
+      ],
+      "tipWorldMm": {
+        "wire": [
+          10.347102985502735,
+          -247.93346575015406,
+          5.487491062884809
+        ],
+        "catheter": [
+          7.66738135691612,
+          -259.57808412839506,
+          11.259481378363569
+        ]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "wire-in-sac",
+      "enabled": false,
+      "cardiacOutputMlPerMin": 5000,
+      "heartRateBpm": 72,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 2.052691350229452e-12,
+      "maxRelativeLengthError": 6.176392730594671e-13,
+      "maxToolSpeedMmS": 0.00002585506459752576,
+      "maxLateToolSpeedMmS": 6.575428662671198e-10,
+      "maxStepDisplacementMm": 4.30917743292096e-7,
+      "maxLateStepDisplacementMm": 1.0959047771118662e-11,
+      "maxFlowSpeedMmS": 0,
+      "speedBySecondMmS": [
+        0.00002585506459752576,
+        0.0000088618240422365,
+        0.0000036829534485105913,
+        0.00000113763262020515,
+        1.7458936338172635e-7,
+        1.6805426560812647e-7,
+        1.8659146746557742e-8,
+        1.522054782566983e-8,
+        1.3527629018510653e-9,
+        1.5099232223484482e-9,
+        6.575428662671198e-10,
+        2.3076320178202864e-10,
+        2.968433682203763e-10,
+        1.9524795150563158e-10,
+        3.649014408756004e-10,
+        3.3481555568325815e-10,
+        2.773240924620415e-10,
+        3.2232650319437004e-10,
+        3.6068843695429653e-10,
+        2.582551807570021e-10
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.000014842403792166295,
+        "catheter": 3.9720452552473565e-11
+      },
+      "meanStepCpuMs": 3.033680675833344,
+      "p95StepCpuMs": 5.005416999998488
+    },
+    {
+      "name": "wire-in-sac",
+      "enabled": true,
+      "cardiacOutputMlPerMin": 5000,
+      "heartRateBpm": 72,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 1.266209359584991e-13,
+      "maxRelativeLengthError": 6.0396132539608514e-15,
+      "maxToolSpeedMmS": 0.07201569746689528,
+      "maxLateToolSpeedMmS": 0.04220096691156988,
+      "maxStepDisplacementMm": 0.0012002616244482546,
+      "maxLateStepDisplacementMm": 0.0007033494485261647,
+      "maxFlowSpeedMmS": 367.0326927357754,
+      "speedBySecondMmS": [
+        0.07201569746689528,
+        0.03806373963318084,
+        0.0422600880160266,
+        0.04149919282212171,
+        0.04197490547821755,
+        0.04192480345465259,
+        0.04078740832808823,
+        0.04186335822981528,
+        0.041180493549313336,
+        0.041193041187805535,
+        0.042199827238541,
+        0.04095291466805264,
+        0.04220096691156988,
+        0.04117753849119284,
+        0.041368296191626526,
+        0.04158910370816509,
+        0.04132048984447898,
+        0.04178749449215708,
+        0.04119743231377189,
+        0.04171987906859054
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.012511853356129525,
+        "catheter": 0.000005330534505681657
+      },
+      "meanStepCpuMs": 7.08753915166667,
+      "p95StepCpuMs": 10.710332999999082,
+      "maxDifferenceFromNoFlowMm": {
+        "wire": 0.016857166329852544,
+        "catheter": 0.000023391987219663816
+      }
+    },
+    {
+      "name": "wire-in-sac",
+      "enabled": true,
+      "cardiacOutputMlPerMin": 9000,
+      "heartRateBpm": 140,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 9.915364918011704e-9,
+      "maxRelativeLengthError": 3.2169822361538535e-13,
+      "maxToolSpeedMmS": 0.23579830913736027,
+      "maxLateToolSpeedMmS": 0.18381006528616295,
+      "maxStepDisplacementMm": 0.0039299718189560046,
+      "maxLateStepDisplacementMm": 0.003063501088102716,
+      "maxFlowSpeedMmS": 661.3314815383203,
+      "speedBySecondMmS": [
+        0.23579830913736027,
+        0.18783779702748518,
+        0.1796092558946458,
+        0.17530527817185962,
+        0.18230436914579912,
+        0.17952257734233007,
+        0.17761504849428686,
+        0.1769439250840338,
+        0.17799990186560713,
+        0.17596936747141145,
+        0.17800341115914137,
+        0.1770680796601735,
+        0.1807043459875574,
+        0.17505971463913944,
+        0.18102076996259348,
+        0.17520550277786887,
+        0.18381006528616295,
+        0.17981199956574181,
+        0.17594204666511343,
+        0.17932354886813484
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.02352069282232648,
+        "catheter": 0.00002932643261579605
+      },
+      "meanStepCpuMs": 8.60088066333337,
+      "p95StepCpuMs": 12.955417000001034,
+      "maxDifferenceFromNoFlowMm": {
+        "wire": 0.049740663262911364,
+        "catheter": 0.00007079422067628478
+      }
+    },
+    {
+      "name": "berenstein-in-sac",
+      "enabled": false,
+      "cardiacOutputMlPerMin": 5000,
+      "heartRateBpm": 72,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 4.429789868254375e-12,
+      "maxRelativeLengthError": 1.0317080523236654e-12,
+      "maxToolSpeedMmS": 0.00019474307744411204,
+      "maxLateToolSpeedMmS": 1.3654337701290711e-9,
+      "maxStepDisplacementMm": 0.0000032457179574018675,
+      "maxLateStepDisplacementMm": 2.2757229502151187e-11,
+      "maxFlowSpeedMmS": 0,
+      "speedBySecondMmS": [
+        0.00019474307744411204,
+        0.00003183307622312089,
+        0.00000595340224733925,
+        0.0000020366133910873106,
+        4.825458410606416e-7,
+        6.863741648947434e-8,
+        2.6998075643967888e-8,
+        1.075212485461755e-8,
+        5.657026747861527e-9,
+        1.6365338484583152e-9,
+        1.3654337701290711e-9,
+        4.2937947899741153e-10,
+        2.017156742810268e-10,
+        1.3604815403814114e-10,
+        1.1155729133986867e-10,
+        1.460680245016299e-10,
+        4.1630611571013036e-10,
+        5.459995365529512e-10,
+        3.768296661621953e-10,
+        5.777258301539551e-10
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.000023503130328376094,
+        "catheter": 0.000012559647996673451
+      },
+      "meanStepCpuMs": 4.8483084075001655,
+      "p95StepCpuMs": 7.7088750000039
+    },
+    {
+      "name": "berenstein-in-sac",
+      "enabled": true,
+      "cardiacOutputMlPerMin": 5000,
+      "heartRateBpm": 72,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 1.0513812043200232e-13,
+      "maxRelativeLengthError": 5.861977570020826e-15,
+      "maxToolSpeedMmS": 0.0738568825191742,
+      "maxLateToolSpeedMmS": 0.061320080214387986,
+      "maxStepDisplacementMm": 0.0012309480419862367,
+      "maxLateStepDisplacementMm": 0.0010220013369064665,
+      "maxFlowSpeedMmS": 398.85748610470876,
+      "speedBySecondMmS": [
+        0.0738568825191742,
+        0.06855872409106631,
+        0.0608609135312138,
+        0.06125466253785822,
+        0.061365318863627304,
+        0.06134368914430937,
+        0.06132668705172107,
+        0.06132252708681514,
+        0.06132160602772486,
+        0.06132072858356845,
+        0.061320080214387986,
+        0.06131959154131759,
+        0.06131885368748015,
+        0.0613187609767773,
+        0.061318736869719385,
+        0.061318713612624844,
+        0.06131868571456815,
+        0.06131862845115914,
+        0.06131860161020975,
+        0.061318572418908486
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.020237280340552683,
+        "catheter": 0.031725911973563004
+      },
+      "meanStepCpuMs": 10.935589829166814,
+      "p95StepCpuMs": 13.669500000003609,
+      "maxDifferenceFromNoFlowMm": {
+        "wire": 0.02398137496400874,
+        "catheter": 0.03263220344369664
+      }
+    },
+    {
+      "name": "berenstein-in-sac",
+      "enabled": true,
+      "cardiacOutputMlPerMin": 9000,
+      "heartRateBpm": 140,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 1.0513812043200232e-13,
+      "maxRelativeLengthError": 1.616484723854228e-14,
+      "maxToolSpeedMmS": 0.34605069931255433,
+      "maxLateToolSpeedMmS": 0.3087088848633066,
+      "maxStepDisplacementMm": 0.005767511655209239,
+      "maxLateStepDisplacementMm": 0.00514514808105511,
+      "maxFlowSpeedMmS": 720.0338982905984,
+      "speedBySecondMmS": [
+        0.34605069931255433,
+        0.3055659267018508,
+        0.30885059279435406,
+        0.30804321959196995,
+        0.30582202361220945,
+        0.3087074304870371,
+        0.3080457776836914,
+        0.30582496735119974,
+        0.30870886059663605,
+        0.3080455937108663,
+        0.3058249672131872,
+        0.3087088848633066,
+        0.3080455926110987,
+        0.3058249657983557,
+        0.3087088843206062,
+        0.3080455926987823,
+        0.3058249658970353,
+        0.3087088842519082,
+        0.30804559272524323,
+        0.30582496582033025
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.05734451452284864,
+        "catheter": 0.09122311184339447
+      },
+      "meanStepCpuMs": 11.561847989999968,
+      "p95StepCpuMs": 14.766875000001164,
+      "maxDifferenceFromNoFlowMm": {
+        "wire": 0.06633237148384818,
+        "catheter": 0.0989008865289828
+      }
+    },
+    {
+      "name": "pigtail-in-sac",
+      "enabled": false,
+      "cardiacOutputMlPerMin": 5000,
+      "heartRateBpm": 72,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 2.6810775821672905e-12,
+      "maxRelativeLengthError": 1.0174971976084634e-12,
+      "maxToolSpeedMmS": 0.00006419723652786299,
+      "maxLateToolSpeedMmS": 2.0621431762146388e-10,
+      "maxStepDisplacementMm": 0.0000010699539421310497,
+      "maxLateStepDisplacementMm": 3.4369052936910646e-12,
+      "maxFlowSpeedMmS": 0,
+      "speedBySecondMmS": [
+        0.00006419723652786299,
+        0.0000069689049753249,
+        0.0000010325911254672528,
+        1.5390289181699975e-7,
+        1.92101980631145e-8,
+        5.430689323611857e-9,
+        1.034771205418955e-9,
+        8.135584944626577e-10,
+        5.697575644846345e-10,
+        8.330162388030436e-11,
+        1.8907473106780402e-10,
+        1.1946026555378117e-10,
+        1.091801702908474e-10,
+        1.1604836315217564e-10,
+        1.0739027821740017e-10,
+        1.5415681118909433e-10,
+        1.0799279555665062e-10,
+        1.3998311978339315e-10,
+        2.0621431762146388e-10,
+        9.022947344095717e-11
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.000003158740550702879,
+        "catheter": 0.0000015291065670047606
+      },
+      "meanStepCpuMs": 5.806054686666758,
+      "p95StepCpuMs": 8.533917000007932
+    },
+    {
+      "name": "pigtail-in-sac",
+      "enabled": true,
+      "cardiacOutputMlPerMin": 5000,
+      "heartRateBpm": 72,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 1.0513812043200232e-13,
+      "maxRelativeLengthError": 5.861977570020826e-15,
+      "maxToolSpeedMmS": 0.06695330900908839,
+      "maxLateToolSpeedMmS": 0.06290232038984978,
+      "maxStepDisplacementMm": 0.0011158884834848064,
+      "maxLateStepDisplacementMm": 0.0010483720064974964,
+      "maxFlowSpeedMmS": 398.820598138358,
+      "speedBySecondMmS": [
+        0.06695330900908839,
+        0.06323564182864856,
+        0.06295041396244275,
+        0.0630082320059031,
+        0.06297174994483529,
+        0.06295818268679566,
+        0.06294306041184355,
+        0.06292207998606043,
+        0.06291424428736775,
+        0.06290773759603811,
+        0.06290232038984978,
+        0.06289779150160621,
+        0.06289080628251714,
+        0.06288812045136495,
+        0.06288585443560463,
+        0.06288401703709173,
+        0.06288269955930359,
+        0.06288069721603086,
+        0.06287992371198746,
+        0.06287926834594182
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.005326923257863242,
+        "catheter": 0.0020172381288114504
+      },
+      "meanStepCpuMs": 12.649929683333273,
+      "p95StepCpuMs": 16.415500000002794,
+      "maxDifferenceFromNoFlowMm": {
+        "wire": 0.015071916364160607,
+        "catheter": 0.015291140848408265
+      }
+    },
+    {
+      "name": "pigtail-in-sac",
+      "enabled": true,
+      "cardiacOutputMlPerMin": 9000,
+      "heartRateBpm": 140,
+      "steps": 1200,
+      "terminalFailure": null,
+      "recoveredSteps": 0,
+      "subdivisionsMax": 1,
+      "maxPenetrationMm": 1.0380585280245214e-13,
+      "maxRelativeLengthError": 2.2097879082139117e-13,
+      "maxToolSpeedMmS": 0.3341857451875624,
+      "maxLateToolSpeedMmS": 0.30102995853619385,
+      "maxStepDisplacementMm": 0.0055697624197927065,
+      "maxLateStepDisplacementMm": 0.0050171659756032315,
+      "maxFlowSpeedMmS": 720.0033627975951,
+      "speedBySecondMmS": [
+        0.3341857451875624,
+        0.30127706584529945,
+        0.3007566968325068,
+        0.30103990219458887,
+        0.3001828717638705,
+        0.3005308664477052,
+        0.3010299401600586,
+        0.30018270345557946,
+        0.3005306533543894,
+        0.3010299580453201,
+        0.30018271230806265,
+        0.300530654497274,
+        0.30102995853619385,
+        0.3001827123384014,
+        0.3005306545938536,
+        0.3010299585035778,
+        0.3001827123140065,
+        0.3005306545276031,
+        0.3010299584661118,
+        0.3001827119575656
+      ],
+      "finite": true,
+      "tipDisplacementMm": {
+        "wire": 0.02846563864792312,
+        "catheter": 0.024364318387482823
+      },
+      "meanStepCpuMs": 14.135472742499806,
+      "p95StepCpuMs": 18.884625000006054,
+      "maxDifferenceFromNoFlowMm": {
+        "wire": 0.04103215741950358,
+        "catheter": 0.04103215741950358
+      }
+    }
+  ],
+  "limitations": [
+    "Reduced-order, one-way blood drag; no 3-D aneurysm recirculation or calibrated device forces.",
+    "CPU timings are Node replay timings, not browser FPS; the no-flow case also solves every step (no provider sleeping)."
+  ],
+  "completed": true,
+  "checks": {
+    "noTerminalRejections": true,
+    "finite": true,
+    "wallPenetrationBelow001mm": true,
+    "relativeLengthErrorBelow1e4": true
+  },
+  "comparisonSamplingHz": 4
+}

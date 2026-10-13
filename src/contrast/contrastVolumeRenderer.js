@@ -2332,18 +2332,19 @@ export class ContrastVolumeRenderer {
             this._trappedMesh.frustumCulled=false;this._trappedMesh.renderOrder=6;this.group.add(this._trappedMesh);
         }
         for(const part of remodeling.surface.parts??[]) {
+            const snapshot=remodeling.surface.paths?.find(entry=>entry.part===part);
             const geometry=part.mesh.geometry.clone(),n=part.target.length/3;
-            geometry.attributes.position.array.set(part.target);geometry.computeVertexNormals();
+            geometry.attributes.position.array.set(snapshot?.positions??part.target);geometry.computeVertexNormals();
             const concentration=new Float32Array(n),previous=new Float32Array(n),radii=new Float32Array(n),weights=new Float32Array(n).fill(1),samples=[];
             for(let row=0;row<part.rows;row++) {
-                const location=this.system.flowNetwork.findNearestLocation(part.points[row],{});
+                const location=this.system.flowNetwork.findNearestLocation(snapshot?.path.points[row]??part.points[row],{});
                 samples.push({edgeIndex:location.edgeIndex,t:location.t});
                 // A geometry refresh is not a new bolus: do not interpolate
                 // from a black frame when replacing the exposed cloth mesh.
                 const c=location.edgeIndex>=0?this._sampleFlowCellConcentration(location.edgeIndex,location.t):0;
                 concentration.fill(c,row*part.sides,(row+1)*part.sides);
                 previous.fill(c,row*part.sides,(row+1)*part.sides);
-                const r=remodeling.surface.paths?.find(entry=>entry.part===part)?.radii[row]??part.radius;
+                const r=snapshot?.radii[row]??part.radius;
                 radii.fill(r,row*part.sides,(row+1)*part.sides);
             }
             for(const [name,array] of Object.entries({flowConcentration:concentration,previousFlowConcentration:previous,flowRadius:radii,flowOpticalWeight:weights}))geometry.setAttribute(name,new THREE.BufferAttribute(array,1));
@@ -2377,7 +2378,7 @@ export class ContrastVolumeRenderer {
         const remodeling=this.system.flowNetwork.stentGraftRemodeling;
         const revision=remodeling?.surface.revision??-1;
         const time=this.system.simulationTimeSeconds??this.system.flowNetwork.time;
-        const alpha=reuseUnchanged?Math.min(1,(this.system._solverAccumulator??1/30)*30):1;
+        const alpha=this.system.synchronized?1:reuseUnchanged?Math.min(1,(this.system._solverAccumulator??1/30)*30):1;
         for(const material of this.flowMesh.material) {material.uniforms.displayAlpha.value=alpha;material.uniforms.useFlowSamples.value=reuseUnchanged;}
         for(const mesh of this._graftMeshes??[])mesh.material.uniforms.displayAlpha.value=alpha;
         for(const m of this._trappedMesh?.material??[])m.uniforms.displayAlpha.value=alpha;

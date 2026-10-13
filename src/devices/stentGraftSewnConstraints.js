@@ -42,6 +42,7 @@ export function sewnFabricProjector(part,force=false) {
         for(const c of wire) {
             c.indices=[...new Set([...Array.from({length:sides},(_,j)=>j),...c.anchors.flatMap(a=>a.map(([i])=>i))])];
             c.points=new Float64Array(sides*3);
+            c.directions=new Float64Array(sides*3);c.edgeLengths=new Float64Array(sides);
             c.anchorIndices=new Int32Array(sides*2);
             c.anchorWeights=new Float64Array(sides*2);
             for(let j=0;j<sides;j++)for(let k=0;k<2;k++) {
@@ -70,7 +71,6 @@ export function sewnFabricProjector(part,force=false) {
     const gradient=part.sewnGradient??=new Float64Array(a.length);
     const projectRing=c=>{
         if(c.ring.packed)return 0;
-        for(const i of c.indices){gradient[i*3]=0;gradient[i*3+1]=0;gradient[i*3+2]=0;}
         const points=c.points,ai=c.anchorIndices,aw=c.anchorWeights;
         for(let j=0;j<sides;j++) {
             const i=ai[j*2],k=ai[j*2+1],u=aw[j*2],v=aw[j*2+1],p=j*3;
@@ -80,15 +80,23 @@ export function sewnFabricProjector(part,force=false) {
         for(let j=0;j<sides;j++) {
             const next=(j+1)%sides,p=j*3,q=next*3;
             let x=points[q]-points[p],y=points[q+1]-points[p+1],z=points[q+2]-points[p+2];
-            const distance=Math.sqrt(x*x+y*y+z*z);length+=distance;if(distance<1e-12)continue;
-            x/=distance;y/=distance;z/=distance;
+            const distance=Math.sqrt(x*x+y*y+z*z);length+=distance;
+            c.edgeLengths[j]=distance;c.directions[p]=x;c.directions[p+1]=y;c.directions[p+2]=z;
+        }
+        const error=length-c.length;if(error<=1e-7)return 0;
+        // A slack band exerts no correction. Its derivatives are needed only
+        // after the current arc length exceeds the unchanged material bound.
+        for(const i of c.indices){gradient[i*3]=0;gradient[i*3+1]=0;gradient[i*3+2]=0;}
+        for(let j=0;j<sides;j++) {
+            const distance=c.edgeLengths[j];if(distance<1e-12)continue;
+            const next=(j+1)%sides,p=j*3;
+            const x=c.directions[p]/distance,y=c.directions[p+1]/distance,z=c.directions[p+2]/distance;
             for(let k=0;k<2;k++) {
                 const i=ai[j*2+k],u=aw[j*2+k],n=ai[next*2+k],v=aw[next*2+k];
                 gradient[i]-=u*x;gradient[i+1]-=u*y;gradient[i+2]-=u*z;
                 gradient[n]+=v*x;gradient[n+1]+=v*y;gradient[n+2]+=v*z;
             }
         }
-        const error=length-c.length;if(error<=1e-7)return 0;
         if(pinnedCenter)for(let k=0;k<3;k++) {
             let mean=0;for(let j=0;j<sides;j++)mean+=gradient[j*3+k]/sides;
             for(let j=0;j<sides;j++)gradient[j*3+k]-=mean;

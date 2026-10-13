@@ -1,0 +1,222 @@
+{
+  "scope": "Sheath release and geometry/scaffold CPU, excluding the rod solve, rendering and anatomy startup. Preview Y fixture, right access; 120 release updates and 60 idle updates per run.",
+  "method": "Warm up each version once, then four alternating before/after runs in one Node process; same inputs as scripts/benchmark-stent-graft.mjs.",
+  "timingCaution": "High run-to-run variance: these small average reductions do not establish a full-simulator FPS gain. Deterministic gains are buffer reuse and zero repeated scaffold uploads for unchanged cloth.",
+  "changes": [
+    "Compute post-clearance time from commanded sleeve speed, including fractional speed and an endpoint reached during a step.",
+    "Report continuing ring relaxation even when hardware is stationary.",
+    "Reuse assembly buffers; replace identity binding allocation with direct indexed writes; publish geometry versions only when values change.",
+    "Reuse unchanged scaffold, while tracking packed/free mode and newly attached markers.",
+    "Assemble single-part ring derivatives only when its material-length bound is violated.",
+    "Use bounded scalar Euclidean norms in the ring arc-length search without relaxing its tolerance."
+  ],
+  "summary": [
+    {
+      "type": "body",
+      "beforeMeanMs": 6.344528643750001,
+      "afterMeanMs": 6.200303737499972,
+      "reductionPercent": 2.2732170401989604
+    },
+    {
+      "type": "limb",
+      "beforeMeanMs": 3.1448274458332808,
+      "afterMeanMs": 2.991327354166704,
+      "reductionPercent": 4.881033834462234
+    }
+  ],
+  "runs": [
+    {
+      "type": "body",
+      "before": [
+        {
+          "mean": 5.42280866666667,
+          "quarters": [
+            1.7779528333333625,
+            3.5547111333333152,
+            7.752565266666716,
+            8.606005433333287
+          ],
+          "idle": 0.3463938166666897
+        },
+        {
+          "mean": 7.772332958333361,
+          "quarters": [
+            1.9038305333333483,
+            5.27867906666673,
+            12.657070833333304,
+            11.24975140000006
+          ],
+          "idle": 0.33312366666662757
+        },
+        {
+          "mean": 5.859814900000052,
+          "quarters": [
+            1.9098192666666365,
+            4.725768100000186,
+            8.136779133333402,
+            8.666893099999985
+          ],
+          "idle": 0.27665478333327276
+        },
+        {
+          "mean": 6.323158049999923,
+          "quarters": [
+            1.526038866666507,
+            4.129862666666546,
+            10.0756084333334,
+            9.561122233333238
+          ],
+          "idle": 0.27764173333328773
+        }
+      ],
+      "after": [
+        {
+          "mean": 6.670727374999994,
+          "quarters": [
+            1.7939292666666915,
+            3.527242866666711,
+            11.270742966666619,
+            10.090994399999953
+          ],
+          "idle": 0.5433431166666499
+        },
+        {
+          "mean": 5.868617008333278,
+          "quarters": [
+            1.5667694999999489,
+            3.452627699999933,
+            8.70890693333331,
+            9.74616389999992
+          ],
+          "idle": 0.26427225000003696
+        },
+        {
+          "mean": 5.624420883333262,
+          "quarters": [
+            1.4564306999999341,
+            4.885498466666649,
+            7.882030699999905,
+            8.273723666666562
+          ],
+          "idle": 0.22945893333338366
+        },
+        {
+          "mean": 6.637449683333353,
+          "quarters": [
+            1.4348460000000158,
+            4.152299999999923,
+            10.898881966666766,
+            10.063770766666705
+          ],
+          "idle": 0.22056240000022928
+        }
+      ]
+    },
+    {
+      "type": "limb",
+      "before": [
+        {
+          "mean": 3.6003510083333063,
+          "quarters": [
+            2.771220766666738,
+            3.2580749666666935,
+            4.299633399999826,
+            4.072474899999967
+          ],
+          "idle": 2.4180978833331817
+        },
+        {
+          "mean": 3.1479173833332577,
+          "quarters": [
+            1.7264722999999018,
+            3.0979638999999226,
+            3.5604986666666565,
+            4.2067346666665495
+          ],
+          "idle": 2.493611033333309
+        },
+        {
+          "mean": 3.113738566666613,
+          "quarters": [
+            2.642920866666585,
+            2.5352903666664135,
+            3.2633764000000762,
+            4.013366633333377
+          ],
+          "idle": 2.3895770499998736
+        },
+        {
+          "mean": 2.7173028249999485,
+          "quarters": [
+            1.490575099999963,
+            2.277313966666285,
+            3.1157958333333835,
+            3.9855264000001625
+          ],
+          "idle": 2.5774131333332053
+        }
+      ],
+      "after": [
+        {
+          "mean": 2.844497983333349,
+          "quarters": [
+            2.254234666666404,
+            2.0703154333334775,
+            3.48787503333333,
+            3.5655668000001848
+          ],
+          "idle": 1.876927116666593
+        },
+        {
+          "mean": 4.193795108333355,
+          "quarters": [
+            2.596516666666685,
+            4.538704066666651,
+            3.5190416666667566,
+            6.120918033333328
+          ],
+          "idle": 2.219896533333334
+        },
+        {
+          "mean": 2.4069201333334758,
+          "quarters": [
+            1.4435707333333387,
+            1.9694264666669066,
+            2.7193014333336882,
+            3.495381899999969
+          ],
+          "idle": 1.9313653333333909
+        },
+        {
+          "mean": 2.520096191666638,
+          "quarters": [
+            1.7656778000002304,
+            2.0851014333334508,
+            2.7560582999998586,
+            3.4735472333330106
+          ],
+          "idle": 1.9887098333333293
+        }
+      ]
+    }
+  ],
+  "baselineFilesSha256": {
+    "stentGraftDeployment.js": "560431b56ed75978a1c51aeb0963d235bc5eefd62995832bdec783e8c3f5058e",
+    "stentGraftAssemblyConstraints.js": "7247ce0d3d68231d8efb845b4ffba0018c22506bb59ae70ff16e956eeaf54f95",
+    "stentGraftScaffold.js": "a88d530e387cfe2e8b2d75b85fbc7720d6179fd884d0df9e9637b471f0464991",
+    "stentGraftRingKinematics.js": "99df7df0aec3ad5561842251728489179c5152bbdbd46fe3a84e5b2a7e5d5b0b",
+    "stentGraftSewnConstraints.js": "f5a823ed89010e7568e61db6fbe603eca102f58be3bbc6f273d3486c2f5d059d"
+  },
+  "browser": {
+    "stages": "Four release stages: PASS",
+    "continuity": "Final code after explicit reload: 1000 fixed 1/60 s steps, maximum cloth displacement 0.400 mm, metal 0.746 mm; sheath 136.0 mm."
+  },
+  "validation": {
+    "targetedTests": 74,
+    "passed": 68,
+    "failed": 6,
+    "failureComparison": "The same six Deployment tests failed in the pre-change baseline: left/right freed gate, suprarenal peaks, and ipsilateral rim geometry assertions. No new failures in this set.",
+    "build": "npm run build passed; existing large-chunk warning",
+    "diffCheck": "git diff --check passed"
+  }
+}

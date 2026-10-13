@@ -1,6 +1,6 @@
 import {MAIN_BODY_MODELS,DEFAULT_MAIN_BODY,LIMB_MODELS,LIMB_LENGTHS,DEFAULT_LIMB,limbModel,mainBodyModel,proximalDiameters,distalDiameters} from '../devices/stentGraftModels.js';
 import {mainBodyCards,limbCards,mainBodyCardContent,cardDimensions} from './stentGraftModelCards.js';
-import {deliveryNoseState,graftAttached} from '../devices/stentGraftDeployment.js';
+import {deliveryNoseState,graftAttached,deliveryRemovalBlocked} from '../devices/stentGraftDeployment.js';
 export function initStentGraftControls({system,activeSide,ui,root=document}) {
     const el=id=>root.getElementById(id);
     const dialog=el('stentGraftDialog'),type=el('stentGraftType'),diameter=el('stentGraftDiameter');
@@ -79,7 +79,7 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
     function selectTool(value) {
         if(value==='stentgraft'){open();return true;}
         const device=system.accesses[activeSide()].device;
-        if(device&&(device.position>.5||device.phase==='deploying'))return false;
+        if(deliveryRemovalBlocked(device))return false;
         const result=system.removeDelivery(activeSide());
         if(!result.ok){system.accesses[activeSide()].message=result.reason;return false;}
         return true;
@@ -155,7 +155,7 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
         nose.disabled=!d||d.phase==='loaded'||!(d.tipRelease>=1)||deliveryNoseState(d).remaining<.001;
         nose.title=d?.type==='body'&&!(d.tipRelease>=1)?'Najpierw uwolnij mocowanie stentu nadnerkowego.':'Przytrzymaj N, aby ściągać nosecone do końca koszulki; puść, aby zatrzymać.';
         for(const [token,h] of held)if(buttons[h.control].disabled)stopRelease(token);
-        remove.disabled=!d||d.phase==='deploying'||d.position>.5;
+        remove.disabled=!d||deliveryRemovalBlocked(d);
         el('stentGraftSelection').textContent=d?`${d.type==='body'?mainBodyModel(d.modelId).name:'Endurant II / IIs'} · ${d.type==='body'?'korpus rozwidlony':'nóżka kontralateralna'} · ${d.diameter}${d.type==='body'?' / ':' → '}${d.distalDiameter} × ${d.length} mm`:'Wybierz implant';
         el('stentGraftDeployment').value=d?.deployment??0;
         el('stentGraftStatus').textContent=d&&d.phase!=='loaded'

@@ -41,6 +41,8 @@
     "test:anatomy:mesh": "node --test tests/vesselMeshIntegrity.test.js tests/aortaOutletClosures.test.js tests/subclavianAlignment.test.js tests/infrarenalAneurysm.test.js",
     "benchmark:continuous-contacts": "node scripts/benchmark-continuous-contacts.mjs",
     "test:contrast:graft": "node --test tests/contrastGraftFlow.test.js tests/contrastGraftAnatomy.test.js tests/contrastPartialGraft.test.js tests/contrastSacWashout.test.js",
+    "benchmark:blood-flow": "node scripts/benchmark-blood-flow-aneurysm.mjs",
+    "benchmark:long-tools": "node scripts/benchmark-long-tool-physics.mjs",
     "benchmark:contrast": "node scripts/benchmark-contrast.mjs",
     "benchmark:stentgraft": "node scripts/benchmark-stent-graft.mjs"
   },

@@ -105,3 +105,92 @@ test('delivery follows legacy rod coordinates across the sheath inlet without a 
         assert.deepEqual(d.noseBand.position.toArray(),[4,202,0],'legacy publication also owns its geometry');
     } finally {system.dispose();}
 });
+
+for(const side of ['right','left'])for(const type of ['body','limb'])
+test(`${side} ${type}: nose follows the committed distal wire beyond the solved delivery shaft`,()=>{
+    const {system,device:d}=previewFixture(side,type,false);
+    const nodes=Array.from({length:301},(_,s)=>s<=200?new THREE.Vector3(0,s,0):
+        new THREE.Vector3(50*(1-Math.cos((s-200)/50)),200+50*Math.sin((s-200)/50),0));
+    const body={jointStateView:{coordinates:new Float64Array([0,200]),positions:new Float64Array([0,0,0,0,200,0])}};
+    const source={nodes,coordinate:i=>i,catheterMm:0,deliveryBody:body};
+    const noseCenters=()=>{
+        const p=d.noseMarker.geometry.attributes.position;
+        return Array.from({length:61},(_,row)=>{
+            const center=new THREE.Vector3();
+            for(let j=0;j<16;j++)center.add(new THREE.Vector3().fromBufferAttribute(p,row*16+j));
+            return center.divideScalar(16);
+        });
+    };
+    try {
+        system.updateAccess(side,1/60,source,{deviceId:d.id,mechanicalPosition:200});
+        system.refreshDelivery(side);
+        const start=type==='body'?212:200,centers=noseCenters();
+        for(let row=0;row<=60;row++)assert.ok(centers[row].distanceTo(nodes[start+row])<2e-5,
+            `nose row ${row} must follow the wire, not the shaft tangent`);
+        assert.ok(centers[30].distanceTo(centers[0].clone().lerp(centers[60],.5))>5);
+        assert.deepEqual(system.getDeliveryPath(side).sample(150).toArray(),[0,150,0],
+            'the accepted stiff shaft is not replaced by a decorative wire path');
+        const accepted=d.noseMarker.geometry;
+        for(let i=201;i<nodes.length;i++)nodes[i].z=(i-200)*.1;
+        system.refreshDelivery(side);assert.equal(d.noseMarker.geometry,accepted,'uncommitted trials stay invisible');
+        system.updateAccess(side,1/60,source,{deviceId:d.id,mechanicalPosition:200});
+        system.refreshDelivery(side);assert.notEqual(d.noseMarker.geometry,accepted);
+        assert.ok(noseCenters()[60].distanceTo(nodes[start+60])<2e-5,'distal wire motion invalidates the nose cache');
+    } finally {system.dispose();}
+});
+
+for(const side of ['right','left'])test(`${side}: stationary tool indentation cannot keep release and collision rebuilding alive`,()=>{
+    const {system,device:d}=previewFixture(side);
+    try {
+        let patch;
+        for(let i=0;i<900&&d.phase!=='deployed';i++) {
+            system.updateAccess(side,1/60,null,{deviceId:d.id,release:{sheath:1,tip:true}});
+            if(i===580) {
+                const p=d.parts[0],a=p.mesh.geometry.attributes.position,j=10*p.sides;
+                patch={point:[a.getX(j),a.getY(j),a.getZ(j)],normal:[1,0,0],depth:.3,width:8};
+                system.mechanicalSurfaceForAccess(side).commitContactPatches([patch]);
+            }
+        }
+        assert.ok(patch,'contact was applied before the end of release');
+        assert.equal(d.phase,'deployed','a stationary contact must not feed displacement back into expansion forever');
+        assert.ok(d.parts.every(p=>!p.releaseRelaxing));
+        const revision=system.geometryRevision,surface=system.mechanicalSurface;
+        const base=d.parts.map(p=>p.contactBasePositions.slice());
+        for(let i=0;i<60;i++)system.updateAccess(side,1/60);
+        assert.equal(system.geometryRevision,revision,'idle physics must reuse collision geometry');
+        assert.equal(system.mechanicalSurface,surface);
+        assert.deepEqual(d.parts.map(p=>p.contactBasePositions),base);
+        assert.ok(d.parts.some(p=>p.mesh.geometry.attributes.position.array.some((v,i)=>v!==p.contactBasePositions[i])),
+            'settling preserves the actual tool indentation');
+        system.mechanicalSurfaceForAccess(side).commitContactPatches([]);
+        assert.deepEqual(d.parts.map(p=>p.mesh.geometry.attributes.position.array),base,'withdrawing the tool clears indentation');
+    } finally {system.dispose();}
+});
+
+for(const replacement of [false,true])test(`withdrawn detached delivery can be removed while fabric settles (replacement: ${replacement})`,()=>{
+    const {system,device:d}=previewFixture();
+    try {
+        system.updateAccess('right',.1,null,{deviceId:d.id,release:'tip'});
+        d.position=d.target=0;
+        assert.equal(system.removeDelivery('right').ok,false,'captured implant still belongs to delivery');
+        d.position=d.target=d.implantPosition;
+        system.updateAccess('right',1,null,{deviceId:d.id,release:'tip'});
+        // All hardware clears in this committed step; cloth still needs time.
+        system.updateAccess('right',1/60,null,{deviceId:d.id,mechanicalPosition:0});
+        assert.equal(d.phase,'deploying');
+        const anchor=d.implantPosition;
+        assert.equal(system.removeDelivery('right').ok,true);
+        assert.equal(system.accesses.right.device,null);
+        if(replacement)assert.equal(system.load('right','limb').ok,true);
+        const next=system.accesses.right.device;
+        const snapshot=d.parts[0].mesh.geometry.attributes.position.array.slice();
+        system.updateAccess('right',0);
+        assert.deepEqual(d.parts[0].mesh.geometry.attributes.position.array,snapshot,'zero dt cannot advance a removed delivery’s implant');
+        for(let i=0;i<900&&d.phase!=='deployed';i++)system.updateAccess('right',1/60);
+        assert.equal(d.phase,'deployed','implant keeps advancing after hardware removal');
+        assert.equal(d.implantPosition,anchor);
+        assert.equal(system.accesses.right.device,next,'old implant must not replace the new delivery');
+        assert.ok(system.implants.includes(d));
+        assert.ok(system.surface.parts.includes(d.parts[0]));
+    } finally {system.dispose();}
+});

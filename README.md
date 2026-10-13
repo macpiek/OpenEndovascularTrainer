@@ -7,6 +7,7 @@ Open Endovascular Trainer is a browser-based endovascular training prototype bui
 ## Current Features
 
 - Real-time WebGL simulator with a full-screen Three.js scene.
+- A shared simulation clock (1/60 s with the default solver; the alternate solvers retain their 1/120 s step): both femoral solvers must accept the same step before stentgrafts, contrast, patient monitoring, and imaging time advance. Rendering remains independent; solver retries retain the current step and freeze dependent systems. The HUD shows the common simulation time and accepted-step rate.
 - Imported aortic, cerebral, iliac, and bilateral upper- and lower-limb arterial anatomy in
   `res/Aorta_plain.stl`, plus the skeleton from `res/skeleton.obj`.
 - Shared Kirchhoff model for the guidewire and catheter with independent material feed and spin, segment-length preservation, wall and lumen contact, Coulomb friction, and resistance feedback.
@@ -43,6 +44,37 @@ Node.js 20 or newer is recommended for the Vite 7 toolchain used by this project
 ## Controls
 
 The simulator starts in fluoroscopy mode.
+
+Fluoroscopy includes an illustrative moving soft-tissue layer: an asymmetric
+cardiac silhouette with a leftward apex synchronized to the monitor's beat,
+respiratory displacement of the lung bases and liver/diaphragm region, and
+lower abdominal bowel loops framed by a folded colon. Irregular gas pockets
+and local travelling contractions avoid uniform, synchronously moving tubes.
+These are world-space attenuation volumes, so their projection
+changes with the C-arm and their motion appears in DSA subtraction and cine.
+They use accepted simulation time and pause with it. They do not deform the
+vascular collision mesh or add work to the tool solvers. This is a procedural
+visual approximation, not a patient-specific physiological model.
+
+The shared-axis Kirchhoff and Projective Dynamics solvers couple exposed tools
+(wire, catheter and stent-graft delivery shaft) to the pulsatile blood-velocity
+field already used by contrast transport. Relative-velocity drag accounts for
+outer diameter, orientation and introducer/catheter shielding, and is integrated
+implicitly on the common accepted timestep. Numeric flow samples are frozen
+across cooperative yields and included in rejected-step replay exports. Empty
+or fully sheathed tools retain the solver's idle fast path. Debug provides an
+**Oddziaływanie przepływu krwi na narzędzia** toggle and a local speed readout;
+cardiac output and heart rate affect the flow even without contrast injection.
+This is a one-way, reduced-order drag approximation: rod stiffness/mass and
+fluid forces are linked by the explicit `BLOOD_FORCE_MODEL_SCALE` conversion,
+not a calibrated SI device model. It does not model fluid feedback from tool
+obstruction, full 3-D vortices, or pressure-driven deformation/migration of a
+released graft. Legacy non-shared solvers do not apply these forces.
+Run `npm run benchmark:blood-flow` for paired 20-second aneurysm STL replays
+with exposed wire, Berenstein and Pigtail tips, flow off, 5 l/min at 72 bpm,
+and 9 l/min at 140 bpm. The JSON report records drift, per-second speed,
+contact/length errors, rejected substeps and CPU cost; these are model
+regression measurements, not validation against physical devices.
 
 DSA preparation, frame acquisition and cine playback use completed contrast
 simulation time. Slower or paused physics therefore slows or pauses acquisition
@@ -259,11 +291,16 @@ A tapered trunk and complementary half-section leg roots remove cylinder-union
 shelves. Larger distal legs taper from their proximal calibre. The precise
 three-dimensional crotch, crown, ring spacing and markers are still procedural
 approximations, not manufacturer CAD.
-The existing two-component ideal-seal contrast model is retained; selecting the
-IIs body does not add a separate ipsilateral extension workflow. Independent reversible cover controls
+The IIs body accepts separate ipsilateral and contralateral extensions. Both
+must be deployed before the ideal-seal contrast model excludes the sac; the II
+body needs only its contralateral extension. Overlap follows the accepted parent
+lumen, constraining the child's cloth and sewn wire while free distal rings
+expand against the native vessel. Independent reversible cover controls
 are a simulation feature, not a reproduction of the device release interlocks. Partial
-release has fabric contact but does not remodel flow until components are fully
-released and connected. The bare suprarenal struts have no independent rod-contact
+release remodels flow at the exposed cloth frontier. Flow, contacts and contrast
+display use the accepted cloth geometry. Pruning an occluded branch also closes
+its blind upstream stump, preventing indefinite iodine retention in a perfused
+cell without an outlet. The bare suprarenal struts have no independent rod-contact
 model, and radial deployment is not a bidirectional elastic shell simulation. Endoleaks and collateral flow are not modelled.
 
 Apposed fabric has a reduced local indentation response for exterior guidewires
@@ -283,6 +320,11 @@ atomically instead of being silently projected through the wall.
 
 Run `npm run test:stentgraft` for both-access deployment, docking, wall containment,
 simulation-clock and implant-persistence checks against both anatomy assets.
+`node scripts/benchmark-stent-graft-release.mjs [checkout]` measures device updates
+and contrast snapshots during release (excluding the rod solver and GPU). The
+partial contrast surface reuses the sewn Y topology instead of Boolean-unioning
+three capped tubes on every refresh. The flow-divider button has a separate
+radiopaque projection, attached to the same moving fabric as the stent rings.
 
 ### Anatomy variants
 
@@ -567,7 +609,16 @@ npm run test:guidewire:mechanics
 npm run test:catheter:mechanics
 npm run benchmark:kirchhoff
 npm run benchmark:collision
+npm run benchmark:long-tools -- /tmp/long-tool-physics.json
 ```
+
+The long-tool benchmark replays three captured states with a 600 mm guidewire
+and catheters initially inserted up to 491.4 mm. Each repeat advances by the
+recorded insertion delta for eight consecutive steps; pass `--hold` after the
+output path to hold the first target for the remaining steps. It excludes loading
+and checkpoint capture from timings, warms each case separately, and records
+complete physical-state hashes, convergence, mean/median/p95 CPU step times.
+These timings do not include browser rendering or measure interactive FPS.
 
 ### Dwa dostępy udowe
 

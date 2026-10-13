@@ -1,0 +1,27 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Ruch tkanek w RTG</title>
+<style>body{margin:0;background:#101820;color:#e8edf1;font:15px system-ui}header{padding:16px 24px;display:flex;gap:18px;align-items:center}h1{font-size:20px;margin:0}button,input{accent-color:#53c6c1}canvas{display:block;width:100%;height:calc(100vh - 110px)}#status{margin:8px 24px}label{white-space:nowrap}</style>
+<header><h1>Ruch tkanek w RTG</h1><button id="play">Pauza</button><label>Czas <input id="time" type="range" min="0" max="12" step=".01" value="0"></label><output id="clock">0.00 s</output><label>Projekcja <select id="angle"><option value="0">AP</option><option value="30">LAO 30°</option><option value="90">Boczna</option></select></label></header><p id="status">Sprawdzanie projekcji…</p>
+<script type="module">
+import * as THREE from 'three';
+import {createPatientSoftTissue} from '../src/imaging/patientSoftTissue.js';
+import {applyAnteriorCArmPose} from '../src/carmPose.js';
+const tissue=createPatientSoftTissue(),renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(1);document.body.append(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(45,1,1,2000),pivot=new THREE.Vector3(0,-280,0);
+const target=new THREE.WebGLRenderTarget(512,512,{type:THREE.HalfFloatType,depthBuffer:false});
+const post=new THREE.Scene(),postCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const material=new THREE.ShaderMaterial({uniforms:{map:{value:target.texture}},vertexShader:'varying vec2 uv0;void main(){uv0=uv;gl_Position=vec4(position,1.0);}',fragmentShader:'uniform sampler2D map;varying vec2 uv0;void main(){vec2 p=texture2D(map,uv0).rg;float g=.78*exp(-max(0.,p.r-p.g));gl_FragColor=vec4(vec3(g),1.);}'});
+post.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));
+function resize(){const w=innerWidth,h=innerHeight-110;renderer.setSize(w,h);target.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+let time=0,playing=true,previous=performance.now();
+function acquire(t){tissue.update(t,{respiratoryRate:14,cardiacPhase:(t*75/60)%1});applyAnteriorCArmPose(camera,pivot,780,+document.querySelector('#angle').value*Math.PI/180,0,0);renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(tissue.scene,camera);renderer.setRenderTarget(null);renderer.render(post,postCamera);}
+// GPU smoke check: finite, positive optical depth and a moving image.
+const pixels=new Uint16Array(target.width*target.height*4);acquire(0);renderer.readRenderTargetPixels(target,0,0,target.width,target.height,pixels);
+const initial=Array.from(pixels,x=>THREE.DataUtils.fromHalfFloat(x));acquire(.2);renderer.readRenderTargetPixels(target,0,0,target.width,target.height,pixels);
+const peak=initial.reduce((peak,x,i)=>i%4===0?Math.max(peak,x):peak,0);let changed=0;for(let i=0;i<pixels.length;i+=4)if(Math.abs(initial[i]-THREE.DataUtils.fromHalfFloat(pixels[i]))>.002)changed++;
+document.querySelector('#status').textContent=`${initial.every(Number.isFinite)&&peak>.1&&changed>20?'PASS':'FAIL'} · projekcja GPU · maks. tłumienie ${peak.toFixed(3)} · ruch zmienia ${changed} pikseli. Model ilustracyjny tkanek miękkich.`;
+document.querySelector('#play').onclick=()=>{playing=!playing;document.querySelector('#play').textContent=playing?'Pauza':'Odtwórz';};
+document.querySelector('#time').oninput=e=>{playing=false;time=+e.target.value;document.querySelector('#play').textContent='Odtwórz';};
+function frame(now){if(playing)time=(time+Math.max(0,Math.min(.1,(now-previous)/1000)))%12;previous=now;document.querySelector('#time').value=time;document.querySelector('#clock').textContent=`${time.toFixed(2)} s`;acquire(time);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+</script></html>

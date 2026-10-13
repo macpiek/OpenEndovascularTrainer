@@ -60,3 +60,20 @@ test('live deployment exposes a cached contrast snapshot before full release, us
   assert.notEqual(system.getContrastSurface(.1),s);
  }finally{system.dispose();}
 });
+
+test('partially exposed bifurcation keeps a closed sewn Y volume with only its three real portals',()=>{
+ const {system,device:d}=previewFixture();let surface;
+ try {
+  for(let i=0;i<160;i++)system.updateAccess('right',.05,null,{deviceId:d.id,release:'sheath'});
+  surface=createContrastReleaseSurface([d],77);
+  assert.equal(surface.parts.length,3);assert.equal(surface.portals.length,3);
+  const geometry=surface.solid,indices=geometry.index.array,edges=new Map();
+  for(let i=0;i<indices.length;i+=3)for(let j=0;j<3;j++) {
+   const a=indices[i+j],b=indices[i+(j+1)%3],key=Math.min(a,b)+':'+Math.max(a,b);
+   edges.set(key,(edges.get(key)??0)+1);
+  }
+  assert.ok([...edges.values()].every(count=>count===2),'stitched wall plus portal caps must be watertight');
+  assert.ok(surface.openGates.length>0);
+  for(const path of surface.paths)assert.ok(path.positions.every(Number.isFinite));
+ }finally{surface?.dispose();system.dispose();}
+});

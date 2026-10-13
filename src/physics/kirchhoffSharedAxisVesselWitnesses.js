@@ -151,18 +151,21 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
             let visited=0;
             const visit=(contact,localT)=>{
                 visited++;
-                if(insideProofs){
+                const negativeMeshContact=contact.source==='sparse-sdf-bvh'&&Number.isFinite(contact.signedDistance)&&contact.signedDistance<0;
+                if(insideProofs||(certificate&&negativeMeshContact)){
                     signPoint[0]=(1-localT)*x[0]+localT*x[1];signPoint[1]=(1-localT)*y[0]+localT*y[1];signPoint[2]=(1-localT)*z[0]+localT*z[1];
                     const site=coordinateA+(coordinateB-coordinateA)*(start+(end-start)*localT);
                     // Mesh parity classifies wall material, not its lumen. A
-                    // negative cold SDF sign may be replaced only by a local
-                    // path from a known interior point that crosses no wall.
-                    if(contact.signedDistance<0&&insideProofs.contains(site,signPoint)){
+                    // changed grid can inherit a certified sample's empty ball
+                    // even when whole-grid lookup misses. This repairs only the
+                    // sign; the exact gap still discovers capsule-wall contact.
+                    // Realtime mode may additionally prove a wall-free path.
+                    if(negativeMeshContact&&((certificate&&clearance.containsInsidePoint(signPoint,descriptor.geometryToken))||insideProofs?.contains(site,signPoint))){
                         contact.signedDistance=-contact.signedDistance;
                         contact.signedGap=contact.signedDistance-radius;contact.inside=true;
                     }
                     if(contact.source==='sparse-sdf-bvh'&&contact.signedDistance>0&&contact.inside)
-                        insideProofs.remember(site,signPoint,contact.signedDistance);
+                        insideProofs?.remember(site,signPoint,contact.signedDistance);
                 }
                 certificate?.visit(contact,localT);
                 if(contact.signedGap<.5) {
@@ -218,6 +221,16 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
     sample.vesselField=field;
     sample.sheathLength=sheathLength;
     sample.insideProofs=insideProofs;
+    sample.forkDiscovery=()=>{
+        // Rod candidates must not share mutable discovery history with the
+        // accepted pose. Copy certificates only; the immutable mesh stays shared.
+        const next=createSharedAxisVesselDiscovery(field,sheathLength,{allSamples,queryReuse,indexedContacts,reuseContactBuffers,
+            retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts});
+        const geometryToken=field.fallbackGeometry?.boundsTree;
+        next.discoveryCache.restore(clearance.capture(geometryToken),geometryToken);
+        if(insideProofs)next.insideProofs.restore(insideProofs.capture());
+        return next;
+    };
     return sample;
 }
 

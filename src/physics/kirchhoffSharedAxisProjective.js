@@ -18,7 +18,7 @@ const readQ=(b,e)=>({x:b.orientationX[e],y:b.orientationY[e],z:b.orientationZ[e]
  * constitutive model. Contact geometry discovery can rebuild the factor.
  * Coulomb slip uses a bounded positional return, not the Newton certificate.
  */
-export function* iterateSharedAxisProjective(s,dt,{projective={},feedById={}}={}) {
+export function* iterateSharedAxisProjective(s,dt,{projective={},feedById={},bloodFlow=null}={}) {
     const o={...PROJECTIVE_ROD_DEFAULTS,...projective};
     if(!Number.isInteger(o.iterations)||o.iterations<1||Object.values(o).some(v=>!Number.isFinite(v)||v<=0))throw new RangeError('Invalid PD options');
     const incoming=captureSharedAxisNative(s),previous={velocities:s.velocities,angularVelocities:s.angularVelocities,
@@ -26,7 +26,7 @@ export function* iterateSharedAxisProjective(s,dt,{projective={},feedById={}}={}
     const started=performance.now(),timings={assemblyMs:0,linearMs:0,frictionMs:0,projectionMs:0};
     let committed=false,iterations=0,factorizations=0,backtracks=0,rows=[],change=Infinity,maxShear=0;
     try {
-        prepareSharedAxisDynamicStep(s,dt);
+        prepareSharedAxisDynamicStep(s,dt,bloodFlow);
         const initial=s.dynamicStep,variables=[],nodes=[],frames=[],stretches=[],terms=[],fixed=new Map(),contacts=new Map();
         const term=(ids,coefficients,weight,target=[0,0,0])=>{const t={ids,coefficients,weight,target};terms.push(t);return t;};
         const frameIds=s.materials.map(()=>[]);

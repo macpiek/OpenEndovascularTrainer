@@ -1,0 +1,80 @@
+{
+  "replay": "tests/fixtures/shared-axis/wire-330-motion-block.json.gz",
+  "anatomy": "infrarenal-aneurysm",
+  "wireInsertionMm": 330,
+  "diagnosis": "A changed distal sampling grid loses the existing inside certificate. The cold sparse SDF/BVH classification rejects both feed directions before iteration, while holding position converges.",
+  "fix": "A remeshed point can inherit a certified discrete sample's empty ball on the same BVH. Only the inside sign is repaired; exact capsule gaps and contact constraints remain active. Points between uncovered samples or beyond the certified clearance still require ordinary classification.",
+  "validation": {
+    "replayTest": "tests/kirchhoffSharedAxisRemeshedInside.test.js",
+    "acceptedConsecutiveSteps": 54,
+    "directions": ["withdraw then advance", "advance then withdraw"],
+    "maximumIterationsPerStep": 10,
+    "maximumPenetrationMm": 8.038014698286133e-13,
+    "browserWireInsertionCm": [30.6, 35.3, 31.8, 36.2],
+    "browserResult": "Forward, backward and forward again across 33 cm; no latched motion failure. Simulation left running with wire at 36.2 cm after the development reload.",
+    "focusedTests": {"total": 110, "passed": 107, "failed": 3},
+    "preexistingFailuresVerifiedWithoutFix": [
+      "kirchhoffSharedAxisCertifiedSamples: stored replay mesh identity differs from current anatomy",
+      "kirchhoffSharedAxisClosedRootFallback: stored replay mesh identity differs from current anatomy",
+      "kirchhoffSharedAxisSegmentContact: stored anatomical sample clearance no longer matches current geometry"
+    ],
+    "build": "passed"
+  },
+  "geometricEvidence": {
+    "movementMm": 0.09166666666667334,
+    "acceptedSampleMinimumClearanceMm": 0.4445000000000112,
+    "wallIntersection": false
+  },
+  "trials": [
+    {
+      "name": "hold",
+      "accepted": true,
+      "status": "converged",
+      "error": null,
+      "iterations": 4,
+      "ms": 75.81429200000002
+    },
+    {
+      "name": "withdraw",
+      "accepted": false,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "iterations": 0,
+      "ms": 57.86012500000015,
+      "outside": {
+        "edge": 73,
+        "coordinate": 329.9083333333326,
+        "point": [
+          18.588981742845874,
+          -162.42617386172589,
+          -20.016481133642603
+        ],
+        "signedDistance": -0.39486279295585297,
+        "radius": 0.4445,
+        "face": 688614,
+        "source": "sparse-sdf-bvh"
+      }
+    },
+    {
+      "name": "advance",
+      "accepted": false,
+      "status": "unsupported-direction",
+      "error": "Shared axis crossed the vessel surface",
+      "iterations": 0,
+      "ms": 23.06833299999971,
+      "outside": {
+        "edge": 73,
+        "coordinate": 330.09166666666596,
+        "point": [
+          18.655613640195128,
+          -162.31954120849235,
+          -20.149900692295443
+        ],
+        "signedDistance": -0.47224931418972094,
+        "radius": 0.4445,
+        "face": 688613,
+        "source": "sparse-sdf-bvh"
+      }
+    }
+  ]
+}

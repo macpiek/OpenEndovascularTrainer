@@ -37,6 +37,7 @@ uniform sampler2D catheterTexture;
 uniform sampler2D catheterMarkerTexture;
 uniform sampler2D sheathTexture;
 uniform sampler2D boneTexture;
+uniform sampler2D softTissueTexture;
 uniform sampler2D dsaMaskTexture;
 uniform sampler2D roadmapTexture;
 uniform sampler2D cineTexture;
@@ -213,7 +214,11 @@ float attenuationAt(vec2 uv, vec4 bonePaths, float corticalEdge) {
     // The accumulated visible frame creates detector persistence across the
     // full fluoroscopy image while current attenuation still leads the frame.
     float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
-    return max(0.0, bone + iodine + metal + catheter + catheterMarker + sheath + temporalTrace);
+    vec2 tissue = texture2D(softTissueTexture, uv).rg;
+    // Gas reduces the surrounding tissue's attenuation, never the signal of
+    // a guidewire, contrast column or bone projected in front of it.
+    float softTissue = max(0.0, tissue.r - tissue.g);
+    return max(0.0, softTissue + bone + iodine + metal + catheter + catheterMarker + sheath + temporalTrace);
 }
 
 float vignetteField(vec2 uv) {

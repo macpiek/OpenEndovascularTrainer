@@ -7,12 +7,14 @@ import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js'
 const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
 const load=name=>JSON.parse(readFileSync(new URL(`./fixtures/shared-axis/${name}.json`,import.meta.url)));
 
-for(const name of ['anatomy-berenstein-feed-138.67-live-cycle','anatomy-pigtail-wire-withdraw-200.27-incoming'])
+for(const name of ['anatomy-berenstein-feed-138.67-live-cycle','anatomy-pigtail-wire-withdraw-200.27-incoming','anatomy-berenstein-feed-312.87-projection','anatomy-berenstein-feed-492.27-stagnation'])
 test(`WASM linear packing and certificates preserve every direction and complete physical output: ${name}`,()=>{
     const fixture=load(name),req=fixture.stepRequest,outputs=[];
     for(const wasmLinearAssembly of [false,true]) {
         const input=restoreSharedAxisReplay(fixture,anatomy.field),before=captureSharedAxisReplay(input,fixture.sheath),trace=[];
-        const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,wasmLinearAssembly,
+        const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,
+            ...(/312\.87|492\.27/.test(name)?{coupledFrictionNewton:true,velocityPredictor:1,zeroDualStart:true}:{}),
+            promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,wasmLinearAssembly,
             observeTrial:e=>{
                 if(e.kind==='direction') {
                     assert.equal(e.state.chain.hessianValid,true,'Each Newton/GN solve needs a valid full matrix');

@@ -355,7 +355,9 @@ export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ??
     if (tangentMode !== 'gauss-newton') energy = assembleSharedAxisMaterialTangent(s,withTangent,promote?{reuse:promotion.hinges}:capture?{capture:promotion.hinges}:null,wasmMaterial,reuseMaterialScratch);
     else energy = assembleSharedAxisGaussNewton(s,withTangent);
     energy+=assembleSharedAxisInertia(s,withTangent);
-    for(const sample of s.wallSamples)if(sample.addPotential)energy+=sample.addPotential(s,withTangent);
+    // External potentials must use the same fallback tangent as the rods;
+    // an indefinite fabric/crown block otherwise defeats the descent fallback.
+    for(const sample of s.wallSamples)if(sample.addPotential)energy+=sample.addPotential(s,withTangent,tangentMode);
     if(s.cacheMechanicalAssembly&&withTangent) {
         s.mechanicalAssemblyCache={key:s.geometryKey,dynamicStep:s.dynamicStep,tangentMode,energy,
             gradient:Float64Array.from(g,(v,i)=>v+s.loads[i]),hessian:H.slice(),tangent:chain.tangent?.slice()??null};

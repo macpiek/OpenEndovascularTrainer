@@ -4,6 +4,8 @@ import {constrainSewnAssembly} from './stentGraftAssemblyConstraints.js';
 import {unchangedDeliveryPose} from './stentGraftDeliveryCache.js';
 import {buildGraftPart} from './stentGraftPart.js';
 import {graftMarkerLayout} from './stentGraftMarkers.js';
+import {graftDockingPort} from './stentGraftConnections.js';
+import {graftOverlapFit,graftLimbRoute,constrainGraftOverlap} from './stentGraftOverlap.js';
 import {graftOwnedBranches} from './stentGraftBranchContact.js';
 import {captureConfiguration,capturedRoot,captureLinks} from './stentGraftCapture.js';
 import {calibrateStentGrafts} from './stentGraftCalibration.js';
@@ -16,14 +18,14 @@ import {mainBodyModel,limbModel,LIMB_MODELS,LIMB_DISTAL_DIAMETERS,worldBodyDimen
 import {captureGraftPose,rotateGraftPose} from './stentGraftRotation.js';
 import {createFoldedGraftPreview,updateFoldedGraftPreview,disposeFoldedGraftPreview,setFoldedPreviewVisible} from './stentGraftFoldedPreview.js';
 import * as THREE from 'three';
-import {AORTIC_NECK,AORTIC_BIFURCATION,DevicePath,wireDevicePath,deliveryBodyPath,extendDeliveryPath,createAorticRoutes} from './stentGraftPaths.js';
+import {AORTIC_NECK,AORTIC_BIFURCATION,DevicePath,wireDevicePath,deliveryBodyPath,extendDeliveryPath,continueDeliveryOverWire,createAorticRoutes} from './stentGraftPaths.js';
 import {createFlexibleNoseGeometry,NOSECONE_LENGTH_MM,NOSECONE_BASE_RADIUS_MM} from './stentGraftNose.js';
 import {graftLumenSections} from './stentGraftLumenContact.js';
 import {preparePartialSurface,partialSurfaceSnapshot,updatePartialSurfacePose} from './stentGraftPartialSurface.js';
 import {createContrastReleaseSurface} from './stentGraftContrastSurface.js';
 import {StentGraftSurface} from './stentGraftSurface.js';
 import {StentGraftWallFit} from './stentGraftWallFit.js';
-import {initializeRelease,advanceRelease,partExposure,sewnRingExposure,deliveryNoseState,graftAttached,exposedGraftFaces} from './stentGraftDeployment.js';
+import {initializeRelease,advanceRelease,partExposure,sewnRingExposure,deliveryNoseState,graftAttached,deliveryRemovalBlocked,exposedGraftFaces} from './stentGraftDeployment.js';
 import {createScaffold,updateScaffold,createSuprarenalCrown,updateSuprarenalCrown,createOrientationMarker,createGateMarker} from './stentGraftScaffold.js';
 
 const fail=reason=>({ok:false,reason});
@@ -61,7 +63,9 @@ export class StentGraftSystem {
         // route so withdrawing the wire still permits delivery withdrawal.
         const path=physical?.points.length>=2?physical:
             wire.length>=device.position?wire:device.deliveryRenderPath??wire;
-        const next=extendDeliveryPath(path,tip);
+        const next=physical?.points.length>=2
+            ?continueDeliveryOverWire(physical,wire,tip+NOSECONE_LENGTH_MM*graftScale(device))
+            :extendDeliveryPath(path,tip);
         if(next.points.length>=2)device.deliveryRenderPath=next;
         return next;
     }
@@ -89,7 +93,11 @@ export class StentGraftSystem {
         access.message='System wybrany. Wsuwaj po prowadniku sterowaniem cewnika (D / A).';return success();
     }
     availableGate(side) {
-        return this.implants.find(i=>i.type==='body'&&i.side!==side&&i.deployment>=1&&!i.connectedLimbId)?.gate ?? null;
+        const body=this.implants.find(i=>i.type==='body'&&i.phase==='deployed');
+        if(!body)return null;
+        const index=body.side===side?1:2;
+        if(this.implants.some(d=>d.parentId===body.id&&(d.parentPartIndex??2)===index)||index===2&&body.connectedLimbId)return null;
+        return graftDockingPort(body,index,this.routes[side]);
     }
     setPosition(side,value) {
         const d=this.accesses[side].device;if(!d)return;
@@ -203,15 +211,18 @@ export class StentGraftSystem {
         } else {
             const gate=this.availableGate(side),route=this.routes[side];
             const connected=gate&&nose.distanceTo(gate.docking)<=10;
+            if(connected){this.wallFit=graftOverlapFit(this.wallFit,gate);d.wallFit=this.wallFit;}
             const points=connected&&!gate.freePlacement
-                ?route.section(gate.routeS,Math.max(0,gate.routeS-length),2)
+                ?graftLimbRoute(gate,route,length,nose)
                 :wire.section(d.position,Math.max(0,d.position-length),2);
-            points[0].copy(nose);
+            if(!connected)points[0].copy(nose);
             const part=this.buildPart(points,d.diameter*scale/2,d.distalDiameter*scale/2,null,t=>nominalPartRadius(d,0,t*length));
+            if(connected)part.overlapFit=this.wallFit;
             part.path=new DevicePath(part.points,part.points.map((_,i)=>length*i/(part.rows-1)));
             parts.push(part);
             d.parentId=connected?gate.parent.id:null;
-            if(connected)gate.parent.connectedLimbId=d.id;
+            d.parentPartIndex=connected?gate.index:null;
+            if(connected&&gate.index===2)gate.parent.connectedLimbId=d.id;
         }
         d.parts=parts;d.phase='deploying';d.deployment=0;
         if(d.type==='body')for(const part of parts.slice(1))part.sewnParent=parts[0];
@@ -249,8 +260,9 @@ export class StentGraftSystem {
     removeDelivery(side) {
         const access=this.accesses[side],d=access.device;
         if(!d)return success();
-        if(d.phase==='deploying')return fail('Poczekaj na zakończenie rozkładania.');
         if(d.position>.5){d.target=0;return fail('System jest wycofywany. Usuń go po osiągnięciu 0 cm.');}
+        if(deliveryRemovalBlocked(d))return fail('Uwolnij mocowanie i odsłoń implant przed zmianą narzędzia.');
+        d.deliveryRemoved=true;
         disposeFoldedGraftPreview(d);
         if(d.deliveryMesh){this.delivery.remove(d.deliveryMesh);d.deliveryMesh.geometry.dispose();}
         for(const key of ['noseMarker','noseBand','sheathMarker','rotationMarker'])if(d[key]){this.delivery.remove(d[key]);d[key].geometry.dispose();}
@@ -274,7 +286,12 @@ export class StentGraftSystem {
                 }
             }
         }
-        const access=this.accesses[side],d=access.device;if(!d||!(dt>0))return;
+        if(!(dt>0))return;
+        // An implanted component keeps settling after exchanging its delivery
+        // system, including when a new device uses the same access.
+        for(const implant of this.implants)if(implant.side===side&&implant.deliveryRemoved&&implant.phase==='deploying')
+            this.updateDeployment(implant,dt,null);
+        const access=this.accesses[side],d=access.device;if(!d)return;
         // Sample the catheter controls with the rod step; consume them only
         // after it commits. Rejected/suspended steps cannot advance delivery.
         const mechanical=command?.deviceId===d.id&&Number.isFinite(command.mechanicalPosition);
@@ -307,62 +324,66 @@ export class StentGraftSystem {
             } else d.graftRotation=d.deliveryRotation;
         }
         if(d.phase==='deployed')advanceRelease(d,dt,control);
-        if(d.phase==='deploying') {
-            advanceRelease(d,dt,control);
-            d.deliveryPath=this.getDeliveryPath(side);
-            // Once cloth leaves the cover, its release pose belongs to the
-            // implant. Re-sampling it from the rod creates a feedback loop:
-            // contact bends the rod, which bends the same contacting cloth.
-            // Keep both position AND frame; deriving frames across a moving
-            // covered/fixed exposed boundary would still twist released rings.
-            for(const part of d.parts){
-                const live=part.path.coordinates.map(s=>d.deliveryPath.sample(d.implantPosition-part.releaseOffset-s));
-                const frames=packedFrames(live,d.graftRotation??0);
-                part.foldedFrames??=packedFrames(part.folded,d.graftRotation??0);
-                for(let i=0;i<part.rows;i++)if((d.type==='limb'?(sewnRingExposure(part,part.path.coordinates[i],true)??part.exposure[i]):part.exposure[i])<=0) {
-                    if(part.folded[i].distanceToSquared(live[i])>1e-16||part.foldedFrames[i].u.distanceToSquared(frames[i].u)>1e-16)part.exposure[i]=-1;
-                    part.folded[i]=live[i];part.foldedFrames[i]=frames[i];
-                }
-                this.expandPart(part,d,dt);
+        if(d.phase==='deploying')this.updateDeployment(d,dt,control);
+    }
+    updateDeployment(d,dt,control) {
+        const side=d.side,access=this.accesses[side];
+        advanceRelease(d,dt,control);
+        if(!d.deliveryRemoved)d.deliveryPath=this.getDeliveryPath(side);
+        // Once cloth leaves the cover, its release pose belongs to the
+        // implant. Re-sampling it from the rod creates a feedback loop:
+        // contact bends the rod, which bends the same contacting cloth.
+        // Keep both position AND frame; deriving frames across a moving
+        // covered/fixed exposed boundary would still twist released rings.
+        for(const part of d.parts){
+            const live=part.path.coordinates.map(s=>d.deliveryPath.sample(d.implantPosition-part.releaseOffset-s));
+            const frames=packedFrames(live,d.graftRotation??0);
+            part.foldedFrames??=packedFrames(part.folded,d.graftRotation??0);
+            for(let i=0;i<part.rows;i++)if((d.type==='limb'?(sewnRingExposure(part,part.path.coordinates[i],true)??part.exposure[i]):part.exposure[i])<=0) {
+                if(part.folded[i].distanceToSquared(live[i])>1e-16||part.foldedFrames[i].u.distanceToSquared(frames[i].u)>1e-16)part.exposure[i]=-1;
+                part.folded[i]=live[i];part.foldedFrames[i]=frames[i];
             }
-            separateReleaseBranches(d);
-            constrainSewnAssembly(d);
-            continueGraftRelease(d,dt);
-            updateSewnSurface(d,this.fabric,this.fabricMaterial);
-            for(const part of d.parts)updateScaffold(part,{constrain:false});
-            if(d.crown)updateSuprarenalCrown(d);
-            // Collision faces and the owning lumen must follow the restrained
-            // fabric, not the unrestrained expansion target behind it.
-            const contactPoseKey=d.parts.map(part=>part.mesh.geometry.attributes.position.version).join('/');
-            if(contactPoseKey!==d.contactPoseKey) {
-                let changed=false;
-                for(const part of d.parts) {
-                    const firstCovered=part.exposure.findIndex(value=>value<=0),rows=firstCovered<0?part.rows:firstCovered;
-                    const values=(part.contactBasePositions??part.mesh.geometry.attributes.position.array).subarray(0,rows*part.sides*3);
-                    if(part.contactPosePositions?.length!==values.length||values.some((v,i)=>v!==part.contactPosePositions[i])) {
-                        part.contactPosePositions=values.slice();changed=true;
-                    }
-                }
-                if(changed){updatePartialSurfacePose(d,true);d.poseRevision=(d.poseRevision??0)+1;}
-                d.contactPoseKey=contactPoseKey;
-            }
-
-            if(d.deployment===1&&d.releaseStage==='complete'&&
-                (d.releaseMotionLimited||d.parts.some(part=>part.releaseRelaxing))) {
-                d.deployment=1-1e-6;d.releaseStage='expanding';
-            }
-            if(d.deployment===1&&d.releaseStage==='complete'){
-                d.phase='deployed';if(d.gate)d.gate.marker.visible=true;
-                access.message=d.type==='body'?'Korpus rozłożony. Otwarta bramka — dołącz nóżkę z przeciwnej koszulki.':
-                    d.parentId!==null?'Nóżka połączona. Kontrast płynie światłem stentgraftu.':'Nóżka rozłożona bez połączenia z korpusem.';
-                this.geometryRevision++;
-                this.surface=new StentGraftSurface(this.implants.filter(i=>i.phase==='deployed'),this.geometryRevision);
-                // Previous snapshots can still belong to a cooperative Newton step.
-                this.surfaces.push(this.surface);
-            }
-            this.refreshMechanicalSurface();
-            if(this.contactPatches.right.length||this.contactPatches.left.length)this.refreshContactIndentation();
+            this.expandPart(part,d,dt);
         }
+        separateReleaseBranches(d);
+        constrainSewnAssembly(d);
+        constrainGraftOverlap(d);
+        continueGraftRelease(d,dt);
+        updateSewnSurface(d,this.fabric,this.fabricMaterial);
+        for(const part of d.parts)updateScaffold(part,{constrain:false});
+        if(d.crown)updateSuprarenalCrown(d);
+        // Collision faces and the owning lumen must follow the restrained
+        // fabric, not the unrestrained expansion target behind it.
+        const contactPoseKey=d.parts.map(part=>part.mesh.geometry.attributes.position.version).join('/');
+        if(contactPoseKey!==d.contactPoseKey) {
+            let changed=false;
+            for(const part of d.parts) {
+                const firstCovered=part.exposure.findIndex(value=>value<=0),rows=firstCovered<0?part.rows:firstCovered;
+                const values=(part.contactBasePositions??part.mesh.geometry.attributes.position.array).subarray(0,rows*part.sides*3);
+                if(part.contactPosePositions?.length!==values.length||values.some((v,i)=>v!==part.contactPosePositions[i])) {
+                    part.contactPosePositions=values.slice();changed=true;
+                }
+            }
+            if(changed){updatePartialSurfacePose(d,true);d.poseRevision=(d.poseRevision??0)+1;}
+            d.contactPoseKey=contactPoseKey;
+        }
+
+        if(d.deployment===1&&d.releaseStage==='complete'&&
+            (d.releaseMotionLimited||d.parts.some(part=>part.releaseRelaxing))) {
+            d.deployment=1-1e-6;d.releaseStage='expanding';
+        }
+        if(d.deployment===1&&d.releaseStage==='complete'){
+            d.phase='deployed';if(d.gate)d.gate.marker.visible=true;
+            if(access.device===d)access.message=d.type==='body'?
+                d.modelId==='iis-103'?'Korpus IIs rozłożony. Dołącz nóżki z obu koszulek.':'Korpus rozłożony. Otwarta bramka — dołącz nóżkę z przeciwnej koszulki.':
+                d.parentId!==null?'Nóżka połączona z korpusem.':'Nóżka rozłożona bez połączenia z korpusem.';
+            this.geometryRevision++;
+            this.surface=new StentGraftSurface(this.implants.filter(i=>i.phase==='deployed'),this.geometryRevision);
+            // Previous snapshots can still belong to a cooperative Newton step.
+            this.surfaces.push(this.surface);
+        }
+        this.refreshMechanicalSurface();
+        if(this.contactPatches.right.length||this.contactPatches.left.length)this.refreshContactIndentation();
     }
 
     getContrastSurface(dt=0,active=true) {
@@ -391,6 +412,20 @@ export class StentGraftSystem {
             this.lumenSections[device.side].push(...graftLumenSections(device));
             this.ownedBranches[device.side].push(...graftOwnedBranches(device));
         }
+        // The withdrawing cover carries its own still-folded implant. It must
+        // continue colliding with other implants, but cannot be repelled by the
+        // lip of the graft emerging from inside it. The exposed core uses the
+        // complete fabric surface below, with ordinary finite-radius contact.
+        for(const cover of Object.values(this.deliveryCoverSurfaces??{}))
+            if(cover&&cover!==this.surface&&!this.surfaces.includes(cover))cover.geometry.dispose();
+        this.deliveryCoverSurfaces={};
+        for(const side of ['right','left']) {
+            const own=this.accesses[side].device;
+            if(!devices.includes(own))continue;
+            const others=devices.filter(device=>device!==own);
+            this.deliveryCoverSurfaces[side]=others.length?
+                partialSurfaceSnapshot(others,this.surface,this.geometryRevision+1,exposed):this.surface??null;
+        }
         const previous=this.mechanicalSurface;
         this.mechanicalSurface=devices.length?partialSurfaceSnapshot(devices,this.surface,++this.geometryRevision,exposed):this.surface;
         if(previous&&previous!==this.surface&&!this.surfaces.includes(previous))previous.geometry.dispose();
@@ -403,6 +438,7 @@ export class StentGraftSystem {
         const surface=this.mechanicalSurface??this.surface;
         return surface?{...surface,revision:`${surface.revision}/${this.contactRevisions[otherSide(side)]}/${this.implants.map(d=>d.deliveryWireReleased?1:0).join('')}`,contains:surface.contains?.bind(surface),lumenSections:this.lumenSections?.[side]??[],ownedBranches:this.ownedBranches?.[side]??[],
             otherContactPatches:this.contactPatches[otherSide(side)],
+            ...(Object.hasOwn(this.deliveryCoverSurfaces??{},side)?{coveredDeliverySurface:this.deliveryCoverSurfaces[side]}:{}),
             commitContactPatches:patches=>{
                 const signature=JSON.stringify(patches.map(p=>[...p.point,...p.normal,p.depth,p.width].map(v=>Math.round(v*1e4))));
                 if(signature===this.contactSignatures[side])return;
@@ -424,6 +460,7 @@ export class StentGraftSystem {
                 const index=i*part.sides+j;
                 point.fromArray(part.contactBasePositions,index*3);
                 displace(point);
+                device.wallFit.fitOverlap?.(point);
                 if(capture&&i===0&&patches.length&&point.distanceToSquared(new THREE.Vector3().fromArray(part.contactBasePositions,index*3))>1e-20)
                     point.copy(capturedRoot(point,capture.latch,capture.material.armLength));
                 if(positions.getX(index)!==Math.fround(point.x)||positions.getY(index)!==Math.fround(point.y)||positions.getZ(index)!==Math.fround(point.z)) {
@@ -494,6 +531,15 @@ export class StentGraftSystem {
     expandPart(part,device,dt=0) {
         part.releaseShapeChanged=false;
         const positions=part.mesh.geometry.attributes.position;
+        // Contact indentation is applied once, after release. Feeding its
+        // displaced render vertices back into expansion keeps an otherwise
+        // settled implant moving forever and rebuilds every collision snapshot.
+        if(part.contactBasePositions) {
+            if(positions.array.some((v,i)=>v!==part.contactBasePositions[i])) {
+                positions.array.set(part.contactBasePositions);
+                positions.needsUpdate=true;
+            }
+        }
         if(dt>0) {
             part.releasePreviousPositions??=new Float32Array(positions.array.length);
             part.releasePreviousPositions.set(positions.array);
@@ -553,7 +599,10 @@ export class StentGraftSystem {
             validation:d?.phase==='loaded'?this.validation(side):null,implants:this.implants};
     }
     dispose() {
+        for(const d of this.implants)d.wallFit?.dispose?.();
         this.contrastSurface?.dispose();
+        for(const cover of Object.values(this.deliveryCoverSurfaces??{}))
+            if(cover&&cover!==this.surface&&!this.surfaces.includes(cover))cover.geometry.dispose();
         if(this.mechanicalSurface&&!this.surfaces.includes(this.mechanicalSurface))this.mechanicalSurface.geometry.dispose();
         for(const surface of this.surfaces)surface.dispose();
         this.group.traverse(o=>{o.geometry?.dispose();disposeWire(o);if(o.isInstancedMesh)o.dispose();if(o.isLineSegments)o.material.dispose();});

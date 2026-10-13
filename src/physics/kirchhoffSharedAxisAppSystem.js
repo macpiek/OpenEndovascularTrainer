@@ -1,3 +1,4 @@
+import {captureBloodFlow} from './bloodFlowCoupling.js';
 import {createCapturePotential} from '../devices/stentGraftCapture.js';
 import {captureSharedAxisReplay} from './kirchhoffSharedAxisReplay.js';
 import {createSharedAxisContacts} from './kirchhoffSharedAxisContacts.js';
@@ -25,7 +26,7 @@ export function sampleSharedAxisPosition(s,x,out=[0,0,0]) {
  * A coroutine yields between global solves. Native render/measurement buffers
  * are published only after the complete requested timestep has been accepted.
  */
-export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,adaptiveMesh=null,reuseFrictionAssembly=false,wasmLinearAssembly=false,lazyBasisCoefficients=false,deferActiveBasis=false,earlyPredictorFallback=false,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
+export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()=>null,workSliceMs=4,adaptiveMesh=null,reuseFrictionAssembly=false,wasmLinearAssembly=true,lazyBasisCoefficients=false,deferActiveBasis=false,earlyPredictorFallback=false,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,retainDiscoveryCertificates=true,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,projectiveDynamics=false,pruneInactiveWitnesses=false,physicsOptions={liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true}}) {
     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
     modifiedNewton=modifiedNewton&&!projectiveDynamics;
     coupledFrictionNewton=coupledFrictionNewton&&!projectiveDynamics;
@@ -86,6 +87,11 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
                 maxBendAngle:Math.PI/4,adaptiveMesh:pending.adaptiveMesh, tools:tools.map(t=>({...profile(t),insertion:0}))});
             rotations=Object.fromEntries(tools.map(t=>[t.id,0]));pending.rotations={...rotations};diagnostics.initializations++;
         }
+        // Capture before the first yield. Neither a UI change nor a network
+        // advance can change the forcing of an in-flight/replayed timestep.
+        if(pending.flowNetwork)pending.physicsOptions={...pending.physicsOptions,
+            bloodFlow:captureBloodFlow(state,pending.flowNetwork,pending.sheathLength,Math.max(...tools.map(t=>t.insertion)))};
+        pending.flowNetwork=null;
         // Snapshot the budget for this entire cooperative step. A UI change
         // may arrive between yields and must only affect the following step.
         const surface=pending.graftSurface;
@@ -110,7 +116,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             state={...state,velocities:state.velocities.map(v=>v.map(()=>0)),
                 angularVelocities:Object.fromEntries(Object.entries(state.angularVelocities).map(([id,values])=>[id,values.map(v=>v.map(()=>0))]))};
             failedKey=null;failedResult=null;lastKey=null;sleepFrames=0;recoveryMode=true;
-            diagnostics.recoveries=(diagnostics.recoveries??0)+1;
+            diagnostics.recoveryPending=true;
             return true;
         },
         setAdaptiveShapeTolerance(shapeTolerance) {
@@ -147,11 +153,15 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             if(!world.contactField)return {accepted:false,dt,status:'geometry-not-ready'};
             if(!pending) {
                 const capture=structuredClone(world.readStentGraftCapture?.()??null);
-                const tools=readTools(),graftSurface=world.readStentGraftSurface?.(),key=JSON.stringify({capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                const tools=readTools(),graftSurface=world.readStentGraftSurface?.();
+                const sheath=structuredClone(readSheath()),xyz=p=>Array.isArray(p)?p:[p.x,p.y,p.z];
+                const sheathLength=Math.hypot(...xyz(sheath.end).map((v,k)=>v-xyz(sheath.start)[k]));
+                const flowNetwork=tools.some(t=>t.insertion>sheathLength)?readBloodFlow():null;
+                const key=JSON.stringify({bloodFlow:flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
                 if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
                 pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
-                    sheath:structuredClone(readSheath()),rotations:{...rotations},
+                    sheath,sheathLength,flowNetwork,rotations:{...rotations},
                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
             }
             const start=performance.now();
@@ -178,7 +188,10 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
                         return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};
                     }
                     failedKey=null;failedResult=null;
+                    if(recoveryMode)diagnostics.recoveries=(diagnostics.recoveries??0)+1;
+                    diagnostics.recoveryPending=false;
                     state=next.value.state;rotations=next.value.rotations;recoveryMode=false;
+                    diagnostics.last.bloodFlow=state.bloodFlowDiagnostics??null;
                     diagnostics.last.graftCapture=structuredClone(state.graftCaptureStats??null);
                     const speed=Math.max(0,...state.velocities.flat().map(Math.abs),...Object.values(state.angularVelocities).flat(2).map(v=>Math.abs(v)*60));
                     sleepFrames=key===lastKey&&speed<1&&(!projectiveDynamics||diagnostics.last.pd?.localGlobalConverged)?sleepFrames+1:0;lastKey=key;
@@ -192,7 +205,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,workSliceMs=4,ad
             pending.cpuMs+=performance.now()-start;diagnostics.pendingSlices++;return {accepted:false,pending:true,dt,status:'shared-axis-pending',diagnostics:{...diagnostics}};
         },
         reset() {
-            nextWorkSliceMs=null;recoveryMode=false;diagnostics.recoveries=0;
+            nextWorkSliceMs=null;recoveryMode=false;diagnostics.recoveries=0;diagnostics.recoveryPending=false;
             pending?.iterator.return();pending=null;state=null;rotations={};sleepFrames=0;lastKey=null;failedKey=null;failedResult=null;
             for(const body of publication.keys()){body.jointStateView=null;body.sharedAxisDiagnostics=null;}publication.clear();
             diagnostics.initializations=diagnostics.acceptedSteps=diagnostics.pendingSlices=diagnostics.failedSteps=0;diagnostics.last=null;diagnostics.mesh=null;
@@ -207,7 +220,11 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     const result=()=>({...last,...totals,timings,attempts});
         for(const subdivisions of [1,2,4,8]) {
-            let current=starting,currentRotations=startingRotations,failed=false;
+            // Feed copies the rod, but used to share discovery samplers. Give
+            // every attempt private history too: rejection/cancellation and
+            // even a failed publication leave the accepted checkpoint intact.
+            let current={...starting,wallSamples:(starting.wallSamples??[]).map(sample=>sample.forkDiscovery?.()??sample)},
+                currentRotations=startingRotations,failed=false;
             for(let index=1;index<=subdivisions;index++) {
                 const fraction=index/subdivisions;
                 const source={...current,materials:current.materials.map(m=>({...m,spec:{...m.spec,...profile(tools.find(t=>t.id===m.spec.id))}}))};

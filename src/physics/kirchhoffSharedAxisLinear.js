@@ -97,10 +97,15 @@ export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
         d.dofs.forEach(i => { width = Math.max(width, Math.abs(dual[r] - primal[i])); });
         d.extraForceDofs?.forEach(i => { width = Math.max(width, Math.abs(dual[r] - primal[i])); });
     });
-    const starts = Int32Array.from({ length: count }, (_, i) => Math.max(0, i - width));
-    const ends = Int32Array.from({ length: count }, (_, i) => Math.min(count - 1, i + width));
+    // This layout is rebuilt for changing contact sets. Fill all three band
+    // maps together; Array.from's per-entry callbacks and iterator machinery
+    // become expensive when long insertions add hundreds of unknowns.
+    const starts = new Int32Array(count), ends = new Int32Array(count), offsets = new Int32Array(count);
     let entries = 0;
-    const offsets = Int32Array.from(starts, (start, i) => { const offset = entries - start; entries += ends[i] - start + 1; return offset; });
+    for(let i=0;i<count;i++) {
+        const start=Math.max(0,i-width),end=Math.min(count-1,i+width);
+        starts[i]=start;ends[i]=end;offsets[i]=entries-start;entries+=end-start+1;
+    }
     const band = { starts, ends, offsets, entries, kl: width, ku: width };
     return { primal, dual, count, band, matrix: new Float64Array(entries), residual: new Float64Array(count),
         scales: new Float64Array(count), solution: new Float64Array(count), correction: new Float64Array(count), error: new Float64Array(count), fixed: new Uint8Array(count),

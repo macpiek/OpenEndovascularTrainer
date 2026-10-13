@@ -1,0 +1,28 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Nosecone — prowadzenie po prowadniku</title>
+<style>body{margin:24px;background:#101922;color:#e5edf5;font:16px system-ui}h1{font-size:24px}main{display:flex;gap:20px}figure{margin:0;flex:1}canvas{width:100%;max-width:460px}figcaption{padding:12px 0}p{color:#b9c9d5}</style>
+<h1>Nosecone na zakrzywionym prowadniku</h1>
+<p>Turkusowy: prowadnik. Fioletowy: system wprowadzający. Ta sama zatwierdzona pozycja trzonu w obu widokach.</p>
+<main></main><p id="result">Renderowanie…</p>
+<script type="module">
+import * as THREE from 'three';
+import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
+import {extendDeliveryPath} from '../src/devices/stentGraftPaths.js';
+import {deliveryNoseState} from '../src/devices/stentGraftDeployment.js';
+try {
+ for(const before of [true,false]) {
+  const {system,device:d}=previewFixture('right','body',false);
+  const nodes=Array.from({length:301},(_,s)=>s<=200?new THREE.Vector3(0,s,0):new THREE.Vector3(50*(1-Math.cos((s-200)/50)),200+50*Math.sin((s-200)/50),0));
+  const body={jointStateView:{coordinates:new Float64Array([0,200]),positions:new Float64Array([0,0,0,0,200,0])}};
+  system.updateAccess('right',1/60,{nodes,coordinate:i=>i,catheterMm:0,deliveryBody:body},{deviceId:d.id,mechanicalPosition:200});
+  if(before)system.getDeliveryPath=()=>extendDeliveryPath(system.committedSources.right.deliveryPath,deliveryNoseState(d).position);
+  system.refreshDelivery('right');
+  const scene=new THREE.Scene();scene.background=new THREE.Color('#162534');scene.add(system.group);
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(nodes),new THREE.LineBasicMaterial({color:'#2efce0',depthTest:false})));
+  const camera=new THREE.OrthographicCamera(-75,75,85,-85,.1,1000);camera.position.set(30,215,300);camera.lookAt(30,215,0);
+  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(460,520);renderer.render(scene,camera);
+  const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=before?'Przed: przedłużenie trzonu po prostej':'Po: nosecone podąża za prowadnikiem';figure.append(caption,renderer.domElement);document.querySelector('main').append(figure);
+  if(renderer.getContext().getError())throw Error('Błąd WebGL');
+ }
+ document.querySelector('#result').textContent='PASS: oba widoki wyrenderowane z zatwierdzonych danych solvera.';
+} catch(e){document.querySelector('#result').textContent='FAIL: '+e.message;throw e;}
+</script></html>

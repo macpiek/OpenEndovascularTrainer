@@ -16,10 +16,8 @@ export function restoreSharedAxisReplay(fixture,field) {
     let graftSampler,graftGeometry;
     if(fixture.graftContactSurface) {
         const graft=fixture.graftContactSurface;
-        graftGeometry=new BufferGeometry();graftGeometry.setAttribute('position',new Float32BufferAttribute(graft.positions,3));
-        if(graft.indices)graftGeometry.setIndex(graft.indices);
-        graftGeometry.boundsTree=new MeshBVH(graftGeometry);graftGeometry.computeBoundingBox();
-        graftSampler=createStentGraftContacts({geometry:graftGeometry,bounds:graftGeometry.boundingBox,revision:graft.revision,complianceApplied:graft.complianceApplied??false,contactPatches:graft.contactPatches??[],otherContactPatches:graft.otherContactPatches??[],lumenSections:graft.lumenSections??[],ownedBranches:graft.ownedBranches??[]},
+        const surface=restoreGraftSurface(graft);graftGeometry=surface.geometry;
+        graftSampler=createStentGraftContacts(surface,
             {coordinates:fixture.coordinates,positions:fixture.positions,origin:fixture.origin??[0,0,0]});
         if(graft.hasBaseRows)contacts.wallSamples.push(graftSampler);
     }
@@ -52,4 +50,17 @@ export function restoreSharedAxisReplay(fixture,field) {
     }
     if(fixture.graftCapture&&!fixture.graftCaptureBaseRows)s.wallSamples.push(createCapturePotential(fixture.graftCapture));
     return s;
+}
+
+function restoreGraftSurface(graft) {
+    const geometry=new BufferGeometry();geometry.setAttribute('position',new Float32BufferAttribute(graft.positions,3));
+    if(graft.indices)geometry.setIndex(graft.indices);
+    geometry.boundsTree=new MeshBVH(geometry);geometry.computeBoundingBox();
+    const surface={geometry,bounds:geometry.boundingBox,revision:graft.revision,complianceApplied:graft.complianceApplied??false,
+        contactPatches:graft.contactPatches??[],otherContactPatches:graft.otherContactPatches??[],lumenSections:graft.lumenSections??[],ownedBranches:graft.ownedBranches??[]};
+    if(Object.hasOwn(graft,'coveredDeliverySurface')) {
+        surface.coveredDeliverySurface=graft.coveredDeliverySurface?restoreGraftSurface(graft.coveredDeliverySurface):null;
+        if(surface.coveredDeliverySurface)geometry.addEventListener('dispose',()=>surface.coveredDeliverySurface.geometry.dispose());
+    }
+    return surface;
 }

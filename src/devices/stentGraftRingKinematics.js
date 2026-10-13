@@ -45,15 +45,35 @@ export function inextensibleRing(ring,sample) {
         for(let k=arm?1:0;k<=12;k++) {
             const t=k/12,base=start.clone().lerp(end,t);
             const p=sample(ring.center+ring.attachmentHeight*ringWave(arm+t,ring.proximal),(arm+t)/ring.sides*2*Math.PI);
-            bases.push(base);offsets.push(p.sub(base));
+            const inward=sample.inward?.(p),offset=p.sub(base);
+            // In an overlapping extension the outer graft is a hard stop.
+            // Store spare wire length as an inward bend between sewn crowns,
+            // rather than magnifying an outward arc through the parent cloth.
+            if(inward) {
+                const outward=-offset.dot(inward);
+                if(outward>0)offset.addScaledVector(inward,2*outward);
+            }
+            bases.push(base);offsets.push(offset);
         }
     }
+    const fitted=sample.fitPoint?new Float64Array(bases.length*3):null,point=new THREE.Vector3();
     const lengthAt=scale=>{
         let length=0;
-        for(let i=1;i<bases.length;i++)length+=Math.hypot(
-            bases[i].x-bases[i-1].x+scale*(offsets[i].x-offsets[i-1].x),
-            bases[i].y-bases[i-1].y+scale*(offsets[i].y-offsets[i-1].y),
-            bases[i].z-bases[i-1].z+scale*(offsets[i].z-offsets[i-1].z));
+        if(fitted) {
+            for(let i=0;i<bases.length;i++) {
+                point.copy(bases[i]).addScaledVector(offsets[i],scale);sample.fitPoint(point);point.toArray(fitted,i*3);
+                if(i){const k=i*3,x=fitted[k]-fitted[k-3],y=fitted[k+1]-fitted[k-2],z=fitted[k+2]-fitted[k-1];length+=Math.sqrt(x*x+y*y+z*z);}
+            }
+            return length;
+        }
+        for(let i=1;i<bases.length;i++) {
+            // Same bounded millimetre-scale Euclidean norm as the packed
+            // ring's Vector3.distanceTo, without variadic hypot overhead.
+            const x=bases[i].x-bases[i-1].x+scale*(offsets[i].x-offsets[i-1].x);
+            const y=bases[i].y-bases[i-1].y+scale*(offsets[i].y-offsets[i-1].y);
+            const z=bases[i].z-bases[i-1].z+scale*(offsets[i].z-offsets[i-1].z);
+            length+=Math.sqrt(x*x+y*y+z*z);
+        }
         return length;
     };
     let scale=ring.currentBendScale??1,length=lengthAt(scale);
@@ -68,7 +88,11 @@ export function inextensibleRing(ring,sample) {
         }
         else {scale=0;length=lowLength;}
     }
+    // The parent-wall constraint participates in the arc-length solve, rather
+    // than clipping an already solved wire and silently shortening its metal.
+    if(fitted)length=lengthAt(scale);
     ring.currentBendScale=scale;ring.currentHeight=ring.attachmentHeight;ring.lengthError=length/ring.restLength-1;
+    if(fitted)return bases.map((_,i)=>new THREE.Vector3().fromArray(fitted,i*3));
     return bases.map((base,i)=>base.addScaledVector(offsets[i],scale));
 }
 

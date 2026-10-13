@@ -1,3 +1,6 @@
+import {kirchhoffMaterialProfile} from '../physics/kirchhoffMaterialProfile.js';
+import {guidewireMaterialProfile} from '../physics/guidewireMaterialProfile.js';
+import {deliveryRemovalBlocked} from '../devices/stentGraftDeployment.js';
 import {createSolverFailurePanel} from './solverFailurePanel.js';
 import { PatientMonitor } from './patientMonitor.js';
 import { initCArmPreview, renderCArmPreview, cArmPreviewGroup, cArmPreviewGantry, cArmPreviewDetectorAssembly, cArmPreviewTable } from './carmPreview.js';
@@ -407,7 +410,7 @@ export function initUI(options) {
     updateSelectLock(
       catheterTypeSelect,
       catheterTypeStatusEl,
-      catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM || readCatheterDeliveryState?.()?.phase === 'deploying',
+      catheterLengthCm > TOOL_SELECTION_UNLOCK_EPSILON_CM || deliveryRemovalBlocked(readCatheterDeliveryState?.()),
       catheterLengthCm
     );
     updateAutoWithdrawButton(
@@ -431,9 +434,11 @@ export function initUI(options) {
     if(value!=='stentgraft')selectedCatheterType=value;
     catheterTypeSelect.value=value;
     catheterLengthTenths=-1;
+    updateRigidityReadouts();
   }
   guidewireTypeSelect?.addEventListener('change', e => {
     selectedGuidewireType = e.target.value;
+    updateRigidityReadouts();
   });
   guidewireAutoWithdrawButton?.addEventListener('click', () => {
     guidewireAutoWithdraw.toggle();
@@ -1085,6 +1090,27 @@ export function initUI(options) {
     dsaCineStopButton.blur();
   });
 
+  const rigidityFormat = new Intl.NumberFormat('pl-PL', {maximumFractionDigits: 1});
+  const rigidityOutputs = ['catheterShaftRigidity', 'catheterTipRigidity',
+    'guidewireShaftRigidity', 'guidewireTipRigidity'].map(id => document.getElementById(id));
+  function updateRigidityReadouts() {
+    // Read the same base material profiles as the solver, at the shaft and
+    // distal tip plateaus; the transition between them varies along the tool.
+    const catheter = kirchhoffMaterialProfile(selectedCatheterType === 'pigtail-calibrated'
+      ? 'pigtail' : selectedCatheterType);
+    const wire = kirchhoffMaterialProfile(selectedGuidewireType);
+    const wireShape = guidewireMaterialProfile(selectedGuidewireType);
+    const values = [
+      catheter.sample(catheter.naturalTipLengthMm + 8).EI1 * Number(catheterShaftStiffnessSlider?.value),
+      catheter.sample(0).EI1 * Number(catheterTipStiffnessSlider?.value),
+      wire.sample(wireShape.tipCoreLength + wireShape.tipTransitionLength).EI1 * Number(shaftStiffnessSlider?.value),
+      wire.sample(0).EI1 * Number(tipStiffnessSlider?.value)
+    ];
+    rigidityOutputs.forEach((output, i) => {
+      if (output) output.textContent = `EI: ${rigidityFormat.format(values[i])} j. modelu`;
+    });
+  }
+
   // Physics controls
   if (catheterShaftStiffnessSlider && catheterTipStiffnessSlider) {
     let shaftStiffnessScale = parseFloat(catheterShaftStiffnessSlider.value);
@@ -1100,6 +1126,7 @@ export function initUI(options) {
         catheterTipStiffnessValue.textContent =
           `${tipStiffnessScale.toFixed(2).replace('.', ',')}×`;
       }
+      updateRigidityReadouts();
       onCatheterStiffnessChange?.({
         shaftStiffnessScale,
         tipStiffnessScale
@@ -1133,6 +1160,7 @@ export function initUI(options) {
       shaftStiffnessScale = parseFloat(shaftStiffnessSlider.value);
       tipStiffnessScale = parseFloat(tipStiffnessSlider.value);
       updateStiffnessValues();
+      updateRigidityReadouts();
       onGuidewireStiffnessChange?.({
         shaftStiffnessScale,
         tipStiffnessScale
@@ -1213,6 +1241,7 @@ export function initUI(options) {
     guidewireTypeSelect.value = selectedGuidewireType;
     accessSliders.forEach((slider, i) => { if (slider) slider.value = state.sliders[i]; });
     accessOutputs.forEach((output, i) => { if (output) output.textContent = state.outputs[i]; });
+    updateRigidityReadouts();
   }
   function releaseToolInputs({preserveAutomaticWithdrawal=false}={}) {
     advance = guidewireRotation = catheterAdvance = catheterRotation = 0;
@@ -1703,7 +1732,7 @@ export function initUI(options) {
   let perfElapsed = 0;
   let perfFrames = 0;
   let perfPhysicsStepsStart = {};
-  function updatePerfStats(dtSeconds, completedPhysicsSteps) {
+  function updatePerfStats(dtSeconds, completedPhysicsSteps, simulationTimeSeconds) {
     if (!perfStatsEl) return;
     perfElapsed += dtSeconds;
     perfFrames++;
@@ -1714,13 +1743,13 @@ export function initUI(options) {
     const counts = typeof completedPhysicsSteps === 'number' ? {active:completedPhysicsSteps} : completedPhysicsSteps;
     const physicsHz = Object.entries(counts).map(([id, steps]) => {
       const hz = (Math.max(0, steps - (perfPhysicsStepsStart[id] ?? 0)) / Math.max(1e-6, perfElapsed)).toFixed(1);
-      return `${id === 'right' ? 'P: ' : id === 'left' ? 'L: ' : ''}${hz}`;
+      return `${id === 'right' ? 'P: ' : id === 'left' ? 'L: ' : id === 'simulation' ? 'wspólna: ' : ''}${hz}`;
     }).join(' / ');
     let mem = 'N/A';
     if (performance.memory) {
       mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
     }
-    perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz | Mem: ${mem}`;
+    perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz${Number.isFinite(simulationTimeSeconds) ? ` | Czas: ${simulationTimeSeconds.toFixed(2)} s` : ''} | Mem: ${mem}`;
     perfPhysicsStepsStart = {...counts};
     perfElapsed = 0;
     perfFrames = 0;

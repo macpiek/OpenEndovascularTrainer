@@ -111,7 +111,7 @@ for(const bodySide of ['right','left'])test(`${bodySide}: connecting a contralat
   assert.deepEqual(own.ownedBranches[0].positions,Array.from(limb.parts[0].mesh.geometry.attributes.position.array.slice(0,own.ownedBranches[0].positions.length)));
   assert.notDeepEqual(own.ownedBranches[0].positions,parent.ownedBranches[0].positions);
   system.updateAccess(side,100,null,{deviceId:limb.id,release:'sheath'});
-  assert.equal(limb.phase,'deployed');assert.equal(system.surface.sealed,true);
+  assert.equal(limb.phase,'deployed');assert.equal(system.surface.sealed,false,'IIs still has an unextended ipsilateral outlet');
   assert.equal(system.mechanicalSurfaceForAccess(side).ownedBranches.length,1,'connection and final release retain the extension wire');
   assert.equal(system.mechanicalSurfaceForAccess(bodySide).ownedBranches.length,1);
  }finally{system.dispose();}

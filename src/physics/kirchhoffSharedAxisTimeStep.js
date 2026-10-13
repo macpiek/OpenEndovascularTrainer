@@ -22,7 +22,7 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     if(!(Number.isFinite(tolerance)&&tolerance>0))throw new RangeError('Positive force tolerance required');
     s.wallCompliance=wallCompliance;s.primalCompliantContacts=options.primalCompliantContacts===true;
     s.cacheMechanicalAssembly=true;s.reuseTriangleKernel=options.reuseTriangleKernel===true;
-    prepareSharedAxisDynamicStep(s,dt);prepareSharedAxisWallFriction(s,{feedById,liveNormalLoad:options.liveWallNormalLoad===true,lightweightFriction:options.lightweightFriction===true});
+    prepareSharedAxisDynamicStep(s,dt,options.bloodFlow);prepareSharedAxisWallFriction(s,{feedById,liveNormalLoad:options.liveWallNormalLoad===true,lightweightFriction:options.lightweightFriction===true});
     let predictedInitialPose=false;
     // Warm start only the private pose. Inertia targets and the friction
     // reference were prepared from the incoming state and remain unchanged.

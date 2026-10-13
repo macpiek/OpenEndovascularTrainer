@@ -24,7 +24,7 @@ export function captureLinks(device) {
 // Projecting an elastic root onto the rigid arm's sphere eliminates its three
 // displacement unknowns. E = k/2 (|latch - restRoot| - armLength)^2. The arm
 // itself never strains: its reaction is transmitted to the delivery shaft.
-export function captureReaction(capture,latch) {
+export function captureReaction(capture,latch,tangentMode) {
     let energy=0;const gradient=[0,0,0],hessian=Array.from({length:3},()=>[0,0,0]),reactions=[];
     for(const root of capture.roots) {
         const delta=latch.map((v,k)=>v-root[k]),length=Math.hypot(...delta),n=delta.map(v=>v/Math.max(1e-9,length));
@@ -32,7 +32,7 @@ export function captureReaction(capture,latch) {
         energy+=.5*k*strain*strain;
         for(let a=0;a<3;a++) {
             gradient[a]+=k*strain*n[a];
-            for(let b=0;b<3;b++)hessian[a][b]+=k*(n[a]*n[b]+strain/Math.max(1e-9,length)*((a===b?1:0)-n[a]*n[b]));
+            for(let b=0;b<3;b++)hessian[a][b]+=k*(n[a]*n[b]+(tangentMode==='gauss-newton'?0:strain/Math.max(1e-9,length))*((a===b?1:0)-n[a]*n[b]));
         }
         reactions.push(n.map(v=>k*strain*v));
     }
@@ -41,14 +41,14 @@ export function captureReaction(capture,latch) {
 export function createCapturePotential(capture) {
     const sample=()=>({gap:1,jacobian:[0,0,0,0,0,0]});
     sample.sharedAxisGeometryOnly=true;sample.graftCapture=true;sample.captureLinks=capture;
-    sample.addPotential=(state,withTangent)=>{
+    sample.addPotential=(state,withTangent,tangentMode)=>{
         if(!capture)return 0;
         const catheter=state.materials.find(m=>m.spec.id==='catheter');if(!catheter)return 0;
         const s=catheter.spec.insertion;let e=0;
         while(e<state.coordinates.length-2&&state.coordinates[e+1]<s)e++;
         const t=(s-state.coordinates[e])/(state.coordinates[e+1]-state.coordinates[e]);
         const p=state.positions[e].map((v,k)=>v*(1-t)+state.positions[e+1][k]*t+state.origin[k]+capture.offset[k]);
-        const reaction=captureReaction(capture,p),{layout,chain}=state;
+        const reaction=captureReaction(capture,p,tangentMode),{layout,chain}=state;
         const dofs=[layout.positions[e],layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]),H=chain.tangent??chain.hessian,half=layout.band-1,width=2*half+1;
         for(let i=0;i<6;i++) {
             const wi=i<3?1-t:t;chain.gradient[dofs[i]]+=wi*reaction.gradient[i%3];

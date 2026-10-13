@@ -1,3 +1,4 @@
+import {applyBloodFlowToPrediction} from './bloodFlowCoupling.js';
 import { Quaternion } from 'three';
 import { quaternionExp } from './discreteKirchhoffRod.js';
 
@@ -39,7 +40,7 @@ export function sharedAxisRotationalInertia(previous,current,weight,withTangent=
     return {energy:.5*weight*x,torque:phi.map(v=>weight*v),jacobian};
 }
 
-export function prepareSharedAxisDynamicStep(s,dt) {
+export function prepareSharedAxisDynamicStep(s,dt,bloodFlow=null) {
     if(!(dt>0&&Number.isFinite(dt)))throw new RangeError('Positive dynamic timestep required');
     const decay=.98**(dt*120),positions=s.positions.map(p=>p.slice());
     const predicted=positions.map((p,i)=>p.map((v,k)=>v+dt*decay*(s.velocities?.[i]?.[k]??0)));
@@ -55,6 +56,7 @@ export function prepareSharedAxisDynamicStep(s,dt) {
         masses[e]+=(1-.5*fraction)*mass;masses[e+1]+=.5*fraction*mass;
     }
     s.dynamicStep={dt,positions,predicted,frames,masses};
+    applyBloodFlowToPrediction(s,s.dynamicStep,bloodFlow);
 }
 
 /** Implicit kinetic potential, on the SAME shared positions and independent
@@ -124,5 +126,7 @@ export function completeSharedAxisDynamicStep(s) {
         const length=Math.hypot(relative.x,relative.y,relative.z),scale=length>1e-12?2*Math.atan2(length,relative.w)/(dt*length):2/dt;
         return [relative.x*scale,relative.y*scale,relative.z*scale];
     })]));
+    const flow=s.dynamicStep.bloodFlow;
+    s.bloodFlowDiagnostics=flow?{time:flow.time,exposedLength:flow.exposedLength,maxSpeed:flow.maxSpeed}:null;
     s.dynamicStep=null;
 }

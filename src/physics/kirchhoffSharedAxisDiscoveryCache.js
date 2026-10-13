@@ -18,7 +18,7 @@ const validGrid = d => finitePoint(d.a) && finitePoint(d.b) && Number.isInteger(
 export function createSharedAxisDiscoveryCache({ capacity = 2048, retainOnAbort = false } = {}) {
     if (!Number.isInteger(capacity) || capacity < 1) throw new RangeError('Cache capacity must be a positive integer');
     const entries = new Map();
-    const stats = { lookups: 0, clearSkips: 0, insideProofs: 0, certificates: 0, rejectedCertificates: 0, evictions: 0 };
+    const stats = { lookups: 0, clearSkips: 0, insideProofs: 0, pointInsideProofs: 0, certificates: 0, rejectedCertificates: 0, evictions: 0 };
     return {
         stats,
         get size() { return entries.size; },
@@ -40,6 +40,31 @@ export function createSharedAxisDiscoveryCache({ capacity = 2048, retainOnAbort 
             entries.clear();for(const [key,d]of restored.slice(-capacity))entries.set(key,d);
         },
         invalidate(key) { entries.delete(key); },
+        /** Remeshing invalidates a whole-grid lookup, but not the empty balls
+         * around its certified samples. This proves only point membership;
+         * the new capsule still needs exact distances and wall constraints.
+         */
+        containsInsidePoint(point, geometryToken) {
+            if (!finitePoint(point) || geometryToken == null) return false;
+            const pointScale = Math.max(1, Math.abs(point[0]), Math.abs(point[1]), Math.abs(point[2]));
+            for (const old of entries.values()) {
+                if (old.geometryToken !== geometryToken) continue;
+                const dx = old.b[0] - old.a[0], dy = old.b[1] - old.a[1], dz = old.b[2] - old.a[2];
+                const px = point[0] - old.a[0], py = point[1] - old.a[1], pz = point[2] - old.a[2];
+                const lengthSquared = dx * dx + dy * dy + dz * dz;
+                const projected = lengthSquared > 0 ? Math.max(0, Math.min(1, (px * dx + py * dy + pz * dz) / lengthSquared)) : 0;
+                // Only discrete samples were certified. The continuous line
+                // between them could cross a wall when sample balls are small.
+                const t = Math.round(projected * old.sampleCount) / old.sampleCount;
+                const distance = Math.hypot(point[0] - ((1 - t) * old.a[0] + t * old.b[0]),
+                    point[1] - ((1 - t) * old.a[1] + t * old.b[1]), point[2] - ((1 - t) * old.a[2] + t * old.b[2]));
+                if (old.minimumDistance - distance > 128 * Number.EPSILON * Math.max(pointScale, old.scale)) {
+                    stats.pointInsideProofs++;
+                    return true;
+                }
+            }
+            return false;
+        },
         lookup(key, descriptor) {
             stats.lookups++;
             const old = entries.get(key), d = descriptor;

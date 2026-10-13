@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-12",
+  "scope": "Stent-graft neck inflow, bilateral IIs extensions, parent overlap containment, release CPU cost, flow-divider marker",
+  "benchmark": {
+    "command": "node scripts/benchmark-stent-graft-release.mjs [checkout]",
+    "description": "Three runs, each 210 committed 0.05 s device steps; statistics from the last 120 steps. Device update and contrast snapshot CPU only; rod Newton solve and GPU excluded. Baseline is the working tree at the start of this request.",
+    "before": [
+      {
+        "run": 0,
+        "steps": 120,
+        "updateMs": {
+          "mean": 9.327688133333334,
+          "p95": 22.020250000000033,
+          "max": 45.45566699999995
+        },
+        "contrastMs": {
+          "mean": 9.564058016666673,
+          "p95": 25.42445799999996,
+          "max": 39.51912500000026
+        },
+        "totalMs": {
+          "mean": 18.891746150000003,
+          "p95": 41.272083000000066,
+          "max": 68.65875000000005
+        },
+        "faces": 3950
+      },
+      {
+        "run": 1,
+        "steps": 120,
+        "updateMs": {
+          "mean": 7.169012433333356,
+          "p95": 11.545916999999918,
+          "max": 22.322041000000354
+        },
+        "contrastMs": {
+          "mean": 8.48804794166667,
+          "p95": 21.124958000000333,
+          "max": 30.333875000000262
+        },
+        "totalMs": {
+          "mean": 15.657060375000025,
+          "p95": 30.44524999999976,
+          "max": 38.87195799999972
+        },
+        "faces": 3950
+      },
+      {
+        "run": 2,
+        "steps": 120,
+        "updateMs": {
+          "mean": 6.620573933333336,
+          "p95": 9.383042000000387,
+          "max": 33.22662499999933
+        },
+        "contrastMs": {
+          "mean": 7.8936169999999874,
+          "p95": 20.15612499999952,
+          "max": 21.720749999999498
+        },
+        "totalMs": {
+          "mean": 14.514190933333323,
+          "p95": 28.403584000000592,
+          "max": 53.40074999999979
+        },
+        "faces": 3950
+      }
+    ],
+    "after": [
+      {
+        "run": 0,
+        "steps": 120,
+        "updateMs": {
+          "mean": 8.298089624999996,
+          "p95": 18.907459000000017,
+          "max": 38.98241600000006
+        },
+        "contrastMs": {
+          "mean": 1.419619824999993,
+          "p95": 3.915416999999934,
+          "max": 4.467375000000175
+        },
+        "totalMs": {
+          "mean": 9.71770944999999,
+          "p95": 22.32904100000019,
+          "max": 42.224915999999894
+        },
+        "faces": 3390
+      },
+      {
+        "run": 1,
+        "steps": 120,
+        "updateMs": {
+          "mean": 5.62151149166667,
+          "p95": 7.654750000000149,
+          "max": 13.688292000000274
+        },
+        "contrastMs": {
+          "mean": 1.2978580083333422,
+          "p95": 3.533374999999978,
+          "max": 4.459667000000081
+        },
+        "totalMs": {
+          "mean": 6.919369500000013,
+          "p95": 10.473500000000058,
+          "max": 13.692958999999973
+        },
+        "faces": 3390
+      },
+      {
+        "run": 2,
+        "steps": 120,
+        "updateMs": {
+          "mean": 7.008401099999973,
+          "p95": 11.778999999999996,
+          "max": 48.43120799999997
+        },
+        "contrastMs": {
+          "mean": 1.2129610916666782,
+          "p95": 3.2923329999998714,
+          "max": 3.5129580000002534
+        },
+        "totalMs": {
+          "mean": 8.221362191666651,
+          "p95": 11.784416999999848,
+          "max": 48.43637499999977
+        },
+        "faces": 3390
+      }
+    ],
+    "meanBefore": {
+      "updateMs": 7.7057581666666755,
+      "contrastMs": 8.648574319444444,
+      "totalMs": 16.35433248611112
+    },
+    "meanAfter": {
+      "updateMs": 6.976000738888879,
+      "contrastMs": 1.3101463083333378,
+      "totalMs": 8.286147047222217
+    },
+    "meanReductionPercent": {
+      "updateMs": 9.470287179976111,
+      "contrastMs": 84.8513031172345,
+      "totalMs": 49.33362731704758
+    }
+  },
+  "validation": {
+    "broadStentGraftSuite": {
+      "tests": 238,
+      "passed": 222,
+      "failed": 16,
+      "failuresAlsoKnownBeforeThisRequest": [
+        "captured left-access rejection recovers with fabric CCD enabled and continues advancing",
+        "owning circular lumen cannot suppress real cloth contact during pigtail withdrawal",
+        "captured 92.5 mm contralateral insertion continues with catalogue delivery radius and full collisions",
+        "left: freed gate springs open with a stationary sheath and enables only matching contacts",
+        "right: freed gate springs open with a stationary sheath and enables only matching contacts",
+        "right: suprarenal peaks stay captured until the latch releases, then snap open",
+        "left: suprarenal peaks stay captured until the latch releases, then snap open",
+        "right: ipsilateral rim springs open at sleeve clearance without extra withdrawal",
+        "left: ipsilateral rim springs open at sleeve clearance without extra withdrawal",
+        "stent-graft-bifurcation-contact: captured rejection recovers and permits continued withdrawal",
+        "stent-graft-lost-indentation: captured rejection recovers and permits continued withdrawal",
+        "legacy exterior snapshot already crossing the vessel is rejected atomically by finite-radius discovery",
+        "higher continuous rounded stent waves retain thin wire and close each ring",
+        "right: delivery system slides both ways inside the released ipsilateral limb with an adaptive mesh",
+        "left: delivery system slides both ways inside the released ipsilateral limb with an adaptive mesh",
+        "sparse centreline fallback cannot create a phantom wall in the aneurysm or collapse a released body"
+      ]
+    },
+    "focusedSuite": {
+      "tests": 58,
+      "passed": 58,
+      "failed": 0,
+      "coverage": [
+        "bilateral IIs extensions",
+        "native II contralateral extension (one additional passing test)",
+        "metal length and parent containment",
+        "stationary-sleeve expansion",
+        "oval neck inflow",
+        "blind-stump washout",
+        "partial sewn topology",
+        "flow conservation",
+        "markers",
+        "delivery threading"
+      ]
+    },
+    "build": {
+      "passed": true,
+      "warning": "Existing chunks exceed 500 kB"
+    },
+    "additionalIIExtensionTest": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "fullIIsConduit": {
+      "limbs": [
+        {
+          "side": "left",
+          "radiusMm": 5.372070439942526,
+          "clothCrossingMm": 2.0822654873944554e-06,
+          "metalCrossingMm": 7.15944357317005e-07
+        },
+        {
+          "side": "right",
+          "radiusMm": 4.8729442038653445,
+          "clothCrossingMm": 3.1651733461127954e-06,
+          "metalCrossingMm": 8.881784197001252e-16
+        }
+      ],
+      "remainingIodineMg": 0,
+      "outletIodineMg": 99.99999999999982
+    },
+    "coupledRelease": {
+      "steps": 660,
+      "maxReleaseSpeedMmS": 8.594596424353153,
+      "maxLateSpeedMmS": 1.2660916269850613,
+      "maxFactorizations": 7,
+      "passed": true
+    }
+  },
+  "sources": [
+    "https://www.accessdata.fda.gov/cdrh_docs/pdf10/P100021S063D.pdf"
+  ],
+  "limits": [
+    "Reduced geometric self-expansion and ideal sealing; not a validated nitinol shell/CFD model.",
+    "Pre-existing iodine outside a sealed graft is preserved, not deleted.",
+    "No live browser verification of the user session."
+  ]
+}

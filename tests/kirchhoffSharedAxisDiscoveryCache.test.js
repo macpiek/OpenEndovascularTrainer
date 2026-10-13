@@ -45,6 +45,23 @@ test('sample grid, spatial interval and surface identity must match; changed rad
     cache.invalidate('edge'); assert.equal(cache.lookup('edge', descriptor()).skip, false);
 });
 
+test('remeshed points inherit only discrete sample balls on the same surface', () => {
+    const cache = createSharedAxisDiscoveryCache(), d = descriptor();
+    certify(cache, d, () => .2);
+    assert.equal(cache.containsInsidePoint([.1, 0, 5.1], geometryToken), true, 'a new tip can inherit the old endpoint ball');
+    assert.equal(cache.containsInsidePoint([0, 0, 2.1], geometryToken), true, 'interior samples also certify nearby points');
+    assert.equal(cache.containsInsidePoint([0, 0, 2.5], geometryToken), false, 'the line between samples is not certified');
+    assert.equal(cache.containsInsidePoint([.2, 0, 2], geometryToken), false, 'touching the ball boundary cannot prove inside');
+    assert.equal(cache.containsInsidePoint([.21, 0, 2], geometryToken), false, 'crossing a wall at x=.2 remains rejected');
+    assert.equal(cache.containsInsidePoint([0, 0, 2], {}), false);
+    for (const point of [null, [], [NaN, 0, 0], [Infinity, 0, 0]])
+        assert.equal(cache.containsInsidePoint(point, geometryToken), false);
+    const restored = createSharedAxisDiscoveryCache(), nextToken = {};
+    restored.restore(cache.capture(geometryToken), nextToken);
+    assert.equal(restored.containsInsidePoint([.1, 0, 5.1], nextToken), true);
+    restored.clear(); assert.equal(restored.containsInsidePoint([0, 0, 2], nextToken), false);
+});
+
 test('winner-only, duplicate, shifted grid, outside, non-BVH and failed queries never publish certificates', () => {
     const d = descriptor(), badCases = [
         capture => capture.visit(contact(10), 0),
@@ -87,6 +104,8 @@ test('seeded independent endpoint motions preserve all affine-grid wall distance
             assert.ok(actual >= proof.lowerBound - 1e-12);
             if (proof.skip) assert.ok(actual - moved.radius > .5);
             if (proof.knownInside) assert.ok(actual > 0);
+            const point = moved.a.map((v, k) => (1 - t) * v + t * moved.b[k]);
+            if (cache.containsInsidePoint(point, geometryToken)) assert.ok(actual > 0, 'point evidence cannot cross any of the box walls');
         }
     }
     assert.ok(skips > 100); assert.ok(inside > skips);
@@ -168,6 +187,33 @@ test('discovery integration keeps cold, winner-only, non-mesh and interrupted qu
     assert.equal(f.field.calls.length, 4); assert.equal(f.field.calls.at(-1).knownInside, false);
 });
 
+test('remeshing repairs a cold inside-sign reversal without suppressing penetrating capsule witnesses', () => {
+    const field = {voxelSize: .25, fallbackGeometry: {boundsTree: {}}, reverse: false,
+        queryCapsuleSoA(x, y, z, r, ...args) {
+            const count = args[8], visitor = args[11];
+            let result;
+            for (let i = 0; i <= count; i++) {
+                const t = i / count, actual = 10 - ((1 - t) * x[0] + t * x[1]);
+                const distance = this.reverse ? -Math.abs(actual) : actual;
+                result = {...contact(distance), signedGap: distance - r[0], segmentT: t};
+                visitor(result, t);
+            }
+            return result;
+        }
+    };
+    const discover = createSharedAxisVesselDiscovery(field, 0, {retainDiscoveryCertificates: true});
+    const state = {origin: [4, 0, 0], definitions: [], layout: {positions: [0, 3]}};
+    const input = {state, edge: 0, a: [5, 0, 0], b: [5, 0, 5], coordinateA: 0, coordinateB: 5, radius: 1};
+    discover(input); field.reverse = true;
+    state.pendingVesselRows.clear();
+    assert.doesNotThrow(() => discover({...input, a: [5.1, 0, 0], b: [5.1, 0, 5.2], coordinateB: 5.2}));
+    assert.ok(discover.discoveryCache.stats.pointInsideProofs > 0);
+    assert.equal(state.pendingVesselRows.size, 7, 'every new near-wall sample still creates a contact constraint');
+    assert.throws(() => discover({...input, a: [6.1, 0, 0], b: [6.1, 0, 5.2], coordinateB: 5.2}), /crossed/);
+    field.fallbackGeometry.boundsTree = {};
+    assert.throws(() => discover(input), /crossed/, 'a different surface invalidates all inside evidence');
+});
+
 
 test('reference solver retains its original cache invalidation policy',()=>{
     const cache=createSharedAxisDiscoveryCache(),d=descriptor();certify(cache,d);
@@ -207,4 +253,16 @@ test('restoring numeric certificates validates inputs before replacing the curre
     assert.equal(restored.size,1);assert.equal(restored.lookup('edge',{...d,geometryToken:nextToken}).skip,false);
     assert.equal(restored.lookup('new',{...d,geometryToken:nextToken}).skip,true);
     assert.equal(restored.lookup('new',d).skip,false);
+});
+
+test('private discovery history cannot erase the accepted inside certificates',()=>{
+    const f=discoveryFixture({retainDiscoveryCertificates:false});f.sample(8.6);
+    const before=f.discover.captureDiscoveryState();
+    const candidate=f.discover.forkDiscovery();
+    candidate.discoveryCache.clear();
+    assert.deepEqual(f.discover.captureDiscoveryState(),before);
+    assert.equal(f.discover.discoveryCache.size,1);
+    const retry=f.discover.forkDiscovery();
+    assert.equal(retry.discoveryCache.size,1);
+    assert.notEqual(retry.discoveryCache,f.discover.discoveryCache);
 });

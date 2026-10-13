@@ -80,6 +80,29 @@ export function extendDeliveryPath(path,end) {
         [...path.coordinates,end]);
 }
 
+/** Keep the solved delivery shaft, then thread its flexible distal sleeve
+ * over the committed wire. The shaft ends before the nose; extrapolating it
+ * all the way to the nose tip would discard the wire's distal curvature.
+ * A short attachment blend absorbs any rod/wire lumen clearance at the join.
+ * Only material beyond the actual wire tip remains unsupported and straight.
+ */
+export function continueDeliveryOverWire(path,wire,end) {
+    if(path.points.length<2||wire.points.length<2||wire.length<=path.length)
+        return extendDeliveryPath(path,end);
+    const start=path.length,stop=Math.min(end,wire.length);
+    if(stop<=start)return path;
+    const points=[...path.points],coordinates=[...path.coordinates];
+    const offset=path.points.at(-1).clone().sub(wire.sample(start));
+    const blendLength=Math.min(12,stop-start);
+    const count=Math.max(1,Math.ceil(stop-start));
+    for(let i=1;i<=count;i++) {
+        const s=start+(stop-start)*i/count;
+        const t=Math.min(1,(s-start)/blendLength),weight=1-t*t*(3-2*t);
+        points.push(wire.sample(s).addScaledVector(offset,weight));coordinates.push(s);
+    }
+    return extendDeliveryPath(new DevicePath(points,coordinates),end);
+}
+
 export function createAorticRoutes(segments,sheaths) {
     const nodes=new Map();
     const key=p=>`${p.x.toFixed(4)},${p.y.toFixed(4)},${p.z.toFixed(4)}`;

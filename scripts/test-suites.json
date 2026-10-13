@@ -1,5 +1,6 @@
 {
   "default": [
+    ["node", "--test", "tests/bloodFlowCoupling.test.js"],
     ["node", "--check", "vite.config.js"],
     ["node", "--check", "scripts/run-browser-acceptance.mjs"],
     ["node", "--check", "scripts/run-safari-acceptance.mjs"],
@@ -52,6 +53,7 @@
     ["node", "--check", "src/physics/collision/scalarMeshBvhClosestPoint.js"],
     ["node", "--check", "src/physics/collision/vesselContactField.js"],
     ["node", "tests/fixedStepTransaction.test.js"],
+    ["node", "--test", "tests/synchronizedStep.test.js", "tests/fluoroSimulationTiming.test.js"],
     ["node", "tests/runtimeMemoryLifetime.test.js"],
     ["node", "tests/skeletonGeometry.test.js"],
     ["node", "tests/dsaRoadmapState.test.js"],
@@ -72,6 +74,7 @@
     ["node", "tests/smoothTubeGeometry.test.js"],
     ["node", "tests/browserBenchmarkScenario.test.js"],
     ["node", "tests/patientMonitorTiming.test.js"],
+    ["node", "--test", "tests/patientSoftTissue.test.js"],
     ["node", "tests/rodState.test.js"],
     ["node", "tests/aortaPreprocess.test.js"],
     ["node", "tests/scalarMeshBvhClosestPoint.test.js"],
@@ -373,6 +376,7 @@
       "tests/kirchhoffSharedAxisMaterialScratchReplay.test.js",
       "tests/kirchhoffSharedAxisGaussNewton.test.js",
       "tests/kirchhoffSharedAxisDiscoveryCache.test.js",
+      "tests/kirchhoffSharedAxisRemeshedInside.test.js",
       "tests/kirchhoffSharedAxisInsideContinuation.test.js",
       "tests/kirchhoffSharedAxisCertifiedSamples.test.js",
       "tests/constraintStageProfile.test.js",
@@ -442,6 +446,11 @@
       "tests/stentGraftDeployment.test.js",
       "tests/stentGraftWallFit.test.js",
       "tests/stentGraftMechanics.test.js",
+      "tests/stentGraftContactStability.test.js",
+      "tests/stentGraftCoverContact.test.js",
+      "tests/stentGraftOverlap.test.js",
+      "tests/stentGraftCoupledRelease.test.js",
+      "tests/stentGraftBifurcationStabilityReplay.test.js",
       "tests/stentGraftNose.test.js",
       "tests/stentGraftRotation.test.js",
       "tests/stentGraftPoseTransport.test.js",
@@ -472,6 +481,7 @@
       "tests/stentGraftSewnTopology.test.js",
       "tests/stentGraftFabricMetric.test.js",
       "tests/stentGraftReleaseContinuity.test.js",
+      "tests/stentGraftReleaseTiming.test.js",
       "tests/stentGraftAcceptedGeometry.test.js"
     ]
   ]

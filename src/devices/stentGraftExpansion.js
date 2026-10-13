@@ -36,7 +36,7 @@ export function relaxGraftAxis(points,wallFit,oppositeBranch=null) {
     if(length<1e-8)return points;
     const start=points[0].clone(),end=points.at(-1).clone();
     const fit=(point,anchor)=>{
-        wallFit.fit(point,anchor,.7);
+        if(wallFit.fitAxis)wallFit.fitAxis(point,anchor);else wallFit.fit(point,anchor,.7);
         if(oppositeBranch) {
             const {path,radius}=oppositeBranch,nearest=path.nearest(point);
             const tangent=path.sample(Math.min(path.length,nearest.s+.5)).sub(path.sample(Math.max(0,nearest.s-.5))).normalize();
@@ -89,7 +89,7 @@ export function graftRingFrames(points) {
  */
 export function fitExpandedGraft(part,wallFit,frames=null) {
     const {rows,sides,radius,points,target}=part,count=rows*sides;
-    for(const p of points)wallFit.fit(p,p,.7);
+    for(const p of points)if(wallFit.fitAxis)wallFit.fitAxis(p,p);else wallFit.fit(p,p,.7);
     frames??=graftRingFrames(points);
     const caps=new Float64Array(count),directions=[];
     const restRadius=(i,j)=>part.restRadii?.[i*sides+j]??part.rowRadii?.[i]??radius;

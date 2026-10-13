@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {Ray,Vector3,DoubleSide} from 'three';
-import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
+import {loadHistoricalSharedAxisAnatomy} from './helpers/historicalSharedAxisAnatomy.js';
 import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 
 test('closed-root buckling recovers without thousands of unpredicted fallback iterations',async()=>{
-    const anatomy=await loadCoupledRuntimeAnatomy();
+    const anatomy=loadHistoricalSharedAxisAnatomy('closed');
     try {
         const fixture=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/shared-axis/closed-root-wire-840.40-friction-fallback.json.gz',import.meta.url))));
         const input=restoreSharedAxisReplay(fixture,anatomy.field),before=captureSharedAxisNative(input),q=fixture.stepRequest;
